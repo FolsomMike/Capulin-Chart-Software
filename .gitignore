@@ -1,0 +1,10 @@
+archive/
+build/
+dist/
+
+# ignore any jar file which might be in the executable directory
+*.jar
+
+#ignore any zip files in the executable directory
+*.zip
+
