@@ -287,8 +287,8 @@ lv.validateLicense();
 // MainWindow::loadMainStaticSettings
 //
 // Loads settings such as the data file paths, etc.
-// These values do not change from job to job and are never updated by the
-// program.
+// These values do not change from job to job and are only updated by the
+// program during setup.
 //
 
 private void loadMainStaticSettings()
@@ -301,23 +301,59 @@ try {configFile = new IniFile("Main Static Settings.ini");}
     catch(IOException e){return;}
 
 //use forward slashes to be compatible with various operating systems
+//note the extra space before "Primary" in the path name - this forces the
+//primary to be listed first alphabetically when viewed in a file navigator
 
 primaryDataPath = configFile.readString(
                                     "Main Configuration", "Primary Data Path",
-                                    "c:/IR Scan Data Files - Primary");
+                                    "c:/IR Scan Data Files -  Primary");
 
 //append a slash if the path does not already end with one
-if (!primaryDataPath.endsWith("/")) primaryDataPath += "/";
+if (!primaryDataPath.endsWith(File.separator))
+    primaryDataPath += File.separator;
 
 backupDataPath = configFile.readString(
                                     "Main Configuration", "Backup Data Path", 
                                     "c:/IR Scan Data Files - Backup");
 
-//append a backslash if the path does not already end with one
-if (!backupDataPath.endsWith("/")) backupDataPath += "/";
-
+//append a fwd/backslash if the path does not already end with one
+//use File.separator to apply the correct character for the operating system
+if (!backupDataPath.endsWith(File.separator))
+    backupDataPath += File.separator;
 
 }//end of MainWindow::loadMainStaticSettings
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainWindow::saveMainStaticSettings
+//
+// Saves settings such as the data file paths, etc.
+// These values do not change from job to job and are only updated by the
+// program during setup.
+//
+
+private void saveMainStaticSettings()
+{
+
+IniFile configFile = null;
+
+//if the ini file cannot be opened and loaded, exit without action
+try {configFile = new IniFile("Main Static Settings.ini");}
+    catch(IOException e){
+        System.err.println("Error opening: " + "Main Static Settings.ini");
+        return;
+        }
+
+configFile.writeString("Main Configuration", "Primary Data Path",
+                                                               primaryDataPath);
+
+configFile.writeString("Main Configuration", "Backup Data Path",
+                                                                backupDataPath);
+
+//force save
+configFile.save();
+
+}//end of MainWindow::saveMainStaticSettings
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -920,6 +956,9 @@ if ("Repair Job".equals(e.getActionCommand())) {
     return;
     }
 
+//this part handles setting up the system
+if ("Setup System".equals(e.getActionCommand())) {setupSystem(); return;}
+
 //this part handles renewing the license
 if ("Renew License".equals(e.getActionCommand())) {
     //asks user to enter a new license renewal code
@@ -1118,6 +1157,67 @@ public void logStatus()
 hardware.logStatus(logWindow.textArea);
 
 }//end of MainWindow::logStatus
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainWindow::setupSystem
+//
+// Prepares the system for use by creating necessary folders and any other
+// initialization required when the software is copied to a new computer.
+//
+
+public void setupSystem()
+{
+
+int n = JOptionPane.showConfirmDialog( mainFrame,
+    "This feature should only be used by a technician -"
+      + " do you want to continue?",
+    "Warning", JOptionPane.YES_NO_OPTION);
+
+if (n != JOptionPane.YES_OPTION) return; //bail out if user does not click yes
+
+//create and display a file chooser
+final JFileChooser fc = new JFileChooser();
+fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+int returnVal = fc.showOpenDialog(mainFrame);
+
+if (returnVal != JFileChooser.APPROVE_OPTION){
+    displayWarningMessage("Setup cancelled - nothing done.");
+    return;
+    }
+
+//selected file will actually be the selected directory because mode is
+//JFileChooser.DIRECTORIES_ONLY
+String targetDir = fc.getSelectedFile().toString();
+
+//create the primary data directory
+//note the extra space before "Primary" in the path name - this forces the
+//primary to be listed first alphabetically when viewed in a file navigator
+File primaryDir = new File (targetDir + "/IR Scan Data Files -  Primary");
+if (!primaryDir.mkdirs()){
+    displayErrorMessage("Could not create the primary data directory -"
+            + " no directories created.");
+    return;
+    }
+
+//create the backup data directory
+File backupDir = new File (targetDir + "/IR Scan Data Files - Backup");
+if (!backupDir.mkdirs()){
+    displayErrorMessage("Could not create the backup data directory -"
+            + " only the primary directory was created.");
+    return;
+    }
+
+//only save the new paths to the Main Static Settings.ini file if both folders
+//were successfully created
+//toString will return paths with / or \ separators depending on the system the
+//software is installed on - apply a separator the end as well
+primaryDataPath = primaryDir.toString() + File.separator;
+backupDataPath = backupDir.toString() + File.separator;
+
+saveMainStaticSettings();
+
+}//end of MainWindow::setupSystem
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1618,6 +1718,21 @@ JOptionPane.showMessageDialog(mainFrame, pMessage,
                                        "Info", JOptionPane.INFORMATION_MESSAGE);
 
 }//end of MainWindow::displayInfoMessage
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainWindow::displayWarningMessage
+//
+// Displays a warning dialog with message pMessage.
+//
+
+private void displayWarningMessage(String pMessage)
+{
+
+JOptionPane.showMessageDialog(mainFrame, pMessage,
+                                       "Warning", JOptionPane.WARNING_MESSAGE);
+
+}//end of MainWindow::displayWarningMessage
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

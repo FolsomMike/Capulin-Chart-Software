@@ -72,9 +72,9 @@ JCheckBoxMenuItem restartNewPieceAtLeftEdgeMenuCheck;
 //ButtonGroup languageGroup;
 //JRadioButtonMenuItem englishRadioButton, chineseRadioButton, spanishRadioButton;
 JMenu helpMenu;
-JMenuItem aboutMenuItem, monitorMenuItem, debuggerMenuItem, validateJobMenuItem;
+JMenuItem aboutMenuItem, monitorMenuItem, debuggerMenuItem, repairJobMenuItem;
+JMenuItem setupSystemMenuItem;
 JMenuItem renewalMenuItem, logMenuItem, statusMenuItem;
-
 
 public BufferedImage imageBuffer;
 
@@ -389,12 +389,20 @@ renewalMenuItem.addActionListener(pGlobals);
 helpMenu.add(renewalMenuItem);
 
 //option to validate and repair job files
-validateJobMenuItem = new JMenuItem("Repair Job");
-validateJobMenuItem.setMnemonic(KeyEvent.VK_J);
-validateJobMenuItem.setToolTipText("Repair Job Files");
-validateJobMenuItem.setActionCommand("Repair Job");
-validateJobMenuItem.addActionListener(pGlobals);
-helpMenu.add(validateJobMenuItem);
+repairJobMenuItem = new JMenuItem("Repair Job");
+repairJobMenuItem.setMnemonic(KeyEvent.VK_J);
+repairJobMenuItem.setToolTipText("Repair Job Files");
+repairJobMenuItem.setActionCommand("Repair Job");
+repairJobMenuItem.addActionListener(pGlobals);
+helpMenu.add(repairJobMenuItem);
+
+//option to setup the system
+setupSystemMenuItem = new JMenuItem("Setup System");
+setupSystemMenuItem.setMnemonic(KeyEvent.VK_S);
+setupSystemMenuItem.setToolTipText("Setup System");
+setupSystemMenuItem.setActionCommand("Setup System");
+setupSystemMenuItem.addActionListener(pGlobals);
+helpMenu.add(setupSystemMenuItem);
 
 //option to display the "About" window
 aboutMenuItem = new JMenuItem("About");

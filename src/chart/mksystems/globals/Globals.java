@@ -55,7 +55,7 @@ Link mainWindow;
 
 //Constants
 
-public static String SOFTWARE_VERSION = "1.91";
+public static String SOFTWARE_VERSION = "1.92";
 
 //This is the version of the format used to save the data for a segment which
 //holds data for an inspected piece.
@@ -325,6 +325,12 @@ if (source.getActionCommand().equalsIgnoreCase("Debugger")){
 //calls function in Main
 if (source.getActionCommand().equalsIgnoreCase("Repair Job")){
     actionListener.actionPerformed(new ActionEvent(this, 1, "Repair Job"));
+    return;
+    }
+
+//calls function in Main
+if (source.getActionCommand().equalsIgnoreCase("Setup System")){
+    actionListener.actionPerformed(new ActionEvent(this, 1, "Setup System"));
     return;
     }
 
