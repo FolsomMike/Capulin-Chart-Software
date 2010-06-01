@@ -690,16 +690,21 @@ return gates[pGate];
 // Calls the getNewData function for the specified gate.  See the gate
 // class for more info.
 //
-// If the channel is masked, then return false so its data won't be used.
+// Returns true if the channel On and Not Masked.  Returns false otherwise so
+// so its data won't be used.
 //
 
 public boolean getNewData(int pGate, HardwareVars hdwVs)
 {
 
-if (channelMasked || !channelOn)
-    return false;
-else
-    return gates[pGate].getNewData(hdwVs);
+if (channelOn && !channelMasked){
+    gates[pGate].getNewData(hdwVs);
+    return(true);
+    }
+else{
+    gates[pGate].getNewData(hdwVs);
+    return(false);
+    }
 
 }//end of Channel::getNewData
 //-----------------------------------------------------------------------------

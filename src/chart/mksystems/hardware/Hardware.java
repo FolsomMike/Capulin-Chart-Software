@@ -561,15 +561,14 @@ for (int ch = 0; ch < numberOfChannels; ch++){
 
     for (int g = 0; g < numberOfGates; g++){
 
-        //retrieve data for the gate - process it whether it is new data
-        //or old data - see note at top of this function
-        analogDriver.getNewData(ch, g, hdwVs);
+        //retrieve data for the gate
+        boolean channelActive = analogDriver.getNewData(ch, g, hdwVs);
 
         if (hdwVs.gatePtr.tracePtr != null)
             if (hdwVs.gatePtr.plotStyle == TraceHdwVars.SPAN)
-                collectAnalogDataMinAndMax(hdwVs.gatePtr);
+                collectAnalogDataMinAndMax(hdwVs.gatePtr, channelActive);
             else           
-                collectAnalogDataMinOrMax(hdwVs.gatePtr);
+                collectAnalogDataMinOrMax(hdwVs.gatePtr, channelActive);
 
         }// for (int g = 0; g < numberOfGates; g++)
 
@@ -589,8 +588,13 @@ for (int ch = 0; ch < numberOfChannels; ch++){
 // last data was collected, the new data will be compared with the data already
 // in the current array location and the worst case data will be kept.
 //
+// If pChannelActive is true, the data for the channel will be stored if it is
+// a new peak and the trace pointers moved.  If false, the data will be set
+// such that it cannot overwrite an existing peak so it will be hidden.  It
+// still overrides the default value so that the trace will be drawn.
+//
 
-public void collectAnalogDataMinOrMax(Gate gatePtr)
+public void collectAnalogDataMinOrMax(Gate gatePtr, boolean pChannelActive)
 {
         
 int nextIndex = gatePtr.tracePtr.nextEmptySlot;
@@ -600,10 +604,20 @@ boolean dataStored = false;
 //get the clock and data for this channel
 int clockPos = gatePtr.clockPos;
 int newData = gatePtr.dataPeak;
-        
+
+//if the channel is off or masked, set the newData value such that it will not
+//override any existing data and thus will be hidden except when it replaces
+//the default value in order to make the trace move
+if (!pChannelActive){
+    if (gatePtr.peakDirection == 0) //0 means higher data more severe
+        newData = Integer.MIN_VALUE;
+    else
+        newData = Integer.MAX_VALUE;
+    }
+
 //if the array value is still default, replace with the new data
 if (gatePtr.dBuffer1[nextIndex] == Integer.MAX_VALUE){
-    gatePtr.dBuffer1[nextIndex] = newData;             
+    gatePtr.dBuffer1[nextIndex] = newData;
     dataStored = true;
     }
 else{
@@ -618,7 +632,7 @@ else{
         if (newData > gatePtr.dBuffer1[nextIndex]){
             gatePtr.dBuffer1[nextIndex] = newData;
             dataStored = true;
-            }//if (newData >... 
+            }//if (newData >...
         }//gatePtr.peakDirection...
     else{
         //lower values are more severe - keep lowest value
@@ -629,7 +643,6 @@ else{
         }//else if (gatePtr.peakDirection...
     }//else if (gatePtr.dBuffer1[nextIndex]...
 
-        
 //check for threshold violations and store flags as necessary
 //this must be done in this thread because the flags are used to fire
 //the paint markers in real time and this thread is close to real time
@@ -688,8 +701,13 @@ gatePtr.tracePtr.nextSlot = gatePtr.tracePtr.nextEmptySlot;
 // last data was collected, the new data will be compared with the data already
 // in the current array location and the worst case data will be kept.
 //
+// If pChannelActive is true, the data for the channel will be stored if it is
+// a new peak and the trace pointers moved.  If false, the data will be set
+// such that it cannot overwrite an existing peak so it will be hidden.  It
+// still overrides the default value so that the trace will be drawn.
+//
 
-public void collectAnalogDataMinAndMax(Gate gatePtr)
+public void collectAnalogDataMinAndMax(Gate gatePtr, boolean pChannelActive)
 {
         
 int nextIndex = gatePtr.tracePtr.nextEmptySlot;
@@ -703,13 +721,21 @@ int clockPos = gatePtr.clockPos;
 int newMaxData = gatePtr.dataMaxPeak; //set by getChannelData
 int newMinData = gatePtr.dataMinPeak; //set by getChannelData
 
+//if the channel is off or masked, set the newData value such that it will not
+//override any existing data and thus will be hidden except when it replaces
+//the default value in order to make the trace move
+if (!pChannelActive){
+    newMaxData = Integer.MIN_VALUE;
+    newMinData = Integer.MAX_VALUE;
+    }
+
 //newMaxData stored in dBuffer, newMinData stored in dBuffer2
 
 //process the Max Data ----------------------------------------------------
 
 //if the array value is still default, replace with the new data
 if (gatePtr.dBuffer1[nextIndex] == Integer.MAX_VALUE){
-    gatePtr.dBuffer1[nextIndex] = newMaxData;             
+    gatePtr.dBuffer1[nextIndex] = newMaxData;
     dataStored = true;
     }
 else{
@@ -721,7 +747,7 @@ else{
     if (newMaxData > gatePtr.dBuffer1[nextIndex]){
         gatePtr.dBuffer1[nextIndex] = newMaxData;
         dataStored = true;
-        }//if (newMaxData >... 
+        }//if (newMaxData >...
 
     }//else if gatePtr.dBuffer1[nextIndex]
 
@@ -762,7 +788,7 @@ dataStored = false;
 //if the array value is still default, replace with the new data
 //(note that MAX_VALUE is still used as the default value for MinData buffer
 if (gatePtr.dBuffer2[nextIndex] == Integer.MAX_VALUE){
-    gatePtr.dBuffer2[nextIndex] = newMinData;             
+    gatePtr.dBuffer2[nextIndex] = newMinData;
     dataStored = true;
     }
 else{
@@ -774,7 +800,7 @@ else{
     if (newMinData < gatePtr.dBuffer2[nextIndex]){
         gatePtr.dBuffer2[nextIndex] = newMinData;
         dataStored = true;
-        }//if (newMinData <... 
+        }//if (newMinData <...
 
     }//else if (chInfo[i].dBuffer2...
 

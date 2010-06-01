@@ -181,20 +181,14 @@ newDataReady = true;
 // public member variables in this class.  The pointer gatePtr in hdwVs will be
 // set to point to this instance so those members can be accessed.
 //
-// The function returns true if the data was updated since the last time this
-// function was called.  It returns false if the data has not been changed:
-//   true = fresh data, false = old data
-//
 // Note: Any calculation in this function should only use a single peak data
 //  variable to avoid glitches when another thread is writing to the variable.
 //  Multiple calculations are okay, so long as each only depends on a single
 //  peak value.
 //
 
-public boolean getNewData(HardwareVars hdwVs)
+public void getNewData(HardwareVars hdwVs)
 {
-
-boolean newDataWasReady = newDataReady;
 
 newDataReady = false; // clear the flag until new data is available
 
@@ -214,9 +208,22 @@ if (isWallStartGate || isWallEndGate){
 
     }
 
-return newDataWasReady; //true = new data, false = previous data
-
 }//end of Gate::getNewData
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Gate::getDefaultData
+//
+// Returns whatever data is stored.  Use this when the channel is off or masked
+// to return a dummy value and set the necessary pointers in hdwVs.
+//
+
+public void getDefaultData(HardwareVars hdwVs)
+{
+
+hdwVs.gatePtr = this; // pass back a pointer to this instance
+
+}//end of Gate::getDefaultData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
