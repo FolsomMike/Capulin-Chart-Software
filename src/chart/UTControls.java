@@ -1440,11 +1440,6 @@ calculateGatePixelLocation();
 public void calculateGatePixelLocation()
 {
 
-//use shorter names
-
-int numberOfGates = currentChannel.getNumberOfGates();
-Gate gate;
-
 double uSPerPixel = currentChannel.uSPerPixel;
 int delayPix;
 
@@ -1465,12 +1460,26 @@ else
 //scan through the gates calculating the pixel locations of each setting
 //the pixel values are used by the display function to avoid having to waste
 //time recomputing them each time
-
+int numberOfGates = currentChannel.getNumberOfGates();
+Gate gate;
 for (int i=0; i < numberOfGates; i++){
 
     gate = currentChannel.getGate(i);
 
     gate.calculateGatePixelLocation(
+                    uSPerPixel, delayPix, oscopeCanvas.getHeight(), vertOffset);
+
+    }
+
+//calculate the pixel locations for the DAC gates
+int numberOfDACGates = currentChannel.getNumberOfDACGates();
+DACGate dacGate;
+
+for (int i=0; i < numberOfDACGates; i++){
+
+    dacGate = currentChannel.getDACGate(i);
+
+    dacGate.calculateGatePixelLocation(
                     uSPerPixel, delayPix, oscopeCanvas.getHeight(), vertOffset);
 
     }
@@ -1490,19 +1499,6 @@ if (currentChannel.getInterfaceTracking()){
 
     gate.gatePixEnd =
        gate.gatePixStart + (int)(currentChannel.getGateWidth(0) / uSPerPixel);
-
-    }
-
-//calculate the pixel locations for the DAC gates
-int numberOfDACGates = currentChannel.getNumberOfDACGates();
-DACGate dacGate;
-
-for (int i=0; i < numberOfDACGates; i++){
-
-    dacGate = currentChannel.getDACGate(i);
-
-    dacGate.calculateGatePixelLocation(
-                    uSPerPixel, delayPix, oscopeCanvas.getHeight(), vertOffset);
 
     }
 
