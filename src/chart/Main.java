@@ -1165,6 +1165,9 @@ hardware.logStatus(logWindow.textArea);
 // Prepares the system for use by creating necessary folders and any other
 // initialization required when the software is copied to a new computer.
 //
+// If the data directories are already present, the settings in Main Static
+// Settings.ini will be changed to point to the directories.
+//
 
 public void setupSystem()
 {
@@ -1194,7 +1197,7 @@ String targetDir = fc.getSelectedFile().toString();
 //note the extra space before "Primary" in the path name - this forces the
 //primary to be listed first alphabetically when viewed in a file navigator
 File primaryDir = new File (targetDir + "/IR Scan Data Files -  Primary");
-if (!primaryDir.mkdirs()){
+if (!primaryDir.exists() && !primaryDir.mkdirs()){
     displayErrorMessage("Could not create the primary data directory -"
             + " no directories created.");
     return;
@@ -1202,7 +1205,7 @@ if (!primaryDir.mkdirs()){
 
 //create the backup data directory
 File backupDir = new File (targetDir + "/IR Scan Data Files - Backup");
-if (!backupDir.mkdirs()){
+if (!backupDir.exists() && !backupDir.mkdirs()){
     displayErrorMessage("Could not create the backup data directory -"
             + " only the primary directory was created.");
     return;
