@@ -334,7 +334,7 @@ byte progGain34Shadow;
 static byte FPGA_LOADED_FLAG = 0x01;
 
 //number of loops to wait for response before timeout
-static int FPGA_LOAD_TIMEOUT = 200000;
+static int FPGA_LOAD_TIMEOUT = 999999;
 
 boolean reSynced;
 
