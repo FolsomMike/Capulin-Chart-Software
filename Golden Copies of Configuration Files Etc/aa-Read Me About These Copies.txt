@@ -1,0 +1,10 @@
+These files frequently change during normal program usage.
+
+The actual files are not tracked by Git for that reason.
+
+A good copy of these files should be kept in this directory and updated occasionally to
+make sure that they are fresh.
+
+These copies allow updates to be passed between project members.  They will be
+retrieved when a new repository is created or when pulled from a public repository.
+They should then be copied to the parent directory for use in the project.

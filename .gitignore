@@ -9,11 +9,13 @@ dist/
 # ignore any zip files in the executable directory
 *.zip
 
-# ignore the license file
-Graphics.ini
+# ignore all ini files
+# these change frequently and it is not useful to propagate the changes to each developer
+# for downloading the entire project from scratch, copies of these files can be found in Golden Copies of Configuration Files Etc
 
-Main Settings.ini
-Main Static Settings.ini
+*.ini
 
 
-New Text Document.txt
+# all golden copies are tracked so they can be propagated between developers
+
+!Golden Copies of Configuration Files Etc/*.*
