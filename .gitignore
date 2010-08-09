@@ -8,3 +8,12 @@ dist/
 
 # ignore any zip files in the executable directory
 *.zip
+
+# ignore the license file
+Graphics.ini
+
+Main Settings.ini
+Main Static Settings.ini
+
+
+New Text Document.txt
