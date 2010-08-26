@@ -147,6 +147,9 @@ public double maxXScan, maxYScan;
 //set true if currently performing a scan
 public boolean isScanning = false;
 
+//wip mks - these should be read from Configuration - General.ini
+public String primaryFolderName = "IR Scan Data Files -  Primary";
+public String backupFolderName =  "IR Scan Data Files - Backup";
 
 //-----------------------------------------------------------------------------
 // Globals::Globals (constructor)

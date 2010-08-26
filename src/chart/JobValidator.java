@@ -6,25 +6,44 @@
 * Purpose:
 *
 * This class verifies that the job files (excluding the inspection data files)
-* are valid.
+* are valid and repairs them if possible.
 *
-* If constructor parameter pRobust is passed in true, the primary and backup
-* folders will be re-created if they are missing.  If false, the repair
-* will be aborted if either folder is missing.
+* The class has two different modes: robust and non-robust as specified by the
+* parameter pRobust.  If pRobust is false, the root data folders are not
+* repaired.  This mode is to be used each time a job is loaded.  If pRobust is
+* true, the root data folders are repaired.  This mode is to be used explicitly
+* for a more extensive repair invoked at the behest of a technician.
 *
-* It is intended that this class be called upon program restart with pRobust
-* set false so that folders are not recreated if missing.  The class can be
-* called explicitly from a menu option with pRobust set true to correct for
-* missing paths.  Since a missing path is a major error but might be caused by
-* a network connection problem, the repair of such should only be done as
-* instructed by a technician after verifying that all network connections are
-* valid.
+* Operation for Non-Robust Mode:
 *
-* If a file is missing or corrupt in the primary folder, a copy is made from
-* the file in the backup directory.  If the file is missing or corrupt in the
-* backup folder, an error message is displayed.
+* Either root path is empty: error msg, no repair, xfer.rBoolean2 = true
+* Either root path is missing:  error msg, no repair, xfer.rBoolean2 = true
+* Job name is empty: no msg, no repair, xfer.rBoolean3 = true
+* Job folder missing in both roots: no msg, no repair, xfer.rBoolean3 = true
+* Primary job folder missing:
+*   Folder recreated: repaired message
+*   All config files replaced: repaired/failed message for each file
+*       (the files are copied from the opposite root data folder if possible,
+*           reloaded from the default configs necessary)
+*   If folder cannot be recreated: error message, xfer.rBoolean3 = true
+* Backup job folder missing: same as for Primary job folder
 *
-* All repair actions are logged in a text file named:
+* Operation for Robust Mode:
+*
+* Same as Non-Robust mode except:
+* Either root path is missing:
+*   Folder recreated: repaired message
+*   If folder cannot be recreated: error message, xfer.rBoolean3 = true
+*
+* It is intended that this class be called upon job loading with pRobust
+* set false so that the root folders are not recreated if missing.  The class
+* can be called explicitly from a menu option with pRobust set true to correct
+* for missing root paths.  Since a missing root path is a major error but might
+* be caused by a network connection problem, the repair of such should only be
+* done as instructed by a technician after verifying that all network
+* connections are valid.
+*
+* All repair actions are logged in a text file in the primary job folder:
 *   "15 - [the job name] Repair Log.txt"
 *
 * Open Source Policy:
@@ -53,6 +72,7 @@ class JobValidator extends Object {
 
 Xfer xfer;
 boolean robust;
+String primaryDataPath, backupDataPath;
 String currentJobPrimaryPath, currentJobBackupPath;
 String jobName;
 PrintWriter logFile = null;
@@ -65,6 +85,10 @@ static int CONFIG_FILE = 1;
 static int PIECE_NUMBER_FILE = 2;
 static int JOB_INFO_FILE = 3;
 static int JOB_INFO_CONFIG_FILE = 4;
+
+//used to specify which folder is being repaired
+static int PRIMARY = 0;
+static int BACKUP = 1;
 
 //various success message strings tied to the file type enumerators
 String SuccessMsgs[] = {
@@ -111,18 +135,33 @@ String FailureMsgs[] = {
 // JobValidator::JobValidator (constructor)
 //
 
-public JobValidator(String pCurrentJobPrimaryPath, String pCurrentJobBackupPath,
+public JobValidator(String pPrimaryDataPath, String pBackupDataPath,
                                    String pJobName, boolean pRobust, Xfer pXfer)
 {
 
-currentJobPrimaryPath = pCurrentJobPrimaryPath;
-currentJobBackupPath = pCurrentJobBackupPath;
 jobName = pJobName; robust = pRobust; xfer = pXfer;
+
+primaryDataPath = pPrimaryDataPath; backupDataPath = pBackupDataPath;
+
+currentJobPrimaryPath = pPrimaryDataPath + jobName + File.separator;
+currentJobBackupPath = pBackupDataPath + jobName + File.separator;
 
 try{
 
-    //if the primary path could not be verified or repaired, bail out
-    if (!validatePath(currentJobPrimaryPath, "primary")) return;
+    xfer.rBoolean2 = xfer.rBoolean3 = false;
+
+    //check to see if the root data paths exist or can be repaired if robust
+    if (!validatePathAndRepair(pPrimaryDataPath, "root primary", robust)
+        || !validatePathAndRepair(pBackupDataPath, "root backup", robust)
+        ) {xfer.rBoolean2 = true; return;}
+
+    //if no path repair option and both job folders are missing, assume
+    //that the job does not exist at all - only do this check if robust if false
+    if (!robust && !validateEitherPath()){xfer.rBoolean3 = true; return;}
+
+    //if the primary job folder could not be verified or repaired, bail out
+    if (!validatePathAndRepair(currentJobPrimaryPath, "primary job", true)){
+        xfer.rBoolean3 = true; return;}
 
     //open the repair log file in case it is needed - data is appended to the
     //log file if it already exists
@@ -136,28 +175,38 @@ try{
     if(pathRecreated){
         logMessage("Error - primary path does not exist: " +
                                                 currentJobPrimaryPath, true);
-        logMessage("Action - re-creating primary path.");
+        logMessage("Action - creating primary path.");
         pathRecreated = false;
         }
 
-    //if the secondary path could not be verified or repaired, bail out
-    if (!validatePath(currentJobBackupPath, "backup")) return;
+    //if the backup job folder could not be verified or repaired, bail out
+    if (!validatePathAndRepair(currentJobBackupPath, "backup job", true)){
+        xfer.rBoolean3 = true; return;}
 
     //if the call to validatePath for the backup folder caused the backup
     //folder to be recreated, log that error
     if(pathRecreated){
         logMessage("Error - backup path does not exist: " +
                                                 currentJobBackupPath, true);
-        logMessage("Action - re-creating backup path.");
+        logMessage("Action - creating backup path.");
         pathRecreated = false;
         }
-    
-    validate("00 - ", " Calibration File.ini", CAL_FILE);
-    validate("01 - ", " Configuration.ini", CONFIG_FILE);
-    validate("02 - ", " Piece Number File.ini", PIECE_NUMBER_FILE);
-    validate("03 - ", " Job Info.ini", JOB_INFO_FILE);
+
+    //validate/repair the primary folder files
+    validate("00 - ", " Calibration File.ini", CAL_FILE, PRIMARY);
+    validate("01 - ", " Configuration.ini", CONFIG_FILE, PRIMARY);
+    validate("02 - ", " Piece Number File.ini", PIECE_NUMBER_FILE, PRIMARY);
+    validate("03 - ", " Job Info.ini", JOB_INFO_FILE, PRIMARY);
     validate("04 - ", " Configuration - Job Info Window.ini",
-                                                        JOB_INFO_CONFIG_FILE);
+                                                JOB_INFO_CONFIG_FILE, PRIMARY);
+
+    //validate/repair the backup folder files
+    validate("00 - ", " Calibration File.ini", CAL_FILE, BACKUP);
+    validate("01 - ", " Configuration.ini", CONFIG_FILE, BACKUP);
+    validate("02 - ", " Piece Number File.ini", PIECE_NUMBER_FILE, BACKUP);
+    validate("03 - ", " Job Info.ini", JOB_INFO_FILE, BACKUP);
+    validate("04 - ", " Configuration - Job Info Window.ini",
+                                                JOB_INFO_CONFIG_FILE, BACKUP);
 
     }
 catch(IOException e){
@@ -170,64 +219,114 @@ finally{
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// JobValidator::validatePath
+// JobValidator::validateEitherPath
 //
-// Verifies that pPath exists.
+// Verifies that both root data paths and the job name are not empty and that
+// the job folder exists in at least one path.  No attempt is made for repair.
 //
-// If it does not exist and class member robust is true, then an attempt is
-// made to re-create the path.  If robust if false, no repair attempt is made.
+// If at least one path is good, this method returns true.
+// If both paths were bad, returns false.
 //
-// If the path is good or was repaired, this method returns true.
-// If the path was bad and unrepairable or robust is false, returns false.
-//
+// This can be used to catch cases where the job does not exist in either
+// path and may be assumed to have been removed - in this case, it may not be
+// an error.
 //
 
-private boolean validatePath(String pPath, String pIdentifier)
+private boolean validateEitherPath()
 {
 
-File folder = new File (pPath);
+//if the jobName is empty, validation fails
+if (jobName.equals("")) return(false);
+
+//verify that the job folder exists in at least one path
+File folder1 = new File(currentJobPrimaryPath);
+File folder2 = new File(currentJobBackupPath);
+if (folder1.exists() || folder2.exists()) return(true);
+
+return(false);
+
+}//end of JobValidator::validateEitherPath
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// JobValidator::validatePathAndRepair
+//
+// Verifies that pPath exists and attempts to repair it if pRepair is true.
+//
+// If the pPath is empty, this method returns false.
+// If the path is good or was repaired, this method returns true.
+// If the path was bad and unrepairable or pRepair is false, returns false.
+//
+
+private boolean validatePathAndRepair(String pPath, String pIdentifier,
+                                                               boolean pRepair)
+{
+
+//if the specified path is blank, bail out with error
+if (pPath.equals("")){
+    displayErrorMessage("The " + pIdentifier +
+                            " folder specified is blank - cannot be repaired.");
+    return(false);
+    }
+
+File folder = new File(pPath);
 
 //all good
 if (folder.exists()) return(true); 
 
-//path bad, but don't repair because robust is false
-if (!robust) {
+//path bad, don't repair if pRepair is false
+if (!pRepair) {
     displayErrorMessage("The " + pIdentifier +
-                                " folder was missing and was not re-created.");
+                                " folder was missing and was not repaired.");
     return(false);
     }
 
-//all good if folder created, all bad if not
+//try to create the path
 if (folder.mkdirs()){
     displayErrorMessage("The " + pIdentifier +
-                                     " folder was missing and was re-created.");
+                                     " folder was missing and was repaired.");
     pathRecreated = true;
     return(true);
     }
 else{
     displayErrorMessage("The " + pIdentifier +
-                            " folder was missing and could not be re-created.");
+                            " folder was missing and could not be repaired.");
     return(false);
     }
 
-}//end of JobValidator::validatePath
+}//end of JobValidator::validatePathAndRepair
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // JobValidator::validate
 //
-// Verifies that pFilename exists in the primary folder and is not corrupt.
-// If missing or corrupt, a copy is made from the backup folder.  If the
-// backup file is missing or corrupt, and error message is displayed.
+// Verifies that pFilename exists in the Primary or Backup folder and replaces
+// it from the opposite folder if necessary.  If the copy fails, certain files
+// may be replaced from the default set.
+//
+// The Primary/Backup folder is specified by pWhichFolder: PRIMARY or BACKUP.
 //
 // All repair actions are logged in a text file in the primary folder.
 //
 
-public void validate(String pPrefix, String pFilename, int pFileType)
+public void validate(String pPrefix, String pFilename, int pFileType,
+                                                               int pWhichFolder)
 {
 
-String filename = currentJobPrimaryPath + pPrefix + jobName + pFilename;
-String filenameBackup = currentJobBackupPath + pPrefix + jobName + pFilename;
+String toFix = "", backup = "";    
+//select the folder to be repaired and the folder to provide backup copies
+if  (pWhichFolder == PRIMARY){
+    toFix = currentJobPrimaryPath;
+    backup = currentJobBackupPath;
+    }
+
+if  (pWhichFolder == BACKUP){
+    toFix = currentJobBackupPath;
+    backup = currentJobPrimaryPath;
+    }
+
+String filename = toFix + pPrefix + jobName + pFilename;
+String filenameBackup = backup + pPrefix + jobName + pFilename;
 
 File file = new File(filename);
 
@@ -293,8 +392,8 @@ return success;
 // Allows the user to select the proper configuration file to be used for
 // the job from a list.
 //
-// NOTE: The same configuration file should be selected as was first selected
-// when the job was created.
+// NOTE: The user should normally select the same configuration file as was
+// first selected when the job was created.
 //
 
 public boolean handleConfigFileBackupRestoreFailure()

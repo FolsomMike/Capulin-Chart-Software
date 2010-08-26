@@ -300,25 +300,23 @@ IniFile configFile = null;
 try {configFile = new IniFile("Main Static Settings.ini");}
     catch(IOException e){return;}
 
-//use forward slashes to be compatible with various operating systems
-//note the extra space before "Primary" in the path name - this forces the
-//primary to be listed first alphabetically when viewed in a file navigator
+//set the data folders to empty if values cannot be read from the ini file
+//all functions which write data should abort if the folder names are empty
 
 primaryDataPath = configFile.readString(
-                                    "Main Configuration", "Primary Data Path",
-                                    "c:/IR Scan Data Files -  Primary");
-
-//append a slash if the path does not already end with one
-if (!primaryDataPath.endsWith(File.separator))
-    primaryDataPath += File.separator;
-
-backupDataPath = configFile.readString(
-                                    "Main Configuration", "Backup Data Path", 
-                                    "c:/IR Scan Data Files - Backup");
+                                "Main Configuration", "Primary Data Path", "");
 
 //append a fwd/backslash if the path does not already end with one
 //use File.separator to apply the correct character for the operating system
-if (!backupDataPath.endsWith(File.separator))
+if (!primaryDataPath.equals("") && !primaryDataPath.endsWith(File.separator))
+    primaryDataPath += File.separator;
+
+backupDataPath = configFile.readString(
+                                 "Main Configuration", "Backup Data Path", "");
+
+//append a fwd/backslash if the path does not already end with one
+//use File.separator to apply the correct character for the operating system
+if (!backupDataPath.equals("") && !backupDataPath.endsWith(File.separator))
     backupDataPath += File.separator;
 
 }//end of MainWindow::loadMainStaticSettings
@@ -373,14 +371,31 @@ try {configFile = new IniFile("Main Settings.ini");}
     catch(IOException e){return;}
 
 currentJobName = configFile.readString(
-                         "Main Configuration", "Current Work Order", "Default");
+                         "Main Configuration", "Current Work Order", "");
 
-currentJobPrimaryPath = primaryDataPath + currentJobName + "/";
-currentJobBackupPath = backupDataPath + currentJobName + "/";
+new JobValidator(primaryDataPath, backupDataPath, currentJobName, false, xfer);
 
-new JobValidator(currentJobPrimaryPath, currentJobBackupPath, currentJobName,
-                                                                   false, xfer);
+//if flag returns true, one or both of the root data paths is missing - set
+//both and the job name to empty so they won't be accessed
+if (xfer.rBoolean2){
+    primaryDataPath = ""; backupDataPath = "";
+    currentJobName = "";
+    }
 
+//if flag returns true, the root folders exist but the job name cannot be found
+//in either - assume that it no longer exists and set the name empty
+if (xfer.rBoolean3) currentJobName = "";
+
+currentJobPrimaryPath = ""; currentJobBackupPath = "";
+
+//if the root paths and the job name are valid, create the full paths
+if(!currentJobName.equals("")){
+    if(!currentJobPrimaryPath.equals("")) currentJobPrimaryPath =
+                            primaryDataPath + currentJobName + File.separator;
+    if(!currentJobBackupPath.equals("")) currentJobBackupPath =
+                             backupDataPath + currentJobName + File.separator;
+    }
+    
 }//end of MainWindow::loadMainSettings
 //-----------------------------------------------------------------------------
 
@@ -851,19 +866,19 @@ public void actionPerformed(ActionEvent e)
 
 //this part handles saving all data
 if ("Save".equals(e.getActionCommand())) {
-    saveEverything();
+    if(isConfigGoodA()) saveEverything();
     return;
     }
 
 //this part handles creating a new job
 if ("New Job".equals(e.getActionCommand())) {
-    createNewJob();
+    if(isConfigGoodB()) createNewJob();
     return;
     }
 
 //this part handles switching to a different job
 if ("Change Job".equals(e.getActionCommand())) {
-    changeJob();
+    if(isConfigGoodB()) changeJob();
     return;
     }
 
@@ -876,7 +891,7 @@ if ("Save Preset".equals(e.getActionCommand())) {
 
 //this part handles switching to a different preset
 if ("Change Preset".equals(e.getActionCommand())) {
-    changePreset();
+    if(isConfigGoodA()) changePreset();
     return;
     }
 
@@ -907,7 +922,8 @@ if ("Status".equals(e.getActionCommand())) {
 
 //this part opens a viewer window for viewing saved segments
 if ("Open Viewer".equals(e.getActionCommand())) {
-    new Viewer(globals, jobInfo, currentJobPrimaryPath, currentJobName);
+    if(isConfigGoodA())
+        new Viewer(globals, jobInfo, currentJobPrimaryPath, currentJobName);
     return;
     }
 
@@ -926,7 +942,7 @@ if ("Debugger".equals(e.getActionCommand())) {
 
 //this part handles opening the Job Info window
 if ("Job Info".equals(e.getActionCommand())) {
-    jobInfo.setVisible(true);
+    if(isConfigGoodA()) jobInfo.setVisible(true);
     return;
     }
 
@@ -938,6 +954,8 @@ if ("Zero Encoder Counts".equals(e.getActionCommand())) {
 
 //this part handles repairing a job
 if ("Repair Job".equals(e.getActionCommand())) {
+
+    if(!isConfigGoodA()) return;
 
     //create with pRobust set true so paths will be recreated if necessary
     new JobValidator(currentJobPrimaryPath, currentJobBackupPath, currentJobName,
@@ -974,7 +992,6 @@ if ("Renew License".equals(e.getActionCommand())) {
     return;
     }
 
-
 //this part handles requests by ChartGroup objects to open the cal window
 //the chart index number is appended to the command string, so use startsWith
 if (e.getActionCommand().startsWith("Open Calibration Window")) {
@@ -995,7 +1012,8 @@ if ("Process finished Piece".equals(e.getActionCommand())) {
 
         markSegmentEnd();  //mark the buffer location of the end of the segment
 
-        saveSegment(); //save the data for the segment
+        //if data paths are good, save the data for the segment
+        if(isConfigGoodA()) saveSegment();
 
         //increment the next piece or next cal piece number
         controlPanel.incrementPieceNumber();
@@ -1005,7 +1023,7 @@ if ("Process finished Piece".equals(e.getActionCommand())) {
     return;
     }// if ("Process finished Piece".equals(e.getActionCommand()))
 
-//save the data for the piece currently being inspected and prepare for the next
+//prepare for the next piece to be inspected
 //if so configured, reset all traces to begin at the left edge of the chart,
 // otherwise new piece will be appended to right end of traces and the chart
 // will scroll to display new data
@@ -1021,11 +1039,69 @@ if ("About".equals(e.getActionCommand())) {
     return;
     }
 
-
 //handle timer calls
 if ("Timer".equals(e.getActionCommand())) processMainTimerEvent();
 
 }//end of MainWindow::actionPerformed
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainWindow::isConfigGoodA
+//
+// This function checks for various configuration errors and returns true if
+// it is okay to save/load to the data folders.
+//
+// If there is an error, an error message will be displayed and the function
+// will return false.
+//
+
+public boolean isConfigGoodA()
+{
+
+//verify the data folder paths
+if (!isConfigGoodB()) return(false);
+
+//verify the job name
+if (currentJobName.equals("")){
+    displayErrorMessage("No job is selected."
+            + " Use File/New Job or File/Change Job to correct this error.");
+    return(false);
+    }
+
+return(true);  //no configuration error
+
+}//end of MainWindow::isConfigGoodA
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainWindow::isConfigGoodB
+//
+// This function checks for if the data folder paths are good and returns true
+// if it is okay to save/load to the data folders.
+//
+// If there is an error, an error message will be displayed and the function
+// will return false.  The error message does not specify which path is bad
+// because both are often set empty when either is bad.
+//
+
+public boolean isConfigGoodB()
+{
+
+if (primaryDataPath.equals("")){
+    displayErrorMessage("The root Primary or Backup Data Path is invalid."
+            + " Use Help/Setup System to repair this error.");
+    return(false);
+    }
+
+if (backupDataPath.equals("")){
+    displayErrorMessage("The root Primary or Backup Data Path is invalid."
+            + " Use Help/Setup System to repair this error.");
+    return(false);
+    }
+
+return(true);  //no configuration error
+
+}//end of MainWindow::isConfigGoodB
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1196,7 +1272,7 @@ String targetDir = fc.getSelectedFile().toString();
 //create the primary data directory
 //note the extra space before "Primary" in the path name - this forces the
 //primary to be listed first alphabetically when viewed in a file navigator
-File primaryDir = new File (targetDir + "/IR Scan Data Files -  Primary");
+File primaryDir = new File (targetDir + "/" + globals.primaryFolderName);
 if (!primaryDir.exists() && !primaryDir.mkdirs()){
     displayErrorMessage("Could not create the primary data directory -"
             + " no directories created.");
@@ -1204,7 +1280,7 @@ if (!primaryDir.exists() && !primaryDir.mkdirs()){
     }
 
 //create the backup data directory
-File backupDir = new File (targetDir + "/IR Scan Data Files - Backup");
+File backupDir = new File (targetDir + "/" + globals.backupFolderName);
 if (!backupDir.exists() && !backupDir.mkdirs()){
     displayErrorMessage("Could not create the backup data directory -"
             + " only the primary directory was created.");

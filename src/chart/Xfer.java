@@ -35,6 +35,8 @@ public String rString1;
 public int rInt1;
 public double rDouble1;
 public boolean rBoolean1;
+public boolean rBoolean2;
+public boolean rBoolean3;
 
 }//end of class Xfer
 //-----------------------------------------------------------------------------
