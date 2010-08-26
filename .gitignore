@@ -1,3 +1,9 @@
+
+# Helpful Git notes:
+#
+# In Git Bash, use "git config core.autocrlf false" to avoid unwanted changes, especially to Java source files.
+# You must do this for each project.
+
 # ignore these directories
 archive/
 build/
