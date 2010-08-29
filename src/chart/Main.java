@@ -234,6 +234,9 @@ loadLanguage(globals.language); //set text on main form
 //the action and item listener for the menu
 mainFrame.setJMenuBar(mainMenu = new MainMenu(globals));
 
+//loads configurations settings for the program
+loadGeneralConfiguration();
+
 //loads settings such as the data paths and other values which rarely change
 loadMainStaticSettings();
 
@@ -355,6 +358,50 @@ configFile.save();
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainWindow::loadGeneralConfiguration
+//
+// Loads general configuration settings.
+//
+
+private void loadGeneralConfiguration()
+{
+
+IniFile configFile = null;
+
+//if the ini file cannot be opened and loaded, exit without action
+try {configFile = new IniFile("Configuration - General.ini");}
+    catch(IOException e){return;}
+
+globals.primaryFolderName = configFile.readString(
+                        "Main Configuration", "Primary Data Folder Name",
+                                            "IR Scan Data Files -  Primary");
+
+globals.backupFolderName = configFile.readString(
+                            "Main Configuration", "Backup Data Folder Name",
+                        "Backup Data Folder Name=IR Scan Data Files - Backup");
+
+//replace any forward/back slashes with the filename separator appropriate
+//for the system the program is running on
+
+String sep = File.separator;
+globals.primaryFolderName = globals.primaryFolderName.replace("/", sep);
+globals.primaryFolderName = globals.primaryFolderName.replace("\\", sep);
+globals.backupFolderName = globals.backupFolderName.replace("/", sep);
+globals.backupFolderName = globals.backupFolderName.replace("\\", sep);
+
+//if there is a separator at the end, remove it for consistency with later code
+String t = globals.primaryFolderName;
+if (t.endsWith(sep))
+    globals.primaryFolderName = t.substring(0, t.length()-1);
+
+t = globals.backupFolderName;
+if (t.endsWith(sep))
+    globals.backupFolderName = t.substring(0, t.length()-1);
+
+}//end of MainWindow::loadGeneralConfiguration
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainWindow::loadMainSettings
 //
 // Loads settings such as the current work order. 
@@ -390,9 +437,9 @@ currentJobPrimaryPath = ""; currentJobBackupPath = "";
 
 //if the root paths and the job name are valid, create the full paths
 if(!currentJobName.equals("")){
-    if(!currentJobPrimaryPath.equals("")) currentJobPrimaryPath =
+    if(!primaryDataPath.equals("")) currentJobPrimaryPath =
                             primaryDataPath + currentJobName + File.separator;
-    if(!currentJobBackupPath.equals("")) currentJobBackupPath =
+    if(!backupDataPath.equals("")) currentJobBackupPath =
                              backupDataPath + currentJobName + File.separator;
     }
     
@@ -1269,10 +1316,32 @@ if (returnVal != JFileChooser.APPROVE_OPTION){
 //JFileChooser.DIRECTORIES_ONLY
 String targetDir = fc.getSelectedFile().toString();
 
+//Users often get confused and try to create the data folders when they already
+//exist - they often click on one of the existing folders in the browser
+//window which would cause a new set of folders to be installed in the
+//existing folder, which makes things confusing.  To avoid this, check to see
+//if one of the folder names is part of the selected folder and truncate the
+//selected folder so that the parent folder is used instead.
+
+int p = -1;
+
+if ((p = targetDir.indexOf(globals.primaryFolderName)) != -1){
+    //chop off all after the offending directory
+    targetDir = targetDir.substring(0, p);
+    }
+
+if ((p = targetDir.indexOf(globals.backupFolderName)) != -1){
+    //chop off all after the offending directory
+    targetDir = targetDir.substring(0, p);
+    }
+
+//add a separator if not one already at the end
+if (!targetDir.endsWith(File.separator)) targetDir += File.separator;
+
 //create the primary data directory
 //note the extra space before "Primary" in the path name - this forces the
 //primary to be listed first alphabetically when viewed in a file navigator
-File primaryDir = new File (targetDir + "/" + globals.primaryFolderName);
+File primaryDir = new File (targetDir + globals.primaryFolderName);
 if (!primaryDir.exists() && !primaryDir.mkdirs()){
     displayErrorMessage("Could not create the primary data directory -"
             + " no directories created.");
@@ -1280,7 +1349,7 @@ if (!primaryDir.exists() && !primaryDir.mkdirs()){
     }
 
 //create the backup data directory
-File backupDir = new File (targetDir + "/" + globals.backupFolderName);
+File backupDir = new File (targetDir + globals.backupFolderName);
 if (!backupDir.exists() && !backupDir.mkdirs()){
     displayErrorMessage("Could not create the backup data directory -"
             + " only the primary directory was created.");
@@ -1288,9 +1357,9 @@ if (!backupDir.exists() && !backupDir.mkdirs()){
     }
 
 //only save the new paths to the Main Static Settings.ini file if both folders
-//were successfully created
+//were successfully created or already existed
 //toString will return paths with / or \ separators depending on the system the
-//software is installed on - apply a separator the end as well
+//software is installed on - apply a separator the to end as well
 primaryDataPath = primaryDir.toString() + File.separator;
 backupDataPath = backupDir.toString() + File.separator;
 
