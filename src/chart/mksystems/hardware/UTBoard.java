@@ -3736,7 +3736,7 @@ for (int h=0; h < pNumberOfChannels; h++){
         int wallMinTrack =
                  (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
 
-        //calculate distance between the crossing points in the staring and
+        //calculate distance between the crossing points in the starting and
         //ending wall gates
         // append the whole number distance in wallMinPeak1, to the fractional
         // part from the end gate, then subtract the fractional part from the

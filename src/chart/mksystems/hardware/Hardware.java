@@ -652,8 +652,11 @@ else{
 //position and check for theshold violation
 if (dataStored){
 
-    //store the hardware channel for which the data was stored
+    //store the hardware channel from which the data was obtained
     gatePtr.tracePtr.peakChannel = gatePtr.channelIndex;
+
+    //store the wall thickness for display as a number
+    gatePtr.tracePtr.wallThickness = gatePtr.wallThickness;
 
     //store the clock position for the data in bits 8-0
     gatePtr.fBuffer[nextIndex] &= 0xfffffe00; //erase old
@@ -813,8 +816,11 @@ else{
 //position and check for theshold violation
 if (dataStored){
 
-    //store the hardware channel for which the data was stored
+    //store the hardware channel from which the data was obtained
     gatePtr.tracePtr.peakChannel = gatePtr.channelIndex;
+
+    //store the wall thickness for display as a number
+    gatePtr.tracePtr.wallThickness = gatePtr.wallThickness;
 
     //store the clock position for the data in byte 0
     gatePtr.fBuffer[nextIndex] &= 0xfffffe00; //erase old

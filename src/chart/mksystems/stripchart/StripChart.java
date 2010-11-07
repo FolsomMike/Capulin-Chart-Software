@@ -28,6 +28,7 @@ import javax.swing.BorderFactory;
 import java.awt.image.BufferedImage;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
+import java.text.DecimalFormat;
 
 import chart.mksystems.globals.Globals;
 import chart.mksystems.inifile.IniFile;
@@ -61,6 +62,9 @@ public BufferedImage imageBuffer;
 
 int peakChannel;
 int prevPeakChannelValue = -1;
+
+double wallThickness;
+double prevWallThickness = -1.0;
 
 //-----------------------------------------------------------------------------
 // ChartCanvas::ChartCanvas (constructor)
@@ -195,6 +199,9 @@ while (traces[0].newDataReady()){
                     peak = lastValue; peakChannel = traces[i].peakChannel;
                     }
 
+            //store the wall thickness reading
+            wallThickness = traces[i].wallThickness;
+
             }// if (traces[i].newDataReady())
 
     }//while (traces[0].newDataReady())
@@ -265,7 +272,14 @@ Hardware hardware;
 Color borderColor;
 TraceGlobals traceGlobals;
 int peakChannelLabelXPos = 250, peakChannelLabelYPos = 23;
-int peakChannelXPos = peakChannelLabelXPos + 100, peakChannelYPos = 23;
+int peakChannelXPos = peakChannelLabelXPos + 100;
+int peakChannelYPos = peakChannelLabelYPos;
+boolean displayPeakChannel;
+
+int wallThicknessLabelXPos = 500, wallThicknessLabelYPos = 23;
+int wallThicknessXPos = wallThicknessLabelXPos + 100;
+int wallThicknessYPos = wallThicknessLabelYPos;
+boolean displayWallThickness;
 
 String title, shortTitle;
 int numberOfTraces;
@@ -281,6 +295,8 @@ Color maskColor;
 Color separatorColor;
 public int lastAScanChannel = 0;
 boolean chartSizeEqualsBufferSize;
+
+DecimalFormat wallThicknessDecimalFormat;
 
 ActionListener actionListener;
 
@@ -306,6 +322,8 @@ chartGroup = pChartGroup;
 hardware = pHardware; actionListener = pActionListener;
 traceGlobals = new TraceGlobals();
 chartSizeEqualsBufferSize = pChartSizeEqualsBufferSize;
+
+wallThicknessDecimalFormat = new  DecimalFormat("#.###");
 
 //set up the main panel - this panel does nothing more than provide a title
 //border and a spacing border
@@ -361,6 +379,12 @@ maskColor = pConfigFile.readColor(section, "Mask Color", Color.BLACK);
 
 separatorColor = 
         pConfigFile.readColor(section, "Piece Separator Color", Color.BLACK);
+
+displayPeakChannel =
+                pConfigFile.readBoolean(section, "Display Peak Channel", false);
+
+displayWallThickness =
+              pConfigFile.readBoolean(section, "Display Wall Thickness", false);
 
 numberOfThresholds = pConfigFile.readInt(section, "Number of Thresholds", 1);
 
@@ -556,9 +580,14 @@ Graphics2D g2 = (Graphics2D) g;
     
 super.paintComponent(g2); //paint background
 
-//draw the "Peak Channel" label before calling drawKeyLabel because that
-//function changes the font
-g2.drawString("Peak Channel:", peakChannelLabelXPos, peakChannelLabelYPos);
+//draw these labels before calling drawKeyLabel because that function changes
+//the font
+if (displayPeakChannel)
+    g2.drawString("Peak Channel:", peakChannelLabelXPos, peakChannelLabelYPos);
+
+if (displayWallThickness)
+    g2.drawString("Wall Thickness:",
+                                wallThicknessLabelXPos, wallThicknessLabelYPos);
 
 //draw the keys for the different traces to show which trace is what - each
 //key is a label describing the trace and drawn in the color of the trace
@@ -592,7 +621,9 @@ public void plotData()
 
 canvas.plotData();    
 
-if (canvas.peakChannel != canvas.prevPeakChannelValue){
+//display the channel which is supplying the peak value
+
+if (displayPeakChannel && (canvas.peakChannel != canvas.prevPeakChannelValue)){
     Graphics2D g2 = (Graphics2D) getGraphics();
     //erase the previous value
     g2.setColor(borderColor);
@@ -605,6 +636,24 @@ if (canvas.peakChannel != canvas.prevPeakChannelValue){
     g2.drawString(Integer.toString(canvas.peakChannel + 1),
                                             peakChannelXPos, peakChannelYPos);
     canvas.prevPeakChannelValue = canvas.peakChannel;
+    }
+
+if (displayWallThickness && (canvas.wallThickness != canvas.prevWallThickness)){
+    Graphics2D g2 = (Graphics2D) getGraphics();
+    //erase the previous value
+    g2.setColor(borderColor);
+    //offset channel by 1 to convert from zero base
+    g2.drawString(
+            wallThicknessDecimalFormat.format(canvas.prevWallThickness),
+                                          wallThicknessXPos, wallThicknessYPos);
+    //draw the new value
+    g2.setColor(Color.BLACK);
+    //offset channel by 1 to convert from zero base
+    g2.drawString(
+            wallThicknessDecimalFormat.format(canvas.wallThickness),
+                                          wallThicknessXPos, wallThicknessYPos);
+    
+    canvas.prevWallThickness = canvas.wallThickness;
     }
 
 }//end of StripChart::plotData

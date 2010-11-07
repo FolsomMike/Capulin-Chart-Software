@@ -70,6 +70,8 @@ public double dataPeakD; //used for channels without min and max peaks (double)
 public double dataMaxPeakD;  //used for channels with min and max peaks (double)
 public double dataMinPeakD;  //used for channels with minand max peaks (double)
 
+double wallThickness;
+
 int peakFlags;  //any flags associated with the peak
 int peakFlightTime; //the time of flight to the peak (for UT)
 int peakTrack; //encoder tracking information
@@ -198,12 +200,12 @@ hdwVs.gatePtr = this; // pass back a pointer to this instance
 if (isWallStartGate || isWallEndGate){
 
     //convert nanosecond time span to distance
-    //dataPeakD is the only variable possible changed by peak data updates
-    double thickness = dataPeakD * hdwVs.nSPerDataPoint * hdwVs.velocityNS /
+    //dataPeakD is the only variable possibly changed by peak data updates
+    wallThickness = dataPeakD * hdwVs.nSPerDataPoint * hdwVs.velocityNS /
                                                 (hdwVs.numberOfMultiples * 2);
 
     //convert distance to a chart height position
-    dataPeak = (int)((thickness - hdwVs.nominalWall)
+    dataPeak = (int)((wallThickness - hdwVs.nominalWall)
                     / hdwVs.wallChartScale) + hdwVs.nominalWallChartPosition;
 
     }

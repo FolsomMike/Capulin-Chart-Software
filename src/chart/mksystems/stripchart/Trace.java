@@ -86,6 +86,8 @@ int numberOfThresholds;
 int flagThreshold;
 //hardware channel of the last value to be stored as a peak
 public int peakChannel;
+//wall thickness value - used by wall traces
+public double wallThickness;
 
 public int nextEmptySlot; //updated by external class - empty slot for new data
 public int nextSlot; //updated by external class to point to new data ready
