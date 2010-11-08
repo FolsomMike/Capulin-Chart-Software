@@ -45,14 +45,15 @@ int reflectionTimer = 0;
 //debug mks end  - this is only for demo - delete later
 
 boolean utBoardsReady = false, utBoardsSetupComplete = false;
-boolean controlBoardsReady = false;
+boolean controlBoardsReady = false, controlBoardsSetupComplete = false;
 
 boolean channelDataChangedFlag;
 
 boolean simulate, simulateControlBoards, simulateUTBoards;
 
-ControlBoard controlBoard;
-String controlBoardIP;
+ControlBoard[] controlBoards;
+int numberOfControlBoards = 1; //debug mks - read from config
+String controlBoardIP; //debug mks - get rid of this?
 
 boolean logEnabled = true;
 
@@ -151,7 +152,7 @@ connectUTBoards();
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Capulin1::connectControlBoard
+// Capulin1::connectControlBoards
 //
 // Opens a TCP/IP connection with the Control Board.
 //
@@ -159,21 +160,116 @@ connectUTBoards();
 public void connectControlBoard()
 {
 
-controlBoard = new ControlBoard(configFile, "Control 1", 1, 
-                              RUNTIME_PACKET_SIZE, simulateControlBoards, log);
+//displays message on bottom panel of IDE
+threadSafeLog("Broadcasting greeting to all Control boards...\n");
 
-try {controlBoard.setIPAddr(InetAddress.getByName(controlBoardIP));}
-catch (UnknownHostException e) {
-    threadSafeLog("Unknown host: Control Board.\n");
-    return;
+DatagramSocket socket;
+
+//debug mks - need separate variable for simulated control boards ~ UTSimulator.instanceCounter = 0; //reset simulated board counter
+
+try{
+    if (!simulateControlBoards) socket = new DatagramSocket(4445);
+    else socket = new UDPSimulator(4445);
+
     }
+catch (IOException e) {
+        threadSafeLog("Couldn't create Control broadcast socket.\n");
+        return;
+        }
 
-//pass the Runnable interfaced utBoard object to a thread and start it
-//the run function of the ControlBoard will peform the connection tasks
-Thread thread = new Thread(controlBoard);
-thread.start();
+int loopCount = 0;
+String castMsg = "Control Board Roll Call";
+byte[] outBuf = new byte[256];
+outBuf = castMsg.getBytes();
+InetAddress group;
+DatagramPacket outPacket;
+byte[] inBuf = new byte[256];
+DatagramPacket inPacket;
+inPacket = new DatagramPacket(inBuf, inBuf.length);
+int responseCount = 0;
 
-}//end of Capulin1::connectControlBoard
+try{
+    group = InetAddress.getByName("230.0.0.1");
+    }
+catch (UnknownHostException e) {socket.close(); return;}
+
+outPacket = new DatagramPacket(outBuf, outBuf.length, group, 4446);
+
+//force socket.receive to return if no packet available within 1 millisec
+try{socket.setSoTimeout(1000);} catch(SocketException e){}
+
+//broadcast the roll call greeting several times - bail out when the expected
+//number of different Control boards have responded
+while(loopCount < 50 && responseCount < numberOfControlBoards){
+
+    try {socket.send(outPacket);} catch(IOException e) {socket.close(); return;}
+
+    //sleep to delay between broadcasts
+    try {Thread.sleep(3000);} catch (InterruptedException e) { }
+
+    //check for response packets from the remotes
+    try{
+        //read response packets until a timeout error exception occurs or
+        //until the expected number of different Control boards have responded
+        while(responseCount < numberOfControlBoards){
+
+            socket.receive(inPacket);
+
+            //store each new ip address in a board
+            for (int i = 0; i < numberOfControlBoards; i++){
+                //if an unused board reached, store ip there
+                if (controlBoards[i].ipAddr == null){
+                    controlBoards[i].setIPAddr(inPacket.getAddress());
+                    responseCount++; //count unique Control board responses
+                    break;
+                    }
+                //if a control board already has the same ip, don't save it
+                if (controlBoards[i].ipAddr == inPacket.getAddress()){
+                    break;
+                    }
+                }//for (int i = 0; i < numberOfControlBoards; i++)
+
+            //if receive finds a packet before timing out, this reached
+            //display the greeting string from the remote
+            threadSafeLog(
+                new String(inPacket.getData(), 0, inPacket.getLength()) + "\n");
+
+            }//while(true)
+        }//try
+    catch(IOException e){} //this reached if receive times out
+    }// while(loopCount...
+
+socket.close();
+
+//start the run method of each ControlBoard thread class - the run method makes
+//the TCP/IP connections and uploads FPGA and DSP code simultaneously to
+//shorten start up time
+
+if (numberOfControlBoards > 0){
+    for (int i = 0; i < numberOfControlBoards; i++){
+        //pass the Runnable interfaced controlBoard object to a thread and start
+        //the run function of the controlBoard will peform the connection tasks
+        Thread thread = new Thread(controlBoards[i]);
+        thread.start();
+        }
+    }//if (numberOfControlBoards > 0)
+
+
+//wait until setup is completed for all Control boards
+//note that the boards may not have had a successful setup
+
+while(!controlBoardsSetupComplete){
+    //allow other threads some time to run
+    try {Thread.sleep(3000);} catch (InterruptedException e) { }
+    controlBoardsSetupComplete = true; //set true, set false for any board not setup
+    for (int i = 0; i < numberOfControlBoards; i++){
+        if (!controlBoards[i].setupComplete) controlBoardsSetupComplete = false;
+        }//for (int i = 0;...
+    }//while(!utBoardsSetupComplete)
+
+threadSafeLog("All Control boards ready.\n");
+
+}//end of Capulin1::connectControlBoards
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -217,7 +313,7 @@ int responseCount = 0;
 try{
     group = InetAddress.getByName("230.0.0.1");
     }
-catch (UnknownHostException e) {return;}
+catch (UnknownHostException e) {socket.close(); return;}
 
 outPacket = new DatagramPacket(outBuf, outBuf.length, group, 4446);
 
@@ -228,7 +324,7 @@ try{socket.setSoTimeout(1000);} catch(SocketException e){}
 //number of different UT boards have responded
 while(loopCount < 50 && responseCount < numberOfUTBoards){
             
-    try {socket.send(outPacket);} catch(IOException e) {return;}
+    try {socket.send(outPacket);} catch(IOException e) {socket.close(); return;}
 
     //sleep to delay between broadcasts
     try {Thread.sleep(3000);} catch (InterruptedException e) { }
@@ -264,6 +360,8 @@ while(loopCount < 50 && responseCount < numberOfUTBoards){
         }//try
     catch(IOException e){} //this reached if receive times out
     }// while(loopCount...
+
+socket.close();
 
 //start the run method of each UTBoard thread class - the run method makes
 //the TCP/IP connections and uploads FPGA and DSP code simultaneously to
@@ -688,7 +786,7 @@ if (opMode == STOPPED){
 public void startMonitor(int dMonitorPacketSize)
 {
 
-controlBoard.startMonitor(dMonitorPacketSize);
+controlBoards[0].startMonitor(dMonitorPacketSize);
 
 }//end of Capulin1::startMonitor
 //-----------------------------------------------------------------------------
@@ -703,7 +801,7 @@ controlBoard.startMonitor(dMonitorPacketSize);
 public void stopMonitor()
 {
 
-controlBoard.stopMonitor();
+controlBoards[0].stopMonitor();
 
 }//end of Capulin1::stopMonitor
 //-----------------------------------------------------------------------------
@@ -721,7 +819,7 @@ controlBoard.stopMonitor();
 public void getMonitorPacket(byte[] pMonitorBuffer, boolean pRequestPacket)
 {
     
-controlBoard.getMonitorPacket(pMonitorBuffer, pRequestPacket);
+controlBoards[0].getMonitorPacket(pMonitorBuffer, pRequestPacket);
 
 }//end of Capulin1::getMonitorPacket
 //-----------------------------------------------------------------------------
@@ -736,7 +834,7 @@ controlBoard.getMonitorPacket(pMonitorBuffer, pRequestPacket);
 public void zeroEncoderCounts()
 {
 
-controlBoard.zeroEncoderCounts();
+controlBoards[0].zeroEncoderCounts();
 
 }//end of Capulin1::zeroEncoderCounts
 //-----------------------------------------------------------------------------
@@ -1032,6 +1130,9 @@ controlBoardIP = pConfigFile.readString(
 
 if (numberOfChannels > 1500) numberOfUTBoards = 1500;
 
+//create and setup the Control boards
+configureControlBoards();
+
 //create and setup the UT boards
 configureUTBoards();
 
@@ -1039,6 +1140,35 @@ configureUTBoards();
 configureChannels();
 
 }//end of Capulin1::configure
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::configureControlBoards
+//
+// Loads configuration settings from the configuration.ini file relating to
+// the boards and creates/sets them up.
+//
+
+private void configureControlBoards()
+{
+
+//create an array of boards per the config file setting
+if (numberOfControlBoards > 0){
+
+    controlBoards = new ControlBoard[numberOfControlBoards];
+
+    //pass the config filename instead of the configFile already opened
+    //because the UTBoards have to create their own iniFile objects to read
+    //the config file because they each have threads and iniFile is not
+    //threadsafe
+
+    for (int i = 0; i < numberOfControlBoards; i++)
+        controlBoards[i] = new ControlBoard(configFile, "Control " + (i+1), i,
+                              RUNTIME_PACKET_SIZE, simulateControlBoards, log);
+
+    }//if (numberOfControlBoards > 0)
+
+}//end of Capulin1::configureControlBoards
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
