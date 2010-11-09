@@ -62,8 +62,10 @@ String analogDriverName;
 String digitalDriverName;
 
 public static int INCHES = 0, MM = 1;
+public int units = INCHES;
 
-public int units = 0;
+public static int TIME = 0, DISTANCE = 1;
+public int unitsTimeDistance = TIME;
 
 String threadSafeMessage; //this needs to be an array
 int threadSafeMessagePtr; //points to next message in the array
@@ -190,12 +192,22 @@ hdwVs.velocityUS =
 //calculate velocity in distance per NS
 hdwVs.velocityNS = hdwVs.velocityUS / 1000;
 
+hdwVs.velocityShearUS =
+  pCalFile.readDouble(
+                    "Hardware", "Velocity of Shear Wave (distance/uS)", 0.133);
+
+//calculate velocity in distance per NS
+hdwVs.velocityShearNS = hdwVs.velocityShearUS / 1000;
+
 hdwVs.numberOfMultiples =
         pCalFile.readInt("Hardware", "Number of Multiples for Wall", 1);
 
 units = pCalFile.readInt("Hardware",
                              "English(" + INCHES + ") / Metric(" + MM + ")", 0);
-        
+
+unitsTimeDistance = pCalFile.readInt("Hardware",
+           "Units are in Time(" + TIME + ") or Distance(" + DISTANCE + ")", 0);
+
 analogDriver.loadCalFile(pCalFile);
   
 }//end of Hardware::loadCalFile
@@ -223,11 +235,18 @@ pCalFile.writeDouble("Hardware", "Wall Chart Scale", hdwVs.wallChartScale);
 
 pCalFile.writeDouble("Hardware", "Velocity (distance/uS)", hdwVs.velocityUS);
 
+pCalFile.writeDouble("Hardware", "Velocity of Shear Wave (distance/uS)",
+                                                         hdwVs.velocityShearUS);
+
 pCalFile.writeInt("Hardware", "Number of Multiples for Wall",
                                                     hdwVs.numberOfMultiples);
 
 pCalFile.writeInt("Hardware",
                      "English(" + INCHES + ") / Metric(" + MM + ")", units);
+
+pCalFile.writeInt("Hardware",
+    "Units are in Time(" + TIME + ") or Distance(" + DISTANCE + ")",
+                                                            unitsTimeDistance);
 
 analogDriver.saveCalFile(pCalFile);
   

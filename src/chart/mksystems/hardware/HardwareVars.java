@@ -40,6 +40,8 @@ double nSPerDataPoint, uSPerDataPoint;
 public double velocityUS, velocityNS, nominalWall, wallChartScale;
 public int nominalWallChartPosition, numberOfMultiples;
 
+public double velocityShearUS, velocityShearNS;
+
 }//end of class HardwareVars
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------    

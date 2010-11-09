@@ -119,6 +119,9 @@ Channel currentChannel;
 StripChart chart;
 public boolean updateEnabled = true;
 
+String inchesPeruSText = "in/uS";
+String cmPeruSText = "cm/uS";
+
 JCheckBox interfaceTrackingCheckBox;
 
 JPanel gatesTab, signalTab, wallTab, dacTab, chartTab, shotCountTab, configTab;
@@ -154,13 +157,10 @@ SpinnerPanel nomWallSpin, nomWallPosSpin, wallScaleSpin, velocitySpin;
 SpinnerPanel numMultiplesSpin;
 
 TitledBorder unitsBorder;
-JRadioButton inchesRadioButton, mmRadioButton;
 
 TitledBorder rectificationBorder;
 JRadioButton posHalfRadioButton, negHalfRadioButton, fullWaveRadioButton;
 JRadioButton rfRadioButton, offRadioButton;
-String inchesPeruSText = "in/uS";
-String cmPeruSText = "cm/uS";
 
 int displayMode = 0;
 
@@ -173,7 +173,7 @@ JLabel mousePosition;
 JCheckBox dacLocked, dacEnabled;
 JButton deleteDACGate, deleteAllDACGates;
 
-//end of components on Chart tab
+//end of components on DAC tab
 
 //components on Chart tab
 
@@ -183,8 +183,13 @@ JCheckBox hideChartCheckBox;
 
 //end of components on Chart tab
 
-Component debugComponent;  //debug mks - remove this
+//components on Configuration tab
 
+SpinnerPanel velocityShearSpin;
+JRadioButton inchesRadioButton, mmRadioButton;
+JRadioButton timeRadioButton, distanceRadioButton;
+
+//end of components on Configuration tab
 
 //-----------------------------------------------------------------------------
 // UTControls::UTControls (constructor)
@@ -487,32 +492,6 @@ gainSpin.spinner.addChangeListener(this); //monitor changes to value
 //add a blank label for filler
 multiSpinnerPanel.add(new JLabel());
 
-//Units (inches or mm) selection panel and radio buttons
-
-JPanel unitsPanel = new JPanel();
-setSizes(unitsPanel, 130, 60);
-unitsPanel.setBorder(
-                unitsBorder = BorderFactory.createTitledBorder("Units"));
-unitsPanel.setToolTipText("Units (inches or mm)");
-
-inchesRadioButton = new JRadioButton("inches");
-inchesRadioButton.setToolTipText("inches");
-inchesRadioButton.addActionListener(this);
-mmRadioButton = new JRadioButton("mm");
-mmRadioButton.setToolTipText("mm");
-mmRadioButton.addActionListener(this);
-ButtonGroup unitsGroup = new ButtonGroup();
-unitsGroup.add(inchesRadioButton);
-unitsGroup.add(mmRadioButton);
-unitsPanel.add(inchesRadioButton);
-unitsPanel.add(mmRadioButton);
-
-//set the inches/mm button
-if (hardware.units == Hardware.INCHES)
-    inchesRadioButton.setSelected(true);
-else 
-    mmRadioButton.setSelected(true);    
-
 //Display/Rectification selection panel and radio buttons
 
 JPanel rectificationPanel = new JPanel();
@@ -570,7 +549,6 @@ if (displayMode == 4)offRadioButton.setSelected(true);
 //add the panel with the spinners and the panel with the unit selection
 //to the top panel1
 panel1.add(multiSpinnerPanel);
-panel1.add(unitsPanel);
 
 //add all panels to the tab
 signalTab.add(panel1);
@@ -953,9 +931,14 @@ configTab.removeAll();
 
 configTab.setLayout(new BoxLayout(configTab, BoxLayout.LINE_AXIS));
 
+String units;
+
+if (hardware.units == Hardware.INCHES) units = " inches";
+else units = " mm";
+
 JPanel topLeftPanel = new JPanel();
 topLeftPanel.setLayout(new BoxLayout(topLeftPanel, BoxLayout.PAGE_AXIS));
-setSizes(topLeftPanel, 200, 120);
+setSizes(topLeftPanel, 160, 180);
 topLeftPanel.setAlignmentY(Component.TOP_ALIGNMENT);
 
 topLeftPanel.add(Box.createRigidArea(new Dimension(0,7))); //vertical spacer
@@ -986,14 +969,82 @@ hardwareGainSpin.setAlignmentX(Component.LEFT_ALIGNMENT);
 
 topLeftPanel.add(Box.createRigidArea(new Dimension(0,7))); //vertical spacer
 
-//add an entry for hardware gain
+//add an entry for DC offset
 topLeftPanel.add(dcOffsetSpin = new SpinnerPanel(
                 currentChannel.getDCOffset(), -127, 127, 1, "##0", 60, 23,
                                                    "DC Offset ", " mV"));
 dcOffsetSpin.spinner.addChangeListener(this); //monitor changes to value
 dcOffsetSpin.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+//create a panel for the right column
+
+JPanel topRightPanel = new JPanel();
+topRightPanel.setLayout(new BoxLayout(topRightPanel, BoxLayout.PAGE_AXIS));
+setSizes(topRightPanel, 250, 180);
+topRightPanel.setAlignmentY(Component.TOP_ALIGNMENT);
+
+topRightPanel.add(Box.createRigidArea(new Dimension(0,7))); //vertical spacer
+
+//Units (inches or mm) selection panel and radio buttons
+
+JPanel inchesMMPanel = new JPanel();
+setSizes(inchesMMPanel, 130, 23);
+inchesMMPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+inchesRadioButton = new JRadioButton("inches");
+inchesRadioButton.setToolTipText("inches");
+inchesRadioButton.addActionListener(this);
+mmRadioButton = new JRadioButton("mm");
+mmRadioButton.setToolTipText("mm");
+mmRadioButton.addActionListener(this);
+ButtonGroup unitsGroup = new ButtonGroup();
+unitsGroup.add(inchesRadioButton);
+unitsGroup.add(mmRadioButton);
+inchesMMPanel.add(inchesRadioButton);
+inchesMMPanel.add(mmRadioButton);
+topRightPanel.add(inchesMMPanel);
+
+//set the inches/mm button
+if (hardware.units == Hardware.INCHES)
+    inchesRadioButton.setSelected(true);
+else
+    mmRadioButton.setSelected(false);
+
+//Time/Distance display (time or distance) selection panel and radio buttons
+
+JPanel timeDistancePanel = new JPanel();
+setSizes(timeDistancePanel, 140, 23);
+timeDistancePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+timeRadioButton = new JRadioButton("time");
+timeRadioButton.setToolTipText("Values displayed in time.");
+timeRadioButton.addActionListener(this);
+distanceRadioButton = new JRadioButton("distance");
+distanceRadioButton.setToolTipText("Values displayed as distance.");
+distanceRadioButton.addActionListener(this);
+ButtonGroup timeDistanceGroup = new ButtonGroup();
+timeDistanceGroup.add(timeRadioButton);
+timeDistanceGroup.add(distanceRadioButton);
+timeDistancePanel.add(timeRadioButton);
+timeDistancePanel.add(distanceRadioButton);
+topRightPanel.add(timeDistancePanel);
+
+//set the time/distance button
+if (hardware.unitsTimeDistance == Hardware.TIME)
+    timeRadioButton.setSelected(true);
+else
+    distanceRadioButton.setSelected(true);
+
+topRightPanel.add(Box.createRigidArea(new Dimension(0,7))); //vertical spacer
+
+//add an entry for velocity of shear wave sound in steel
+topRightPanel.add(velocityShearSpin = new SpinnerPanel(
+                   hardware.hdwVs.velocityShearUS,
+             0, 5, .0001, "0.0000", 60, 23, "Velocity Shear ", units + "/uS"));
+velocityShearSpin.spinner.addChangeListener(this); //monitor changes to value
+velocityShearSpin.setAlignmentX(Component.LEFT_ALIGNMENT);
+
 configTab.add(topLeftPanel);
+configTab.add(Box.createRigidArea(new Dimension(7,0))); //horizontal spacer
+configTab.add(topRightPanel);
 
 }//end of UTControls::setupConfigTab
 //-----------------------------------------------------------------------------
@@ -1355,9 +1406,18 @@ hardware.hdwVs.velocityNS = hardware.hdwVs.velocityUS / 1000;
 hardware.hdwVs.numberOfMultiples = numMultiplesSpin.spinner.getIntValue();
 
 //the screen will not be updated until the user changes channels or exits
-//the calibrator
+//the calibrator when inches/mm button changed
 if (inchesRadioButton.isSelected()) hardware.units = Hardware.INCHES;
 if (mmRadioButton.isSelected()) hardware.units = Hardware.MM;
+
+if (timeRadioButton.isSelected())
+    hardware.unitsTimeDistance = Hardware.TIME;
+if (distanceRadioButton.isSelected())
+    hardware.unitsTimeDistance = Hardware.DISTANCE;
+
+hardware.hdwVs.velocityShearUS = velocityShearSpin.spinner.getDoubleValue();
+//calculate velocity in distance per NS
+hardware.hdwVs.velocityShearNS = hardware.hdwVs.velocityShearUS / 1000;
 
 ch.setHardwareGain(hardwareGainSpin.spinner.getIntValue(), pForceUpdate);
 ch.setRejectLevel(rejectSpin.spinner.getIntValue(), pForceUpdate);
