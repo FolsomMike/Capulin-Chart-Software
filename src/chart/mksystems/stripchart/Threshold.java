@@ -43,7 +43,9 @@ int chartIndex;
 int thresholdIndex;
 JPanel canvas;
 int canvasXLimit;
-int canvasYLimit;        
+int canvasYLimit;
+
+public boolean okToMark = true;
 
 public String title;
 String shortTitle;

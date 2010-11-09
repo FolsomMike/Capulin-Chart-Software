@@ -702,9 +702,16 @@ if (dataStored){
         if (gatePtr.thresholds[j].checkViolation(newData)){
             //store the index of threshold violated in byte 1
             gatePtr.fBuffer[nextIndex] &= 0xffff01ff; //erase old
-            gatePtr.fBuffer[nextIndex] += (j+2) << 9; //store new
-            //stop after first threshold violation found
-            break;
+            gatePtr.fBuffer[nextIndex] += (j+2) << 9; //store new flag
+            //only pulse once per threshold crossing
+            if (gatePtr.thresholds[j].okToMark){
+                pulseOutput1(); //fire the paint marker
+                gatePtr.thresholds[j].okToMark = false;
+                }
+            break; //stop after first threshold violation found
+            }
+        else{
+            gatePtr.thresholds[j].okToMark = true;
             }//if (chInfo[pCh].thresholds[j]...
     
     }//if (datastored)...
@@ -806,17 +813,23 @@ if (dataStored){
         if (gatePtr.thresholds[j].checkViolation(newMaxData)){
             //store the index of threshold violated in byte 1
             gatePtr.fBuffer[nextIndex] &= 0xffff01ff; //erase old
-            gatePtr.fBuffer[nextIndex] += (j+2) << 9; //store new
+            gatePtr.fBuffer[nextIndex] += (j+2) << 9; //store new flag
             //specify that max value was flagged - set bit 16 to 0
             gatePtr.fBuffer[nextIndex] &= 0xfffeffff; //erase old
             gatePtr.fBuffer[nextIndex] += 0 << 16; //store new flag
-            //stop after first threshold violation found
-            break;
+            //only pulse once per threshold crossing
+            if (gatePtr.thresholds[j].okToMark){
+                pulseOutput1(); //fire the paint marker
+                gatePtr.thresholds[j].okToMark = false;
+                }
+            break; //stop after first threshold violation found
+            }
+        else{
+            gatePtr.thresholds[j].okToMark = true;
             }//if (chInfo[pCh].thresholds[j]...
-    
+
     }//if (datastored)...
         
-
 //process the Min Data ----------------------------------------------------
 
 dataStored = false;
