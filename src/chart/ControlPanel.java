@@ -137,7 +137,7 @@ private void configure(IniFile pConfigFile)
 {
 
 panelWidth = pConfigFile.readInt("Control Panel", "Width", 1200);
-panelHeight = pConfigFile.readInt("Control Panel", "Width", 50);
+panelHeight = pConfigFile.readInt("Control Panel", "Height", 50);
 
 setMinimumSize(new Dimension(panelWidth, panelHeight));
 setPreferredSize(new Dimension(panelWidth, panelHeight));
