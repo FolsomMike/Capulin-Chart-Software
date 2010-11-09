@@ -114,7 +114,8 @@ try{
 
         hardware.sendDataChangesToRemotes();
 
-        Thread.sleep(10 + ((10 - globals.scanSpeed) * 5));
+        //debug mks - was * 5, slowed down for Tubo test at Scan II
+        Thread.sleep(10 + ((10 - globals.scanSpeed) * 25));
         
         }//while
     
@@ -996,6 +997,12 @@ if ("Job Info".equals(e.getActionCommand())) {
 //this part handles zeroing the encoder counts
 if ("Zero Encoder Counts".equals(e.getActionCommand())) {
     hardware.zeroEncoderCounts();
+    return;
+    }
+
+//this part handles pulsing Output 1
+if ("Pulse Output 1".equals(e.getActionCommand())) {
+    hardware.pulseOutput1();
     return;
     }
 

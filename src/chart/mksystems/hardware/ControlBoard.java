@@ -43,19 +43,11 @@ int runtimePacketSize;
 //Commands for Control boards
 //These should match the values in the code for those boards.
 
-//the ones related to UT board can be removed?
-
 static byte NO_ACTION = 0;
 static byte MONITOR_CMD = 1;
 static byte ZERO_ENCODERS_CMD = 2;
 static byte REFRESH_CMD = 3;
-static byte LOAD_FPGA_CMD = 4;
-static byte SEND_DATA_CMD = 5;
-static byte DATA_CMD = 6;
-static byte WRITE_FPGA_CMD = 7;
-static byte READ_FPGA_CMD = 8;
-static byte GET_STATUS_CMD = 9;
-static byte SET_HDW_GAIN_CMD = 10;
+static byte PULSE_OUTPUT_CMD = 4;
 static byte DEBUG_CMD = 126;
 static byte EXIT_CMD = 127;
 
@@ -257,6 +249,27 @@ try {
 catch(IOException e){}
 
 }//end of ControlBoard::zeroEncoderCounts
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlBoard::pulseOutput
+//
+// Pulses the specified output(s).
+//
+// WIP MKS - need to add parameter to pass in which output to be fired.
+// Currently the Rabbit code simply fires output 1 with this call.
+
+public void pulseOutput()
+{
+
+try {
+
+    if (byteOut != null) byteOut.write(PULSE_OUTPUT_CMD);
+
+    }
+catch(IOException e){}
+
+}//end of ControlBoard::pulseOutput
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

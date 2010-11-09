@@ -20,7 +20,6 @@ package chart;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionListener;
 import java.awt.event.*;
 
 import chart.mksystems.inifile.IniFile;
@@ -120,12 +119,16 @@ Encoder2CountLabel = new JLabel(Encoder2CountText + " : ");
 panel.add(Encoder2CountLabel);
 
 JButton zeroEncoderCounts = new JButton("Zero Encoder Counts");
-
 zeroEncoderCounts.setActionCommand("Zero Encoder Counts");
 zeroEncoderCounts.addActionListener(this);
 zeroEncoderCounts.setToolTipText("Zero Encoder Counts");
-
 panel.add(zeroEncoderCounts);
+
+JButton pulseOutput1 = new JButton("Pulse Output 1");
+pulseOutput1.setActionCommand("Pulse Output 1");
+pulseOutput1.addActionListener(this);
+pulseOutput1.setToolTipText("Pulse Output 1");
+panel.add(pulseOutput1);
 
 pack();
 
@@ -145,11 +148,19 @@ public void actionPerformed(ActionEvent e)
 
 JButton source = (JButton)(e.getSource());
 
-//calls function in Main to save the profile to a file
+//tells the Control board to zero the encoder counts
 if (source.getToolTipText().equalsIgnoreCase("Zero Encoder Counts")){
     //pass the command back to the main function
     actionListener.actionPerformed(
                           new ActionEvent(this, 1, "Zero Encoder Counts"));
+    return;
+    }
+
+//tells the Control board to pulse output 1
+if (source.getToolTipText().equalsIgnoreCase("Pulse Output 1")){
+    //pass the command back to the main function
+    actionListener.actionPerformed(
+                          new ActionEvent(this, 1, "Pulse Output 1"));
     return;
     }
 

@@ -196,6 +196,19 @@ public void zeroEncoderCounts()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// AnalogPCIDAS6023::pulseOutput1
+//
+// Pulses output 1.
+//
+
+@Override
+public void pulseOutput1()
+{
+
+}//end of AnalogPCIDAS6023::pulseOutput1
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // AnalogPCIDAS6023::requestAScan
 //
 // Requests an AScan dataset for the specified channel from the appropriate

@@ -840,6 +840,21 @@ controlBoards[0].zeroEncoderCounts();
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Capulin1::pulseOutput1
+//
+// Pulses output 1.
+//
+
+@Override
+public void pulseOutput1()
+{
+
+controlBoards[0].pulseOutput();
+
+}//end of Capulin1::pulseOutput1
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Capulin1::requestAScan
 //
 // Requests an AScan dataset for the specified channel from the appropriate

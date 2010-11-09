@@ -379,6 +379,20 @@ analogDriver.zeroEncoderCounts();
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Hardware::pulseOutput1
+//
+// Pulses output 1 on the Control board.
+//
+
+public void pulseOutput1()
+{
+
+analogDriver.pulseOutput1();
+
+}//end of Hardware::pulseOutput1
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Hardware::requestAScan
 //
 // Requests an AScan dataset for the specified channel from the appropriate
