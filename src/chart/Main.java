@@ -114,8 +114,7 @@ try{
 
         hardware.sendDataChangesToRemotes();
 
-        //debug mks - was * 5, slowed down for Tubo test at Scan II
-        Thread.sleep(10 + ((10 - globals.scanSpeed) * 25));
+        Thread.sleep(10);
         
         }//while
     
@@ -1490,11 +1489,9 @@ if (globals.exitProgram) {
 
     }
 
-if (true /*globals.isScanning*/)
-    doScan();
-else{
-    //if not scanning, update displays active when in static mode
-   }
+//plot data on the graphs - if no data is being collected by the hardware
+//because it is not in scan or inspect mode, then nothing will be plotted
+doScan();
 
 //allow the Capulin1 interface to handle necessary tasks
 hardware.doTasks();

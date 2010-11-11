@@ -57,6 +57,7 @@ String currentJobPrimaryPath, currentJobBackupPath;
 ModePanel modePanel;
 StatusPanel statusPanel;
 InfoPanel infoPanel;
+ScanSpeedPanel scanSpeedPanel;
 DemoPanel demoPanel;
 ManualControlPanel manualControlPanel;
 String jobName;
@@ -121,7 +122,7 @@ public void refreshControls()
 //cast to a double or the float spinner will switch its internal value to an
 //integer which will cause problems later when using getIntValue()
 if (manualControlPanel != null)
-        manualControlPanel.scanSpeedEditor.setValue((double)globals.scanSpeed);
+            scanSpeedPanel.scanSpeedEditor.setValue((double)globals.scanSpeed);
 
 }//end of ControlPanel::refreshControls
 //-----------------------------------------------------------------------------
@@ -153,6 +154,7 @@ setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 add(modePanel = new ModePanel(this));
 add(statusPanel = new StatusPanel(globals, this, this));
 add(infoPanel = new InfoPanel(this, jobName));
+add(scanSpeedPanel = new ScanSpeedPanel(globals, this, this));
 if (simulateMechanical) add(demoPanel = new DemoPanel(this));
 add(Box.createHorizontalGlue()); //force manual control to the right side
 if (timerDrivenTracking) 
@@ -392,12 +394,11 @@ if (e.getSource() == statusPanel.pieceNumberEditor){
 
     }// if (e.getSource() == statusPanel.pieceNumberEditor)
 
-if (e.getSource() == manualControlPanel.scanSpeedEditor){
+if (e.getSource() == scanSpeedPanel.scanSpeedEditor){
 
-    globals.scanSpeed = manualControlPanel.scanSpeedEditor.getIntValue();
+    globals.scanSpeed = scanSpeedPanel.scanSpeedEditor.getIntValue();
 
     }// if (e.getSource() == manualControlPanel.scanSpeedEditor)
-
 
 }//end of ControlPanel::stateChanged
 //-----------------------------------------------------------------------------
@@ -770,6 +771,48 @@ add(jobValue);
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
+// class ScanSpeedPanel
+//
+// This class creates and controls a panel allowing adjustment of the chart scan
+// speed.
+//
+
+class ScanSpeedPanel extends JPanel{
+
+JPanel parent;
+public TitledBorder titledBorder;
+MFloatSpinner scanSpeedEditor;
+
+//-----------------------------------------------------------------------------
+// ScanSpeedPanel::ScanSpeedPanel (constructor)
+//
+
+public ScanSpeedPanel(Globals pGlobals, JPanel pParent,
+                                                ChangeListener pChangeListener)
+{
+
+parent = pParent;
+
+setBorder(titledBorder = BorderFactory.createTitledBorder("Scan Speed"));
+setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+
+scanSpeedEditor = new MFloatSpinner(1, 1, 10, 1, "##0", 60, -1);
+scanSpeedEditor.addChangeListener(pChangeListener);
+scanSpeedEditor.setToolTipText("Scanning & Inspecting Speed");
+add(scanSpeedEditor);
+
+//add a spacer to force the box to be large enough for its title
+add(Box.createRigidArea(new Dimension(15,0))); //horizontal spacer
+
+}//end of ScanSpeedPanel::ScanSpeedPanel (constructor)
+//-----------------------------------------------------------------------------
+
+}//end of class ScanSpeedPanel
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // class DemoPanel
 //
 // This class creates and controls a panel with controls and displays for
@@ -830,8 +873,6 @@ public TitledBorder titledBorder;
 JButton pauseResumeButton, nextPieceButton;
 JLabel calModeWarning;
 
-MFloatSpinner scanSpeedEditor;
-
 //-----------------------------------------------------------------------------
 // ManualControl::ManualControl (constructor)
 //
@@ -845,13 +886,6 @@ setBorder(titledBorder = BorderFactory.createTitledBorder(
                                                  "Manual Inspection Control"));
 
 setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-
-scanSpeedEditor = new MFloatSpinner(1, 1, 10, 1, "##0", 60, -1);
-scanSpeedEditor.addChangeListener(pChangeListener);
-scanSpeedEditor.setToolTipText("Scanning & Inspecting Speed");
-add(scanSpeedEditor);
-
-add(Box.createRigidArea(new Dimension(5,0))); //horizontal spacer
 
 nextPieceButton = ControlPanel.addButtonToJPanel(this, "Next Run",
               "Next Run", pActionListener, "Begins inspection of next piece.");

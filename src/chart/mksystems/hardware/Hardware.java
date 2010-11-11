@@ -50,6 +50,7 @@ HardwareLink analogDriver;
 HardwareLink digitalDriver;
 int numberOfAnalogChannels;
 JTextArea log;
+int scanRateCounter;
 
 public boolean connected = false;
 boolean collectDataEnabled = true;
@@ -541,6 +542,19 @@ if (!collectDataEnabled) return;
 //returned from the request sent on the previous pass
 
 requestPeakDataForAllBoards();
+
+//scanRateCounter is used to control the rate the scan moves across the screen
+//this is always true for Scan mode, and true for Inspect mode if that mode is
+//timer controlled
+//note that the peak data packets are still being requested and stored, but
+//the peak data is transferred at the rate specified by globals.scanSpeed
+//that way, the position info for the peaks is recorded and maintained even
+//though some peaks will not be retained (overwritten by new peaks) and plotted
+
+if (scanRateCounter-- == 0){
+    scanRateCounter = 10 - globals.scanSpeed;
+    }
+else return;
 
 //process position information from whatever device is handling the encoder
 //inputs, or retrieve timer driven position updates for scanning or for systems
