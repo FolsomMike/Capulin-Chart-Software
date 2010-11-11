@@ -594,6 +594,9 @@ for (int i = 0; i < numberOfUTBoards; i++)
 public void shutDown()
 {
 
+for (int i = 0; i < numberOfControlBoards; i++)
+    if (controlBoards[i]!= null) controlBoards[i].shutDown();
+        
 for (int i = 0; i < numberOfUTBoards; i++) 
     if (utBoards[i]!= null) utBoards[i].shutDown();
 

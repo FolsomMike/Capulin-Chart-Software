@@ -320,28 +320,28 @@ private void configure(IniFile pConfigFile)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// ControlBoard::finalize
+// UTBoard::shutDown
 //
-// This function is inherited from the object class and is called by the Java
-// VM before the object is discarded.
+// This function should be called before exiting the program.  Overriding the
+// "finalize" method does not work as it does not get called reliably upon
+// program exit.
 //
 
-@Override
-protected void finalize() throws Throwable
+protected void shutDown()
 {
 
 //close everything - the order of closing may be important
 
-byteOut.close();
-byteIn.close();
-out.close();
-in.close();
-socket.close();
+try{
+    byteOut.close();
+    byteIn.close();
+    out.close();
+    in.close();
+    socket.close();
+    }
+catch(IOException e){}
 
-//allow the parent classes to finalize
-super.finalize();
-
-}//end of ControlBoard::finalize
+}//end of ControlBoard::shutDown
 //-----------------------------------------------------------------------------
 
 }//end of class ControlBoard
