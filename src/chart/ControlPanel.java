@@ -121,8 +121,7 @@ public void refreshControls()
 //set the scan speed editor to the value loaded from disk
 //cast to a double or the float spinner will switch its internal value to an
 //integer which will cause problems later when using getIntValue()
-if (manualControlPanel != null)
-            scanSpeedPanel.scanSpeedEditor.setValue((double)globals.scanSpeed);
+scanSpeedPanel.scanSpeedEditor.setValue((double)globals.scanSpeed);
 
 }//end of ControlPanel::refreshControls
 //-----------------------------------------------------------------------------
@@ -398,7 +397,7 @@ if (e.getSource() == scanSpeedPanel.scanSpeedEditor){
 
     globals.scanSpeed = scanSpeedPanel.scanSpeedEditor.getIntValue();
 
-    }// if (e.getSource() == manualControlPanel.scanSpeedEditor)
+    }// if (e.getSource() == scanSpeedPanel.scanSpeedEditor)
 
 }//end of ControlPanel::stateChanged
 //-----------------------------------------------------------------------------
