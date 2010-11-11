@@ -119,6 +119,8 @@ Channel currentChannel;
 StripChart chart;
 public boolean updateEnabled = true;
 
+
+
 String inchesPeruSText = "in/uS";
 String cmPeruSText = "cm/uS";
 
@@ -161,8 +163,16 @@ TitledBorder unitsBorder;
 TitledBorder rectificationBorder;
 JRadioButton posHalfRadioButton, negHalfRadioButton, fullWaveRadioButton;
 JRadioButton rfRadioButton, offRadioButton;
-
+//the timeDistMult is used to convert from uS to Distance
+//the time values are always stored as uS - the multiplier is set to 1
+//if set to display in distance, the multiplier is changed to
+//Velocity Shear Wave  (the velocity is entered by the user)
+double timeDistMult;
 int displayMode = 0;
+//number of decimal places to display for values which can be displayed as
+//either time or distance - this is set by a string such as "##0.0"
+String timeDistDecimalPlaces;
+double timeDistIncrement; //amount to increment when user clicks arrows
 
 //end of components on Signal tab
 
@@ -262,6 +272,23 @@ currentChannel = pChannel;
 gatesTab.removeAll(); signalTab.removeAll(); wallTab.removeAll();
 dacTab.removeAll(); chartTab.removeAll(); shotCountTab.removeAll();
 configTab.removeAll();
+
+//set multiplier to 1.0 if displaying values in time base,
+//otherwise, set multiplier to speed of shear wave for use in converting
+//back and forth between time and distance
+//the decimal places to be used changes depending on whether time or distance
+//is being displayed
+//works the same for Metric or English units
+if (hardware.unitsTimeDistance == Hardware.TIME){
+    timeDistMult = 1.0;
+    timeDistDecimalPlaces = "##0.0"; //one decimal place for time values
+    timeDistIncrement = .1;
+    }
+else {
+    timeDistMult = hardware.hdwVs.velocityShearUS;
+    timeDistDecimalPlaces = "#0.000"; //three decimal places for distances
+    timeDistIncrement = .01;
+    }
 
 //The grid for the gates and the grid for the threshold cannot use set sizes
 //because both need to grow depending on the number of gates or thresholds.
@@ -363,15 +390,17 @@ for (int i=0; i < gridYCount; i++){
         label.setToolTipText(currentChannel.getGate(i).title);
         gatesTab.add(label);
 
-        mfSpinner = new MFloatSpinner(currentChannel.getGateStart(i),
-                                            -273.0, 273.0, .1, "##0.0", 60, -1);
+        mfSpinner = new MFloatSpinner(
+             currentChannel.getGateStart(i) * timeDistMult,
+               -273.0, 273.0, timeDistIncrement, timeDistDecimalPlaces, 60, -1);
         mfSpinner.addChangeListener(this); //monitor changes to value
         gatesTab.add(mfSpinner);
         //save a pointer to this adjuster in the gate object
         currentChannel.getGate(i).gateStartAdjuster = mfSpinner;
 
-        mfSpinner = new MFloatSpinner(currentChannel.getGateWidth(i),
-                                                 0, 273.0, .1, "##0.0", 60, -1);
+        mfSpinner = new MFloatSpinner(
+             currentChannel.getGateWidth(i) * timeDistMult,
+                    0, 273.0, timeDistIncrement, timeDistDecimalPlaces, 60, -1);
         mfSpinner.addChangeListener(this); //monitor changes to value
         gatesTab.add(mfSpinner);
         //save a pointer to this adjuster in the gate object
@@ -384,7 +413,6 @@ for (int i=0; i < gridYCount; i++){
         //save a pointer to this adjuster in the gate object
         currentChannel.getGate(i).gateLevelAdjuster = mfSpinner;
  
-
         //if the gate just added is the interface gate, add a "Track" checkbox
         //to allow selecton of interface tracking, otherwise add a blank label
         if (currentChannel.getGate(i).getInterfaceGate()){
@@ -460,6 +488,14 @@ signalTab.removeAll();
 
 signalTab.setLayout(new BoxLayout(signalTab, BoxLayout.PAGE_AXIS));
 
+String timeDistLabel;
+if (hardware.unitsTimeDistance == Hardware.TIME)
+    timeDistLabel = " uS";
+else{
+    if (hardware.units == Hardware.INCHES) timeDistLabel = " inches";
+    else timeDistLabel = " mm";
+    }
+
 //create a panel to hold top row of panels and components
 JPanel panel1 = new JPanel();
 panel1.setLayout(new BoxLayout(panel1, BoxLayout.LINE_AXIS));
@@ -473,14 +509,15 @@ setSizes(multiSpinnerPanel, 280, 60);
 multiSpinnerPanel.setLayout(new GridLayout(2,2));
 
 //add a panel for Delay control
-multiSpinnerPanel.add(delaySpin = new SpinnerPanel(
-    currentChannel.getDelay(), 0, 273.0, .1, "##0.0", 60, 23, "Delay ", " uS"));
+multiSpinnerPanel.add(delaySpin = 
+  new SpinnerPanel( currentChannel.getDelay() * timeDistMult, 0, 273.0,
+    timeDistIncrement, timeDistDecimalPlaces, 60, 23, "Delay ", timeDistLabel));
 delaySpin.spinner.addChangeListener(this); //monitor changes to value
 
 //add a panel for Range control
 multiSpinnerPanel.add(rangeSpin =
-            new SpinnerPanel(currentChannel.getRange(),
-                               0, 273.0, .1, "##0.0", 60, 23, "Range ", " uS"));
+  new SpinnerPanel(currentChannel.getRange() * timeDistMult, 0, 273.0,
+    timeDistIncrement, timeDistDecimalPlaces, 60, 23, "Range ", timeDistLabel));
 rangeSpin.spinner.addChangeListener(this); //monitor changes to value
 
 //add a panel for Gain control
@@ -1007,7 +1044,7 @@ topRightPanel.add(inchesMMPanel);
 if (hardware.units == Hardware.INCHES)
     inchesRadioButton.setSelected(true);
 else
-    mmRadioButton.setSelected(false);
+    mmRadioButton.setSelected(true);
 
 //Time/Distance display (time or distance) selection panel and radio buttons
 
@@ -1361,9 +1398,11 @@ for (int i=0; i < numberOfGates; i++){
     gate = ch.getGate(i);
     
     ch.setGateStart(i,
-       ((MFloatSpinner) gate.gateStartAdjuster).getDoubleValue(), pForceUpdate);
+      ((MFloatSpinner) gate.gateStartAdjuster).getDoubleValue() / timeDistMult,
+                                                                  pForceUpdate);
     ch.setGateWidth(i,
-       ((MFloatSpinner) gate.gateWidthAdjuster).getDoubleValue(), pForceUpdate);
+      ((MFloatSpinner) gate.gateWidthAdjuster).getDoubleValue() / timeDistMult,
+                                                                  pForceUpdate);
     ch.setGateLevel(i,
           ((MFloatSpinner) gate.gateLevelAdjuster).getIntValue(), pForceUpdate);
 
@@ -1374,7 +1413,7 @@ for (int i=0; i < numberOfGates; i++){
     
     }
 
-ch.setDelay(delaySpin.spinner.getDoubleValue(), pForceUpdate);
+ch.setDelay(delaySpin.spinner.getDoubleValue() / timeDistMult, pForceUpdate);
 if (interfaceTrackingCheckBox != null) ch.setInterfaceTracking(
                         interfaceTrackingCheckBox.isSelected(), pForceUpdate);
 
@@ -1393,9 +1432,8 @@ setChannelSelectorColor(ch);
 
 //always set range after setting gate position or width, delay and interface
 //tracking as these affect the range
-ch.setRange(rangeSpin.spinner.getDoubleValue(), pForceUpdate);
-ch.setSoftwareGain(
-                              gainSpin.spinner.getDoubleValue(), pForceUpdate);
+ch.setRange(rangeSpin.spinner.getDoubleValue() / timeDistMult, pForceUpdate);
+ch.setSoftwareGain(gainSpin.spinner.getDoubleValue(), pForceUpdate);
 
 hardware.hdwVs.nominalWall = nomWallSpin.spinner.getDoubleValue();
 hardware.hdwVs.nominalWallChartPosition = nomWallPosSpin.spinner.getIntValue();
