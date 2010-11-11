@@ -198,6 +198,7 @@ JCheckBox hideChartCheckBox;
 SpinnerPanel velocityShearSpin;
 JRadioButton inchesRadioButton, mmRadioButton;
 JRadioButton timeRadioButton, distanceRadioButton;
+JRadioButton markerPulseButton, markerContinuousButton;
 
 //end of components on Configuration tab
 
@@ -1079,6 +1080,32 @@ topRightPanel.add(velocityShearSpin = new SpinnerPanel(
 velocityShearSpin.spinner.addChangeListener(this); //monitor changes to value
 velocityShearSpin.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+//Marker mode display - one pulse per violation or continuous during violation
+
+JPanel markerModePanel = new JPanel();
+setSizes(markerModePanel, 220, 24);
+markerModePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+markerPulseButton = new JRadioButton("mark pulse");
+markerPulseButton.setToolTipText(
+                            "Pulse marker once for each threshold violation.");
+markerPulseButton.addActionListener(this);
+markerContinuousButton = new JRadioButton("mark continuous");
+markerContinuousButton.setToolTipText(
+                    "Fire marker continuously during a threshold violation.");
+markerContinuousButton.addActionListener(this);
+ButtonGroup markerModeGroup = new ButtonGroup();
+markerModeGroup.add(markerPulseButton);
+markerModeGroup.add(markerContinuousButton);
+markerModePanel.add(markerPulseButton);
+markerModePanel.add(markerContinuousButton);
+topRightPanel.add(markerModePanel);
+
+//set the marker pulse/continuous button
+if (hardware.markerMode == Hardware.PULSE)
+    markerPulseButton.setSelected(true);
+else
+    markerContinuousButton.setSelected(true);
+
 configTab.add(topLeftPanel);
 configTab.add(Box.createRigidArea(new Dimension(7,0))); //horizontal spacer
 configTab.add(topRightPanel);
@@ -1452,6 +1479,11 @@ if (timeRadioButton.isSelected())
     hardware.unitsTimeDistance = Hardware.TIME;
 if (distanceRadioButton.isSelected())
     hardware.unitsTimeDistance = Hardware.DISTANCE;
+
+if (markerPulseButton.isSelected())
+    hardware.markerMode = Hardware.PULSE;
+if (markerContinuousButton.isSelected())
+    hardware.markerMode = Hardware.CONTINUOUS;
 
 hardware.hdwVs.velocityShearUS = velocityShearSpin.spinner.getDoubleValue();
 //calculate velocity in distance per NS

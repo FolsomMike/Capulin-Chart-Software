@@ -68,6 +68,10 @@ void zeroEncoderCounts();
 
 void pulseOutput1();
 
+void turnOnOutput1();
+
+void turnOffOutput1();
+
 public void requestAScan(int pChannel);
 
 AScan getAScan(int pChannel);

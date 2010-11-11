@@ -48,6 +48,8 @@ static byte MONITOR_CMD = 1;
 static byte ZERO_ENCODERS_CMD = 2;
 static byte REFRESH_CMD = 3;
 static byte PULSE_OUTPUT_CMD = 4;
+static byte TURN_ON_OUTPUT_CMD = 5;
+static byte TURN_OFF_OUTPUT_CMD = 6;
 static byte DEBUG_CMD = 126;
 static byte EXIT_CMD = 127;
 
@@ -258,18 +260,57 @@ catch(IOException e){}
 //
 // WIP MKS - need to add parameter to pass in which output to be fired.
 // Currently the Rabbit code simply fires output 1 with this call.
+//
 
 public void pulseOutput()
 {
 
 try {
-
     if (byteOut != null) byteOut.write(PULSE_OUTPUT_CMD);
-
     }
 catch(IOException e){}
 
 }//end of ControlBoard::pulseOutput
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlBoard::turnOnOutput
+//
+// Turns on the specified output(s).
+//
+// WIP MKS - need to add parameter to pass in which output to be fired.
+// Currently the Rabbit code simply fires output 1 with this call.
+//
+
+public void turnOnOutput()
+{
+
+try {
+    if (byteOut != null) byteOut.write(TURN_ON_OUTPUT_CMD);
+    }
+catch(IOException e){}
+
+}//end of ControlBoard::turnOnOutput
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlBoard::turnOffOutput
+//
+// Turns off the specified output(s).
+//
+// WIP MKS - need to add parameter to pass in which output to be fired.
+// Currently the Rabbit code simply fires output 1 with this call.
+//
+
+public void turnOffOutput()
+{
+
+try {
+    if (byteOut != null) byteOut.write(TURN_OFF_OUTPUT_CMD);
+    }
+catch(IOException e){}
+
+}//end of ControlBoard::turnOffOutput
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

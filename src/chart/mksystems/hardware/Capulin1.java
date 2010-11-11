@@ -858,6 +858,36 @@ controlBoards[0].pulseOutput();
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Capulin1::turnOnOutput1
+//
+// Turn on output 1.
+//
+
+@Override
+public void turnOnOutput1()
+{
+
+controlBoards[0].turnOnOutput();
+
+}//end of Capulin1::turnOnOutput1
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::turnOffOutput1
+//
+// Turn off output 1.
+//
+
+@Override
+public void turnOffOutput1()
+{
+
+controlBoards[0].turnOffOutput();
+
+}//end of Capulin1::turnOffOutput1
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Capulin1::requestAScan
 //
 // Requests an AScan dataset for the specified channel from the appropriate

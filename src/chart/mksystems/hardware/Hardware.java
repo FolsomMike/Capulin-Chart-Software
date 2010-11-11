@@ -42,6 +42,8 @@ static public int SCAN = 0, INSPECT = 1, STOPPED = 2;
 static public int INSPECT_WITH_TIMER_TRACKING = 3, PAUSED = 4;
 int opMode = STOPPED;
 
+boolean output1On = false;
+
 Globals globals;
     
 public HardwareVars hdwVs;
@@ -67,6 +69,9 @@ public int units = INCHES;
 
 public static int TIME = 0, DISTANCE = 1;
 public int unitsTimeDistance = TIME;
+
+public static int PULSE = 0, CONTINUOUS = 1;
+public int markerMode = PULSE;
 
 String threadSafeMessage; //this needs to be an array
 int threadSafeMessagePtr; //points to next message in the array
@@ -209,6 +214,10 @@ units = pCalFile.readInt("Hardware",
 unitsTimeDistance = pCalFile.readInt("Hardware",
            "Units are in Time(" + TIME + ") or Distance(" + DISTANCE + ")", 0);
 
+markerMode = pCalFile.readInt("Hardware",
+       "Marker pulses once for each threshold violation (" + PULSE +
+       ") or fires continuously during the violation (" + CONTINUOUS + ")", 0);
+
 analogDriver.loadCalFile(pCalFile);
   
 }//end of Hardware::loadCalFile
@@ -248,6 +257,11 @@ pCalFile.writeInt("Hardware",
 pCalFile.writeInt("Hardware",
     "Units are in Time(" + TIME + ") or Distance(" + DISTANCE + ")",
                                                             unitsTimeDistance);
+
+pCalFile.writeInt("Hardware",
+       "Marker pulses once for each threshold violation (" + PULSE +
+       ") or fires continuously during the violation (" + CONTINUOUS + ")",
+                                                                    markerMode);
 
 analogDriver.saveCalFile(pCalFile);
   
@@ -391,6 +405,38 @@ public void pulseOutput1()
 analogDriver.pulseOutput1();
 
 }//end of Hardware::pulseOutput1
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::turnOnOutput1
+//
+// Turns on output 1 on the Control board.
+//
+
+public void turnOnOutput1()
+{
+
+analogDriver.turnOnOutput1();
+
+output1On = true;
+
+}//end of Hardware::turnOnOutput1
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::turnOffOutput1
+//
+// Turns off output 1 on the Control board.
+//
+
+public void turnOffOutput1()
+{
+
+analogDriver.turnOffOutput1();
+
+output1On = false;
+
+}//end of Hardware::turnOffOutput1
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -716,16 +762,12 @@ if (dataStored){
         if (gatePtr.thresholds[j].checkViolation(newData)){
             //store the index of threshold violated in byte 1
             gatePtr.fBuffer[nextIndex] &= 0xffff01ff; //erase old
-            gatePtr.fBuffer[nextIndex] += (j+2) << 9; //store new flag
-            //only pulse once per threshold crossing
-            if (gatePtr.thresholds[j].okToMark){
-                pulseOutput1(); //fire the paint marker
-                gatePtr.thresholds[j].okToMark = false;
-                }
+            gatePtr.fBuffer[nextIndex] += (j+2) << 9; //store new flag    
+            startMarker(gatePtr, j); //handle marking the violation
             break; //stop after first threshold violation found
             }
         else{
-            gatePtr.thresholds[j].okToMark = true;
+            endMarker(gatePtr, j);
             }//if (chInfo[pCh].thresholds[j]...
     
     }//if (datastored)...
@@ -822,7 +864,7 @@ if (dataStored){
 
     //check thresholds and store flag if violation - shift threshold
     //index by 2 as 0 = no flag and 1 = user flag
-            
+
     for (int j = 0; j < gatePtr.thresholds.length; j++)
         if (gatePtr.thresholds[j].checkViolation(newMaxData)){
             //store the index of threshold violated in byte 1
@@ -831,16 +873,13 @@ if (dataStored){
             //specify that max value was flagged - set bit 16 to 0
             gatePtr.fBuffer[nextIndex] &= 0xfffeffff; //erase old
             gatePtr.fBuffer[nextIndex] += 0 << 16; //store new flag
-            //only pulse once per threshold crossing
-            if (gatePtr.thresholds[j].okToMark){
-                pulseOutput1(); //fire the paint marker
-                gatePtr.thresholds[j].okToMark = false;
-                }
+            startMarker(gatePtr, j); //handle marking the violation
             break; //stop after first threshold violation found
             }
         else{
-            gatePtr.thresholds[j].okToMark = true;
+            endMarker(gatePtr, j);
             }//if (chInfo[pCh].thresholds[j]...
+
 
     }//if (datastored)...
         
@@ -1005,7 +1044,47 @@ return(newPositionData);
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-//  Hardware:displayMessages
+// Hardware::startMarker
+//
+// Depending on the marker mode, the marker(s) is pulsed or turned on.
+//
+
+public void startMarker(Gate pGatePtr, int pWhichThreshold)
+{
+
+if (markerMode == PULSE){
+    //only pulse once per threshold crossing
+    if (pGatePtr.thresholds[pWhichThreshold].okToMark){
+        pulseOutput1(); //fire the marker
+        pGatePtr.thresholds[pWhichThreshold].okToMark = false;
+        }
+    }//if (markerMode == PULSE)
+else{
+    //continuous mode - turn on and leave on
+    turnOnOutput1(); //turn on the marker
+    }
+
+}//end of Hardware::startMarker
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::endMarker
+//
+// For pulse mode, the flag which allows another marker pulse is enabled.
+// For continuous mode, the marker is turned off if it was on.
+//
+
+public void endMarker(Gate pGatePtr, int pWhichThreshold)
+{
+
+pGatePtr.thresholds[pWhichThreshold].okToMark = true;
+if ((markerMode == CONTINUOUS) && output1On) turnOffOutput1();
+
+}//end of Hardware::endMarker
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::displayMessages
 //
 // Displays any messages received from the remote.
 //

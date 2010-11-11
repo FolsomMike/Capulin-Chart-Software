@@ -209,6 +209,32 @@ public void pulseOutput1()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// AnalogPCIDAS6023::turnOnOutput1
+//
+// Turn on output 1.
+//
+
+@Override
+public void turnOnOutput1()
+{
+
+}//end of AnalogPCIDAS6023::turnOnOutput1
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// AnalogPCIDAS6023::turnOffOutput1
+//
+// Turn off output 1.
+//
+
+@Override
+public void turnOffOutput1()
+{
+
+}//end of AnalogPCIDAS6023::turnOffOutput1
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // AnalogPCIDAS6023::requestAScan
 //
 // Requests an AScan dataset for the specified channel from the appropriate
