@@ -1046,23 +1046,23 @@ return(newPositionData);
 //-----------------------------------------------------------------------------
 // Hardware::startMarker
 //
-// Depending on the marker mode, the marker(s) is pulsed or turned on.
+// If the marker mode is pulsed, then a pulse will be fired only at the
+// first threshold violation and not fired again until the violation is cleared
+// and then occurs again.
+//
+// If the marker mode is continuous, a pulse will be fired for every violation
+// which will effectively turn the marker on continuously if the violations
+// are closely spaced.
 //
 
 public void startMarker(Gate pGatePtr, int pWhichThreshold)
 {
 
-if (markerMode == PULSE){
-    //only pulse once per threshold crossing
-    if (pGatePtr.thresholds[pWhichThreshold].okToMark){
-        pulseOutput1(); //fire the marker
-        pGatePtr.thresholds[pWhichThreshold].okToMark = false;
-        }
-    }//if (markerMode == PULSE)
-else{
-    //continuous mode - turn on and leave on
-    turnOnOutput1(); //turn on the marker
+if (pGatePtr.thresholds[pWhichThreshold].okToMark || markerMode == CONTINUOUS){
+    pulseOutput1(); //fire the marker
     }
+
+pGatePtr.thresholds[pWhichThreshold].okToMark = false;
 
 }//end of Hardware::startMarker
 //-----------------------------------------------------------------------------
@@ -1078,7 +1078,6 @@ public void endMarker(Gate pGatePtr, int pWhichThreshold)
 {
 
 pGatePtr.thresholds[pWhichThreshold].okToMark = true;
-if ((markerMode == CONTINUOUS) && output1On) turnOffOutput1();
 
 }//end of Hardware::endMarker
 //-----------------------------------------------------------------------------
