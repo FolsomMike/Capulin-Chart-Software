@@ -374,11 +374,13 @@ protected void shutDown()
 //close everything - the order of closing may be important
 
 try{
-    byteOut.close();
-    byteIn.close();
-    out.close();
-    in.close();
-    socket.close();
+
+    if (byteOut != null) byteOut.close();
+    if (byteIn != null) byteIn.close();
+    if (out != null) out.close();
+    if (in != null) in.close();
+    if (socket != null) socket.close();
+    
     }
 catch(IOException e){}
 
