@@ -154,7 +154,8 @@ JLabel gateLabel, startLabel, widthLabel, levelLabel;
 //components on Signal tab
 
 SpinnerPanel delaySpin, rangeSpin, gainSpin;
-SpinnerPanel hardwareGainSpin, rejectSpin, smoothingSpin, dcOffsetSpin;
+SpinnerPanel hardwareGainSpin1, hardwareGainSpin2, rejectSpin, smoothingSpin;
+SpinnerPanel dcOffsetSpin;
 SpinnerPanel nomWallSpin, nomWallPosSpin, wallScaleSpin, velocitySpin;
 SpinnerPanel numMultiplesSpin;
 
@@ -167,7 +168,7 @@ JRadioButton rfRadioButton, offRadioButton;
 //the time values are always stored as uS - the multiplier is set to 1
 //if set to display in distance, the multiplier is changed to
 //Velocity Shear Wave  (the velocity is entered by the user)
-double timeDistMult;
+public double timeDistMult;
 int displayMode = 0;
 //number of decimal places to display for values which can be displayed as
 //either time or distance - this is set by a string such as "##0.0"
@@ -464,10 +465,10 @@ updateEnabled = false;
 for (int i=0; i < pChannel.getNumberOfGates(); i++){
 
     ((MFloatSpinner) pChannel.getGate(i).gateStartAdjuster).setValue(
-                                                    pChannel.getGateStart(i));
+                                    pChannel.getGateStart(i) * timeDistMult);
 
     ((MFloatSpinner) pChannel.getGate(i).gateWidthAdjuster).setValue(
-                                                    pChannel.getGateWidth(i));
+                                    pChannel.getGateWidth(i) * timeDistMult);
     }
 
 updateEnabled = true;
@@ -976,7 +977,7 @@ else units = " mm";
 
 JPanel topLeftPanel = new JPanel();
 topLeftPanel.setLayout(new BoxLayout(topLeftPanel, BoxLayout.PAGE_AXIS));
-setSizes(topLeftPanel, 160, 180);
+setSizes(topLeftPanel, 170, 180);
 topLeftPanel.setAlignmentY(Component.TOP_ALIGNMENT);
 
 topLeftPanel.add(Box.createRigidArea(new Dimension(0,7))); //vertical spacer
@@ -991,19 +992,28 @@ topLeftPanel.add(Box.createRigidArea(new Dimension(0,7))); //vertical spacer
 
 //add an entry for AScan Display Smoothing
 topLeftPanel.add(smoothingSpin = new SpinnerPanel(
-                currentChannel.getAScanSmoothing(), 1, 10, 1, "##0", 40, 23,
+                currentChannel.getAScanSmoothing(), 1, 25, 1, "##0", 40, 23,
                                                       "AScan Smoothing ", ""));
 smoothingSpin.spinner.addChangeListener(this); //monitor changes to value
 smoothingSpin.setAlignmentX(Component.LEFT_ALIGNMENT);
 
 topLeftPanel.add(Box.createRigidArea(new Dimension(0,7))); //vertical spacer
 
-//add an entry for hardware gain
-topLeftPanel.add(hardwareGainSpin = new SpinnerPanel(
-                currentChannel.getHardwareGain(), 1, 256.0, 1, "##0", 40, 23,
-                                                   "Hardware Gain ", " Vo/Vi"));
-hardwareGainSpin.spinner.addChangeListener(this); //monitor changes to value
-hardwareGainSpin.setAlignmentX(Component.LEFT_ALIGNMENT);
+//add an entry for stage 1 hardware gain
+topLeftPanel.add(hardwareGainSpin1 = new SpinnerPanel(
+                currentChannel.getHardwareGain1(), 1, 16.0, 1, "##0", 40, 23,
+                                                 "Hardware Gain 1 ", " Vo/Vi"));
+hardwareGainSpin1.spinner.addChangeListener(this); //monitor changes to value
+hardwareGainSpin1.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+topLeftPanel.add(Box.createRigidArea(new Dimension(0,7))); //vertical spacer
+
+//add an entry for stage 1 hardware gain
+topLeftPanel.add(hardwareGainSpin2 = new SpinnerPanel(
+                currentChannel.getHardwareGain2(), 1, 16.0, 1, "##0", 40, 23,
+                                                 "Hardware Gain 2 ", " Vo/Vi"));
+hardwareGainSpin2.spinner.addChangeListener(this); //monitor changes to value
+hardwareGainSpin2.setAlignmentX(Component.LEFT_ALIGNMENT);
 
 topLeftPanel.add(Box.createRigidArea(new Dimension(0,7))); //vertical spacer
 
@@ -1489,7 +1499,8 @@ hardware.hdwVs.velocityShearUS = velocityShearSpin.spinner.getDoubleValue();
 //calculate velocity in distance per NS
 hardware.hdwVs.velocityShearNS = hardware.hdwVs.velocityShearUS / 1000;
 
-ch.setHardwareGain(hardwareGainSpin.spinner.getIntValue(), pForceUpdate);
+ch.setHardwareGain(hardwareGainSpin1.spinner.getIntValue(),
+                        hardwareGainSpin2.spinner.getIntValue(), pForceUpdate);
 ch.setRejectLevel(rejectSpin.spinner.getIntValue(), pForceUpdate);
 ch.setAScanSmoothing(smoothingSpin.spinner.getIntValue(), pForceUpdate);
 ch.setDCOffset(dcOffsetSpin.spinner.getIntValue(), pForceUpdate);

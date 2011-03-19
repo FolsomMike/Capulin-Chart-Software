@@ -80,7 +80,7 @@ double aScanRange = 0;
 int hardwareRange;
 public int softwareRange;
 double softwareGain = 0;
-int hardwareGain;
+int hardwareGain1, hardwareGain2;
 int rejectLevel;
 int aScanSmoothing;
 int dcOffset;
@@ -176,7 +176,7 @@ setFlags1(flags1Mask);
 //setup various things
 setAScanSmoothing(aScanSmoothing, true);
 setSoftwareGain(softwareGain, true);
-setHardwareGain(hardwareGain, true);
+setHardwareGain(hardwareGain1, hardwareGain2, true);
 setDCOffset(dcOffset, true);
 setMode(mode, true);  //setMode also calls setTransducer
 setInterfaceTracking(interfaceTracking, true);
@@ -1400,68 +1400,53 @@ return softwareGain;
 //-----------------------------------------------------------------------------
 // Channel::setHardwareGain
 //
-// Sets the amount of amplification for the programmable hardware gain.  The
-// value can be between 1 and 256 and will be divided among two gain stages.
-// If the value does not divide evenly, the extra gain point will be applied
-// to the first stage.
+// Sets the amount of amplification for the two programmable hardware gain
+// stages.  Each value can be between 1 and 16.
 //
 
-public void setHardwareGain(int pHardwareGain, boolean pForceUpdate)
+public void setHardwareGain(int pHardwareGain1, int pHardwareGain2,
+                                                           boolean pForceUpdate)
 {
 
-if (pHardwareGain != hardwareGain) pForceUpdate = true;
+if ((pHardwareGain1 != hardwareGain1) || (pHardwareGain2 != hardwareGain2 ))
+    pForceUpdate = true;
 
-hardwareGain = pHardwareGain;
-
-if (hardwareGain < 1) hardwareGain = 1;
-if (hardwareGain > 256) hardwareGain = 256;
-
-int gain1=1, gain2=1;
-
-//divide the gain evenly between the two stages if possible
-// (there must be a formula to do this!)
-// wip mks - need to move this to a function to handle all 256 gain values
-
-if (hardwareGain == 1){gain1 = 1; gain2 = 1;} else
-if (hardwareGain == 2){gain1 = 2; gain2 = 1;} else
-if (hardwareGain == 3){gain1 = 3; gain2 = 1;} else
-if (hardwareGain == 4){gain1 = 2; gain2 = 2;} else
-if (hardwareGain == 5){gain1 = 5; gain2 = 1;} else
-if (hardwareGain == 6){gain1 = 3; gain2 = 2;} else
-if (hardwareGain == 7){gain1 = 7; gain2 = 1;} else
-if (hardwareGain == 8){gain1 = 4; gain2 = 2;} else
-if (hardwareGain == 9){gain1 = 3; gain2 = 3;} else
-if (hardwareGain == 10){gain1 = 5; gain2 = 2;} else
-if (hardwareGain == 11){gain1 = 11; gain2 = 1;} else
-if (hardwareGain == 12){gain1 = 6; gain2 = 2;} else
-if (hardwareGain == 13){gain1 = 13; gain2 = 1;} else
-if (hardwareGain == 14){gain1 = 7; gain2 = 2;} else
-if (hardwareGain == 15){gain1 = 5; gain2 = 3;} else
-if (hardwareGain == 16){gain1 = 4; gain2 = 4;} else
-if (hardwareGain == 17){gain1 = 4; gain2 = 4;} else    //same as 16
-if (hardwareGain == 18){gain1 = 6; gain2 = 3;} else
-if (hardwareGain == 19){gain1 = 6; gain2 = 3;} else    //same as 18
-if (hardwareGain == 20){gain1 = 5; gain2 = 4;} else
-    {gain1 = 5; gain2 = 4;}
+hardwareGain1 = pHardwareGain1; hardwareGain2 = pHardwareGain2;
 
 if (utBoard != null && pForceUpdate)
-    utBoard.sendHardwareGain(boardChannel, gain1, gain2);
+    utBoard.sendHardwareGain(boardChannel, hardwareGain1, hardwareGain2);
 
 }//end of Channel::setHardwareGain
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Channel::getHardwareGain
+// Channel::getHardwareGain1
 //
-// Returns the amount of amplification for the programmable hardware gain.
+// Returns the amount of amplification for the first stage programmable
+// hardware gain.
 //
 
-public int getHardwareGain()
+public int getHardwareGain1()
 {
 
-return hardwareGain;
+return hardwareGain1;
 
-}//end of Channel::getHardwareGain
+}//end of Channel::getHardwareGain1
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::getHardwareGain2
+//
+// Returns the amount of amplification for the first stage programmable
+// hardware gain.
+//
+
+public int getHardwareGain2()
+{
+
+return hardwareGain2;
+
+}//end of Channel::getHardwareGain2
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -2523,7 +2508,8 @@ String section = "Channel " + (channelIndex + 1);
 aScanDelay = pCalFile.readDouble(section, "Sample Delay", 0);
 aScanRange = pCalFile.readDouble(section, "Range", 53.0);
 softwareGain = pCalFile.readDouble(section, "Software Gain", 0);
-hardwareGain = pCalFile.readInt(section, "Hardware Gain", 2);
+hardwareGain1 = pCalFile.readInt(section, "Hardware Gain Stage 1", 2);
+hardwareGain2 = pCalFile.readInt(section, "Hardware Gain Stage 2", 1);
 interfaceTracking = pCalFile.readBoolean(section, "Interface Tracking", false);
 dacEnabled = pCalFile.readBoolean(section, "DAC Enabled", false);
 mode = pCalFile.readInt(section, "Signal Mode", 0);
@@ -2561,7 +2547,8 @@ String section = "Channel " + (channelIndex + 1);
 pCalFile.writeDouble(section, "Sample Delay", aScanDelay);
 pCalFile.writeDouble(section, "Range", aScanRange);
 pCalFile.writeDouble(section, "Software Gain", softwareGain);
-pCalFile.writeInt(section, "Hardware Gain", hardwareGain);
+pCalFile.writeInt(section, "Hardware Gain Stage 1", hardwareGain1);
+pCalFile.writeInt(section, "Hardware Gain Stage 2", hardwareGain2);
 pCalFile.writeBoolean(section, "Interface Tracking", interfaceTracking);
 pCalFile.writeBoolean(section, "DAC Enabled", dacEnabled);
 pCalFile.writeInt(section, "Signal Mode", mode);

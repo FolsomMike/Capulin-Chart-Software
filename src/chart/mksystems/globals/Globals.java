@@ -151,6 +151,12 @@ public boolean isScanning = false;
 public String primaryFolderName = "";
 public String backupFolderName =  "";
 
+//function of the "Copy to All" button on the A-Scan calibration windows
+// 0: copies currently selected channel to all other channels for the currently
+//      selected chart
+// 1: copies currently selected channel to all other channels for all charts
+public int copyToAllMode;
+
 //-----------------------------------------------------------------------------
 // Globals::Globals (constructor)
 //

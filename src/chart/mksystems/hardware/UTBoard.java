@@ -57,7 +57,7 @@ public static int ASCAN_BUFFER_SIZE = 400;
 AScan aScan, aScanBuffer;
 
 AScan [] aScanFIFO;
-static int ASCAN_FIFO_SIZE = 10; //fifo is used for smoothing - larger number
+static int ASCAN_FIFO_SIZE = 25; //fifo is used for smoothing - larger number
                                 //allows for more smoothing
 int aScanFIFOIndex = 0;
 
@@ -1162,6 +1162,9 @@ gain1 = (byte)((pGain1-1) & 0x0f); gain2 = (byte)((pGain2-1) & 0x0f);
 // gain 11-15 (value 10-14), use comp of 00b, 01b, or 10b
 // gain 6-10 (value 5-9), use comp of 00b or 01b
 // gain 1-5 (values 0-4), use max comp of 00b
+// in each case, the highest comp is the lowest value (00 is highest comp)
+//   so choosing the highest value for each case gives the lowest comp and
+//   therefore the highest possible frequency response for that range
 
 if (gain1 == 15) gain1 |= 0xc0;
 else
@@ -2102,9 +2105,9 @@ writeFPGAReg(bdChs[pChannel].countReg2, (byte) ((pCount >> 16) & 0xff));
 //
 // Sends the compression ratio to be used by the DSP when collecting data
 // samples for an AScan data set.  For example, if pRange = 3, the DSP should
-// squeeze the samples by 3.  The DSP is expected to perform peak capture
-// for the samples to ensure that the peak data is preserved in the final
-// data set.
+// squeeze the samples by 3.  For pRange = 1, no compression is applied.  The
+// DSP is expected to perform peak capture for the samples to ensure that the
+// peak data is preserved in the final data set.
 //
 
 void sendSoftwareRange(int pChannel, int pRange)
@@ -2685,7 +2688,7 @@ if (aScanRcvd){
     (byte) pChannel);
 
     // block further AScan requests until processDSPPackets processes the answer
-    //packet from the previous request
+    // packet from the previous request
     aScanRcvd = false;
 
     getAScanTimeOut = 0; //restart timeout

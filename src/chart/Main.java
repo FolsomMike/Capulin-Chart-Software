@@ -269,7 +269,7 @@ mainThread.hardware = hardware;
 thread.start();
 
 //Create and start a timer which will handle updating the displays.
-mainTimer = new Timer(/*globals.xyPositioner.repositioningTimeDelay*/10, this);
+mainTimer = new Timer(10, this);
 mainTimer.setActionCommand("Timer");
 mainTimer.start();
 
@@ -526,7 +526,7 @@ numberOfChannels = hardware.getNumberOfChannels();
 calChannels = new Channel[numberOfChannels];
 
 //create after hardware object created
-calWindow = new UTCalibrator(mainFrame, hardware);
+calWindow = new UTCalibrator(mainFrame, hardware, globals);
 
 //don't use these - let contents set size of window
 //mainFrame.setMinimumSize(new Dimension(1100,1000));
@@ -543,6 +543,9 @@ globals.simulationMode = configFile.readBoolean(
 
 globals.simulateMechanical = configFile.readBoolean(
                                 "Hardware", "Simulate Mechanical", false);
+
+globals.copyToAllMode = configFile.readInt(
+                                "Main Configuration", "Copy to All Mode", 0);
 
 //if true, the traces will be driven by software timer rather than by
 //encoder inputs - used for weldline crabs and systems without encoders
@@ -1412,6 +1415,10 @@ int numberOfGates;
 
 for (int ch = 0; ch < numberOfChannels; ch++){
 
+    //each channel gets a assigned a screen control by the UTCalibrator
+    //object -- clear any previous settings out
+    hardware.getChannels()[ch].calRadioButton = null;
+
     //get the number of gates for the currently selected channel
     numberOfGates = hardware.getNumberOfGates(ch);
 
@@ -1434,7 +1441,8 @@ for (int ch = 0; ch < numberOfChannels; ch++){
 numberOfChartChannels = i; //this is the number of matching channels found
 
 calWindow.setChannels(numberOfChartChannels, calChannels,
-        chartGroups[invokingChartGroupIndex].getStripChart(invokingChartIndex));
+        chartGroups[invokingChartGroupIndex].getStripChart(invokingChartIndex),
+        numberOfChannels, hardware.getChannels());
 
 calWindow.setVisible(true);
 

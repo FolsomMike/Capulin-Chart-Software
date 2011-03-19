@@ -24,6 +24,7 @@ import java.awt.event.*;
 import java.util.Hashtable;
 import java.awt.font.TextAttribute;
 
+import chart.mksystems.globals.Globals;
 import chart.mksystems.stripchart.StripChart;
 import chart.mksystems.hardware.Hardware;
 import chart.mksystems.hardware.Channel;
@@ -42,12 +43,15 @@ public class UTCalibrator extends JDialog implements ActionListener,
 public Oscilloscope scope1;
 JPanel channelSelector;
 JButton minMax, viewIP;
+Globals globals;
 
 public int currentChannelIndex=0;
-int numberOfChannels;
+int numberOfChannels; //number of channels in the current group (chart)
+int numberOfChannelsInSystem; //number of all channels in the system
 StripChart chart;
 Hardware hardware;
-public Channel[] channels;
+public Channel[] channels; //channels in the current group (chart)
+public Channel[] allChannels; //all channels in the system
 Gate gate;
 UTControls utControls;
 
@@ -62,7 +66,7 @@ Font blackFont, redFont;
 //
 //
   
-public UTCalibrator(JFrame pFrame, Hardware pHardware)
+public UTCalibrator(JFrame pFrame, Hardware pHardware, Globals pGlobals)
 {
 
 super(pFrame, "Calibration");
@@ -70,7 +74,7 @@ super(pFrame, "Calibration");
 addWindowListener(this);
 addComponentListener(this);
 
-hardware = pHardware;
+hardware = pHardware; globals = pGlobals;
 
 //create red and black fonts for use with display objects
 Hashtable<TextAttribute, Object> map =
@@ -239,8 +243,11 @@ if (pUTAscanData != null && scope1 != null)
 //
 
 public void setChannels(int pNumberOfChannels, Channel[] pChannels,
-                                                            StripChart pChart)
+      StripChart pChart, int pNumberOfChannelsInSystem, Channel[] pAllChannels)
 {
+
+numberOfChannelsInSystem = pNumberOfChannelsInSystem;
+allChannels = pAllChannels;
 
 numberOfChannels = pNumberOfChannels; channels = pChannels;
 chart = pChart;
@@ -347,41 +354,87 @@ else{
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTCalibrator::copyToAll
+// UTCalibrator::copyToAllChannelsForCurrentChart
 //
 // Copies the values for the currently selected channel to all the other
-// channels.
+// channels for the currently selected chart.
+//
+// WARNING:  The source and destination channels must have the same number and
+// types of gates.
 //
 
-public void copyToAll()
+public void copyToAllChannelsForCurrentChart()
 {
 
-int numberOfGates;
+//copy from currently selected channel to all channels associated with the
+//same group (chart)
 
-Channel currentCh = channels[currentChannelIndex];
+copyToAllHelper(channels[currentChannelIndex], channels, numberOfChannels);
+
+}//end of UTCalibrator::copyToAllChannelsForCurrentChart
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTCalibrator::copyToAllChannelsForAllCharts
+//
+// Copies the values for the currently selected channel to all the other
+// channels for all other charts.
+//
+// WARNING:  The source and destination channels must have the same number and
+// types of gates.
+//
+
+public void copyToAllChannelsForAllCharts()
+{
+
+//copy from currently selected channel to all channels associated with all
+//same groups (charts)
+
+copyToAllHelper(channels[currentChannelIndex], allChannels,
+                                                     numberOfChannelsInSystem);
+
+}//end of UTCalibrator::copyToAllChannelsForAllCharts
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTCalibrator::copyToAllHelper
+//
+// Copies the info from channel in pSource to all the channels in
+// pDestChannels.
+//
+// WARNING:  The source and destination channels must have the same number and
+// types of gates.
+//
+
+public void copyToAllHelper(Channel pSource, Channel[] pDestChannels,
+                                                          int pNumDestChannels)
+{
+
+int numberOfGates, numChannels;
 
 //get the number of gates for the channel - note that all channels in the
-//group should have the same number of channels for this to work properly,
-//a group being all channels tied to a single chart
+//destination group should have the same number of channels for this to work
+//properly
 
-numberOfGates = currentCh.getNumberOfGates();
+numberOfGates = pSource.getNumberOfGates();
 
-//scan through all channels and copy info from currently selected gate
+//scan through all channels and copy info from currently selected channel
 
-for (int ch = 0; ch < numberOfChannels; ch++){
+for (int ch = 0; ch < pNumDestChannels; ch++){
 
     //copy the gate info for all gates of the channels
     for (int g = 0; g < numberOfGates; g++){
 
-        channels[ch].setGateStart(g, currentCh.getGateStart(g), false);
-        channels[ch].setGateStartTrackingOn(
-                                    g, currentCh.getGateStartTrackingOn(g));
-        channels[ch].setGateStartTrackingOff(
-                                    g, currentCh.getGateStartTrackingOff(g));
-        channels[ch].setGateWidth(g, currentCh.getGateWidth(g), false);
-        channels[ch].setGateLevel(g, currentCh.getGateLevel(g), false);
-        channels[ch].setGateHitCount(g, currentCh.getGateHitCount(g), false);
-        channels[ch].setGateMissCount(g, currentCh.getGateMissCount(g), false);
+        pDestChannels[ch].setGateStart(g, pSource.getGateStart(g), false);
+        pDestChannels[ch].setGateStartTrackingOn(
+                                    g, pSource.getGateStartTrackingOn(g));
+        pDestChannels[ch].setGateStartTrackingOff(
+                                    g, pSource.getGateStartTrackingOff(g));
+        pDestChannels[ch].setGateWidth(g, pSource.getGateWidth(g), false);
+        pDestChannels[ch].setGateLevel(g, pSource.getGateLevel(g), false);
+        pDestChannels[ch].setGateHitCount(g, pSource.getGateHitCount(g), false);
+        pDestChannels[ch].setGateMissCount(g, pSource.getGateMissCount(g),
+                                                                         false);
 
         }
 
@@ -393,21 +446,28 @@ for (int ch = 0; ch < numberOfChannels; ch++){
     //set the pForceUpdate flags false so that the values are only sent to the
     //DSPs if they have changed
 
-    channels[ch].setSoftwareGain(currentCh.getSoftwareGain(), false);
-    channels[ch].setDelay(currentCh.getDelay(), false);
-    channels[ch].setInterfaceTracking(currentCh.getInterfaceTracking(), false);
-    channels[ch].setRange(currentCh.getRange(), false);
-    channels[ch].setMode(currentCh.getMode(), false);
-    channels[ch].setHardwareGain(currentCh.getHardwareGain(), false);
-    channels[ch].setRejectLevel(currentCh.getRejectLevel(), false);
-    channels[ch].setAScanSmoothing(currentCh.getAScanSmoothing(), false);
-    channels[ch].setDCOffset(currentCh.getDCOffset(), false);
+    pDestChannels[ch].setSoftwareGain(pSource.getSoftwareGain(), false);
+    pDestChannels[ch].setDelay(pSource.getDelay(), false);
+    pDestChannels[ch].setInterfaceTracking(pSource.getInterfaceTracking(),
+                                                                        false);
+    pDestChannels[ch].setRange(pSource.getRange(), false);
+    pDestChannels[ch].setMode(pSource.getMode(), false);
+    pDestChannels[ch].setHardwareGain(pSource.getHardwareGain1(),
+                                            pSource.getHardwareGain2(), false);
+    pDestChannels[ch].setRejectLevel(pSource.getRejectLevel(), false);
+    pDestChannels[ch].setAScanSmoothing(pSource.getAScanSmoothing(), false);
+    pDestChannels[ch].setDCOffset(pSource.getDCOffset(), false);
 
-    setChannelSelectorColor(channels[ch]);
+    //updates the channel number color to match the channel's on/off state
+    //if all system channels are being copied, not all of those channels will
+    //be in the group currently being displayed by the Calibrator window, those
+    //not in the group will not have a radio button to set so skip them
+    if (pDestChannels[ch].calRadioButton != null)
+        setChannelSelectorColor(pDestChannels[ch]);
 
     }
 
-}//end of UTCalibrator::copyToAll
+}//end of UTCalibrator::copyToAllHelper
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -463,8 +523,9 @@ utControls.updateEnabled = false;
 // the MFloatSpinner and causes a casting crash when using getDoubleValue()
 utControls.delaySpin.spinner.setValue((double)0);
 
-//must update the screen controls to use updateAllSettings or that function
-//will overwrite the variables just changed with the values in the display
+//must update the screen controls before calling updateAllSettings or that
+//function will overwrite the variables just changed with the values in the
+//display
 utControls.updateGateControls(currentCh);
 
 utControls.updateEnabled = true;
@@ -507,7 +568,7 @@ for (int g = 0; g < currentCh.getNumberOfGates(); g++){
 utControls.updateEnabled = false;
 
 //update the display
-utControls.delaySpin.spinner.setValue(previousDelay);
+utControls.delaySpin.spinner.setValue(previousDelay * utControls.timeDistMult);
 
 //must update the screen controls to use updateAllSettings or that function
 //will overwrite the variables just changed with the values in the display
@@ -533,7 +594,11 @@ public void actionPerformed(ActionEvent e)
 
 //trap "Copy to All" button
 if (e.getActionCommand().equals("Copy to All")){
-    copyToAll();
+
+    if (globals.copyToAllMode == 0) copyToAllChannelsForCurrentChart();
+    else
+    if (globals.copyToAllMode == 1) copyToAllChannelsForAllCharts();
+
     return;
     }
 
