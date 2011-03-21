@@ -689,6 +689,9 @@ for (int i=0; i<numberOfChannels; i++)
 if (channels[currentChannelIndex] != null)
     channels[currentChannelIndex].setMasked(false);
 
+//enable Ascan processing in the DSP
+channels[currentChannelIndex].setAScanEnabled(true, false);
+
 }//end of UTCalibrator::windowActivated
 //-----------------------------------------------------------------------------
 
@@ -707,6 +710,13 @@ public void windowDeactivated(WindowEvent e)
 
 for (int i=0; i<numberOfChannels; i++)
     if (channels[i] != null) channels[i].setMasked(false);
+
+//disable Ascan processing in the DSP
+// This processing takes too much time and some samples will be missed when
+// it is running.  This is okay for setting up in a static situation, but
+// the AScan must be disabled during inspection.  The OScope screen will thus
+// be frozen during inspection.
+channels[currentChannelIndex].setAScanEnabled(false, false);
 
 }//end of UTCalibrator::windowDeactivated
 //-----------------------------------------------------------------------------

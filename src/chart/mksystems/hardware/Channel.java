@@ -72,7 +72,7 @@ boolean channelMasked; //true: pulsed/not display, off: pulsed/displayed
 
 int mode = UTBoard.POSITIVE_HALF;
 boolean interfaceTracking = false;
-boolean dacEnabled = false;
+boolean dacEnabled = false, ascanEnabled = false;
 double aScanDelay = 0;
 int hardwareDelay, softwareDelay;
 public int delayPix = 0;
@@ -169,7 +169,7 @@ if (!interfaceGatePresent) interfaceTracking = false;
 //set bits in flags1 variable
 //all flags1 variables should be set at once in the init to avoid conflicts
 //due to all flag1 setting functions using the same mask storage variables
-int flags1Mask = UTBoard.GATES_ENABLED + UTBoard.ASCAN_ENABLED;
+int flags1Mask = UTBoard.GATES_ENABLED;
 if (dacEnabled) flags1Mask += UTBoard.DAC_ENABLED;
 setFlags1(flags1Mask);
 
@@ -643,20 +643,6 @@ if (pForceUpdate){
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Channel::getDACEnabled
-//
-// Returns the dacEnabled flag.
-//
-
-public boolean getDACEnabled()
-{
-
-return dacEnabled;
-
-}//end of Channel::getDACEnabled
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // Channel::getNumberOfGates
 //
 // Returns the number of gates.
@@ -830,6 +816,20 @@ flags1ClearMaskChanged = false;
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Channel::getDACEnabled
+//
+// Returns the dacEnabled flag.
+//
+
+public boolean getDACEnabled()
+{
+
+return dacEnabled;
+
+}//end of Channel::getDACEnabled
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Channel::setDACEnabled
 //
 // Sets appropriate mask word to set or clear the DAC_ENABLED bit in the DSP's
@@ -870,6 +870,53 @@ if (pForceUpdate){
     }
 
 }//end of Channel::setDACEnabled
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::setAScanEnabled
+//
+// Sets appropriate mask word to set or clear the ASCAN_ENABLED bit in the DSP's
+// flags1 variable.  This bit must be set when Ascan data is being retrieved.
+//
+// NOTE: The AScan function in the DSP takes too much time and will generally
+//  cause datasets to be skipped -- effectively lowering the rep rate.  The
+//  function should ONLY be enabled when using an AScan display for setup.
+//
+// NOTE: A delay should be inserted between calls to this function and setFlags1
+// and clearFlags1 as they are actually sent to the remotes by another thread.
+// The delay should be long enough to ensure that the other thread has had time
+// to send the first command.
+//
+// If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
+// the flag is false, the value(s) will be sent only if they have changed.
+//
+// This and all functions which set data changed flag(s) should be
+// synchronized to avoid thread conficts.  Typically, one thread changes the
+// data while another transmits it to the remotes.
+//
+
+public synchronized void setAScanEnabled(boolean pEnable, boolean pForceUpdate)
+{
+
+if (pEnable != ascanEnabled) pForceUpdate = true;
+
+ascanEnabled = pEnable;
+
+//flag that new data needs to be sent to remotes
+if (pForceUpdate){
+    if (ascanEnabled){
+        flags1SetMask = UTBoard.ASCAN_ENABLED;
+        flags1SetMaskChanged = true;
+        }
+    else{
+        flags1ClearMask = ~UTBoard.ASCAN_ENABLED;
+        flags1ClearMaskChanged = true;
+        }
+    channelOwner.setChannelDataChangedFlag(true);
+    dataChanged = true;
+    }
+
+}//end of Channel::setAScanEnabled
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
