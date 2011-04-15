@@ -40,6 +40,141 @@ import chart.Xfer;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
+// class ValueDisplay
+
+class ValueDisplay extends Object {
+
+int labelXPos = 500, labelYPos = 23;
+int xPos = labelXPos + 100;
+int yPos = labelYPos;
+String label = "Wall Thickness:";
+String decPlaces = "0.000";
+DecimalFormat decimalFormat;
+Color textColor, backgroundColor;
+
+public int iValue = 0;
+int iPrevValue = -1;
+
+public double dValue = 0;
+double dPrevValue = -1;
+
+boolean valueIsInt = false;
+boolean valueIsDouble = false;
+
+//-----------------------------------------------------------------------------
+// ValueDisplay::ValueDisplay (constructor)
+//
+// This class handles drawing a value with a label.  The value is only drawn
+// if it has changed.  The previous value is erased before drawing the new
+// value.
+//
+// Two update functions are provided, one for integers and one for doubles.
+// After either of these is called, a flag is set to specify which type of
+// variable is being handled by this object.  This can be changed at any time
+// by calling the alternate update function.
+//
+
+public ValueDisplay(int pLabelXPos, int pLabelYPos, int pXPos, int pYPos,
+                    String pLabel, String pDecPlaces, Color pTextColor,
+                    Color pBackgroundColor)
+{
+
+
+labelXPos = pLabelXPos; labelYPos = pLabelYPos;
+xPos = pXPos; yPos = pYPos;
+label = pLabel; decPlaces = pDecPlaces;
+textColor = pTextColor; backgroundColor = pBackgroundColor;
+
+decimalFormat = new DecimalFormat(decPlaces);
+
+}//end of ValueDisplay::ValueDisplay (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ValueDisplay::paint
+//
+// Draws the label and the value regardless of whether or not the value has
+// changed.  The value type which is redrawn is determined by the current
+// values of valueIsInt, valueIsDouble, etc.
+//
+
+void paint(Graphics2D pG2)
+{
+
+pG2.setColor(textColor);
+pG2.drawString(label, labelXPos, labelYPos);
+
+//draw the appropriate value
+if (valueIsInt) updateInt(pG2, iValue, true);
+if (valueIsDouble) updateDouble(pG2, dValue, true);
+
+}//end of ValueDisplay::paint
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ValueDisplay::updateInt
+//
+// Draws the int value if it has changed.  The previous value is erased first.
+//
+// If pForceUPdate is true, the value will be drawn even if it has not changed.
+//
+
+void updateInt(Graphics2D pG2, int pNewValue, boolean pForceUpdate)
+{
+
+valueIsInt = true; //variable type for this object is now int
+valueIsDouble = false;
+
+iValue = pNewValue;
+  
+if ((iValue != iPrevValue) || pForceUpdate){
+    //erase the previous value
+    pG2.setColor(backgroundColor);
+    pG2.drawString(Integer.toString(iPrevValue), xPos, yPos);
+    //draw the new value
+    pG2.setColor(textColor);
+    pG2.drawString(Integer.toString(iValue), xPos, yPos);
+    iPrevValue = iValue;
+    }
+
+}//end of ValueDisplay::updateInt
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ValueDisplay::updateDouble
+//
+// Draws the double value if it has changed. The previous value is erased first.
+//
+// If pForceUPdate is true, the value will be drawn even if it has not changed.
+//
+
+void updateDouble(Graphics2D pG2, double pNewValue, boolean pForceUpdate)
+{
+
+valueIsDouble = true; //variable type for this object is now double
+valueIsInt = false;
+
+dValue = pNewValue;
+
+if ((dValue != dPrevValue) || pForceUpdate){
+    //erase the previous value
+    pG2.setColor(backgroundColor);
+    pG2.drawString(decimalFormat.format(dPrevValue), xPos, yPos);
+    //draw the new value
+    pG2.setColor(textColor);
+    pG2.drawString(decimalFormat.format(dValue), xPos, yPos);
+    dPrevValue = dValue;
+    }
+
+}//end of ValueDisplay::updateDouble
+//-----------------------------------------------------------------------------
+
+}//end of class ValueDisplay
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // class ChartCanvas
 //
 // This panel is used to draw the profile plot.
@@ -58,23 +193,22 @@ Trace traces[];
 int numberOfThresholds;
 Threshold thresholds[];
 
+MouseMotionListener mouseMotionListener;
+
 public BufferedImage imageBuffer;
 
 int peakChannel;
-int prevPeakChannelValue = -1;
-
-double wallThickness;
-double prevWallThickness = -1.0;
+double runningValue;
 
 //-----------------------------------------------------------------------------
 // ChartCanvas::ChartCanvas (constructor)
-//
 //
 
 public ChartCanvas(Globals pGlobals, int pWidth, int pHeight, 
                                Color pBackgroundColor, Color pGridColor, 
                                int pNumberOfTraces, Trace[] pTraces,
-                               int pNumberOfThresholds, Threshold[] pThresholds)
+                               int pNumberOfThresholds, Threshold[] pThresholds,
+                               MouseMotionListener pMouseMotionListener)
 {
 
 globals = pGlobals;    
@@ -83,6 +217,8 @@ width = pWidth; height = pHeight;
 backgroundColor = pBackgroundColor; gridColor = pGridColor;
 numberOfTraces = pNumberOfTraces; traces = pTraces;
 numberOfThresholds = pNumberOfThresholds; thresholds = pThresholds;
+mouseMotionListener = pMouseMotionListener;
+addMouseMotionListener(mouseMotionListener);
 
 setOpaque(true);
 
@@ -97,7 +233,7 @@ setSizes(width, height);
 // Sets the minimum, preferred, and maximum sizes of the canvas.
 //
 
-public void setSizes(int pWidth, int pHeight)
+private void setSizes(int pWidth, int pHeight)
 {
 
 setMinimumSize(new Dimension(pWidth, pHeight));
@@ -200,7 +336,7 @@ while (traces[0].newDataReady()){
                     }
 
             //store the wall thickness reading
-            wallThickness = traces[i].wallThickness;
+            runningValue = traces[i].wallThickness;
 
             }// if (traces[i].newDataReady())
 
@@ -260,7 +396,8 @@ paintCanvas(pG2);
 // This class creates and controls a plot display.
 //
 
-public class StripChart extends JPanel implements MouseListener{
+public class StripChart extends JPanel implements MouseListener,
+                                                           MouseMotionListener{
 
 ChartCanvas canvas;
 public TitledBorder titledBorder;
@@ -271,15 +408,15 @@ int chartIndex;
 Hardware hardware;
 Color borderColor;
 TraceGlobals traceGlobals;
-int peakChannelLabelXPos = 250, peakChannelLabelYPos = 23;
-int peakChannelXPos = peakChannelLabelXPos + 100;
-int peakChannelYPos = peakChannelLabelYPos;
-boolean displayPeakChannel;
 
-int wallThicknessLabelXPos = 500, wallThicknessLabelYPos = 23;
-int wallThicknessXPos = wallThicknessLabelXPos + 100;
-int wallThicknessYPos = wallThicknessLabelYPos;
-boolean displayWallThickness;
+boolean displayPeakChannel;
+ValueDisplay peakChannel;
+boolean displayRunningValue;
+ValueDisplay runningValue;
+boolean displayComputedAtCursor;
+ValueDisplay computedAtCursor;
+boolean displayChartHeightAtCursor;
+ValueDisplay chartHeightAtCursor;
 
 String title, shortTitle;
 int numberOfTraces;
@@ -295,8 +432,6 @@ Color maskColor;
 Color separatorColor;
 public int lastAScanChannel = 0;
 boolean chartSizeEqualsBufferSize;
-
-DecimalFormat wallThicknessDecimalFormat;
 
 ActionListener actionListener;
 
@@ -323,8 +458,6 @@ hardware = pHardware; actionListener = pActionListener;
 traceGlobals = new TraceGlobals();
 chartSizeEqualsBufferSize = pChartSizeEqualsBufferSize;
 
-wallThicknessDecimalFormat = new  DecimalFormat("#.###");
-
 //set up the main panel - this panel does nothing more than provide a title
 //border and a spacing border
 setOpaque(true);
@@ -334,6 +467,24 @@ addMouseListener(this);
 
 //read the configuration file and create/setup the charting/control elements
 configure(configFile);
+
+// if enabled by the config file, create object to display values related to
+// the traces
+
+// the positions, labels, and decimal formats could be loaded from the config
+// file in the future
+
+if (displayPeakChannel) peakChannel =  new ValueDisplay(250, 23, 350, 23,
+    "Peak Channel:", "0.000", Color.BLACK, borderColor);
+
+if (displayRunningValue) runningValue =  new ValueDisplay(500, 23, 600, 23,
+    "Wall Thickness:", "0.000", Color.BLACK, borderColor);
+
+if (displayComputedAtCursor) computedAtCursor = new ValueDisplay(
+      650, 23, 720, 23,  "At Cursor:", "0.000", Color.BLACK, borderColor);
+
+if (displayChartHeightAtCursor) chartHeightAtCursor  = new ValueDisplay(
+      800, 23, 900, 23,  "Y Position:", "0.000", Color.BLACK, borderColor);
 
 }//end of StripChart::StripChart (constructor)
 //-----------------------------------------------------------------------------
@@ -383,8 +534,14 @@ separatorColor =
 displayPeakChannel =
                 pConfigFile.readBoolean(section, "Display Peak Channel", false);
 
-displayWallThickness =
-              pConfigFile.readBoolean(section, "Display Wall Thickness", false);
+displayRunningValue =
+              pConfigFile.readBoolean(section, "Display Running Value", false);
+
+displayComputedAtCursor = pConfigFile.readBoolean(section,
+                "Display Computed Value Represented by Cursor Position", false);
+
+displayChartHeightAtCursor = pConfigFile.readBoolean(section,
+       "Display Chart Height Percentage Represented by Cursor Position", false);
 
 numberOfThresholds = pConfigFile.readInt(section, "Number of Thresholds", 1);
 
@@ -411,8 +568,7 @@ if (chartSizeEqualsBufferSize) cWidth = traces[0].sizeOfDataBuffer;
 //provides a panel and methods for drawing data - all the work is actually
 //done by the Canvas object
 canvas = new ChartCanvas(globals, cWidth, cHeight, backgroundColor, gridColor,
-                                                numberOfTraces, traces,
-                                                numberOfThresholds, thresholds);
+                 numberOfTraces, traces, numberOfThresholds, thresholds, this);
 //listen for mouse events on the canvas
 canvas.addMouseListener(this);
 add(canvas);    
@@ -582,12 +738,15 @@ super.paintComponent(g2); //paint background
 
 //draw these labels before calling drawKeyLabel because that function changes
 //the font
-if (displayPeakChannel)
-    g2.drawString("Peak Channel:", peakChannelLabelXPos, peakChannelLabelYPos);
 
-if (displayWallThickness)
-    g2.drawString("Wall Thickness:",
-                                wallThicknessLabelXPos, wallThicknessLabelYPos);
+//add one to the peak channel to switch from 0 based counting
+if (displayPeakChannel) peakChannel.paint((Graphics2D) g2);
+
+if (displayRunningValue) runningValue.paint((Graphics2D) g2);
+
+if (displayComputedAtCursor) computedAtCursor.paint((Graphics2D) g2);
+
+if (displayChartHeightAtCursor) chartHeightAtCursor.paint((Graphics2D) g2);
 
 //draw the keys for the different traces to show which trace is what - each
 //key is a label describing the trace and drawn in the color of the trace
@@ -621,40 +780,12 @@ public void plotData()
 
 canvas.plotData();    
 
-//display the channel which is supplying the peak value
-
-if (displayPeakChannel && (canvas.peakChannel != canvas.prevPeakChannelValue)){
-    Graphics2D g2 = (Graphics2D) getGraphics();
-    //erase the previous value
-    g2.setColor(borderColor);
-    //offset channel by 1 to convert from zero base
-    g2.drawString(Integer.toString(canvas.prevPeakChannelValue + 1),
-                                            peakChannelXPos, peakChannelYPos);
-    //draw the new value
-    g2.setColor(Color.BLACK);
-    //offset channel by 1 to convert from zero base
-    g2.drawString(Integer.toString(canvas.peakChannel + 1),
-                                            peakChannelXPos, peakChannelYPos);
-    canvas.prevPeakChannelValue = canvas.peakChannel;
-    }
-
-if (displayWallThickness && (canvas.wallThickness != canvas.prevWallThickness)){
-    Graphics2D g2 = (Graphics2D) getGraphics();
-    //erase the previous value
-    g2.setColor(borderColor);
-    //offset channel by 1 to convert from zero base
-    g2.drawString(
-            wallThicknessDecimalFormat.format(canvas.prevWallThickness),
-                                          wallThicknessXPos, wallThicknessYPos);
-    //draw the new value
-    g2.setColor(Color.BLACK);
-    //offset channel by 1 to convert from zero base
-    g2.drawString(
-            wallThicknessDecimalFormat.format(canvas.wallThickness),
-                                          wallThicknessXPos, wallThicknessYPos);
-    
-    canvas.prevWallThickness = canvas.wallThickness;
-    }
+//if enabled, display the channel which is supplying the peak value
+if (displayPeakChannel) peakChannel.updateInt(
+                    (Graphics2D) getGraphics(), canvas.peakChannel + 1, false);
+//if enabled, display the current value of the trace height
+if (displayRunningValue) runningValue.updateDouble(
+                       (Graphics2D) getGraphics(), canvas.runningValue, false);
 
 }//end of StripChart::plotData
 //-----------------------------------------------------------------------------
@@ -1173,13 +1304,34 @@ if (b == MouseEvent.BUTTON3){
     
 }//end of StripChart::mouseClicked
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// StripChart::mouseMoved
+//
+// Responds to mouse movements.
+//
+
+@Override
+public void mouseMoved(MouseEvent e)
+{
+
+//when the cursor moves, let the hardware object provide the appropriate
+//calculated value for the curor's y position
+
+if (displayComputedAtCursor)
+    computedAtCursor.updateDouble((Graphics2D)getGraphics(),
+                            hardware.calculateComputedValue1(e.getY()), false);
     
+}//end of StripChart::mouseMoved
+//-----------------------------------------------------------------------------
+
 //-----------------------------------------------------------------------------
 // StripChart::(various listener functions)
 //
 // These functions are implemented per requirements of interface MouseListener
-// but do nothing at the present time.  As code is added to each function, it
-// should be moved from this section and formatted properly.
+// and MouseMotionListener but do nothing at the present time.  As code is
+// added to each function, it should be moved from this section and formatted
+// properly.
 //
 
 @Override
@@ -1190,6 +1342,8 @@ public void mouseReleased(MouseEvent e) {};
 public void mouseEntered(MouseEvent e) {};
 @Override
 public void mouseExited(MouseEvent e) {};
+@Override
+public void mouseDragged(MouseEvent e) {};
 
 //end of StripChart::(various listener functions)
 //-----------------------------------------------------------------------------

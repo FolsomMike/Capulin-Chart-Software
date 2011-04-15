@@ -548,7 +548,7 @@ return(opMode);
 //
 // Flow:
 //
-// A thread will call this function periodically to allow it to transfer data
+// A thread should call this function periodically to allow it to transfer data
 // from the incoming buffers to the traces.  It is expected that the incoming
 // buffers are large enough to hold the necessary data between calls.
 //
@@ -582,7 +582,7 @@ if (opMode == STOPPED || opMode == PAUSED) return;
 
 if (!collectDataEnabled) return;
 
-//send a request to the remote device for a peak data packet
+//send a request to the remote device(s) for a peak data packet
 //the returned data packet will not be returned immediately, so the call to
 //collectAnalogData later in this function will usually process packet(s)
 //returned from the request sent on the previous pass
@@ -590,7 +590,7 @@ if (!collectDataEnabled) return;
 requestPeakDataForAllBoards();
 
 //scanRateCounter is used to control the rate the scan moves across the screen
-//this is always true for Scan mode, and true for Inspect mode if that mode is
+//this is always used for Scan mode, and used for Inspect mode if that mode is
 //timer controlled
 //note that the peak data packets are still being requested and stored, but
 //the peak data is transferred at the rate specified by globals.scanSpeed
@@ -634,9 +634,9 @@ if (newPositionData || peakDataAvailable) collectAnalogData();
 // slot would be undefined, left as the default.  This could cause a glitch in
 // the trace or other problems, especially if the tracing code uses the default
 // values to determine where the new trace data ends. Now, the old data is used
-// if no new data has replaced it - if the trace pointer has not moved then the
-// slot will be overwritten with the same value, if it has moved then the slot
-// will be written with the same data as the previous slot.
+// if no new data has replaced it: if the trace pointer has not moved then the
+// slot will be overwritten with the same value, if it has moved then the new
+// slot will be written with the same data as the previous slot.
 //
 
 public void collectAnalogData()
@@ -683,8 +683,11 @@ for (int ch = 0; ch < numberOfChannels; ch++){
 //
 // If pChannelActive is true, the data for the channel will be stored if it is
 // a new peak and the trace pointers moved.  If false, the data will be set
-// such that it cannot overwrite an existing peak so it will be hidden.  It
-// still overrides the default value so that the trace will be drawn.
+// such that it cannot overwrite an existing peak so it will not affect peak
+// data already recorded from an active channel.  It still overrides the default
+// buffer value if it hasn't been changed so that the trace will be drawn even
+// if all channels are off (in which case none would overwrite the default with
+// a peak).
 //
 
 public void collectAnalogDataMinOrMax(Gate gatePtr, boolean pChannelActive)
@@ -699,13 +702,16 @@ int clockPos = gatePtr.clockPos;
 int newData = gatePtr.dataPeak;
 
 //if the channel is off or masked, set the newData value such that it will not
-//override any existing data and thus will be hidden except when it replaces
-//the default value in order to make the trace move
+//override any existing data and thus will be overwritten by an active channel's
+//peak except when no channel is active
+//without changing the data, a trace won't move if all channels for that trace
+//are turned off -- when a channel is turned back on the trace will never
+//start again or takes a long time
 if (!pChannelActive){
     if (gatePtr.peakDirection == 0) //0 means higher data more severe
         newData = Integer.MIN_VALUE;
     else
-        newData = Integer.MAX_VALUE;
+        newData = Integer.MAX_VALUE-1; //can't use MAX_VALUE -- that is default
     }
 
 //if the array value is still default, replace with the new data
@@ -736,6 +742,7 @@ else{
         }//else if (gatePtr.peakDirection...
     }//else if (gatePtr.dBuffer1[nextIndex]...
 
+
 //check for threshold violations and store flags as necessary
 //this must be done in this thread because the flags are used to fire
 //the paint markers in real time and this thread is close to real time
@@ -743,7 +750,9 @@ else{
             
 //if the new data point was written into the array, store clock
 //position and check for theshold violation
-if (dataStored){
+//ignore this part for off or masked channels as their data is driven high or
+//low and is not valid for flagging
+if (dataStored && pChannelActive){
 
     //store the hardware channel from which the data was obtained
     gatePtr.tracePtr.peakChannel = gatePtr.channelIndex;
@@ -1349,7 +1358,8 @@ analogDriver.linkTraces(pChartGroup, pChart, pTrace, pDBuffer, pDBuffer2,
 //
 
 @Override
-public void run() { 
+public void run()
+{ 
          
 try{
     while (true){
@@ -1367,6 +1377,27 @@ catch (InterruptedException e) {
     }
 
 }//end of Hardware::run
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::calculateComputedValue1
+//
+// Implemented by HardwareCalculatorLink interface.
+//
+// For this version of Hardware.java, calculates the wall thickness based upon
+// the cursor Y position.
+//
+
+public double calculateComputedValue1(int pCursorY)
+{
+
+double offset = (hdwVs.nominalWallChartPosition - pCursorY)
+                                                        * hdwVs.wallChartScale;
+
+//calculate wall at cursor y position relative to nominal wall value
+return (hdwVs.nominalWall + offset);
+
+}//end of Hardware::calculateComputedValue1
 //-----------------------------------------------------------------------------
 
 }//end of class Hardware
