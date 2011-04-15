@@ -153,9 +153,10 @@ static byte CHANNEL_OFF = 4;
 //in the least amount of processing.
 
 static byte TRANSMITTER_ACTIVE = 0x0001; //transmitter active flag (set by DSP)
-static byte GATES_ENABLED = 0x0002;       //gates enabled flag
+static byte GATES_ENABLED = 0x0002;      //gates enabled flag
 static byte DAC_ENABLED = 0x0004;        //DAC enabled flag
-static byte ASCAN_ENABLED = 0x0008;      //AScan enabled flag
+static byte ASCAN_FAST_ENABLED = 0x0008; //fast AScan enabled flag
+static byte ASCAN_SLOW_ENABLED = 0x0010; //slow AScan enabled flag
 
 //Messages for DSPs
 //These should match the values in the code for those DSPs
@@ -167,7 +168,7 @@ static byte DSP_GET_ASCAN_BLOCK_CMD = 3;
 static byte DSP_GET_ASCAN_NEXT_BLOCK_CMD = 4;
 static byte DSP_SET_AD_SAMPLE_SIZE_CMD = 5;
 static byte DSP_SET_DELAYS	= 6;
-static byte DSP_SET_ASCAN_RANGE	= 7;
+static byte DSP_SET_ASCAN_SCALE	= 7;
 static byte DSP_SET_GATE = 8;
 static byte DSP_SET_GATE_FLAGS = 9;
 static byte DSP_SET_DAC	= 10;
@@ -2101,23 +2102,56 @@ writeFPGAReg(bdChs[pChannel].countReg2, (byte) ((pCount >> 16) & 0xff));
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTBoard::sendSoftwareRange
+// UTBoard::sendAScanScale
 //
 // Sends the compression ratio to be used by the DSP when collecting data
-// samples for an AScan data set.  For example, if pRange = 3, the DSP should
-// squeeze the samples by 3.  For pRange = 1, no compression is applied.  The
+// samples for an AScan data set.  For example, if pScale = 3, the DSP should
+// squeeze the samples by 3.  For pScale = 1, no compression is applied.  The
 // DSP is expected to perform peak capture for the samples to ensure that the
-// peak data is preserved in the final data set.
+// peak data is preserved in the resulting AScan data set.
+//
+// The batch size for slow AScan processing is also sent.  This is
+// the number of compressed output AScan data points the DSP processes after
+// each shot. If too many are processed, the next shot may be missed resulting
+// in a possible loss of data.  For each compressed data point, the number of
+// input points processed will be batchSize * pScale as pScale tells the DSP
+// how many input points to compress for each output point.  The number of
+// input points is really what needs to be limited as it is often the larger
+// of the two.  Since the number of inputs points processed varies according
+// to pScale, pBatchSize is computed each time to give a reasonable number of
+// input points to process during each cycle.
+//
+// The DSP actually processes twice as many input points for a given scale
+// to provide the min/max peak as it would for just a min peak.  Thus, the
+// scale must be divided in half to get the actual number of input samples
+// that will be processed.
+//
+// Since the batchSize is rounded off, the number of raw bytes processed in
+// each batch could vary quite a bit.
+//
+// As of 3/23/11, approximately 50 input points per cycle is used
 //
 
-void sendSoftwareRange(int pChannel, int pRange)
+void sendAScanScale(int pChannel, int pScale)
 {
 
-sendChannelParam(pChannel, (byte) DSP_SET_ASCAN_RANGE,
-               (byte)((pRange >> 8) & 0xff), (byte)(pRange & 0xff),
-               (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0);
+// calculate number of output samples to process for a desired number of
+// input samples to be processed -- rounding off is fine
+// for example, if pScale is two then 25 output samples should be processed to
+// process 50 input samples -- then divide by two again because the DSP
+// processes twice as many input samples to accommodate the min and max peaks
+// recorded instead of just one peak
+// since the value is used as a loop counter, adjust down by subtracting 1
+int batchSize = (50 / pScale / 2) - 1;
 
-}//end of UTBoard::sendSoftwareRange
+if (batchSize < 1) batchSize = 1;
+
+sendChannelParam(pChannel, (byte) DSP_SET_ASCAN_SCALE,
+               (byte)((pScale >> 8) & 0xff), (byte)(pScale & 0xff),
+               (byte)((batchSize >> 8) & 0xff), (byte)(batchSize & 0xff),
+               (byte)0, (byte)0, (byte)0, (byte)0, (byte)0);
+
+}//end of UTBoard::sendAScanScale
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -3707,7 +3741,7 @@ for (int h=0; h < pNumberOfChannels; h++){
         int wallMaxTrack =
                  (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
 
-        //calculate distance between the crossing points in the staring and
+        //calculate distance between the crossing points in the starting and
         //ending wall gates
         // append the whole number distance in wallMaxPeak1, to the fractional
         // part from the end gate, then subtract the fractional part from the
@@ -3830,6 +3864,8 @@ return(x);
 //
 // Returns number of bytes retrieved from the socket.
 //
+
+// WIP MKS -- this function is not used -- DELETE
 
 public int processPeakDataPacketX()
 {

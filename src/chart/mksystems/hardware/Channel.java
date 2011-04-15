@@ -72,13 +72,13 @@ boolean channelMasked; //true: pulsed/not display, off: pulsed/displayed
 
 int mode = UTBoard.POSITIVE_HALF;
 boolean interfaceTracking = false;
-boolean dacEnabled = false, ascanEnabled = false;
+boolean dacEnabled = false, aScanSlowEnabled = false, aScanFastEnabled = false;
 double aScanDelay = 0;
 int hardwareDelay, softwareDelay;
 public int delayPix = 0;
 double aScanRange = 0;
 int hardwareRange;
-public int softwareRange;
+public int aScanScale;
 double softwareGain = 0;
 int hardwareGain1, hardwareGain2;
 int rejectLevel;
@@ -873,14 +873,18 @@ if (pForceUpdate){
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Channel::setAScanEnabled
+// Channel::setAScanFastEnabled
 //
-// Sets appropriate mask word to set or clear the ASCAN_ENABLED bit in the DSP's
-// flags1 variable.  This bit must be set when Ascan data is being retrieved.
+// Sets appropriate mask word to set or clear the ASCAN_FAST_ENABLED bit in the
+// DSP's flags1 variable.  This allows Ascan data to be retrieved.
 //
-// NOTE: The AScan function in the DSP takes too much time and will generally
-//  cause datasets to be skipped -- effectively lowering the rep rate.  The
-//  function should ONLY be enabled when using an AScan display for setup.
+// NOTE: The fast AScan function in the DSP takes too much time and will
+// generally cause datasets to be skipped because it processes the entire AScan
+// buffer in one chunk -- effectively lowering the rep rate.  The function
+// should ONLY be enabled when using an AScan display for setup.
+//
+// NOTE: See setAScanSlowEnabled for a version which can be used during
+// inspection mode because it processes the AScan buffer a piece at a time.
 //
 // NOTE: A delay should be inserted between calls to this function and setFlags1
 // and clearFlags1 as they are actually sent to the remotes by another thread.
@@ -895,28 +899,80 @@ if (pForceUpdate){
 // data while another transmits it to the remotes.
 //
 
-public synchronized void setAScanEnabled(boolean pEnable, boolean pForceUpdate)
+public synchronized void setAScanFastEnabled(boolean pEnable,
+                                                           boolean pForceUpdate)
 {
 
-if (pEnable != ascanEnabled) pForceUpdate = true;
+if (pEnable != aScanFastEnabled) pForceUpdate = true;
 
-ascanEnabled = pEnable;
+aScanFastEnabled = pEnable;
 
 //flag that new data needs to be sent to remotes
 if (pForceUpdate){
-    if (ascanEnabled){
-        flags1SetMask = UTBoard.ASCAN_ENABLED;
+    if (aScanFastEnabled){
+        flags1SetMask = UTBoard.ASCAN_FAST_ENABLED;
         flags1SetMaskChanged = true;
         }
     else{
-        flags1ClearMask = ~UTBoard.ASCAN_ENABLED;
+        flags1ClearMask = ~UTBoard.ASCAN_FAST_ENABLED;
         flags1ClearMaskChanged = true;
         }
     channelOwner.setChannelDataChangedFlag(true);
     dataChanged = true;
     }
 
-}//end of Channel::setAScanEnabled
+}//end of Channel::setAScanFastEnabled
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::setAScanSlowEnabled
+//
+// Sets appropriate mask word to set or clear the ASCAN_SLOW_ENABLED bit in the
+// DSP's flags1 variable.  This allows Ascan data to be retrieved.
+//
+// NOTE: This function can be enabled during inspection because it processes
+// only a small chunk of the AScan buffer during each pulse cycle.
+//
+// NOTE: See setAScanFastEnabled for a version which might give faster visual
+// response but can only be used during calibration as it might cause data
+// peaks to be missed occasionally.
+//
+// NOTE: A delay should be inserted between calls to this function and setFlags1
+// and clearFlags1 as they are actually sent to the remotes by another thread.
+// The delay should be long enough to ensure that the other thread has had time
+// to send the first command.
+//
+// If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
+// the flag is false, the value(s) will be sent only if they have changed.
+//
+// This and all functions which set data changed flag(s) should be
+// synchronized to avoid thread conficts.  Typically, one thread changes the
+// data while another transmits it to the remotes.
+//
+
+public synchronized void setAScanSlowEnabled(boolean pEnable,
+                                                           boolean pForceUpdate)
+{
+
+if (pEnable != aScanSlowEnabled) pForceUpdate = true;
+
+aScanSlowEnabled = pEnable;
+
+//flag that new data needs to be sent to remotes
+if (pForceUpdate){
+    if (aScanSlowEnabled){
+        flags1SetMask = UTBoard.ASCAN_SLOW_ENABLED;
+        flags1SetMaskChanged = true;
+        }
+    else{
+        flags1ClearMask = ~UTBoard.ASCAN_SLOW_ENABLED;
+        flags1ClearMaskChanged = true;
+        }
+    channelOwner.setChannelDataChangedFlag(true);
+    dataChanged = true;
+    }
+
+}//end of Channel::setAScanSlowEnabled
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1283,7 +1339,7 @@ return mode;
 // of interest (right edge of AScan or latest gate) is stored in hardwareRange.
 // This value is the number of samples to be stored on each transducer firing.
 //
-// The DSP always returns 400 samples for an AScan dataset.  The softwareRange
+// The DSP always returns 400 samples for an AScan dataset.  The aScanScale
 // value tells the DSP how many samples to compress for each sample placed in
 // the AScan buffer.  The DSP stores the peaks from the compressed samples
 // and transfers those peaks to the AScan buffer.
@@ -1318,7 +1374,7 @@ public void setRange(double pRange, boolean pForceUpdate)
 {
 
 int oldHardwareRange = hardwareRange;
-int oldSoftwareRange = softwareRange;
+int oldAScanScale = aScanScale;
 
 aScanRange = pRange;
 
@@ -1354,14 +1410,14 @@ if (hardwareRange % 2 != 0) hardwareRange++;
 //samples into the 400 sample AScan buffer - the scale factor is rounded up
 //rather than down to make sure the desired range is collected
 
-softwareRange = (rightEdgeAScan - leftEdgeAScan) / UTBoard.ASCAN_SAMPLE_SIZE;
+aScanScale = (rightEdgeAScan - leftEdgeAScan) / UTBoard.ASCAN_SAMPLE_SIZE;
 
 //if the range is not a perfect integer, round it up
 if (((rightEdgeAScan - leftEdgeAScan) % UTBoard.ASCAN_SAMPLE_SIZE) != 0)
-    softwareRange++;
+    aScanScale++;
 
 if (hardwareRange != oldHardwareRange) pForceUpdate = true;
-if (softwareRange != oldSoftwareRange) pForceUpdate = true;
+if (aScanScale != oldAScanScale) pForceUpdate = true;
 
 if (utBoard != null && pForceUpdate){
 
@@ -1370,7 +1426,7 @@ if (utBoard != null && pForceUpdate){
     //tell the DSP cores how big the sample set is
     utBoard.sendDSPSampleSize(boardChannel, hardwareRange);
 
-    utBoard.sendSoftwareRange(boardChannel, softwareRange);
+    utBoard.sendAScanScale(boardChannel, aScanScale);
 
     }
 
