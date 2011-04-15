@@ -102,8 +102,9 @@ try{
         
         hardware.collectData();
 
-        //if the calibration window is open, request aScan packets
-        if (calWindow.isVisible()){
+        //if the calibration window is active, request aScan packets
+        //thus, if the user clicks off the window, the AScan will freeze
+        if (calWindow.isActive()){
 
             if (calWindow.channels[calWindow.currentChannelIndex] != null){
                 hardware.requestAScan(

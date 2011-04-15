@@ -626,9 +626,15 @@ if (e.getActionCommand().equals("Min / Max")){
     return;
     }
 
-//if not trapped above, action command is the number of the selected command
+//if not trapped above, action command is the number of the selected channel
+
+//disable fast AScan processing in the DSP for most efficient operation
+channels[currentChannelIndex].setAScanFastEnabled(false, false);
 
 currentChannelIndex = Integer.valueOf(e.getActionCommand());
+
+//enable fast AScan processing in the DSP for the newly selected channel
+channels[currentChannelIndex].setAScanFastEnabled(true, false);
 
 //store current channel so it can be used when the window is closed & reopened
 chart.lastAScanChannel = currentChannelIndex;
@@ -689,8 +695,10 @@ for (int i=0; i<numberOfChannels; i++)
 if (channels[currentChannelIndex] != null)
     channels[currentChannelIndex].setMasked(false);
 
-//enable Ascan processing in the DSP
-channels[currentChannelIndex].setAScanEnabled(true, false);
+//enable Ascan fast buffer processing in the DSP
+//this will result in missed data sets and missed peaks due to the extensive
+//processing required, so should only be used for setup, not inspection
+channels[currentChannelIndex].setAScanFastEnabled(true, false);
 
 }//end of UTCalibrator::windowActivated
 //-----------------------------------------------------------------------------
@@ -716,7 +724,7 @@ for (int i=0; i<numberOfChannels; i++)
 // it is running.  This is okay for setting up in a static situation, but
 // the AScan must be disabled during inspection.  The OScope screen will thus
 // be frozen during inspection.
-channels[currentChannelIndex].setAScanEnabled(false, false);
+channels[currentChannelIndex].setAScanFastEnabled(false, false);
 
 }//end of UTCalibrator::windowDeactivated
 //-----------------------------------------------------------------------------
