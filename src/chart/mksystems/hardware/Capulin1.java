@@ -269,6 +269,9 @@ while(!controlBoardsSetupComplete){
 
 threadSafeLog("All Control boards ready.\n");
 
+//initialize each Control board
+initializeControlBoards();
+
 }//end of Capulin1::connectControlBoards
 //-----------------------------------------------------------------------------
 
@@ -447,6 +450,21 @@ for (int j = 0; j < numberOfUTBoards; j++)
     if (utBoards[j] != null) utBoards[j].initialize();
 
 }//end of Capulin1::initializeUTBoards
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1:initializeControlBoards
+//
+// Sets up each Control board with various settings.
+//
+
+public void initializeControlBoards()
+{
+
+for (int j = 0; j < numberOfControlBoards; j++)
+    if (controlBoards[j] != null) controlBoards[j].initialize();
+
+}//end of Capulin1::initializeControlBoards
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

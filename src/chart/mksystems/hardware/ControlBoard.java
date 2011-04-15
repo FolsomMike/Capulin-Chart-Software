@@ -44,12 +44,17 @@ int runtimePacketSize;
 //These should match the values in the code for those boards.
 
 static byte NO_ACTION = 0;
-static byte MONITOR_CMD = 1;
+static byte UNUSED1_CMD = 1;
 static byte ZERO_ENCODERS_CMD = 2;
-static byte REFRESH_CMD = 3;
+static byte GET_MONITOR_PACKET_CMD = 3;
 static byte PULSE_OUTPUT_CMD = 4;
 static byte TURN_ON_OUTPUT_CMD = 5;
 static byte TURN_OFF_OUTPUT_CMD = 6;
+static byte SET_ENCODERS_DELTA_TRIGGER_CMD = 7;
+static byte START_INSPECT_CMD = 8;
+static byte STOP_INSPECT_CMD = 9;
+static byte START_MONITOR_CMD = 10;
+static byte STOP_MONITOR_CMD = 11;
 static byte DEBUG_CMD = 126;
 static byte EXIT_CMD = 127;
 
@@ -57,6 +62,8 @@ static byte EXIT_CMD = 127;
 //These should match the values in the code for those boards.
 
 static byte NO_STATUS = 0;
+
+static int RUNTIME_PACKET_SIZE = 2048;
 
 //-----------------------------------------------------------------------------
 // UTBoard::UTBoard (constructor)
@@ -156,6 +163,20 @@ ready = true;
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ControlBoard:initialize
+//
+// Sets up various settings on the board.
+//
+
+public void initialize()
+{
+
+setEncodersDeltaTrigger();
+
+}//end of ControlBoard::initialize
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ControlBoard::startMonitor
 //
 // Places the Control board in Monitor status and displays the status of
@@ -167,13 +188,8 @@ public void startMonitor(int dMonitorPacketSize)
 {
 
 monitorPacketSize = dMonitorPacketSize;
-    
-try {
- 
-    if (byteOut != null) byteOut.write(MONITOR_CMD);
 
-    }
-catch(IOException e){}
+sendBytes2(START_MONITOR_CMD, (byte) 0);
 
 }//end of ControlBoard::startMonitor
 //-----------------------------------------------------------------------------
@@ -187,10 +203,7 @@ catch(IOException e){}
 public void stopMonitor()
 {
     
-try {
-    if (byteOut != null) byteOut.write(EXIT_CMD); //send exit command
-    }
-catch(IOException e){}
+sendBytes2(STOP_MONITOR_CMD, (byte) 0);
 
 }//end of ControlBoard::stopMonitor
 //-----------------------------------------------------------------------------
@@ -206,7 +219,7 @@ catch(IOException e){}
 
 public void getMonitorPacket(byte[] pMonitorBuffer, boolean pRequestPacket)
 {
-    
+
 int c;
 
 if (byteIn != null)
@@ -221,15 +234,12 @@ if (byteIn != null)
     catch(EOFException eof){log.append("End of stream.\n");}
     catch(IOException e){}
 
-if (pRequestPacket)    
-    try {
+if (pRequestPacket)
         //request a packet be sent if the counter has timed out
         if (packetRequestTimer++ == 50){
             packetRequestTimer = 0;
-            if (byteOut != null) byteOut.write(REFRESH_CMD); 
+            sendBytes2(GET_MONITOR_PACKET_CMD, (byte) 0);
             }
-        }
-    catch(IOException e){}
 
 }//end of ControlBoard::getMonitorPacket
 //-----------------------------------------------------------------------------
@@ -243,12 +253,7 @@ if (pRequestPacket)
 public void zeroEncoderCounts()
 {
     
-try {
- 
-    if (byteOut != null) byteOut.write(ZERO_ENCODERS_CMD);
-
-    }
-catch(IOException e){}
+sendBytes2(ZERO_ENCODERS_CMD, (byte) 0);
 
 }//end of ControlBoard::zeroEncoderCounts
 //-----------------------------------------------------------------------------
@@ -265,10 +270,7 @@ catch(IOException e){}
 public void pulseOutput()
 {
 
-try {
-    if (byteOut != null) byteOut.write(PULSE_OUTPUT_CMD);
-    }
-catch(IOException e){}
+sendBytes2(PULSE_OUTPUT_CMD, (byte) 0);
 
 }//end of ControlBoard::pulseOutput
 //-----------------------------------------------------------------------------
@@ -285,10 +287,7 @@ catch(IOException e){}
 public void turnOnOutput()
 {
 
-try {
-    if (byteOut != null) byteOut.write(TURN_ON_OUTPUT_CMD);
-    }
-catch(IOException e){}
+sendBytes2(TURN_ON_OUTPUT_CMD, (byte) 0);
 
 }//end of ControlBoard::turnOnOutput
 //-----------------------------------------------------------------------------
@@ -305,12 +304,69 @@ catch(IOException e){}
 public void turnOffOutput()
 {
 
-try {
-    if (byteOut != null) byteOut.write(TURN_OFF_OUTPUT_CMD);
-    }
-catch(IOException e){}
+sendBytes2(TURN_OFF_OUTPUT_CMD, (byte) 0);
 
 }//end of ControlBoard::turnOffOutput
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlBoard::setEncodersDeltaTrigger
+//
+// Tells the Control board how many encoder counts to wait before sending
+// an encoder value update.  The trigger value for each encoder is sent.
+//
+// Normally, this value will be set to something reasonable like 1 inch of
+// travel of the piece being inspected.
+//
+
+public void setEncodersDeltaTrigger()
+{
+
+//debug mks -- read these values from config file
+
+int encoder1DeltaTrigger = 1000;
+int encoder2DeltaTrigger = 2000;
+
+//debug mks end
+
+sendBytes5(SET_ENCODERS_DELTA_TRIGGER_CMD,
+            (byte)((encoder1DeltaTrigger >> 8) & 0xff),
+            (byte)(encoder1DeltaTrigger & 0xff),
+            (byte)((encoder2DeltaTrigger >> 8) & 0xff),
+            (byte)(encoder2DeltaTrigger & 0xff)
+            );
+
+}//end of ControlBoard::setEncodersDeltaTrigger
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlBoard::startInspect
+//
+// Puts Control board in the inspect mode.  In this mode the Control board
+// will monitor encoder and status signals and return position information to
+// the host.
+//
+
+public void startInspect()
+{
+
+sendBytes2(START_INSPECT_CMD, (byte) 0);
+
+}//end of ControlBoard::startInspect
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlBoard::stopInspect
+//
+// Takes Control board out of the inspect mode.
+//
+
+public void stopInspect()
+{
+
+sendBytes2(STOP_INSPECT_CMD, (byte) 0);
+
+}//end of ControlBoard::stopInspect
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -356,6 +412,8 @@ return true;
 private void configure(IniFile pConfigFile)
 {
 
+inBuffer = new byte[RUNTIME_PACKET_SIZE];
+outBuffer = new byte[RUNTIME_PACKET_SIZE];
 
 }//end of ControlBoard::configure
 //-----------------------------------------------------------------------------
