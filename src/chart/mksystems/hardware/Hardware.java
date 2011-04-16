@@ -343,10 +343,10 @@ return analogDriver.getNumberOfGates(pChannel);
 // Commands the hardware to enter the status monitor mode.
 //
 
-public void startMonitor(int dMonitorPacketSize)
+public void startMonitor()
 {
 
-analogDriver.startMonitor(dMonitorPacketSize);
+analogDriver.startMonitor();
 
 }//end of Hardware::startMonitor
 //-----------------------------------------------------------------------------
@@ -371,10 +371,10 @@ analogDriver.stopMonitor();
 // Retrieves a data packet containing monitor data.
 //
 
-public void getMonitorPacket(byte[] pMonitorBuffer, boolean pRequestPacket)
+public byte[] getMonitorPacket(boolean pRequestPacket)
 {
 
-analogDriver.getMonitorPacket(pMonitorBuffer, pRequestPacket);
+return analogDriver.getMonitorPacket(pRequestPacket);
 
 }//end of Hardware::getMonitorPacket
 //-----------------------------------------------------------------------------
@@ -486,22 +486,6 @@ if (opMode == INSPECT || opMode == INSPECT_WITH_TIMER_TRACKING
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Hardware::requestPeakDataForAllBoards
-//
-// Sends requests to all boards for peak data from all channels.
-//
-
-public void requestPeakDataForAllBoards()
-{
-
-if (opMode == INSPECT || opMode == INSPECT_WITH_TIMER_TRACKING
-                                                            || opMode == SCAN)
-    analogDriver.requestPeakDataForAllBoards();
-
-}//end of Hardware::requestPeakDataForAllBoards
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // Hardware::setMode
 //
 // Sets the mode to INSPECT, SCAN, STOPPED, etc.
@@ -575,11 +559,14 @@ public void collectData()
 //if analogDriver.prepareData() returns true, then peak data is ready to be
 //processed
 
-boolean peakDataAvailable = analogDriver.prepareData();
+boolean peakDataAvailable = analogDriver.prepareAnalogData();
+
+boolean controlDataAvailable = analogDriver.prepareControlData();
 
 //do nothing if in stopped mode
 if (opMode == STOPPED || opMode == PAUSED) return;
 
+//check if other threads are already accessing data from the remotes
 if (!collectDataEnabled) return;
 
 //send a request to the remote device(s) for a peak data packet
@@ -587,7 +574,8 @@ if (!collectDataEnabled) return;
 //collectAnalogData later in this function will usually process packet(s)
 //returned from the request sent on the previous pass
 
-requestPeakDataForAllBoards();
+if (opMode == INSPECT_WITH_TIMER_TRACKING || opMode == SCAN)
+    analogDriver.requestPeakDataForAllBoards();
 
 //scanRateCounter is used to control the rate the scan moves across the screen
 //this is always used for Scan mode, and used for Inspect mode if that mode is
@@ -597,10 +585,12 @@ requestPeakDataForAllBoards();
 //that way, the position info for the peaks is recorded and maintained even
 //though some peaks will not be retained (overwritten by new peaks) and plotted
 
-if (scanRateCounter-- == 0){
-    scanRateCounter = 10 - globals.scanSpeed;
+if (opMode == SCAN || opMode == INSPECT_WITH_TIMER_TRACKING){
+    if (scanRateCounter-- == 0){
+        scanRateCounter = 10 - globals.scanSpeed;
+        }
+    else return;
     }
-else return;
 
 //process position information from whatever device is handling the encoder
 //inputs, or retrieve timer driven position updates for scanning or for systems
@@ -1046,6 +1036,12 @@ if (opMode == SCAN || opMode == INSPECT_WITH_TIMER_TRACKING){
 
     }//if (opMode == SCAN)...
 
+
+if (opMode == INSPECT){
+
+
+
+    }
 
 return(newPositionData);
 
