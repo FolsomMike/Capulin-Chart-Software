@@ -58,11 +58,11 @@ void saveCalFile(IniFile pCalFile);
 
 public void setMode(int pOpMode);
 
-void startMonitor(int dMonitorPacketSize);
+void startMonitor();
 
 void stopMonitor();
 
-void getMonitorPacket(byte[] pMonitorBuffer, boolean pRequestPacket);
+byte[] getMonitorPacket(boolean pRequestPacket);
 
 void zeroEncoderCounts();
 
@@ -84,7 +84,9 @@ public void linkTraces(int pChartGroup, int pChart, int pTrace, int[] pDBuffer,
    int[] pDBuffer2, int[] pFBuffer, Threshold[] pThresholds, int pPlotStyle,
    Trace pTracePtr);
 
-boolean prepareData();
+boolean prepareAnalogData();
+
+boolean prepareControlData();
 
 public void displayMessages();
 

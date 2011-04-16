@@ -644,6 +644,20 @@ return 0;
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Board::waitSleep
+//
+// Sleeps for pTime milliseconds.
+//
+
+void waitSleep(int pTime)
+{
+
+try {Thread.sleep(pTime);} catch (InterruptedException e) { }
+
+}//end of Board::waitSleep
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Board::logStatus
 //
 // Writes various status messages to the log window.

@@ -179,8 +179,6 @@ JobInfo jobInfo;
 Debugger debugger;
 UTCalibrator calWindow;
 Monitor monitorWindow;
-static int MONITOR_PACKET_SIZE = 20;
-byte[] monitorBuffer; 
 boolean monitorMode = false;
 
 AScan aScan;
@@ -209,8 +207,6 @@ catch (Exception e) {}
 //create various decimal formats
 decimalFormats = new DecimalFormat[1];
 decimalFormats[0] = new  DecimalFormat("0000000");
-
-monitorBuffer = new byte[MONITOR_PACKET_SIZE];
 
 globals = new Globals(this, this);
 
@@ -421,7 +417,8 @@ try {configFile = new IniFile("Main Settings.ini");}
 currentJobName = configFile.readString(
                          "Main Configuration", "Current Work Order", "");
 
-new JobValidator(primaryDataPath, backupDataPath, currentJobName, false, xfer);
+JobValidator jobValidator = new JobValidator(primaryDataPath, backupDataPath,
+                                                  currentJobName, false, xfer);
 
 //if flag returns true, one or both of the root data paths is missing - set
 //both and the job name to empty so they won't be accessed
@@ -727,7 +724,7 @@ saveCalFile();
 // Erases the chart groups and clears all data.
 //
 
-void resetChartGroups()
+private void resetChartGroups()
 {
 
 for (int i = 0; i < numberOfChartGroups; i++) chartGroups[i].resetChartGroup();
@@ -896,7 +893,7 @@ finally{
 // the display has been set and any time a size may have changed.
 //
 
-public void handleSizeChanges()
+public final void handleSizeChanges()
 {
 
 for (int i = 0; i < numberOfChartGroups; i++) 
@@ -935,8 +932,9 @@ if ("Change Job".equals(e.getActionCommand())) {
 
 //this part handles saving current settings to a preset
 if ("Save Preset".equals(e.getActionCommand())) {
-    new SavePreset(mainFrame, primaryDataPath, backupDataPath, xfer,
-                                                                currentJobName);
+    SavePreset savePreset;
+    savePreset = new SavePreset(mainFrame, primaryDataPath, backupDataPath,
+                                                          xfer, currentJobName);
     return;
     }
 
@@ -948,13 +946,15 @@ if ("Change Preset".equals(e.getActionCommand())) {
 
 //this part handles renaming a preset
 if ("Rename Preset".equals(e.getActionCommand())) {
-    new RenamePreset(mainFrame, primaryDataPath, backupDataPath, xfer);
+    RenamePreset renamePreset =
+            new RenamePreset(mainFrame, primaryDataPath, backupDataPath, xfer);
     return;
     }
 
 //this part handles deleting a preset
 if ("Delete Preset".equals(e.getActionCommand())) {
-    new DeletePreset(mainFrame, primaryDataPath, backupDataPath, xfer);
+    DeletePreset deletePreset =
+            new DeletePreset(mainFrame, primaryDataPath, backupDataPath, xfer);
     return;
     }
 
@@ -973,15 +973,18 @@ if ("Status".equals(e.getActionCommand())) {
 
 //this part opens a viewer window for viewing saved segments
 if ("Open Viewer".equals(e.getActionCommand())) {
-    if(isConfigGoodA())
-        new Viewer(globals, jobInfo, currentJobPrimaryPath, currentJobName);
+
+    Viewer viewer;
+
+    if(isConfigGoodA()) viewer =
+            new Viewer(globals, jobInfo, currentJobPrimaryPath, currentJobName);
     return;
     }
 
 //this part handles starting the status monitor
 if ("Monitor".equals(e.getActionCommand())) {
     monitorWindow.setVisible(true);
-    hardware.startMonitor(MONITOR_PACKET_SIZE);
+    hardware.startMonitor();
     return;
     }
 
@@ -1015,8 +1018,8 @@ if ("Repair Job".equals(e.getActionCommand())) {
     if(!isConfigGoodA()) return;
 
     //create with pRobust set true so paths will be recreated if necessary
-    new JobValidator(currentJobPrimaryPath, currentJobBackupPath, currentJobName,
-                                                                   true, xfer);
+    JobValidator jobValidator = new JobValidator(currentJobPrimaryPath,
+                             currentJobBackupPath, currentJobName, true, xfer);
 
     displayInfoMessage("The repair is complete.  Click OK to reload the job.");
 
@@ -1092,7 +1095,7 @@ if ("Prepare for Next Piece".equals(e.getActionCommand())) {
 
 //this part handles displaying the "About" window
 if ("About".equals(e.getActionCommand())) {
-    new About(mainFrame);
+    About about = new About(mainFrame);
     return;
     }
 
@@ -1176,7 +1179,7 @@ public void createNewJob()
 
 saveEverything(); //save all data
 
-new NewJob(mainFrame, primaryDataPath, backupDataPath, xfer);
+NewJob newJob = new NewJob(mainFrame, primaryDataPath, backupDataPath, xfer);
 
 //if the NewJob window set rBoolean1 true, switch to the new job
 if (xfer.rBoolean1){
@@ -1219,7 +1222,8 @@ public void changeJob()
 
 saveEverything(); //save all data
 
-new ChangeJob(mainFrame, primaryDataPath, backupDataPath, xfer);
+ChangeJob changeJop =
+                new ChangeJob(mainFrame, primaryDataPath, backupDataPath, xfer);
 
 //if the ChangeJob window set rBoolean1 true, switch to the new job
 if (xfer.rBoolean1){
@@ -1257,8 +1261,8 @@ public void changePreset()
 
 saveEverything(); //save all data
 
-new LoadPreset(mainFrame, primaryDataPath, backupDataPath, xfer,
-                                                                currentJobName);
+LoadPreset loadPreset = new LoadPreset(
+            mainFrame, primaryDataPath, backupDataPath, xfer, currentJobName);
 
 //if the ChangeJob window set rBoolean1 true, switch to the new preset
 if (xfer.rBoolean1){
@@ -1490,9 +1494,11 @@ if (globals.exitProgram) {
     //used as an Applet, so may want to test if program is an Applet and
     //skip this step in that case
 
+    MainWindow mainWindow;
+
     //if a restart was requested, make a new main frame and start over
     if (globals.restartProgram) 
-        new MainWindow();
+        mainWindow = new MainWindow();
     else
         System.exit(0);
 
@@ -1508,7 +1514,7 @@ hardware.doTasks();
 //if in monitor mode, retrieve I/O status info from Capulin1
 if (monitorWindow.isVisible()) {
         monitorMode = true;
-        hardware.getMonitorPacket(monitorBuffer, true);
+        byte[] monitorBuffer = hardware.getMonitorPacket(true);
         monitorWindow.updateStatus(monitorBuffer);
         }
 else
@@ -1799,14 +1805,9 @@ exitProgram(true, false);
 // disposed of - the Java VM probably ceases running before that happens.
 //
 
-@Override
-protected void finalize() throws Throwable
-{
+// function not used -- comments left here as instructional --
 
-//allow the parent classes to finalize
-super.finalize();
-
-}//end of MainWindow::finalize
+//end of MainWindow::finalize
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1939,9 +1940,9 @@ public class Main{
     
 private static void createAndShowGUI()
 {
-    
+
 //instantiate an object to create and handle the main window JFrame
-new MainWindow();
+MainWindow mainWindow = new MainWindow();
     
 }//end of Main::createAndShowGUI
 //-----------------------------------------------------------------------------   

@@ -778,20 +778,6 @@ public void setMode(int pOpMode)
 
 opMode = pOpMode;
 
-/*
-//debug mks - this is only for demo - delete later
-if (opMode == SCAN){
-    //start monitor mode so input changes can be seen
-    startMonitor(MONITOR_PACKET_SIZE);
-    monitorBuffer = new byte[MONITOR_PACKET_SIZE];
-    }
-if (opMode == STOPPED){
-    //stop monitor mode
-    stopMonitor();
-    }
-//debug mks end - this is only for demo - delete later
- */
-
 }//end of Capulin1::setMode
 //-----------------------------------------------------------------------------
 
@@ -801,13 +787,12 @@ if (opMode == STOPPED){
 // Places the Control board in Monitor status and displays the status of
 // various I/O as sent back from the Control board.
 //
-// The parameter dMonitorPacketSize specifies the size of the packet buffer.
 
 @Override  
-public void startMonitor(int dMonitorPacketSize)
+public void startMonitor()
 {
 
-controlBoards[0].startMonitor(dMonitorPacketSize);
+controlBoards[0].startMonitor();
 
 }//end of Capulin1::startMonitor
 //-----------------------------------------------------------------------------
@@ -837,10 +822,10 @@ controlBoards[0].stopMonitor();
 //
 
 @Override  
-public void getMonitorPacket(byte[] pMonitorBuffer, boolean pRequestPacket)
+public byte[] getMonitorPacket(boolean pRequestPacket)
 {
     
-controlBoards[0].getMonitorPacket(pMonitorBuffer, pRequestPacket);
+return controlBoards[0].getMonitorPacket(pRequestPacket);
 
 }//end of Capulin1::getMonitorPacket
 //-----------------------------------------------------------------------------
@@ -993,7 +978,7 @@ return(50);
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Capulin1::prepareData
+// Capulin1::prepareAnalogData
 //
 // Allows each UT board to process any available data packets until it
 // processes its first Peak Data packet.
@@ -1014,7 +999,7 @@ return(50);
 //
 
 @Override
-public boolean prepareData()  
+public boolean prepareAnalogData()
 {
 
 boolean atLeastOnePeakDataPacketProcessed = false;
@@ -1050,7 +1035,75 @@ for (int i = 0; i < numberOfUTBoards; i++){
 
 return atLeastOnePeakDataPacketProcessed;
 
-}//end of Capulin1::prepareData
+}//end of Capulin1::prepareAnalogData
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::prepareControlData
+//
+// Allows each Control board to process any available data packets until it
+// processes its first Encoder packet.
+//
+// If any Control board encounters and processes an Encoder packet, this
+// function returns true to signal that some data is available.  It is up to
+// the calling function to verify which channels have new data.
+//
+// If no Encoder packet is processed, function returns false.
+//
+// Returns true if new data is available, false if not.
+//
+// debug mks - This function processes data until the first Encoder packet
+//  for each board is encountered.  If the data is being pushed faster than
+//  this functions is called, the incoming data packets will accumulate.  This
+//  function needs to be changed to process data until all waiting packets are
+//  processed.
+//
+
+@Override
+public boolean prepareControlData()
+{
+
+boolean atLeastOneEncoderPacketProcessed = false;
+
+//give each Control board a chance to process data packets from the remotes
+for (int i = 0; i < numberOfControlBoards; i++){
+
+    //this function was copied from prepareAnalogData function which expects
+    //a peak packet from each board -- each control board may not send encoder
+    //packets, but may not be a problem as that means all the other packet types
+    //will be processed anyway -- most systems only have one control board so
+    //the point is generally moot
+
+    //if data packet(s) are available, process them for each board until an
+    //encoder packet for each board is encountered -
+    //process no more than one encoder packet for each Control board so the
+    //value won't be overwritten by a new packet before it can be transferred
+    //to the traces - if an encoder packet is processed for any board, return
+    //true to signal that some data is ready to be processed and the control
+    //data should be transferred
+
+    //calling processDataPacketsUntilFirstEncoderPacket will also result in
+    //other types of packets being processed as well, such as flag packets -
+    //thus calling this (prepareData) function serves to handle all packet
+    //types - calling it repeatedly will serve to keep incoming data packets
+    // processed, the only catch being that processing will be stopped briefly
+    //when an encoder packet is encountered so that the encoder data may be
+    //handled
+
+    //NOTE: The processDataPacketsUntilFirstEncoderPacket function returns
+    //immediately if no packets are available, so the name is not entirely
+    //accurate - it will not wait until the first packet is encountered if
+    //there are no packets waiting.  Also, any other packet types waiting will
+    //be processed even if there is no encoder packet in the queue.
+
+    if (controlBoards[i].processDataPacketsUntilFirstEncoderPacket() == 1)
+        atLeastOneEncoderPacketProcessed = true;
+
+    }
+
+return atLeastOneEncoderPacketProcessed;
+
+}//end of Capulin1::prepareControlData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

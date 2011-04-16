@@ -149,7 +149,7 @@ public void setMode(int pOpMode)
 //
 
 @Override
-public void startMonitor(int dMonitorPacketSize)
+public void startMonitor()
 {
 
 
@@ -176,8 +176,10 @@ public void stopMonitor()
 //
 
 @Override
-public void getMonitorPacket(byte[] pMonitorBuffer, boolean pRequestPacket)
+public byte[] getMonitorPacket(boolean pRequestPacket)
 {
+
+return(null);
 
 }//end of AnalogPCIDAS6023::getMonitorPacket
 //-----------------------------------------------------------------------------
@@ -295,21 +297,39 @@ public void requestPeakDataForAllBoards()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// AnalogPCIDAS6023::prepareData
+// AnalogPCIDAS6023::prepareAnalogData
 //
-// Retrieves a data packet from the incoming data buffer and distributes it
-// to the newData variables in each gate.
+// Retrieves a data packet from the incoming data buffer from the analog board
+// and distributes it to the newData variables in each gate.
 //
 // Returns true if new data is available, false if not.
 //
 
 @Override
-public boolean prepareData()  
+public boolean prepareAnalogData()
 {
 
 return true;
 
-}//end of AnalogPCIDAS6023::prepareData
+}//end of AnalogPCIDAS6023::prepareAnalogData
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// AnalogPCIDAS6023::prepareControlData
+//
+// Retrieves a data packet from the incoming data buffer from the control board
+// and distributes it to the newData variables in each gate.
+//
+// Returns true if new data is available, false if not.
+//
+
+@Override
+public boolean prepareControlData()
+{
+
+return true;
+
+}//end of AnalogPCIDAS6023::prepareControlData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

@@ -33,12 +33,19 @@ import chart.mksystems.inifile.IniFile;
 
 public class ControlBoard extends Board{
 
-
-int monitorPacketSize;
+byte[] monitorBuffer;
+static int MONITOR_PACKET_SIZE = 20;
 
 int packetRequestTimer = 0;
 
 int runtimePacketSize;
+
+int pktID;
+boolean encoderDataPacketProcessed = false;
+boolean reSynced;
+int reSyncCount = 0, reSyncPktID;
+int timeOutProcess = 0; //use this one in the packet process functions
+int timeOutWFP = 0; //used by processDataPackets
 
 //Commands for Control boards
 //These should match the values in the code for those boards.
@@ -84,6 +91,8 @@ simulate = pSimulate;
 
 log = pLog;
 threadSafeMessage = new String[NUMBER_THREADSAFE_MESSAGES];
+
+monitorBuffer = new byte[MONITOR_PACKET_SIZE];
 
 //read the configuration file and create/setup the charting/control elements
 configure(configFile);
@@ -182,12 +191,9 @@ setEncodersDeltaTrigger();
 // Places the Control board in Monitor status and displays the status of
 // various I/O as sent back from the Control board.
 //
-// The parameter dMonitorPacketSize specifies the size of the packet buffer.
 
-public void startMonitor(int dMonitorPacketSize)
+public void startMonitor()
 {
-
-monitorPacketSize = dMonitorPacketSize;
 
 sendBytes2(START_MONITOR_CMD, (byte) 0);
 
@@ -211,37 +217,62 @@ sendBytes2(STOP_MONITOR_CMD, (byte) 0);
 //-----------------------------------------------------------------------------
 // ControlBoard::getMonitorPacket
 //
-// Stuffs I/O status received from the remote into an array.
+// Returns in a byte array I/O status data which has already been received and
+// stored from the remote.
 // If pRequestPacket is true, then a packet is requested every so often.
 // If false, then packets are only received when the remote computer sends
 // them.
 //
+// NOTE: This function is often called from a different thread than the one
+// transferring the data from the input buffer -- erroneous values for some of
+// the multibyte values may occur due to thread collision but they are for
+// display/debugging only and an occasional glitch in the displayed values
+// should not be of major concern.
+//
 
-public void getMonitorPacket(byte[] pMonitorBuffer, boolean pRequestPacket)
+public byte[] getMonitorPacket(boolean pRequestPacket)
 {
-
-int c;
-
-if (byteIn != null)
-    try {
- 
-        c = byteIn.available();
-        
-        if (c >= monitorPacketSize) 
-            byteIn.read(pMonitorBuffer, 0, monitorPacketSize);
-            
-        }
-    catch(EOFException eof){log.append("End of stream.\n");}
-    catch(IOException e){}
 
 if (pRequestPacket)
         //request a packet be sent if the counter has timed out
+        //this packet will arrive in the future and be processed by another
+        //function so it can be retrieved by another call to this function
         if (packetRequestTimer++ == 50){
             packetRequestTimer = 0;
             sendBytes2(GET_MONITOR_PACKET_CMD, (byte) 0);
             }
 
+return monitorBuffer;
+
 }//end of ControlBoard::getMonitorPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlBoard::processMonitorPacket
+//
+// Transfers I/O status received from the remote into an array.
+//
+// Returns number of bytes retrieved from the socket.
+//
+
+public int processMonitorPacket()
+{
+
+try{
+    timeOutProcess = 0;
+    while(timeOutProcess++ < TIMEOUT){
+        if (byteIn.available() >= MONITOR_PACKET_SIZE) break;
+        waitSleep(10);
+        }
+    if (byteIn.available() >= MONITOR_PACKET_SIZE)
+        return   byteIn.read(monitorBuffer, 0, MONITOR_PACKET_SIZE);
+
+    }// try
+catch(IOException e){}
+
+return 0;
+
+}//end of ControlBoard::processMonitorPacket
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -400,6 +431,167 @@ if (byteIn != null)
 return true;
 
 }//end of ControlBoard::prepareData
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlBoard::processDataPacketsUntilFirstEncoderPacket
+//
+// Processes incoming data packets until the first Encoder data packet has been
+// processed.
+//
+// Returns 1 if an Encoder data packet has been processed, -1 if all available
+// packets have been processed but no peak data packet was present.
+//
+// See processOneDataPacket notes for more info.
+//
+
+public int processDataPacketsUntilFirstEncoderPacket()
+{
+
+int x = 0;
+
+//this flag will be set true if a Peak Data packet is processed
+encoderDataPacketProcessed = false;
+
+//process packets until there is no more data available or until a Peak Data
+//packet has been processed
+
+while ((x = processOneDataPacket(false, TIMEOUT)) > 0
+                                      && encoderDataPacketProcessed == false){}
+
+
+if (encoderDataPacketProcessed == true) return 1;
+else return -1;
+
+}//end of ControlBoard::processDataPacketsUntilFirstEncoderPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlBoard::processOneDataPacket
+//
+// This function processes a single data packet if it is available.  If
+// pWaitForPkt is true, the function will wait until data is available.
+//
+// The amount of time the function is to wait for a packet is specified by
+// pTimeOut.  Each count of pTimeOut equals 10 ms.
+//
+// This function should be called often to allow processing of data packets
+// received from the remotes and stored in the socket buffer.
+//
+// All packets received from the remote devices should begin with
+// 0xaa, 0x55, 0xbb, 0x66, followed by the packet identifier, the DSP chip
+// identifier, and the DSP core identifier.
+//
+// Returns number of bytes retrieved from the socket, not including the
+// 4 header bytes, the packet ID, the DSP chip ID, and the DSP core ID.
+// Thus, if a non-zero value is returned, a packet was processed.  If zero
+// is returned, some bytes may have been read but a packet was not successfully
+// processed due to missing bytes or header corruption.
+// A return value of -1 means that the buffer does not contain a packet.
+//
+
+public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
+{
+
+if (byteIn == null) return -1;  //do nothing if the port is closed
+
+try{
+
+    //wait a while for a packet if parameter is true
+    if (pWaitForPkt){
+        timeOutWFP = 0;
+        while(byteIn.available() < 5 && timeOutWFP++ < pTimeOut){waitSleep(10);}
+        }
+
+    //wait until 5 bytes are available - this should be the 4 header bytes, and
+    //the packet identifier
+    if (byteIn.available() < 5) return -1;
+
+    //read the bytes in one at a time so that if an invalid byte is encountered
+    //it won't corrupt the next valid sequence in the case where it occurs
+    //within 3 bytes of the invalid byte
+
+    //check each byte to see if the first four create a valid header
+    //if not, jump to resync which deletes bytes until a valid first header
+    //byte is reached
+
+    //if the reSynced flag is true, the buffer has been resynced and an 0xaa
+    //byte has already been read from the buffer so it shouldn't be read again
+
+    //after a resync, the function exits without processing any packets
+
+    if (!reSynced){
+        //look for the 0xaa byte unless buffer just resynced
+        byteIn.read(inBuffer, 0, 1);
+        if (inBuffer[0] != (byte)0xaa) {reSync(); return 0;}
+        }
+    else reSynced = false;
+
+    byteIn.read(inBuffer, 0, 1);
+    if (inBuffer[0] != (byte)0x55) {reSync(); return 0;}
+    byteIn.read(inBuffer, 0, 1);
+    if (inBuffer[0] != (byte)0xbb) {reSync(); return 0;}
+    byteIn.read(inBuffer, 0, 1);
+    if (inBuffer[0] != (byte)0x66) {reSync(); return 0;}
+
+    //read in the packet identifier
+    byteIn.read(inBuffer, 0, 1);
+
+    //store the ID of the packet (the packet type)
+    pktID = inBuffer[0];
+
+    if ( pktID == GET_MONITOR_PACKET_CMD) return processMonitorPacket();
+
+    }
+catch(IOException e){}
+
+return 0;
+
+}//end of ControlBoard::processOneDataPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlBoard::reSync
+//
+// Clears bytes from the socket buffer until 0xaa byte reached which signals
+// the *possible* start of a new valid packet header or until the buffer is
+// empty.
+//
+// If an 0xaa byte is found, the flag reSynced is set true to that other
+// functions will know that an 0xaa byte has already been removed from the
+// stream, signalling the possible start of a new packet header.
+//
+// There is a special case where a 0xaa is found just before the valid 0xaa
+// which starts a new packet - the first 0xaa is the last byte of the previous
+// packet (usually the checksum).  In this case, the next packet will be lost
+// as well.  This should happen rarely.
+//
+
+public void reSync()
+{
+
+reSynced = false;
+
+//track the number of times this function is called, even if a resync is not
+//successful - this will track the number of sync errors
+reSyncCount++;
+
+//store info pertaining to what preceded the reSync - these values will be
+//overwritten by the next reSync, so they only reflect the last error
+//NOTE: when a reSync occurs, these values are left over from the PREVIOUS good
+// packet, so they indicate what PRECEDED the sync error.
+
+reSyncPktID = pktID;
+
+try{
+    while (byteIn.available() > 0) {
+        byteIn.read(inBuffer, 0, 1);
+        if (inBuffer[0] == (byte)0xaa) {reSynced = true; break;}
+        }
+    }
+catch(IOException e){}
+
+}//end of ControlBoard::reSync
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
