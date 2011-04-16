@@ -397,7 +397,7 @@ configure(configFile);
 // FPGA register addresses, DSP chip and core numbers, etc.
 //
 
-void setupBoardChannels() {
+private void setupBoardChannels() {
 
 bdChs = new BoardChannel[NUMBER_OF_BOARD_CHANNELS];
 
@@ -3147,8 +3147,8 @@ return 0;
 // Processes incoming data packets until the first Peak Data packet has been
 // processed.
 //
-// Returns 1 if a peak data packet has been processed, -1 if all packets have
-// been processed but no peak data packet was present.
+// Returns 1 if an Encoder data packet has been processed, -1 if all available
+// packets have been processed but no peak data packet was present.
 //
 // See processOneDataPacket notes for more info.
 //
@@ -3233,13 +3233,13 @@ public void reSync()
 
 reSynced = false;
 
-//track the number of time this function is called, even if a resync is not
+//track the number of times this function is called, even if a resync is not
 //successful - this will track the number of sync errors
 reSyncCount++;
 
-//store info pertaining to what caused the reSync - these values will be
+//store info pertaining to what preceded the reSync - these values will be
 //overwritten by the next reSync, so they only reflect the last error
-//NOTE: when a reSync occurs, these values are left over from the PREVIOUS
+//NOTE: when a reSync occurs, these values are left over from the PREVIOUS good
 // packet, so they indicate what PRECEDED the sync error.
 
 reSyncDSPChip = pktDSPChipID; reSyncDSPCore = pktDSPCoreID;
@@ -3982,20 +3982,6 @@ try{
 catch(IOException e){}
 
 }//end of UTBoard::shutDown
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// UTBoard::waitSleep
-//
-// Sleeps for pTime milliseconds.
-//
-
-void waitSleep(int pTime)
-{
-
-try {Thread.sleep(pTime);} catch (InterruptedException e) { }
-
-}//end of UTBoard::waitSleep
 //-----------------------------------------------------------------------------
 
 }//end of class UTBoard
