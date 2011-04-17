@@ -595,6 +595,22 @@ catch(IOException e){}
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ControlBoard::driveSimulation
+//
+// Drive any simulation functions if they are active.  This function is usually
+// called from a thread.
+//
+
+public void driveSimulation()
+{
+
+if (simulate && socket != null)
+    ((ControlSimulator)socket).processDataPackets(false);
+
+}//end of ControlBoard::driveSimulation
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ControlBoard::configure
 //
 // Loads configuration settings from the configuration.ini file.

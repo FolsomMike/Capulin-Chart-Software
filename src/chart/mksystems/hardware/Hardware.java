@@ -561,6 +561,11 @@ public void collectData()
 
 boolean peakDataAvailable = analogDriver.prepareAnalogData();
 
+//collect analog data if new peak data is available
+//This MUST be done every time prepareAnalogData is called as this function
+//records the peaks.
+if (peakDataAvailable) collectAnalogData();
+
 boolean controlDataAvailable = analogDriver.prepareControlData();
 
 //do nothing if in stopped mode
@@ -580,10 +585,9 @@ if (opMode == INSPECT_WITH_TIMER_TRACKING || opMode == SCAN)
 //scanRateCounter is used to control the rate the scan moves across the screen
 //this is always used for Scan mode, and used for Inspect mode if that mode is
 //timer controlled
-//note that the peak data packets are still being requested and stored, but
-//the peak data is transferred at the rate specified by globals.scanSpeed
-//that way, the position info for the peaks is recorded and maintained even
-//though some peaks will not be retained (overwritten by new peaks) and plotted
+//note that the peak data packets are still being requested and stored above,
+//but the trace movement will be slowed down -- some peaks in the buffers will
+//be overwritten by new peaks
 
 if (opMode == SCAN || opMode == INSPECT_WITH_TIMER_TRACKING){
     if (scanRateCounter-- == 0){
@@ -598,14 +602,12 @@ if (opMode == SCAN || opMode == INSPECT_WITH_TIMER_TRACKING){
 
 boolean newPositionData = collectEncoderData();
 
-//collect analog data if new position or peak data is available
-//if new position data is available, the function will fill in the trace buffer
-// with either new data or repeated old data
-//if new data is available but the encoder hasn't moved, the new data will
-// be transferred to the trace buffer at the same position if the new data is
-// a worse case than the data already there
+//call collectAnalogData again if new position data has been received -- this
+//makes sure the new position in the buffer is filled with something -- the
+//position will usually be overwritten by the next peak data
 
-if (newPositionData || peakDataAvailable) collectAnalogData();
+if (newPositionData)
+    collectAnalogData();
 
 }//end of Hardware::collectData
 //-----------------------------------------------------------------------------
@@ -683,7 +685,7 @@ for (int ch = 0; ch < numberOfChannels; ch++){
 public void collectAnalogDataMinOrMax(Gate gatePtr, boolean pChannelActive)
 {
         
-int nextIndex = gatePtr.tracePtr.nextEmptySlot;
+int nextIndex = gatePtr.tracePtr.beingFilledSlot;
 
 boolean dataStored = false;
         
@@ -781,10 +783,6 @@ if (nextIndex < gatePtr.dBuffer1.length-1){
             gatePtr.fBuffer[0] = 0;
             }
 
-//after the next empty slot has been filled with data, copy pointer to nextSlot
-//so the data will be plotted
-gatePtr.tracePtr.nextSlot = gatePtr.tracePtr.nextEmptySlot;
-
 }//end of Hardware::collectAnalogDataMinOrMax
 //-----------------------------------------------------------------------------
 
@@ -808,7 +806,7 @@ gatePtr.tracePtr.nextSlot = gatePtr.tracePtr.nextEmptySlot;
 public void collectAnalogDataMinAndMax(Gate gatePtr, boolean pChannelActive)
 {
         
-int nextIndex = gatePtr.tracePtr.nextEmptySlot;
+int nextIndex = gatePtr.tracePtr.beingFilledSlot;
 
 boolean dataStored = false;
         
@@ -954,10 +952,6 @@ if (nextIndex < gatePtr.dBuffer2.length-1){
             gatePtr.fBuffer[0] = 0;
             }
 
-//after the next empty slot has been filled with data, copy pointer to nextSlot
-//so the data will be plotted
-gatePtr.tracePtr.nextSlot = gatePtr.tracePtr.nextEmptySlot;
-
 }//end of Hardware::collectAnalogDataMinAndMax
 //-----------------------------------------------------------------------------
 
@@ -1024,11 +1018,24 @@ if (opMode == SCAN || opMode == INSPECT_WITH_TIMER_TRACKING){
                 //set flag so this index won't be updated again
                 tracePtr.nextIndexUpdated = true;
 
-                tracePtr.nextEmptySlot++;
+                tracePtr.beingFilledSlot++;
 
                 //the buffer is circular - start over at beginning
-                if (tracePtr.nextEmptySlot == tracePtr.sizeOfDataBuffer)
-                    tracePtr.nextEmptySlot = 0;
+                if (tracePtr.beingFilledSlot == tracePtr.sizeOfDataBuffer)
+                    tracePtr.beingFilledSlot = 0;
+
+                //every time the encoder moves the pointer to a new location
+                //for storing data, update endPlotSlot so the location just
+                //passed is available for plotting -- the plot routine is always
+                //one behind the slot currently being filled with peak data --
+                //not good to plot when the value is still being modified
+
+                tracePtr.endPlotSlot++;
+
+                //the buffer is circular - start over at beginning
+                if (tracePtr.endPlotSlot == tracePtr.sizeOfDataBuffer)
+                    tracePtr.endPlotSlot = 0;
+
                 }
 
             }// for (int g = 0; g < numberOfGates; g++)

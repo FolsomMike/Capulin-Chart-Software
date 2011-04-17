@@ -575,8 +575,9 @@ return(flag);
 public void driveSimulation()
 {
 
-//debug mks - fix this later
-//if (simulateControlBoards) controlBoard.driveSimulation();
+if (simulateControlBoards)
+    for (int i = 0; i < numberOfControlBoards; i++)
+        controlBoards[i].driveSimulation();
 
 if (simulateUTBoards)
     for (int i = 0; i < numberOfUTBoards; i++) utBoards[i].driveSimulation();

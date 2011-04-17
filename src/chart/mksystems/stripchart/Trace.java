@@ -89,8 +89,8 @@ public int peakChannel;
 //wall thickness value - used by wall traces
 public double wallThickness;
 
-public int nextEmptySlot; //updated by external class - empty slot for new data
-public int nextSlot; //updated by external class to point to new data ready
+public int beingFilledSlot; //updated by external class - slot for new data
+public int endPlotSlot; //updated by external class - point to last data to plot
 public boolean nextIndexUpdated;  //used by external class
 
 int segmentStartCounter;
@@ -294,14 +294,16 @@ traceGlobals.bufOffset = 0; //left edge of screen starts at buffer position 0
 
 traceGlobals.scrollCount = 0; //number of pixels chart has been scrolled
 
-//pointers to the data buffer
-//NOTE: plot bufPtr is set to -1 while  prevPtr is set to 0 so the first
-//buffer spot will be filled
-plotVs.bufPtr = -1; plotVs.prevPtr = 0;
+//reset pointers to the data buffer
+//start at end of trace so they wrap to beginning for first data
+plotVs.prevPtr = dataBuffer1.length - 1;
+plotVs.bufPtr = dataBuffer1.length - 2;
 
 //reset the pointers used by the data collector
-//must be same as bufPtr at start
-nextSlot = -1; nextEmptySlot = -1;
+//endPlotSlot is always one behind the beingFilledSlot
+//start at end of trace so they wrap to beginning for first data
+beingFilledSlot = dataBuffer1.length - 1;
+endPlotSlot = dataBuffer1.length - 2;
 
 //reset segment end pointers
 lastSegmentStartIndex = -1; lastSegmentEndIndex = -1;
@@ -316,6 +318,11 @@ if (dataBuffer1 != null)
         dataBuffer1[i] = Integer.MAX_VALUE;
         flagBuffer[i] = 0;
         }
+
+//set the position where the pointers start to non-default -- this is the
+//first data that is plotted unless it happens to be replaced by a peak quickly
+dataBuffer1[dataBuffer1.length - 1] = 0;
+
 //used in span mode
 if (dataBuffer2 != null)
     for (int i = 0; i < dataBuffer1.length; i++) 
@@ -713,7 +720,7 @@ public boolean newDataReady()
 {
 
 //if pointer has not been moved, no data ready
-if (plotVs.bufPtr == nextSlot) return false;
+if (plotVs.bufPtr == endPlotSlot) return false;
 
 //new data is ready
 return true;
