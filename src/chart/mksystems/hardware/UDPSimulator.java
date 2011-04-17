@@ -90,7 +90,7 @@ String ip = "169.254.1." + (++responseCount);
 try{p.setAddress(InetAddress.getByName(ip));}
 catch(UnknownHostException e){}
 
-}//end of UDPSimulator::send
+}//end of UDPSimulator::receive
 //-----------------------------------------------------------------------------
 
 

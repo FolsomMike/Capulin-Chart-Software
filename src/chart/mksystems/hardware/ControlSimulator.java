@@ -5,7 +5,7 @@
 *
 * Purpose:
 *
-* This class simulates a TCP/IP connection between the host and Control boards.
+* This class simulates a TCP/IP connection between the host and UT boards.
 *
 * This is a subclass of Socket and can be substituted for an instance
 * of that class when simulated data is needed.
@@ -24,276 +24,223 @@ package chart.mksystems.hardware;
 import java.net.*;
 import java.io.*;
 
+import chart.mksystems.inifile.IniFile;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 // class ControlSimulator
 //
 // This class simulates data from a TCP/IP connection between the host computer
-// and UT boards.
+// and Control boards.
 //
 
-public class ControlSimulator extends Socket{
+public class ControlSimulator extends Simulator{
 
-public ControlSimulator() throws SocketException{}; //default constr - not used
+public ControlSimulator() throws SocketException{}; //default constructor - not used
 
-public InetAddress ipAddr;
-int port;
-
-byte status = FPGA_LOADED_FLAG;
-
-PipedInputStream  outStreamRead;
-PipedOutputStream outStream;
-
-PipedInputStream  inStream;
-PipedOutputStream inStreamWrite;
-
-DataOutputStream byteOut = null;
-DataInputStream byteIn = null;
-
-int IN_BUFFER_SIZE = 512;
-byte[] inBuffer; 
-
-//Commands for UT boards
-//These should match the values in the code for those boards.
-
-static byte NO_ACTION = 0;
-static byte MONITOR_CMD = 1;
-static byte ZERO_ENCODERS_CMD = 2;
-static byte REFRESH_CMD = 3;
-static byte LOAD_FPGA_CMD = 4;
-static byte SEND_DATA_CMD = 5;
-static byte DATA_CMD = 6;
-static byte WRITE_FPGA_CMD = 7;
-static byte READ_FPGA_CMD = 8;
-static byte GET_STATUS_CMD = 9;
-static byte SET_HDW_GAIN_CMD = 10;
-static byte WRITE_DSP_CMD = 11;
-static byte WRITE_NEXT_DSP_CMD = 12;
-static byte READ_DSP_CMD = 13;
-static byte READ_NEXT_DSP_CMD = 14;
-static byte DEBUG_CMD = 126;
-static byte EXIT_CMD = 127;
-
-//FPGA Register Addresses for the UT Board
-
-static byte CHASSIS_BOARD_ADDRESS = 0x08;
-
-//Status Codes for UT boards
-//These should match the values in the code for those boards.
-
-static byte NO_STATUS = 0;
-static byte FPGA_INITB_ERROR = 1;
-static byte FPGA_DONE_ERROR = 2;
-static byte FPGA_CONFIG_CRC_ERROR = 3;
-static byte FPGA_CONFIG_GOOD = 4;
-
-// UT Board status flag bit masks
-
-static byte FPGA_LOADED_FLAG = 0x01;
-
+//simulates the default size of a socket created for ethernet access
+// NOTE: If the pipe size is too small, the outside object can fill the buffer
+// and have to wait until the thread on this side catches up.  If the outside
+// object has a timeout, then data will be lost because it will continue on
+// without writing if the timeout occurs.
+// In the future, it would be best if ControlBoard object used some flow control
+// to limit overflow in case the default socket size ends up being too small.
 
 //-----------------------------------------------------------------------------
 // ControlSimulator::ControlSimulator (constructor)
 //
-  
+
 public ControlSimulator(InetAddress pIPAddress, int pPort)
-                                                         throws SocketException
+                                                        throws SocketException
 {
 
-port = pPort; ipAddr = pIPAddress;
+//call the parent class constructor
+super(pIPAddress, pPort);
 
-//create an input and output stream to simulate those attached to a real
-//Socket connected to a UT board
-
-//each stream has a mate - this class writes to inStreamWrite to send data
-//via inStream and reads from outStreamRead to receive data from outStream
-
-outStream = new PipedOutputStream();
-try{outStreamRead = new PipedInputStream(outStream);}
-catch(IOException e){}
-
-inStream = new PipedInputStream();
-try{inStreamWrite = new PipedOutputStream(inStream);}
-catch(IOException e){}
-
-inBuffer = new byte[IN_BUFFER_SIZE]; //used by various functions
-
-//create an output and input byte stream
-//out for this class is in for the outside classes and vice versa
-
-byteOut = new DataOutputStream(inStreamWrite);
-byteIn = new DataInputStream(outStreamRead);
+//load configuration data from file
+configure();
 
 //create an out writer from this class - will be input for some other class
 //this writer is only used to send the greeting back to the host
 
-PrintWriter out = new PrintWriter(inStreamWrite, true);
+PrintWriter out = new PrintWriter(localOutStream, true);
 out.println("Hello from Control Board!");
 
 }//end of ControlSimulator::ControlSimulator (constructor)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTSimulator::driveSimulation
+// ControlSimulator::processDataPackets
+//
+// See processDataPacketsHelper notes for more info.
+//
+
+public int processDataPackets(boolean pWaitForPkt)
+{
+
+int x = 0;
+
+//process packets until there is no more data available
+
+// if pWaitForPkt is true, only call once or an infinite loop will occur
+// because the subsequent call will still have the flag set but no data
+// will ever be coming because this same thread which is now blocked is
+// sometimes the one requesting data
+
+if (pWaitForPkt)
+    return processDataPacketsHelper(pWaitForPkt);
+else
+    while ((x = processDataPacketsHelper(pWaitForPkt)) != -1){}
+
+return x;
+
+}//end of ControlSimulator::processDataPackets
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlSimulator::processDataPacketsHelper
 //
 // Drive the simulation functions.  This function is usually called from a
 // thread.
 //
 
-public void driveSimulation()
+public int processDataPacketsHelper(boolean pWaitForPkt)
 {
 
-int inCount;
+if (byteIn == null) return 0;  //do nothing if the port is closed
 
 try{
-    inCount = byteIn.available();
 
-    //if data is available, read the command byte
+    int x;
 
-    //0 = buffer offset, 1 = number of bytes to read
-    if (inCount >= 1) byteIn.read(inBuffer, 0, 1);
-    else return;
+    //wait until 5 bytes are available - this should be the 4 header bytes, and
+    //the packet identifier/command
+    if ((x = byteIn.available()) < 5) return -1;
 
-    if (inBuffer[0] == MONITOR_CMD) startMonitor();
+    //read the bytes in one at a time so that if an invalid byte is encountered
+    //it won't corrupt the next valid sequence in the case where it occurs
+    //within 3 bytes of the invalid byte
 
-    if (inBuffer[0] == EXIT_CMD) stopMonitor();
-   
+    //check each byte to see if the first four create a valid header
+    //if not, jump to resync which deletes bytes until a valid first header
+    //byte is reached
+
+    //if the reSynced flag is true, the buffer has been resynced and an 0xaa
+    //byte has already been read from the buffer so it shouldn't be read again
+
+    //after a resync, the function exits without processing any packets
+
+    if (!reSynced){
+        //look for the 0xaa byte unless buffer just resynced
+        byteIn.read(inBuffer, 0, 1);
+        if (inBuffer[0] != (byte)0xaa) {reSync(); return 0;}
+        }
+    else reSynced = false;
+
+    byteIn.read(inBuffer, 0, 1);
+    if (inBuffer[0] != (byte)0x55) {reSync(); return 0;}
+    byteIn.read(inBuffer, 0, 1);
+    if (inBuffer[0] != (byte)0xbb) {reSync(); return 0;}
+    byteIn.read(inBuffer, 0, 1);
+    if (inBuffer[0] != (byte)0x66) {reSync(); return 0;}
+
+    //read the packet ID
+    byteIn.read(inBuffer, 0, 1);
+
+    if (inBuffer[0] == UTBoard.GET_STATUS_CMD) getStatus();
+//    else
+//    if (inBuffer[0] == UTBoard.LOAD_FPGA_CMD) loadFPGA();
+//    else
+    
+    return 0;
+
     }//try
 catch(IOException e){}
 
-}//end of UTSimulator::driveSimulation
+return 0;
+
+}//end of ControlSimulator::processDataPacketsHelper
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// ControlSimulator::sendByte
+// ControlSimulator::getStatus
 //
-// Sends pByte back to the host.
+// Simulates returning of the status byte.
 //
 
-void sendByte(byte pByte)
+void getStatus()
 {
 
-byte[] buffer = new byte[1];
+//send standard packet header
+sendPacketHeader(UTBoard.GET_STATUS_CMD, (byte)0, (byte)0);
 
-buffer[0] = pByte;
+sendBytes2(status, (byte)0);
+
+}//end of ControlSimulator::getStatus
+//-----------------------------------------------------------------------------
+
+//----------------------------------------------------------------------------
+// ControlSimulator::sendPacketHeader
+//
+// Sends via the socket: 0xaa, 0x55, 0xaa, 0x55, packet identifier, DSP chip,
+// and DSP core.
+//
+// Does not flush.
+//
+
+void sendPacketHeader(byte pPacketID, byte pDSPChip, byte pDSPCore)
+{
+
+outBuffer[0] = (byte)0xaa; outBuffer[1] = (byte)0x55;
+outBuffer[2] = (byte)0xbb; outBuffer[3] = (byte)0x66;
+outBuffer[4] = (byte)pPacketID; outBuffer[5] = pDSPChip;
+outBuffer[6] = pDSPCore;
 
 //send packet to remote
-if (byteOut != null) 
+if (byteOut != null)
     try{
-        byteOut.write(buffer, 0 /*offset*/, 1);
-        byteOut.flush();
+        byteOut.write(outBuffer, 0 /*offset*/, 7);
         }
-    catch (IOException e) {}
-
-}//end of ControlSimulator::sendByte
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// ControlSimulator::sendBytes2
-//
-// Sends two bytes to the host.
-//
-
-void sendBytes2(byte pByte1, byte pByte2)
-{
-
-byte[] buffer = new byte[2];
-
-buffer[0] = pByte1; buffer[1] = pByte2;
-
-//send packet to remote
-if (byteOut != null) 
-    try{
-        byteOut.write(buffer, 0 /*offset*/, 2);
-        byteOut.flush();
+    catch (IOException e) {
+        System.out.println(e.getMessage());
         }
-    catch (IOException e) {}
 
-}//end of ControlSimulator::sendBytes2
-//-----------------------------------------------------------------------------
+}//end of ControlSimulator::sendPacketHeader
+//----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// ControlSimulator::startMonitor
+// ControlSimulator::configure
 //
-// Starts the monitor function.
+// Loads configuration settings from the configuration.ini file.
+// The various child objects are then created as specified by the config data.
 //
-  
-void startMonitor()
+// Each instance must open its own iniFile object because they are created
+// simultaneously in different threads.  The iniFile object is not guaranteed
+// to be thread safe.
+//
+
+private void configure()
 {
 
-try{byteIn.read(inBuffer, 0, 2);}
-catch(IOException e){}
+IniFile configFile;
 
-}//end of ControlSimulator::startMonitor
-//-----------------------------------------------------------------------------
+//if the ini file cannot be opened and loaded, exit without action
+try {configFile = new IniFile("Simulation.ini");}
+    catch(IOException e){
+    return;
+    }
 
-//-----------------------------------------------------------------------------
-// ControlSimulator::stopMonitor
-//
-// Stops the monitor function.
-//
-  
-void stopMonitor()
-{
+String section = "Simulated Control Board " + (index + 1);
 
-try{byteIn.read(inBuffer, 0, 1);}
-catch(IOException e){}
+chassisAddr = (byte)configFile.readInt(section, "Chassis Number", 0);
 
-if (inBuffer[0] == CHASSIS_BOARD_ADDRESS) sendBytes2((byte)0xee, (byte)0);
+chassisAddr = (byte)(~chassisAddr); //the switches invert the value
 
-}//end of ControlSimulator::stopMonitor
-//-----------------------------------------------------------------------------
+boardAddr = (byte)configFile.readInt(section, "Board Number", 0);
 
-//-----------------------------------------------------------------------------
-// ControlSimulator::getInputStream()
-//
-  
-@Override
-public InputStream getInputStream()
-{
+boardAddr = (byte)(~boardAddr); //the switches invert the value
 
-return (inStream);
-
-}//end of ControlSimulator::getInputStream
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// ControlSimulator::getOutputStream()
-//
-  
-@Override
-public OutputStream getOutputStream()
-{
-
-return (outStream);
-
-}//end of ControlSimulator::getOutputStream
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// ControlSimulator::finalize
-//
-// This function is inherited from the object class and is called by the Java
-// VM before the object is discarded.
-//
-
-@Override
-protected void finalize() throws Throwable
-{
-
-//close everything - the order of closing may be important
-
-outStreamRead.close();
-outStream.close();
-
-inStream.close();
-inStreamWrite.close();
-
-//allow the parent classes to finalize
-super.finalize();
-
-}//end of ControlSimulator::finalize
+}//end of ControlSimulator::configure
 //-----------------------------------------------------------------------------
 
 }//end of class ControlSimulator
