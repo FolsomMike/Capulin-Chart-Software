@@ -865,16 +865,13 @@ if (nextIndex < gatePtr.dBuffer1.length-1){
             gatePtr.fBuffer[0] = 0;
             }
 
-        //every time the encoder moves the pointer to a new location
-        //for storing data, update endPlotSlot so the location just
-        //passed is available for plotting -- the plot routine is always
-        //one behind the slot currently being filled with peak data --
-        //not good to plot when the value is still being modified
+//endPlotSlot is always one spot behind the one being filled with data
+//adjusting it allows the plot functions to plot up to that point
 
-        if (gatePtr.tracePtr.beingFilledSlot == 0)
-            gatePtr.tracePtr.endPlotSlot = gatePtr.tracePtr.sizeOfDataBuffer-1;
-        else
-            gatePtr.tracePtr.endPlotSlot = gatePtr.tracePtr.beingFilledSlot-1;
+if (gatePtr.tracePtr.inProcessSlot == 0)
+    gatePtr.tracePtr.endPlotSlot = gatePtr.tracePtr.sizeOfDataBuffer-1;
+else
+    gatePtr.tracePtr.endPlotSlot = gatePtr.tracePtr.inProcessSlot-1;
 
 return(caughtUp);
 
