@@ -887,7 +887,13 @@ if (!pVars.drawTrace) return(lastPlotted);
 
 //prepare to draw the trace
 
+//apply pixel scaling
+pVars.y1 *= pixelScaling; pVars.y2 *= pixelScaling;
+
+//apply offset
 pVars.y1 += pixelOffset; pVars.y2 += pixelOffset;
+
+//apply limits
 if (pVars.y1 > canvasYLimit) pVars.y1 = canvasYLimit;
 if (pVars.y2 > canvasYLimit) pVars.y2 = canvasYLimit;
 
