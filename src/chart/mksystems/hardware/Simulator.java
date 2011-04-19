@@ -85,6 +85,7 @@ public Simulator(InetAddress pIPAddress, int pPort) throws SocketException
 port = pPort; ipAddr = pIPAddress;
 
 //give each instance of the class a unique number
+//this can be used to provide a unique simulated IP address
 index = instanceCounter++;
 
 

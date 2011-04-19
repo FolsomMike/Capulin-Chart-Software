@@ -46,6 +46,9 @@ public ControlSimulator() throws SocketException{}; //default constructor - not 
 // In the future, it would be best if ControlBoard object used some flow control
 // to limit overflow in case the default socket size ends up being too small.
 
+public static int controlBoardCounter = 0;
+int controlBoardNumber;
+
 //-----------------------------------------------------------------------------
 // ControlSimulator::ControlSimulator (constructor)
 //
@@ -56,6 +59,13 @@ public ControlSimulator(InetAddress pIPAddress, int pPort)
 
 //call the parent class constructor
 super(pIPAddress, pPort);
+
+//give each Control board a unique number so it can load data from the
+//simulation.ini file and such
+//this is different than the unique index provided in the parent class Simulator
+//as that number is distributed across all sub classes -- UT boards,
+//Control boards, etc.
+controlBoardNumber = controlBoardCounter++;
 
 //load configuration data from file
 configure();
@@ -230,13 +240,13 @@ try {configFile = new IniFile("Simulation.ini");}
     return;
     }
 
-String section = "Simulated Control Board " + (index + 1);
+String section = "Simulated Control Board " + (controlBoardNumber + 1);
 
 chassisAddr = (byte)configFile.readInt(section, "Chassis Number", 0);
 
 chassisAddr = (byte)(~chassisAddr); //the switches invert the value
 
-boardAddr = (byte)configFile.readInt(section, "Board Number", 0);
+boardAddr = (byte)configFile.readInt(section, "Slot Number", 0);
 
 boardAddr = (byte)(~boardAddr); //the switches invert the value
 

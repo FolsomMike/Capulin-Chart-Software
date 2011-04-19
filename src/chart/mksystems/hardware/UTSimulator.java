@@ -184,6 +184,9 @@ BoardChannel[] boardChannels;
 static int ASCAN_BUFFER_SIZE = 8 * 1024; //matches RAM sample buffer in FPGA
 int[] aScanBuffer;
 
+public static int utBoardCounter = 0;
+int utBoardNumber;
+
 int mainBangSineAngle;
 int reflectionSineAngle;
 
@@ -228,6 +231,12 @@ public UTSimulator(InetAddress pIPAddress, int pPort) throws SocketException
 
 //call the parent class constructor
 super(pIPAddress, pPort);
+
+//give each UT board a unique number so it can load data from the simulation.ini
+//file and such
+//as that number is distributed across all sub classes -- UT boards,
+//Control boards, etc.
+utBoardNumber = utBoardCounter++;
 
 status = UTBoard.FPGA_LOADED_FLAG;
 
@@ -1022,13 +1031,13 @@ try {configFile = new IniFile("Simulation.ini");}
     return;
     }
 
-String section = "Simulated UT Board " + (index + 1);
+String section = "Simulated UT Board " + (utBoardNumber + 1);
 
 chassisAddr = (byte)configFile.readInt(section, "Chassis Number", 0);
 
 chassisAddr = (byte)(~chassisAddr); //the switches invert the value
 
-boardAddr = (byte)configFile.readInt(section, "Board Number", 0);
+boardAddr = (byte)configFile.readInt(section, "Slot Number", 0);
 
 boardAddr = (byte)(~boardAddr); //the switches invert the value
 

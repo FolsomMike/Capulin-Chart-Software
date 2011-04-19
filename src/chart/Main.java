@@ -569,6 +569,9 @@ if (numberOfChartGroups > 0){
     
     }//if (numberOfChartGroups > 0)
 
+//give hardware a connection to the charts
+hardware.chartGroups = chartGroups;
+
 //create a panel to hold user controls and status displays
 mainFrame.add(controlPanel = 
     new ControlPanel(configFile, currentJobPrimaryPath,
@@ -822,8 +825,10 @@ else
     segmentFilename =  "30 - " +
             decimalFormats[0].format(controlPanel.nextCalPieceNumber) + ".cal";
 
-saveSegmentHelper(currentJobPrimaryPath + segmentFilename);
-saveSegmentHelper(currentJobBackupPath + segmentFilename);
+//debug mks -- put this back in
+//saveSegmentHelper(currentJobPrimaryPath + segmentFilename);
+//saveSegmentHelper(currentJobBackupPath + segmentFilename);
+//debug mks
 
 }//end of MainWindow::saveSegment
 //-----------------------------------------------------------------------------

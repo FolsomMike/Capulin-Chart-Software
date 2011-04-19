@@ -219,6 +219,20 @@ return stripCharts[pWhich];
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ChartGroup::getNumberOfStripCharts
+//
+// Returns the number of strip charts in the group.
+//
+
+public int getNumberOfStripCharts()
+{
+
+return numberOfStripCharts;
+
+}//end of ChartGroup::getNumberOfStripCharts
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ChartGroup::resetChartGroup
 //
 // Erases the charts and clears all data.

@@ -190,6 +190,7 @@ int width, height;
 
 int numberOfTraces;
 Trace traces[];
+public int leadingTrace, trailingTrace;
 int numberOfThresholds;
 Threshold thresholds[];
 
@@ -295,24 +296,23 @@ public void plotData()
 //if the canvas is hidden, don't try to plot the data
 if (!isVisible()) return;
 
-//NOTE: All traces are updated only when new data has been added for trace 0.
-// Since trace 0 shifts the screen and draws the decorations, no trace can be
-// drawn ahead of it.  The hardware should fill the buffers for all traces on
-// a given chart in lockstep, data in the traces other than trace 0 can be
-// delayed, but trace 0 data should not be delayed after any other trace.  If
-// the sensors are offset in their mounting, trace 0 should always be the lead
-// sensor.
+//NOTE: All traces are updated only when new data has been added for the leading
+// trace. Since the leading trace shifts the screen and draws the decorations,
+// no trace can be drawn ahead of it.  The hardware should fill the buffers for
+// all traces on a given chart in lockstep, data in the traces other than the
+// leading trace can be delayed.  If the sensors are offset in their mounting,
+// the leading trace should always be the lead sensor.
 
-//while there is data to be plotted for trace 0, plot data for all traces which
-//have data
+//while there is data to be plotted for the leading trace, plot data for all
+//traces which have data
 
-while (traces[0].newDataReady()){
+while (traces[leadingTrace].newDataReady()){
 
     //find the hardware channel which produced the worst case value - this
     //requires that the worst case trace be found - it is assumed that all
     //traces on the chart have the same direction of severity - won't work
     //on a chart with a min trace(s) and a max trace(s)
-    //use trace 0 to determine which direction is more severe
+    //look at trace 0 setting to determine which direction is more severe
     int peak;
     peak = (traces[0].higherMoreSevere) ? Integer.MIN_VALUE : Integer.MAX_VALUE;
 
@@ -340,7 +340,7 @@ while (traces[0].newDataReady()){
 
             }// if (traces[i].newDataReady())
 
-    }//while (traces[0].newDataReady())
+    }//while (traces[leadingTrace].newDataReady())
 
 }//end of ChartCanvas::plotData
 //-----------------------------------------------------------------------------
@@ -569,6 +569,11 @@ if (chartSizeEqualsBufferSize) cWidth = traces[0].sizeOfDataBuffer;
 //done by the Canvas object
 canvas = new ChartCanvas(globals, cWidth, cHeight, backgroundColor, gridColor,
                  numberOfTraces, traces, numberOfThresholds, thresholds, this);
+
+//default to trace 0 as the leading trace for now so the chart decorations
+//will be drawn
+canvas.leadingTrace = 0;
+
 //listen for mouse events on the canvas
 canvas.addMouseListener(this);
 add(canvas);    
@@ -603,7 +608,12 @@ if (numberOfTraces > 0){
     for (int i = 0; i < numberOfTraces; i++) traces[i] = 
        new Trace(globals, configFile, chartGroup, chartIndex, i, traceGlobals,
              backgroundColor, gridColor, gridXSpacing, thresholds, hardware);
+
     
+    //default to trace 0 as the leading trace for now so the chart decorations
+    //will be drawn
+    traces[0].leadTrace = true;
+
     }//if (numberOf...
  
 }//end of StripChart::configureTraces
@@ -1258,6 +1268,49 @@ return(0);
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// StripChart::getTrace
+//
+// Returns a pointer to the trace specified by pWhich.
+//
+
+public Trace getTrace(int pWhich)
+{
+
+return traces[pWhich];
+
+}//end of StripChart::getTrace
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// StripChart::getNumberOfTraces
+//
+// Returns the number of traces in the strip chart.
+//
+
+public int getNumberOfTraces()
+{
+
+return numberOfTraces;
+
+}//end of StripChart::getNumberOfTraces
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// StripChart::setLeadTrailTraces
+//
+// Specifies the leading and trailing traces.  The leading trace is used to
+// clear the screen and decorate.
+//
+
+public void setLeadTrailTraces(int pLead, int pTrail)
+{
+
+canvas.leadingTrace = pLead; canvas.trailingTrace = pTrail;
+
+}//end of StripChart::setLeadTrailTraces
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // StripChart::mouseClicked
 //
 
@@ -1287,7 +1340,7 @@ if (b == MouseEvent.BUTTON1){
     //if clicked, call the parent listener with the command string and the
     //chart's group and index numbers appended
     for (int i = 0; i < numberOfTraces; i++) {
-        if (traces[i].keyBounds.contains(x,y)){
+        if ((traces[i].keyBounds != null) && traces[i].keyBounds.contains(x,y)){
             // trigger event to open the calibration window
             actionListener.actionPerformed(new ActionEvent(this,
                                      ActionEvent.ACTION_PERFORMED, 

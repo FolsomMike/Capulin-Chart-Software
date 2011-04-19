@@ -80,6 +80,7 @@ static int RUNTIME_PACKET_SIZE = 50;
 byte[] pktBuffer;
 
 int opMode = Hardware.STOPPED;
+boolean controlBoardInspectMode = false;
 
 //-----------------------------------------------------------------------------
 // Capulin1::Capulin1 (constructor)
@@ -778,6 +779,34 @@ public void setMode(int pOpMode)
 {
 
 opMode = pOpMode;
+
+
+//for INSPECT mode, which uses hardware encoder and control signals, perform
+//initialization
+if (opMode == Hardware.INSPECT){
+
+    //system waits until it receives flag that head is off the pipe or no
+    //pipe is in the system
+    hdwVs.waitForOffPipe = true;
+
+    //ignore the Inspect status flags until a new packet is received
+    controlBoards[0].setNewInspectPacketReady(false);
+
+    //force the send of an Inspect packet so all the flags will be up to date
+    controlBoards[0].requestInspectPacket();
+
+    controlBoards[0].startInspect();
+    controlBoardInspectMode = true; //flag that board is in inspect mode
+    
+    }
+
+if (opMode == Hardware.STOPPED){
+
+    //deactivate inspect mode in the control board(s)
+    if (controlBoardInspectMode) controlBoards[0].stopInspect();
+
+    }
+
 
 }//end of Capulin1::setMode
 //-----------------------------------------------------------------------------
@@ -1488,6 +1517,40 @@ public boolean getSimulate()
 return (simulate);
 
 }//end of Capulin1::getSimulate
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::getInspectControlVars
+//
+// Transfers local variables related to inspection control signals and encoder
+// counts.
+//
+
+@Override
+public void getInspectControlVars(InspectControlVars pICVars)
+{
+
+controlBoards[0].getInspectControlVars(pICVars);
+
+}//end of Capulin1::getInspectControlVars
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::various get/set functions
+//
+
+@Override
+public boolean getOnPipeFlag(){return controlBoards[0].getOnPipeFlag();}
+@Override
+public boolean getInspectFlag(){return controlBoards[0].getInspectFlag();}
+@Override
+public boolean getNewInspectPacketReady()
+    {return controlBoards[0].getNewInspectPacketReady();}
+@Override
+public void setNewInspectPacketReady(boolean pValue)
+    {controlBoards[0].setNewInspectPacketReady(pValue);}
+
+//end of Capulin1Board::various get/set functions
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

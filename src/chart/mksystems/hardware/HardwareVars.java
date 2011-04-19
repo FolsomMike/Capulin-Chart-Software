@@ -24,7 +24,6 @@ import chart.mksystems.stripchart.Threshold;
 //-----------------------------------------------------------------------------
 // class HardwareVars
 //
-// This class contains channel information.
 //
 
 public class HardwareVars extends Object{
@@ -41,6 +40,10 @@ public double velocityUS, velocityNS, nominalWall, wallChartScale;
 public int nominalWallChartPosition, numberOfMultiples;
 
 public double velocityShearUS, velocityShearNS;
+
+boolean waitForOffPipe = false;
+boolean waitForOnPipe = false;
+boolean waitForInspectStart = false;
 
 }//end of class HardwareVars
 //-----------------------------------------------------------------------------

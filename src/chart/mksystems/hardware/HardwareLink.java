@@ -117,6 +117,16 @@ public void verifyAllDSPCode2();
 
 public void shutDown();
 
+public void getInspectControlVars(InspectControlVars pICVars);
+
+public boolean getOnPipeFlag();
+
+public boolean getInspectFlag();
+
+public boolean getNewInspectPacketReady();
+
+public void setNewInspectPacketReady(boolean pValue);
+
 }//end of interface HardwareLink
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

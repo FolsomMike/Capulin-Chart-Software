@@ -748,6 +748,36 @@ public void verifyAllDSPCode2()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// AnalogPCIDAS6023::getInspectControlVars
+//
+// Transfers local variables related to inspection control signals and encoder
+// counts.
+//
+
+@Override
+public void getInspectControlVars(InspectControlVars pICVars)
+{
+
+}//end of AnalogPCIDAS6023::getInspectControlVars
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// AnalogPCIDAS6023::various get/set functions
+//
+
+@Override
+public boolean getOnPipeFlag(){return false;}
+@Override
+public boolean getInspectFlag(){return false;}
+@Override
+public boolean getNewInspectPacketReady(){return false;}
+@Override
+public void setNewInspectPacketReady(boolean pValue){}
+
+//end of AnalogPCIDAS6023::various get/set functions
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // AnalogPCIDAS6023::shutDown
 //
 // This function should be called before exiting the program.  Overriding the

@@ -47,11 +47,27 @@ int reSyncCount = 0, reSyncPktID;
 int timeOutProcess = 0; //use this one in the packet process functions
 int timeOutWFP = 0; //used by processDataPackets
 
+boolean newInspectPacketReady = false;
+
+int encoder1, prevEncoder1;
+int encoder2, prevEncoder2;
+boolean encoder1FwdDirection, encoder2FwdDirection;
+
+int inspectPacketCount = 0;
+
+boolean onPipeFlag = false;
+boolean inspectFlag = false;
+boolean tdcFlag = false;
+boolean unused1Flag = false;
+boolean unused2Flag = false;
+boolean unused3Flag = false;
+byte controlPortA, controlPortE;
+
 //Commands for Control boards
 //These should match the values in the code for those boards.
 
 static byte NO_ACTION = 0;
-static byte UNUSED1_CMD = 1;
+static byte GET_INSPECT_PACKET_CMD = 1;
 static byte ZERO_ENCODERS_CMD = 2;
 static byte GET_MONITOR_PACKET_CMD = 3;
 static byte PULSE_OUTPUT_CMD = 4;
@@ -71,6 +87,15 @@ static byte EXIT_CMD = 127;
 static byte NO_STATUS = 0;
 
 static int RUNTIME_PACKET_SIZE = 2048;
+
+//Masks for the Control Board inputs
+
+static byte UNUSED1_MASK = (byte)0x10;	// bit on Port A
+static byte UNUSED2_MASK = (byte)0x20;	// bit on Port A
+static byte INSPECT_MASK = (byte)0x40;	// bit on Port A
+static byte ON_PIPE_MASK = (byte)0x80;	// bit on Port A
+static byte TDC_MASK = (byte)0x01;    	// bit on Port E
+static byte UNUSED3_MASK = (byte)0x20;	// bit on Port E
 
 //-----------------------------------------------------------------------------
 // UTBoard::UTBoard (constructor)
@@ -276,6 +301,114 @@ return 0;
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ControlBoard::requestInspectPacket
+//
+// Normally, the Control board sends Inspect packets as necessary.  This
+// function is used to force the send of an Inspect packet so that all local
+// flags and values will be updated.
+//
+// Returns number of bytes retrieved from the socket.
+//
+
+public void requestInspectPacket()
+{
+
+sendBytes2(GET_INSPECT_PACKET_CMD, (byte) 0);
+
+}//end of ControlBoard::requestInspectPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlBoard::processInspectPacket
+//
+// Processes and Inspect packet from the remote with flags and encoder values.
+//
+// Returns number of bytes retrieved from the socket.
+//
+
+public int processInspectPacket()
+{
+
+int x = 0, cnt = 0;
+int pktSize = 12;
+
+try{
+    timeOutProcess = 0;
+    while(timeOutProcess++ < TIMEOUT){
+        if (byteIn.available() >= pktSize) break;
+        waitSleep(10);
+        }
+    if (byteIn.available() >= pktSize)
+        cnt = byteIn.read(inBuffer, 0, pktSize);
+
+    inspectPacketCount = (int)((inBuffer[x++]<<8) & 0xff00)
+                                               + (int)(inBuffer[x++] & 0xff);
+
+    // combine four bytes each to make the encoder counts
+
+    int encoder1Count = 0, encoder2Count = 0;
+
+    // create integer from four bytes in buffer
+    encoder1Count = ((inBuffer[x++] << 24));
+    encoder1Count |= (inBuffer[x++] << 16) & 0x00ff0000;
+    encoder1Count |= (inBuffer[x++] << 8)  & 0x0000ff00;
+    encoder1Count |= (inBuffer[x++])       & 0x000000ff;
+
+    // create integer from four bytes in buffer
+    encoder2Count = ((inBuffer[x++] << 24));
+    encoder2Count |= (inBuffer[x++] << 16) & 0x00ff0000;
+    encoder2Count |= (inBuffer[x++] << 8)  & 0x0000ff00;
+    encoder2Count |= (inBuffer[x++])       & 0x000000ff;
+
+    //transfer to the class variables in one move -- this will be an atomic
+    //copy so it is safe for other threads to access those variables
+    encoder1 = encoder1Count; encoder2 = encoder2Count;
+
+    //determine direction of travel based on the change in encoder counts
+    if (encoder1 > prevEncoder1) encoder1FwdDirection = true;
+    else encoder1FwdDirection = false;
+
+    if (encoder2 > prevEncoder2) encoder2FwdDirection = true;
+    else encoder2FwdDirection = false;
+
+    //update the previous encoder values for use next time
+    prevEncoder1 = encoder1; prevEncoder2 = encoder2;
+
+    //transfer the status of the Control board input ports
+    controlPortA = inBuffer[x++];
+    controlPortE = inBuffer[x++];
+
+    if ((controlPortA & ON_PIPE_MASK) == 0)
+        onPipeFlag = true; else onPipeFlag = false;
+
+    if ((controlPortA & INSPECT_MASK) == 0)
+        inspectFlag = true; else inspectFlag = false;
+
+    if ((controlPortE & TDC_MASK) == 0)
+        tdcFlag = true; else tdcFlag = false;
+
+    if ((controlPortA & UNUSED1_MASK) == 0)
+        unused1Flag = true; else unused1Flag = false;
+
+    if ((controlPortA & UNUSED2_MASK) == 0)
+        unused2Flag = true; else unused2Flag = false;
+
+    if ((controlPortE & UNUSED3_MASK) == 0)
+        unused3Flag = true; else unused3Flag = false;
+
+    newInspectPacketReady = true; //signal other objects
+
+    return(cnt);
+
+    }// try
+catch(IOException e){}
+
+return(0);
+
+}//end of ControlBoard::processInspectPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ControlBoard::zeroEncoderCounts
 //
 // Sends command to zero the encoder counts.
@@ -356,7 +489,9 @@ public void setEncodersDeltaTrigger()
 //debug mks -- read these values from config file
 
 int encoder1DeltaTrigger = 1000;
-int encoder2DeltaTrigger = 2000;
+//int encoder2DeltaTrigger = 553; //counts per tenth of a foot
+
+int encoder2DeltaTrigger = 138; //counts per tenth of a foot debug mks -- for test
 
 //debug mks end
 
@@ -540,6 +675,8 @@ try{
     //store the ID of the packet (the packet type)
     pktID = inBuffer[0];
 
+    if ( pktID == GET_INSPECT_PACKET_CMD) return processInspectPacket();
+    else
     if ( pktID == GET_MONITOR_PACKET_CMD) return processMonitorPacket();
 
     }
@@ -608,6 +745,46 @@ if (simulate && socket != null)
     ((ControlSimulator)socket).processDataPackets(false);
 
 }//end of ControlBoard::driveSimulation
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlBoard::getInspectControlVars
+//
+// Transfers local variables related to inspection control signals and encoder
+// counts.
+//
+
+public void getInspectControlVars(InspectControlVars pICVars)
+{
+
+pICVars.onPipeFlag = onPipeFlag;
+
+pICVars.inspectFlag = inspectFlag;
+
+pICVars.encoder1 = encoder1; pICVars.prevEncoder1 = prevEncoder1;
+
+pICVars.encoder2 = encoder2; pICVars.prevEncoder2 = prevEncoder2;
+
+pICVars.encoder1FwdDirection = encoder1FwdDirection;
+pICVars.encoder2FwdDirection = encoder2FwdDirection;
+
+}//end of ControlBoard::getInspectControlVars
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlBoard::various get/set functions
+//
+
+public boolean getOnPipeFlag(){return onPipeFlag;}
+
+public boolean getInspectFlag(){return inspectFlag;}
+
+public boolean getNewInspectPacketReady(){return newInspectPacketReady;}
+
+public void setNewInspectPacketReady(boolean pValue)
+    {newInspectPacketReady = pValue;}
+
+//end of ControlBoard::various get/set functions
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

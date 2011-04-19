@@ -55,6 +55,7 @@ int canvasYLimit;
 PlotVars plotVs, repaintVs;
 TraceHdwVars hdwVs;
 int gridXSpacing, gridXSpacingT;
+public boolean leadTrace = false;
 
 String title;
 String shortTitle;
@@ -62,7 +63,8 @@ public String keyLabel;
 int keyXPosition, keyYPosition;
 public Rectangle2D keyBounds;
 Color traceColor;
-int distanceOffset;
+public int distanceOffsetForward, distanceOffsetReverse;
+public int startOffsetDelay;
 public int sizeOfDataBuffer;
 int dataBuffer1[];
 int dataBuffer2[];
@@ -90,6 +92,7 @@ public int peakChannel;
 public double wallThickness;
 
 public int beingFilledSlot; //updated by external class - slot for new data
+public int inProcessSlot; //being filled with data
 public int endPlotSlot; //updated by external class - point to last data to plot
 public boolean nextIndexUpdated;  //used by external class
 
@@ -160,7 +163,11 @@ keyYPosition = pConfigFile.readInt(section, "Key Y Position", 23);
 
 traceColor = pConfigFile.readColor(section, "Color", Color.BLACK);
 
-distanceOffset = pConfigFile.readInt(section, "Distance Offset", 0);
+distanceOffsetForward =
+                   pConfigFile.readInt(section, "Distance Offset Forward", 0);
+
+distanceOffsetReverse =
+                    pConfigFile.readInt(section, "Distance Offset Reverse", 0);
 
 sizeOfDataBuffer = pConfigFile.readInt(section, "Number of Data Points", 1200);
 
@@ -236,6 +243,8 @@ resetTrace();
 public void drawKeyLabel(Graphics2D pG2)
 {
 
+if (keyLabel.compareTo("<not visible>") == 0) return;
+
 //set the background color for the text to white so that most colors are more
 //visible
     
@@ -303,6 +312,7 @@ plotVs.bufPtr = dataBuffer1.length - 2;
 //endPlotSlot is always one behind the beingFilledSlot
 //start at end of trace so they wrap to beginning for first data
 beingFilledSlot = dataBuffer1.length - 1;
+inProcessSlot = beingFilledSlot;
 endPlotSlot = dataBuffer1.length - 2;
 
 //reset segment end pointers
@@ -786,8 +796,8 @@ if (pVars.bufPtr == dataBuffer1.length) pVars.bufPtr = 0;
     
 if (pVars.pixPtr < canvasXLimit-10) pVars.pixPtr++;
 else{    
-    //if this is the primary trace, shift the chart left and erase right slice
-    if (traceIndex == 0){    
+    //if this is the lead trace, shift the chart left and erase right slice
+    if (leadTrace){
         //scroll the screen 1 pixel to the left
         pG2.copyArea(1, 0, canvas.getWidth(), canvas.getHeight(), -1, 0);
         //erase the line at the far right
@@ -815,8 +825,8 @@ else{
         
     }//else if (pixPtr <...
     
-//if this is the primary trace draw the decorations
-if (traceIndex == 0){
+//if this is the lead trace draw the decorations
+if (leadTrace){
     for (int j = 0; j < numberOfThresholds; j++)
         thresholds[j].drawSlice(pG2, pVars.pixPtr);
         
@@ -886,6 +896,12 @@ if (invert) {
     pVars.y1 = canvasYLimit - pVars.y1;
     pVars.y2 = canvasYLimit - pVars.y2;
     }
+
+//debug mks -- remove this
+//offsets the traces so you can see them clearly for debugging
+//pVars.y1 -= 2 * traceIndex;
+//pVars.y2 -= 2 * traceIndex;
+//debug mks
 
 //if plotting point-point style, draw line from last height to next height
 //if plotting stick style, draw line from 0 to the signal height
