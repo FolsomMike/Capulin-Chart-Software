@@ -49,6 +49,24 @@ public ControlSimulator() throws SocketException{}; //default constructor - not 
 public static int controlBoardCounter = 0;
 int controlBoardNumber;
 
+
+boolean onPipeFlag = false;
+boolean delayingToOnPipe = true;
+boolean delayingToInspect = true;
+boolean inspectFlag = false;
+boolean inspectMode = false;
+int encoder1 = 0, encoder2 = 0;
+int encoder1DeltaTrigger, encoder2DeltaTrigger;
+int inspectPacketCount = 0;
+
+byte portA = 0, portE = 0;
+
+int delayToOnPipe = 1000;
+int delayToInspect = 1000;
+
+public static int DELAY_BETWEEN_INSPECT_PACKETS = 10;
+int delayBetweenPackets = DELAY_BETWEEN_INSPECT_PACKETS;
+
 //-----------------------------------------------------------------------------
 // ControlSimulator::ControlSimulator (constructor)
 //
@@ -119,6 +137,9 @@ public int processDataPacketsHelper(boolean pWaitForPkt)
 
 if (byteIn == null) return 0;  //do nothing if the port is closed
 
+//simulate the inspection signals and send back packets to the host
+if (inspectMode == true) simulateInspection();
+
 try{
 
     int x;
@@ -157,11 +178,14 @@ try{
     //read the packet ID
     byteIn.read(inBuffer, 0, 1);
 
-    if (inBuffer[0] == UTBoard.GET_STATUS_CMD) getStatus();
-//    else
-//    if (inBuffer[0] == UTBoard.LOAD_FPGA_CMD) loadFPGA();
-//    else
-    
+    byte pktID = inBuffer[0];
+
+    if (pktID == ControlBoard.GET_STATUS_CMD) getStatus();
+    else
+    if (pktID == ControlBoard.START_INSPECT_CMD) startInspect(pktID);
+    else
+    if (pktID == ControlBoard.STOP_INSPECT_CMD) stopInspect(pktID);
+
     return 0;
 
     }//try
@@ -182,37 +206,199 @@ void getStatus()
 {
 
 //send standard packet header
-sendPacketHeader(UTBoard.GET_STATUS_CMD, (byte)0, (byte)0);
+sendPacketHeader(ControlBoard.GET_STATUS_CMD);
 
 sendBytes2(status, (byte)0);
 
 }//end of ControlSimulator::getStatus
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// ControlSimulator::startInspect
+//
+// Starts the inspect mode -- simulated encoder and inspection control flag
+// packets will be sent to the host.
+//
+
+int startInspect(byte pPktID)
+{
+
+int bytesRead = 0;
+
+try{
+    bytesRead = byteIn.read(inBuffer, 0, 2);
+    }
+catch(IOException e){}
+
+if (bytesRead == 2){
+
+	//calculate checksum to check validity of the packet
+	if ( (pPktID + inBuffer[0] + inBuffer[1] & (byte)0xff) != 0) return(-1);
+	}
+else{
+	//("Error - Wrong sized packet header for startInspect!\n");
+	return(-1);
+	}
+
+
+onPipeFlag = false;
+delayingToOnPipe = true;
+inspectFlag = false;
+encoder1 = 0; encoder2 = 0;
+inspectPacketCount = 0;
+
+delayToOnPipe = 1;
+delayBetweenPackets = DELAY_BETWEEN_INSPECT_PACKETS;
+inspectMode = true;
+
+return(bytesRead);
+
+}//end of ControlSimulator::startInpsect
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlSimulator::stopInspect
+//
+// Stops the inspect mode.
+//
+
+int stopInspect(byte pPktID)
+{
+
+int bytesRead = 0;
+
+try{
+    bytesRead = byteIn.read(inBuffer, 0, 2);
+    }
+catch(IOException e){}
+
+if (bytesRead == 2){
+
+	//calculate checksum to check validity of the packet
+	if ( (pPktID + inBuffer[0] + inBuffer[1] & (byte)0xff) != 0) return(-1);
+	}
+else{
+	//("Error - Wrong sized packet header for startInspect!\n");
+	return(-1);
+	}
+
+inspectMode = false;
+
+return(bytesRead);
+
+}//end of ControlSimulator::stopInspect
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlSimulator::simulateInspection
+//
+// Simulates signals expected by the host in inspect mode.
+//
+
+void simulateInspection()
+{
+
+//delay between sending inspect packets to the host
+if (delayBetweenPackets-- != 0) return;
+//restart time for next packet send
+delayBetweenPackets = DELAY_BETWEEN_INSPECT_PACKETS;
+
+inspectPacketCount++; //count packets sent to host
+
+//after timeout, simulate head reaching end of tube by setting flag
+if (delayingToOnPipe){
+    if (delayToOnPipe != 0){delayToOnPipe--;}
+    else {
+        onPipeFlag = true;
+        delayingToOnPipe = false;
+        delayingToInspect = true;
+        delayToInspect = 300;
+        }
+    }
+
+//after timeout, simulate head reaching drop down point of tube by setting flag
+//this is when inspection actually begins
+if (delayingToInspect){
+    if (delayToInspect != 0){delayToInspect--;}
+    else {
+        inspectFlag = true;
+        delayingToInspect = false;
+        }
+    }
+
+//start with all port inputs set to 1
+portA = (byte)0xff; portE = (byte)0xff;
+
+//set appropriate bit low for each flag which is active low
+if (onPipeFlag)
+    portA = (byte)(portA & ~ControlBoard.ON_PIPE_MASK);
+if (inspectFlag) portA = (byte)(portA & ~ControlBoard.INSPECT_MASK);
+
+//move the encoders the amount expected by the host
+encoder1 += encoder1DeltaTrigger;
+encoder2 += encoder2DeltaTrigger;
+
+int pktSize = 12;
+int x = 0;
+
+sendPacketHeader(ControlBoard.GET_INSPECT_PACKET_CMD);
+
+//send the packet count back to the host, MSB followed by LSB
+outBuffer[x++] = (byte)((inspectPacketCount >> 8) & 0xff);
+outBuffer[x++] = (byte)(inspectPacketCount++ & 0xff);
+
+//place the encoder 1 values into the buffer by byte, MSB first
+outBuffer[x++] = (byte)((encoder1 >> 24) & 0xff);
+outBuffer[x++] = (byte)((encoder1 >> 16) & 0xff);
+outBuffer[x++] = (byte)((encoder1 >> 8) & 0xff);
+outBuffer[x++] = (byte)(encoder1 & 0xff);
+
+//place the encoder 2 values into the buffer by byte, MSB first
+//place the encoder 1 values into the buffer by byte, MSB first
+outBuffer[x++] = (byte)((encoder2 >> 24) & 0xff);
+outBuffer[x++] = (byte)((encoder2 >> 16) & 0xff);
+outBuffer[x++] = (byte)((encoder2 >> 8) & 0xff);
+outBuffer[x++] = (byte)(encoder2 & 0xff);
+
+
+outBuffer[x++] = portA;
+outBuffer[x++] = portE;
+
+//send packet to the host
+if (byteOut != null)
+    try{
+        byteOut.write(outBuffer, 0 /*offset*/, 12);
+        }
+    catch (IOException e) {
+        System.out.println(
+                        "Control Board simulateInspection: " + e.getMessage());
+        }
+
+}//end of ControlSimulator::simulateInspection
+//-----------------------------------------------------------------------------
+
 //----------------------------------------------------------------------------
 // ControlSimulator::sendPacketHeader
 //
-// Sends via the socket: 0xaa, 0x55, 0xaa, 0x55, packet identifier, DSP chip,
-// and DSP core.
+// Sends via the socket: 0xaa, 0x55, 0xaa, 0x55, packet identifier.
 //
 // Does not flush.
 //
 
-void sendPacketHeader(byte pPacketID, byte pDSPChip, byte pDSPCore)
+void sendPacketHeader(byte pPacketID)
 {
 
 outBuffer[0] = (byte)0xaa; outBuffer[1] = (byte)0x55;
 outBuffer[2] = (byte)0xbb; outBuffer[3] = (byte)0x66;
-outBuffer[4] = (byte)pPacketID; outBuffer[5] = pDSPChip;
-outBuffer[6] = pDSPCore;
+outBuffer[4] = (byte)pPacketID;
 
 //send packet to remote
 if (byteOut != null)
     try{
-        byteOut.write(outBuffer, 0 /*offset*/, 7);
+        byteOut.write(outBuffer, 0 /*offset*/, 5);
         }
     catch (IOException e) {
-        System.out.println(e.getMessage());
+        System.out.println("Control Board sendPacketHeader" + e.getMessage());
         }
 
 }//end of ControlSimulator::sendPacketHeader
