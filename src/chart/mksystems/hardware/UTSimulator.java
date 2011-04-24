@@ -253,6 +253,9 @@ for (int i=0; i < NUMBER_OF_BOARD_CHANNELS; i++)
 //load configuration data from file
 configure();
 
+
+aScanBuffer = new int[ASCAN_BUFFER_SIZE]; //used to store simulated A/D data
+
 //create an out writer from this class - will be input for some other class
 //this writer is only used to send the greeting back to the host
 
