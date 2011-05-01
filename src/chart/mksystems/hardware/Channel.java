@@ -41,11 +41,10 @@ public class Channel extends Object{
 IniFile configFile;
 
 Capulin1 channelOwner;
-boolean dataChanged;
-boolean gateParamsChanged, gateHitMissChanged, gateFlagsChanged;
-boolean flags1SetMaskChanged, flags1ClearMaskChanged;
-
-boolean dacGateParamsChanged, dacGateFlagsChanged;
+public boolean dataChanged;
+public boolean gateParamsChanged, gateHitMissChanged, gateFlagsChanged;
+public boolean flags1SetMaskChanged, flags1ClearMaskChanged;
+public boolean dacGateParamsChanged, dacGateFlagsChanged;
 
 int flags1SetMask, flags1ClearMask;
 
@@ -175,6 +174,7 @@ setFlags1(flags1Mask);
 
 //setup various things
 setAScanSmoothing(aScanSmoothing, true);
+setRejectLevel(rejectLevel, true);
 setSoftwareGain(softwareGain, true);
 setHardwareGain(hardwareGain1, hardwareGain2, true);
 setDCOffset(dcOffset, true);
@@ -1186,8 +1186,8 @@ if (pRejectLevel != rejectLevel) pForceUpdate = true;
 
 rejectLevel = pRejectLevel;
 
-if (utBoard != null && pForceUpdate)
-    utBoard.setRejectLevel(boardChannel, rejectLevel * scopeMax / 100);
+if (utBoard != null && pForceUpdate) 
+    utBoard.setRejectLevel(boardChannel, pRejectLevel);
 
 }//end of Channel::setRejectLevel
 //-----------------------------------------------------------------------------
@@ -1221,6 +1221,10 @@ aScanSmoothing = pAScanSmoothing;
 
 if (utBoard != null && pForceUpdate)
     utBoard.setAScanSmoothing(boardChannel, aScanSmoothing);
+
+//update all gates to update averaging value used by DSPs
+for (int i = 0; i < numberOfGates; i++) gates[i].flagsChanged = true;
+sendGateFlags();
 
 }//end of Channel::setAScanSmoothing
 //-----------------------------------------------------------------------------
@@ -2262,8 +2266,19 @@ for (int i = 0; i < numberOfGates; i++){
 
     if (gates[i].flagsChanged == true){
 
-        if (utBoard != null)
-            utBoard.sendGateFlags(boardChannel, i, gates[i].getFlags());
+        //all gates use the channel's aScanSmoothing value to determine their
+        //data averaging depth, but 4 is max allowed even though aScanSmoothing
+        //can be higher
+
+        int averaging = aScanSmoothing;
+        if (averaging > 4) averaging = 4;
+        if (averaging < 1) averaging = 1;
+        //shift down ~ 1-4 -> 0-3
+        averaging--;
+        //merge into bits 15,14 of flags value
+        int flags = gates[i].getFlags() | (averaging<<14);
+
+        if (utBoard != null) utBoard.sendGateFlags(boardChannel, i, flags);
 
         gates[i].flagsChanged = false;
 
@@ -2404,6 +2419,35 @@ if (pForceUpdate){
     }
 
 }//end of Channel::setDACActive
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// DACGate::copyGate
+//
+// Copies the appropriate values from source gate pSourceGate to gate indexed
+// by gate pDestGate.
+//
+// Sets all appropriate data changed flags true so that changes will be sent
+// to the host.
+//
+// This and all functions which set the data change flag(s) should be
+// synchronized to avoid thread conficts.  Typically, one thread changes the
+// data while another transmits it to the remotes.
+//
+
+public synchronized void copyGate(int pDestGate, DACGate pSourceGate)
+{
+
+//copy pSourceGate to pDestGate
+dacGates[pDestGate].copyFromGate(pSourceGate);
+
+//set all appropriate data changed flags
+channelOwner.setChannelDataChangedFlag(true);
+dataChanged = true; dacGateParamsChanged = true; dacGateFlagsChanged = true;
+dacGates[pDestGate].parametersChanged = true;
+dacGates[pDestGate].flagsChanged = true;
+
+}//end of DACGate::copyGate
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

@@ -54,7 +54,7 @@ int gateFlags = 0;
 double previousGateStart;
 double previousGateWidth;
 
-public int InterfaceCrossingPixAdjusted = 0;
+public int interfaceCrossingPixAdjusted = 0;
 
 static int GATE_ACTIVE = 0x01;
 static int GATE_REPORT_NOT_EXCEED = 0x02;

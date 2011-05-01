@@ -417,6 +417,8 @@ boolean displayComputedAtCursor;
 ValueDisplay computedAtCursor;
 boolean displayChartHeightAtCursor;
 ValueDisplay chartHeightAtCursor;
+boolean displayLinearPositionAtCursor;
+ValueDisplay linearPositionAtCursor;
 
 String title, shortTitle;
 int numberOfTraces;
@@ -486,6 +488,9 @@ if (displayComputedAtCursor) computedAtCursor = new ValueDisplay(
 if (displayChartHeightAtCursor) chartHeightAtCursor  = new ValueDisplay(
       800, 23, 900, 23,  "Y Position:", "0.000", Color.BLACK, borderColor);
 
+if (displayLinearPositionAtCursor) linearPositionAtCursor  = new ValueDisplay(
+    950, 23, 1050, 23,  "Linear Position:", "0.0", Color.BLACK, borderColor);
+
 }//end of StripChart::StripChart (constructor)
 //-----------------------------------------------------------------------------
 
@@ -542,6 +547,9 @@ displayComputedAtCursor = pConfigFile.readBoolean(section,
 
 displayChartHeightAtCursor = pConfigFile.readBoolean(section,
        "Display Chart Height Percentage Represented by Cursor Position", false);
+
+displayLinearPositionAtCursor = pConfigFile.readBoolean(section,
+        "Display Chart Linear Position Represented by Cursor Position", false);
 
 numberOfThresholds = pConfigFile.readInt(section, "Number of Thresholds", 1);
 
@@ -757,6 +765,8 @@ if (displayRunningValue) runningValue.paint((Graphics2D) g2);
 if (displayComputedAtCursor) computedAtCursor.paint((Graphics2D) g2);
 
 if (displayChartHeightAtCursor) chartHeightAtCursor.paint((Graphics2D) g2);
+
+if (displayLinearPositionAtCursor) linearPositionAtCursor.paint((Graphics2D) g2);
 
 //draw the keys for the different traces to show which trace is what - each
 //key is a label describing the trace and drawn in the color of the trace
@@ -1374,7 +1384,17 @@ public void mouseMoved(MouseEvent e)
 if (displayComputedAtCursor)
     computedAtCursor.updateDouble((Graphics2D)getGraphics(),
                             hardware.calculateComputedValue1(e.getY()), false);
-    
+
+//convert linear x cursor position to really world feet & inches
+//wip mks -- need to determine scale from config rather than hard coding
+
+//for the Tubo test, setup to return inspect packet once every .25"
+//screen scaled two pixels per packet, 1 pixel = .125"
+
+if (displayLinearPositionAtCursor)
+    linearPositionAtCursor.updateDouble((Graphics2D)getGraphics(),
+                                                (e.getX() * 0.0125), false);
+
 }//end of StripChart::mouseMoved
 //-----------------------------------------------------------------------------
 

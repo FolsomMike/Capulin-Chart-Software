@@ -410,13 +410,14 @@ public void copyToAllHelper(Channel pSource, Channel[] pDestChannels,
                                                           int pNumDestChannels)
 {
 
-int numberOfGates, numChannels;
+int numberOfGates, numberOfDACGates, numChannels;
 
 //get the number of gates for the channel - note that all channels in the
 //destination group should have the same number of channels for this to work
 //properly
 
 numberOfGates = pSource.getNumberOfGates();
+numberOfDACGates = pSource.getNumberOfDACGates();
 
 //scan through all channels and copy info from currently selected channel
 
@@ -435,10 +436,14 @@ for (int ch = 0; ch < pNumDestChannels; ch++){
         pDestChannels[ch].setGateHitCount(g, pSource.getGateHitCount(g), false);
         pDestChannels[ch].setGateMissCount(g, pSource.getGateMissCount(g),
                                                                          false);
-
         }
 
-    //copy the info for the channels
+    //copy the DAC gate info
+    for (int dg = 0; dg < numberOfDACGates; dg++){
+        pDestChannels[ch].copyGate(dg, pSource.dacGates[dg]);
+        }
+
+    //copy the non-gate info for the channels
 
     //always set range after setting gate position or width, delay and interface
     //tracking as these affect the range
@@ -458,6 +463,8 @@ for (int ch = 0; ch < pNumDestChannels; ch++){
     pDestChannels[ch].setAScanSmoothing(pSource.getAScanSmoothing(), false);
     pDestChannels[ch].setDCOffset(pSource.getDCOffset(), false);
 
+    pDestChannels[ch].setDACEnabled(pSource.getDACEnabled(), false);
+
     //updates the channel number color to match the channel's on/off state
     //if all system channels are being copied, not all of those channels will
     //be in the group currently being displayed by the Calibrator window, those
@@ -465,7 +472,20 @@ for (int ch = 0; ch < pNumDestChannels; ch++){
     if (pDestChannels[ch].calRadioButton != null)
         setChannelSelectorColor(pDestChannels[ch]);
 
-    }
+    //set all the data changed flags for the newly modified channel true to
+    //make sure that all data gets sent to the remotes -- some of the copy
+    //actions above set these flags, but others do not
+
+    pDestChannels[ch].dataChanged = true;
+    pDestChannels[ch].gateParamsChanged = true;
+    pDestChannels[ch].gateHitMissChanged = true;
+    pDestChannels[ch].gateFlagsChanged = true;
+    pDestChannels[ch].flags1SetMaskChanged = true;
+    pDestChannels[ch].flags1ClearMaskChanged = true;
+    pDestChannels[ch].dacGateParamsChanged = true;
+    pDestChannels[ch].dacGateFlagsChanged = true;
+
+    }// for (int ch = 0; ch < pNumDestChannels; ch++)
 
 }//end of UTCalibrator::copyToAllHelper
 //-----------------------------------------------------------------------------

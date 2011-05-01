@@ -78,6 +78,7 @@ static byte START_INSPECT_CMD = 8;
 static byte STOP_INSPECT_CMD = 9;
 static byte START_MONITOR_CMD = 10;
 static byte STOP_MONITOR_CMD = 11;
+static byte GET_STATUS_CMD = 12;
 static byte DEBUG_CMD = 126;
 static byte EXIT_CMD = 127;
 
@@ -135,18 +136,37 @@ configure(configFile);
 @Override
 public void run() { 
          
-try{
-    
-    connect();
-    
-    Thread.sleep(10); //here just to avoid exception not thrown error
-          
-    }//try
-    
-catch (InterruptedException e) {    
-    }
+//link with all the remotes
+connect();
+
+//Since the sockets and associated streams were created by this
+//thread, it cannot be closed without disrupting the connections. If
+//other threads try to read from the socket after the thread which
+//created the socket finishes, an exception will be thrown.  This
+//thread just waits() after performing the connect function.  The
+//alternative is to close the socket and allow another thread to
+//reopen it, but this results in a lot of overhead.
+
+waitForever();
 
 }//end of ControlBoard::run
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlBoard::waitForever
+//
+// Puts the thread in wait mode forever.
+//
+
+public synchronized void waitForever()
+{
+
+while (true){
+    try{wait();}
+    catch (InterruptedException e) { }
+    }
+
+}//end of ControlBoard::waitForever
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -168,6 +188,10 @@ try {
     if (!simulate) socket = new Socket(ipAddr, 23);
     else socket = new ControlSimulator(ipAddr, 23);
 
+    //set amount of time in milliseconds that a read from the socket will
+    //wait for data - this prevents program lock up when no data is ready
+    socket.setSoTimeout(250);
+    
     out = new PrintWriter(socket.getOutputStream(), true);
 
     in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -193,7 +217,7 @@ setupComplete = true;
 //flag that setup was successful and board is ready for use
 ready = true;
 
-}//end of ControlBoard::connectControlBoard
+}//end of ControlBoard::connect
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -491,7 +515,7 @@ public void setEncodersDeltaTrigger()
 int encoder1DeltaTrigger = 1000;
 //int encoder2DeltaTrigger = 553; //counts per tenth of a foot
 
-int encoder2DeltaTrigger = 138; //counts per tenth of a foot debug mks -- for test
+int encoder2DeltaTrigger = 174; //counts per tenth of a foot debug mks -- for test
 
 //debug mks end
 

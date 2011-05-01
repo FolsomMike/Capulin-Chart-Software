@@ -49,7 +49,20 @@ boolean syncSource;
 //ASCAN_MAX_HEIGHT and SIGNAL_SCALE should be changed to variables
 //which can be initialized and or adjusted
 static int ASCAN_MAX_HEIGHT = 350;
-static double SIGNAL_SCALE = 0.2857;  //(1/3.5)
+
+//WARNING:  In general it is a bad idea to use any value other than 1 for
+//        SIGNAL_SCALE.  If greater than 1, the result will look choppy.  Less
+//        than 1 and the input device will require needless addition of gain to
+//        counterract the scale down.  Let the input device provide the scaling
+//        unless it absolutely cannot be done.
+//        To make the AScan signal levels match the chart, it may be necessary
+//        to scale the AScan up.  This is better than scaling the chart down
+//        which needlessly wastes gain.  In general, it is more important to
+//        have a good chart presentation than an AScale presentation as the
+//        chart is often the permanent record.
+
+static double SIGNAL_SCALE = 1;
+static double ASCAN_SCALE = 3.5;
 
 public static int ASCAN_SAMPLE_SIZE = 400;
 public static int ASCAN_BUFFER_SIZE = 400;
@@ -91,6 +104,119 @@ int timeOutWFP = 0; //used by processDataPackets
 int getAScanTimeOut = 0, GET_ASCAN_TIMEOUT = 50;
 int getPeakDataTimeOut = 0, GET_PEAK_DATA_TIMEOUT = 50;
 
+
+/*
+// 5Mhz center pass, 6 order, 31 tap 4Mhz & 6 Mhz cutoff
+int[] firCoef = {
+         7757,
+        12219,
+        14341,
+        13208,
+         8662,
+         1441,
+        -6914,
+        -14407,
+        -19073,
+        -19522,
+        -15352,
+        -7327,
+         2761,
+        12516,
+        19550,
+        22108,
+        19550,
+        12516,
+         2761,
+        -7327,
+        -15352,
+        -19522,
+        -19073,
+        -14407,
+        -6914,
+         1441,
+         8662,
+        13208,
+        14341,
+        12219,
+         7757
+    };
+
+*/
+/*
+//filter 2
+int[] firCoef = {
+         -333,
+         -486,
+        -1021,
+        -1939,
+        -3133,
+        -4372,
+        -5303,
+        -5496,
+        -4515,
+        -2024,
+         2093,
+         7617,
+        13912,
+        19932,
+        24352,
+        25991,
+        24352,
+        19932,
+        13912,
+         7617,
+         2093,
+        -2024,
+        -4515,
+        -5496,
+        -5303,
+        -4372,
+        -3133,
+        -1939,
+        -1021,
+         -486,
+         -333
+         };
+ *
+ */
+
+//filter 5
+int[] firCoef = {
+          374,
+          478,
+          540,
+          537,
+          451,
+          267,
+          -20,
+         -406,
+         -877,
+        -1406,
+        -1957,
+        -2491,
+        -2963,
+        -3335,
+        -3572,
+        29428,
+        -3572,
+        -3335,
+        -2963,
+        -2491,
+        -1957,
+        -1406,
+         -877,
+         -406,
+          -20,
+          267,
+          451,
+          537,
+          540,
+          478,
+          374
+         };
+
+int firBuf[];
+
 //this class holds information for a channel on the board
 class BoardChannel{
 
@@ -106,7 +232,7 @@ byte bufStart0, bufStart1, bufStart2;
 int numberOfGates = 0;
 Gate[] gates;
 
-int aScanSmoothing;
+int aScanSmoothing = 1;
 int rejectLevel;
 boolean isWallChannel=false;
 
@@ -322,6 +448,11 @@ static byte DSPB_RST = 0x08;
 static byte DSPC_RST = 0x10;
 static byte DSPD_RST = 0x20;
 
+//bit masks for gate peak data flag
+
+static byte HIT_COUNT_MET = 0x0001;
+static byte MISS_COUNT_MET = 0x0002;
+
 //shadow registers for FPGA registers which do not already have an associated
 //variable
 
@@ -362,6 +493,9 @@ try {configFile = new IniFile(configFilename);}
 boardName = pBoardName;
 boardIndex = pBoardIndex;
 simulate = pSimulate;
+
+//FIR filter buffer -- same length as number of filter taps
+firBuf = new int[firCoef.length];
 
 log = pLog;
 threadSafeMessage = new String[NUMBER_THREADSAFE_MESSAGES];
@@ -903,6 +1037,12 @@ configFile = null;
 
 resetShadow = writeFPGAReg(RESET_REG, (byte)(resetShadow | 0x01));
 
+//turn off all tranducers
+sendTransducer(0, (byte)0, (byte)1, (byte)0);
+sendTransducer(1, (byte)0, (byte)1, (byte)1);
+sendTransducer(2, (byte)0, (byte)1, (byte)2);
+sendTransducer(3, (byte)0, (byte)1, (byte)3);
+
 sendRepRate(repRate);
 
 sendTriggerWidth(triggerWidth);
@@ -1193,8 +1333,6 @@ sendBytes4((byte)SET_HDW_GAIN_CMD, (byte)pChannel, gain1, gain2);
 // number results in more smoothing (averaging).  The smoothing number
 // specifies how many samples to average.
 //
-// This is done in the Java code and nothing is sent to the remotes.
-//
 
 void setAScanSmoothing(int pChannel, int pAScanSmoothing)
 {
@@ -1219,7 +1357,8 @@ bdChs[pChannel].aScanSmoothing = pAScanSmoothing;
 void setRejectLevel(int pChannel, int pRejectLevel)
 {
 
-bdChs[pChannel].rejectLevel = pRejectLevel;
+bdChs[pChannel].rejectLevel =
+        (int)((pRejectLevel * ASCAN_MAX_HEIGHT) / 100 / ASCAN_SCALE);
 
 }//end of UTBoard::setRejectLevel
 //-----------------------------------------------------------------------------
@@ -1378,7 +1517,7 @@ sendBytes7(READ_DSP_BLOCK_CMD, (byte)pDSPChip, (byte)pDSPCore,
 timeOutRead = 0;
 while(!readDSPDone && timeOutRead++ < TIMEOUT ){waitSleep(10);}
 
-for (int i = 0; i < pCount*2; i++) dataBlock[i] = readDSPResult[i];
+System.arraycopy(readDSPResult, 0, dataBlock, 0, pCount * 2);
 
 }//end of UTBoard::readRAM
 //-----------------------------------------------------------------------------
@@ -2173,7 +2312,7 @@ void sendGate(int pChannel, int pGate, int pStart, int pWidth, int pLevel)
 
 pWidth /= 3; // divide by three, see notes above
 
-pLevel = (pLevel * ASCAN_MAX_HEIGHT) / 100;
+pLevel = (int)((pLevel * ASCAN_MAX_HEIGHT) / 100 / ASCAN_SCALE);
 
 sendChannelParam(pChannel, (byte) DSP_SET_GATE,
                 (byte)pGate,
@@ -3554,14 +3693,50 @@ aScanFIFO[aScanFIFOIndex].interfaceCrossingPosition =
 //add this back in to make the crossing value relative to the initial pulse
 aScanFIFO[aScanFIFOIndex].interfaceCrossingPosition += hardwareDelay;
 
+for (int i = 0; i < firBuf.length; i++) firBuf[i] = 0;
+
 //transfer the bytes to the int array - allow for sign extension
 //400 words from 800 bytes, MSB first
 //the +4 shifts past the leading info bytes
 //the +5 points to the LSB (would be +1 without the shift)
 
-for (int i=0; i<ASCAN_SAMPLE_SIZE; i++) 
-    aScanFIFO[aScanFIFOIndex].buffer[i] =
+for (int i=0; i<ASCAN_SAMPLE_SIZE; i++){
+
+    int raw = 0, filtered = 0;
+    
+     raw =
        (int)((int)(inBuffer[i*2+4]<<8) + (inBuffer[(i*2)+5] & 0xff));
+
+    if (raw > 0 && raw < bdChs[channel].rejectLevel) raw = raw % 35;
+    else
+    if (raw < 0 && raw > -bdChs[channel].rejectLevel) raw = raw % 35;
+     
+     raw *= ASCAN_SCALE;
+
+    boolean filterActive = false;
+
+    if (filterActive){
+
+        //apply FIR filtering
+
+        //shift the old samples and insert the newest
+        for(int n = firBuf.length-1; n>0; n--) firBuf[n] = firBuf[n-1];
+        firBuf[0] = raw;
+
+        //calculate the new filtered output value
+        for(int n=0; n<firCoef.length; n++) filtered += firCoef[n] * firBuf[n];
+
+        filtered /= 290000;
+
+        }
+    else{
+        filtered = raw; //no filtering applied
+        }
+
+    aScanFIFO[aScanFIFOIndex].buffer[i] = filtered;
+
+    }// for (int i=0; i<ASCAN_SAMPLE_SIZE; i++)
+
 
 // the display thread can be accessing the aScan buffer at any time, so
 // prepare all the data in the aScanBuffer first - transferring from
@@ -3577,11 +3752,11 @@ for (int i=0; i<ASCAN_SAMPLE_SIZE; i++) aScanBuffer.buffer[i] = 0;
 
 for (int i=0; i<aScanSmoothing; i++){
 
-    //sum all data in the fifo
+    //sum the interface crossing position from each dataset
     aScanBuffer.interfaceCrossingPosition +=
                                         aScanFIFO[i].interfaceCrossingPosition;
 
-    //sum all data in the fifo
+    //sum all datasets in the fifo
     for (int j=0; j<ASCAN_SAMPLE_SIZE; j++)
         aScanBuffer.buffer[j] += aScanFIFO[i].buffer[j];
 
@@ -3600,8 +3775,7 @@ aScan.interfaceCrossingPosition =
                     aScanBuffer.interfaceCrossingPosition / aScanSmoothing;
 for (int i=0; i<ASCAN_SAMPLE_SIZE; i++) {
     t = aScanBuffer.buffer[i] / aScanSmoothing;
-    if (t > 0 && t < bdChs[channel].rejectLevel) t = t % 35;
-    if (t < 0 && t > -bdChs[channel].rejectLevel) t = t % 35;
+    //t = aScanBuffer.buffer[i]; //debug mks see line above --  -- don't scale the average as DSP does not
     aScan.buffer[i] = t;
     }
 
@@ -3699,10 +3873,26 @@ for (int h=0; h < pNumberOfChannels; h++){
         peakFlags =
             (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
+        //did the gate receive the host specified number of consecutive hits?
+        boolean hitCountMet = true;
+        hitCountMet = (peakFlags & HIT_COUNT_MET) == 0 ? false : true;
+
+
+//debug mks
+int d = 0;
+if (channel == 1 && i == 1)
+    if (hitCountMet)
+        d++;
+//debug mks
+
+
         //cast to short used to force sign extension for signed values
         peak = (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
 
-        if (peak < bdChs[channel].rejectLevel) peak %= 35;
+        //if the signal is below the reject level, squash it down to 10%
+        //if any signal did not exceed the gate the specified number of times,
+        //also squash it down to 10%
+        if (peak < bdChs[channel].rejectLevel || !hitCountMet) peak %= 10;
 
         peak *= SIGNAL_SCALE; //scale signal up or down
 

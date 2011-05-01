@@ -129,6 +129,36 @@ return selectedFlag;
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// DACGate::copyFromGate
+//
+// Copies the appropriate values from source gate pSourceGate.
+// Does not set any data changed flags.
+//
+
+public void copyFromGate(DACGate pSourceGate)
+{
+
+gateStart = pSourceGate.gateStart;
+gateStartTrackingOn = pSourceGate.gateStartTrackingOn;
+gateStartTrackingOff = pSourceGate.gateStartTrackingOff;
+gatePixStart = pSourceGate.gatePixStart;
+gatePixStartAdjusted = pSourceGate.gatePixStartAdjusted;
+gatePixEnd = pSourceGate.gatePixEnd;
+gatePixEndAdjusted = pSourceGate.gatePixEndAdjusted;
+gateWidth = pSourceGate.gateWidth;
+gateLevel = pSourceGate.gateLevel;
+gatePixLevel = pSourceGate.gatePixLevel;
+gateFlags = pSourceGate.gateFlags;
+
+previousGateStart = pSourceGate.previousGateStart;
+previousGateWidth = pSourceGate.previousGateWidth;
+
+interfaceCrossingPixAdjusted = pSourceGate.interfaceCrossingPixAdjusted;
+
+}//end of DACGate::copyFromGate
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // DACGate::setInterfaceTracking
 //
 // Turns the interface tracking flag on or off.
