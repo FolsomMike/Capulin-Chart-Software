@@ -736,7 +736,8 @@ int channel = getByteFromSocket();
 //discard the checksum byte
 int checksum = getByteFromSocket();
 
-simulateAScan(channel); //create a simulated A Scan
+//simulateAScan(channel); //create a simulated AScan
+simulateSineWaveAScan(channel); //create a sine wave for the AScan
 
 //send standard packet header
 sendPacketHeader(UTBoard.GET_ASCAN_CMD, (byte)chip, (byte)core);
@@ -747,10 +748,63 @@ sendDataBlock(804, aScanBuffer);
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// UTSimulator::simulateSineWaveAScan
+//
+// Returns a sine wave in the AScan buffer.
+// Scale is always returned as 1, interface crossing as 0.
+//
+// The variable set to fill is specified by pChannel.
+//
+
+public void simulateSineWaveAScan(int pChannel)
+{
+
+int SAMPLE_FREQUENCY =  66000000;
+int FREQUENCY = 6000000;
+
+//sample rate is 66Mhz
+// 1 Mhz would fill 66 samples
+// 5 Mhz would fill 13.2 samples
+
+int angleStep = 360 / (SAMPLE_FREQUENCY / FREQUENCY);
+
+int []aScan = aScanBuffer;
+
+int j = 0;
+
+//first byte returned is the channel
+aScan[j++] = pChannel;
+//next byte returned is the compression range
+aScan[j++] = 1;
+//next two byes are the interface crossing position integer
+int iFaceCrossing = 0;
+aScan[j++] = (byte)((iFaceCrossing >> 8) & 0xff);
+aScan[j++] = (byte)((iFaceCrossing) & 0xff);
+
+int simData;
+
+mainBangSineAngle = 0;
+
+//fill the array with a sine wave
+for (int i=0; i<400; i++){
+
+    simData =
+       (int)((Math.sin(Math.toRadians(mainBangSineAngle++ * angleStep)) * 140));
+
+    //place the data into the aScan buffer as MSB/LSB
+    aScan[j++] = (byte)((simData >> 8) & 0xff);
+    aScan[j++] = (byte)((simData) & 0xff);
+
+    }
+
+}//end of UTSimulator::simulateSineWaveAScan
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // UTSimulator::simulateAScan
 //
 // Simulates an AScan dataset skipping delayCount number of samples and
-// recording sampleCount number of samples.  The variable set to use is
+// recording sampleCount number of samples.  The variable set to fill is
 // specified by pChannel.
 //
 // Simulates the Ascan data from a transducer.  The signal level in the gate 1
@@ -821,99 +875,8 @@ while (i < (delayCount + sampleCount)){
 
  */
 
-}//end of UTSimulator::getAScanSimulated
-//-----------------------------------------------------------------------------
-
-/* debug mks - this is code for simulation of passing over a defect
-    as opposed to sitting on one with a constant reflection
-
-//-----------------------------------------------------------------------------
-// UTSimulator::simulateAScan
-//
-// Simulates an AScan dataset.
-//
-// Simulates the Ascan data from a transducer.  The signal level is scaled by
-// pGain.  A sin wave is generated at time 0 to simulate the main bang.
-// Another sin wave is generated in the gate 1 time span to simulate
-// reflection from the target.
-//
-// The main bang occurs at time zero and lasts about three cycles.  At twenty
-// data points per cycle, the bang lasts for the first 60 data points.
-//
-// Round trip in water path 1.5" * 2 (round trip) = 50.93 uS
-// Each data point is 50.93 uS / 0.01667 uS per point = 3055 data points before
-// the reflection will be received.
-//
-// Debug MKS - this simulates passing over a defect which will "walk" through
-// the screen at 1-1/2 skips and then 1/2 skip.  The simulated defect appears
-// every time the TDS flag is triggered, provided the related code for this
-// simulation is in place.
-//
-
-public void simulateAScan(int pChannel, double pGain)
-{
-
-//only simulate one channel
-if (pChannel !=16) {
-    for (int i = 0; i < utAscanData.length; i++)
-        utAscanData[i] = (int)(Math.random()*3);
-    return;
-    }
-
-mainBangSineAngle = 0;
-reflectionSineAngle = 0;    
-
-//if (tdcFlagCaught == false) {showCount1 = 0;}
-
-ifaceProfileCounter = 0;
-        
-//calculate number of data points to ignore until delay is over
-int delayCount = (int)(channels[pChannel].delay / uSPerDataPoint);
-
-int[] aScan = utAscanData;
-
-for (int i = 0; i < aScan.length; i++){
-    
-    int d = i + delayCount; //factor in delay
-
-    //main bang for first 60 data points
-    if (d <= 60) simulateMainBang(aScan, i, pGain);
-    else
-    if (d > interfaceStartSim && d < interfaceStartSim + 100 )
-        simulateInterface(aScan, i, pGain); 
-    else
-    //ID reflection at 1-1/2 skips
-    if ((showCount1 > 1 && showCount1 < 10)
-                                         && (d > 3250) && (d < 3350)){
-        simulateReflection(aScan, i, pGain);
-        }
-    else
-    if ((showCount2 > 30 && showCount2 < 40)
-                                         && (d > 1890) && (d < 1980)){
-        simulateReflection(aScan, i, pGain * 1.50); 
-        }
-    else{
-        aScan[i] = (int)(Math.random()*5); //small noise when no signal
-        }
-
-    aScan[i] += (int)(Math.random()*5);
-
-
-    }
-
-//track time for each reflection
-if (showCount1>0) showCount1++;
-if (showCount2>0) showCount2++;
-//reset counters after making sure TDC flag no longer active
-if (showCount2 > 200) {
-    tdcFlagCaught = false;
-    showCount1 = 0; showCount2 = 0;
-    }
-
 }//end of UTSimulator::simulateAScan
 //-----------------------------------------------------------------------------
-
-*/
 
 //-----------------------------------------------------------------------------
 // UTSimulator::simulateMainBang

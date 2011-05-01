@@ -42,16 +42,22 @@ int port;
 
 int responseCount = 0;
 
+String announcement;
+
 IniFile configFile;
 
 //-----------------------------------------------------------------------------
 // UDPSimulator::UDPSimulator (constructor)
 //
   
-public UDPSimulator(int pPort) throws SocketException
+public UDPSimulator(int pPort, String pAnnouncement) throws SocketException
 {
 
+super(pPort);
+
 port = pPort;
+
+announcement = pAnnouncement;
 
 }//end of UDPSimulator::UDPSimulator (constructor)
 //-----------------------------------------------------------------------------
@@ -77,9 +83,7 @@ public void send(DatagramPacket p)
 public void receive(DatagramPacket p)
 {
 
-String s = "UT board present...";
-
-p.setData(s.getBytes());
+p.setData(announcement.getBytes());
 
 //each simulated UT board sends a response packet which will have its IP
 //address - for each instance of this class created, use the next sequential

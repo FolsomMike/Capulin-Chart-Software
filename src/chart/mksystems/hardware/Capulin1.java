@@ -170,7 +170,7 @@ DatagramSocket socket;
 
 try{
     if (!simulateControlBoards) socket = new DatagramSocket(4445);
-    else socket = new UDPSimulator(4445);
+    else socket = new UDPSimulator(4445, "Control Board present...");
 
     }
 catch (IOException e) {
@@ -294,7 +294,7 @@ UTSimulator.instanceCounter = 0; //reset simulated board counter
 
 try{
     if (!simulateUTBoards) socket = new DatagramSocket(4445);
-    else socket = new UDPSimulator(4445);
+    else socket = new UDPSimulator(4445, "UT Board present...");
 
     } 
 catch (IOException e) {
