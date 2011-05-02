@@ -208,8 +208,12 @@ shortTitle = pConfigFile.readString(
 // Each object is passed a pointer to the file so that they may load their
 // own data.
 //
+// This and all functions which set the data changed flag(s) should be
+// synchronized to avoid thread conficts.  Typically, one thread changes the
+// data while another transmits it to the remotes.
+//
 
-public void loadCalFile(IniFile pCalFile)
+public synchronized void loadCalFile(IniFile pCalFile)
 {
 
 String section = "Channel " + (channelIndex+1) + " DAC Gate " + (gateIndex+1);

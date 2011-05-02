@@ -85,8 +85,6 @@ int encoder1, encoder2;
 public int gateHitCount = 0;
 public int gateMissCount = 0;
 
-public int interfaceCrossingPixAdjusted = 0;
-
 // references to point at the controls used to adjust the values - these
 // references are set up by the object which handles the adjusters and are
 // only used temporarily
@@ -265,7 +263,7 @@ return gateFlags;
 // Does not set the flag in the DSP.
 //
 
-public void setActive(boolean pValue)
+public final void setActive(boolean pValue)
 {
 
 if (pValue)
@@ -552,7 +550,7 @@ trace = pConfigFile.readInt(whichGate, "Trace", 0) -1;
 // own data.
 //
 
-public void loadCalFile(IniFile pCalFile)
+public synchronized void loadCalFile(IniFile pCalFile)
 {
 
 String section = "Channel " + (channelIndex + 1) + " Gate " + (gateIndex + 1);
