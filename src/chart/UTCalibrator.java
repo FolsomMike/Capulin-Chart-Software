@@ -410,7 +410,7 @@ public void copyToAllHelper(Channel pSource, Channel[] pDestChannels,
                                                           int pNumDestChannels)
 {
 
-int numberOfGates, numberOfDACGates, numChannels;
+int numberOfGates, numberOfDACGates;
 
 //get the number of gates for the channel - note that all channels in the
 //destination group should have the same number of channels for this to work
@@ -420,6 +420,13 @@ numberOfGates = pSource.getNumberOfGates();
 numberOfDACGates = pSource.getNumberOfDACGates();
 
 //scan through all channels and copy info from currently selected channel
+
+// each call to set a value will set the trigger flag for the sending thread
+// to send the value next time it runs -- if it runs between setting of two
+// values tied to the same flag, a duplicate call might be made but causes no
+// harm
+// all setting / sending functions are synchronized so the value setting and
+// flag setting/clearing by different threads is protected against collision
 
 for (int ch = 0; ch < pNumDestChannels; ch++){
 
@@ -451,6 +458,8 @@ for (int ch = 0; ch < pNumDestChannels; ch++){
     //set the pForceUpdate flags false so that the values are only sent to the
     //DSPs if they have changed
 
+    //wip mks -- need to convert into synced functions
+
     pDestChannels[ch].setSoftwareGain(pSource.getSoftwareGain(), false);
     pDestChannels[ch].setDelay(pSource.getDelay(), false);
     pDestChannels[ch].setInterfaceTracking(pSource.getInterfaceTracking(),
@@ -471,19 +480,6 @@ for (int ch = 0; ch < pNumDestChannels; ch++){
     //not in the group will not have a radio button to set so skip them
     if (pDestChannels[ch].calRadioButton != null)
         setChannelSelectorColor(pDestChannels[ch]);
-
-    //set all the data changed flags for the newly modified channel true to
-    //make sure that all data gets sent to the remotes -- some of the copy
-    //actions above set these flags, but others do not
-
-    pDestChannels[ch].dataChanged = true;
-    pDestChannels[ch].gateParamsChanged = true;
-    pDestChannels[ch].gateHitMissChanged = true;
-    pDestChannels[ch].gateFlagsChanged = true;
-    pDestChannels[ch].flags1SetMaskChanged = true;
-    pDestChannels[ch].flags1ClearMaskChanged = true;
-    pDestChannels[ch].dacGateParamsChanged = true;
-    pDestChannels[ch].dacGateFlagsChanged = true;
 
     }// for (int ch = 0; ch < pNumDestChannels; ch++)
 
