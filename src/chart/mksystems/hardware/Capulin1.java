@@ -44,10 +44,10 @@ int showCount2 = 0;
 int reflectionTimer = 0;
 //debug mks end  - this is only for demo - delete later
 
-boolean utBoardsReady = false, utBoardsSetupComplete = false;
-boolean controlBoardsReady = false, controlBoardsSetupComplete = false;
+boolean utBoardsReady = false;
+boolean controlBoardsReady = false;
 
-boolean channelDataChangedFlag;
+SyncFlag dataChangedFlag;
 
 boolean simulate, simulateControlBoards, simulateUTBoards;
 
@@ -103,6 +103,8 @@ log = pLog;
 threadSafeMessage = new String[NUMBER_THREADSAFE_MESSAGES];
 
 pktBuffer = new byte[RUNTIME_PACKET_SIZE];
+
+dataChangedFlag = new SyncFlag();
 
 //load configuration settings
 configure(configFile);
@@ -205,8 +207,7 @@ while(loopCount < 50 && responseCount < numberOfControlBoards){
 
     try {socket.send(outPacket);} catch(IOException e) {socket.close(); return;}
 
-    //sleep to delay between broadcasts
-    try {Thread.sleep(3000);} catch (InterruptedException e) { }
+    waitSleep(3000); //sleep to delay between broadcasts
 
     //check for response packets from the remotes
     try{
@@ -256,17 +257,13 @@ if (numberOfControlBoards > 0){
     }//if (numberOfControlBoards > 0)
 
 
-//wait until setup is completed for all Control boards
-//note that the boards may not have had a successful setup
+//call each board and wait for it to complete its connection & initial setup
+//note that this object cannot even enter the synchronized method
+//waitForconnectCompletion until controlBoard.connect completes because connect
+//is also synchronized
 
-while(!controlBoardsSetupComplete){
-    //allow other threads some time to run
-    try {Thread.sleep(3000);} catch (InterruptedException e) { }
-    controlBoardsSetupComplete = true; //set true, set false for any board not setup
-    for (int i = 0; i < numberOfControlBoards; i++){
-        if (!controlBoards[i].setupComplete) controlBoardsSetupComplete = false;
-        }//for (int i = 0;...
-    }//while(!utBoardsSetupComplete)
+for (int i = 0; i < numberOfControlBoards; i++)
+    controlBoards[i].waitForConnectCompletion();
 
 threadSafeLog("All Control boards ready.\n");
 
@@ -282,7 +279,7 @@ initializeControlBoards();
 // Connects with and sets up all UT boards.
 //
 
-public void connectUTBoards()
+public synchronized void connectUTBoards()
 {
 
 //displays message on bottom panel of IDE
@@ -330,8 +327,7 @@ while(loopCount < 50 && responseCount < numberOfUTBoards){
             
     try {socket.send(outPacket);} catch(IOException e) {socket.close(); return;}
 
-    //sleep to delay between broadcasts
-    try {Thread.sleep(3000);} catch (InterruptedException e) { }
+    waitSleep(3000); //sleep to delay between broadcasts
 
     //check for response packets from the remotes
     try{
@@ -380,20 +376,15 @@ if (numberOfUTBoards > 0){
         }
     }//if (numberOfUTBoards > 0)
 
+//call each board and wait for it to complete its connection & initial setup
+//note that this object cannot even enter the synchronized method
+//waitForconnectCompletion until utBoard.connect completes because connect is
+//also synchronized
 
-//wait until setup is completed for all UT boards
-//note that the boards may not have had a successful setup
+for (int i = 0; i < numberOfUTBoards; i++)
+    utBoards[i].waitForConnectCompletion();
 
-while(!utBoardsSetupComplete){
-    //allow other threads some time to run
-    try {Thread.sleep(3000);} catch (InterruptedException e) { }
-    utBoardsSetupComplete = true; //set true, set false for any board not setup
-    for (int i = 0; i < numberOfUTBoards; i++){
-        if (!utBoards[i].setupComplete) utBoardsSetupComplete = false;
-        }//for (int i = 0;...
-    }//while(!utBoardsSetupComplete)
-
-threadSafeLog("All UT boards ready.\n");
+threadSafeLog("All UT boards connected...\n");
 
 //Connect the UT boards to their software channels.
 //Set the utBoard pointer for each channel to the utBoard object which has a
@@ -420,10 +411,9 @@ for (int i = 0; i < numberOfUTBoards; i++){
 //initialize each UT board
 initializeUTBoards();
 
-//debug mks
-//sleep for a bit to allow DSPs to start up
-try {Thread.sleep(3000);} catch (InterruptedException e) { }
-//debug mks
+waitSleep(3000); //sleep for a bit to allow DSPs to start up
+
+threadSafeLog("All UT boards initialized...\n");
 
 //set up each channel
 // CAUTION: the next should only be called after each channel's loadCalFile
@@ -434,6 +424,9 @@ try {Thread.sleep(3000);} catch (InterruptedException e) { }
 // initializeChannels - always true?
 
 initializeChannels();
+
+threadSafeLog("All channels initialized...\n");
+threadSafeLog("All UT boards ready.\n");
 
 }//end of Capulin1::connectUTBoards
 //-----------------------------------------------------------------------------
@@ -522,7 +515,7 @@ public void sendDataChangesToRemotes()
 {
 
 //do nothing if data has not been changed for any channel
-if (!readAndClearChannelDataChangedFlag()) return;
+if (!getAndClearDataChangedFlag()) return;
 
 for (int i = 0; i < numberOfChannels; i++)
     channels[i].sendDataChangesToRemotes();
@@ -531,38 +524,38 @@ for (int i = 0; i < numberOfChannels; i++)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Xfer:setChannelDataChangedFlag
+// Capulin1:setChannelDataChangedFlag
 //
 // Synchronized method to set the value of a flag so it can be used as a
 // semaphore between different threads.
 //
+// It is synchronized in the SyncFlag method call.
+//
 
-public synchronized void setChannelDataChangedFlag(boolean pValue)
+public void setDataChangedFlag(boolean pValue)
 {
 
-channelDataChangedFlag = pValue;
+dataChangedFlag.set(pValue);
 
-}//end of Xfer:setChannelDataChangedFlag
+}//end of Capulin1:setChannelDataChangedFlag
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Xfer:readAndClearChannelDataChangedFlag
+// Capulin1:getAndClearDataChangedFlag
 //
-// Synchronized method to read and clear the value of a flag so it can be used
-// as a semaphore between different threads.
+// Synchronized method to read and clear the value of the flag so it can be used
+// as a semaphore between different threads.  
+// 
+// It is synchronized in the SyncFlag method call.
 //
 // Returns true if the flag was true, false otherwise.  Always clears the flag.
 
-public synchronized boolean readAndClearChannelDataChangedFlag()
+public boolean getAndClearDataChangedFlag()
 {
 
-boolean flag = channelDataChangedFlag;
+return(dataChangedFlag.getAndClear());
 
-channelDataChangedFlag = false;
-
-return(flag);
-
-}//end of Xfer:readAndClearChannelDataChangedFlag
+}//end of Capulin1:getAndClearDataChangedFlag
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1365,7 +1358,7 @@ if (numberOfChannels > 0){
     channels = new Channel[numberOfChannels];
 
     for (int i = 0; i < numberOfChannels; i++)
-       channels[i] = new Channel(configFile, i, this);
+       channels[i] = new Channel(configFile, i, dataChangedFlag);
     
     }//if (numberOfChannels > 0)
  
@@ -1536,6 +1529,20 @@ controlBoards[0].getInspectControlVars(pICVars);
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Capulin1::waitSleep
+//
+// Sleeps for pTime milliseconds.
+//
+
+void waitSleep(int pTime)
+{
+
+try {Thread.sleep(pTime);} catch (InterruptedException e) { }
+
+}//end of Capulin1::waitSleep
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Capulin1::various get/set functions
 //
 
@@ -1551,26 +1558,6 @@ public void setNewInspectPacketReady(boolean pValue)
     {controlBoards[0].setNewInspectPacketReady(pValue);}
 
 //end of Capulin1Board::various get/set functions
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Capulin1::finalize
-//
-// This function is inherited from the object class and is called by the Java
-// VM before the object is discarded.
-//
-// Note that this function is not called until the next garbage collection
-// cycle.
-//
-
-@Override
-protected void finalize() throws Throwable
-{
-
-//allow the parent classes to finalize
-super.finalize();
-
-}//end of Capulin1::finalize
 //-----------------------------------------------------------------------------
        
 }//end of class Capulin1

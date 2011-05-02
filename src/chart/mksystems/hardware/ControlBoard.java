@@ -175,7 +175,7 @@ while (true){
 // Opens a TCP/IP connection with the Control Board.
 //
 
-public void connect()
+public synchronized void connect()
 {
 
 //displays message on bottom panel of IDE
@@ -216,6 +216,13 @@ setupComplete = true;
 
 //flag that setup was successful and board is ready for use
 ready = true;
+
+//debug mks -- chassisSlotAddr is still null -- need to add code like utBoard
+//which retrieves the slot address from the remote
+
+threadSafeLog("Control " + chassisSlotAddr + " is ready." + "\n");
+
+notifyAll(); //wake up all threads that are waiting for this to complete
 
 }//end of ControlBoard::connect
 //-----------------------------------------------------------------------------

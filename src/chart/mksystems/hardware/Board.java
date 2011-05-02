@@ -658,6 +658,22 @@ try {Thread.sleep(pTime);} catch (InterruptedException e) { }
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Board::waitForConnectCompletion
+//
+// Waits until the setupComplete flag is true.
+//
+
+public synchronized void waitForConnectCompletion()
+{
+
+while(!setupComplete){
+    try {wait(); } catch (InterruptedException e) { }
+    }
+
+}//end of Board::waitForConnectCompletion
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Board::logStatus
 //
 // Writes various status messages to the log window.
