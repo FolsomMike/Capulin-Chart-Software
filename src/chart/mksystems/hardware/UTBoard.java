@@ -652,7 +652,7 @@ while (true){
 // Opens a TCP/IP connection with the board.
 //
 
-public void connect()
+public synchronized void connect()
 {
 
 //see notes above regarding IP Addresses
@@ -736,7 +736,7 @@ verifyDSPCode(2, 3); //verify the checksum of the code in the DSP
 resetShadow = writeFPGAReg(RESET_REG, (byte)0x3e);
 
 //sleep for a bit to allow DSPs to start up
-try {Thread.sleep(1000);} catch (InterruptedException e) { }
+waitSleep(1000);
 
 logDSPStatus(1, 1, true); logDSPStatus(1, 2, true);
 logDSPStatus(1, 3, true); logDSPStatus(1, 4, true);
@@ -754,6 +754,8 @@ setupComplete = true;
 ready = true;
 
 threadSafeLog("UT " + chassisSlotAddr + " is ready." + "\n");
+
+notifyAll(); //wake up all threads that are waiting for this to complete
 
 /*
 //wip mks remove this - can be used in a monitor function?
@@ -3707,11 +3709,11 @@ for (int i=0; i<ASCAN_SAMPLE_SIZE; i++){
      raw =
        (int)((int)(inBuffer[i*2+4]<<8) + (inBuffer[(i*2)+5] & 0xff));
 
-    if (raw > 0 && raw < bdChs[channel].rejectLevel) raw = raw % 35;
+    if (raw > 0 && raw < bdChs[channel].rejectLevel) raw = raw % 10;
     else
-    if (raw < 0 && raw > -bdChs[channel].rejectLevel) raw = raw % 35;
+    if (raw < 0 && raw > -bdChs[channel].rejectLevel) raw = raw % 10;
      
-     raw *= ASCAN_SCALE;
+    raw *= ASCAN_SCALE;
 
     boolean filterActive = false;
 
@@ -3890,9 +3892,18 @@ if (channel == 1 && i == 1)
         peak = (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
 
         //if the signal is below the reject level, squash it down to 10%
-        //if any signal did not exceed the gate the specified number of times,
-        //also squash it down to 10%
-        if (peak < bdChs[channel].rejectLevel || !hitCountMet) peak %= 10;
+        if (peak < bdChs[channel].rejectLevel) peak %= 10;
+
+        //if the hit count for the gate is greater than zero and the signal did
+        //not exceed the gate the specified number of times, squash it down
+        //to 10%
+        //at first glance, it would seem that a hitCount of zero would always
+        //trigger the flag in the DSP, but if the signal never exceeds the
+        //gate, the hitCountMet flag never gets set even if the hitCount is
+        //zero, so have to catch that special case here
+
+        if (bdChs[channel].gates[i].gateHitCount > 0 && !hitCountMet)
+                                                                    peak %= 10;
 
         peak *= SIGNAL_SCALE; //scale signal up or down
 
