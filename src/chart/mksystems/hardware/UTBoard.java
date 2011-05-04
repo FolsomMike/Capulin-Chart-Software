@@ -3879,15 +3879,6 @@ for (int h=0; h < pNumberOfChannels; h++){
         boolean hitCountMet = true;
         hitCountMet = (peakFlags & HIT_COUNT_MET) == 0 ? false : true;
 
-
-//debug mks
-int d = 0;
-if (channel == 1 && i == 1)
-    if (hitCountMet)
-        d++;
-//debug mks
-
-
         //cast to short used to force sign extension for signed values
         peak = (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
 
@@ -3904,6 +3895,8 @@ if (channel == 1 && i == 1)
 
         if (bdChs[channel].gates[i].gateHitCount > 0 && !hitCountMet)
                                                                     peak %= 10;
+
+        bdChs[channel].gates[i].storeNewAScanPeak((int)(peak * ASCAN_SCALE));
 
         peak *= SIGNAL_SCALE; //scale signal up or down
 

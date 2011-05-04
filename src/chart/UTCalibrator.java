@@ -169,16 +169,14 @@ Channel ch = channels[currentChannelIndex]; //use shorter name
 if (!ch.getInterfaceTracking()){
 
     for (int i = 0; i < ch.getNumberOfGates(); i++){
-        ch.gates[i].gatePixStartAdjusted = ch.gates[i].gatePixStart;
-        ch.gates[i].gatePixEndAdjusted = ch.gates[i].gatePixEnd;
-        //set to -1 to flag the interface tracking is off
+        ch.gates[i].adjustPositionsNoTracking();
+        //set to -1 to flag the interface tracking is off -- why is this necessary???
         ch.gates[0].interfaceCrossingPixAdjusted = -1;
         }
 
-    for (int i=0; i < ch.getNumberOfDACGates(); i++){
-        ch.dacGates[i].gatePixStartAdjusted = ch.dacGates[i].gatePixStart;
-        ch.dacGates[i].gatePixEndAdjusted = ch.dacGates[i].gatePixEnd;
-        }
+    for (int i=0; i < ch.getNumberOfDACGates(); i++)
+        if (ch.dacGates[i].getActive())
+            ch.dacGates[i].adjustPositionsNoTracking();
 
     }//if (!channels[currentChannelIndex].getInterfaceTracking())
 else{
@@ -187,42 +185,31 @@ else{
     //pulse to relative to the left edge of the scope display
     //multiply pInterfaceCrossingPosition by .015 to convert from samples
     //of 15 ns each to total us
+    // need to allow for other gates being the interface???
     
     ch.gates[0].interfaceCrossingPixAdjusted =
      (int)((double)((pInterfaceCrossingPosition * 0.015)
         / ch.uSPerPixel) - ch.delayPix);
 
+    int offset = ch.gates[0].interfaceCrossingPixAdjusted;
+
     //compute all gate start positions relative to the interface crossing
     // do not do this for gate 0 - the interface gate is always positioned
     // absolutely
+    // need to allow for other gates being the interface???
 
-    for (int i = 1; i < ch.getNumberOfGates(); i++){
-
-        ch.gates[i].gatePixStartAdjusted =
-           ch.gates[0].interfaceCrossingPixAdjusted + ch.gates[i].gatePixStart;
-
-        ch.gates[i].gatePixEndAdjusted =
-            ch.gates[0].interfaceCrossingPixAdjusted + ch.gates[i].gatePixEnd;
-        }
-
-    //interface gate does not track the interface - just copy the values set
-    //by the user for use in displaying.
-    ch.gates[0].gatePixStartAdjusted = ch.gates[0].gatePixStart;
-    ch.gates[0].gatePixEndAdjusted = ch.gates[0].gatePixEnd;
+    for (int i = 1; i < ch.getNumberOfGates(); i++)
+        ch.gates[i].adjustPositionsWithTracking(offset);
+        
+    //interface gate does not track the interface
+    ch.gates[0].adjustPositionsNoTracking();
 
     //translate the positions for the DAC gates
     for (int i=0; i < ch.getNumberOfDACGates(); i++)
-        if (ch.dacGates[i].getActive()){
-            ch.dacGates[i].gatePixStartAdjusted =
-                    ch.gates[0].interfaceCrossingPixAdjusted
-                        + ch.dacGates[i].gatePixStart;
+        if (ch.dacGates[i].getActive())
+            ch.dacGates[i].adjustPositionsWithTracking(offset);
 
-            ch.dacGates[i].gatePixEndAdjusted =
-                    ch.gates[0].interfaceCrossingPixAdjusted
-                        + ch.dacGates[i].gatePixEnd;
-            }
-
-    }
+    }// else of if (!ch.getInterfaceTracking())
 
 if (pUTAscanData != null && scope1 != null)
     scope1.displayData(pRange, ch.gates[0].interfaceCrossingPixAdjusted,

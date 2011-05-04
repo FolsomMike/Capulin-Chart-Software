@@ -18,6 +18,8 @@
 
 package chart.mksystems.hardware;
 
+import java.util.*;
+
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.stripchart.Threshold;
 import chart.mksystems.stripchart.Trace;
@@ -76,6 +78,16 @@ int peakFlags;  //any flags associated with the peak
 int peakFlightTime; //the time of flight to the peak (for UT)
 int peakTrack; //encoder tracking information
 
+//these peak variables are used to capture peak data for display on or near the
+//AScan display -- they show peaks that occurred between captures of the
+//AScan data -- can be displayed on a peak meter or similar
+
+//need to add a min peak capture as well -- especially for RF?
+
+public int aScanPeak = Integer.MIN_VALUE, aScanPeakD = Integer.MIN_VALUE;
+
+public Vector<String> processList;
+
 // The encoder1 parameter is the entry encoder or the carriage encoder
 // depending on unit type.
 // The encoder2 parameter is the exit encoder or the rotational encoder
@@ -91,6 +103,7 @@ public int gateMissCount = 0;
 
 public Object gateHitCountAdjuster;
 public Object gateMissCountAdjuster;
+public Object processSelector;
 
 //-----------------------------------------------------------------------------
 // Gate::Gate (constructor)
@@ -106,6 +119,11 @@ configFile = pConfigFile; channelIndex = pChannelIndex; gateIndex = pGateIndex;
 
 //read the configuration file and create/setup the charting/control elements
 configure(configFile);
+
+//create list of process type which can be applied to the gates
+processList = new Vector<String>();
+processList.add("peak");
+processList.add("i/g");
 
 //set the gate active flag for each gate
 setActive(true);
@@ -172,6 +190,40 @@ peakTrack = dPeakTrack;
 newDataReady = true;
 
 }//end of Gate::storeNewDataD
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Gate::storeNewAScanPeak
+//
+// If pPeak is higher than the peak value already stored, pPeak will replace
+// that value in aScanPeak.
+//
+
+public void storeNewAScanPeak(int pPeak)
+{
+
+if (pPeak > aScanPeak) aScanPeak = pPeak;
+
+}//end of Gate::storeNewAScanPeak
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Gate::getAndClearAScanPeak()
+//
+// Returns aScanPeak and resets it to its minimum so the next peak can be
+// captured.
+//
+
+public int getAndClearAScanPeak()
+{
+
+int p = aScanPeak;
+
+aScanPeak = Integer.MIN_VALUE;
+
+return(p);
+
+}//end of Gate::getAndClearAScanPeak
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

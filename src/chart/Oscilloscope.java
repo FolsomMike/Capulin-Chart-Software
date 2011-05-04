@@ -45,6 +45,7 @@ Channel channel;
 double uSPerDataPoint;
 boolean dacEnabled = false;
 boolean dacLocked = true;
+int maxY;
 
 int vertOffset = 0; //vertical offset for the trace and gates
 
@@ -60,13 +61,15 @@ public OscopeCanvas(double pUSPerDataPoint, MouseListener pMouseListener,
 {
 
 uSPerDataPoint = pUSPerDataPoint;
-    
+
+maxY = 350;
+
 //we will handle drawing the background    
 setOpaque(false);
 
-setMinimumSize(new Dimension(350,350));
-setPreferredSize(new Dimension(350,350));
-setMaximumSize(new Dimension(350,350));
+setMinimumSize(new Dimension(350,maxY));
+setPreferredSize(new Dimension(350,maxY));
+setMaximumSize(new Dimension(350,maxY));
 
 setBackground(new Color(153, 204, 0));
 
@@ -223,8 +226,7 @@ drawGrid(g2);
 
 g2.setColor(Color.BLACK);
 
-int yPos, scaledI; 
-int maxY = getHeight();
+int yPos, scaledI;
 int lastX = 0, lastY = maxY; //start at bottom left corner
 
 for(int i = 0; i < pData.length; i++){
@@ -304,8 +306,27 @@ for (int i = 0; i < pChannel.numberOfGates; i++){
             pChannel.gates[i].gatePixLevel,
             pChannel.gates[i].gatePixEndAdjusted,
             pChannel.gates[i].gatePixLevel
-            );   
-    }
+            );
+
+    //if peak capture display is on, draw the peak recorded for that gate since
+    //the last draw
+    if (true){
+
+        //invert level so 0,0 is at bottom left
+        int peak = pChannel.gates[i].getAndClearAScanPeak();
+
+        if (peak < 0) peak = 0; if (peak > maxY) peak = maxY;
+        peak = maxY - peak;
+
+        pG2.drawLine(
+                pChannel.gates[i].gatePixMidPointAdjusted,
+                maxY,
+                pChannel.gates[i].gatePixMidPointAdjusted,
+                peak
+                );
+        }
+        
+    }// for (int i = 0; i < pChannel.numberOfGates; i++)
 
 //if interface tracking is on, mark the point where the interface has
 //crossed the interface gate - the interface gate is always gate 0
