@@ -29,6 +29,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.image.BufferedImage;
 import java.util.Hashtable;
+import java.util.*;
 import java.awt.font.TextAttribute;
 
 import chart.mksystems.mswing.MFloatSpinner;
@@ -126,7 +127,7 @@ String cmPeruSText = "cm/uS";
 
 JCheckBox interfaceTrackingCheckBox;
 
-JPanel gatesTab, signalTab, wallTab, dacTab, chartTab, shotCountTab, configTab;
+JPanel gatesTab, signalTab, wallTab, dacTab, chartTab, processTab, configTab;
 JPanel transducerTab;
 
 Font blackFont, redFont;
@@ -244,11 +245,11 @@ addTab("DAC", null, dacTab, "DAC");
 chartTab = new JPanel();
 addTab("Chart", null, chartTab, "Chart");
 
-shotCountTab = new JPanel();
-addTab("Shot Count", null, shotCountTab, "Shot Count");
+processTab = new JPanel();
+addTab("Process", null, processTab, "Gate signal processing methods.");
 
 configTab = new JPanel();
-addTab("Configuration", null, configTab, "Configuration");
+addTab("Config", null, configTab, "Configuration");
 
 
 setSelectedIndex(0);
@@ -272,7 +273,7 @@ currentChannel = pChannel;
 //clear all the tabs first so that if a cal window is opened for a chart
 //with no channels assigned the user will only see blank controls
 gatesTab.removeAll(); signalTab.removeAll(); wallTab.removeAll();
-dacTab.removeAll(); chartTab.removeAll(); shotCountTab.removeAll();
+dacTab.removeAll(); chartTab.removeAll(); processTab.removeAll();
 configTab.removeAll();
 
 //set multiplier to 1.0 if displaying values in time base,
@@ -326,7 +327,7 @@ setupDACTab();
 
 //chartTab already setup above
 
-setupShotCountTab();
+setupProcessTab();
 
 setupConfigTab();
 
@@ -374,6 +375,7 @@ gatesTab.add(new JLabel("")); //fill blank grid spot
 
 JLabel label;
 MFloatSpinner mfSpinner;
+JComboBox jcb;
 
 //add controls for each gate of the current channel
 
@@ -416,7 +418,8 @@ for (int i=0; i < gridYCount; i++){
         currentChannel.getGate(i).gateLevelAdjuster = mfSpinner;
  
         //if the gate just added is the interface gate, add a "Track" checkbox
-        //to allow selecton of interface tracking, otherwise add a blank label
+        //to allow selecton of interface tracking, otherwise add a processing
+        //type selector
         if (currentChannel.getGate(i).getInterfaceGate()){
             interfaceTrackingCheckBox = new JCheckBox("Track");
             interfaceTrackingCheckBox.setSelected(
@@ -878,80 +881,145 @@ chartTab.add(Box.createVerticalGlue());
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTControls::setupShotCountTab
+// UTControls::setupProcessTab
 //
-// Sets up a panel for the Shot Count tab - adds all necessary components to the
-// panel.
+// Sets up a panel for the gate signal processing tab - adds all necessary
+// components to the panel.
 //
 
-void setupShotCountTab()
+void setupProcessTab()
 {
 
-shotCountTab.removeAll();
+processTab.removeAll();
 
 JLabel label;
+JComboBox jcb;
+SpinnerPanel sp;
+Gate gate;
 
 int numberOfGates = currentChannel.getNumberOfGates();
 
-//create a row for each gate plus one for the header labels
-shotCountTab.setLayout(new GridLayout(gridYCount+1, 5, 10, 10));
+//layout for the tab
+processTab.setLayout(new BoxLayout(processTab, BoxLayout.LINE_AXIS));
 
+//gate label column -- create a row for each gate plus one for the header title
+JPanel gateLabelPanel = new JPanel();
+gateLabelPanel.setLayout(new GridLayout(gridYCount+1, 1, 10, 10));
+//add the row title header
 label = new JLabel("Gate"); label.setToolTipText("Gate");
-shotCountTab.add(label);
-label = new JLabel("Hits"); label.setToolTipText("Hits required to alarm.");
-shotCountTab.add(label);
-label = new JLabel("Misses"); label.setToolTipText("Misses required to alarm.");
-shotCountTab.add(label);
-shotCountTab.add(new JLabel("")); //fill blank grid spot
-
-shotCountTab.add(new JLabel("")); //fill blank grid spot
-
-MFloatSpinner mfSpinner;
-
-//add controls for each gate of the current channel
-
-//there may be more rows than gates because the number of rows may be set
-//higher to prevent them from stretching to fill empty space
-//for those extra rows, fill in dummy labels
-
-//use gridYCount instead of gridYCount+1 because the header already fills a row
+gateLabelPanel.add(label);
 
 for (int i=0; i < gridYCount; i++){
-
     //add controls for each gate
     if (i < numberOfGates){
 
-        label = new JLabel(currentChannel.getGate(i).title);
-        label.setToolTipText(currentChannel.getGate(i).title);
-        shotCountTab.add(label);
+        gate = currentChannel.getGate(i);
 
-        mfSpinner = new MFloatSpinner(currentChannel.getGateHitCount(i),
-                                                    0, 500, 1, "##0", 60, -1);
-        mfSpinner.addChangeListener(this); //monitor changes to value
-        shotCountTab.add(mfSpinner);
+        label = new JLabel(gate.title);
+        label.setToolTipText(gate.title);
+        gateLabelPanel.add(label);
+        }
+    else{gateLabelPanel.add(new JLabel(""));}
+    }// for (int i=0; i < gridYCount; i++){
+
+processTab.add(gateLabelPanel);
+
+//hit & miss adjusters column -- create a row for each gate plus header title
+JPanel hitMissPanel = new JPanel();
+hitMissPanel.setLayout(new GridLayout(gridYCount+1, 1, 10, 10));
+//add the row title headers
+label = new JLabel("Hits"); label.setToolTipText("Hits required to alarm.");
+hitMissPanel.add(label);
+label = new JLabel("Misses"); label.setToolTipText("Misses required to alarm.");
+hitMissPanel.add(label);
+
+for (int i=0; i < gridYCount; i++){
+    //add controls for each gate
+    if (i < numberOfGates){
+
+        gate = currentChannel.getGate(i);
+
+        sp = new SpinnerPanel(currentChannel.getGateHitCount(i), 0, 50, 1,
+                                                       "##0", 40, -1, "", "");
+        sp.spinner.addChangeListener(this); //monitor changes to value
+        hitMissPanel.add(sp);
         //save a pointer to this adjuster in the gate object
-        currentChannel.getGate(i).gateHitCountAdjuster = mfSpinner;
+        gate.gateHitCountAdjuster = sp.spinner;
 
-        mfSpinner = new MFloatSpinner(currentChannel.getGateMissCount(i),
-                                                    0, 500, 1, "##0", 60, -1);
-        mfSpinner.addChangeListener(this); //monitor changes to value
-        shotCountTab.add(mfSpinner);
+        sp = new SpinnerPanel(currentChannel.getGateMissCount(i), 0, 50, 1,
+                                                       "##0", 40, -1, "", "");
+        sp.spinner.addChangeListener(this); //monitor changes to value
+        hitMissPanel.add(sp);
         //save a pointer to this adjuster in the gate object
-        currentChannel.getGate(i).gateMissCountAdjuster = mfSpinner;
+        gate.gateMissCountAdjuster = sp.spinner;
 
-        shotCountTab.add(new JLabel("")); //fill blank grid spot
-        shotCountTab.add(new JLabel("")); //fill blank grid spot
+        }
+    else{hitMissPanel.add(new JLabel(""));}
+    }// for (int i=0; i < gridYCount; i++){
 
-        }// if (i < numberOfGates)
-    else{
-        //fill extra rows with dummy labels
-        shotCountTab.add(new JLabel(" "));
-        shotCountTab.add(new JLabel(" "));
-        shotCountTab.add(new JLabel(" "));
-        shotCountTab.add(new JLabel(" "));
-        shotCountTab.add(new JLabel(" "));
-        }//else of if (i < numberOfGates)
-    }// for (int i=0; i < gridYCount+1; i++)
+processTab.add(hitMissPanel);
+
+//signal process selections column -- create a row for each gate plus header
+JPanel processPanel = new JPanel();
+processPanel.setLayout(new GridLayout(gridYCount+1, 1, 10, 10));
+//add the row title headers
+label = new JLabel("Signal Processing");
+label.setToolTipText("Signal processing method for the gate.");
+processPanel.add(label);
+
+for (int i=0; i < gridYCount; i++){
+    //add controls for each gate
+    if (i < numberOfGates){
+
+        gate = currentChannel.getGate(i);
+
+        //get the signal processing list for the gate type
+        Vector<String> pl = gate.getSigProcList();
+
+        jcb = new JComboBox(pl);
+        jcb.setSelectedIndex(gate.getSigProcIndex());
+        jcb.setActionCommand("Signal Processing");
+        jcb.addActionListener(this);
+        gate.processSelector = jcb;
+
+        processPanel.add(jcb);
+
+        }
+    else{processPanel.add(new JLabel(""));}
+    }// for (int i=0; i < gridYCount; i++){
+
+processTab.add(processPanel);
+
+processTab.add(Box.createRigidArea(new Dimension(10,0))); //horizontal spacer
+
+//signal process threshold column -- create a row for each gate plus header
+JPanel thresholdPanel = new JPanel();
+thresholdPanel.setLayout(new GridLayout(gridYCount+1, 1, 10, 10));
+//add the row title headers
+label = new JLabel("Threshold");
+label.setToolTipText("Threshold to trigger an event.");
+thresholdPanel.add(label);
+
+for (int i=0; i < gridYCount; i++){
+    //add controls for each gate
+    if (i < numberOfGates){
+
+        gate = currentChannel.getGate(i);
+
+        sp = new SpinnerPanel(currentChannel.getSigProcThreshold(i), 0, 65535,
+                                                      1, "##0", 60, -1, "", "");
+        sp.spinner.addChangeListener(this); //monitor changes to value
+        thresholdPanel.add(sp);
+        //save a pointer to this adjuster in the gate object
+        gate.thresholdAdjuster = sp.spinner;
+        }
+    else{thresholdPanel.add(new JLabel(""));}
+    }// for (int i=0; i < gridYCount; i++){
+
+processTab.add(thresholdPanel);
+
+//add invisible filler push everything to the left
+processTab.add(Box.createHorizontalGlue());
 
 }//end of UTControls::setupShotCountTab
 //-----------------------------------------------------------------------------
@@ -959,7 +1027,7 @@ for (int i=0; i < gridYCount; i++){
 //-----------------------------------------------------------------------------
 // UTControls::setupConfigTab
 //
-// Sets up a panel for the Configuration tab - adds all necessary components to
+// Sets up a panel for the Config tab - adds all necessary components to
 // the panel.
 //
 
@@ -1286,6 +1354,10 @@ if (name.equals("Interface Tracking")){
 // For simplicities sake, the following just updates all controls any time any
 // one control is changed.
 //
+// NOTE: You do not need to catch the action command for every control which
+//  might trigger this function.  This function will call updateAllSettings
+//  each time for uncaught actions -- that function will handle any changes.
+//
 
 @Override
 public void actionPerformed(ActionEvent e)
@@ -1447,7 +1519,14 @@ for (int i=0; i < numberOfGates; i++){
       ((MFloatSpinner) gate.gateHitCountAdjuster).getIntValue(), pForceUpdate);
     ch.setGateMissCount(i,
       ((MFloatSpinner) gate.gateMissCountAdjuster).getIntValue(), pForceUpdate);
-    
+
+    ch.setGateSigProc(i, 
+        (String)(((JComboBox)gate.processSelector).getSelectedItem()),
+                                                                 pForceUpdate);
+
+    ch.setGateSigProcThreshold(i,
+      ((MFloatSpinner) gate.thresholdAdjuster).getIntValue(), pForceUpdate);
+
     }
 
 ch.setDelay(delaySpin.spinner.getDoubleValue() / timeDistMult, pForceUpdate);

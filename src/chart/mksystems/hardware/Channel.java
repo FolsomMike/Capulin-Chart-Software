@@ -44,6 +44,7 @@ SyncFlag ownerDataChanged;
 public SyncFlag dataChanged;
 
 public boolean gateParamsChanged, gateHitMissChanged, gateFlagsChanged;
+public boolean gateSigProcThresholdChanged;
 public boolean flags1SetMaskChanged, flags1ClearMaskChanged;
 public boolean dacGateParamsChanged, dacGateFlagsChanged;
 
@@ -2309,6 +2310,79 @@ return gates[pGate].gateMissCount;
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Channel::getSigProcThreshold
+//
+// Returns the signal processing threshold value for the gate.  See
+// setSigProcThreshold for more info.
+//
+
+public int getSigProcThreshold(int pGate)
+{
+
+return gates[pGate].sigProcThreshold;
+
+}//end of Channel::getSigProcThreshold
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::setGateSigProc
+//
+// Sets the signal processing mode for pGate to pMode.
+//
+// If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
+// the flag is false, the value(s) will be sent only if they have changed.
+//
+
+public synchronized void setGateSigProc(int pGate, String pMode,
+                                                         boolean pForceUpdate)
+{
+
+if (!pMode.equals(gates[pGate].getSignalProcessing())) pForceUpdate = true;
+
+gates[pGate].setSignalProcessing(pMode);
+
+//flag that new data needs to be sent to remotes
+if (pForceUpdate){
+    ownerDataChanged.set(true); dataChanged.flag = true;
+    gateParamsChanged = true; gates[pGate].flagsChanged = true;
+    }
+
+}//end of Channel::setGateSigProc
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::setGateSigProcThreshold
+//
+// Sets the signal processing threshold for pGate.  This value is used by
+// various signal processing methods to trigger events.
+//
+// If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
+// the flag is false, the value(s) will be sent only if they have changed.
+//
+// This and all functions which set data changed flag(s) should be
+// synchronized to avoid thread conficts.  Typically, one thread changes the
+// data while another transmits it to the remotes.
+//
+
+public synchronized void setGateSigProcThreshold(
+                           int pGate, int pThreshold, boolean pForceUpdate)
+{
+
+if (pThreshold != gates[pGate].sigProcThreshold) pForceUpdate = true;
+
+gates[pGate].sigProcThreshold = pThreshold;
+
+//flag that new data needs to be sent to remotes
+if (pForceUpdate){
+    ownerDataChanged.set(true);
+    dataChanged.flag = true; gateSigProcThresholdChanged = true;
+    gates[pGate].sigProcThresholdChanged = true;
+    }
+
+}//end of Channel::setGateSigProcThreshold
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Channel::sendGateParameters
 //
 // Sends gate start, width, and level to the remotes.
@@ -2388,6 +2462,42 @@ for (int i = 0; i < numberOfGates; i++){
 gateFlagsChanged = false;
 
 }//end of Channel::sendGateFlags
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::sendGateSigProcThreshold
+//
+// Sends gate signal processing thresholds to the remotes.
+//
+// This and all functions which set the data changed flag(s) should be
+// synchronized to avoid thread conficts.  Typically, one thread changes the
+// data while another transmits it to the remotes.
+//
+
+public synchronized void sendGateSigProcThreshold()
+{
+
+//unknown which gate(s) have changed data, so check them all
+//clear the flags even if utBoard is null so they won't be checked again
+
+for (int i = 0; i < numberOfGates; i++){
+
+    if (gates[i].sigProcThresholdChanged == true){
+
+        int threshold = gates[i].sigProcThreshold;
+
+        if (utBoard != null)
+            utBoard.sendGateSigProcThreshold(boardChannel, i, threshold);
+
+        gates[i].sigProcThresholdChanged = false;
+
+        }// if (gates[i].parametersChanged == true)
+    }// for (int i = 0; i < numberOfGates; i++)
+
+//clear the flag
+gateSigProcThresholdChanged = false;
+
+}//end of Channel::sendGateSigProcThreshold
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -2643,6 +2753,8 @@ if (gateParamsChanged) sendGateParameters();
 if (gateFlagsChanged) sendGateFlags();
 
 if (gateHitMissChanged) sendGateHitMiss();
+
+if (gateSigProcThresholdChanged) sendGateSigProcThreshold();
 
 if (dacGateParamsChanged) sendDACGateParameters();
 

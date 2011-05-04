@@ -549,6 +549,7 @@ dataChangedFlag.set(pValue);
 // It is synchronized in the SyncFlag method call.
 //
 // Returns true if the flag was true, false otherwise.  Always clears the flag.
+//
 
 public boolean getAndClearDataChangedFlag()
 {

@@ -43,6 +43,7 @@ int triggerDirection;
 int peakDirection;
 
 public boolean parametersChanged, hitMissChanged, flagsChanged;
+public boolean sigProcThresholdChanged;
 
 boolean isInterfaceGate = false;
 boolean isWallStartGate = false;
@@ -86,7 +87,8 @@ int peakTrack; //encoder tracking information
 
 public int aScanPeak = Integer.MIN_VALUE, aScanPeakD = Integer.MIN_VALUE;
 
-public Vector<String> processList;
+public Vector<String> flawGateProcessList, iFaceProcessList;
+public Vector<String> wallGateProcessList;
 
 // The encoder1 parameter is the entry encoder or the carriage encoder
 // depending on unit type.
@@ -96,6 +98,8 @@ int encoder1, encoder2;
 
 public int gateHitCount = 0;
 public int gateMissCount = 0;
+public int sigProcThreshold = 0;
+public String signalProcessing = "undefined";
 
 // references to point at the controls used to adjust the values - these
 // references are set up by the object which handles the adjusters and are
@@ -104,6 +108,7 @@ public int gateMissCount = 0;
 public Object gateHitCountAdjuster;
 public Object gateMissCountAdjuster;
 public Object processSelector;
+public Object thresholdAdjuster;
 
 //-----------------------------------------------------------------------------
 // Gate::Gate (constructor)
@@ -121,9 +126,23 @@ configFile = pConfigFile; channelIndex = pChannelIndex; gateIndex = pGateIndex;
 configure(configFile);
 
 //create list of process type which can be applied to the gates
-processList = new Vector<String>();
-processList.add("peak");
-processList.add("i/g");
+//WARNING: dont' make text entries into the list too long or it will widen
+//         the UT calibrator window and make it look bad.
+
+//processing options for a normal gate
+flawGateProcessList = new Vector<String>();
+flawGateProcessList.add("peak");
+flawGateProcessList.add("integrate above gate");
+//processing options for an interface gate
+iFaceProcessList = new Vector<String>();
+iFaceProcessList.add("ignore bad interface");
+iFaceProcessList.add("quench on bad interface");
+
+//processing options for a wall start/end gate
+wallGateProcessList = new Vector<String>();
+wallGateProcessList.add("first crossing");
+wallGateProcessList.add("peak");
+wallGateProcessList.add("midpoint");
 
 //set the gate active flag for each gate
 setActive(true);
@@ -308,6 +327,97 @@ return gateFlags;
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Gate::setSignalProcessing
+//
+// Sets the signal processing mode.  If the mode is not a valid selection for
+// the gate type, the mode is forced to the first valid mode listed for the
+// gate type.
+//
+// Does not set the flags in the DSP.
+//
+
+public void setSignalProcessing(String pMode)
+{
+
+//get the signal processing list for the gate type
+Vector<String> pl = getSigProcList();
+
+//if the selection is not in the valid list for the gate type, reset it to
+//the first entry in that valid list
+if (!pl.contains(pMode)) pMode = pl.elementAt(0);
+
+signalProcessing = pMode;
+
+}//end of Gate::setSignalProcessing
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Gate::getSignalProcessing
+//
+// Returns the string containing the current signal processing mode.
+// To get the index of the mode in the list appropriate for the gate type, use
+// getSigProcIndex.
+//
+
+public String getSignalProcessing()
+{
+
+return signalProcessing;
+
+}//end of Gate::getSignalProcessing
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Gate::getSigProcIndex
+//
+// Returns the index in the appropriate list of the current signal processing
+// mode.
+//
+
+public int getSigProcIndex()
+{
+
+//get the signal processing list for the gate type
+Vector<String> pl = getSigProcList();
+
+int index = pl.indexOf(signalProcessing);
+
+//if not found, index will be -1, set to 0 (the first item in the list
+if (index == -1) index = 0;
+
+return(index);
+
+}//end of Gate::getSigProcIndex
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Gate::getSigProcList
+//
+// Returns the list of signal processing modes which is valid for the gate's
+// type.
+//
+
+public Vector<String> getSigProcList()
+{
+
+//default to flawGateProcessList -- will be reset to proper list
+Vector<String> pl = flawGateProcessList;
+
+//choose the appropriate list for the gate type
+if (isInterfaceGate) pl = iFaceProcessList;
+else
+if (isFlawGate) pl = flawGateProcessList;
+else
+if (isWallStartGate) pl = wallGateProcessList;
+else
+if (isWallEndGate) pl = wallGateProcessList;
+
+return(pl);
+
+}//end of Gate::getSigProcList
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Gate::setActive
 //
 // Turns the gate active flag on or off.
@@ -373,6 +483,21 @@ else
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Gate::getWallStart
+//
+// Returns the isWallStartGate flag - true if the gate is designated as a wall
+// start gate false if not.
+//
+
+public boolean getWallStart()
+{
+
+return isWallStartGate;
+
+}//end of Gate::getWallStart
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Gate::setWallEnd
 //
 // Turns the gate wall end flag on or off.  If pOn is true, the gate will be
@@ -395,6 +520,21 @@ else
     gateFlags &= (~GATE_WALL_END);
 
 }//end of Gate::setWallEnd
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Gate::getWallEnd
+//
+// Returns the isWallEndGate flag - true if the gate is designated as a wall
+// start gate false if not.
+//
+
+public boolean getWallEnd()
+{
+
+return isWallEndGate;
+
+}//end of Gate::getWallEnd
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -449,8 +589,6 @@ else
 // Returns the isInterfaceGate flag - true if the gate is designated as the
 // interface gate, false if not.
 //
-// Does not set the flag in the DSP.
-//
 
 public boolean getInterfaceGate()
 {
@@ -481,6 +619,21 @@ else
     gateFlags &= (~GATE_FOR_FLAW);
 
 }//end of Gate::setFlawGate
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Gate::getFlawGate
+//
+// Returns the isFlawGate flag - true if the gate is designated as a flaw gate
+// false if not.
+//
+
+public boolean getFlawGate()
+{
+
+return isFlawGate;
+
+}//end of Gate::getFlawGate
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -617,6 +770,12 @@ gateLevel = pCalFile.readInt(section, "Gate Level", 15);
 gateHitCount = pCalFile.readInt(section, "Gate Hit Count", 1);
 gateMissCount = pCalFile.readInt(section, "Gate Miss Count", 1);
 
+sigProcThreshold =
+      pCalFile.readInt(section, "Signal Processing Threshold", 0);
+
+setSignalProcessing(
+      pCalFile.readString(section, "Signal Processing Function", "undefined"));
+
 //set all the data changed flags so data will be sent to remotes
 parametersChanged = true; hitMissChanged = true; flagsChanged = true;
 
@@ -648,6 +807,11 @@ pCalFile.writeInt(section, "Gate Level", gateLevel);
 
 pCalFile.writeInt(section, "Gate Hit Count", gateHitCount);
 pCalFile.writeInt(section, "Gate Miss Count", gateMissCount);
+
+pCalFile.writeInt(section, "Signal Processing Threshold", sigProcThreshold);
+
+pCalFile.writeString(section, "Signal Processing Function",
+                                                        getSignalProcessing());
 
 }//end of Gate::saveCalFile
 //-----------------------------------------------------------------------------

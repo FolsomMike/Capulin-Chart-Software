@@ -304,6 +304,7 @@ static byte DSP_GET_PEAK_DATA = 13;
 static byte DSP_SET_RECTIFICATION = 14;
 static byte DSP_SET_FLAGS1 = 15;
 static byte DSP_CLEAR_FLAGS1 = 16;
+static byte DSP_SET_GATE_SIG_PROC_THRESHOLD = 17;
 
 static byte DSP_ACKNOWLEDGE = 127;
 
@@ -2330,7 +2331,7 @@ sendChannelParam(pChannel, (byte) DSP_SET_GATE,
 //-----------------------------------------------------------------------------
 // UTBoard::sendGateFlags
 //
-// Sends the flags for the gates of pChannel.
+// Sends the flags for pGate of pChannel.
 //
 
 public void sendGateFlags(int pChannel, int pGate, int pFlags)
@@ -2343,6 +2344,24 @@ sendChannelParam(pChannel, (byte) DSP_SET_GATE_FLAGS,
                (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0);
 
 }//end of Channel::sendGateFlags
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::sendGateSigProcThreshold
+//
+// Sends the signal processing thresholds for pGate of pChannel.
+//
+
+public void sendGateSigProcThreshold(int pChannel, int pGate, int pThreshold)
+{
+
+sendChannelParam(pChannel, (byte) DSP_SET_GATE_SIG_PROC_THRESHOLD,
+               (byte)pGate,
+               (byte)((pThreshold >> 8) & 0xff),
+               (byte)(pThreshold & 0xff),
+               (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0);
+
+}//end of Channel::sendGateSigProcThreshold
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
