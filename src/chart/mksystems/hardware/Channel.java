@@ -187,8 +187,6 @@ setFlags1(flags1Mask);
 //setup various things
 setAScanSmoothing(aScanSmoothing, true);
 setRejectLevel(rejectLevel, true);
-//setSoftwareGain(softwareGain.getDouble(), true);  //debug mks -- can this be removed?  already done in config
-//setHardwareGain(hardwareGain1.getInt(), hardwareGain2.getInt(), true); //debug mks -- can this be removed?  already done in config
 setDCOffset(dcOffset, true);
 setMode(mode, true);  //setMode also calls setTransducer
 setInterfaceTracking(interfaceTracking, true);
@@ -385,8 +383,12 @@ return c;
 // The start location of the gate will be adjusted to match the end location
 // of the previous gate.
 //
+// This and all functions which set the data changed flag(s) should be
+// synchronized to avoid thread conficts.  Typically, one thread changes the
+// data while another transmits it to the remotes.
+//
 
-public void insertDACGate(int pStart, int pLevel)
+public synchronized void insertDACGate(int pStart, int pLevel)
 {
 
 //do not allow insertion if gate array is full
@@ -452,8 +454,12 @@ setDACGatePixelValues(i+1, pStart, pEnd, pLevel, true, false);
 //
 // Deletes the DAC gate specified by pGate.
 //
+// This and all functions which set the data changed flag(s) should be
+// synchronized to avoid thread conficts.  Typically, one thread changes the
+// data while another transmits it to the remotes.
+//
 
-public void deleteDACGate(int pGate)
+public synchronized void deleteDACGate(int pGate)
 {
 
 if (pGate < 0 || pGate >= numberOfDACGates) return; //protect against invalid
@@ -481,8 +487,12 @@ if (pGate > 0 && pGate < getActiveDACGateCount())
 //
 // Deletes all the DAC gates by setting their active states to false.
 //
+// This and all functions which set the data changed flag(s) should be
+// synchronized to avoid thread conficts.  Typically, one thread changes the
+// data while another transmits it to the remotes.
+//
 
-public void deleteAllDACGates()
+public synchronized void deleteAllDACGates()
 {
 
 for (int i = 0; i < numberOfDACGates; i++) setDACActive(i, false, false);
@@ -495,8 +505,12 @@ for (int i = 0; i < numberOfDACGates; i++) setDACActive(i, false, false);
 //
 // Shifts all gates beginning with index pStart down one slot.
 //
+// This and all functions which set the data changed flag(s) should be
+// synchronized to avoid thread conficts.  Typically, one thread changes the
+// data while another transmits it to the remotes.
+//
 
-public void shiftDACGatesDown(int pStart)
+public synchronized void shiftDACGatesDown(int pStart)
 {
 
 int newFirstGate = pStart - 1;
@@ -526,7 +540,7 @@ for (int i = newFirstGate; i < stop; i++){
 // data while another transmits it to the remotes.
 //
 
-public void shiftDACGatesUp(int pStart)
+public synchronized void shiftDACGatesUp(int pStart)
 {
 
 int newLastGate = getActiveDACGateCount();
@@ -549,8 +563,12 @@ for (int i = newLastGate; i > pStart; i--){
 //
 // Sets the pixel location values and active flag of the specified DAC gate.
 //
+// This and all functions which set the data changed flag(s) should be
+// synchronized to avoid thread conficts.  Typically, one thread changes the
+// data while another transmits it to the remotes.
+//
 
-public void setDACGatePixelValues(int pGate, int pStart, int pEnd,
+public synchronized void setDACGatePixelValues(int pGate, int pStart, int pEnd,
                                  int pLevel, boolean pActive, boolean pSelected)
 {
 
@@ -1530,16 +1548,20 @@ if (utBoard != null)
 //
 // This and all functions which set the data changed flag(s) should be
 // synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.  The synchronization here
-// is done by the softwareGain object's methods.
+// data while another transmits it to the remotes.
 //
 
-public void setSoftwareGain(double pSoftwareGain, boolean pForceUpdate)
+public synchronized void setSoftwareGain(double pSoftwareGain,
+                                                         boolean pForceUpdate)
 {
 
 if (pSoftwareGain != softwareGain.getDouble()) pForceUpdate = true;
 
-if (pForceUpdate) softwareGain.setDouble(pSoftwareGain);
+if (pForceUpdate) {
+    softwareGain.setDouble(pSoftwareGain);
+    //if the DAC is enabled, all DAC gains must be recalculated and resent
+    if (dacEnabled) udpateDACGains();
+    }
 
 }//end of Channel::setSoftwareGain
 //-----------------------------------------------------------------------------
@@ -1551,11 +1573,10 @@ if (pForceUpdate) softwareGain.setDouble(pSoftwareGain);
 //
 // This and all functions which set the data changed flag(s) should be
 // synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.  The synchronization here
-// is done by the softwareGain object's methods.
+// data while another transmits it to the remotes.
 //
 
-public void sendSoftwareGain()
+public synchronized void sendSoftwareGain()
 {
 
 if (utBoard != null)
@@ -1588,11 +1609,10 @@ return softwareGain.getDouble();
 //
 // This and all functions which set the data changed flag(s) should be
 // synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.  The synchronization here
-// is done by the hardwareGain object's methods.
+// data while another transmits it to the remotes.
 //
 
-public void setHardwareGain(int pHardwareGain1, int pHardwareGain2,
+public synchronized void setHardwareGain(int pHardwareGain1, int pHardwareGain2,
                                                            boolean pForceUpdate)
 {
 
@@ -1615,11 +1635,10 @@ if (pForceUpdate){
 //
 // This and all functions which set the data changed flag(s) should be
 // synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.  The synchronization here
-// is done by the hardwareGain object's methods.
+// data while another transmits it to the remotes.
 //
 
-public void sendHardwareGain()
+public synchronized void sendHardwareGain()
 {
 
 if (utBoard != null) utBoard.sendHardwareGain(boardChannel,
@@ -2725,6 +2744,35 @@ if (pForceUpdate){
     }
 
 }//end of Channel::calculateDACGateTimeLocation
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::updateDACGains
+//
+// Forces all DACs to have their gains recalculated and the new DAC parameters
+// sent to the remote.  This is useful if the master gain has been changed as
+// all DAC gains are relative to that.
+//
+// If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
+// the flag is false, the value(s) will be sent only if they have changed.
+//
+// This and all functions which set the gateParamsChanged flag should be
+// synchronized to avoid thread conficts.  Typically, one thread changes the
+// data while another transmits it to the remotes.
+//
+
+public synchronized void udpateDACGains()
+{
+
+ownerDataChanged.set(true);
+dataChanged.flag = true; dacGateParamsChanged = true;
+
+//set the changed flags true for all gates -- will cause a resend to the
+//remotes -- the resend code recalculates the DAC gains
+
+for (int i = 0; i < numberOfDACGates; i++) dacGates[i].parametersChanged = true;
+
+}//end of Channel::udpateDACGains
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
