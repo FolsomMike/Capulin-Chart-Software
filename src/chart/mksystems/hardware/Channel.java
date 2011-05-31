@@ -1282,7 +1282,10 @@ return rejectLevel;
 // both together.
 //
 
-public void setAScanSmoothing(int pAScanSmoothing, boolean pForceUpdate)
+//debug mks -- need to separate set and send ala software gain
+
+public synchronized void setAScanSmoothing(int pAScanSmoothing,
+                                                        boolean pForceUpdate)
 {
 
 if (pAScanSmoothing != aScanSmoothing) pForceUpdate = true;
@@ -1290,7 +1293,7 @@ if (pAScanSmoothing != aScanSmoothing) pForceUpdate = true;
 aScanSmoothing = pAScanSmoothing;
 
 if (utBoard != null && pForceUpdate)
-    utBoard.setAScanSmoothing(boardChannel, aScanSmoothing);
+                        utBoard.setAScanSmoothing(boardChannel, aScanSmoothing);
 
 //update all gates to update averaging value used by DSPs
 for (int i = 0; i < numberOfGates; i++) gates[i].flagsChanged = true;
@@ -1699,16 +1702,12 @@ for (int i = 0; i < numberOfGates; i++)
 //determine the span from the earliest gate edge to the latest (in time)
 calculateGateSpan();
 
-if (utBoard != null && pForceUpdate){
-    for (int i = 0; i < numberOfGates; i++){
+if (pForceUpdate){
+    for (int i = 0; i < numberOfGates; i++)
         gates[i].setInterfaceTracking(pOn);
-        gates[i].flagsChanged = true;
-        }
 
-    for (int i = 0; i < numberOfDACGates; i++){
+    for (int i = 0; i < numberOfDACGates; i++)
         dacGates[i].setInterfaceTracking(pOn);
-        dacGates[i].flagsChanged = true;
-        }
 
     ownerDataChanged.set(true); dataChanged.flag = true;
     gateFlagsChanged = true; dacGateFlagsChanged = true;
@@ -2363,7 +2362,7 @@ gates[pGate].setSignalProcessing(pMode);
 //flag that new data needs to be sent to remotes
 if (pForceUpdate){
     ownerDataChanged.set(true); dataChanged.flag = true;
-    gateParamsChanged = true; gates[pGate].flagsChanged = true;
+    gateFlagsChanged = true;
     }
 
 }//end of Channel::setGateSigProc
@@ -2643,7 +2642,6 @@ dacGates[pGate].setActive(pValue);
 if (pForceUpdate){
     ownerDataChanged.set(true);
     dataChanged.flag = true; dacGateFlagsChanged = true;
-    dacGates[pGate].flagsChanged = true;
     }
 
 }//end of Channel::setDACActive
@@ -2672,8 +2670,6 @@ dacGates[pDestGate].copyFromGate(pSourceGate);
 //set all appropriate data changed flags
 ownerDataChanged.set(true);
 dataChanged.flag = true; dacGateParamsChanged = true; dacGateFlagsChanged = true;
-dacGates[pDestGate].parametersChanged = true;
-dacGates[pDestGate].flagsChanged = true;
 
 }//end of DACGate::copyGate
 //-----------------------------------------------------------------------------

@@ -30,7 +30,7 @@ import chart.mksystems.inifile.IniFile;
 public class DACGate extends BasicGate{
 
 
-public boolean parametersChanged, flagsChanged;
+boolean doInterfaceTracking = false;
 
 //-----------------------------------------------------------------------------
 // DACGate::DACGate (constructor)
@@ -51,6 +51,37 @@ configure(configFile);
 //sets them active
 
 }//end of DACGate::DACGate (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// DACGate::setFlags
+//
+// Sets the various bits in gateFlags to according to various settings.
+//
+// It is not a public method -- it is manipulated by calling other functions
+// to select the gate type and processing methods.
+//
+// Does not set the flag in the DSP.
+//
+
+void setFlags()
+{
+
+//set the bits common to all gate types
+
+if (gateActive)
+    gateFlags |= GATE_ACTIVE;
+else
+    gateFlags &= (~GATE_ACTIVE);
+
+if (doInterfaceTracking)
+    gateFlags |= GATE_USES_TRACKING;
+else
+    gateFlags &= (~GATE_USES_TRACKING);
+
+flagsChanged = true;
+
+}//end of DACGate::setFlags
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -75,13 +106,13 @@ return gateFlags;
 // Does not set the flag in the DSP.
 //
 
-public void setActive(boolean pValue)
+public void setActive(boolean pOn)
 {
 
-if (pValue)
-    gateFlags |= GATE_ACTIVE;
-else
-    gateFlags &= (~GATE_ACTIVE);
+gateActive = pOn;
+
+//update the flags to reflect the change
+setFlags();
 
 }//end of DACGate::setActive
 //-----------------------------------------------------------------------------
@@ -89,13 +120,13 @@ else
 //-----------------------------------------------------------------------------
 // DACGate::getActive
 //
-// Returns the state of the GATE_ACTIVE bit in the gateFlags variable.
+// Returns the state of the gateActive.
 //
 
 public boolean getActive()
 {
 
-return ((gateFlags & GATE_ACTIVE) != 0) ? true : false;
+return gateActive;
 
 }//end of DACGate::getActive
 //-----------------------------------------------------------------------------
@@ -148,12 +179,20 @@ gatePixEndAdjusted = pSourceGate.gatePixEndAdjusted;
 gateWidth = pSourceGate.gateWidth;
 gateLevel = pSourceGate.gateLevel;
 gatePixLevel = pSourceGate.gatePixLevel;
-gateFlags = pSourceGate.gateFlags;
 
 previousGateStart = pSourceGate.previousGateStart;
 previousGateWidth = pSourceGate.previousGateWidth;
 
 interfaceCrossingPixAdjusted = pSourceGate.interfaceCrossingPixAdjusted;
+
+gateActive = pSourceGate.gateActive;
+doInterfaceTracking = pSourceGate.doInterfaceTracking;
+
+//update the flags to reflect any changes
+setFlags();
+
+//setFlags sets flagsChanged, but must set parametersChanged here
+parametersChanged = true;
 
 }//end of DACGate::copyFromGate
 //-----------------------------------------------------------------------------
@@ -169,10 +208,10 @@ interfaceCrossingPixAdjusted = pSourceGate.interfaceCrossingPixAdjusted;
 public void setInterfaceTracking(boolean pOn)
 {
 
-if (pOn)
-    gateFlags |= GATE_USES_TRACKING;
-else
-    gateFlags &= (~GATE_USES_TRACKING);
+doInterfaceTracking = pOn;
+
+//update the flags to reflect the change
+setFlags();
 
 }//end of DACGate::setInterfaceTracking
 //-----------------------------------------------------------------------------

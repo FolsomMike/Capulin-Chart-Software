@@ -38,6 +38,7 @@ public String title, shortTitle;
 boolean selectedFlag = false;
 
 boolean newDataReady;
+public boolean parametersChanged, flagsChanged;
 
 // NOTE regarding "Adjusted" values:
 //  These are actually to be used for drawing the gates.  An external object
@@ -54,6 +55,7 @@ public int gatePixEndAdjusted = 0;
 public int gatePixMidPoint = 0;
 public int gatePixMidPointAdjusted = 0;
 
+public boolean gateActive;
 double gateWidth = 0;
 int gateLevel = 0;
 public int gatePixLevel = 0;
@@ -64,15 +66,17 @@ double previousGateWidth;
 
 public int interfaceCrossingPixAdjusted = 0;
 
-static int GATE_ACTIVE = 0x01;
-static int GATE_REPORT_NOT_EXCEED = 0x02;
-static int GATE_MAX_MIN = 0x04;
-static int GATE_WALL_START = 0x08;
-static int GATE_WALL_END = 0x10;
-static int GATE_FIND_CROSSING = 0x20;
-static int GATE_USES_TRACKING = 0x40;
-static int GATE_FOR_FLAW = 0x80;
+static int GATE_ACTIVE = 0x0001;
+static int GATE_REPORT_NOT_EXCEED = 0x0002;
+static int GATE_MAX_MIN = 0x0004;
+static int GATE_WALL_START = 0x0008;
+static int GATE_WALL_END = 0x0010;
+static int GATE_FIND_CROSSING = 0x0020;
+static int GATE_USES_TRACKING = 0x0040;
+static int GATE_FIND_PEAK = 0x0080;
 static int GATE_FOR_INTERFACE = 0x0100;
+static int GATE_INTEGRATE_ABOVE_PEAK = 0x0200;
+static int GATE_QUENCH_IF_OVERLIMIT = 0x0400;
 
 // references to point at the controls used to adjust the values - these
 // references are set up by the object which handles the adjusters and used

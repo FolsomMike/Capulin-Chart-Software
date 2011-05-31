@@ -42,13 +42,20 @@ int triggerDirection;
 // versa.
 int peakDirection;
 
-public boolean parametersChanged, hitMissChanged, flagsChanged;
+public boolean hitMissChanged;
 public boolean sigProcThresholdChanged;
 
 boolean isInterfaceGate = false;
 boolean isWallStartGate = false;
 boolean isWallEndGate = false;
 boolean isFlawGate = false;
+boolean maxMin = false;
+boolean doCrossingSearch = false;
+boolean reportNotExceeding = false;
+boolean doInterfaceTracking = false;
+boolean doFindPeak = false;
+boolean doIntegrateAboveGate = false;
+boolean doQuenchOnOverLimit = false;
 
 // Variables chart and trace specify where the data for this gate will be
 // displayed.  If trace is a negative number, the data will not be displayed
@@ -246,6 +253,97 @@ return(p);
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Gate::setFlags
+//
+// Sets the various bits in gateFlags to match the gate type (INTERFACE, FLAW,
+// ETC.) and current processing modes.
+//
+// It is not a public method -- it is manipulated by calling other functions
+// to select the gate type and processing methods.
+//
+// Does not set the flag in the DSP.
+//
+
+void setFlags()
+{
+
+//set the bits common to all gate types
+
+if (gateActive)
+    gateFlags |= GATE_ACTIVE;
+else
+    gateFlags &= (~GATE_ACTIVE);
+
+if (doFindPeak)
+    gateFlags |= GATE_FIND_PEAK;
+else
+    gateFlags &= (~GATE_FIND_PEAK);
+
+if (doIntegrateAboveGate)
+    gateFlags |= GATE_INTEGRATE_ABOVE_PEAK;
+else
+    gateFlags &= (~GATE_INTEGRATE_ABOVE_PEAK);
+
+if (maxMin)
+    gateFlags &= (~GATE_MAX_MIN); //b = 0 for max gate
+else
+    gateFlags |= GATE_MAX_MIN; //b = 1 for min gate
+
+if (isWallStartGate)
+    gateFlags |= GATE_WALL_START;
+else
+    gateFlags &= (~GATE_WALL_START);
+
+if (isWallEndGate)
+    gateFlags |= GATE_WALL_END;
+else
+    gateFlags &= (~GATE_WALL_END);
+
+if (doCrossingSearch)
+    gateFlags |= GATE_FIND_CROSSING;
+else
+    gateFlags &= (~GATE_FIND_CROSSING);
+
+if (isInterfaceGate)
+    gateFlags |= GATE_FOR_INTERFACE;
+else
+    gateFlags &= (~GATE_FOR_INTERFACE);
+
+if (reportNotExceeding)
+    gateFlags |= GATE_REPORT_NOT_EXCEED;
+else
+    gateFlags &= (~GATE_REPORT_NOT_EXCEED);
+
+if (doInterfaceTracking)
+    gateFlags |= GATE_USES_TRACKING;
+else
+    gateFlags &= (~GATE_USES_TRACKING);
+
+if (doQuenchOnOverLimit)
+    gateFlags |= GATE_QUENCH_IF_OVERLIMIT;
+else
+    gateFlags &= (~GATE_QUENCH_IF_OVERLIMIT);
+
+flagsChanged = true;
+
+}//end of Gate::setFlags
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Gate::getFlags
+//
+// Returns the gate's flags.
+//
+
+public int getFlags()
+{
+
+return gateFlags;
+
+}//end of Gate::getFlags
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Gate::getNewData
 //
 // This function prepares data for access. The data value(s) can be accessed in
@@ -313,20 +411,6 @@ return tracePtr;
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::getFlags
-//
-// Returns the gate's flags.
-//
-
-public int getFlags()
-{
-
-return gateFlags;
-
-}//end of Gate::getFlags
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // Gate::setSignalProcessing
 //
 // Sets the signal processing mode.  If the mode is not a valid selection for
@@ -347,6 +431,60 @@ Vector<String> pl = getSigProcList();
 if (!pl.contains(pMode)) pMode = pl.elementAt(0);
 
 signalProcessing = pMode;
+
+// debug mks zzz - set appropriate flags
+
+//boolean doFindPeak = false;
+//boolean doIntegrateAboveGate = false;
+
+if (signalProcessing.equals("peak")){
+    setFindPeak(true);
+    setIntegrateAboveGate(false);
+    return;
+    }
+
+if (signalProcessing.equals("integrate above gate")){
+    setIntegrateAboveGate(true);
+    setFindPeak(false);
+    return;
+    }
+
+if (signalProcessing.equals("ignore bad interface")){
+    setQuenchOnOverLimit(false);
+    setIntegrateAboveGate(false);
+    return;
+    }
+
+// Currently, the "quench on bad interface" option turns on the integrate over
+// gate and the quench on overlimit options.  Thus the quench will be triggered
+// if the integral of the signal above the gate is larger than the trigger
+// value.  As an alternative, the detect peak option (or other future method)
+// could be chosen rather than the integral to use the peak for the trigger
+// value.  The integral makes the most sense for detecting an excessively large
+// interface signal which usually signifies a bad coupling as the energy is
+// reflected at the boundary rather than entering the test piece.
+//
+// If the quench is triggered, all following gates will be ignored.  The
+// quench gate can be the interface gate if it is in use, or any other gate,
+// but will only affect the gates which follow.  Thus, it will be common for
+// the quench gate to be one of the first gates so that it can affect all the
+// following gates.
+
+if (signalProcessing.equals("quench on bad interface")){
+    setQuenchOnOverLimit(true);
+    setIntegrateAboveGate(true);
+    return;
+    }
+
+//add the following later when needed for wall gates -- currently wall gate
+//is handled by DSP with "first crossing" as the default
+//processing options for a wall start/end gate
+//wallGateProcessList.add("first crossing");
+//wallGateProcessList.add("peak");
+//wallGateProcessList.add("midpoint");
+
+//update the flags to reflect the change
+setFlags();
 
 }//end of Gate::setSignalProcessing
 //-----------------------------------------------------------------------------
@@ -428,10 +566,10 @@ return(pl);
 public final void setActive(boolean pValue)
 {
 
-if (pValue)
-    gateFlags |= GATE_ACTIVE;
-else
-    gateFlags &= (~GATE_ACTIVE);
+gateActive = pValue;
+
+//update the flags to reflect the change
+setFlags();
 
 }//end of Gate::setActive
 //-----------------------------------------------------------------------------
@@ -449,10 +587,10 @@ else
 public void setMaxMin(boolean pOn)
 {
 
-if (pOn)
-    gateFlags &= (~GATE_MAX_MIN); //b = 0 for max gate
-else
-    gateFlags |= GATE_MAX_MIN; //b = 1 for min gate
+maxMin = pOn;
+
+//update the flags to reflect the change
+setFlags();
 
 }//end of Gate::setMaxMin
 //-----------------------------------------------------------------------------
@@ -474,10 +612,8 @@ public void setWallStart(boolean pOn)
 
 isWallStartGate = pOn;
 
-if (pOn)
-    gateFlags |= GATE_WALL_START;
-else
-    gateFlags &= (~GATE_WALL_START);
+//update the flags to reflect the change
+setFlags();
 
 }//end of Gate::setWallStart
 //-----------------------------------------------------------------------------
@@ -514,10 +650,8 @@ public void setWallEnd(boolean pOn)
 
 isWallEndGate = pOn;
 
-if (pOn)
-    gateFlags |= GATE_WALL_END;
-else
-    gateFlags &= (~GATE_WALL_END);
+//update the flags to reflect the change
+setFlags();
 
 }//end of Gate::setWallEnd
 //-----------------------------------------------------------------------------
@@ -550,10 +684,10 @@ return isWallEndGate;
 public void setCrossingSearch(boolean pOn)
 {
 
-if (pOn)
-    gateFlags |= GATE_FIND_CROSSING;
-else
-    gateFlags &= (~GATE_FIND_CROSSING);
+doCrossingSearch = pOn;
+
+//update the flags to reflect the change
+setFlags();
 
 }//end of Gate::setCrossingSearch
 //-----------------------------------------------------------------------------
@@ -575,10 +709,8 @@ public void setInterfaceGate(boolean pOn)
 
 isInterfaceGate = pOn;
 
-if (pOn)
-    gateFlags |= GATE_FOR_INTERFACE;
-else
-    gateFlags &= (~GATE_FOR_INTERFACE);
+//update the flags to reflect the change
+setFlags();
 
 }//end of Gate::setInterfaceGate
 //-----------------------------------------------------------------------------
@@ -601,9 +733,8 @@ return isInterfaceGate;
 //-----------------------------------------------------------------------------
 // Gate::setFlawGate
 //
-// Turns the gate signal peak search function flag on or off.  If pOn is
-// true, the gate will be scanned for the greatest signal in the min or max
-// direction depending on the type of gate.
+//
+// Turns the gate flaw type flag on or off.
 //
 // Does not set the flag in the DSP.
 //
@@ -613,10 +744,8 @@ public void setFlawGate(boolean pOn)
 
 isFlawGate = pOn;
 
-if (pOn)
-    gateFlags |= GATE_FOR_FLAW;
-else
-    gateFlags &= (~GATE_FOR_FLAW);
+//update the flags to reflect the change
+setFlags();
 
 }//end of Gate::setFlawGate
 //-----------------------------------------------------------------------------
@@ -637,24 +766,67 @@ return isFlawGate;
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::setReportNonExceeding
+// Gate::setFindPeak
 //
-// Turns the flag on or off for the gate alarm for non-exceeding signals.  If
-// pOn is true, the gate will report instances when the signal did not exceed
-// the gate threshold in the min or max direction depending on the type of gate.
+//
+// Turns the gate signal peak search function flag on or off.  If pOn is
+// true, the gate will be scanned for the greatest signal in the min or max
+// direction depending on the type of gate.
 //
 // Does not set the flag in the DSP.
 //
 
-public void setReportNonExceeding(boolean pOn)
+public void setFindPeak(boolean pOn)
 {
 
-if (pOn)
-    gateFlags |= GATE_REPORT_NOT_EXCEED;
-else
-    gateFlags &= (~GATE_REPORT_NOT_EXCEED);
+doFindPeak = pOn;
 
-}//end of Gate::setReportNonExceeding
+//update the flags to reflect the change
+setFlags();
+
+}//end of Gate::setFindPeak
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Gate::setIntegrateAboveGate
+//
+//
+// Turns the integrate above gate flag on or off.  If pOn is true, the data
+// above the gate level will be integrated for the result.
+//
+// Does not set the flag in the DSP.
+//
+
+public void setIntegrateAboveGate(boolean pOn)
+{
+
+doIntegrateAboveGate = pOn;
+
+//update the flags to reflect the change
+setFlags();
+
+}//end of Gate::setIntegrateAboveGate
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Gate::setQuenchOnOverLimit
+//
+// Turns the flag on or off for the set quench on over limit.  If pOn is
+// true, all gates after this one will be ignored if the value obtained from
+// the gate exceeds a trigger level preset by the host.
+//
+// Does not set the flag in the DSP.
+//
+
+public void setQuenchOnOverLimit(boolean pOn)
+{
+
+doQuenchOnOverLimit = pOn;
+
+//update the flags to reflect the change
+setFlags();
+
+}//end of Gate::setQuenchOnOverLimit
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -665,13 +837,13 @@ else
 // Does not set the flag in the DSP.
 //
 
-public void setInterfaceTracking(boolean pValue)
+public void setInterfaceTracking(boolean pOn)
 {
 
-if (pValue)
-    gateFlags |= GATE_USES_TRACKING;
-else
-    gateFlags &= (~GATE_USES_TRACKING);
+doInterfaceTracking = pOn;
+
+//update the flags to reflect the change
+setFlags();
 
 }//end of Gate::setInterfaceTracking
 //-----------------------------------------------------------------------------
