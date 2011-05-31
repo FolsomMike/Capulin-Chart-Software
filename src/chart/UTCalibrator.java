@@ -170,7 +170,7 @@ if (!ch.getInterfaceTracking()){
 
     for (int i = 0; i < ch.getNumberOfGates(); i++){
         ch.gates[i].adjustPositionsNoTracking();
-        //set to -1 to flag the interface tracking is off -- why is this necessary???
+        //set to -1 to flag the interface tracking is off
         ch.gates[0].interfaceCrossingPixAdjusted = -1;
         }
 
@@ -185,7 +185,7 @@ else{
     //pulse to relative to the left edge of the scope display
     //multiply pInterfaceCrossingPosition by .015 to convert from samples
     //of 15 ns each to total us
-    // need to allow for other gates being the interface???
+    //interface gate MUST be gate 0 for compatibility with DSP code
     
     ch.gates[0].interfaceCrossingPixAdjusted =
      (int)((double)((pInterfaceCrossingPosition * 0.015)
@@ -196,7 +196,7 @@ else{
     //compute all gate start positions relative to the interface crossing
     // do not do this for gate 0 - the interface gate is always positioned
     // absolutely
-    // need to allow for other gates being the interface???
+    //interface gate MUST be gate 0 for compatibility with DSP code
 
     for (int i = 1; i < ch.getNumberOfGates(); i++)
         ch.gates[i].adjustPositionsWithTracking(offset);
