@@ -697,6 +697,7 @@ for (int ch=0; ch<NUMBER_OF_BOARD_CHANNELS; ch++){
         //add in a little random value
         sendShortInt((short)channelPeakSets[ch].peak - (gate * 6)
                                                    + (int)(Math.random()*3));
+
         if (channelPeakSets[ch].peak++ > 100) channelPeakSets[ch].peak = 0;
         //send the flight time for the peak
         sendShortInt((short)channelPeakSets[ch].flightTime);
@@ -708,7 +709,38 @@ for (int ch=0; ch<NUMBER_OF_BOARD_CHANNELS; ch++){
     //if the channel is a wall type, return wall data
     if (channelPeakSets[ch].isWallChannel){
 
+
+        channelPeakSets[ch].flightTime = 1; //debug mks
+
         //add wall code here
+
+        //maximum wall values
+
+        sendShortInt((short)105);  //wall max peak uS distance
+
+        sendShortInt((short)0);  //start fractional distance numerator
+
+        sendShortInt((short)1);  //start fractional distance denominator
+
+        sendShortInt((short)0);  //end fractional distance numerator
+
+        sendShortInt((short)1);  //end fractional distance denominator
+
+        sendShortInt((short)99);  //tracking location of data
+
+        //minimum wall values
+
+        sendShortInt((short)108);  //wall min peak uS distance
+
+        sendShortInt((short)0);  //start fractional distance numerator
+
+        sendShortInt((short)1);  //start fractional distance denominator
+
+        sendShortInt((short)0);  //end fractional distance numerator
+
+        sendShortInt((short)1);  //end fractional distance denominator
+
+        sendShortInt((short)99);  //tracking location of data
 
         }// if (channelPeakDatas[ch].isWallChannel)
 
@@ -789,7 +821,7 @@ mainBangSineAngle = 0;
 for (int i=0; i<400; i++){
 
     simData =
-       (int)((Math.sin(Math.toRadians(mainBangSineAngle++ * angleStep)) * 140));
+       (int)((Math.sin(Math.toRadians(mainBangSineAngle++ * angleStep)) * 50));
 
     //place the data into the aScan buffer as MSB/LSB
     aScan[j++] = (byte)((simData >> 8) & 0xff);

@@ -2277,6 +2277,9 @@ writeFPGAReg(bdChs[pChannel].countReg2, (byte) ((pCount >> 16) & 0xff));
 void sendAScanScale(int pChannel, int pScale)
 {
 
+//protect against divide by zero
+if (pScale < 1) pScale = 1;
+
 // calculate number of output samples to process for a desired number of
 // input samples to be processed -- rounding off is fine
 // for example, if pScale is two then 25 output samples should be processed to

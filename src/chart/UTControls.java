@@ -521,7 +521,7 @@ delaySpin.spinner.addChangeListener(this); //monitor changes to value
 
 //add a panel for Range control
 multiSpinnerPanel.add(rangeSpin =
-  new SpinnerPanel(currentChannel.getRange() * timeDistMult, 0, 273.0,
+  new SpinnerPanel(currentChannel.getRange() * timeDistMult, .1, 273.0,
     timeDistIncrement, timeDistDecimalPlaces, 60, 23, "Range ", timeDistLabel));
 rangeSpin.spinner.addChangeListener(this); //monitor changes to value
 

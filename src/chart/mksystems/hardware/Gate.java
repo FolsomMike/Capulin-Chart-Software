@@ -371,6 +371,14 @@ if (isWallStartGate || isWallEndGate){
     wallThickness = dataPeakD * hdwVs.nSPerDataPoint * hdwVs.velocityNS /
                                                 (hdwVs.numberOfMultiples * 2);
 
+
+    //debug mks -- remove erroneous thick wall spikes
+    //remove this later when better processing added to DSP code
+
+    //if (wallThickness > .220) wallThickness = .220;
+
+    //debug mks
+
     //convert distance to a chart height position
     dataPeak = (int)((wallThickness - hdwVs.nominalWall)
                     / hdwVs.wallChartScale) + hdwVs.nominalWallChartPosition;
