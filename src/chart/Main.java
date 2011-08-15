@@ -111,7 +111,7 @@ try{
                 calWindow.channels[calWindow.currentChannelIndex].channelIndex);
                 }
 
-            }// if (calWindow.isVisible())
+            }// if (calWindow.isActive())
 
         hardware.sendDataChangesToRemotes();
 
@@ -825,10 +825,8 @@ else
     segmentFilename =  "30 - " +
             decimalFormats[0].format(controlPanel.nextCalPieceNumber) + ".cal";
 
-//debug mks -- put this back in
-//saveSegmentHelper(currentJobPrimaryPath + segmentFilename);
-//saveSegmentHelper(currentJobBackupPath + segmentFilename);
-//debug mks
+saveSegmentHelper(currentJobPrimaryPath + segmentFilename);
+saveSegmentHelper(currentJobBackupPath + segmentFilename);
 
 }//end of MainWindow::saveSegment
 //-----------------------------------------------------------------------------

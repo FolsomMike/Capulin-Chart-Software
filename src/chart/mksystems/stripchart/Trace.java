@@ -446,7 +446,7 @@ while (i != lastSegmentEndIndex){
     pOut.write(Integer.toString(dataBuffer1[i])); //save the data set 1
     pOut.newLine();
     //increment to next buffer slot, wrap around because buffer is circular
-    if (i++ == sizeOfDataBuffer) i = 0;
+    if (++i == sizeOfDataBuffer) i = 0;
     }
 
 pOut.write("[End of Set]"); pOut.newLine();
@@ -464,7 +464,7 @@ if (dataBuffer2 != null){
         pOut.write(Integer.toString(dataBuffer2[i])); //save the data set 2
         pOut.newLine();
         //increment to next buffer slot, wrap around because buffer is circular
-        if (i++ == sizeOfDataBuffer) i = 0;
+        if (++i == sizeOfDataBuffer) i = 0;
         }
 
     pOut.write("[End of Set]"); pOut.newLine();
@@ -479,7 +479,7 @@ while (i != lastSegmentEndIndex){
     pOut.write(Integer.toString(flagBuffer[i])); //save the flags
     pOut.newLine();
     //increment to next buffer slot, wrap around because buffer is circular
-    if (i++ == sizeOfDataBuffer) i = 0;
+    if (++i == sizeOfDataBuffer) i = 0;
     }
 
 pOut.write("[End of Set]"); pOut.newLine();
@@ -859,7 +859,7 @@ if (hdwVs.plotStyle == TraceHdwVars.POINT_TO_POINT){
     }
 else if (hdwVs.plotStyle == TraceHdwVars.STICK){
     pVars.y1 = dataBuffer1[pVars.bufPtr];
-    pVars.y2 = dataBuffer1[pVars.bufPtr];
+    pVars.y2 = dataBuffer1[pVars.bufPtr]; //debug mks -- should one of these be zero to draw from the bottom?
     }
 else if (hdwVs.plotStyle == TraceHdwVars.SPAN){
     pVars.y1 = dataBuffer1[pVars.bufPtr];
