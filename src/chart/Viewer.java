@@ -803,15 +803,9 @@ public void itemStateChanged(ItemEvent e)
 
 if (e.getItemSelectable() == controlPanel.calModeCheckBox){
 
-    //if the "View Cal Joints" checkbox is changed, load a new segment
-    //to reflect the change
-
-    //parse the user entry and bail if invalid
-    if (!parseSegmentNumberEntry()) return;
-
-    //load the specified data file
-    loadSegment();
-
+    //load the last file saved -- either info or cal
+    loadFirstOrLastAvailableSegment(LAST);
+    
     }// if (e.getItemSelectable() == statusPanel.calModeCheckBox)
 
 }//end of ViewerPanel::itemStateChanged
