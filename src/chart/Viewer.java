@@ -64,7 +64,7 @@ JobInfo jobInfo;
 int numberOfChartGroups;
 ChartGroup[] chartGroups;
 
-String jobPrimaryPath, currentWorkOrder;
+String jobPrimaryPath, jobBackupPath, currentWorkOrder;
 
 DecimalFormat[] decimalFormats;
 int currentSegmentNumber;
@@ -78,6 +78,8 @@ SegmentFileFilter segmentFileFilter;
 
 Vector<String> segmentList;
 
+PieceInfo pieceIDInfo;
+
 static int FIRST = 0;
 static int LAST = 1;
 
@@ -86,7 +88,7 @@ static int LAST = 1;
 //
 
 public Viewer(Globals pGlobals, JobInfo pJobInfo, String pJobPrimaryPath,
-                                                    String pCurrentWorkOrder)
+                            String pJobBackupPath, String pCurrentWorkOrder)
 {
 
 super("Viewer");
@@ -102,7 +104,8 @@ try {
 catch (Exception e) {}
 
 globals = pGlobals; jobInfo = pJobInfo;
-jobPrimaryPath = pJobPrimaryPath; currentWorkOrder = pCurrentWorkOrder;
+jobPrimaryPath = pJobPrimaryPath; jobBackupPath = pJobBackupPath;
+currentWorkOrder = pCurrentWorkOrder;
 
 setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
@@ -135,8 +138,14 @@ pack();
 //must do this before loading data as this resets the buffers
 handleSizeChanges();
 
+//create an object to hold info about each piece
+pieceIDInfo = new PieceInfo(this, jobPrimaryPath, jobBackupPath,
+                                                      currentWorkOrder, this);
+
 //load the last file saved - this is the most likely to be viewed
 loadFirstOrLastAvailableSegment(LAST);
+
+pieceIDInfo.setVisible(true); //debug mks
 
 //pack again to hide charts which are set hidden in the segment data file
 pack();
@@ -877,6 +886,10 @@ if ("Print".equals(e.getActionCommand())) {
     startPrint();
     }
 
+if ("Show Info Details".equals(e.getActionCommand())){
+    pieceIDInfo.setVisible(true);
+    }
+
 }//end of Viewer::actionPerformed
 //-----------------------------------------------------------------------------
 
@@ -919,7 +932,8 @@ pack();
 //-----------------------------------------------------------------------------
 // Viewer::loadSegment
 //
-// Loads the data for a segment from the primary job folder.
+// Loads the data for a segment from the primary job folder.  The piece info
+// is also loaded from the associated info file.
 //
 // This function should be called whenever a new segment is loaded for
 // viewing or processing - each segment could represent a piece being monitored,
@@ -939,18 +953,21 @@ resetChartGroups();
 //controls the order in which the types are listed when the folder is viewed
 //in alphabetical order in an explorer window
 
-String prefix, ext;
+String prefix, ext, infoExt;
 
 prefix = controlPanel.calModeCheckBox.isSelected() ? "30 - " : "20 - ";
 ext = controlPanel.calModeCheckBox.isSelected() ? ".cal" : ".dat";
+infoExt = controlPanel.calModeCheckBox.isSelected() ? ".cal info" : ".info";
 
 controlPanel.segmentEntry.setText(currentSegmentNumber + ext);
 
 segmentFilename = prefix +
-                        decimalFormats[0].format(currentSegmentNumber) + ext;
+                        decimalFormats[0].format(currentSegmentNumber);
 
-
-loadSegmentHelper(jobPrimaryPath + segmentFilename);
+//load the graph data
+loadSegmentHelper(jobPrimaryPath + segmentFilename + ext);
+//load piece info
+loadInfoHelper(jobPrimaryPath + segmentFilename + infoExt);
 
 repaint();
 
@@ -1009,6 +1026,21 @@ finally{
     }
 
 }//end of Viewer::loadSegmentHelper
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Viewer::loadInfoHelper
+//
+// Loads the info for a segment from the specified file.  See the loadSegment
+// function for more info.
+//
+
+private void loadInfoHelper(String pFilename)
+{
+
+pieceIDInfo.loadData(pFilename);    
+    
+}//end of Viewer::loadInfoHelper
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1354,6 +1386,14 @@ infoPanel.add(new JLabel(" Job #: "));
 jobValue = new JLabel(currentWorkOrder);
 infoPanel.add(jobValue);
 add(infoPanel);
+
+//add a spacer to separate
+infoPanel.add(Box.createRigidArea(new Dimension(15,0))); //horizontal spacer
+
+JButton infoDetails;
+infoPanel.add(infoDetails = new JButton("Details"));
+infoDetails.setActionCommand("Show Info Details");
+infoDetails.addActionListener(actionListener);
 
 add(Box.createHorizontalGlue()); //spread the panels
 

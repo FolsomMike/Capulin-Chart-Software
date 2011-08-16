@@ -63,7 +63,7 @@ JMenuItem reportTallyMenuItem;
 JMenuItem reportFinalMenuItem;
 
 JMenu viewMenu;
-JMenuItem viewSegmentMenuItem;
+JMenuItem viewSegmentMenuItem, viewIDInfoMenuItem;
 
 JMenu optionsMenu, chartMenu;
 JCheckBoxMenuItem restartNewPieceAtLeftEdgeMenuCheck;
@@ -280,7 +280,7 @@ viewMenu.setMnemonic(KeyEvent.VK_V);
 viewMenu.setToolTipText("View");
 add(viewMenu);
 
-//View/View Saved segment
+//View/View Saved Segment
 viewSegmentMenuItem = new JMenuItem("View Chart of a Completed " +
                                                     globals.pieceDescription);
 viewSegmentMenuItem.setMnemonic(KeyEvent.VK_C);
@@ -288,6 +288,14 @@ viewSegmentMenuItem.setToolTipText("View chart of a completed " +
                                             globals.pieceDescriptionLC + ".");
 viewSegmentMenuItem.addActionListener(pGlobals);
 viewMenu.add(viewSegmentMenuItem);
+
+//View/View/Edit Identifier Info
+viewIDInfoMenuItem = new JMenuItem("View / Edit Identifier Info");
+viewIDInfoMenuItem.setMnemonic(KeyEvent.VK_I);
+viewIDInfoMenuItem.setToolTipText("View and edit the identifier info for each "
+                                            + globals.pieceDescriptionLC + ".");
+viewIDInfoMenuItem.addActionListener(pGlobals);
+viewMenu.add(viewIDInfoMenuItem);
 
 //Options\Language submenu and items
 //languageMenu = new JMenu("Language");

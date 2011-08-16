@@ -63,6 +63,10 @@ boolean unused2Flag = false;
 boolean unused3Flag = false;
 byte controlPortA, controlPortE;
 
+//number of counts each encoder moves to trigger an inspection data packet
+//these values are read later from the config file
+int encoder1DeltaTrigger, encoder2DeltaTrigger;
+
 //Commands for Control boards
 //These should match the values in the code for those boards.
 
@@ -517,15 +521,6 @@ sendBytes2(TURN_OFF_OUTPUT_CMD, (byte) 0);
 public void setEncodersDeltaTrigger()
 {
 
-//debug mks -- read these values from config file
-
-int encoder1DeltaTrigger = 1000;
-//int encoder2DeltaTrigger = 553; //counts per tenth of a foot
-
-int encoder2DeltaTrigger = 174; //counts per tenth of a foot debug mks -- for test
-
-//debug mks end
-
 sendBytes5(SET_ENCODERS_DELTA_TRIGGER_CMD,
             (byte)((encoder1DeltaTrigger >> 8) & 0xff),
             (byte)(encoder1DeltaTrigger & 0xff),
@@ -830,6 +825,13 @@ private void configure(IniFile pConfigFile)
 
 inBuffer = new byte[RUNTIME_PACKET_SIZE];
 outBuffer = new byte[RUNTIME_PACKET_SIZE];
+
+
+encoder1DeltaTrigger = 
+          pConfigFile.readInt("Hardware", "Encoder 1 Delta Count Trigger", 553);
+
+encoder2DeltaTrigger = 
+          pConfigFile.readInt("Hardware", "Encoder 2 Delta Count Trigger", 553);
 
 }//end of ControlBoard::configure
 //-----------------------------------------------------------------------------

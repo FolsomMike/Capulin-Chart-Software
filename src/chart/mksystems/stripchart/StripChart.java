@@ -1386,14 +1386,11 @@ if (displayComputedAtCursor)
                             hardware.calculateComputedValue1(e.getY()), false);
 
 //convert linear x cursor position to really world feet & inches
-//wip mks -- need to determine scale from config rather than hard coding
-
-//for the Tubo test, setup to return inspect packet once every .25"
-//screen scaled two pixels per packet, 1 pixel = .125"
+//wip mks -- need to determine scale from user cal settings rather than hard coding
 
 if (displayLinearPositionAtCursor)
     linearPositionAtCursor.updateDouble((Graphics2D)getGraphics(),
-                                                (e.getX() * 0.0125), false);
+                                                (e.getX() * 0.1), false);
 
 }//end of StripChart::mouseMoved
 //-----------------------------------------------------------------------------

@@ -63,6 +63,7 @@ byte portA = 0, portE = 0;
 
 int delayToOnPipe = 1000;
 int delayToInspect = 1000;
+int lengthTrack;
 
 public static int DELAY_BETWEEN_INSPECT_PACKETS = 10;
 int delayBetweenPackets = DELAY_BETWEEN_INSPECT_PACKETS;
@@ -240,20 +241,35 @@ else{
 	return(-1);
 	}
 
+resetAll();
 
-onPipeFlag = false;
-delayingToOnPipe = true;
-inspectFlag = false;
-encoder1 = 0; encoder2 = 0;
-inspectPacketCount = 0;
-
-delayToOnPipe = 1;
-delayBetweenPackets = DELAY_BETWEEN_INSPECT_PACKETS;
 inspectMode = true;
 
 return(bytesRead);
 
 }//end of ControlSimulator::startInpsect
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlSimulator::resetAll
+//
+// Resets all variables in preparation to simulate a new piece.
+//
+
+void resetAll()
+{
+
+onPipeFlag = false;
+delayingToOnPipe = true;
+delayingToInspect = false;
+inspectFlag = false;
+encoder1 = 0; encoder2 = 0;
+inspectPacketCount = 0;
+
+delayToOnPipe = 10;
+delayBetweenPackets = DELAY_BETWEEN_INSPECT_PACKETS;
+
+}//end of ControlSimulator::resetAll
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -305,14 +321,15 @@ delayBetweenPackets = DELAY_BETWEEN_INSPECT_PACKETS;
 
 inspectPacketCount++; //count packets sent to host
 
-//after timeout, simulate head reaching end of tube by setting flag
+//after timeout, simulate head reaching beginning of tube by setting flag
 if (delayingToOnPipe){
     if (delayToOnPipe != 0){delayToOnPipe--;}
     else {
         onPipeFlag = true;
         delayingToOnPipe = false;
         delayingToInspect = true;
-        delayToInspect = 300;
+        delayToInspect = 10;
+        lengthTrack = 300;
         }
     }
 
@@ -325,6 +342,15 @@ if (delayingToInspect){
         delayingToInspect = false;
         }
     }
+
+//if on pipe, use counter to trigger a simulated end of the piece
+if (onPipeFlag){
+    if (lengthTrack != 0){lengthTrack--;}
+    else {
+        resetAll();
+        } 
+    }
+
 
 //start with all port inputs set to 1
 portA = (byte)0xff; portE = (byte)0xff;

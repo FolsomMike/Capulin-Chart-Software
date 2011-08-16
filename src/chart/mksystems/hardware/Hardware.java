@@ -1133,16 +1133,18 @@ return(newPositionData);
 // a set amount of encoder counts to reach the next array position as specified
 // by the calibration value in the configuration file.
 //
-// This function is used for SCAN or INSPECT_WITH_TIMER_TRACKING mode: the
-// nextIndex pointer is incremented with each call forcing the traces to
-// "free run" across the screen regardless of encoder data input.
-//
 
 boolean collectEncoderDataInspectMode()
 {
 
 //do nothing until a new Inspect packet is ready
 if (!analogDriver.getNewInspectPacketReady()) return false;
+
+
+//debug mks -- could a new packet be received between the above line and the
+//setting of the flag below -- miss a packet? -- packet processing in this
+//same thread then no prob -- different thread, then problem
+
 
 //ignore further calls to this function until a new packet is received
 analogDriver.setNewInspectPacketReady(false);
@@ -1156,18 +1158,26 @@ analogDriver.getInspectControlVars(inspectCtrlVars);
 //until the head is on the pipe or pipe enters the system before moving the
 //traces
 
-//if waiting for pipe clear of system, do nothing until flag says true
+//if waiting for piece clear of system, do nothing until flag says true
 if (hdwVs.waitForOffPipe){
     if (inspectCtrlVars.onPipeFlag) return false;
     else {hdwVs.waitForOffPipe = false; hdwVs.waitForOnPipe = true;}
     }
 
-//if waiting for to enter the head, do nothing until flag says true
+//if waiting for piece to enter the head, do nothing until flag says true
 if (hdwVs.waitForOnPipe){
     if (!inspectCtrlVars.onPipeFlag) return false;
     else {
-        hdwVs.waitForOnPipe = false;
+        hdwVs.waitForOnPipe = false; hdwVs.watchForOffPipe = true;
         initializeTraceOffsetDelays(inspectCtrlVars.encoder2FwdDirection);
+        }
+    }
+
+//watch for piece to exit head
+if (hdwVs.watchForOffPipe){
+    if (!inspectCtrlVars.onPipeFlag){
+        //set flag to force preparation for a new piece
+        globals.prepareForNewPiece = true;
         }
     }
 
@@ -1230,14 +1240,14 @@ for (int ch = 0; ch < numberOfChannels; ch++){
                 continue;
                 }
 
-            for (int x = 0; x<2; x++){
+        //debug mks    for (int x = 0; x<2; x++){
                 tracePtr.beingFilledSlot++;
 
                 //the buffer is circular - start over at beginning
                 if (tracePtr.beingFilledSlot == tracePtr.sizeOfDataBuffer)
                     tracePtr.beingFilledSlot = 0;
 
-                }//for (int x = 0; x<4; x++){
+        //debug mks        }//for (int x = 0; x<4; x++){
             }
         }// for (int g = 0; g < numberOfGates; g++)
     }// for (int ch = 0; ch < numberOfChannels; ch++)

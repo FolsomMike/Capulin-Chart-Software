@@ -44,6 +44,7 @@ public double velocityShearUS, velocityShearNS;
 boolean waitForOffPipe = false;
 boolean waitForOnPipe = false;
 boolean waitForInspectStart = false;
+boolean watchForOffPipe = false;
 
 }//end of class HardwareVars
 //-----------------------------------------------------------------------------

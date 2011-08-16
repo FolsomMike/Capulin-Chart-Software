@@ -157,6 +157,10 @@ public String backupFolderName =  "";
 // 1: copies currently selected channel to all other channels for all charts
 public int copyToAllMode;
 
+//set by the Hardware class to signal for preparations to process a new piece
+public boolean prepareForNewPiece;
+
+
 //-----------------------------------------------------------------------------
 // Globals::Globals (constructor)
 //
@@ -364,6 +368,13 @@ if (source.getActionCommand().equalsIgnoreCase("Status")){
 //calls function in Main
 if (source.getActionCommand().startsWith("View Chart of a Completed")){
     actionListener.actionPerformed(new ActionEvent(this, 1, "Open Viewer"));
+    return;
+    }
+
+//calls function in Main
+if (source.getActionCommand().startsWith("View / Edit Identifier Info")){
+    actionListener.actionPerformed(new ActionEvent(
+                                               this, 1, "Show ID Info Window"));
     return;
     }
 

@@ -176,6 +176,7 @@ Hardware hardware;
 
 Log logWindow;
 JobInfo jobInfo;
+PieceInfo pieceIDInfo;
 Debugger debugger;
 UTCalibrator calWindow;
 Monitor monitorWindow;
@@ -498,6 +499,10 @@ try {
 
 //create an object to hold job info
 jobInfo = new JobInfo(mainFrame, currentJobPrimaryPath,
+                                currentJobBackupPath, currentJobName, this);
+
+//create an object to hold info about each piece
+pieceIDInfo = new PieceInfo(mainFrame, currentJobPrimaryPath,
                                 currentJobBackupPath, currentJobName, this);
 
 //create a window for displaying messages
@@ -828,6 +833,20 @@ else
 saveSegmentHelper(currentJobPrimaryPath + segmentFilename);
 saveSegmentHelper(currentJobBackupPath + segmentFilename);
 
+
+//save the info file for each segment
+//this is info which can be modified later such as heat, lot, id number, etc.
+
+if (!controlPanel.calMode)
+    segmentFilename = "20 - " +
+               decimalFormats[0].format(controlPanel.nextPieceNumber) + ".info";
+else
+    segmentFilename =  "30 - " +
+        decimalFormats[0].format(controlPanel.nextCalPieceNumber) + ".cal info";
+
+saveSegmentInfoHelper(currentJobPrimaryPath + segmentFilename);
+saveSegmentInfoHelper(currentJobBackupPath + segmentFilename);
+
 }//end of MainWindow::saveSegment
 //-----------------------------------------------------------------------------
 
@@ -887,6 +906,75 @@ finally{
     }
 
 }//end of MainWindow::saveSegmentHelper
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainWindow::saveSegmentInfoHelper
+//
+// Saves the non-inspection data for a segment to the specified file.  See the
+// saveSegment function for more info.
+//
+// Each piece saved has a *.dat file containing the graph data and a *.info
+// file containing info such as joint number, id number, heat number, lot
+// number, etc.
+//
+// In general, data which should never be changed in the future is all saved in
+// the *.dat file -- graph data, calibration data, etc.
+//
+// Data which might need to be modified later is stored in the *.info file.
+//
+
+private void saveSegmentInfoHelper(String pFilename)
+{
+
+//create a buffered writer stream
+
+FileOutputStream fileOutputStream = null;
+OutputStreamWriter outputStreamWriter = null;
+BufferedWriter out = null;
+
+try{
+
+    fileOutputStream = new FileOutputStream(pFilename);
+    outputStreamWriter = new OutputStreamWriter(fileOutputStream, "UTF-16LE");
+    out = new BufferedWriter(outputStreamWriter);
+
+    //write a warning note at the top of the file
+
+    out.newLine();
+    out.write(";Do not erase blank line above -"
+               + " has hidden code needed by UTF-16 files.");
+    out.newLine(); out.newLine();
+
+    //write the header information - this portion can be read by the iniFile
+    //class which will only read up to the "[Header End]" tag - this allows
+    //simple parsing of the header information while ignoring the data stream
+    //which  follows the header
+
+    out.write("[MetaData]"); out.newLine();
+    out.newLine();
+    out.write("Segment Data Version=" + Globals.SEGMENT_DATA_VERSION);
+    out.newLine();
+    out.newLine();
+    out.write("[MetaData End]"); out.newLine(); out.newLine();
+
+    out.newLine();
+
+    //allow the pieceInfo object to save its data to the file
+    pieceIDInfo.saveDataToStream(out);
+        
+    }
+catch(IOException e){}
+finally{
+    try{if (out != null) out.close();}
+    catch(IOException e){}
+    try{if (outputStreamWriter != null) outputStreamWriter.close();}
+    catch(IOException e){}
+    try{if (fileOutputStream != null) fileOutputStream.close();}
+    catch(IOException e){}
+    }
+
+}//end of MainWindow::saveSegmentInfoHelper
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -980,7 +1068,8 @@ if ("Open Viewer".equals(e.getActionCommand())) {
     Viewer viewer;
 
     if(isConfigGoodA()) viewer =
-            new Viewer(globals, jobInfo, currentJobPrimaryPath, currentJobName);
+            new Viewer(globals, jobInfo, currentJobPrimaryPath, 
+                                        currentJobBackupPath, currentJobName);
     return;
     }
 
@@ -1000,6 +1089,12 @@ if ("Debugger".equals(e.getActionCommand())) {
 //this part handles opening the Job Info window
 if ("Job Info".equals(e.getActionCommand())) {
     if(isConfigGoodA()) jobInfo.setVisible(true);
+    return;
+    }
+
+//this part handles opening the piece Identifier Info window
+if ("Show ID Info Window".equals(e.getActionCommand())) {
+    if(isConfigGoodA()) pieceIDInfo.setVisible(true);
     return;
     }
 
@@ -1062,39 +1157,18 @@ if (e.getActionCommand().startsWith("Open Calibration Window")) {
     return;
     }
 
+//prepare for the next piece to be inspected
+if ("Prepare for Next Piece".equals(e.getActionCommand())) {
+    prepareForNextPiece();
+    return;
+    }
+
 //this part processes a finished piece by saving data, adjusting next piece
 //number, etc.
 if ("Process finished Piece".equals(e.getActionCommand())) {
-
-    //if an inspection was started, save the data and increment to the next
-    //piece number - if an inspection was not started, ignore so that the
-    //piece number is not incremented needlessly when the user clicks "Stop"
-    //or "Next Run" without having inspected a piece
-
-    if (segmentStarted()){
-
-        markSegmentEnd();  //mark the buffer location of the end of the segment
-
-        //if data paths are good, save the data for the segment
-        if(isConfigGoodA()) saveSegment();
-
-        //increment the next piece or next cal piece number
-        controlPanel.incrementPieceNumber();
-
-        }
-
+    processFinishedPiece();
     return;
     }// if ("Process finished Piece".equals(e.getActionCommand()))
-
-//prepare for the next piece to be inspected
-//if so configured, reset all traces to begin at the left edge of the chart,
-// otherwise new piece will be appended to right end of traces and the chart
-// will scroll to display new data
-if ("Prepare for Next Piece".equals(e.getActionCommand())) {
-    if (globals.restartNewPieceAtLeftEdge) resetChartGroups();
-    markSegmentStart();
-    return;
-    }
 
 //this part handles displaying the "About" window
 if ("About".equals(e.getActionCommand())) {
@@ -1106,6 +1180,78 @@ if ("About".equals(e.getActionCommand())) {
 if ("Timer".equals(e.getActionCommand())) processMainTimerEvent();
 
 }//end of MainWindow::actionPerformed
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainWindow::processFinishedPiece
+//
+// Process a completed piece by saving it, analyzing it, etc.
+//
+
+public void processFinishedPiece()
+{
+
+//if an inspection was started, save the data and increment to the next
+//piece number - if an inspection was not started, ignore so that the
+//piece number is not incremented needlessly when the user clicks "Stop"
+//or "Next Run" without having inspected a piece
+
+if (segmentStarted()){
+
+    markSegmentEnd();  //mark the buffer location of the end of the segment
+
+    //if data paths are good, save the data for the segment
+    if(isConfigGoodA()) saveSegment();
+
+    //increment the next piece or next cal piece number
+    controlPanel.incrementPieceNumber();
+
+    }
+    
+}//end of MainWindow::processFinishedPiece
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainWindow::prepareForNextPiece
+//
+// Prepare to process a new piece.
+//
+
+public void prepareForNextPiece()
+{
+
+//if so configured, reset all traces to begin at the left edge of the chart,
+// otherwise new piece will be appended to right end of traces and the chart
+// will scroll to display new data
+
+if (globals.restartNewPieceAtLeftEdge) resetChartGroups();
+
+//mark the starting point of a new piece in the data buffers
+markSegmentStart();    
+    
+}//end of MainWindow::prepareForNextPiece
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainWindow::handlePieceTransition
+//
+// Saves the data for the piece just processed and prepares to process a new
+// piece.
+//
+
+public void handlePieceTransition()
+{
+
+//save the piece just finished
+processFinishedPiece();    
+    
+//prepare buffers for next piece
+prepareForNextPiece();    
+
+//prepare hardware interface for new piece 
+hardware.setMode(Hardware.INSPECT);
+
+}//end of MainWindow::handlePieceTransition
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1507,6 +1653,13 @@ if (globals.exitProgram) {
 
     }
 
+//if the hardware interface has received an end of piece signal, save the
+//finished piece and prepare for the next one
+if (globals.prepareForNewPiece){
+    globals.prepareForNewPiece = false;
+    handlePieceTransition();
+    }
+    
 //plot data on the graphs - if no data is being collected by the hardware
 //because it is not in scan or inspect mode, then nothing will be plotted
 doScan();
