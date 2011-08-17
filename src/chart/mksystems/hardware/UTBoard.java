@@ -3989,6 +3989,17 @@ for (int h=0; h < pNumberOfChannels; h++){
         int wallMinTrack =
                  (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
 
+// NOTE -- CODE BEING DROPPED IN NEXT VERSION
+// This version worked with the DSP code version which used fractional math
+// to improve the accuracy of the wall thickness.
+// The next version will not use this math as we have the required accuracy
+// without it.
+//
+// This version is checked into Git with the tag 
+// VersionWithFractionalMathForThickness.  The corresponding DSP version is
+// checked in with the same tag.
+//
+
         //calculate distance between the crossing points in the starting and
         //ending wall gates
         // append the whole number distance in wallMinPeak1, to the fractional
