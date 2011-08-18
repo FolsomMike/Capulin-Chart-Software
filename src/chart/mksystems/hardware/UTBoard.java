@@ -105,6 +105,8 @@ int getAScanTimeOut = 0, GET_ASCAN_TIMEOUT = 50;
 int getPeakDataTimeOut = 0, GET_PEAK_DATA_TIMEOUT = 50;
 
 
+double prevMinThickness, prevMaxThickness;
+
 /*
 // 5Mhz center pass, 6 order, 31 tap 4Mhz & 6 Mhz cutoff
 int[] firCoef = {
@@ -3939,6 +3941,11 @@ for (int h=0; h < pNumberOfChannels; h++){
         //some of these values may never be negative, but they are handled
         //as signed for the sake of consistency
 
+        // Note that StartNum, StartDen, EndNum, and EndDen are no longer
+        // used as the fractional math has been abandonded.
+        // See Git commit tag VersionWithFractionalMathForThickness in the
+        // Java and DSP code archives for version which used fractional math.
+        
         int wallMaxPeak =
                  (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
 
@@ -3957,19 +3964,25 @@ for (int h=0; h < pNumberOfChannels; h++){
         int wallMaxTrack =
                  (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
 
-        //calculate distance between the crossing points in the starting and
-        //ending wall gates
-        // append the whole number distance in wallMaxPeak1, to the fractional
-        // part from the end gate, then subtract the fractional part from the
-        // start gate to get the total distance
-
-        double maxThickness = (double)wallMaxPeak
-                + ((double)wallMaxEndNum / (double)wallMaxEndDen)
-                - ((double)wallMaxStartNum / (double)wallMaxStartDen);
-
+        double maxThickness = (double)wallMaxPeak;
+        
+        //if the max value returns as minimum int, then the wall reading is
+        //invalid (missed interface or echo, etc.)  use the previous reading
+        //instead -- if value is good then save as the previous value
+        
+        if (maxThickness == -32768)
+            maxThickness = prevMaxThickness;
+        else
+            prevMaxThickness = maxThickness;
+                
         //store the max peak - overwrites info saved for this gate above
         //debug mks - gates[1] should use the wallStartGate specified by user
         bdChs[channel].gates[1].storeNewDataD(maxThickness, wallMaxTrack);
+
+        // Note that StartNum, StartDen, EndNum, and EndDen are no longer
+        // used as the fractional math has been abandonded.
+        // See Git commit tag VersionWithFractionalMathForThickness in the
+        // Java and DSP code archives for version which used fractional math.
 
         int wallMinPeak =
                  (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
@@ -3989,27 +4002,17 @@ for (int h=0; h < pNumberOfChannels; h++){
         int wallMinTrack =
                  (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
 
-// NOTE -- CODE BEING DROPPED IN NEXT VERSION
-// This version worked with the DSP code version which used fractional math
-// to improve the accuracy of the wall thickness.
-// The next version will not use this math as we have the required accuracy
-// without it.
-//
-// This version is checked into Git with the tag 
-// VersionWithFractionalMathForThickness.  The corresponding DSP version is
-// checked in with the same tag.
-//
+        double minThickness = (double)wallMinPeak;
 
-        //calculate distance between the crossing points in the starting and
-        //ending wall gates
-        // append the whole number distance in wallMinPeak1, to the fractional
-        // part from the end gate, then subtract the fractional part from the
-        // start gate to get the total distance
-
-        double minThickness = (double)wallMinPeak
-                + ((double)wallMinEndNum / (double)wallMinEndDen)
-                - ((double)wallMinStartNum / (double)wallMinStartDen);
-
+        //if the min value returns as max int, then the wall reading is
+        //invalid (missed interface or echo, etc.)  use the previous reading
+        //instead -- if value is good then save as the previous value
+        
+        if (minThickness == 32767)
+            minThickness = prevMinThickness;
+        else
+            prevMinThickness = minThickness;
+                
         //store the min peak - overwrites info saved for this gate above
         //debug mks - gates[2] should use the wallEndGate specified by user
         bdChs[channel].gates[2].storeNewDataD(minThickness, wallMinTrack);
