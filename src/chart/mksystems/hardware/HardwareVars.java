@@ -46,6 +46,31 @@ boolean waitForOnPipe = false;
 boolean waitForInspectStart = false;
 boolean watchForOffPipe = false;
 
+//used to track count from photo eye clear to end of piece
+public int endOfPieceTracker;
+public boolean trackToEndOfPiece;
+public int endOfPiecePosition = 210; //NOTE: load this from config file
+
+
+public boolean nearStartOfPiece;
+public int nearStartOfPieceTracker;
+//position is distance from start of piece for which modifier is to be applied
+public int nearStartOfPiecePosition = 350; //NOTE: load this from config file
+
+public boolean nearEndOfPiece;
+public int nearEndOfPieceTracker;
+//position is distance from photo eye clear signal to location where modifier
+//is to be applied until the end of the pipe
+public int nearEndOfPiecePosition = 1; //NOTE: load this from config file
+public boolean trackToNearEndofPiece;
+
+
+//these are used to transfer values from gates specified in the configuration
+//file -- the values are used to modify the wall traces so that a flaw gate
+//can create a spike on the wall trace(s)
+public int wallMaxModifier;
+public int wallMinModifier;
+
 }//end of class HardwareVars
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------    

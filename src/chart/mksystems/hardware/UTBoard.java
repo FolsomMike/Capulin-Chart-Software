@@ -45,6 +45,7 @@ int pulseDelay;
 int numberOfBanks;
 int reSyncCount = 0, reSyncDSPChip, reSyncDSPCore, reSyncPktID, reSyncDSPMsgID;
 boolean syncSource;
+HardwareVars hdwVs;
 
 //ASCAN_MAX_HEIGHT and SIGNAL_SCALE should be changed to variables
 //which can be initialized and or adjusted
@@ -484,10 +485,11 @@ boolean reSynced;
 //
 
 public UTBoard(String pConfigFilename, String pBoardName, int pBoardIndex,
-                                            boolean pSimulate, JTextArea pLog)
+                     boolean pSimulate, JTextArea pLog, HardwareVars pHdwVs)
 {
 
 configFilename = pConfigFilename;
+hdwVs = pHdwVs;
 
 //if the ini file cannot be opened and loaded, continue on - values will default
 try {configFile = new IniFile(configFilename);}
@@ -3933,6 +3935,14 @@ for (int h=0; h < pNumberOfChannels; h++){
         bdChs[channel].gates[i].storeNewData(peak, 0, 0, 0,
                 peakFlags, peakFlightTime, peakTrack, pEncoder1, pEncoder2);
 
+        //if the channel has been configured to modify the wall, then save
+        //the data so that it can be used to modify the wall elsewhere
+        if (bdChs[channel].gates[i].modifyWall){    
+            //store the value if it is greater than the stored peak
+            if (peak > hdwVs.wallMinModifier)
+                hdwVs.wallMinModifier = peak;
+            }
+        
         }// for (int i=0; i < numberOfGates; i++)
 
     if (bdChs[channel].isWallChannel){
@@ -4003,15 +4013,25 @@ for (int h=0; h < pNumberOfChannels; h++){
                  (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
 
         double minThickness = (double)wallMinPeak;
-
+        
         //if the min value returns as max int, then the wall reading is
         //invalid (missed interface or echo, etc.)  use the previous reading
         //instead -- if value is good then save as the previous value
         
         if (minThickness == 32767)
             minThickness = prevMinThickness;
-        else
+        else {
+            //if the modifier value is over the threshold, then modify the
+            //wall trace with it
+            //NOTE: need to add the threshold to the config file so it is
+            // programmable.
+            if ((hdwVs.nearStartOfPiece || hdwVs.nearEndOfPiece)
+                                            && hdwVs.wallMinModifier > 30) {
+                minThickness -= hdwVs.wallMinModifier;
+                hdwVs.wallMinModifier = Integer.MIN_VALUE;
+                }
             prevMinThickness = minThickness;
+            }
                 
         //store the min peak - overwrites info saved for this gate above
         //debug mks - gates[2] should use the wallEndGate specified by user

@@ -783,6 +783,18 @@ if (opMode == Hardware.INSPECT){
     //pipe is in the system
     hdwVs.waitForOffPipe = true;
 
+    //track from photo eye clear to end of pipe
+    hdwVs.trackToEndOfPiece = false;
+    
+    //use a flag and a tracking counter to indicate when head is still near
+    //the beginning of the piece
+    hdwVs.nearStartOfPiece = true;
+    hdwVs.nearStartOfPieceTracker = hdwVs.nearStartOfPiecePosition;
+    
+    //flags set true later when end of pipe is near
+    hdwVs.trackToNearEndofPiece = false;
+    hdwVs.nearEndOfPiece = false;
+    
     //ignore the Inspect status flags until a new packet is received
     controlBoards[0].setNewInspectPacketReady(false);
 
@@ -1336,7 +1348,7 @@ if (numberOfUTBoards > 0){
 
     for (int i = 0; i < numberOfUTBoards; i++)
        utBoards[i] = new UTBoard(configFile.filename,
-                                    "UT "+ (i+1), i, simulateUTBoards, log);
+                                "UT "+ (i+1), i, simulateUTBoards, log, hdwVs);
     
     }//if (numberOfUTBoards > 0)
  

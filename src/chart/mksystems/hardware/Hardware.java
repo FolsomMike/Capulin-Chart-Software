@@ -1176,8 +1176,19 @@ if (hdwVs.waitForOnPipe){
 //watch for piece to exit head
 if (hdwVs.watchForOffPipe){
     if (!inspectCtrlVars.onPipeFlag){
-        //set flag to force preparation for a new piece
-        globals.prepareForNewPiece = true;
+        
+        //use tracking counter to delay after leading photo eye cleared until
+        //position where modifier is to be added until the end of the piece
+        hdwVs.nearEndOfPieceTracker = hdwVs.nearEndOfPiecePosition;
+        //start counting down to near end of piece modifier apply start position
+        hdwVs.trackToNearEndofPiece = true;
+        
+        //use tracking counter to delay after leading photo eye cleared until
+        //end of piece
+        hdwVs.trackToEndOfPiece = true;
+        hdwVs.endOfPieceTracker = hdwVs.endOfPiecePosition;
+        
+        hdwVs.watchForOffPipe = false;
         }
     }
 
@@ -1240,14 +1251,42 @@ for (int ch = 0; ch < numberOfChannels; ch++){
                 continue;
                 }
 
-        //debug mks    for (int x = 0; x<2; x++){
+        //debug mks for (int x = 0; x<12; x++){
                 tracePtr.beingFilledSlot++;
 
                 //the buffer is circular - start over at beginning
                 if (tracePtr.beingFilledSlot == tracePtr.sizeOfDataBuffer)
                     tracePtr.beingFilledSlot = 0;
 
-        //debug mks        }//for (int x = 0; x<4; x++){
+                //track position to find end of section at start of pipe where
+                //modifier is to be applied
+                if (hdwVs.nearStartOfPieceTracker != 0){
+                    hdwVs.nearStartOfPieceTracker--;                
+                    }
+                else{
+                    hdwVs.nearStartOfPiece = false;
+                    }
+                
+                if (hdwVs.trackToNearEndofPiece){                
+                    if (hdwVs.nearEndOfPieceTracker != 0){
+                        hdwVs.nearEndOfPieceTracker--;                
+                        }
+                    else{
+                        hdwVs.nearEndOfPiece = true;
+                        }
+                    }
+
+                if (hdwVs.trackToEndOfPiece){                
+                    if (hdwVs.endOfPieceTracker != 0){
+                        hdwVs.endOfPieceTracker--;                
+                        }
+                    else{
+                    //set flag to force preparation for a new piece
+                    globals.prepareForNewPiece = true;
+                        }
+                    }
+                              
+       //debug mks         }//for (int x = 0; x<4; x++){
             }
         }// for (int g = 0; g < numberOfGates; g++)
     }// for (int ch = 0; ch < numberOfChannels; ch++)

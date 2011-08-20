@@ -57,6 +57,14 @@ boolean doFindPeak = false;
 boolean doIntegrateAboveGate = false;
 boolean doQuenchOnOverLimit = false;
 
+//if true, then data from this gate is stored where it can be used to modify
+//the wall data -- this allows a flaw gate to produce a kick on the wall trace
+
+//Note:  need to add flag in the config file to specify whether the gate
+// tweaks the min or max.
+
+public boolean modifyWall;
+
 // Variables chart and trace specify where the data for this gate will be
 // displayed.  If trace is a negative number, the data will not be displayed
 // but a flag will be triggered and an event reported for a violation.
@@ -910,6 +918,8 @@ setInterfaceGate(pConfigFile.readBoolean(whichGate, "Interface Gate", false));
 setWallStart(pConfigFile.readBoolean(whichGate, "Wall Start Gate", false));
 setWallEnd(pConfigFile.readBoolean(whichGate, "Wall End Gate", false));
 setFlawGate(pConfigFile.readBoolean(whichGate, "Flaw Gate", false));
+
+modifyWall = pConfigFile.readBoolean(whichGate, "Modify Wall", false);
 
 triggerDirection = pConfigFile.readInt(whichGate, "Trigger Direction", 0);
 
