@@ -304,6 +304,26 @@ if (!copyFile("Configuration - Job Info Window.ini",
         "Error", JOptionPane.ERROR_MESSAGE);
     }
 
+//put a copy of the Piece Info Window configuration file into the job folder
+//this makes sure that the same configuration file will always be used when
+//the job is loaded
+//note that the "05 - " prefix is to force the file near the top of the
+//explorer window when the files are alphabetized to make it easier to find
+
+if (!copyFile("Configuration - Piece Info Window.ini",
+                primaryFolder + "/05 - " + newJobName
+                + " Configuration - Piece Info Window.ini")
+ ||
+    !copyFile("Configuration - Piece Info Window.ini",
+                backupFolder + "/05 - " + newJobName
+                + " Configuration - Piece Info Window.ini")){
+
+        JOptionPane.showMessageDialog(frame,
+        "The Piece Info Window Configuration file could not be copied " +
+        "to the primary and/or backup directories.",
+        "Error", JOptionPane.ERROR_MESSAGE);
+    }
+
 //put a copy of the selected configuration file into the job folder
 //this makes sure that the same configuration file will always be used when
 //the job is loaded
