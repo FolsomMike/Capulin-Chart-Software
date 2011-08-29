@@ -47,6 +47,8 @@ int reflectionTimer = 0;
 boolean utBoardsReady = false;
 boolean controlBoardsReady = false;
 
+boolean fpgaLoaded = false;
+
 SyncFlag dataChangedFlag;
 
 boolean simulate, simulateControlBoards, simulateUTBoards;
@@ -54,6 +56,8 @@ boolean simulate, simulateControlBoards, simulateUTBoards;
 ControlBoard[] controlBoards;
 int numberOfControlBoards = 1; //debug mks - read from config
 String controlBoardIP; //debug mks - get rid of this?
+
+String fpgaCodeFilename;
 
 boolean logEnabled = true;
 
@@ -318,8 +322,8 @@ catch (UnknownHostException e) {socket.close(); return;}
 
 outPacket = new DatagramPacket(outBuf, outBuf.length, group, 4446);
 
-//force socket.receive to return if no packet available within 1 millisec
-try{socket.setSoTimeout(1000);} catch(SocketException e){}
+//force socket.receive to return if no packet available within 3 seconds
+try{socket.setSoTimeout(3000);} catch(SocketException e){}
 
 //broadcast the roll call greeting several times - bail out when the expected
 //number of different UT boards have responded
@@ -337,7 +341,7 @@ while(loopCount < 50 && responseCount < numberOfUTBoards){
 
             socket.receive(inPacket);
 
-            //store each new ip address in a board
+            //store each new ip address in a UT board object
             for (int i = 0; i < numberOfUTBoards; i++){
                 //if an unused board reached, store ip there
                 if (utBoards[i].ipAddr == null){
@@ -361,11 +365,14 @@ while(loopCount < 50 && responseCount < numberOfUTBoards){
     catch(IOException e){} //this reached if receive times out
     }// while(loopCount...
 
+//send FPGA code to all UT boards.
+loadFPGAViaUDP(socket);
+
 socket.close();
 
 //start the run method of each UTBoard thread class - the run method makes
-//the TCP/IP connections and uploads FPGA and DSP code simultaneously to
-//shorten start up time
+//the TCP/IP connections and uploads FPGA and DSP code simultaneously to the
+//different boards to shorten start up time
 
 if (numberOfUTBoards > 0){
     for (int i = 0; i < numberOfUTBoards; i++){
@@ -1283,6 +1290,9 @@ numberOfChannels =
 controlBoardIP = pConfigFile.readString(
                       "Hardware", "Control Board IP Address", "169.254.56.11");
 
+fpgaCodeFilename = 
+  pConfigFile.readString("Hardware", "UT FPGA Code Filename", "not specified");
+
 if (numberOfChannels > 1500) numberOfUTBoards = 1500;
 
 //create and setup the Control boards
@@ -1553,6 +1563,273 @@ void waitSleep(int pTime)
 try {Thread.sleep(pTime);} catch (InterruptedException e) { }
 
 }//end of Capulin1::waitSleep
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::loadFPGA
+//
+// Transmits the FPGA code to the specified UT board for loading into the
+// chip.  Note that the MainThread object in Main does not start calling
+// processDataPackets until after the FPGA code is loaded so there are no
+// conflicts created by this function reading from the socket.
+//
+// This function uses uses UDP to simultaneously broadcast the FPGA code to
+// multiple boards at once -- this is a much faster method letting all the
+// UTBoard objects load FPGA code to their attached boards simultaneously
+// via TCP/IP.  See UTBoard::loadFPGA if the TCP/IP method is needed.
+//
+// Before sending, the status byte of the remote is retrieved.  If the FPGA
+// has already been loaded, then this function exits immediately.  This saves
+// time when the host PC software is restarted but the remotes are not.
+//
+// This function uses the "Binary Configuration File" (*.bin) produced by
+// the Xilinx ISE.
+//
+// The config file is 5,214,784 bits (651848 bytes) for the Xilinx
+// Xc3s1500-4fg456C. The file is transmitted to the remotes in 637 blocks of
+// 1024 bytes each, with the last block being a partial one.
+//
+// The file should be sent by the remote to the FPGA starting with the most
+// significant bit of each byte transmitted first.  The remote should send
+// the command SEND_DATA when it is ready for each block, including the first
+// one.
+//
+// The remote should send FPGA_INITB_ERROR if the INIT_B line is not high
+// after PROG_B is taken high.
+// The remote should send FPGA_DONE_ERROR if the DONE line is not low
+// after PROG_B is taken high or does not go high after all is loaded.
+// The remote should send FPGA_CONFIG_CRC_ERROR if the INIT_B line goes low
+// while or after code is loaded.
+// The remote should send FPGA_CONFIG_GOOD if DONE line goes high and the
+// INIT_B line stays high after code has been loaded.
+//
+
+public void loadFPGAViaUDP(DatagramSocket pSocket)
+{
+    
+// don't attempt to load the FPGA if UDP socket is not open
+if (pSocket == null) return;
+
+//debug mks -- remove this
+// check to see if the FPGA has already been loaded
+//if ((getRemoteData(GET_STATUS_CMD, true) & FPGA_LOADED_FLAG) != 0) {
+//    threadSafeLog("UT " + ipAddrS + " FPGA already loaded..." + "\n");
+//
+//    return;
+//    }
+//debug mks
+
+//debug mks -- add this
+// checkForUnloadedFPGAs();
+
+fpgaLoaded = false;
+
+InetAddress group;
+int CODE_BUFFER_SIZE = 1025; //transfer command word and 1024 data bytes
+byte[] codeBuffer; 
+codeBuffer = new byte[CODE_BUFFER_SIZE];
+byte[] inBuffer;
+byte[] outBuffer;
+DatagramPacket outPacket;
+DatagramPacket inPacket;
+DatagramPacket codePacket;
+
+inBuffer = new byte[RUNTIME_PACKET_SIZE];
+outBuffer = new byte[RUNTIME_PACKET_SIZE];
+
+try{
+    group = InetAddress.getByName("230.0.0.1");
+    }
+catch (UnknownHostException e) {return;}
+
+inPacket = new DatagramPacket(inBuffer, inBuffer.length);
+outPacket = new DatagramPacket(outBuffer, outBuffer.length, group, 4446);
+codePacket = new DatagramPacket(codeBuffer, codeBuffer.length, group, 4446);
+
+int bufPtr;
+
+boolean fileDone = false;
+
+FileInputStream inFile = null;
+
+try {
+   
+     //send command to initiate FPGA loading
+    sendByteUDP(pSocket, outPacket, UTBoard.LOAD_FPGA_CMD);
+
+    threadSafeLog("Loading all UT board FPGAs..." + "\n");
+
+    inFile = new FileInputStream("fpga\\" + fpgaCodeFilename);
+    int c;
+    int dataRequested = 0;
+    
+    //loop until an error occurs -- on successful load, the function will exit
+    //not that the looping continues after the fileDone flag is set so that
+    //the final success/fail messages from the remote can be caught
+    
+    while(dataRequested != -1){
+
+        dataRequested = getFPGALoadResponse(pSocket, inPacket);
+        
+        //if all FPGAs loaded successfully, exit the function
+        if (dataRequested == 2){
+            fpgaLoaded = true;
+            return;
+            }
+
+        //send data packet when requested by remote
+        if ((dataRequested == 1) && !fileDone){
+
+            bufPtr = 0; c = 0;
+            codeBuffer[bufPtr++] = UTBoard.DATA_CMD; // command byte = data packet
+
+            //be sure to check bufPtr on left side or a byte will get read
+            //and ignored every time bufPtr test fails
+            while (bufPtr < CODE_BUFFER_SIZE && (c = inFile.read()) != -1 ) {
+
+                //stuff the bytes into the buffer after the command byte
+                codeBuffer[bufPtr++] = (byte)c;             
+
+                }
+
+            if (c == -1) fileDone = true; //send no more packets after this one
+
+            //send packet to remote
+            pSocket.send(codePacket);
+            
+            }//if (inBuffer[0] == SEND_DATA)
+
+        }//while(dataRequested != -1)
+
+    }//try
+catch(IOException e){}
+finally {
+
+    }//finally
+
+}//end of Capulin1::loadFPGA
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::getFPGALoadResponse
+//
+// Waits for a response from all UTBoards between sending packets of the FPGA
+// code.  
+//
+// All boards in the system must send the SEND_DATA_CMD code before this
+// function will exit with a request for a new packet.
+//
+// All boards must send the FPGA_CONFIG_GOOD code before this function will
+// exit with a good code.
+//
+// If any one board sends an error code, this function will return an error.
+//
+// If all boards respond with a request for the next packet, returns 1.
+// If all boards respond with FPGA_CONFIG_GOOD, returns 2.
+// If a board responds with an error, returns -1.
+// If timeout occurs before all boards have responded, returns -1.
+// If a socket error occurs, returns -1.
+//
+
+int getFPGALoadResponse(DatagramSocket pSocket, DatagramPacket pInPacket)
+{
+
+byte[] inBuffer = pInPacket.getData();
+String ipAddrS = "unknown";
+boolean timeOut = false;
+int sendDataCmdCount = 0;
+int fpgaConfigGoodCount = 0;
+
+while(!timeOut){
+    
+    inBuffer[0] = UTBoard.NO_ACTION; //clear request byte
+    inBuffer[1] = UTBoard.NO_STATUS; //clear status byte
+
+    //check for data requests from the remotes if socket is good
+    if (pSocket != null){
+
+        //will read two bytes or timeout -- each board will send two bytes
+        //to form its data request
+        pInPacket.setLength(2);
+
+        try {pSocket.receive(pInPacket);}
+        catch(SocketTimeoutException ste){
+            timeOut = true;
+            }
+        catch(IOException e){
+            return(-1);
+            }        
+        }
+    else return(-1);
+    
+    //if a packet was received, get the packet's sending IP address
+    if (pInPacket.getAddress() != null)
+        ipAddrS = pInPacket.getAddress().toString();
+    
+    //trap error and finished status messages, second byte in buffer
+
+    if (inBuffer[1] == UTBoard.FPGA_INITB_ERROR){
+        threadSafeLog(
+                  "UT " + ipAddrS + " error loading FPGA - INIT_B" + "\n");
+        return(-1);
+        }
+
+    if (inBuffer[1] == UTBoard.FPGA_DONE_ERROR){
+        threadSafeLog(
+                  "UT " + ipAddrS + " error loading FPGA - DONE" + "\n");
+        return(-1);
+        }
+
+    if (inBuffer[1] == UTBoard.FPGA_CONFIG_CRC_ERROR){
+        threadSafeLog(
+                    "UT " + ipAddrS + " error loading FPGA - CRC" + "\n");
+        return(-1);
+        }
+
+    if (inBuffer[1] == UTBoard.FPGA_CONFIG_GOOD){
+        threadSafeLog("UT " + ipAddrS + " FPGA Loaded." + "\n");
+        //count boards which return good code
+        fpgaConfigGoodCount++;
+        //exit when all boards return good
+        if (fpgaConfigGoodCount == numberOfUTBoards) return(2);
+        }
+
+    //send data packet when requested by remote
+    if (inBuffer[0] == UTBoard.SEND_DATA_CMD){
+        //count boards which return data request code
+        sendDataCmdCount++;
+        //exit when all boards return data request code
+        if (sendDataCmdCount == numberOfUTBoards) return(1);        
+        }//if (inBuffer[0] == SEND_DATA)
+
+    }// while(!timeOut)
+
+//remote has not responded -- timeout if this part reached
+threadSafeLog("Error loading FPGA(s) - contact lost." + "\n");
+
+return(-1);
+
+}//end of Capulin1::getFPGALoadResponse
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::sendByteUDP
+//
+// Sends pByte via the UDP socket pSocket using pOutPacket.
+//
+
+void sendByteUDP(DatagramSocket pSocket, DatagramPacket pOutPacket, byte pByte)
+{
+        
+byte outBuffer[] = pOutPacket.getData(); //get point to data buffer in use
+
+outBuffer[0] = pByte; //store the byte in the buffer
+
+pOutPacket.setLength(1); //send one byte
+
+try {pSocket.send(pOutPacket);} catch(IOException e){}
+        
+}//end of Capulin1::sendByteUDP
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

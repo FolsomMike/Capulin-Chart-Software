@@ -825,6 +825,12 @@ setState(0, 1);
 // processDataPackets until after the FPGA code is loaded so there are no
 // conflicts created by this function reading from the socket.
 //
+// This function uses TCP/IP and transmits to the single board handled by
+// this UTBoard object.  If multiple boards are being loaded simultaneously,
+// the load time increases significantly.  The Capulin1 class has a loader
+// which uses UDP to simultaneously broadcast the FPGA code to multiple boards
+// at once -- this is a much faster method.  See Capulin1::loadFPGAViaUPD.
+//
 // Before sending, the status byte of the remote is retrieved.  If the FPGA
 // has already been loaded, then this function exits immediately.  This saves
 // time when the host PC software is restarted but the remotes are not.
