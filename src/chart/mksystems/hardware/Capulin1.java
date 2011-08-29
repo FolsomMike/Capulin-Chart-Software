@@ -313,7 +313,8 @@ DatagramPacket outPacket;
 byte[] inBuf = new byte[256];
 DatagramPacket inPacket;
 inPacket = new DatagramPacket(inBuf, inBuf.length);
-int responseCount = 0;
+int responseCount = 0, fpgaLoadedCount = 0;
+String response;
 
 try{
     group = InetAddress.getByName("230.0.0.1");
@@ -343,30 +344,53 @@ while(loopCount < 50 && responseCount < numberOfUTBoards){
 
             //store each new ip address in a UT board object
             for (int i = 0; i < numberOfUTBoards; i++){
-                //if an unused board reached, store ip there
-                if (utBoards[i].ipAddr == null){
-                    utBoards[i].setIPAddr(inPacket.getAddress());
-                    responseCount++; //count unique UT board responses
-                    break;
-                    }
+
                 //if a ut board already has the same ip, don't save it
+                //this might occur if a board responds more than once as the
+                //host repeatedly broadcasts the greeting
+                //since the first utBoard objects in the array are filled first
+                // this will catch duplicates
                 if (utBoards[i].ipAddr == inPacket.getAddress()){
                     break;
                     }
-                }//for (int i = 0; i < numberOfUTBoards; i++)
+                         
+                //only boards which haven't been already seen make it here               
+                
+                //if an unused board reached, store ip there
+                if (utBoards[i].ipAddr == null){
+                    
+                    //store the ip address in the unused utBoard object
+                    utBoards[i].setIPAddr(inPacket.getAddress());
+                    
+                    //count unique UT board responses
+                    responseCount++; 
+                                        
+                    //convert the response packet to a string
+                    response = 
+                        new String(inPacket.getData(), 0, inPacket.getLength());
+                    
+                    //count number of boards which already have loaded FPGA's
+                    if (response.contains("FPGA loaded")) fpgaLoadedCount++;
 
-            //if receive finds a packet before timing out, this reached
-            //display the greeting string from the remote
-            threadSafeLog(
-                new String(inPacket.getData(), 0, inPacket.getLength()) + "\n");    
+                    //display the greeting string from the remote
+                    threadSafeLog(response + "\n");                   
+                    
+                    //stop scanning the boards now that ip saved
+                    break;
+                    }
+                }//for (int i = 0; i < numberOfUTBoards; i++)
 
             }//while(true)
         }//try
     catch(IOException e){} //this reached if receive times out
     }// while(loopCount...
 
-//send FPGA code to all UT boards.
-loadFPGAViaUDP(socket);
+//if not all boards reported that their FPGAs were already loaded, load them
+//all now
+if (fpgaLoadedCount < numberOfUTBoards) 
+    loadFPGAViaUDP(socket);
+else
+    sendRunTriggers(socket, outPacket);
 
 socket.close();
 
@@ -1566,7 +1590,24 @@ try {Thread.sleep(pTime);} catch (InterruptedException e) { }
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Capulin1::loadFPGA
+// Capulin1::sendRunTriggers
+//
+// Sends a command to cause the remote to skip past the UDP FPGA loading.
+// 
+//
+
+void sendRunTriggers(DatagramSocket pSocket, DatagramPacket pOutPacket)
+{
+
+//send any command to skip past the UDP FPGA loading
+    
+sendByteUDP(pSocket, pOutPacket, UTBoard.NO_ACTION);
+
+}//end of Capulin1::sendRunTriggers
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::loadFPGAViaUDP
 //
 // Transmits the FPGA code to the specified UT board for loading into the
 // chip.  Note that the MainThread object in Main does not start calling
@@ -1707,7 +1748,7 @@ finally {
 
     }//finally
 
-}//end of Capulin1::loadFPGA
+}//end of Capulin1::loadFPGAViaUDP
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
