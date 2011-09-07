@@ -1065,11 +1065,12 @@ if ("Status".equals(e.getActionCommand())) {
 //this part opens a viewer window for viewing saved segments
 if ("Open Viewer".equals(e.getActionCommand())) {
 
-    Viewer viewer;
-
-    if(isConfigGoodA()) viewer =
-            new Viewer(globals, jobInfo, currentJobPrimaryPath, 
+    if(isConfigGoodA()) {
+        Viewer viewer;
+        viewer = new Viewer(globals, jobInfo, currentJobPrimaryPath, 
                                         currentJobBackupPath, currentJobName);
+        viewer.init();
+        }
     return;
     }
 

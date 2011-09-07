@@ -76,7 +76,7 @@ JScrollPane scrollPane;
 
 SegmentFileFilter segmentFileFilter;
 
-Vector<String> segmentList;
+ArrayList<String> segmentList;
 
 PieceInfo pieceIDInfo;
 
@@ -93,6 +93,20 @@ public Viewer(Globals pGlobals, JobInfo pJobInfo, String pJobPrimaryPath,
 
 super("Viewer");
 
+globals = pGlobals; jobInfo = pJobInfo;
+jobPrimaryPath = pJobPrimaryPath; jobBackupPath = pJobBackupPath;
+currentWorkOrder = pCurrentWorkOrder;
+
+}//end of Viewer::Viewer (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Viewer::init
+//
+
+public void init()
+{
+
 //turn off default bold for Metal look and feel
 UIManager.put("swing.boldMetal", Boolean.FALSE);
 
@@ -103,10 +117,6 @@ try {
     }
 catch (Exception e) {}
 
-globals = pGlobals; jobInfo = pJobInfo;
-jobPrimaryPath = pJobPrimaryPath; jobBackupPath = pJobBackupPath;
-currentWorkOrder = pCurrentWorkOrder;
-
 setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
 addComponentListener(this);
@@ -114,7 +124,7 @@ addComponentListener(this);
 segmentFileFilter = new SegmentFileFilter();
 
 //create a list to hold the segment file names
-segmentList = new Vector<String>();
+segmentList = new ArrayList<String>();
 
 //change the layout manager
 BoxLayout boxLayout = new BoxLayout(getContentPane(), BoxLayout.Y_AXIS);
@@ -152,8 +162,8 @@ pack();
 
 //let's have a look, shall we?
 setVisible(true);
-
-}//end of Viewer::Viewer (constructor)
+        
+}//end of Viewer::init
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -256,10 +266,7 @@ String[] files = jobDir.list(segmentFileFilter);
 
 //clear the list to hold the file/folder names
 segmentList.clear();
-
-//put the filenames into the vector in their raw form so that they can be
-//sorted using an alphabetical sort
-for (int i=0; i<files.length; i++) segmentList.add(files[i]);
+segmentList.addAll(Arrays.asList(files));
 //sort the items alphabetically
 Collections.sort(segmentList);
 
@@ -318,7 +325,7 @@ void loadFirstOrLastAvailableSegment(int pWhich)
 //load the list of available segment numbers / files
 loadSegmentList();
 
-if (segmentList.size() == 0){
+if (segmentList.isEmpty()){
     displayErrorMessage("No valid files in folder.");
     return;
     }
@@ -326,9 +333,10 @@ if (segmentList.size() == 0){
 //attempt to convert the first or last entry in the list
 try{
     if (pWhich == FIRST)
-        currentSegmentNumber = Integer.valueOf(segmentList.firstElement());
+        currentSegmentNumber = Integer.valueOf(segmentList.get(0));
     else
-        currentSegmentNumber = Integer.valueOf(segmentList.lastElement());
+        currentSegmentNumber = 
+                        Integer.valueOf(segmentList.get(segmentList.size()-1));
     }
 catch(NumberFormatException nfe){
     displayErrorMessage("That file is not valid.");
@@ -838,7 +846,8 @@ if ("List".equals(e.getActionCommand())) {
     //get a list of available segments
     loadSegmentList();
     //display a list of segments
-    new SegmentChooser(this, segmentList, xfer);
+    SegmentChooser segmentChooser = new SegmentChooser(this, segmentList, xfer);
+    segmentChooser.init();
     //do nothing if user did not click "Load" button
     if (!xfer.rBoolean1) {segmentList.clear(); return;}
     //place the selection into the user entry box
@@ -1596,7 +1605,9 @@ if (name.endsWith(extension)) return(true); else return(false);
 
 class SegmentChooser extends JDialog implements ActionListener{
 
+JFrame frame;
 JComboBox fileSelect;
+ArrayList<String> entryList;
 Xfer xfer;
 
 //-----------------------------------------------------------------------------
@@ -1604,16 +1615,27 @@ Xfer xfer;
 //
 //
 
-public SegmentChooser(JFrame pFrame, Vector<String> pEntryList, Xfer pXfer)
+public SegmentChooser(JFrame pFrame, ArrayList<String> pEntryList, Xfer pXfer)
 {
 
 super(pFrame, "Select from List");
 
-//position near top right of parent frame so it's convenient
-Rectangle r = pFrame.getBounds();
-setLocation(r.x + r.width - 200, r.y);
+frame = pFrame; entryList = pEntryList; xfer = pXfer;
 
-xfer = pXfer;
+}//end of SegmentChooser::SegmentChooser (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SegmentChooser::init
+//
+//
+
+public void init()
+{
+
+//position near top right of parent frame so it's convenient
+Rectangle r = frame.getBounds();
+setLocation(r.x + r.width - 200, r.y);
 
 xfer.rBoolean1 = false; //selection made flag - set true if user selects
 
@@ -1629,7 +1651,7 @@ add(Box.createRigidArea(new Dimension(0,15)));
 tPanel = new JPanel();
 tPanel.setLayout(new BoxLayout(tPanel, BoxLayout.LINE_AXIS));
 tPanel.add(Box.createRigidArea(new Dimension(5,0)));
-fileSelect = new JComboBox(pEntryList);
+fileSelect = new JComboBox(entryList.toArray());
 tPanel.add(fileSelect);
 tPanel.add(Box.createRigidArea(new Dimension(5,0)));
 add(tPanel);
@@ -1663,10 +1685,10 @@ add(Box.createRigidArea(new Dimension(0,15)));
 pack();
 
 setVisible(true);
-
-}//end of SegmentChooser::SegmentChooser (constructor)
+    
+}//end of SegmentChooser::init
 //-----------------------------------------------------------------------------
-
+    
 //-----------------------------------------------------------------------------
 // SegmentChooser::actionPerformed
 //
