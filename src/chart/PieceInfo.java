@@ -35,7 +35,7 @@ import chart.mksystems.inifile.IniFile;
 //
 
 public class PieceInfo extends JDialog implements ActionListener, 
-                                                            WindowListener {
+                                                WindowListener, FocusListener {
 
 JPanel panel;
 String configFilename;
@@ -44,6 +44,9 @@ String currentWorkOrder;
 ActionListener actionListener;
 int prevOrderedLow;
 int prevPrintedPosition;
+boolean displayUpdateButton;
+JButton updateButton;
+String filename;
 
 Item[] items;
 static int NUMBER_OF_ITEMS = 100;
@@ -73,10 +76,15 @@ boolean printed;
 // Item::createTextField
 //
 
-void createTextField()
+void createTextField(FocusListener focusListener)
 {
 
 textField = new JTextField(numberCharacters);
+
+//all text fields have the same name so they all trigger the focus listener in
+//the same way
+textField.setName("Value Text Field");
+textField.addFocusListener(focusListener);
 
 int dHeight = textField.getPreferredSize().height;
 
@@ -101,13 +109,15 @@ textField.setMaximumSize(new Dimension(1, dHeight));
 //
   
 public PieceInfo(JFrame pFrame, String pPrimaryDataPath, String pBackupDataPath,
-                      String pCurrentWorkOrder, ActionListener pActionListener)
+                      String pCurrentWorkOrder, ActionListener pActionListener,
+                      boolean pDisplayUpdateButton)
 {
 
 super(pFrame, "Identifier Info");
 
 primaryDataPath = pPrimaryDataPath; backupDataPath = pBackupDataPath;
 currentWorkOrder = pCurrentWorkOrder; actionListener = pActionListener;
+displayUpdateButton = pDisplayUpdateButton;
 
 }//end of PieceInfo::PieceInfo (constructor)
 //-----------------------------------------------------------------------------    
@@ -133,20 +143,6 @@ configure(configFilename);
     
 }//end of PieceInfo::init
 //-----------------------------------------------------------------------------    
-
-//-----------------------------------------------------------------------------
-// PieceInfo::actionPerformed
-//
-// Catches action events from buttons, etc.
-//
-//
-
-@Override
-public void actionPerformed(ActionEvent e)
-{
-
-}//end of PieceInfo::actionPerformed
-//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // PieceInfo::configure
@@ -204,7 +200,7 @@ for (int i=0; i < NUMBER_OF_ITEMS; i++){
         //add each label/field pair to a panel
         itemPanel = new JPanel();
         itemPanel.setLayout(new BoxLayout(itemPanel, BoxLayout.X_AXIS));
-        items[i].createTextField();        
+        items[i].createTextField(this);        
         items[i].label = new JLabel(items[i].labelText);
         //space at left edge
         itemPanel.add(Box.createRigidArea(new Dimension(5,0)));
@@ -248,6 +244,24 @@ for (int i=0; i < NUMBER_OF_ITEMS; i++){
 
     }//for (int i=0; i < NUMBER_OF_ITEMS; i++)
 
+
+//display Update button if specified -- this allows the user to save changes
+//made to the data
+
+if(displayUpdateButton){
+    
+    itemPanel = new JPanel();
+    itemPanel.setLayout(new BoxLayout(itemPanel, BoxLayout.X_AXIS));
+
+    updateButton = new JButton("Update");
+    updateButton.setEnabled(false);
+    updateButton.setToolTipText("Update/Save info.");
+    updateButton.setActionCommand("Update Info");
+    updateButton.addActionListener(this);
+    itemPanel.add(updateButton);
+    panel.add(itemPanel);
+    
+    }//if(displayUpdateButton)
 
 pack();
 
@@ -462,6 +476,8 @@ return(false);
 public void loadData(String pFilename)
 {
 
+filename = pFilename;    
+    
 IniFile jobInfoFile;
 
 //if the ini file cannot be opened and loaded, exit without action
@@ -480,6 +496,9 @@ for (int i=0; i < NUMBER_OF_ITEMS; i++)
                        jobInfoFile.readString(section, items[i].labelText, ""));
 
         }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
+
+//disable the update button -- will be re-enabled when user clicks in a box
+updateButton.setEnabled(false);
 
 }//end of PieceInfo::loadData
 //-----------------------------------------------------------------------------
@@ -544,6 +563,59 @@ for (int i=0; i < NUMBER_OF_ITEMS; i++)
     }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
 
 }//end of PieceInfo::saveDataToStream
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// PieceInfo::actionPerformed
+//
+// Catches action events from buttons, etc.
+//
+//
+
+@Override
+public void actionPerformed(ActionEvent e)
+{
+
+if ("Update Info".equals(e.getActionCommand())) {    
+    updateButton.setEnabled(false);
+    saveData(filename);
+    }
+    
+}//end of PieceInfo::actionPerformed
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// PieceInfo::focusGained
+//
+// Catches when a compenent gets keyboard focus.
+//
+//
+
+@Override
+public void focusGained(FocusEvent e)
+{
+    
+//this doesn't work because the top field gets focus when the window is
+//displayed and immediately enables the button
+    
+if (e.getComponent().getName().equals("Value Text Field"))
+    updateButton.setEnabled(true);
+
+}//end of PieceInfo::focusGained
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// PieceInfo::focusLost
+//
+// Catches when a compenent loses keyboard focus.
+//
+//
+
+@Override
+public void focusLost(FocusEvent e)
+{
+
+}//end of PieceInfo::focusLost
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

@@ -57,7 +57,7 @@ import chart.mksystems.stripchart.ChartGroup;
 //
 
 public class Viewer extends JFrame implements ItemListener, ActionListener,
-                                                  ComponentListener, Printable {
+                                  ComponentListener, Printable {
 
 Globals globals;
 JobInfo jobInfo;
@@ -151,7 +151,7 @@ handleSizeChanges();
 
 //create an object to hold info about each piece
 pieceIDInfo = new PieceInfo(this, jobPrimaryPath, jobBackupPath,
-                                                      currentWorkOrder, this);
+                                                 currentWorkOrder, this, true);
 pieceIDInfo.init();
 
 //load the last file saved - this is the most likely to be viewed
@@ -873,7 +873,7 @@ footer = keyValue.keyString + ": " + keyValue.valueString + "    ";
 while(pieceIDInfo.getNextToPrint(keyValue))
     footer = footer + keyValue.keyString + ": " + keyValue.valueString + "    ";
 
-//print the finishes string
+//print the finished string
 pG2.drawString(footer, pX, pY);
 
 }//end of Viewer::printPieceIDEntriesInFooter

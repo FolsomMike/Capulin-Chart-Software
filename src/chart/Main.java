@@ -513,7 +513,7 @@ jobInfo = new JobInfo(mainFrame, currentJobPrimaryPath,
 
 //create an object to hold info about each piece
 pieceIDInfo = new PieceInfo(mainFrame, currentJobPrimaryPath,
-                                currentJobBackupPath, currentJobName, this);
+                            currentJobBackupPath, currentJobName, this, false);
 pieceIDInfo.init();
 
 //create a window for displaying messages
