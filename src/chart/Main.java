@@ -396,6 +396,16 @@ t = globals.backupFolderName;
 if (t.endsWith(sep))
     globals.backupFolderName = t.substring(0, t.length()-1);
 
+
+globals.printResolutionX = configFile.readInt(
+                                 "Printer", "Printer Resolution X in DPI", 300);
+
+globals.printResolutionY = configFile.readInt(
+                                 "Printer", "Printer Resolution Y in DPI", 300);
+
+globals.printQuality  = configFile.readString(
+                    "Printer", "Print Quality (Draft, Normal, High)", "Normal");
+
 }//end of MainWindow::loadGeneralConfiguration
 //-----------------------------------------------------------------------------
 
@@ -504,6 +514,7 @@ jobInfo = new JobInfo(mainFrame, currentJobPrimaryPath,
 //create an object to hold info about each piece
 pieceIDInfo = new PieceInfo(mainFrame, currentJobPrimaryPath,
                                 currentJobBackupPath, currentJobName, this);
+pieceIDInfo.init();
 
 //create a window for displaying messages
 logWindow = new Log(mainFrame); logWindow.setVisible(true);

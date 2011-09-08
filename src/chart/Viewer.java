@@ -45,6 +45,7 @@ import javax.print.attribute.standard.MediaSizeName;
 import javax.print.attribute.standard.OrientationRequested;
 import javax.print.attribute.standard.MediaPrintableArea;
 import java.awt.geom.AffineTransform;
+import java.awt.Color;
 
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.globals.Globals;
@@ -151,11 +152,10 @@ handleSizeChanges();
 //create an object to hold info about each piece
 pieceIDInfo = new PieceInfo(this, jobPrimaryPath, jobBackupPath,
                                                       currentWorkOrder, this);
+pieceIDInfo.init();
 
 //load the last file saved - this is the most likely to be viewed
 loadFirstOrLastAvailableSegment(LAST);
-
-pieceIDInfo.setVisible(true); //debug mks
 
 //pack again to hide charts which are set hidden in the segment data file
 pack();
@@ -499,20 +499,51 @@ return(value);
 // the native print dialog which does not accurately pass all user changes back
 // to the Java print system.
 //
+// Resolution issues:
+//
+// As of 9/8/11, there is no apparent way to determine exactly what resolution
+// the printer is using.  Java code can be used to request a change, but there
+// is no guarantee that the change will actually occur.  Since Java doesn't
+// have any way of knowing that its request has been honored by the printer,
+// it sets up scaling based on what it believes is the resolution rather than
+// what the actual resolution might be.  This can result in improper scaling
+// or an image printed off the paper.
+//
+// One example is the HP Deskjet 1000.  It ignores requests to change the
+// resolution and the print quality via programming.  It seems that the only
+// way to change the resolution is to use the printer preferences in Windows
+// to choose Draft/Normal/Best.  If the config file is set up to use 600 DPI,
+// then the user must manually set the printer preferences to "Best" so the
+// printer will actually use 600 DPI.  The print quality cannot be set via
+// programming as the printer seems to ignore the request.
+//
+// To accommodate the many printers and their problems, the print resolution
+// and quality are now set in the "Configuration - General.ini" file so that
+// working values can be selected for any printer.
+//
+// NOTE: If the entries have not been made in the ini file, the program defaults
+// to 300 DPI and Normal quality.
+//
 
 void startPrint()
 {
 
 PrintRequestAttributeSet aset = new HashPrintRequestAttributeSet();
+
+//*** see notes regarding resolution problems in the header notes above ***
+
 //some attributes are added by instantiating
-PrinterResolution pR = new PrinterResolution(600, 600, PrinterResolution.DPI);
-//What if printer doesn't support 600 x 600?  Will probably end up as some
-//default.  This shouldn't cause a problem as the print code in this program
-//adapts to whatever resolution is actually used.
+PrinterResolution pR = new PrinterResolution(
+     globals.printResolutionX, globals.printResolutionY, PrinterResolution.DPI);
 aset.add(pR);
+
 //some attributes cannot be instantiated as their constructors are protected
 //or abstract - these are used by adding their static member variables
-aset.add(PrintQuality.NORMAL);
+
+if(globals.printQuality.contains("Draft")) aset.add(PrintQuality.DRAFT);
+if(globals.printQuality.contains("Normal")) aset.add(PrintQuality.NORMAL);
+if(globals.printQuality.contains("High")) aset.add(PrintQuality.HIGH);
+
 aset.add(OrientationRequested.LANDSCAPE);
 
 //select the paper size according to what the user has selected
@@ -630,21 +661,50 @@ int groupHeight = pChartGroup.getHeight();
 
 //the margin is set at 32 (1/2"), the header takes up 1/2", this value will
 //be used to shift the imageable area down to account for the header
-int headerHeight = 32;
+int headerHeight = 15;
+int footerHeight = 15;
 
-//before changing the default scaling set by Java, print the header at the
-//upper left corner of the imageable area
+//Before changing the default scaling set by Java, print the header and footer
+//at the upper left and lower left corner of the imageable area.
+//This is done before changing the scaling because the new scaling used will
+//vary depending on the width of the chart group in order to make sure it fits.
+//If the new scaling is used, the header and footer would vary in size also
+//which could result in an undesirable text size.
 
 //the phrase "Customer Name" should be loaded from the config file instead of
 //hard coded so that any value from the jobInfo object could be specified for
 //printing on the report - this would also solve the problem where "Customer
 //Name" is not one of the valid entries
 
+g2.setColor(Color.RED); //debug mks -- remove this
+
+//move drawing area to the part which can actually be printed on -- inside the
+//margins
+g2.translate(pPF.getImageableX(), pPF.getImageableY());
+
+//printing here will always be the right size regardless of the DPI (provide
+//the printer's DPI actually matches what Java thinks it is -- see notes above)
+//because Java adjusts the scale such that 72 pixels equals one inch for
+//whatever DPI is in effect
+
+g2.drawString("Work Order: " + currentWorkOrder
+        + "    " + "File: " + controlPanel.segmentEntry.getText()
+        + "    Customer Name: " + jobInfo.getValue("Customer Name"), 0, 10);
+
 g2.drawString("Work Order: " + currentWorkOrder
         + "    " + "File: " +
         controlPanel.segmentEntry.getText()
         + "    Customer Name: " + jobInfo.getValue("Customer Name"),
-        (int)pPF.getImageableX(), (int)pPF.getImageableY() + 20);
+        0, (int)pPF.getImageableHeight());
+
+// *** see notes in the header above regarding Java resolution issues ***
+//
+//When this code was written, there was no easy way to get the default DPI
+//for the printer.  The default DPI is used because this DPI is guaranteed to
+//be supported by the printer.  It is necessary to know the DPI in order to
+//scale the graph to fit on the paper.  The "transform" is used by Java to
+//shift and scale the printing.  This can be retrieved and used to determine
+//the default DPI as explained below:
 
 //the transform from the PageFormat object rotates and shifts the final output
 //before printing - use the next line to view the transform for debugging
@@ -669,6 +729,7 @@ g2.drawString("Work Order: " + currentWorkOrder
 //shear value will be set to the scale - use whichever is non-zero
 //the absolute value is used because the values can be negative for certain
 //rotations
+
 AffineTransform gAT = g2.getTransform();
 
 double scaleX, scaleY;
@@ -703,7 +764,7 @@ int resolutionY = (int)(scaleY * 72);
 
 // translate before unscaling to position the printout properly on the paper
 // shift down to account for the header
-g2.translate(pPF.getImageableX(), pPF.getImageableY() + headerHeight);
+g2.translate(0, headerHeight);
 
 //remove the scale applied by Java - now the print will be at one pixel per dot
 g2.scale(unscaleX, unscaleY);
@@ -713,9 +774,11 @@ g2.scale(unscaleX, unscaleY);
 
 //parse inches of useable paper width (Java returns this in 1/72 per inch) then
 //multiply by the printer resolution to get the number of dots
-//shrink height to account for the header
+//reduce available height to account for the header and the footer -- scale the
+//output to fit in the leftover space
 double paperX = (pPF.getImageableWidth() / 72) * resolutionX;
-double paperY = ((pPF.getImageableHeight() - headerHeight) / 72) * resolutionY;
+double paperY = 
+  ((pPF.getImageableHeight() - headerHeight) / 72) * resolutionY;
 
 //calculate the scale so that either width or length fits the paper per the
 //user's setting

@@ -135,6 +135,9 @@ public int scanSpeed;
 
 public String graphPrintLayout;
 
+public int printResolutionX, printResolutionY;
+public String printQuality;
+
 public boolean inMeasureMode = false;
 
 public double scanXDistance;
