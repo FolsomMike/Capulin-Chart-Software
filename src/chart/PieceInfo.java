@@ -42,6 +42,8 @@ String configFilename;
 String primaryDataPath, backupDataPath;
 String currentWorkOrder;
 ActionListener actionListener;
+int prevOrderedPrinted;
+int prevPrintedPosition;
 
 Item[] items;
 static int NUMBER_OF_ITEMS = 100;
@@ -63,6 +65,9 @@ public boolean editable;
 public boolean clearedInNewJob;
 public JLabel label;
 public JTextField textField;
+public boolean printInFooter;
+public int printOrder;
+boolean printed;
 
 //-----------------------------------------------------------------------------
 // Item::createTextField
@@ -104,6 +109,16 @@ super(pFrame, "Identifier Info");
 primaryDataPath = pPrimaryDataPath; backupDataPath = pBackupDataPath;
 currentWorkOrder = pCurrentWorkOrder; actionListener = pActionListener;
 
+}//end of PieceInfo::PieceInfo (constructor)
+//-----------------------------------------------------------------------------    
+
+//-----------------------------------------------------------------------------
+// PieceInfo::init
+//
+  
+public void init()
+{
+
 addWindowListener(this);
 
 //load the configuration from the primary data folder
@@ -115,8 +130,8 @@ items = new Item[NUMBER_OF_ITEMS];
 
 //setup the window according to the configuration file
 configure(configFilename);
-
-}//end of PieceInfo::PieceInfo (constructor)
+    
+}//end of PieceInfo::init
 //-----------------------------------------------------------------------------    
 
 //-----------------------------------------------------------------------------
@@ -180,7 +195,11 @@ for (int i=0; i < NUMBER_OF_ITEMS; i++){
         items[i].clearedInNewJob =  
                 configFile.readBoolean(section, "Cleared in a New Job", true);
 
-        if (items[i].width < 1) items[i].width = 1; //range check
+        items[i].printInFooter = 
+                    configFile.readBoolean(section, "Print in Footer", true);
+        items[i].printOrder = configFile.readInt(section, "Print Order", -1);
+
+        if (items[i].width < 1) items[i].width = 1; //range check -- is this used any more?
 
         //add each label/field pair to a panel
         itemPanel = new JPanel();
@@ -293,6 +312,201 @@ return(""); //key not found, return empty string
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// PieceInfo::getFirstToPrint
+//
+// To begin printing items in the list, call this function first to retrieve
+// the first item to be printed.  Subsequent calls to getNextToPrint will
+// return further items to be printed in the proper order.
+//
+// Returns the key and value in the Item array which is to be printed first
+// for hardcopy printouts.  The key is the label to be used and the value
+// is the value for that label, an example would be "Heat #" for the key and
+// "X2302" for the value.  These are typically printed together.
+//
+// To be printed, an entry must have its printInFooter value set true in the
+// configuration file.  If the entry does not exist in the file, then the
+// value will be defaulted to true for compatibility with older job files.
+//
+// The order in which the entries are to be printed is specified by the
+// printOrder variable.  If this is >= 0 for one or more entries with
+// printInFooter true, then those entries will be printed first in the order
+// specified by printOrder, lowest value first.  The value printOrder can be
+// 0 to max int.
+//
+// After the above have been printed, all entries with printInFooter true and
+// printOrder of -1 will be printed in the order in which they were loaded from
+// the config file.
+//
+// Returns true if there is a value to be printed, false if not.  The key
+// value pair are returned in pKeyValue.
+//
+
+public boolean getFirstToPrint(KeyValue pKeyValue)
+{
+
+prevOrderedPrinted = Integer.MAX_VALUE;
+prevPrintedPosition = -1;
+    
+int order = 0;
+
+//find any printable items which have printOrder >=0, these are printed first
+//in numerical order based on their printOrder values -- find the item with the
+//lowest print order
+
+for (int i=0; i < NUMBER_OF_ITEMS; i++){
+
+    items[i].printed = false;  //preset flag for all to not printed
+    
+    if (items[i] != null && items[i].printInFooter){
+        
+        order = items[i].printOrder; 
+        
+        //catch the lowest order number which is not -1, this is the first
+        //to be printed -- items with -1 are not ordered
+        if ((order > -1) && (order < prevOrderedPrinted)){
+            prevOrderedPrinted = order; //store to catch next larger in future
+            prevPrintedPosition = i; //store position
+            //store the key/value for the entry to be printed
+            pKeyValue.keyString = items[i].labelText;
+            pKeyValue.valueString = items[i].textField.getText();
+            }
+
+        }//if (items[i] != null && items[i].printInFooter)
+    }//for (int i=0; i < NUMBER_OF_ITEMS; i++)
+
+//if an ordered entry was found, flag it as already printed and return true
+if (prevPrintedPosition != -1) {
+    items[prevPrintedPosition].printed = true;
+    return(true);
+    }
+
+//if no ordered items were found, return the first item in the list which has
+//its printInFooter flag set true
+
+for (int i=0; i < NUMBER_OF_ITEMS; i++){
+    if (items[i] != null && items[i].printInFooter){
+                
+        //catch the first with print flag set true
+        if (!items[i].printed){
+            prevPrintedPosition = i; //store position
+            //store the key/value for the entry to be printed
+            pKeyValue.keyString = items[i].labelText;
+            pKeyValue.valueString = items[i].textField.getText();
+            break;
+            }
+
+        }//if (items[i] != null && items[i].printInFooter)
+    }//for (int i=0; i < NUMBER_OF_ITEMS; i++)
+
+//if an ordered entry was found, flag it as already printed and return true
+if (prevPrintedPosition != -1) {
+    items[prevPrintedPosition].printed = true;
+    return(true);
+    }
+
+//return false if no printable entry found
+return(false);
+
+}//end of PieceInfo::getFirstToPrint
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// PieceInfo::getNextToPrint
+//
+// To begin printing items in the list, call this function first to retrieve
+// the first item to be printed.  Subsequent calls to getNextToPrint will
+// return further items to be printed in the proper order.
+//
+// Returns the key and value in the Item array which is to be printed first
+// for hardcopy printouts.  The key is the label to be used and the value
+// is the value for that label, an example would be "Heat #" for the key and
+// "X2302" for the value.  These are typically printed together.
+//
+// To be printed, an entry must have its printInFooter value set true in the
+// configuration file.  If the entry does not exist in the file, then the
+// value will be defaulted to true for compatibility with older job files.
+//
+// The order in which the entries are to be printed is specified by the
+// printOrder variable.  If this is >= 0 for one or more entries with
+// printInFooter true, then those entries will be printed first in the order
+// specified by printOrder, lowest value first.  The value printOrder can be
+// 0 to max int.
+//
+// After the above have been printed, all entries with printInFooter true and
+// printOrder of -1 will be printed in the order in which they were loaded from
+// the config file.
+//
+// Returns true if there is a value to be printed, false if not.  The key
+// value pair are returned in pKeyValue.
+//
+
+public boolean getNextToPrint(KeyValue pKeyValue)
+{
+    
+int order = 0;
+
+//find any printable items which have printOrder >=0, these are printed first
+//in numerical order based on their printOrder values -- find the item with the
+//lowest print order
+
+for (int i=0; i < NUMBER_OF_ITEMS; i++){
+
+    items[i].printed = false;  //preset flag for all to not printed
+    
+    if (items[i] != null && items[i].printInFooter){
+        
+        order = items[i].printOrder; 
+        
+        //catch the lowest order number which is not -1, this is the first
+        //to be printed -- items with -1 are not ordered
+        if ((order > -1) && (order < prevOrderedPrinted)){
+            prevOrderedPrinted = order; //store to catch next larger in future
+            prevPrintedPosition = i; //store position
+            //store the key/value for the entry to be printed
+            pKeyValue.keyString = items[i].labelText;
+            pKeyValue.valueString = items[i].textField.getText();
+            }
+
+        }//if (items[i] != null && items[i].printInFooter)
+    }//for (int i=0; i < NUMBER_OF_ITEMS; i++)
+
+//if an ordered entry was found, flag it as already printed and return true
+if (prevPrintedPosition != -1) {
+    items[prevPrintedPosition].printed = true;
+    return(true);
+    }
+
+//if no ordered items were found, return the first item in the list which has
+//its printInFooter flag set true
+
+for (int i=0; i < NUMBER_OF_ITEMS; i++){
+    if (items[i] != null && items[i].printInFooter){
+                
+        //catch the first with print flag set true
+        if (!items[i].printed){
+            prevPrintedPosition = i; //store position
+            //store the key/value for the entry to be printed
+            pKeyValue.keyString = items[i].labelText;
+            pKeyValue.valueString = items[i].textField.getText();
+            break;
+            }
+
+        }//if (items[i] != null && items[i].printInFooter)
+    }//for (int i=0; i < NUMBER_OF_ITEMS; i++)
+
+//if an ordered entry was found, flag it as already printed and return true
+if (prevPrintedPosition != -1) {
+    items[prevPrintedPosition].printed = true;
+    return(true);
+    }
+
+//return false if no printable entry found
+return(false);
+
+}//end of PieceInfo::getNextToPrint
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // PieceInfo::loadData
 //
 // Loads data into the form from an ini file.
@@ -309,8 +523,6 @@ try {jobInfoFile = new IniFile(pFilename);}
 
 String section = "Identifying Information";
 
-String test = "empty"; //debug mks
-
 //load all items which have been defined
 
 for (int i=0; i < NUMBER_OF_ITEMS; i++)
@@ -320,10 +532,6 @@ for (int i=0; i < NUMBER_OF_ITEMS; i++)
         items[i].textField.setText(
                        jobInfoFile.readString(section, items[i].labelText, ""));
 
-        
-        test = items[i].textField.getText();
-        
-        
         }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
 
 }//end of PieceInfo::loadData
