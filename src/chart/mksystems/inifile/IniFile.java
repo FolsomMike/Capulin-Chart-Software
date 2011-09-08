@@ -271,7 +271,7 @@ return(pColor.getRed() + "," + pColor.getGreen() + "," + pColor.getBlue());
 
 public class IniFile extends Object{
 
-private Vector<String> buffer;
+private ArrayList<String> buffer;
 public String filename;
 private boolean modified;
 
@@ -285,7 +285,7 @@ public IniFile(String pFilename) throws IOException
 {
 
 //create a vector to hold the lines of text read from the file
-buffer = new Vector<String>(1000, 1000);
+buffer = new ArrayList<String>(1000);
 
 filename = pFilename;
 modified = false; //no data has yet been modified or added
@@ -457,7 +457,7 @@ if (pParams.sectionIndex == -1) return("");
 //add '=' to the search phrase to make sure a partial match will fail
 
 String key = pKey.toLowerCase() + "=";
-StringBuffer line = new StringBuffer(200);
+StringBuilder line = new StringBuilder(200);
 
 int matchIndex = -1;
 
@@ -698,7 +698,7 @@ getValue(pSection, pKey, params);
 if (params.keyIndex != -1){
 
     //if the section/key was found, replace the line with the new key=value line
-    buffer.setElementAt(pNewEntry, params.keyIndex);
+    buffer.set(params.keyIndex, pNewEntry);
 
     }
 else
