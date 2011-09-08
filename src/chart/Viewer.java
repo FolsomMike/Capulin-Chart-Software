@@ -691,11 +691,7 @@ g2.drawString("Work Order: " + currentWorkOrder
         + "    " + "File: " + controlPanel.segmentEntry.getText()
         + "    Customer Name: " + jobInfo.getValue("Customer Name"), 0, 10);
 
-g2.drawString("Work Order: " + currentWorkOrder
-        + "    " + "File: " +
-        controlPanel.segmentEntry.getText()
-        + "    Customer Name: " + jobInfo.getValue("Customer Name"),
-        0, (int)pPF.getImageableHeight());
+printPieceIDEntriesInFooter(0, (int)pPF.getImageableHeight(), g2);
 
 // *** see notes in the header above regarding Java resolution issues ***
 //
@@ -778,7 +774,7 @@ g2.scale(unscaleX, unscaleY);
 //output to fit in the leftover space
 double paperX = (pPF.getImageableWidth() / 72) * resolutionX;
 double paperY = 
-  ((pPF.getImageableHeight() - headerHeight) / 72) * resolutionY;
+  ((pPF.getImageableHeight() - headerHeight - footerHeight) / 72) * resolutionY;
 
 //calculate the scale so that either width or length fits the paper per the
 //user's setting
@@ -848,6 +844,39 @@ RepaintManager currentManager = RepaintManager.currentManager(c);
 currentManager.setDoubleBufferingEnabled(true);
 
 }//end of Viewer::enableDoubleBuffering
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Viewer::printPieceIDEntriesInFooter
+//
+// Prints entries in the pieceIDInfo object in the footer.  Entries to be
+// printed and the order in which they are to be printed are specified in the
+// "Configuration - Piece Info Window" file.
+//
+// Parameters pX and pY specify the position for the header.
+//
+
+public void printPieceIDEntriesInFooter(int pX, int pY, Graphics2D pG2)
+{
+
+String footer;    
+    
+KeyValue keyValue = new KeyValue();
+
+//if nothing to print, bail out
+if (!pieceIDInfo.getFirstToPrint(keyValue)) return;
+
+//add first entry to the footer string
+footer = keyValue.keyString + ": " + keyValue.valueString + "    ";
+
+//add remaining printable entries to the string 
+while(pieceIDInfo.getNextToPrint(keyValue))
+    footer = footer + keyValue.keyString + ": " + keyValue.valueString + "    ";
+
+//print the finishes string
+pG2.drawString(footer, pX, pY);
+
+}//end of Viewer::printPieceIDEntriesInFooter
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

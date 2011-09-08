@@ -42,7 +42,7 @@ String configFilename;
 String primaryDataPath, backupDataPath;
 String currentWorkOrder;
 ActionListener actionListener;
-int prevOrderedPrinted;
+int prevOrderedLow;
 int prevPrintedPosition;
 
 Item[] items;
@@ -344,68 +344,15 @@ return(""); //key not found, return empty string
 public boolean getFirstToPrint(KeyValue pKeyValue)
 {
 
-prevOrderedPrinted = Integer.MAX_VALUE;
-prevPrintedPosition = -1;
+//preset values and flags to begin printing    
     
-int order = 0;
-
-//find any printable items which have printOrder >=0, these are printed first
-//in numerical order based on their printOrder values -- find the item with the
-//lowest print order
-
-for (int i=0; i < NUMBER_OF_ITEMS; i++){
-
-    items[i].printed = false;  //preset flag for all to not printed
+for (int i=0; i < NUMBER_OF_ITEMS; i++) 
+    if (items[i] != null) items[i].printed = false;
     
-    if (items[i] != null && items[i].printInFooter){
-        
-        order = items[i].printOrder; 
-        
-        //catch the lowest order number which is not -1, this is the first
-        //to be printed -- items with -1 are not ordered
-        if ((order > -1) && (order < prevOrderedPrinted)){
-            prevOrderedPrinted = order; //store to catch next larger in future
-            prevPrintedPosition = i; //store position
-            //store the key/value for the entry to be printed
-            pKeyValue.keyString = items[i].labelText;
-            pKeyValue.valueString = items[i].textField.getText();
-            }
+//make first call to getNextToPrint
+// subsequent calls should call that function directly instead of this one
 
-        }//if (items[i] != null && items[i].printInFooter)
-    }//for (int i=0; i < NUMBER_OF_ITEMS; i++)
-
-//if an ordered entry was found, flag it as already printed and return true
-if (prevPrintedPosition != -1) {
-    items[prevPrintedPosition].printed = true;
-    return(true);
-    }
-
-//if no ordered items were found, return the first item in the list which has
-//its printInFooter flag set true
-
-for (int i=0; i < NUMBER_OF_ITEMS; i++){
-    if (items[i] != null && items[i].printInFooter){
-                
-        //catch the first with print flag set true
-        if (!items[i].printed){
-            prevPrintedPosition = i; //store position
-            //store the key/value for the entry to be printed
-            pKeyValue.keyString = items[i].labelText;
-            pKeyValue.valueString = items[i].textField.getText();
-            break;
-            }
-
-        }//if (items[i] != null && items[i].printInFooter)
-    }//for (int i=0; i < NUMBER_OF_ITEMS; i++)
-
-//if an ordered entry was found, flag it as already printed and return true
-if (prevPrintedPosition != -1) {
-    items[prevPrintedPosition].printed = true;
-    return(true);
-    }
-
-//return false if no printable entry found
-return(false);
+return(getNextToPrint(pKeyValue));
 
 }//end of PieceInfo::getFirstToPrint
 //-----------------------------------------------------------------------------
@@ -444,23 +391,23 @@ public boolean getNextToPrint(KeyValue pKeyValue)
 {
     
 int order = 0;
+prevPrintedPosition = -1;
+prevOrderedLow = Integer.MAX_VALUE;
 
 //find any printable items which have printOrder >=0, these are printed first
-//in numerical order based on their printOrder values -- find the item with the
-//lowest print order
+//in numerical order based on their printOrder values -- find the unprinted
+//item with the lowest print order
 
 for (int i=0; i < NUMBER_OF_ITEMS; i++){
-
-    items[i].printed = false;  //preset flag for all to not printed
     
-    if (items[i] != null && items[i].printInFooter){
+    if (items[i] != null && items[i].printInFooter && !items[i].printed){
         
         order = items[i].printOrder; 
         
         //catch the lowest order number which is not -1, this is the first
         //to be printed -- items with -1 are not ordered
-        if ((order > -1) && (order < prevOrderedPrinted)){
-            prevOrderedPrinted = order; //store to catch next larger in future
+        if ((order > -1) && (order < prevOrderedLow)){
+            prevOrderedLow = order; //store to catch next larger in future
             prevPrintedPosition = i; //store position
             //store the key/value for the entry to be printed
             pKeyValue.keyString = items[i].labelText;
