@@ -37,7 +37,7 @@ import chart.mksystems.stripchart.ChartGroup;
 // This class creates and handles the hardware interface.
 //
 
-public class Hardware extends Object implements Runnable{
+public class Hardware extends Object implements TraceValueCalculator, Runnable{
 
 static public int SCAN = 0, INSPECT = 1, STOPPED = 2;
 static public int INSPECT_WITH_TIMER_TRACKING = 3, PAUSED = 4;
@@ -1693,12 +1693,14 @@ catch (InterruptedException e) {
 //-----------------------------------------------------------------------------
 // Hardware::calculateComputedValue1
 //
-// Implemented by HardwareCalculatorLink interface.
-//
 // For this version of Hardware.java, calculates the wall thickness based upon
 // the cursor Y position.
 //
+// This function is duplicated in multiple objects.  Should make a separate
+// class which each of those objects creates to avoid duplication?
+//
 
+@Override
 public double calculateComputedValue1(int pCursorY)
 {
 

@@ -48,7 +48,7 @@ boolean displayUpdateButton;
 JButton updateButton;
 String filename;
 
-Item[] items;
+public Item[] items;
 static int NUMBER_OF_ITEMS = 100;
 
 //-----------------------------------------------------------------------------
@@ -629,13 +629,7 @@ public void focusLost(FocusEvent e)
 @Override
 public void windowClosing(WindowEvent e)
 {
-
-//debug mks    
     
-//save the file to both data folders
-//saveData(primaryDataPath);
-//saveData(backupDataPath);
-
 }//end of PieceInfo::windowClosing
 //-----------------------------------------------------------------------------
 

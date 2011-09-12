@@ -31,6 +31,7 @@ import java.awt.event.MouseEvent;
 import chart.mksystems.globals.Globals;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.hardware.Hardware;
+import chart.mksystems.hardware.TraceValueCalculator;
 import chart.Viewer;
 import chart.Xfer;
 
@@ -47,6 +48,7 @@ Globals globals;
 IniFile configFile;
 int chartGroupIndex;
 Hardware hardware;
+TraceValueCalculator traceValueCalculator;
 
 int windowXPos, windowYPos;
 
@@ -71,7 +73,8 @@ ActionListener actionListener;
   
 public ChartGroup(Globals pGlobals, IniFile pConfigFile, int pChartGroupIndex,
                         Hardware pHardware, ActionListener pActionListener,
-                                        boolean pChartSizeEqualsBufferSize)
+                                        boolean pChartSizeEqualsBufferSize,
+                                  TraceValueCalculator pTraceValueCalculator)
 {
 
 globals = pGlobals; configFile = pConfigFile; 
@@ -79,6 +82,14 @@ chartGroupIndex = pChartGroupIndex;
 hardware = pHardware;
 actionListener = pActionListener;
 chartSizeEqualsBufferSize = pChartSizeEqualsBufferSize;
+
+
+//If a hardware object exists, then that object is often passed in as the
+//traceValueCalculator.  If it does not exist, such as when the ChartGroups
+//are being created by a Viewer window, then the Viewer window might pass
+//itself in as the calculator.
+
+traceValueCalculator = pTraceValueCalculator;
 
 //set up the main panel - this panel does nothing more than provide a title
 //border and a spacing border
@@ -145,7 +156,8 @@ if (numberOfStripCharts > 0){
 
     for (int i = 0; i < numberOfStripCharts; i++){
        stripCharts[i] = new StripChart(globals, configFile, chartGroupIndex, i,
-                        hardware, actionListener, chartSizeEqualsBufferSize);
+                        hardware, actionListener, chartSizeEqualsBufferSize,
+                        traceValueCalculator);
         add(stripCharts[i]);
         }
     

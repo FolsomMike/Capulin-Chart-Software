@@ -578,8 +578,8 @@ if (numberOfChartGroups > 0){
     chartGroups = new ChartGroup[numberOfChartGroups];
 
     for (int i = 0; i < numberOfChartGroups; i++){
-        chartGroups[i] = 
-            new ChartGroup(globals, configFile, i, hardware, this, false);
+        chartGroups[i] = new ChartGroup(
+                    globals, configFile, i, hardware, this, false, hardware);
         mainFrame.add(chartGroups[i]);
         }
     
@@ -650,6 +650,9 @@ if (!globals.graphPrintLayout.equalsIgnoreCase("8-1/2 x 11 : Fit Height")
     && !globals.graphPrintLayout.equalsIgnoreCase("A4 : Fit Width"))
     globals.graphPrintLayout = "8-1/2 x 11 : Fit Height";
 
+globals.userPrintMagnify = calFile.readString(
+                               "General", "Graph Print Magnify", "Magnify 1.0");
+
 //load info for all charts
 for (int i=0; i < numberOfChartGroups; i++) chartGroups[i].loadCalFile(calFile);
 
@@ -702,6 +705,8 @@ calFile.writeBoolean("General", "Restart Each New Piece at Left Edge of Chart",
 calFile.writeInt("General", "Scanning and Inspecting Speed", globals.scanSpeed);
 
 calFile.writeString("General", "Graph Print Layout", globals.graphPrintLayout);
+
+calFile.writeString("General", "Graph Print Magnify", globals.userPrintMagnify);
 
 //save info for all charts
 for (int i=0; i < numberOfChartGroups; i++) chartGroups[i].saveCalFile(calFile);

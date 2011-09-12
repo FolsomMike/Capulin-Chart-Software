@@ -50,6 +50,9 @@ import java.awt.Color;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.globals.Globals;
 import chart.mksystems.stripchart.ChartGroup;
+import chart.mksystems.stripchart.StripChart;
+import chart.mksystems.hardware.TraceValueCalculator;
+import chart.mksystems.hardware.HardwareVars;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -57,15 +60,16 @@ import chart.mksystems.stripchart.ChartGroup;
 //
 
 public class Viewer extends JFrame implements ItemListener, ActionListener,
-                                  ComponentListener, Printable {
+                           ComponentListener, Printable, TraceValueCalculator {
 
 Globals globals;
 JobInfo jobInfo;
+public HardwareVars hdwVs;
 
 int numberOfChartGroups;
 ChartGroup[] chartGroups;
 
-String jobPrimaryPath, jobBackupPath, currentWorkOrder;
+String jobPrimaryPath, jobBackupPath, currentJobName;
 
 DecimalFormat[] decimalFormats;
 int currentSegmentNumber;
@@ -89,14 +93,16 @@ static int LAST = 1;
 //
 
 public Viewer(Globals pGlobals, JobInfo pJobInfo, String pJobPrimaryPath,
-                            String pJobBackupPath, String pCurrentWorkOrder)
+                            String pJobBackupPath, String pCurrentJobName)
 {
 
 super("Viewer");
 
+hdwVs = new HardwareVars();
+
 globals = pGlobals; jobInfo = pJobInfo;
 jobPrimaryPath = pJobPrimaryPath; jobBackupPath = pJobBackupPath;
-currentWorkOrder = pCurrentWorkOrder;
+currentJobName = pCurrentJobName;
 
 }//end of Viewer::Viewer (constructor)
 //-----------------------------------------------------------------------------
@@ -151,7 +157,7 @@ handleSizeChanges();
 
 //create an object to hold info about each piece
 pieceIDInfo = new PieceInfo(this, jobPrimaryPath, jobBackupPath,
-                                                 currentWorkOrder, this, true);
+                                                 currentJobName, this, true);
 pieceIDInfo.init();
 
 //load the last file saved - this is the most likely to be viewed
@@ -178,7 +184,7 @@ IniFile configFile = null;
 //if the ini file cannot be opened and loaded, exit without action
 try {
     configFile = new IniFile(jobPrimaryPath
-                         + "01 - " + currentWorkOrder + " Configuration.ini");
+                         + "01 - " + currentJobName + " Configuration.ini");
     }
     catch(IOException e){return;}
 
@@ -201,8 +207,8 @@ if (numberOfChartGroups > 0){
     //pass null for the hardware object as that object is not needed for viewing
 
     for (int i = 0; i < numberOfChartGroups; i++){
-        chartGroups[i] =
-          new ChartGroup(globals, configFile, i, null /*hardware*/, this, true);
+        chartGroups[i] = new ChartGroup(
+                  globals, configFile, i, null /*hardware*/, this, true, this);
         chartGroupPanel.add(chartGroups[i]);
         }
 
@@ -237,9 +243,55 @@ setSizes(scrollPane,
 add(scrollPane);
 
 add (controlPanel =
-                new ViewerControlPanel(globals, currentWorkOrder, this, this));
+                new ViewerControlPanel(globals, currentJobName, this, this));
 
 }//end of Viewer::configure
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainWindow::loadCalFile
+//
+// This loads the file used for storing calibration information pertinent to a
+// job, such as gains, offsets, thresholds, etc.
+//
+// Each object is passed a pointer to the file so that they may load their
+// own data.
+//
+
+private void loadCalFile()
+{
+
+IniFile calFile = null;
+
+//if the ini file cannot be opened and loaded, exit without action
+try {
+    
+    calFile = new IniFile(jobPrimaryPath
+                        + "00 - " + currentJobName + " Calibration File.ini");
+    }
+    catch(IOException e){return;}
+
+//since the Viewer does not create a Hardware object, load in any values
+//which are needed for viewing which would normally be loaded by the Hardware
+//class
+
+hdwVs.nominalWall = calFile.readDouble("Hardware", "Nominal Wall", 0.250);
+
+hdwVs.nominalWallChartPosition =
+               calFile.readInt("Hardware", "Nominal Wall Chart Position", 50);
+
+hdwVs.wallChartScale =
+                     calFile.readDouble("Hardware", "Wall Chart Scale", 0.002);
+
+
+//don't load globals -- a pointer to the globals is passed to the Viewer
+// and these values are shared with the main program and other viewers -- the
+// globals are already loaded by the main program
+
+//load info for all charts
+for (int i=0; i < numberOfChartGroups; i++) chartGroups[i].loadCalFile(calFile);
+
+}//end of MainWindow::loadCalFile
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -579,23 +631,22 @@ if (job.printDialog(aset)) {
 
             }
         catch(ClassNotFoundException cnfe){
-            //if could not be retrieved, default to values for Letter size
+            //if could not be retrieved, default to reasonable values for
+            //Letter size  (1/2" margins)
             mPA = new MediaPrintableArea(
-                   (float)12.7, (float)25.4, (float)177.8, (float)228.6,
+                   (float)12.7, (float)12.7, (float)190.5, (float)254.0,
                                                         MediaPrintableArea.MM);
             }
 
         //use the MediaPrintableArea retrieved from the aset, which has the
         //default values set by Java appropriate for the paper size, and adjust
-        //it to decrease the margin to allow for a header to be printed - the
-        //height must also be adjusted because more space will be available
-        //with a decreased margin
-
+        //it to decrease the margins to 1/2"
+        
         aset.add(new MediaPrintableArea(
                    mPA.getX(MediaPrintableArea.MM) - (float)12.7,
-                   mPA.getY(MediaPrintableArea.MM),
-                   mPA.getWidth(MediaPrintableArea.MM) + (float)12.7,
-                   mPA.getHeight(MediaPrintableArea.MM),
+                   mPA.getY(MediaPrintableArea.MM) - (float)12.7,
+                   mPA.getWidth(MediaPrintableArea.MM) + (float)25.4,
+                   mPA.getHeight(MediaPrintableArea.MM) + (float)25.4,
                    MediaPrintableArea.MM));
 
         //start printing - Java will call the print function of the object
@@ -676,7 +727,7 @@ int footerHeight = 15;
 //printing on the report - this would also solve the problem where "Customer
 //Name" is not one of the valid entries
 
-g2.setColor(Color.RED); //debug mks -- remove this
+//g2.setColor(Color.RED); //debug mks -- remove this
 
 //move drawing area to the part which can actually be printed on -- inside the
 //margins
@@ -687,11 +738,22 @@ g2.translate(pPF.getImageableX(), pPF.getImageableY());
 //because Java adjusts the scale such that 72 pixels equals one inch for
 //whatever DPI is in effect
 
-g2.drawString("Work Order: " + currentWorkOrder
+g2.drawString("Work Order: " + currentJobName
         + "    " + "File: " + controlPanel.segmentEntry.getText()
         + "    Customer Name: " + jobInfo.getValue("Customer Name"), 0, 10);
 
-printPieceIDEntriesInFooter(0, (int)pPF.getImageableHeight(), g2);
+String footerString;
+
+//get a string with entries from the Piece ID object for printing
+footerString = formatPieceIDEntriesForPrinting();
+
+//add Wall max/min values to the footer string
+footerString += formatWallMaxMinForPrinting();
+
+//print the finished string
+g2.drawString(footerString, 0, (int)pPF.getImageableHeight());
+
+
 
 // *** see notes in the header above regarding Java resolution issues ***
 //
@@ -780,15 +842,58 @@ double paperY =
 //user's setting
 
 if (globals.graphPrintLayout.contains("Fit Width")){
-    scaleX = paperX / groupWidth;
-    scaleY = scaleX; //fix this - scaleY should reflect possibly different DPI
-    }
+    
+    //if the user does not choose "Fit to Data" for the magnification, then
+    //calculate the scale to fit the entire chart width on the paper
+    if (!globals.userPrintMagnify.contains("Fit to Data")){
+        scaleX = paperX / groupWidth;
+        scaleY = scaleX; //fix this - scaleY reflect possibly different DPI?
+        }
+    else{
+        
+        //if the user chooses "Fit to Data", then calcualate the width required
+        //to display all the data, chopping off the unused chart portion
+        //this option is not used for the "Fit Height" layouts
+        //all traces should have the same amount of data, so use one trace
+        //to determine the width for all
+        
+        int dataWidth = 
+                chartGroups[0].getStripChart(0).getTrace(0).getDataWidth();
+        
+        //if no data was found, use the entire group width
+        if (dataWidth == -1) 
+            dataWidth = groupWidth;
+        else
+            dataWidth += 30; //add room for the chart border
+                
+        //prevent short data widths from blowing the vertical up too much
+        //allow width to be no less than half the group width
+        if (((double)groupWidth / ((double)dataWidth)) > 2) 
+            dataWidth = groupWidth / 2;
+
+        scaleX = paperX / dataWidth;        
+        scaleY = scaleX; //fix this - scaleY reflect possibly different DPI?
+                
+        }
+    }//if (globals.graphPrintLayout.contains("Fit Width"))
 
 if (globals.graphPrintLayout.contains("Fit Height")){
     scaleY = paperY / groupHeight;
     scaleX = scaleY;  //fix this - scaleY should reflect possibly different DPI
     }
 
+//apply the user's scale modification if user has not selected "Fit to Data",
+// the magnification for that case is already applied above
+
+if (!globals.userPrintMagnify.contains("Fit to Data")){
+    
+    //get the numeric portion of the magnify string (skip the label)
+    Double magnify = Double.valueOf(globals.userPrintMagnify.substring(8));
+    
+    scaleX *= magnify;
+    scaleY *= magnify;
+    }
+    
 //apply desired scaling here
 g2.scale(scaleX, scaleY);
 
@@ -805,7 +910,7 @@ enableDoubleBuffering(pChartGroup);
 //
 // Disables double buffering for Component pC and all components it might
 // contain.
-//
+//  
 // This should be done before rendering to a print graphic object so that
 // scaling works properly and unnecessary data is not sent to the print spooler.
 //
@@ -847,36 +952,127 @@ currentManager.setDoubleBufferingEnabled(true);
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Viewer::printPieceIDEntriesInFooter
+// Viewer::formatPieceIDEntriesForPrinting
 //
-// Prints entries in the pieceIDInfo object in the footer.  Entries to be
-// printed and the order in which they are to be printed are specified in the
-// "Configuration - Piece Info Window" file.
+// Adds entries in the pieceIDInfo object to a string which can be printed.  
+// The resulting string is returned. 
 //
-// Parameters pX and pY specify the position for the header.
+// Entries to be printed and the order in which they are to be printed are
+// specified in the "Configuration - Piece Info Window" file.
 //
 
-public void printPieceIDEntriesInFooter(int pX, int pY, Graphics2D pG2)
+public String formatPieceIDEntriesForPrinting()
 {
-
-String footer;    
+    
+String result = "";
     
 KeyValue keyValue = new KeyValue();
 
 //if nothing to print, bail out
-if (!pieceIDInfo.getFirstToPrint(keyValue)) return;
+if (!pieceIDInfo.getFirstToPrint(keyValue)) return(result);
 
 //add first entry to the footer string
-footer = keyValue.keyString + ": " + keyValue.valueString + "    ";
+result = keyValue.keyString + ": " + keyValue.valueString + "    ";
 
 //add remaining printable entries to the string 
 while(pieceIDInfo.getNextToPrint(keyValue))
-    footer = footer + keyValue.keyString + ": " + keyValue.valueString + "    ";
+    result = 
+            result + keyValue.keyString + ": " + keyValue.valueString + "    ";
 
-//print the finished string
-pG2.drawString(footer, pX, pY);
+return(result);
 
 }//end of Viewer::printPieceIDEntriesInFooter
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Viewer::formatWallMaxMinForPrinting
+//
+// Finds the max and min for the Wall trace and adds the values to a string
+// which can be printed.
+//
+// The resulting string is returned. 
+//
+
+public String formatWallMaxMinForPrinting()
+{
+
+String result = "", maxWall = "", minWall = "";
+StripChart stripChart = null;    
+
+//scan through all charts to find the one with the title containing "Wall"
+
+for (int i = 0; i < numberOfChartGroups; i++){
+    for (int j = 0; j < chartGroups[i].getNumberOfStripCharts(); j++){
+    
+        if(chartGroups[i].getStripChart(j).getTitle().contains("Wall")){
+            
+            stripChart = chartGroups[i].getStripChart(j);
+            break;
+            
+            }      
+        }//for (int i = 0; i < numberOfStripCharts; i++){
+    }//for (int i = 0; i < numberOfChartGroups; i++)
+    
+//if no "Wall" chart found, exit with empty string
+if (stripChart == null) return(result);
+
+int minTrace = -1, maxTrace = -1;
+
+//scan through all traces to find the ones with the titles containing "Max"
+//and "Min"
+
+for (int i = 0; i < stripChart.getNumberOfTraces(); i++){
+
+    if(stripChart.getTrace(i).getTitle().contains("Min"))
+        minTrace = i;
+        
+    if(stripChart.getTrace(i).getTitle().contains("Max"))
+        maxTrace = i;
+        
+    }//for (int i = 0; i < stripChart.getNumberOfTraces(); i++){
+
+int min = 0, max = 0;
+
+if (minTrace != -1){
+    
+    min = stripChart.findMinValueOfTrace(minTrace);    
+    
+    minWall = Integer.toString(min);
+    
+    }
+
+if (maxTrace != -1){
+    
+    max = stripChart.findMaxValueOfTrace(maxTrace);
+    
+    maxWall = Integer.toString(max);
+
+    }
+     
+DecimalFormat decimalFormat = new DecimalFormat("0.000");
+
+if (min < 0) min = 0;
+if (min > stripChart.chartHeight) min = stripChart.chartHeight;
+
+if (max < 0) max = 0;
+if (max > stripChart.chartHeight) max = stripChart.chartHeight;
+
+result = "Max Wall: " + 
+            decimalFormat.format(calculateInvertedComputedValue1(max)) + "    ";
+    
+result += "Min Wall: " + 
+            decimalFormat.format(calculateInvertedComputedValue1(min)) + "    ";
+
+//debug mks
+//Use to display wall string in the piece ID info window
+
+//pieceIDInfo.items[2].textField.setText(result);        
+
+//debug mks
+
+return(result);
+
+}//end of Viewer::formatWallMaxMinForPrinting
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1027,8 +1223,8 @@ pack();
 //-----------------------------------------------------------------------------
 // Viewer::loadSegment
 //
-// Loads the data for a segment from the primary job folder.  The piece info
-// is also loaded from the associated info file.
+// Loads the data for a segment from the primary job folder.  The calibration
+// and piece info are also loaded from the associated info file.
 //
 // This function should be called whenever a new segment is loaded for
 // viewing or processing - each segment could represent a piece being monitored,
@@ -1063,6 +1259,8 @@ segmentFilename = prefix +
 loadSegmentHelper(jobPrimaryPath + segmentFilename + ext);
 //load piece info
 loadInfoHelper(jobPrimaryPath + segmentFilename + infoExt);
+
+loadCalFile(); //load calibration settings needed for viewing
 
 repaint();
 
@@ -1395,6 +1593,55 @@ pComponent.setMaximumSize(new Dimension(pX, pY));
 }//end of Viewer::setSizes
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// Viewer::calculateComputedValue1
+//
+// For this version, calculates the wall thickness based upon the cursor Y
+// position.
+//
+// This function is duplicated in multiple objects.  Should make a separate
+// class which each of those objects creates to avoid duplication?
+//
+
+@Override
+public double calculateComputedValue1(int pCursorY)
+{
+
+double offset = (hdwVs.nominalWallChartPosition - pCursorY)
+                                                        * hdwVs.wallChartScale;
+
+//calculate wall at cursor y position relative to nominal wall value
+return (hdwVs.nominalWall + offset);
+
+}//end of Hardware::calculateComputedValue1
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Viewer::calculateInvertedComputedValue1
+//
+// For this version, calculates the wall thickness based upon the cursor Y
+// position. It is similar to calculateComputedValue1 but expects
+// an inverted value directly from the trace data buffer.  The non-inverted
+// version expects data from cursor position which is inverted due to the
+// fact that Java uses the upper left corner for 0,0.
+//
+// This function is duplicated in multiple objects.  Should make a separate
+// class which each of those objects creates to avoid duplication?
+//
+
+public double calculateInvertedComputedValue1(int pCursorY)
+{
+
+double offset = (hdwVs.nominalWallChartPosition - pCursorY)
+                                                        * hdwVs.wallChartScale;
+
+//calculate wall at cursor y position relative to nominal wall value
+return (hdwVs.nominalWall - offset);
+
+}//end of Hardware::calculateInvertedComputedValue1
+//-----------------------------------------------------------------------------
+
+
 }//end of class Viewer
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -1414,18 +1661,18 @@ ItemListener itemListener;
 ActionListener actionListener;
 JLabel jobValue;
 JTextField segmentEntry;
-String currentWorkOrder;
+String currentJobName;
 JCheckBox calModeCheckBox;
 
 //-----------------------------------------------------------------------------
 // ViewerControlPanel::ViewerControlPanel (constructor)
 //
 
-public ViewerControlPanel(Globals pGlobals, String pCurrentWorkOrder,
+public ViewerControlPanel(Globals pGlobals, String pCurrentJobName,
                     ItemListener pItemListener, ActionListener pActionListener)
 {
 
-globals = pGlobals; currentWorkOrder = pCurrentWorkOrder;
+globals = pGlobals; currentJobName = pCurrentJobName;
 
 itemListener = pItemListener;
 actionListener = pActionListener;
@@ -1478,7 +1725,7 @@ infoPanel.setBorder(BorderFactory.createTitledBorder("Info"));
 infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.X_AXIS));
 
 infoPanel.add(new JLabel(" Job #: "));
-jobValue = new JLabel(currentWorkOrder);
+jobValue = new JLabel(currentJobName);
 infoPanel.add(jobValue);
 add(infoPanel);
 
@@ -1545,6 +1792,10 @@ printControls.add(print = new JButton(printerIcon));
 print.setActionCommand("Print");
 print.addActionListener(actionListener);
 
+JPanel panel1 = new JPanel();
+panel1.setLayout(new BoxLayout(panel1, BoxLayout.PAGE_AXIS));
+printControls.setToolTipText("Layout & Magnification");
+
 //combo box to select paper width and scaling
 String[] layouts = {"8-1/2 x 11 : Fit Height", "8-1/2 x 11 : Fit Width",
                     "8-1/2 x 14 : Fit Height", "8-1/2 x 14 : Fit Width",
@@ -1552,7 +1803,7 @@ String[] layouts = {"8-1/2 x 11 : Fit Height", "8-1/2 x 11 : Fit Width",
 JComboBox layoutSelector = new JComboBox(layouts);
 Viewer.setSizes(layoutSelector, 150, 25);
 layoutSelector.setToolTipText("Select paper size and scaling.");
-printControls.add(layoutSelector);
+panel1.add(layoutSelector);
 //figure out which string index matches, use first one (0) if no match
 int selected = 0;
 for (int i = 0; i < layouts.length; i++)
@@ -1560,6 +1811,24 @@ for (int i = 0; i < layouts.length; i++)
 layoutSelector.setSelectedIndex(selected);
 layoutSelector.setActionCommand("Select Graph Print Layout");
 layoutSelector.addActionListener(this);
+
+String[] magnifyValues = {"Magnify 1.0", "Fit to Data", "Magnify 1.1",
+    "Magnify 1.2", "Magnify 1.3", "Magnify 1.4", "Magnify 1.5", "Magnify 1.6",
+    "Magnify 1.7", "Magnify 1.8", "Magnify 1.9", "Magnify 2.0"};
+
+JComboBox userMagnifySelector = new JComboBox(magnifyValues);
+Viewer.setSizes(userMagnifySelector, 150, 25);
+layoutSelector.setToolTipText("Select magnification.");
+panel1.add(userMagnifySelector);
+selected = 0;
+for (int i = 0; i < magnifyValues.length; i++)
+    if (globals.userPrintMagnify.equalsIgnoreCase(magnifyValues[i]))
+        selected = i;
+userMagnifySelector.setSelectedIndex(selected);
+userMagnifySelector.setActionCommand("Select Magnification");
+userMagnifySelector.addActionListener(this);
+
+printControls.add(panel1);
 
 add(printControls);
 
@@ -1642,6 +1911,11 @@ public void actionPerformed(ActionEvent e)
 if ("Select Graph Print Layout".equals(e.getActionCommand())) {
     JComboBox cb = (JComboBox)e.getSource();
     globals.graphPrintLayout = (String)cb.getSelectedItem();
+    }
+
+if ("Select Magnification".equals(e.getActionCommand())) {
+    JComboBox cb = (JComboBox)e.getSource();
+    globals.userPrintMagnify = (String)cb.getSelectedItem();
     }
 
 }//end of ViewerControlPanel::actionPerformed

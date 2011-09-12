@@ -134,6 +134,7 @@ public boolean restartNewPieceAtLeftEdge = true;
 public int scanSpeed;
 
 public String graphPrintLayout;
+public String userPrintMagnify;
 
 public int printResolutionX, printResolutionY;
 public String printQuality;

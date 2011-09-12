@@ -33,6 +33,7 @@ import java.text.DecimalFormat;
 import chart.mksystems.globals.Globals;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.hardware.Hardware;
+import chart.mksystems.hardware.TraceValueCalculator;
 import chart.Viewer;
 import chart.Xfer;
 
@@ -405,9 +406,11 @@ Globals globals;
 IniFile configFile;
 int chartGroup;
 int chartIndex;
+TraceValueCalculator traceValueCalculator;
 Hardware hardware;
 Color borderColor;
 TraceGlobals traceGlobals;
+public int chartHeight;
 
 boolean displayPeakChannel;
 ValueDisplay peakChannel;
@@ -428,8 +431,9 @@ Threshold[] thresholds;
 Color backgroundColor;
 Color gridColor;
 int gridXSpacing;
-boolean leadingMask;
-boolean trailingMask;
+//why do we have mask boolean values?
+boolean leadMask, trailMask;
+int leadMaskPos, trailMaskPos;
 Color maskColor;
 Color separatorColor;
 public int lastAScanChannel = 0;
@@ -451,12 +455,14 @@ ActionListener actionListener;
 
 public StripChart(Globals pGlobals, IniFile pConfigFile, int pChartGroup,
        int pChartIndex, Hardware pHardware, ActionListener pActionListener,
-       boolean pChartSizeEqualsBufferSize)
+       boolean pChartSizeEqualsBufferSize, 
+        TraceValueCalculator pTraceValueCalculator)
 {
 
 globals = pGlobals; configFile = pConfigFile; chartIndex = pChartIndex;
 chartGroup = pChartGroup;
 hardware = pHardware; actionListener = pActionListener;
+traceValueCalculator = pTraceValueCalculator;
 traceGlobals = new TraceGlobals();
 chartSizeEqualsBufferSize = pChartSizeEqualsBufferSize;
 
@@ -527,9 +533,9 @@ gridColor = pConfigFile.readColor(section, "Grid Color", Color.BLACK);
 
 gridXSpacing = pConfigFile.readInt(section, "Grid X Spacing", 10);
 
-leadingMask = pConfigFile.readBoolean(section, "Leading Mask", true);
+leadMask = pConfigFile.readBoolean(section, "Leading Mask", true);
 
-trailingMask = pConfigFile.readBoolean(section, "Trailing Mask", true);
+trailMask = pConfigFile.readBoolean(section, "Trailing Mask", true);
 
 maskColor = pConfigFile.readColor(section, "Mask Color", Color.BLACK);
 
@@ -563,20 +569,21 @@ configureTraces(configFile);
 
 setBorder(titledBorder = BorderFactory.createTitledBorder(title));
 
-int cWidth = pConfigFile.readInt(section, "Width", 1000);
+int chartWidth = pConfigFile.readInt(section, "Width", 1000);
 
-int cHeight = pConfigFile.readInt(section, "Height", 100);
+chartHeight = pConfigFile.readInt(section, "Height", 100);
 
 //if flag is true, make chart wide enough to hold all data in the trace
 // see header notes in constructor for more info
 
-if (chartSizeEqualsBufferSize) cWidth = traces[0].sizeOfDataBuffer;
+if (chartSizeEqualsBufferSize) chartWidth = traces[0].sizeOfDataBuffer;
 
 //create a Canvas object to be placed on the main panel - the Canvas object
 //provides a panel and methods for drawing data - all the work is actually
 //done by the Canvas object
-canvas = new ChartCanvas(globals, cWidth, cHeight, backgroundColor, gridColor,
-                 numberOfTraces, traces, numberOfThresholds, thresholds, this);
+canvas = new ChartCanvas(globals, chartWidth, chartHeight, 
+                 backgroundColor, gridColor, numberOfTraces, traces,
+                 numberOfThresholds, thresholds, this);
 
 //default to trace 0 as the leading trace for now so the chart decorations
 //will be drawn
@@ -1227,6 +1234,9 @@ setChartVisible(pCalFile.readBoolean(section, "Chart is Visible", true));
 for (int i = 0; i < numberOfThresholds; i++)
                                           thresholds[i].loadCalFile(pCalFile);
 
+leadMaskPos = pCalFile.readInt(section, "Leading Mask Position", -1);
+trailMaskPos = pCalFile.readInt(section, "Trailing Mask Position", -1);
+
 }//end of StripChart::loadCalFile
 //-----------------------------------------------------------------------------
 
@@ -1259,6 +1269,9 @@ pCalFile.writeBoolean(section, "Chart is Visible", isChartVisible());
 for (int i = 0; i < numberOfThresholds; i++) 
     thresholds[i].saveCalFile(pCalFile);
 
+pCalFile.writeInt(section, "Leading Mask Position", leadMaskPos);
+pCalFile.writeInt(section, "Trailing Mask Position", trailMaskPos);
+
 }//end of StripChart::saveCalFile
 //-----------------------------------------------------------------------------
 
@@ -1289,6 +1302,306 @@ public Trace getTrace(int pWhich)
 return traces[pWhich];
 
 }//end of StripChart::getTrace
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// StripChart::findMinValueOfTrace
+//
+// Finds the minimum value in dataBuffer1 of trace specified by pwhich.
+//
+
+public int findMinValueOfTrace(int pWhich)
+{
+
+//if the lead or trail mask has not been set, use software to detect where
+//the good inspection starts -- this currently only works well for a Wall
+//chart
+if (leadMaskPos == -1) leadMaskPos = createArtificialLeadMask();    
+if (trailMaskPos == -1) trailMaskPos = createArtificialTrailMask();    
+    
+return(traces[pWhich].findMinValue(leadMaskPos, trailMaskPos));
+
+}//end of StripChart::findMinValueOfTrace
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// StripChart::findMaxValueOfTrace
+//
+// Finds the maximum value in dataBuffer1 of trace specified by pWhich.
+//
+
+public int findMaxValueOfTrace(int pWhich)
+{
+
+//if the lead or trail mask has not been set, use software to detect where
+//the good inspection starts -- this currently only works well for a Wall
+//chart
+if (leadMaskPos == -1) leadMaskPos = createArtificialLeadMask();    
+if (trailMaskPos == -1) trailMaskPos = createArtificialTrailMask();    
+    
+return(traces[pWhich].findMaxValue(leadMaskPos, trailMaskPos));
+
+}//end of StripChart::findMaxValueOfTrace
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// StripChart::createArtificialLeadMask
+//
+// Attempts to detect the point where good inspection data starts.  Traces 0 & 1
+// are used for sampling.  Useful in cases where a mask was not set.
+//
+// This currently only works well for a Wall chart.
+//
+
+public int createArtificialLeadMask()
+{
+
+//first look for a section at the beginning where at least one of the traces
+//is the same value for several consecutive points -- for Wall data, this
+//usually signifies that the head is up and flat line data is being received
+
+//if a straight line section is found, start at the end of it plus 30 points
+    
+int buffer0[] = traces[0].getDataBuffer1();    
+int buffer1[] = traces[1].getDataBuffer1();        
+    
+//look for end of flat line sections near the beginning of both traces
+int endOfFlatline0 = findEndOfFlatlineSectionNearTraceStart(buffer0);
+int endOfFlatline1 = findEndOfFlatlineSectionNearTraceStart(buffer1);
+
+int maskStart;
+
+//use the larger of the two to extend past the longest flatline section 
+maskStart = Math.max(endOfFlatline0, endOfFlatline1);
+
+//if both were -1, then no flat line sections were found so just start from 0
+if (maskStart == -1) maskStart = 0;
+
+//if flat line section not found, start at position 80 -- if section found,
+//start at end of section plus 80
+maskStart += 80;
+
+return(maskStart);
+
+}//end of StripChart::createArtificialLeadMask
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// StripChart::findEndOfFlatlineSectionNearTraceStart
+//
+// Looks for a section at the beginning of the buffer where the data is the
+// same value for 5 consecutive points -- for Wall data, this usually
+// signifies that the head is up and flat line data is being received.
+//
+// If such a section is found, the end of the section is returned.
+// If no such section is found, -1 is returned.
+//
+
+public int findEndOfFlatlineSectionNearTraceStart(int[] pBuffer)
+{
+
+int startOfFlatline = -1;    
+int sample = 0;
+int end = 100;
+
+//return no find code if buffer is too small for the test
+if (end > (pBuffer.length - 5)) return(-1);
+
+//look for flat line section
+for (int i = 0; i <= end; i++){
+
+    //check to see if 5 consecutive points match
+    sample = pBuffer[i];
+    if (pBuffer[i+1] == sample && pBuffer[i+2] == sample 
+          && pBuffer[i+3] == sample && pBuffer[i+4] == sample){
+    
+        startOfFlatline = i;
+        break;
+        
+        }
+        
+    }//for (int i = 0; i < 100; i++)
+
+//return no find code if no flatline section found
+if (startOfFlatline == -1) return(-1);
+
+//find the end of the flatline
+
+int endOfFlatline = -1;
+int endSearchEnd = 100; //only search first several inches
+
+if(endSearchEnd >= pBuffer.length) endSearchEnd = pBuffer.length - 1;
+
+//find first position which is not a match -- this is the end of the flatline
+for (int i = startOfFlatline; i <= end; i++){
+ 
+    if (sample != pBuffer[i]){ 
+        endOfFlatline = i;
+        break;
+        }
+                
+    }//for (int i = startOfFlatline; i <= end; i++){
+
+//returned value will be the end of the flat line section or -1 if none found
+return(endOfFlatline);
+
+}//end of StripChart::findEndOfFlatlineSectionNearTraceStart
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// StripChart::createArtificialTrailMask
+//
+// Attempts to detect the point where good inspection data ends.  Traces 0 & 1
+// are used for sampling.  Useful in cases where a mask was not set.
+//
+// This currently only works well for a Wall chart.
+//
+
+public int createArtificialTrailMask()
+{
+
+//first look for a section at the end where at least one of the traces
+//is the same value for several consecutive points -- for Wall data, this
+//usually signifies that the head is up and flat line data is being received
+
+//if a straight line section is found, end at the start of it minus 30 points
+    
+int buffer0[] = traces[0].getDataBuffer1();    
+int buffer1[] = traces[1].getDataBuffer1();        
+    
+//look for end of flat line sections near the end of both traces
+int endOfFlatline0 = findEndOfFlatlineSectionNearTraceEnd(buffer0);
+int endOfFlatline1 = findEndOfFlatlineSectionNearTraceEnd(buffer1);
+
+int maskStart;
+
+//use the smaller of the two to stop before the longest flatline section 
+maskStart = Math.min(endOfFlatline0, endOfFlatline1);
+
+//if both were -1, then no flat line sections were found so just start from end
+//of trace 0 (which should match end of other traces as well)
+if (maskStart == -1) maskStart = findEndOfData(buffer0);
+
+//if flat line section not found, start at end minus 80 -- if section found,
+//start at end of section minus 80
+maskStart -= 80;
+
+return(maskStart);
+
+}//end of StripChart::createArtificialTrailMask
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// StripChart::findEndOfFlatlineSectionNearTraceEnd
+//
+// Looks for a section at the end of the buffer where the data is the
+// same value for 5 consecutive points -- for Wall data, this usually
+// signifies that the head is up and flat line data is being received.
+//
+// If such a section is found, the end of the section is returned.
+// If no such section is found, -1 is returned.
+//
+// NOTE: This function is the opposite of the function
+//     findEndOfFlatlineSectionNearTraceStart
+// For this function, the term startOfFlatline means the start of the section
+// when scanning backwards from the end.  The term endOfFlatline means the
+// end of the flat line section when scanning backwards.  Thus the end of the
+// section is nearest to the beginning of the buffer and the start is nearest
+// to the end of the buffer -- opposite meaning from the aforementioned
+// function.
+//
+
+public int findEndOfFlatlineSectionNearTraceEnd(int[] pBuffer)
+{
+
+int startOfFlatline = -1;    
+int sample = 0;
+int endOfData;
+
+//when searching from the end of the buffer, the last data point must be found
+//to serve as the starting point else the default unfilled values will trigger
+//the flat line section detector
+
+endOfData = findEndOfData(pBuffer);
+
+//return no find code if no data found
+if (endOfData == -1) return(-1);
+
+//search from end of data to 100 points prior
+int end = endOfData - 100;
+
+//return no find code if buffer is too small for the test
+if (end < 5) return(-1);
+
+//look for flat line section
+for (int i = endOfData; i >= end; i--){
+
+    //check to see if 5 consecutive points match
+    sample = pBuffer[i];
+
+    if (pBuffer[i-1] == sample && pBuffer[i-2] == sample 
+          && pBuffer[i-3] == sample && pBuffer[i-4] == sample){
+    
+        startOfFlatline = i;
+        break;
+        
+        }
+        
+    }//for (int i = 0; i < 100; i++)
+
+//return no find code if no flatline section found
+if (startOfFlatline == -1) return(-1);
+
+//find the end of the flatline
+
+int endOfFlatline = -1;
+int endSearchEnd = endOfData - 100; //only search last several inches
+
+//return no find code if buffer too small for the test
+if(endSearchEnd < 5) return(-1);
+
+//find first position which is not a match -- this is the end of the flatline
+for (int i = startOfFlatline; i >= endSearchEnd; i--){
+ 
+    if (sample != pBuffer[i]){ 
+        endOfFlatline = i;
+        break;
+        }
+                
+    }//for (int i = startOfFlatline; i <= end; i++){
+
+//returned value will be the end of the flat line section or -1 if none found
+return(endOfFlatline);
+
+}//end of StripChart::findEndOfFlatlineSectionNearTraceEnd
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// StripChart::findEndOfData
+//
+// Finds the end of the data in pBuffer and returns the index position.
+//
+// Returns -1 if no data found.
+//
+
+public int findEndOfData(int[] pBuffer)
+{
+
+int endOfData = -1;    
+    
+//NOTE: Start at pBuffer.length - 2 as the last element seems to be filled
+// with zero -- why is this? -- fix?
+
+for (int i = (pBuffer.length - 2); i > 0; i--){
+    if (pBuffer[i] != Integer.MAX_VALUE){
+        endOfData = i;
+        break;
+        }
+    }//for (int i = (pBuffer.length - 1); i <= 0; i--){
+    
+return(endOfData);
+
+}//end of StripChart::findEndOfData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1383,7 +1696,7 @@ public void mouseMoved(MouseEvent e)
 
 if (displayComputedAtCursor)
     computedAtCursor.updateDouble((Graphics2D)getGraphics(),
-                            hardware.calculateComputedValue1(e.getY()), false);
+                 traceValueCalculator.calculateComputedValue1(e.getY()), false);
 
 //convert linear x cursor position to really world feet & inches
 //wip mks -- need to determine scale from user cal settings rather than hard coding

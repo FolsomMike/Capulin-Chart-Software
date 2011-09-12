@@ -28,7 +28,7 @@ import chart.mksystems.stripchart.Trace;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-// interface Link
+// interface HardwareLink
 //
 // Defines functions to allow different objects to call functions in other
 // objects.

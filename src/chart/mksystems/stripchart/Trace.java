@@ -715,7 +715,73 @@ if (!success) throw new IOException(
 
 return(line); //should be "[xxxx]" tag on success, unknown value if not
 
-}//end of Trace::processTraceEntries
+}//end of Trace::processDataSeries
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Trace::findMinValue
+//
+// Finds the minimum value in dataBuffer1.
+//
+// Finds the minimum value in dataBuffer1.  Search begins at pStart position
+// in the array and ends at pEnd.
+//
+// Values of pStart and pEnd will be forced between 0 and dataBuffer1.length
+// to avoid errors.
+//
+
+public int findMinValue(int pStart, int pEnd)
+{
+
+if (pStart < 0) pStart = 0; 
+if (pStart >= dataBuffer1.length) pStart = dataBuffer1.length - 1;     
+    
+if (pEnd < 0) pEnd = 0; 
+if (pEnd >= dataBuffer1.length) pEnd = dataBuffer1.length - 1;     
+        
+int peak = Integer.MAX_VALUE;    
+
+for (int i = pStart; i < pEnd; i++){
+
+    if (dataBuffer1[i] < peak) peak = dataBuffer1[i];
+         
+    }
+
+return(peak);
+
+}//end of Trace::findMinValue
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Trace::findMaxValue
+//
+// Finds the maximum value in dataBuffer1.  Search begins at pStart position
+// in the array and ends at pEnd.
+//
+// Values of pStart and pEnd will be forced between 0 and dataBuffer1.length
+// to avoid errors.
+//
+
+public int findMaxValue(int pStart, int pEnd)
+{
+
+if (pStart < 0) pStart = 0; 
+if (pStart >= dataBuffer1.length) pStart = dataBuffer1.length - 1;     
+    
+if (pEnd < 0) pEnd = 0; 
+if (pEnd >= dataBuffer1.length) pEnd = dataBuffer1.length - 1;     
+
+int peak = Integer.MIN_VALUE;    
+
+for (int i = pStart; i < pEnd; i++){
+
+    if (dataBuffer1[i] > peak) peak = dataBuffer1[i];
+    
+    }
+
+return(peak);
+
+}//end of Trace::findMaxValue
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -980,6 +1046,62 @@ for(int i = 9; i < pCanvasYLimit; i+=10){
     }
     
 }//end of Trace::drawGrid
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Trace::getTitle
+//
+// Returns the trace title.
+//
+
+public String getTitle()
+{
+
+return (title);
+
+}//end of Trace::getTitle
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Trace::getDataBuffer1
+//
+// Returns a reference to dataBuffer1.
+//
+
+public int[] getDataBuffer1()
+{
+
+return(dataBuffer1);
+
+}//end of Trace::getDataBuffer1
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Trace::getDataWidth
+//
+// Returns the index of the last valid data point.
+//
+// Returns -1 if no data found.
+//
+
+public int getDataWidth()
+{
+
+int endOfData = -1;    
+    
+//NOTE: Start at dataBuffer1.length - 2 as the last element seems to be filled
+// with zero -- why is this? -- fix?
+
+for (int i = (dataBuffer1.length - 2); i > 0; i--){
+    if (dataBuffer1[i] != Integer.MAX_VALUE){
+        endOfData = i;
+        break;
+        }
+    }//for (int i = (pBuffer.length - 1); i <= 0; i--){
+    
+return(endOfData);
+
+}//end of Trace::getDataWidth
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
