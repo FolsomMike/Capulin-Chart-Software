@@ -23,6 +23,7 @@ package chart;
 import javax.swing.*;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Container;
 import java.io.*;
 import java.text.DecimalFormat;
 import java.awt.event.ItemListener;
@@ -44,6 +45,7 @@ import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.standard.MediaSizeName;
 import javax.print.attribute.standard.OrientationRequested;
 import javax.print.attribute.standard.MediaPrintableArea;
+import javax.print.attribute.standard.PageRanges;
 import java.awt.geom.AffineTransform;
 import java.awt.Color;
 
@@ -87,6 +89,13 @@ PieceInfo pieceIDInfo;
 
 static int FIRST = 0;
 static int LAST = 1;
+
+int startPiece = 0, endPiece = 0, pieceTrack = 0;
+int startPage = 0, endPage = 0, pageTrack = 0;
+int printCallPageTrack;
+
+PrintRange printRange, printCalsRange;
+PrintProgress printProgress;
 
 //-----------------------------------------------------------------------------
 // Viewer::Viewer (constructor)
@@ -242,14 +251,27 @@ setSizes(scrollPane,
 
 add(scrollPane);
 
-add (controlPanel =
+add(controlPanel =
                 new ViewerControlPanel(globals, currentJobName, this, this));
+
+//create two separate print range dialog windows -- one for regular pieces
+//and one for calibration pieces -- this allows each to remember different
+//ranges when the user switches back and forth from regular to cal pieces
+printRange = new PrintRange(this);
+printRange.init();
+printCalsRange = new PrintRange(this);
+printCalsRange.init();
+
+printProgress = new PrintProgress(this);
+printProgress.init();
+
+printProgress.setVisible(true); //debug mks
 
 }//end of Viewer::configure
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// MainWindow::loadCalFile
+// Viewer::loadCalFile
 //
 // This loads the file used for storing calibration information pertinent to a
 // job, such as gains, offsets, thresholds, etc.
@@ -291,7 +313,7 @@ hdwVs.wallChartScale =
 //load info for all charts
 for (int i=0; i < numberOfChartGroups; i++) chartGroups[i].loadCalFile(calFile);
 
-}//end of MainWindow::loadCalFile
+}//end of Viewer::loadCalFile
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -364,9 +386,6 @@ for (int i = 0; i < numberOfChartGroups; i++)
 //
 // Loads the first or last available segment from the folder depending on the
 // value of pWhich: LAST or FIRST.
-
-// The segments are sorted alpahbetically but their names are formatted such
-// that this places them in numberical order as well.
 //
 // Does nothing if no valid file is found.
 //
@@ -374,34 +393,62 @@ for (int i = 0; i < numberOfChartGroups; i++)
 void loadFirstOrLastAvailableSegment(int pWhich)
 {
 
-//load the list of available segment numbers / files
-loadSegmentList();
+int segNumber = getFirstOrLastAvailableSegmentNumber(pWhich);    
+    
+if (currentSegmentNumber == -1){
+    displayErrorMessage("Error with name in file list.");
+    return;
+    }
 
-if (segmentList.isEmpty()){
+if (currentSegmentNumber == -2){
     displayErrorMessage("No valid files in folder.");
     return;
     }
 
+currentSegmentNumber = segNumber;
+
+//load the file
+loadSegment(false);
+
+}//end of Viewer::loadFirstOrLastAvailableSegment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Viewer::getFirstOrLastAvailableSegmentNumber
+//
+// Returns the number of the first or last available segment from the folder
+// depending on the value of pWhich: LAST or FIRST.
+
+// The segments are sorted alphabetically but their names are formatted such
+// that this places them in numberical order as well.
+//
+// Returns -1 if there is an error parsing the number.
+// Returns -2 if there are no files.
+//
+
+int getFirstOrLastAvailableSegmentNumber(int pWhich)
+{
+
+//load the list of available segment numbers / files
+loadSegmentList();
+
+if (segmentList.isEmpty()) return(-2);  //no files found
+
 //attempt to convert the first or last entry in the list
 try{
     if (pWhich == FIRST)
-        currentSegmentNumber = Integer.valueOf(segmentList.get(0));
+        return(Integer.valueOf(segmentList.get(0)));
     else
-        currentSegmentNumber = 
-                        Integer.valueOf(segmentList.get(segmentList.size()-1));
+        return(Integer.valueOf(segmentList.get(segmentList.size()-1)));
     }
 catch(NumberFormatException nfe){
-    displayErrorMessage("That file is not valid.");
-    return;
+    return(-1);
     }
 finally{
     segmentList.clear(); //clear the list to conserve resources
     }
 
-//load the file
-loadSegment();
-
-}//end of Viewer::loadFirstOrLastAvailableSegment
+}//end of Viewer::getFirstOrLastAvailableSegmentNumber
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -551,7 +598,7 @@ return(value);
 // the native print dialog which does not accurately pass all user changes back
 // to the Java print system.
 //
-// Resolution issues:
+// Printer Resolution Issues:
 //
 // As of 9/8/11, there is no apparent way to determine exactly what resolution
 // the printer is using.  Java code can be used to request a change, but there
@@ -625,17 +672,15 @@ if (job.printDialog(aset)) {
 
         MediaPrintableArea mPA;
         try{
-            mPA = (MediaPrintableArea)
-                aset.get(Class.forName(
+            mPA = (MediaPrintableArea) aset.get(Class.forName(
                         "javax.print.attribute.standard.MediaPrintableArea"));
-
             }
         catch(ClassNotFoundException cnfe){
             //if could not be retrieved, default to reasonable values for
-            //Letter size  (1/2" margins)
+            //Letter size with 1" margins (adjusted to 1/2" margins below)
             mPA = new MediaPrintableArea(
-                   (float)12.7, (float)12.7, (float)190.5, (float)254.0,
-                                                        MediaPrintableArea.MM);
+                   (float)25.4, (float)25.4, (float)165.1, (float)228.6,
+                                                        MediaPrintableArea.MM);            
             }
 
         //use the MediaPrintableArea retrieved from the aset, which has the
@@ -649,10 +694,50 @@ if (job.printDialog(aset)) {
                    mPA.getHeight(MediaPrintableArea.MM) + (float)25.4,
                    MediaPrintableArea.MM));
 
+        //get the page range from the print dialog (adjustable by user)
+        //(not used in this program, only included for educational purposes)        
+       
+        //See notes at the top of the print method for details on how the
+        //program uses piece ranges and page ranges specified by the user.
+                
+        PageRanges pageRanges = null;
+        try{
+            pageRanges = (PageRanges) aset.get(Class.forName(
+                                "javax.print.attribute.standard.PageRanges"));
+            }
+        catch(ClassNotFoundException cnfe){
+            //if cannot be retrieved, set to null which equates to "print all"
+            pageRanges = null;            
+            }
+               
+        if (pageRanges == null){
+            //If pageRanges is returned null, then no range was specified.
+            //For the current version of the print dialog, this means "Print
+            //All" was selected, so set values accordingly.
+            //(not used in this program, only included for educational purposes)
+            startPage = 0; endPage = 9999; pageTrack = 0;
+            }
+        else{
+            //get the first range to be printed
+            //(not used in this program, only included for educational purposes)
+            int[][]rangeMembers = pageRanges.getMembers();
+            startPage = rangeMembers[0][0];
+            endPage= rangeMembers[0][1];
+            pageTrack = startPage;
+            }
+             
+        //see notes in print method for details on this variable
+        printCallPageTrack = -1;
+  
+        //display a dialog window to track the progress of the print preparation
+        displayPrintProgressDialog();
+
         //start printing - Java will call the print function of the object
         //specified in the call to job.setPrintable (done above) which must
         //implement the Printable interface
+        
         job.print(aset);
+        
         }
     catch (PrinterException e) {
         displayErrorMessage("Error sending to printer.");
@@ -668,6 +753,39 @@ if (job.printDialog(aset)) {
 // Catches calls from the printing system for requests to render images
 // for printing.
 //
+// The user can choose a range to print on the Print Dialog. When Java
+// calls the Printable object's print method, it will pass the page
+// numbers to be printed, translating the user entry to zero based
+// values: range 1-5 => page 0-4
+//
+// The print function could be called with various page numbers as some print
+// dialogs allow different ranges or individual pages to be specified.  This
+// doesn't work very well for this program as missing pieces could change the
+// actual number of pages as could pieces which require multiple pages to
+// print.
+//
+// The problem is handled by ignoring the page number passed in by Java as it
+// would take a lot of work to match the requested pages to the appropriate
+// piece files.  Instead, a dialog window is presented to the user allowing
+// them to choose the range of pieces to be printed.  
+//
+// If the Java print dialog is left on "Print All", it will continue to call
+// the print method until that method returns NO_SUCH_PAGE.  This works best
+// and is preferred.
+//
+// If the user specifies a print range, Java will only call the print method
+// as many times as it deems necessary to print the specified range.  This
+// may truncate the printout depending on the number of pages printed per
+// piece and/or the number of missing pieces.  If the user specifies a range
+// or individual pieces with starting points other than 1, the program will
+// print the range specified in the piece range dialog window instead.  The
+// only effect the page range specified on the print dialog will have is to
+// truncate the print if that range specifies fewer pages than what will be
+// required.
+//
+// The best method therefore is to leave the range in the Print Dialog set on
+// "Print All" to ensure that all pages are printed.
+//
 
 @Override
 public int print(Graphics g, PageFormat pPF, int pPage) throws
@@ -677,19 +795,97 @@ public int print(Graphics g, PageFormat pPF, int pPage) throws
 //perhaps more in some cases?) for each page to be printed.  This is not fully
 //explained in the Java documentation, but the consensus seems to be that this
 //behavior is correct.
+        
+//if only the piece being viewed is to be printed, the variables should be
+// startPiece = -1 endPiece = -1 pieceTrack = -1  before starting printing
+//this way, incrementing pieceTrack once will trigger the end of printing while
+//the -1 values will suppress loading of different pieces for printing
 
-//each chart group is printed on a separate page - use the page number passed
-//in by the print system to select the group to be printed
+//if multiple pieces are to be printed, startPiece, endPiece should be set to
+//the first and last pieces and pieceTrack should be set to startPiece before
+//starting printing
 
-if (pPage <= (numberOfChartGroups-1)){
-    printChartGroup(g, pPF, pPage, chartGroups[pPage]);
-    // tell the print system that page is printable
-    return PAGE_EXISTS;
-    }
-else
-    return NO_SUCH_PAGE; //returning this signals end of printing
+//since Java calls this function twice with the same page number to print a
+//single page, it is necessary to note that each piece has been processed
+//twice before moving to the next piece -- as we are not directly using the page
+//number supplied by Java to map directly to piece numbers, we will use it
+//to track the number of times this function has been called for each page with
+//the variable printCallPageTrack, only loading a new piece if the page number
+//has changed
+// printCallPageTrack should be set to -1 before starting printing
+
+//compare each page number from Java print engine with previous value --
+//each time it changes, load the next piece file as Java is expecting
+//a different page -- because it is set to -1 before starting printing, it
+//will always trigger the first time through
+
+if (pPage != printCallPageTrack){
+
+    printCallPageTrack = pPage; //store for next comparison
+    
+    //only check if at end of print if the page number has changed -- this
+    //ensures that the second call for that last piece has been made
+    
+    if (pieceTrack > endPiece) return NO_SUCH_PAGE;
+    
+    //if startPiece is -1, don't load a new piece as the user only wants
+    //to print the currently displayed piece
+
+    if (startPiece != -1) {
+        currentSegmentNumber = pieceTrack; 
+        
+        //try loading segments until an existing one is found
+        
+        while (pieceTrack <= endPiece && loadSegment(true) != 0){
+            pieceTrack++;
+            currentSegmentNumber = pieceTrack;
+            }
+        
+        //if missing segments skipped until endPiece reached, halt printing
+        if (pieceTrack > endPiece) return NO_SUCH_PAGE; 
+        }
+
+    //next time, load the next piece or will cause the end of printing
+    //if only printing the currently viewed piece
+    pieceTrack++;
+
+    }//if (pPage != printCallPageTrack)
+
+//print the chart to the graphics object
+//NOTE: need to modify so this method prints all chartGroups
+printChartGroup(g, pPF, pPage, chartGroups[0]);
+
+// tell the print system that page is printable
+return PAGE_EXISTS;
 
 }//end of Viewer::print
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Viewer::displayPrintProgressDialog
+//
+// Displays a dialog to show the user the progress of the print preparation.
+// Our code handles the print preparation before and during the Java print
+// engine sending processed data on to the printer.  This dialog gives the user
+// the opportunity to halt the preparation routine which can be very lengthy
+// for a large print job.
+//
+// Any data already being sent to the printer must be halted via the Windows
+// printer control panel.
+//
+
+public void displayPrintProgressDialog()
+{
+
+//center the dialog on the main window    
+int x = getX() + getWidth()/2;
+int y = getY() + getHeight()/2;
+    
+printProgress.userCancel = false;
+printProgress.setLocation(x,y);
+printProgress.setVisible(true);    
+    
+}//end of Viewer::displayPrintProgressDialog
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -976,8 +1172,7 @@ result = keyValue.keyString + ": " + keyValue.valueString + "    ";
 
 //add remaining printable entries to the string 
 while(pieceIDInfo.getNextToPrint(keyValue))
-    result = 
-            result + keyValue.keyString + ": " + keyValue.valueString + "    ";
+    result = result + keyValue.keyString + ": " + keyValue.valueString + "    ";
 
 return(result);
 
@@ -1123,7 +1318,7 @@ if ("Load".equals(e.getActionCommand())) {
     if (!parseSegmentNumberEntry()) return;
 
     //load the specified data file
-    loadSegment();
+    loadSegment(false);
 
     }// if ("Load".equals(e.getActionCommand()))
 
@@ -1145,7 +1340,7 @@ if ("List".equals(e.getActionCommand())) {
     //parse the user entry and bail if invalid
     if (!parseSegmentNumberEntry()) return;
     //load the specified data file
-    loadSegment();
+    loadSegment(false);
 
     }// if ("List".equals(e.getActionCommand()))
 
@@ -1158,14 +1353,14 @@ if ("Load Previous".equals(e.getActionCommand())) {
     //load the segment previous to the current one (numerically)
     currentSegmentNumber--;
     if (currentSegmentNumber < 1) currentSegmentNumber = 1;
-    loadSegment();
+    loadSegment(false);
     }
 
 if ("Load Next".equals(e.getActionCommand())) {
     //load the segment after the current one (numerically)
     currentSegmentNumber++;
     if (currentSegmentNumber > 1000000) currentSegmentNumber = 1000000;
-    loadSegment();
+    loadSegment(false);
     }
 
 if ("Load Last".equals(e.getActionCommand())) {
@@ -1174,7 +1369,14 @@ if ("Load Last".equals(e.getActionCommand())) {
     }
 
 if ("Print".equals(e.getActionCommand())) {
+    //setup to print the currrently displayed piece
+    startPiece = -1; endPiece = -1; pieceTrack = -1;
     startPrint();
+    }
+
+if ("Print Multiple".equals(e.getActionCommand())) {
+    //display the regular or cal print range window
+    displayPrintRangeWindow();    
     }
 
 if ("Show Info Details".equals(e.getActionCommand())){
@@ -1182,6 +1384,72 @@ if ("Show Info Details".equals(e.getActionCommand())){
     }
 
 }//end of Viewer::actionPerformed
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Viewer::displayPrintRangeWindow
+//
+// Displays one of two print range dialog windows -- one for printing regular
+// pieces and one for printing calibration pieces.
+//
+// Two separate windows are used so each can track a separate set of ranges
+// for the two types of pieces to be printed.
+//
+
+public void displayPrintRangeWindow()
+{
+
+PrintRange dialog;    
+    
+//choose the proper dialog window depending on the state of the Cal switch
+if (!controlPanel.calModeCheckBox.isSelected())
+    dialog = printRange;
+else
+    dialog = printCalsRange;
+    
+//position the dialog near the "Print Multiple" button
+int x = getX() + controlPanel.getX() + controlPanel.printControls.getX();
+int y = getY() + controlPanel.getY();
+       
+//display the print range window near the "Print Multiple" button
+dialog.setLocation(x, y);
+
+//if both the start and end piece range entries are blank, then fill in with
+//values which would print all the pieces
+
+if (dialog.startPiece.getText().isEmpty() 
+        && dialog.endPiece.getText().isEmpty() ){
+    //get the first piece file in the folder -- on error default to 1
+    int first = getFirstOrLastAvailableSegmentNumber(FIRST);
+    if (first < 1) first = 1;
+    //get the last piece file in the folder -- on error default to 1    
+    int last = getFirstOrLastAvailableSegmentNumber(LAST);
+    if (last < 1) last = 1;
+
+    //preset with a range including all non-calibration pieces
+    dialog.startPiece.setText(first + "");
+    dialog.endPiece.setText(last + "");
+    }
+
+dialog.setVisible(true);
+
+//if user clicked print, then begin printing else do nothing
+if (dialog.okToPrint) {    
+    
+    try{
+        startPiece = Integer.valueOf(dialog.startPiece.getText());
+        endPiece = Integer.valueOf(dialog.endPiece.getText());
+        pieceTrack = startPiece;
+        startPrint();
+        }
+    catch(NumberFormatException nfe)  {
+        displayErrorMessage("Error in print range.");
+        }
+    
+    }//if (dialog.okToPrint)
+
+
+}//end of Viewer::displayPrintRangeWindow
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1230,8 +1498,17 @@ pack();
 // viewing or processing - each segment could represent a piece being monitored,
 // a time period, etc.
 //
+// If pQuietMode is true, no error message is displayed if a file cannot be
+// loaded.  This is useful for the print function which can then continue on
+// to the next piece instead of freezing until the user clears the dialog
+// window.
+//
+// If no error, returns 0.
+// On error loading the chart data, returns -1.
+// Error on loading piece id info or calibration data returns 0.
+//
 
-private void loadSegment()
+private int loadSegment(boolean pQuietMode)
 {
 
 String segmentFilename;
@@ -1256,13 +1533,23 @@ segmentFilename = prefix +
                         decimalFormats[0].format(currentSegmentNumber);
 
 //load the graph data
-loadSegmentHelper(jobPrimaryPath + segmentFilename + ext);
+String errorMsg = loadSegmentHelper(jobPrimaryPath + segmentFilename + ext);
+
+//on error, display the message, repaint with empty chart, and exit
+if (!errorMsg.isEmpty()){
+    if(!pQuietMode)displayErrorMessage(errorMsg);
+    repaint();
+    return(-1);
+    }
+
 //load piece info
 loadInfoHelper(jobPrimaryPath + segmentFilename + infoExt);
 
 loadCalFile(); //load calibration settings needed for viewing
 
 repaint();
+
+return(0);
 
 }//end of Viewer::loadSegment
 //-----------------------------------------------------------------------------
@@ -1273,8 +1560,11 @@ repaint();
 // Loads the data for a segment from the specified file.  See the loadSegment
 // function for more info.
 //
+// If there is no error, returns empty String ""
+// ON error, returns the appropriate error message
+//
 
-private void loadSegmentHelper(String pFilename)
+private String loadSegmentHelper(String pFilename)
 {
 
 //create a buffered writer stream
@@ -1304,10 +1594,10 @@ try{
 
     }// try
 catch (FileNotFoundException e){
-    displayErrorMessage("Could not find the requested file.");
+    return("Could not find the requested file.");
     }
 catch(IOException e){
-    displayErrorMessage(e.getMessage());
+    return(e.getMessage());
     }
 finally{
     try{if (in != null) in.close();}
@@ -1317,6 +1607,8 @@ finally{
     try{if (fileInputStream != null) fileInputStream.close();}
     catch(IOException e){}
     }
+
+return("");
 
 }//end of Viewer::loadSegmentHelper
 //-----------------------------------------------------------------------------
@@ -1663,6 +1955,7 @@ JLabel jobValue;
 JTextField segmentEntry;
 String currentJobName;
 JCheckBox calModeCheckBox;
+public JPanel printControls;
 
 //-----------------------------------------------------------------------------
 // ViewerControlPanel::ViewerControlPanel (constructor)
@@ -1780,17 +2073,30 @@ add(Box.createHorizontalGlue()); //spread the panels
 
 //add a print control panel
 
-JPanel printControls = new JPanel();
+printControls = new JPanel();
 printControls.setLayout(new BoxLayout(printControls, BoxLayout.X_AXIS));
 printControls.setBorder(BorderFactory.createTitledBorder("Print"));
 printControls.setToolTipText("Printer Controls");
 
 //button to print
-JButton print;
+JButton print, printMultiple;
 
 printControls.add(print = new JButton(printerIcon));
 print.setActionCommand("Print");
 print.addActionListener(actionListener);
+printControls.add(Box.createRigidArea(new Dimension(3,0))); //horizontal spacer
+
+//using HTML <center> makes the text shift to one side when the button size is
+//limited, so a non-breaking space is used to center "Print" above "Multiple"
+//and centering is not used
+String buttonText = 
+                "<html>"+"&nbsp Print &nbsp"+"<br>"+"Multiple"+"</html>";
+printControls.add(printMultiple = new JButton(buttonText));
+//using HTML text makes button use too much space, so limit its size
+Viewer.setSizes(printMultiple, 65, 43);
+printMultiple.setActionCommand("Print Multiple");
+printMultiple.addActionListener(actionListener);
+printControls.add(Box.createRigidArea(new Dimension(3,0))); //horizontal spacer
 
 JPanel panel1 = new JPanel();
 panel1.setLayout(new BoxLayout(panel1, BoxLayout.PAGE_AXIS));

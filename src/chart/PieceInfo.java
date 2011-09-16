@@ -48,7 +48,7 @@ boolean displayUpdateButton;
 JButton updateButton;
 String filename;
 
-public Item[] items;
+Item[] items;
 static int NUMBER_OF_ITEMS = 100;
 
 //-----------------------------------------------------------------------------
@@ -504,7 +504,21 @@ updateButton.setEnabled(false);
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// JobInfo::saveData
+// PieceInfo::getItems
+//
+// 
+//
+
+public Item[] getItems()
+{
+
+return(items);
+    
+}//end of PieceInfo::getItems
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// PieceInfo::saveData
 //
 // Saves data from the form to an ini file.  For quicker and more efficient
 // saving during runtime, see saveDataToStream.
@@ -534,7 +548,7 @@ for (int i=0; i < NUMBER_OF_ITEMS; i++)
 
 jobInfoFile.save();  //save to disk
 
-}//end of JobInfo::saveData
+}//end of PieceInfo::saveData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
