@@ -66,7 +66,7 @@ add(panel);
 
 panel.add(Box.createRigidArea(new Dimension(0,20))); //horizontal spacer
 
-label = new JLabel("Preparing file xxx...");
+label = new JLabel("Printing...");
 label.setAlignmentX(Component.CENTER_ALIGNMENT);
 panel.add(label);
 
@@ -85,6 +85,30 @@ panel.add(Box.createRigidArea(new Dimension(200,5))); //horizontal spacer
 pack();
 
 }//end of PrintProgress::init
+//-----------------------------------------------------------------------------    
+
+//-----------------------------------------------------------------------------
+// PrintProgress::setLabel
+//
+// Sets the label to pLabel.
+//
+// Uses invokeLater to set the label so it is thread safe and can be called
+// by a thread other than the main Java gui thread.
+//
+
+public void setLabel(final String pLabel)
+{
+
+javax.swing.SwingUtilities.invokeLater(
+    new Runnable() {
+        @Override
+        public void run() { 
+            
+        label.setText(pLabel); 
+        
+        }}); 
+    
+}//end of PrintProgress::setLabel
 //-----------------------------------------------------------------------------    
 
 //-----------------------------------------------------------------------------
@@ -110,6 +134,31 @@ javax.swing.SwingUtilities.invokeLater(
         }}); 
     
 }//end of PrintProgress::setLabel
+//-----------------------------------------------------------------------------    
+
+//-----------------------------------------------------------------------------
+// PrintProgress::threadSafeSetVisible
+//
+// Sets the window's label to pLabel and the visiblity to pVisible.
+//
+// Uses invokeLater to set the state so it is thread safe and can be called
+// by a thread other than the main Java gui thread.
+//
+
+public void threadSafeSetVisible(final boolean pVisible, final String pLabel)
+{
+
+javax.swing.SwingUtilities.invokeLater(
+    new Runnable() {
+        @Override
+        public void run() { 
+
+        setLabel(pLabel);    
+        setVisible(pVisible);
+        
+        }}); 
+    
+}//end of PrintProgress::threadSafeSetVisible
 //-----------------------------------------------------------------------------    
 
 //-----------------------------------------------------------------------------

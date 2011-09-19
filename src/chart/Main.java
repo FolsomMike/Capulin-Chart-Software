@@ -142,7 +142,7 @@ catch (InterruptedException e) {
 // on program exit.
 //
 
-class MainWindow implements  WindowListener, ActionListener, ChangeListener,
+class MainWindow implements WindowListener, ActionListener, ChangeListener,
                                 ComponentListener, DocumentListener, Link {
     
 Globals globals;
