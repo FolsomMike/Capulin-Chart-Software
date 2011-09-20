@@ -1383,7 +1383,9 @@ g2.scale(scaleX, scaleY);
 
 //disable double buffering to improve scaling and print speed
 disableDoubleBuffering(pChartGroup);
+globals.printMode = true;
 pChartGroup.print(g2);
+globals.printMode = false;
 enableDoubleBuffering(pChartGroup);
 
 printRunnable.unPauseThread(); //release the print thread if it is waiting

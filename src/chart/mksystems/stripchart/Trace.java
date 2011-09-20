@@ -1039,10 +1039,14 @@ pG2.fillOval(xPos+1, pSigHeight, 8, 8);
 void drawGrid(Graphics2D pG2, int pXPos, int pCanvasYLimit)
 {
 
+//for screen display, zero width/height for grid pixels looks best
+//when rendering for printing, must set width to 1 or pixels disappear
+int width = globals.printMode ?  1 : 0;
+    
 pG2.setColor(gridColor);
 
 for(int i = 9; i < pCanvasYLimit; i+=10){    
-    pG2.drawRect(pXPos, i, 0, 0);
+    pG2.drawRect(pXPos, i, width, 0);
     }
     
 }//end of Trace::drawGrid
