@@ -701,6 +701,7 @@ catch (UnknownHostException e) {
     }
 catch (IOException e) {
     threadSafeLog("Couldn't get I/O for UT " + ipAddrS + "\n");
+    threadSafeLog("--" + e.getMessage() + "--\n");
     return;
     }
 
