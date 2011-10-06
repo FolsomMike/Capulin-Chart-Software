@@ -730,7 +730,7 @@ public void threadSafeLogHelper()
 
 // Since this function will be invoked once for every message placed in the
 // array, no need to check if there is a message available?  Would be a problem
-// if the calling thread began to overwrite the buffer before it coulde be
+// if the calling thread began to overwrite the buffer before it could be
 // displayed?
 
 //display the next message stored in the array

@@ -542,6 +542,8 @@ calChannels = new Channel[numberOfChannels];
 //create after hardware object created
 calWindow = new UTCalibrator(mainFrame, hardware, globals);
 
+globals.configure(configFile);
+
 //don't use these - let contents set size of window
 //mainFrame.setMinimumSize(new Dimension(1100,1000));
 //mainFrame.setPreferredSize(new Dimension(1100,1000));
@@ -1191,6 +1193,11 @@ if ("Process finished Piece".equals(e.getActionCommand())) {
 if ("About".equals(e.getActionCommand())) {
     About about = new About(mainFrame);
     return;
+    }
+
+if ("Display Configuration Info".equals(e.getActionCommand())){
+    globals.displayConfigInfo(logWindow.textArea);
+    logWindow.setVisible(true);
     }
 
 //handle timer calls

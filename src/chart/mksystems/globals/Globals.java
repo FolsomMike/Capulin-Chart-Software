@@ -31,6 +31,7 @@ import javax.swing.*;
 import java.awt.event.*;
 import java.io.*;
 import java.awt.Color;
+import java.util.*;
 
 import chart.mksystems.inifile.IniFile;
 
@@ -166,6 +167,7 @@ public boolean prepareForNewPiece;
 
 public boolean printMode = false;
 
+public ArrayList<String> configInfo;
 
 //-----------------------------------------------------------------------------
 // Globals::Globals (constructor)
@@ -390,6 +392,12 @@ if (source.getActionCommand().startsWith("About")){
     return;
     }
 
+if (source.getActionCommand().startsWith("Display Configuration Info")){
+    actionListener.actionPerformed(
+                        new ActionEvent(this, 1, "Display Configuration Info"));
+    return;
+    }
+
 //sets a variable in Globals
 if (source.getActionCommand().equalsIgnoreCase(
                             "Restart Each New Piece at Left Edge of Chart")){
@@ -555,6 +563,72 @@ for(int i = 0; i < colorNamesArray.length; i++ )
 return Color.BLACK; //not used in this program yet
 
 }//end of Globals::textToDBColors
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Globals::configure
+//
+// Loads configuration settings from the configuration.ini file.
+// The various child objects are then created as specified by the config data.
+//
+
+public void configure(IniFile pConfigFile)
+{
+
+String section = "Configuration Info";    
+    
+//get the number of lines in the description, bail out if illegal value
+
+int lineCount = pConfigFile.readInt(section, "Number of Lines", 0);
+if (lineCount == 0 || lineCount > 100) return;
+
+//create a vector to hold the lines of text read from the file
+configInfo = new ArrayList<String>(lineCount);
+
+String line, number;
+
+for (int i = 0; i < lineCount; i++){
+    
+    //convert the index number to a string to load each line -- in the file,
+    //the numbers are all 3 characters long and right justified with blanks
+    //prepended for padding -- add the necessary space padding here
+    number = Integer.toString(i+1);
+    if (number.length() == 1) number = "  " + number;
+    else
+    if (number.length() == 2) number = " " + number;
+    
+    line = pConfigFile.readString(section, "Line " + number, "");
+    configInfo.add(line);
+    }
+
+}//end of Globals::configure
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Globals::displayConfigInfo
+//
+// Appends the lines of the configuration info to pTextArea.
+//
+
+public void displayConfigInfo(JTextArea pTextArea)
+{
+
+   
+pTextArea.append("\n");
+pTextArea.append(
+            "------------------------------------------------------------\n");
+pTextArea.append("\n");
+
+ListIterator i;    
+    
+for (i = configInfo.listIterator(); i.hasNext(); ){
+    pTextArea.append((String)i.next() + "\n");
+    }
+
+pTextArea.append(
+            "------------------------------------------------------------\n");
+
+}//end of Globals::displayConfigInfo
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

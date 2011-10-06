@@ -74,7 +74,7 @@ JCheckBoxMenuItem restartNewPieceAtLeftEdgeMenuCheck;
 JMenu helpMenu;
 JMenuItem aboutMenuItem, monitorMenuItem, debuggerMenuItem, repairJobMenuItem;
 JMenuItem setupSystemMenuItem;
-JMenuItem renewalMenuItem, logMenuItem, statusMenuItem;
+JMenuItem renewalMenuItem, logMenuItem, configInfoItem, statusMenuItem;
 
 public BufferedImage imageBuffer;
 
@@ -366,6 +366,13 @@ logMenuItem.setToolTipText("Log");
 logMenuItem.setActionCommand("Log");
 logMenuItem.addActionListener(pGlobals);
 helpMenu.add(logMenuItem);
+
+configInfoItem = new JMenuItem("Display Configuration Info");
+configInfoItem.setMnemonic(KeyEvent.VK_C);
+configInfoItem.setToolTipText("Display Configuration Info");
+configInfoItem.setActionCommand("Display Configuration Info");
+configInfoItem.addActionListener(pGlobals);
+helpMenu.add(configInfoItem);
 
 statusMenuItem = new JMenuItem("Status");
 statusMenuItem.setMnemonic(KeyEvent.VK_S);
