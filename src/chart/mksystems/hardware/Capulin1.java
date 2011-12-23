@@ -293,10 +293,15 @@ DatagramSocket socket;
 
 UTSimulator.instanceCounter = 0; //reset simulated board counter
 
+// because the UTSimulator class does not currently simulate the FPGA load,
+// the response string is set to show that the FPGA is already loaded so that
+// no attempt is made to perform the load -- the string is passed to the
+// UDPSimulator here so that simulator will return it to simulate wake up
+// response string expected
+
 try{
     if (!simulateUTBoards) socket = new DatagramSocket(4445);
-    else socket = new UDPSimulator(4445, "UT Board present...");
-
+    else socket = new UDPSimulator(4445, "UT board present, FPGA loaded...");
     } 
 catch (IOException e) {
         threadSafeLog("Couldn't create UT broadcast socket.\n");
@@ -1619,10 +1624,6 @@ sendByteUDP(pSocket, pOutPacket, UTBoard.NO_ACTION);
 // UTBoard objects load FPGA code to their attached boards simultaneously
 // via TCP/IP.  See UTBoard::loadFPGA if the TCP/IP method is needed.
 //
-// Before sending, the status byte of the remote is retrieved.  If the FPGA
-// has already been loaded, then this function exits immediately.  This saves
-// time when the host PC software is restarted but the remotes are not.
-//
 // This function uses the "Binary Configuration File" (*.bin) produced by
 // the Xilinx ISE.
 //
@@ -1650,18 +1651,6 @@ public void loadFPGAViaUDP(DatagramSocket pSocket)
     
 // don't attempt to load the FPGA if UDP socket is not open
 if (pSocket == null) return;
-
-//debug mks -- remove this
-// check to see if the FPGA has already been loaded
-//if ((getRemoteData(GET_STATUS_CMD, true) & FPGA_LOADED_FLAG) != 0) {
-//    threadSafeLog("UT " + ipAddrS + " FPGA already loaded..." + "\n");
-//
-//    return;
-//    }
-//debug mks
-
-//debug mks -- add this
-// checkForUnloadedFPGAs();
 
 fpgaLoaded = false;
 
