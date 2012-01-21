@@ -329,7 +329,7 @@ if (dataBuffer1 != null)
 
 //set the position where the pointers start to non-default -- this is the
 //first data that is plotted unless it happens to be replaced by a peak quickly
-dataBuffer1[0] = 0;
+dataBuffer1[1] = 0;
 
 //used in span mode
 if (dataBuffer2 != null)
