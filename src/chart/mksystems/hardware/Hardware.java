@@ -21,6 +21,7 @@ package chart.mksystems.hardware;
 
 import javax.swing.*;
 
+import chart.MessageLink;
 import chart.mksystems.globals.Globals;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.stripchart.TraceHdwVars;
@@ -37,11 +38,19 @@ import chart.mksystems.stripchart.ChartGroup;
 // This class creates and handles the hardware interface.
 //
 
-public class Hardware extends Object implements TraceValueCalculator, Runnable{
+public class Hardware extends Object implements TraceValueCalculator, Runnable,
+                                                                   MessageLink {
 
 static public int SCAN = 0, INSPECT = 1, STOPPED = 2;
 static public int INSPECT_WITH_TIMER_TRACKING = 3, PAUSED = 4;
 int opMode = STOPPED;
+
+//debug mks -- needs to be loaded from config file -- specifies if carriage
+//moving away is increasing or decreasing encoder counts
+int AwayDirection;
+
+int encoder1CntsPerPix, encoder2CntsPerPix;
+int prevPixPosition;
 
 boolean output1On = false;
 
@@ -126,6 +135,17 @@ numberOfAnalogChannels =
 hdwVs.nSPerDataPoint =
   pConfigFile.readDouble("Hardware", "nS per Data Point", 15.0);
 hdwVs.uSPerDataPoint = hdwVs.nSPerDataPoint / 1000;
+
+//the control board sends packets every so many counts and is susceptible to
+//cumulative round off error, but the values below can be tweaked to give
+//accurate results over the length of the piece -- the packet send trigger
+//counts are often the same as the values below
+
+encoder1CntsPerPix = 
+  pConfigFile.readInt("Hardware", "Encoder 1 Counts Per Pixel", 175);
+
+encoder2CntsPerPix = 
+  pConfigFile.readInt("Hardware", "Encoder 2 Counts Per Pixel", 175);
 
 if (numberOfAnalogChannels > 100) numberOfAnalogChannels = 100;
 
@@ -1169,7 +1189,14 @@ if (hdwVs.waitForOnPipe){
     if (!inspectCtrlVars.onPipeFlag) return false;
     else {
         hdwVs.waitForOnPipe = false; hdwVs.watchForOffPipe = true;
-        initializeTraceOffsetDelays(inspectCtrlVars.encoder2FwdDirection);
+        initializeTraceOffsetDelays(inspectCtrlVars.encoder2Dir);
+        //the direction of the linear encoder at the start of the inspection
+        //sets the forward direction (increasing or decreasing encoder count)
+        inspectCtrlVars.encoder2FwdDir = inspectCtrlVars.encoder2Dir;
+        //record the value of linear encoder at start of inspection
+        //(this needs so be changed to store the value with each piece for
+        // future units which might have multiple pieces in the system at once)
+        inspectCtrlVars.encoder2Start = inspectCtrlVars.encoder2;
         }
     }
 
@@ -1208,6 +1235,34 @@ return(newPositionData);
 void moveEncoders()
 {
 
+//The control board sends new encoder data after a set number of encoder counts,
+//this set number approximates the distance for one pixel.  It is not exact
+//because there is a round off error which accumulates with each packet sent.
+//To counterract this, the actual encoder count used to compute if a new pixel
+//has been reached.  Sometimes a packet may be sent for which the encoder count
+//does not calculate to the next pixel, so the buffer pointer is not moved and
+//incoming data is still stored in the previous pixel.  Sometimes, a packet
+//will arrive which skips a pixel.  In that case, the skipped pixels are filled
+//with data from the previous pixel.
+    
+inspectCtrlVars.encoder2FwdDir = inspectCtrlVars.encoder2Dir;
+
+//calculate the number of pixels moved using counts since the start of the piece
+int pixPosition = 
+        (int)((inspectCtrlVars.encoder2 - inspectCtrlVars.encoder2Start) / 
+                                                            encoder2CntsPerPix);
+
+//debug mks zzz
+//debug mks invert here if necessary to make increasing count always forward direction
+
+//calculate the number of pixels moved since the last update
+int pixelsMoved = pixPosition - prevPixPosition;
+
+//do nothing if encoders haven't moved enough to reach the next pixel
+if (pixelsMoved == 0) return;
+
+prevPixPosition = pixPosition;
+
 Trace tracePtr;
 
 numberOfChannels = analogDriver.getNumberOfChannels();
@@ -1241,7 +1296,8 @@ for (int ch = 0; ch < numberOfChannels; ch++){
 
         if (tracePtr != null && tracePtr.nextIndexUpdated == false){
 
-            //set flag so this index won't be updated again
+            //set flag so this trace's index won't be updated again by
+            //another gate tied to this same trace
             tracePtr.nextIndexUpdated = true;
 
             //the trace does not start until its distance offset from the
@@ -1251,7 +1307,8 @@ for (int ch = 0; ch < numberOfChannels; ch++){
                 continue;
                 }
 
-        //debug mks for (int x = 0; x<12; x++){
+            for (int x = 0; x < pixelsMoved; x++){
+            
                 tracePtr.beingFilledSlot++;
 
                 //the buffer is circular - start over at beginning
@@ -1286,12 +1343,10 @@ for (int ch = 0; ch < numberOfChannels; ch++){
                         }
                     }
                               
-       //debug mks         }//for (int x = 0; x<4; x++){
+                }//for (int x = 0; x < pixelsMoved; x++){
             }
         }// for (int g = 0; g < numberOfGates; g++)
     }// for (int ch = 0; ch < numberOfChannels; ch++)
-
-
 
 }//end of Hardware::moveEncoders
 //-----------------------------------------------------------------------------
@@ -1310,7 +1365,7 @@ for (int ch = 0; ch < numberOfChannels; ch++){
 // the photo-eye which detects the start of the pipe.
 //
 
-public void initializeTraceOffsetDelays(boolean pForward)
+public void initializeTraceOffsetDelays(int pDirection)
 {
 
 Trace tracePtr;
@@ -1338,8 +1393,13 @@ for (int cg = 0; cg < chartGroups.length; cg++){
             //start with all false, one will be set true
             tracePtr.leadTrace = false;
 
+            //if the current direction is the "Away" direction, then set the
+            //offsets properly for the carriage moving away from the operator
+            //otherwise set them for the carriage moving towards the operator
+            //see more notes in this method's header
+            
             if (tracePtr != null){
-                if (pForward) 
+                if (pDirection == AwayDirection) 
                     tracePtr.startOffsetDelay = tracePtr.distanceOffsetForward;
                 else
                     tracePtr.startOffsetDelay = tracePtr.distanceOffsetReverse;
@@ -1712,6 +1772,26 @@ return (hdwVs.nominalWall + offset);
 
 }//end of Hardware::calculateComputedValue1
 //-----------------------------------------------------------------------------
+
+//----------------------------------------------------------------------------
+// Hardware::xmtMessage
+//
+// This method allows an outside class to send a message and a value to this
+// class and receive a status value back.
+//
+// In this class, this is mainly used to pass messages on to the simulator
+// object(s) so that they can be controlled via messages.
+//
+
+@Override
+public int xmtMessage(int pMessage, int pValue)
+{
+    
+//pass the message on to the mechanical simulation object
+return analogDriver.xmtMessage(pMessage, pValue);
+
+}//end of Hardware::xmtMessage
+//----------------------------------------------------------------------------
 
 }//end of class Hardware
 //-----------------------------------------------------------------------------

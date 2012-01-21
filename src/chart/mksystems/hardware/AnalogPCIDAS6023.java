@@ -778,6 +778,19 @@ public void setNewInspectPacketReady(boolean pValue){}
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// AnalogPCIDAS6023::xmtMessage
+//
+
+@Override
+public int xmtMessage(int pMessage, int pValue)
+{
+
+return(0);    
+    
+}//end of AnalogPCIDAS6023::xmtMessage
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // AnalogPCIDAS6023::shutDown
 //
 // This function should be called before exiting the program.  Overriding the

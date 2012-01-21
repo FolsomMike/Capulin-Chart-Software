@@ -127,6 +127,8 @@ public boolean getNewInspectPacketReady();
 
 public void setNewInspectPacketReady(boolean pValue);
 
+public int xmtMessage(int pMessage, int pValue);
+
 }//end of interface HardwareLink
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

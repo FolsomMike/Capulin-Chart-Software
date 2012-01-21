@@ -53,6 +53,7 @@ Hardware hardware;
 JFrame mainFrame;
 ActionListener parentActionListener;
 String currentJobPrimaryPath, currentJobBackupPath;
+MessageLink mechSimulator;
 
 ModePanel modePanel;
 StatusPanel statusPanel;
@@ -79,7 +80,8 @@ int nextPieceNumber, nextCalPieceNumber;
   
 public ControlPanel(IniFile pConfigFile, String pCurrentJobPrimaryPath,
     String pCurrentJobBackupPath, Hardware pHardware, JFrame pFrame,
-     ActionListener pParentActionListener, String pJobName, Globals pGlobals)
+     ActionListener pParentActionListener, String pJobName, Globals pGlobals,
+                                                    MessageLink pMechSimulator)
 {
 
 configFile = pConfigFile; hardware = pHardware; mainFrame = pFrame;
@@ -88,6 +90,7 @@ currentJobPrimaryPath = pCurrentJobPrimaryPath;
 currentJobBackupPath = pCurrentJobBackupPath;
 jobName = pJobName;
 globals = pGlobals;
+mechSimulator = pMechSimulator;
 simulateMechanical = globals.simulateMechanical;
 timerDrivenTracking = globals.timerDrivenTracking;
 
@@ -151,13 +154,17 @@ warningSymbol = createImageIcon("images/windows-warning.gif");
 setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
 add(modePanel = new ModePanel(this));
+modePanel.init();
 add(statusPanel = new StatusPanel(globals, this, this));
 add(infoPanel = new InfoPanel(this, jobName));
 add(scanSpeedPanel = new ScanSpeedPanel(globals, this, this));
-if (simulateMechanical) add(demoPanel = new DemoPanel(this));
+if (simulateMechanical) add(demoPanel = new DemoPanel(mechSimulator));
+demoPanel.init();
 add(Box.createHorizontalGlue()); //force manual control to the right side
-if (timerDrivenTracking) 
+if (timerDrivenTracking){ 
     add(manualControlPanel = new ManualControlPanel(this, this, warningSymbol));
+    manualControlPanel.init();
+    }
 
 }//end of ControlPanel::configure
 //-----------------------------------------------------------------------------
@@ -280,28 +287,6 @@ if ("Next Run".equals(e.getActionCommand())) {
     hardware.setMode(Hardware.PAUSED); //pause the traces
 
     }// if ("Next Run".equals(e.getActionCommand()))
-
-if ("Demo Forward".equals(e.getActionCommand())) {
-    demoPanel.forwardButton.setEnabled(false);
-    demoPanel.reverseButton.setEnabled(true);
-    demoPanel.stopButton.setEnabled(true);    
-    }
-
-if ("Demo Stop".equals(e.getActionCommand())) {
-    demoPanel.stopButton.setEnabled(false);
-    demoPanel.reverseButton.setEnabled(true);
-    demoPanel.forwardButton.setEnabled(true);    
-    }
-
-if ("Demo Reverse".equals(e.getActionCommand())) {
-    demoPanel.reverseButton.setEnabled(false);
-    demoPanel.stopButton.setEnabled(true);
-    demoPanel.forwardButton.setEnabled(true);    
-    }
-
-if ("Demo Reset".equals(e.getActionCommand())) {
-    
-    }
 
 }//end of ControlPanel::actionPerformed
 //-----------------------------------------------------------------------------
@@ -642,7 +627,19 @@ public ModePanel(ActionListener pActionListener)
 {
 
 actionListener = pActionListener;
-    
+        
+}//end of ModePanel::ModePanel (constructor)
+//-----------------------------------------------------------------------------    
+
+//-----------------------------------------------------------------------------
+// ModePanel::init
+//
+// Initializes the object.
+//
+  
+public void init()
+{
+
 setBorder(titledBorder = BorderFactory.createTitledBorder("Mode"));    
 
 setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
@@ -656,7 +653,7 @@ scanButton = ControlPanel.addButtonToJPanel(this, "Scan",
 stopButton = ControlPanel.addButtonToJPanel(this, "Stop", 
                      "Stop", actionListener, "Places system in standby mode.");
     
-}//end of ModePanel::ModePanel (constructor)
+}//end of ModePanel::init
 //-----------------------------------------------------------------------------    
 
 }//end of class ModePanel
@@ -817,41 +814,102 @@ add(Box.createRigidArea(new Dimension(15,0))); //horizontal spacer
 // This class creates and controls a panel with controls and displays for
 // the demonstration function which simulates actual inspection.
 //
+// It accepts a MessageLink interface which is the simulator object which is
+// controlled by this class.
+//
 
-class DemoPanel extends JPanel{
+class DemoPanel extends JPanel implements ActionListener{
 
 public TitledBorder titledBorder;    
 JButton forwardButton, reverseButton, stopButton, resetButton;
-ActionListener actionListener;
+MessageLink mechSimulator;
     
 //-----------------------------------------------------------------------------
 // DemoPanel::DemoPanel (constructor)
 //
 //
   
-public DemoPanel(ActionListener pActionListener)
+public DemoPanel(MessageLink pMechSimulator)
 {
 
-actionListener = pActionListener;
+mechSimulator = pMechSimulator;
     
+}//end of DemoPanel::DemoPanel (constructor)
+//-----------------------------------------------------------------------------    
+
+//-----------------------------------------------------------------------------
+// DemoPanel::init
+//
+// Initializes the object.
+//
+
+public void init()
+{ 
+
 setBorder(titledBorder = BorderFactory.createTitledBorder("Demo Simulation"));
 
 setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
 forwardButton = ControlPanel.addButtonToJPanel(this, "Fwd", 
-     "Demo Forward", actionListener, "Simulates a test piece moving forward.");
+     "Demo Forward", this, "Simulates a test piece moving forward.");
 
 stopButton = ControlPanel.addButtonToJPanel(this, "Stop", 
-               "Demo Stop", actionListener, "Simulates a test piece stopped.");
+               "Demo Stop", this, "Simulates a test piece stopped.");
+
+stopButton.setEnabled(false);
 
 reverseButton = ControlPanel.addButtonToJPanel(this, "Reverse", 
-  "Demo Reverse", actionListener, "Simulates a test piece moving in reverse.");
+  "Demo Reverse", this, "Simulates a test piece moving in reverse.");
 
 resetButton = ControlPanel.addButtonToJPanel(this, "Reset", 
-           "Demo Reset", actionListener, "Resets to no test piece in system.");
+           "Demo Reset", this, "Resets to no test piece in system.");
+    
+}//end of DemoPanel::init
+//-----------------------------------------------------------------------------
 
-}//end of DemoPanel::DemoPanel (constructor)
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
+// DemoPanel::actionPerformed
+//
+// Responds to button events.
+//
+
+@Override
+public void actionPerformed(ActionEvent e)
+{ 
+
+if ("Demo Forward".equals(e.getActionCommand())) {
+    forwardButton.setEnabled(false);
+    reverseButton.setEnabled(true);
+    stopButton.setEnabled(true);
+    //set the mode in the mechanical simulator object
+    mechSimulator.xmtMessage(MessageLink.SET_MODE, MessageLink.FORWARD);
+    }
+
+if ("Demo Stop".equals(e.getActionCommand())) {
+    stopButton.setEnabled(false);
+    reverseButton.setEnabled(true);
+    forwardButton.setEnabled(true);
+    //set the mode in the mechanical simulator object
+    mechSimulator.xmtMessage(MessageLink.SET_MODE, MessageLink.STOP);
+    }
+
+if ("Demo Reverse".equals(e.getActionCommand())) {
+    reverseButton.setEnabled(false);
+    stopButton.setEnabled(true);
+    forwardButton.setEnabled(true);
+    //set the mode in the mechanical simulator object
+    mechSimulator.xmtMessage(MessageLink.SET_MODE, MessageLink.REVERSE);    
+    }
+
+if ("Demo Reset".equals(e.getActionCommand())) {
+    
+    //reset the mechanical simulator object
+    mechSimulator.xmtMessage(MessageLink.SET_MODE, MessageLink.RESET);
+
+    }
+
+}//end of DemoPanel::actionPerformed
+//-----------------------------------------------------------------------------
 
 }//end of class DemoPanel
 //-----------------------------------------------------------------------------
@@ -871,6 +929,9 @@ class ManualControlPanel extends JPanel{
 public TitledBorder titledBorder;
 JButton pauseResumeButton, nextPieceButton;
 JLabel calModeWarning;
+ChangeListener changeListener;
+ActionListener actionListener;
+ImageIcon warningSymbol;
 
 //-----------------------------------------------------------------------------
 // ManualControl::ManualControl (constructor)
@@ -881,20 +942,36 @@ public ManualControlPanel(ChangeListener pChangeListener,
                     ActionListener pActionListener, ImageIcon pWarningSymbol)
 {
 
+changeListener = pChangeListener;
+actionListener = pActionListener;
+warningSymbol = pWarningSymbol;
+
+}//end of ManualControl::ManualControl (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ManualControl::init
+//
+// Initializes the object.
+//
+  
+public void init()
+{
+
 setBorder(titledBorder = BorderFactory.createTitledBorder(
                                                  "Manual Inspection Control"));
 
 setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
 nextPieceButton = ControlPanel.addButtonToJPanel(this, "Next Run",
-              "Next Run", pActionListener, "Begins inspection of next piece.");
+              "Next Run", actionListener, "Begins inspection of next piece.");
 
 nextPieceButton.setEnabled(false);
 
 //space between button and label
 add(Box.createRigidArea(new Dimension(5,0))); //horizontal spacer
 
-add(calModeWarning = new JLabel("Cal Mode", pWarningSymbol, JLabel.LEADING));
+add(calModeWarning = new JLabel("Cal Mode", warningSymbol, JLabel.LEADING));
 
 calModeWarning.setVisible(false); //starts out invisible
 
@@ -903,12 +980,12 @@ add(Box.createRigidArea(new Dimension(5,0))); //horizontal spacer
 
 pauseResumeButton = ControlPanel.addButtonToJPanel(
     this, "Pause", "Pause or Resume",
-        pActionListener, "Pauses the inspection without moving to next piece.");
+       actionListener, "Pauses the inspection without moving to next piece.");
 
 pauseResumeButton.setEnabled(false);
 
-}//end of ManualControl::ManualControl (constructor)
-//-----------------------------------------------------------------------------
+}//end of ManualControlPanel::init
+//-----------------------------------------------------------------------------    
 
 
 }//end of class ManualControlPanel

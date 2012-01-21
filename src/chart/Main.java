@@ -594,7 +594,7 @@ hardware.chartGroups = chartGroups;
 mainFrame.add(controlPanel = 
     new ControlPanel(configFile, currentJobPrimaryPath,
     currentJobBackupPath, hardware, mainFrame, this,
-    currentJobName, globals));
+    currentJobName, globals, hardware));
 
 //load user adjustable settings
 loadCalFile();

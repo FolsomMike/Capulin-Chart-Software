@@ -6,7 +6,7 @@
 * Purpose:
 *
 * This class contains a set of generic variables useful for returning values
-* from function.  This is useful since Java won't allow functions to return
+* from methods.  This is useful since Java won't allow methods to return
 * values via reference.
 *
 * More variables can be added as necessary to handle all required cases.

@@ -22,6 +22,7 @@ import java.io.*;
 import java.net.*;
 import javax.swing.*;
 
+import chart.MessageLink;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.stripchart.Threshold;
 import chart.mksystems.stripchart.Trace;
@@ -33,7 +34,7 @@ import chart.mksystems.stripchart.Trace;
 // This class creates and handles the hardware interface.
 //
 
-public class Capulin1 extends Object implements HardwareLink{
+public class Capulin1 extends Object implements HardwareLink, MessageLink{
 
 //debug mks - this is only for demo - delete later
 static int MONITOR_PACKET_SIZE = 20;
@@ -1879,7 +1880,28 @@ public void setNewInspectPacketReady(boolean pValue)
 
 //end of Capulin1Board::various get/set functions
 //-----------------------------------------------------------------------------
-       
+
+//----------------------------------------------------------------------------
+// Capulin1::xmtMessage
+//
+// This method allows an outside class to send a message and a value to this
+// class and receive a status value back.
+//
+// In this class, this is mainly used to pass messages on to the simulator
+// object(s) so that they can be controlled via messages.
+//
+
+@Override
+public int xmtMessage(int pMessage, int pValue)
+{
+
+//pass the message on to the first Control Board -- in the future could use
+//the pMessage value to specify which board if necessary
+return controlBoards[0].xmtMessage(pMessage, pValue);
+
+}//end of Capulin1::xmtMessage
+//----------------------------------------------------------------------------
+
 }//end of class Capulin1
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------    

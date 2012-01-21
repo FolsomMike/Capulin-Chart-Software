@@ -24,6 +24,7 @@ package chart.mksystems.hardware;
 import java.net.*;
 import java.io.*;
 
+import chart.MessageLink;
 import chart.mksystems.inifile.IniFile;
 
 //-----------------------------------------------------------------------------
@@ -34,7 +35,7 @@ import chart.mksystems.inifile.IniFile;
 // and Control boards.
 //
 
-public class ControlSimulator extends Simulator{
+public class ControlSimulator extends Simulator implements MessageLink{
 
 public ControlSimulator() throws SocketException{}; //default constructor - not used
 
@@ -55,6 +56,7 @@ boolean delayingToOnPipe = true;
 boolean delayingToInspect = true;
 boolean inspectFlag = false;
 boolean inspectMode = false;
+int simulationMode = MessageLink.STOP;
 int encoder1 = 0, encoder2 = 0;
 int encoder1DeltaTrigger, encoder2DeltaTrigger;
 int inspectPacketCount = 0;
@@ -72,7 +74,8 @@ int delayBetweenPackets = DELAY_BETWEEN_INSPECT_PACKETS;
 // ControlSimulator::ControlSimulator (constructor)
 //
 
-public ControlSimulator(InetAddress pIPAddress, int pPort)
+public ControlSimulator(InetAddress pIPAddress, int pPort, 
+                           int pEncoder1DeltaTrigger, int pEncoder2DeltaTrigger)
                                                         throws SocketException
 {
 
@@ -85,6 +88,10 @@ super(pIPAddress, pPort);
 //as that number is distributed across all sub classes -- UT boards,
 //Control boards, etc.
 controlBoardNumber = controlBoardCounter++;
+
+//how many counts the encoder moves between each packet send
+encoder1DeltaTrigger = pEncoder1DeltaTrigger;
+encoder2DeltaTrigger = pEncoder2DeltaTrigger;
 
 //load configuration data from file
 configure();
@@ -247,7 +254,7 @@ inspectMode = true;
 
 return(bytesRead);
 
-}//end of ControlSimulator::startInpsect
+}//end of ControlSimulator::startInspect
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -428,6 +435,30 @@ if (byteOut != null)
         }
 
 }//end of ControlSimulator::sendPacketHeader
+//----------------------------------------------------------------------------
+
+//----------------------------------------------------------------------------
+// ControlSimulator::xmtMessage
+//
+// This method allows an outside class to send a message and a value to this
+// class and receive a status value back.
+//
+
+@Override
+public int xmtMessage(int pMessage, int pValue)
+{
+
+if (pMessage == MessageLink.SET_MODE){
+    
+    simulationMode = pValue;
+    
+    return(MessageLink.NULL);
+    
+    }//if (pMessage == MessageLink.SET_MODE)
+    
+return(MessageLink.NULL);    
+
+}//end of ControlSimulator::xmtMessage
 //----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

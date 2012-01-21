@@ -22,6 +22,7 @@ import java.io.*;
 import java.net.*;
 import javax.swing.*;
 
+import chart.MessageLink;
 import chart.mksystems.inifile.IniFile;
 
 //-----------------------------------------------------------------------------
@@ -31,7 +32,7 @@ import chart.mksystems.inifile.IniFile;
 // This class creates and handles an interface to a Control board.
 //
 
-public class ControlBoard extends Board{
+public class ControlBoard extends Board implements MessageLink{
 
 byte[] monitorBuffer;
 static int MONITOR_PACKET_SIZE = 20;
@@ -39,6 +40,8 @@ static int MONITOR_PACKET_SIZE = 20;
 int packetRequestTimer = 0;
 
 int runtimePacketSize;
+
+MessageLink mechSimulator = null;
 
 int pktID;
 boolean encoderDataPacketProcessed = false;
@@ -51,7 +54,7 @@ boolean newInspectPacketReady = false;
 
 int encoder1, prevEncoder1;
 int encoder2, prevEncoder2;
-boolean encoder1FwdDirection, encoder2FwdDirection;
+int encoder1Dir, encoder2Dir;
 
 int inspectPacketCount = 0;
 
@@ -190,7 +193,15 @@ try {
     threadSafeLog("Control Board IP Address: " + ipAddr.toString() + "\n");
 
     if (!simulate) socket = new Socket(ipAddr, 23);
-    else socket = new ControlSimulator(ipAddr, 23);
+    else {
+        
+        socket = new ControlSimulator(ipAddr, 23, 
+                                   encoder1DeltaTrigger, encoder2DeltaTrigger);
+        //when simulating, the socket is a ControlSimulator class object which
+        //is also a MessageLink implementor, so cast it for use as such so that
+        //messages can be sent to the object
+        mechSimulator = (MessageLink)socket;
+        }
 
     //set amount of time in milliseconds that a read from the socket will
     //wait for data - this prevents program lock up when no data is ready
@@ -399,12 +410,16 @@ try{
     //copy so it is safe for other threads to access those variables
     encoder1 = encoder1Count; encoder2 = encoder2Count;
 
-    //determine direction of travel based on the change in encoder counts
-    if (encoder1 > prevEncoder1) encoder1FwdDirection = true;
-    else encoder1FwdDirection = false;
+    //flag if encoder count was increased or decreased
+    //a no change case should not occur since packets are sent when there has
+    //been a change of encoder count
 
-    if (encoder2 > prevEncoder2) encoder2FwdDirection = true;
-    else encoder2FwdDirection = false;
+    if (encoder1 > prevEncoder1) encoder1Dir = InspectControlVars.INCREASING;
+    else encoder1Dir = InspectControlVars.DECREASING;
+
+    //flag if encoder count was increased or decreased
+    if (encoder2 > prevEncoder2) encoder2Dir = InspectControlVars.INCREASING;
+    else encoder2Dir = InspectControlVars.DECREASING;
 
     //update the previous encoder values for use next time
     prevEncoder1 = encoder1; prevEncoder2 = encoder2;
@@ -791,11 +806,33 @@ pICVars.encoder1 = encoder1; pICVars.prevEncoder1 = prevEncoder1;
 
 pICVars.encoder2 = encoder2; pICVars.prevEncoder2 = prevEncoder2;
 
-pICVars.encoder1FwdDirection = encoder1FwdDirection;
-pICVars.encoder2FwdDirection = encoder2FwdDirection;
+pICVars.encoder1Dir = encoder1Dir;
+pICVars.encoder2Dir = encoder2Dir;
 
 }//end of ControlBoard::getInspectControlVars
 //-----------------------------------------------------------------------------
+
+//----------------------------------------------------------------------------
+// ControlBoard::xmtMessage
+//
+// This method allows an outside class to send a message and a value to this
+// class and receive a status value back.
+//
+// In this class, this is mainly used to pass messages to the ControlSimulator
+// class so that it can be controlled via messages.
+//
+
+@Override
+public int xmtMessage(int pMessage, int pValue)
+{
+
+if (mechSimulator == null) return MessageLink.NULL;    
+    
+//pass the message on to the mechanical simulation object
+return mechSimulator.xmtMessage(pMessage, pValue);
+
+}//end of ControlBoard::xmtMessage
+//----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // ControlBoard::various get/set functions

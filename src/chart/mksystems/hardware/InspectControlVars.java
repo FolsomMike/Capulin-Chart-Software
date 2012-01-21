@@ -28,8 +28,19 @@ public class InspectControlVars extends Object{
 public int encoder1, prevEncoder1;
 public int encoder2, prevEncoder2;
 
-public boolean encoder1FwdDirection = false;
-public boolean encoder2FwdDirection = false;
+//encoder2 (linear tracking) value at start of piece inspection
+public int encoder2Start;
+
+public static int INCREASING = 0, DECREASING = 1;
+
+// specifies if last change of the encoder count was increasing or decreasing
+public int encoder1Dir = INCREASING;
+public int encoder2Dir = INCREASING;
+
+// specifies if increasing or decreasing encoder count is the forward direction
+// this alternates depending on which end the carriage starts from and is
+// determined by the encoder direction when the inspection of a new piece starts
+public int encoder2FwdDir;
 
 public boolean onPipeFlag = false;
 public boolean inspectFlag = false;
