@@ -303,17 +303,15 @@ traceGlobals.bufOffset = 0; //left edge of screen starts at buffer position 0
 
 traceGlobals.scrollCount = 0; //number of pixels chart has been scrolled
 
-//reset pointers to the data buffer
-//start at end of trace so they wrap to beginning for first data
-plotVs.prevPtr = dataBuffer1.length - 1;
-plotVs.bufPtr = dataBuffer1.length - 2;
+//reset pointers to the start of the data buffer
+plotVs.prevPtr = 1;
+plotVs.bufPtr = 0;
 
 //reset the pointers used by the data collector
 //endPlotSlot is always one behind the beingFilledSlot
-//start at end of trace so they wrap to beginning for first data
-beingFilledSlot = dataBuffer1.length - 1;
+beingFilledSlot = 1;
 inProcessSlot = beingFilledSlot;
-endPlotSlot = dataBuffer1.length - 2;
+endPlotSlot = 0;
 
 //reset segment end pointers
 lastSegmentStartIndex = -1; lastSegmentEndIndex = -1;
@@ -331,7 +329,7 @@ if (dataBuffer1 != null)
 
 //set the position where the pointers start to non-default -- this is the
 //first data that is plotted unless it happens to be replaced by a peak quickly
-dataBuffer1[dataBuffer1.length - 1] = 0;
+dataBuffer1[0] = 0;
 
 //used in span mode
 if (dataBuffer2 != null)
