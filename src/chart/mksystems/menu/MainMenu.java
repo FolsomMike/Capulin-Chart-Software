@@ -43,6 +43,7 @@ JMenuItem jobInfoMenuItem;
 JMenuItem saveMenuItem;
 JMenuItem newJobMenuItem;
 JMenu managePresetsMenuItem;
+JMenuItem loadFromAnotherJobMenuItem;
 JMenuItem savePresetMenuItem;
 JMenuItem loadPresetMenuItem;
 JMenuItem renamePresetMenuItem;
@@ -99,70 +100,77 @@ add(fileMenu);
 jobInfoMenuItem = new JMenuItem("Job Info");
 jobInfoMenuItem.setMnemonic(KeyEvent.VK_J);
 jobInfoMenuItem.setToolTipText("Job Info");
-jobInfoMenuItem.addActionListener(pGlobals);
+jobInfoMenuItem.addActionListener(globals);
 fileMenu.add(jobInfoMenuItem);
 
 //File/Save menu item
 saveMenuItem = new JMenuItem("Save");
 saveMenuItem.setMnemonic(KeyEvent.VK_S);
 saveMenuItem.setToolTipText("Save");
-saveMenuItem.addActionListener(pGlobals);
+saveMenuItem.addActionListener(globals);
 fileMenu.add(saveMenuItem);
 
 //Change Job menu item
 saveMenuItem = new JMenuItem("Change Job");
 saveMenuItem.setMnemonic(KeyEvent.VK_C);
 saveMenuItem.setToolTipText("Change to a different job.");
-saveMenuItem.addActionListener(pGlobals);
+saveMenuItem.addActionListener(globals);
 fileMenu.add(saveMenuItem);
 
 //File/New Job menu item
 newJobMenuItem = new JMenuItem("New Job");
 newJobMenuItem.setMnemonic(KeyEvent.VK_N);
 newJobMenuItem.setToolTipText("New Job");
-newJobMenuItem.addActionListener(pGlobals);
+newJobMenuItem.addActionListener(globals);
 fileMenu.add(newJobMenuItem);
 
 //File/Manage Presets menu item
 managePresetsMenuItem = new JMenu("Manage Presets");
 managePresetsMenuItem.setMnemonic(KeyEvent.VK_M);
 managePresetsMenuItem.setToolTipText("Manage Presets");
-//managePresetsMenuItem.addActionListener(pGlobals);
+//managePresetsMenuItem.addActionListener(globals);
 fileMenu.add(managePresetsMenuItem);
+
+//File/Manage Presets/Load From Another Job menu item
+loadFromAnotherJobMenuItem = new JMenuItem("Copy From Another Job");
+loadFromAnotherJobMenuItem.setMnemonic(KeyEvent.VK_C);
+loadFromAnotherJobMenuItem.setToolTipText("Copy settings from a different job.");
+loadFromAnotherJobMenuItem.addActionListener(globals);
+managePresetsMenuItem.add(loadFromAnotherJobMenuItem);
 
 //File/Manage Presets/Save Preset menu item
 savePresetMenuItem = new JMenuItem("Save Preset");
 savePresetMenuItem.setMnemonic(KeyEvent.VK_S);
 savePresetMenuItem.setToolTipText("Save current settings as a preset.");
-savePresetMenuItem.addActionListener(pGlobals);
+savePresetMenuItem.addActionListener(globals);
 managePresetsMenuItem.add(savePresetMenuItem);
 
 //File/Manage Presets/Load Preset menu item
 loadPresetMenuItem = new JMenuItem("Load Preset");
 loadPresetMenuItem.setMnemonic(KeyEvent.VK_L);
 loadPresetMenuItem.setToolTipText("Load new settings from a preset.");
-loadPresetMenuItem.addActionListener(pGlobals);
+loadPresetMenuItem.addActionListener(globals);
 managePresetsMenuItem.add(loadPresetMenuItem);
 
 //File/Manage Presets/Rename Preset menu item
 renamePresetMenuItem = new JMenuItem("Rename Preset");
 renamePresetMenuItem.setMnemonic(KeyEvent.VK_R);
 renamePresetMenuItem.setToolTipText("Rename the selected preset.");
-renamePresetMenuItem.addActionListener(pGlobals);
+renamePresetMenuItem.addActionListener(globals);
 managePresetsMenuItem.add(renamePresetMenuItem);
 
 //File/Manage Presets/Delete Preset menu item
 deletePresetMenuItem = new JMenuItem("Delete Preset");
 deletePresetMenuItem.setMnemonic(KeyEvent.VK_D);
 deletePresetMenuItem.setToolTipText("Delete a preset.");
-deletePresetMenuItem.addActionListener(pGlobals);
+deletePresetMenuItem.addActionListener(globals);
 managePresetsMenuItem.add(deletePresetMenuItem);
 
 //File/Exit menu item
 exitMenuItem = new JMenuItem("Exit");
 exitMenuItem.setMnemonic(KeyEvent.VK_X);
 exitMenuItem.setToolTipText("Exit");
-exitMenuItem.addActionListener(pGlobals);
+exitMenuItem.addActionListener(globals);
 fileMenu.add(exitMenuItem);
 
 //Print menu
@@ -177,7 +185,7 @@ printCurrentMenuItem = new JMenuItem("Chart for " +
 printCurrentMenuItem.setMnemonic(KeyEvent.VK_I);
 printCurrentMenuItem.setToolTipText("Print the chart for " +
                     globals.pieceDescriptionLC + " currently being inspected.");
-printCurrentMenuItem.addActionListener(pGlobals);
+printCurrentMenuItem.addActionListener(globals);
 printMenu.add(printCurrentMenuItem);
 
 //Print/Last Joint completed
@@ -186,7 +194,7 @@ printLastMenuItem = new JMenuItem("Chart for Last " +
 printLastMenuItem.setMnemonic(KeyEvent.VK_L);
 printLastMenuItem.setToolTipText("Print the chart for last " +
                                  globals.pieceDescriptionLC + " completed.");
-printLastMenuItem.addActionListener(pGlobals);
+printLastMenuItem.addActionListener(globals);
 printMenu.add(printLastMenuItem);
 
 //Print/Any Joint
@@ -195,7 +203,7 @@ printAnyMenuItem = new JMenuItem("Chart(s) for selected " +
 printAnyMenuItem.setMnemonic(KeyEvent.VK_S);
 printAnyMenuItem.setToolTipText("Print the chart(s) for Selected " +
                                                globals.pieceDescriptionPluralLC);
-printAnyMenuItem.addActionListener(pGlobals);
+printAnyMenuItem.addActionListener(globals);
 printMenu.add(printAnyMenuItem);
 
 printMenu.addSeparator();
@@ -206,7 +214,7 @@ autoPrintMenuCheck = new JCheckBoxMenuItem("Auto Print Chart After Each " +
 autoPrintMenuCheck.setMnemonic(KeyEvent.VK_A);
 autoPrintMenuCheck.setToolTipText("Prints chart automatically after each "
         + globals.pieceDescriptionLC + " is inspected.");
-autoPrintMenuCheck.addActionListener(pGlobals);
+autoPrintMenuCheck.addActionListener(globals);
 printMenu.add(autoPrintMenuCheck);
 
 
@@ -222,7 +230,7 @@ reportCurrentMenuItem = new JMenuItem("Flag Report for " +
 reportCurrentMenuItem.setMnemonic(KeyEvent.VK_I);
 reportCurrentMenuItem.setToolTipText("Print the flag report for " +
                     globals.pieceDescriptionLC + " currently being inspected.");
-reportCurrentMenuItem.addActionListener(pGlobals);
+reportCurrentMenuItem.addActionListener(globals);
 reportMenu.add(reportCurrentMenuItem);
 
 //Report/Last Joint completed
@@ -231,7 +239,7 @@ reportLastMenuItem = new JMenuItem("Flag Report for Last " +
 reportLastMenuItem.setMnemonic(KeyEvent.VK_L);
 reportLastMenuItem.setToolTipText("Print the flag report for last " +
                                  globals.pieceDescriptionLC + " completed.");
-reportLastMenuItem.addActionListener(pGlobals);
+reportLastMenuItem.addActionListener(globals);
 reportMenu.add(reportLastMenuItem);
 
 //Report/Any Joint
@@ -240,7 +248,7 @@ reportAnyMenuItem = new JMenuItem("Flag report(s) for Selected " +
 reportAnyMenuItem.setMnemonic(KeyEvent.VK_S);
 reportAnyMenuItem.setToolTipText("Print the flag report(s) for selected " +
                                                globals.pieceDescriptionPluralLC);
-reportAnyMenuItem.addActionListener(pGlobals);
+reportAnyMenuItem.addActionListener(globals);
 reportMenu.add(reportAnyMenuItem);
 
 reportMenu.addSeparator();
@@ -252,7 +260,7 @@ autoReportMenuCheck.setMnemonic(KeyEvent.VK_A);
 autoReportMenuCheck.setToolTipText(
     "Prints flag report automatically after each "
                             + globals.pieceDescriptionLC + " is inspected.");
-autoReportMenuCheck.addActionListener(pGlobals);
+autoReportMenuCheck.addActionListener(globals);
 reportMenu.add(autoReportMenuCheck);
 
 reportMenu.addSeparator();
@@ -262,7 +270,7 @@ reportTallyMenuItem = new JMenuItem("Print Tally Report");
 reportTallyMenuItem.setMnemonic(KeyEvent.VK_T);
 reportTallyMenuItem.setToolTipText(
                             "Print the tally report.");
-reportTallyMenuItem.addActionListener(pGlobals);
+reportTallyMenuItem.addActionListener(globals);
 reportMenu.add(reportTallyMenuItem);
 
 
@@ -271,7 +279,7 @@ reportFinalMenuItem = new JMenuItem("Prepare/Print Final Inspection Report");
 reportFinalMenuItem.setMnemonic(KeyEvent.VK_F);
 reportFinalMenuItem.setToolTipText(
                             "Prepare and print the final inspection report.");
-reportFinalMenuItem.addActionListener(pGlobals);
+reportFinalMenuItem.addActionListener(globals);
 reportMenu.add(reportFinalMenuItem);
 
 //View menu
@@ -286,7 +294,7 @@ viewSegmentMenuItem = new JMenuItem("View Chart of a Completed " +
 viewSegmentMenuItem.setMnemonic(KeyEvent.VK_C);
 viewSegmentMenuItem.setToolTipText("View chart of a completed " +
                                             globals.pieceDescriptionLC + ".");
-viewSegmentMenuItem.addActionListener(pGlobals);
+viewSegmentMenuItem.addActionListener(globals);
 viewMenu.add(viewSegmentMenuItem);
 
 //View/View/Edit Identifier Info
@@ -294,7 +302,7 @@ viewIDInfoMenuItem = new JMenuItem("View / Edit Identifier Info");
 viewIDInfoMenuItem.setMnemonic(KeyEvent.VK_I);
 viewIDInfoMenuItem.setToolTipText("View and edit the identifier info for each "
                                             + globals.pieceDescriptionLC + ".");
-viewIDInfoMenuItem.addActionListener(pGlobals);
+viewIDInfoMenuItem.addActionListener(globals);
 viewMenu.add(viewIDInfoMenuItem);
 
 //Options\Language submenu and items
@@ -312,7 +320,7 @@ viewMenu.add(viewIDInfoMenuItem);
 //if(globals.language.compareTo("English") == 0)
 //    englishRadioButton.setSelected(true);
 //languageGroup.add(englishRadioButton); languageMenu.add(englishRadioButton);
-//englishRadioButton.addActionListener(pGlobals);
+//englishRadioButton.addActionListener(globals);
 
 //chineseRadioButton = new JRadioButtonMenuItem("Chinese");
 //chineseRadioButton.setMnemonic(KeyEvent.VK_C);
@@ -320,7 +328,7 @@ viewMenu.add(viewIDInfoMenuItem);
 //if(globals.language.compareTo("Chinese") == 0)
 //    chineseRadioButton.setSelected(true);
 //languageGroup.add(chineseRadioButton); languageMenu.add(chineseRadioButton);
-//chineseRadioButton.addActionListener(pGlobals);
+//chineseRadioButton.addActionListener(globals);
 
 //spanishRadioButton = new JRadioButtonMenuItem("Spanish");
 //spanishRadioButton.setMnemonic(KeyEvent.VK_S);
@@ -328,7 +336,7 @@ viewMenu.add(viewIDInfoMenuItem);
 //if(globals.language.compareTo("Spanish") == 0)
 //    spanishRadioButton.setSelected(true);
 //languageGroup.add(spanishRadioButton); languageMenu.add(spanishRadioButton);
-//spanishRadioButton.addActionListener(pGlobals);
+//spanishRadioButton.addActionListener(globals);
 
 //Options menu
 optionsMenu = new JMenu("Options");
@@ -348,7 +356,7 @@ restartNewPieceAtLeftEdgeMenuCheck = new JCheckBoxMenuItem(
                             "Restart Each New Piece at Left Edge of Chart");
 restartNewPieceAtLeftEdgeMenuCheck.setToolTipText(
                              "Restart Each New Piece at Left Edge of Chart.");
-restartNewPieceAtLeftEdgeMenuCheck.addActionListener(pGlobals);
+restartNewPieceAtLeftEdgeMenuCheck.addActionListener(globals);
 chartMenu.add(restartNewPieceAtLeftEdgeMenuCheck);
 
 //Help menu
@@ -364,34 +372,34 @@ logMenuItem = new JMenuItem("Log");
 logMenuItem.setMnemonic(KeyEvent.VK_L);
 logMenuItem.setToolTipText("Log");
 logMenuItem.setActionCommand("Log");
-logMenuItem.addActionListener(pGlobals);
+logMenuItem.addActionListener(globals);
 helpMenu.add(logMenuItem);
 
 configInfoItem = new JMenuItem("Display Configuration Info");
 configInfoItem.setMnemonic(KeyEvent.VK_C);
 configInfoItem.setToolTipText("Display Configuration Info");
 configInfoItem.setActionCommand("Display Configuration Info");
-configInfoItem.addActionListener(pGlobals);
+configInfoItem.addActionListener(globals);
 helpMenu.add(configInfoItem);
 
 statusMenuItem = new JMenuItem("Status");
 statusMenuItem.setMnemonic(KeyEvent.VK_S);
 statusMenuItem.setToolTipText("Status");
 statusMenuItem.setActionCommand("Status");
-statusMenuItem.addActionListener(pGlobals);
+statusMenuItem.addActionListener(globals);
 helpMenu.add(statusMenuItem);
 
 monitorMenuItem = new JMenuItem("Monitor");
 monitorMenuItem.setMnemonic(KeyEvent.VK_M);
 monitorMenuItem.setToolTipText("Monitor");
-monitorMenuItem.addActionListener(pGlobals);
+monitorMenuItem.addActionListener(globals);
 helpMenu.add(monitorMenuItem);
 
 debuggerMenuItem = new JMenuItem("Debugger");
 debuggerMenuItem.setMnemonic(KeyEvent.VK_D);
 debuggerMenuItem.setToolTipText("Debugger");
 debuggerMenuItem.setActionCommand("Debugger");
-debuggerMenuItem.addActionListener(pGlobals);
+debuggerMenuItem.addActionListener(globals);
 helpMenu.add(debuggerMenuItem);
 
 //this is actually the "License Renewal" function but is not referred to as
@@ -400,7 +408,7 @@ renewalMenuItem = new JMenuItem("Renew");
 renewalMenuItem.setMnemonic(KeyEvent.VK_R);
 renewalMenuItem.setToolTipText("Renew");
 renewalMenuItem.setActionCommand("Renew License");
-renewalMenuItem.addActionListener(pGlobals);
+renewalMenuItem.addActionListener(globals);
 helpMenu.add(renewalMenuItem);
 
 //option to validate and repair job files
@@ -408,7 +416,7 @@ repairJobMenuItem = new JMenuItem("Repair Job");
 repairJobMenuItem.setMnemonic(KeyEvent.VK_J);
 repairJobMenuItem.setToolTipText("Repair Job Files");
 repairJobMenuItem.setActionCommand("Repair Job");
-repairJobMenuItem.addActionListener(pGlobals);
+repairJobMenuItem.addActionListener(globals);
 helpMenu.add(repairJobMenuItem);
 
 //option to setup the system
@@ -416,7 +424,7 @@ setupSystemMenuItem = new JMenuItem("Setup System");
 setupSystemMenuItem.setMnemonic(KeyEvent.VK_S);
 setupSystemMenuItem.setToolTipText("Setup System");
 setupSystemMenuItem.setActionCommand("Setup System");
-setupSystemMenuItem.addActionListener(pGlobals);
+setupSystemMenuItem.addActionListener(globals);
 helpMenu.add(setupSystemMenuItem);
 
 //option to display the "About" window
@@ -424,7 +432,7 @@ aboutMenuItem = new JMenuItem("About");
 aboutMenuItem.setMnemonic(KeyEvent.VK_A);
 aboutMenuItem.setToolTipText("Display the About window.");
 aboutMenuItem.setActionCommand("About");
-aboutMenuItem.addActionListener(pGlobals);
+aboutMenuItem.addActionListener(globals);
 helpMenu.add(aboutMenuItem);
 
 //load the appropriate language text
@@ -484,7 +492,7 @@ return false;
 // this function to both set the variable and load new translations.
 //
 
-public void loadLanguage(String pLanguage)
+public final void loadLanguage(String pLanguage)
 {
 
 language = pLanguage;

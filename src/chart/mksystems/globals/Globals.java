@@ -56,7 +56,7 @@ Link mainWindow;
 
 //Constants
 
-public static String SOFTWARE_VERSION = "1.92";
+public static String SOFTWARE_VERSION = "1.93";
 
 //This is the version of the format used to save the data for a segment which
 //holds data for an inspected piece.
@@ -302,6 +302,14 @@ if (source.getToolTipText().equalsIgnoreCase("New Job")){
 //calls function in Main
 if (source.getToolTipText().equalsIgnoreCase("Change to a different job.")){
     actionListener.actionPerformed(new ActionEvent(this, 1, "Change Job"));
+    return;
+    }
+
+//calls function in Main
+if (source.getToolTipText().equalsIgnoreCase(
+                                       "Copy settings from a different job.")){
+    actionListener.actionPerformed(new ActionEvent(
+                                             this, 1, "Copy Preset From Job"));
     return;
     }
 

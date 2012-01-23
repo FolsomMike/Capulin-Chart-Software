@@ -1040,9 +1040,14 @@ if ("Change Job".equals(e.getActionCommand())) {
     }
 
 //this part handles saving current settings to a preset
+if ("Copy Preset From Job".equals(e.getActionCommand())) {
+    if(isConfigGoodA()) copyPreset();
+    return;
+    }
+          
+//this part handles saving current settings to a preset
 if ("Save Preset".equals(e.getActionCommand())) {
-    SavePreset savePreset;
-    savePreset = new SavePreset(mainFrame, primaryDataPath, backupDataPath,
+    new SavePreset(mainFrame, primaryDataPath, backupDataPath,
                                                           xfer, currentJobName);
     return;
     }
@@ -1055,15 +1060,13 @@ if ("Change Preset".equals(e.getActionCommand())) {
 
 //this part handles renaming a preset
 if ("Rename Preset".equals(e.getActionCommand())) {
-    RenamePreset renamePreset =
-            new RenamePreset(mainFrame, primaryDataPath, backupDataPath, xfer);
+    new RenamePreset(mainFrame, primaryDataPath, backupDataPath, xfer);
     return;
     }
 
 //this part handles deleting a preset
 if ("Delete Preset".equals(e.getActionCommand())) {
-    DeletePreset deletePreset =
-            new DeletePreset(mainFrame, primaryDataPath, backupDataPath, xfer);
+    new DeletePreset(mainFrame, primaryDataPath, backupDataPath, xfer);
     return;
     }
 
@@ -1395,10 +1398,13 @@ public void changeJob()
 
 saveEverything(); //save all data
 
-ChangeJob changeJop =
-                new ChangeJob(mainFrame, primaryDataPath, backupDataPath, xfer);
+ChooseJob chooseJob =
+                new ChooseJob(mainFrame, primaryDataPath, backupDataPath, xfer);
 
-//if the ChangeJob window set rBoolean1 true, switch to the new job
+ //does the actual choose job work -- info passed back via xfer object
+chooseJob.init();
+
+//if the ChooseJob window set rBoolean1 true, switch to the new job
 if (xfer.rBoolean1){
 
     currentJobName = xfer.rString1; //use the new job name
@@ -1417,6 +1423,47 @@ if (xfer.rBoolean1){
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainWindow::copyPreset
+//
+// Allows the user to copy a preset from a different job.
+//
+// The selected preset will be copied from the selected job folder to the
+// current job folder.  The program will then be restarted to load the settings.
+//
+
+public void copyPreset()
+{
+
+//NOTE: save must be done BEFORE calling the dialog window else new changes
+//may be overwritten or written to the wrong directory as the dialog window
+//may save files or switch directories
+
+saveEverything(); //save all data
+
+CopyPreset copyPreset = new CopyPreset(
+            mainFrame, primaryDataPath, backupDataPath, xfer, currentJobName);
+
+copyPreset.init(); //initialize and to the actual work
+
+//if the ChooseJob window set rBoolean1 true, switch to the new preset
+if (xfer.rBoolean1){
+
+    //no need to save main settings - the selected preset will have been
+    //copied to the job folder so it will be loaded on restart
+
+    //exit the program, passing true to instantiate a new program which will
+    //load the new work order on startup - it is required to create a new
+    //program and kill the old one so that all of the configuration data for
+    //the job will be loaded properly
+
+    exitProgram(false, true);
+
+    }
+
+}//end of MainWindow::copyPreset
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainWindow::changePreset
 //
 // Allows the user to switch to a different preset.
@@ -1428,7 +1475,7 @@ if (xfer.rBoolean1){
 public void changePreset()
 {
 
-//NOTE: this must be done BEFORE calling the dialog window else new changes
+//NOTE: save must be done BEFORE calling the dialog window else new changes
 //may be overwritten or written to the wrong directory as the dialog window
 //may save files or switch directories
 
@@ -1437,7 +1484,9 @@ saveEverything(); //save all data
 LoadPreset loadPreset = new LoadPreset(
             mainFrame, primaryDataPath, backupDataPath, xfer, currentJobName);
 
-//if the ChangeJob window set rBoolean1 true, switch to the new preset
+loadPreset.init(); //initialize and to the actual work
+
+//if the ChooseJob window set rBoolean1 true, switch to the new preset
 if (xfer.rBoolean1){
 
     //no need to save main settings - the selected preset will have been

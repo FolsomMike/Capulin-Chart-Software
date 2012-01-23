@@ -1,11 +1,11 @@
 /******************************************************************************
-* Title: LoadPreset.java
+* Title: CopyPreset.java
 * Author: Mike Schoonover
-* Date: 1/02/10
+* Date: 1/22/12
 *
 * Purpose:
 *
-* This class displays a window and handles switching to a new preset.
+* This class displays a window and handles copying a preset from another job.
 *
 * Open Source Policy:
 *
@@ -26,41 +26,41 @@ import java.util.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-// class LoadPreset
+// class CopyPreset
 //
 // See notes at top of page.
 //
 
-class LoadPreset extends JDialog implements ActionListener{
+class CopyPreset extends JDialog implements ActionListener{
 
 JFrame frame;
 JComboBox presetSelect;
-ArrayList<String> presetList;
+ArrayList<String> jobList;
 Xfer xfer;
 String primaryDataPath, backupDataPath;
 String currentJobName;
 
 //-----------------------------------------------------------------------------
-// LoadPreset::LoadPreset (constructor)
+// CopyPreset::CopyPreset (constructor)
 //
 //
 
-public LoadPreset(JFrame pFrame, String pPrimaryDataPath,
+public CopyPreset(JFrame pFrame, String pPrimaryDataPath,
                      String pBackupDataPath, Xfer pXfer, String pCurrentJobName)
 {
 
-super(pFrame, "Load Preset");
+super(pFrame, "Choose Job From Which to Copy Calibrations");
 
 frame = pFrame;
 primaryDataPath = pPrimaryDataPath; backupDataPath = pBackupDataPath;
 xfer = pXfer;
 currentJobName = pCurrentJobName;
 
-}//end of LoadPreset::LoadPreset (constructor)
+}//end of CopyPreset::CopyPreset (constructor)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// LoadPreset::init
+// CopyPreset::init
 //
 
 public void init()
@@ -70,7 +70,7 @@ xfer.rBoolean1 = false; //action completed flag - set true if user completes
 
 setModal(true); //window always on top and has focus until closed
 
-loadPresetList(); //retrieve a list of available items
+loadJobList(); //retrieve a list of available jobs
 
 setLayout(new BoxLayout(getContentPane(), BoxLayout.PAGE_AXIS));
 
@@ -82,7 +82,7 @@ add(Box.createRigidArea(new Dimension(0,15)));
 tPanel = new JPanel();
 tPanel.setLayout(new BoxLayout(tPanel, BoxLayout.LINE_AXIS));
 tPanel.add(Box.createRigidArea(new Dimension(5,0)));
-presetSelect = new JComboBox(presetList.toArray());
+presetSelect = new JComboBox(jobList.toArray());
 tPanel.add(presetSelect);
 tPanel.add(Box.createRigidArea(new Dimension(5,0)));
 add(tPanel);
@@ -116,37 +116,37 @@ pack();
 
 setVisible(true);
     
-}//end of LoadPreset::init
+}//end of CopyPreset::init
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// LoadPreset::loadPresetList
+// ChooseJob::loadJobList
 //
-// Loads a list of the available presets for selecton by the user.
+// Loads a list of the available jobs for selection by the user.
 //
 
-final void loadPresetList()
+private void loadJobList()
 {
 
-//directory containing the pertinent files
-File jobDir = new File("presets");
+//directory containing the various pertinent files
+File jobDir = new File(primaryDataPath);
 //get a list of the files/folders in the directory
 String[] configs = jobDir.list();
 
-//create a list to hold the items
-presetList = new ArrayList<String>(1000);
-presetList.addAll(Arrays.asList(configs));
+//create a list to hold the file/folder names
+jobList = new ArrayList<String>(1000);
+jobList.addAll(Arrays.asList(configs));
 //sort the items alphabetically
-Collections.sort(presetList);
+Collections.sort(jobList);
 
 //after sorting, add the instruction text at the top so it will be displayed
-presetList.add(0, "Select a Preset");
+jobList.add(0, "Select a Job");
 
-}//end of LoadPreset::loadPresetList
+}//end of ChooseJob::loadJobList
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// LoadPreset::actionPerformed
+// CopyPreset::actionPerformed
 //
 // Catches action events from buttons, etc.
 //
@@ -159,7 +159,7 @@ public void actionPerformed(ActionEvent e)
 JButton source = (JButton)(e.getSource());
 
 if (source.getActionCommand().equalsIgnoreCase("Load")){
-    boolean finished = loadSelectedPreset();
+    boolean finished = copySelectedPreset();
     if (!finished) return;
     setVisible(false);
     dispose();  //destroy the dialog window
@@ -176,14 +176,14 @@ if (source.getActionCommand().equalsIgnoreCase("Cancel")){
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// LoadPreset::loadSelectedPreset
+// CopyPreset::copySelectedPreset
 //
-// Loads the selected preset.
+// Copies the selected preset.
 //
 // Returns true if the action was successful and the dialog should be closed.
 //
 
-boolean loadSelectedPreset()
+boolean copySelectedPreset()
 {
 
 String selectedItemName = (String)presetSelect.getSelectedItem();
@@ -191,9 +191,9 @@ String selectedItemName = (String)presetSelect.getSelectedItem();
 boolean presetSelected;
 
 //if the user has not selected a configuration, display an error message
-if (selectedItemName.equalsIgnoreCase("Select a Preset")){
+if (selectedItemName.equalsIgnoreCase("Select a Job")){
     JOptionPane.showMessageDialog(frame,
-    "You must select a Preset.",
+    "You must select a Job.",
     "Error", JOptionPane.ERROR_MESSAGE);
     return(false);
     }
@@ -209,6 +209,10 @@ int n = JOptionPane.showConfirmDialog(
 
 if (n != JOptionPane.YES_OPTION) return(false);  //bail out if user cancels
 
+//copy calibrations from the selected job folder
+File primarySrc = new File(primaryDataPath + selectedItemName);
+
+//copy to both the primary and backup folders of the current job
 File primaryFolder = new File (primaryDataPath + currentJobName);
 File backupFolder  = new File (backupDataPath + currentJobName);
 
@@ -218,14 +222,16 @@ File backupFolder  = new File (backupDataPath + currentJobName);
 //explorer window when the files are alphabetized to make it easier to find
 
 if (presetSelected &&
-    (!copyFile("presets" + "/" + selectedItemName,
+    (!copyFile(
+            primarySrc + "/00 - " + selectedItemName + " Calibration File.ini",
             primaryFolder + "/00 - " + currentJobName + " Calibration File.ini")
  ||
-    !copyFile("presets" + "/" + selectedItemName,
+    !copyFile(
+          primarySrc + "/00 - " + selectedItemName + " Calibration File.ini",
           backupFolder + "/00 - " + currentJobName + " Calibration File.ini"))){
 
         JOptionPane.showMessageDialog(frame,
-        "The preset file could not be copied " +
+        "The calibration file could not be copied " +
         "to the primary and/or backup directories.",
         "Error", JOptionPane.ERROR_MESSAGE);
         return(false);
@@ -240,11 +246,11 @@ xfer.rString1 = selectedItemName; //pass back the target file/folder name
 
 return(true);
 
-}//end of LoadPreset::LoadSelectedPreset
+}//end of CopyPreset::CopySelectedPreset
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// LoadPreset::copyFile
+// CopyPreset::copyFile
 //
 // Copies file pSource to pDest.
 //
@@ -279,9 +285,9 @@ finally {
 
 return(true);
 
-}//end of LoadPreset::copyFile
+}//end of CopyPreset::copyFile
 //-----------------------------------------------------------------------------
 
-}//end of class LoadPreset
+}//end of class CopyPreset
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

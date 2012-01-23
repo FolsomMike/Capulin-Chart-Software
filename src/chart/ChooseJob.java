@@ -1,5 +1,5 @@
 /******************************************************************************
-* Title: ChangeJob.java
+* Title: ChooseJob.java
 * Author: Mike Schoonover
 * Date: 1/01/10
 *
@@ -26,33 +26,43 @@ import java.util.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-// class ChangeJob
+// class ChooseJob
 //
 // See notes at top of page.
 //
 
-class ChangeJob extends JDialog implements ActionListener{
+class ChooseJob extends JDialog implements ActionListener{
 
 JFrame frame;
 JComboBox jobSelect;
-Vector<String> jobList;
+ArrayList<String> jobList;
 Xfer xfer;
 String primaryDataPath, backupDataPath;
 
 //-----------------------------------------------------------------------------
-// ChangeJob::ChangeJob (constructor)
+// ChooseJob::ChooseJob (constructor)
 //
 //
 
-public ChangeJob(JFrame pFrame, String pPrimaryDataPath, String pBackupDataPath,
+public ChooseJob(JFrame pFrame, String pPrimaryDataPath, String pBackupDataPath,
                                                                      Xfer pXfer)
 {
 
-super(pFrame, "Change Job");
+super(pFrame, "Choose Job");
 
 frame = pFrame;
 primaryDataPath = pPrimaryDataPath; backupDataPath = pBackupDataPath;
 xfer = pXfer;
+
+}//end of ChooseJob::ChooseJob (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ChooseJob::init
+//
+
+public void init()
+{
 
 xfer.rBoolean1 = false; //job switched flag - set true if user switches
 
@@ -70,7 +80,7 @@ add(Box.createRigidArea(new Dimension(0,15)));
 tPanel = new JPanel();
 tPanel.setLayout(new BoxLayout(tPanel, BoxLayout.LINE_AXIS));
 tPanel.add(Box.createRigidArea(new Dimension(5,0)));
-jobSelect = new JComboBox(jobList);
+jobSelect = new JComboBox(jobList.toArray());
 tPanel.add(jobSelect);
 tPanel.add(Box.createRigidArea(new Dimension(5,0)));
 add(tPanel);
@@ -83,9 +93,9 @@ JPanel buttonPanel = new JPanel();
 buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.LINE_AXIS));
 
 buttonPanel.add(Box.createRigidArea(new Dimension(5,0)));
-buttonPanel.add(button = new JButton("Change"));
-button.setToolTipText("Switch to the selected job.");
-button.setActionCommand("Change");
+buttonPanel.add(button = new JButton("Choose"));
+button.setToolTipText("Choose the selected job.");
+button.setActionCommand("Choose");
 button.addActionListener(this);
 
 buttonPanel.add(Box.createHorizontalGlue()); //force space between buttons
@@ -103,17 +113,17 @@ add(Box.createRigidArea(new Dimension(0,15)));
 pack();
 
 setVisible(true);
-
-}//end of ChangeJob::ChangeJob (constructor)
+      
+}//end of ChooseJob::init
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// ChangeJob::loadJobList
+// ChooseJob::loadJobList
 //
 // Loads a list of the available jobs for selection by the user.
 //
 
-void loadJobList()
+private void loadJobList()
 {
 
 //directory containing the various pertinent files
@@ -122,20 +132,19 @@ File jobDir = new File(primaryDataPath);
 String[] configs = jobDir.list();
 
 //create a list to hold the file/folder names
-jobList = new Vector<String>();
-//put the array of items into the vector
-for (int i=0; i<configs.length; i++) jobList.add(configs[i]);
+jobList = new ArrayList<String>(1000);
+jobList.addAll(Arrays.asList(configs));
 //sort the items alphabetically
 Collections.sort(jobList);
 
 //after sorting, add the instruction text at the top so it will be displayed
 jobList.add(0, "Select a Job");
 
-}//end of ChangeJob::loadJobList
+}//end of ChooseJob::loadJobList
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// ChangeJob::actionPerformed
+// ChooseJob::actionPerformed
 //
 // Catches action events from buttons, etc.
 //
@@ -146,8 +155,8 @@ public void actionPerformed(ActionEvent e)
 
 JButton source = (JButton)(e.getSource());
 
-if (source.getActionCommand().equalsIgnoreCase("Change")){
-    changeJob();
+if (source.getActionCommand().equalsIgnoreCase("Choose")){
+    chooseSelectedJob();
     setVisible(false);
     dispose();  //destroy the dialog window
     return;
@@ -159,16 +168,16 @@ if (source.getActionCommand().equalsIgnoreCase("Cancel")){
     return;
     }
 
-}//end of ChangeJob::actionPerformed
+}//end of ChooseJob::actionPerformed
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// ChangeJob::changeJob
+// ChooseJob::chooseSelectedJob
 //
-// Switches to the selected job.
+// Chooses the selected job.
 //
 
-void changeJob()
+void chooseSelectedJob()
 {
 
 String selectedJobName = (String)jobSelect.getSelectedItem();
@@ -187,10 +196,10 @@ if (selectedJobName.equalsIgnoreCase("Select a Job")){
 xfer.rBoolean1 = true; //set job selected flag to true
 xfer.rString1 = selectedJobName; //pass back the selected job name
 
-}//end of ChangeJob::changeJob
+}//end of ChooseJob::chooseSelectedJob
 //-----------------------------------------------------------------------------
 
 
-}//end of class ChangeJob
+}//end of class ChooseJob
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
