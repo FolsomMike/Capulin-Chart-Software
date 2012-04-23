@@ -57,6 +57,9 @@ add(textArea);
 
 textArea.append("Software Version: " + Globals.SOFTWARE_VERSION + "\n");
 
+textArea.append("\n");
+textArea.append("Author: Mike Schoonover" + "\n");
+
 setVisible(true);
 
 }//end of About::About (constructor)

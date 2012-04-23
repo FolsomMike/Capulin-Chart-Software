@@ -159,7 +159,7 @@ add(statusPanel = new StatusPanel(globals, this, this));
 add(infoPanel = new InfoPanel(this, jobName));
 add(scanSpeedPanel = new ScanSpeedPanel(globals, this, this));
 if (simulateMechanical) add(demoPanel = new DemoPanel(mechSimulator));
-demoPanel.init();
+if (demoPanel != null) demoPanel.init();
 add(Box.createHorizontalGlue()); //force manual control to the right side
 if (timerDrivenTracking){ 
     add(manualControlPanel = new ManualControlPanel(this, this, warningSymbol));

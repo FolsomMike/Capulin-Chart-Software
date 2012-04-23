@@ -50,6 +50,7 @@ int opMode = STOPPED;
 int AwayDirection;
 
 int encoder1CntsPerPix, encoder2CntsPerPix;
+double enc1CorrFactor, enc2CorrFactor;
 int prevPixPosition;
 
 boolean output1On = false;
@@ -141,11 +142,26 @@ hdwVs.uSPerDataPoint = hdwVs.nSPerDataPoint / 1000;
 //accurate results over the length of the piece -- the packet send trigger
 //counts are often the same as the values below
 
+//this is the number of encoder counts per screen pixel -- the packet trigger
+//sent to the Control board is often the same number so that one packet is
+//received per packet (with some variance due to round off error)
+
 encoder1CntsPerPix = 
   pConfigFile.readInt("Hardware", "Encoder 1 Counts Per Pixel", 175);
 
 encoder2CntsPerPix = 
   pConfigFile.readInt("Hardware", "Encoder 2 Counts Per Pixel", 175);
+
+
+//the number of encoder counts per pixel is always an approximation and builds
+//up error over distance -- these scaling values are applied to all encoder
+//calculations to correct for that error
+
+enc1CorrFactor = 
+    pConfigFile.readDouble("Hardware", "Encoder 1 Correction Factor", 1.0);
+        
+enc2CorrFactor = 
+    pConfigFile.readDouble("Hardware", "Encoder 2 Correction Factor", 1.0);
 
 if (numberOfAnalogChannels > 100) numberOfAnalogChannels = 100;
 
@@ -1249,11 +1265,13 @@ inspectCtrlVars.encoder2FwdDir = inspectCtrlVars.encoder2Dir;
 
 //calculate the number of pixels moved using counts since the start of the piece
 int pixPosition = 
-        (int)((inspectCtrlVars.encoder2 - inspectCtrlVars.encoder2Start) / 
-                                                            encoder2CntsPerPix);
+ (int)(((inspectCtrlVars.encoder2 - inspectCtrlVars.encoder2Start)
+                                      * enc2CorrFactor) / encoder2CntsPerPix);
 
-//debug mks zzz
-//debug mks invert here if necessary to make increasing count always forward direction
+//debug mks -- check here for passing zero point -- means pipe has backed out of
+//the system so remove segment
+
+pixPosition = Math.abs(pixPosition);
 
 //calculate the number of pixels moved since the last update
 int pixelsMoved = pixPosition - prevPixPosition;
