@@ -332,9 +332,9 @@ outPacket = new DatagramPacket(outBuf, outBuf.length, group, 4446);
 //force socket.receive to return if no packet available within 3 seconds
 try{socket.setSoTimeout(3000);} catch(SocketException e){}
 
-//broadcast the roll call greeting several times - bail out when the expected
+//broadcast the roll call greeting repeatedly - bail out when the expected
 //number of different UT boards have responded
-while(loopCount < 50 && responseCount < numberOfUTBoards){
+while(loopCount < 10000 && responseCount < numberOfUTBoards){
             
     try {socket.send(outPacket);} catch(IOException e) {socket.close(); return;}
 
@@ -712,6 +712,23 @@ public void displayMessages()
 if (!logEnabled) return;
     
 }//end of Capulin1::displayMessages
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::updateRabbitCode
+//
+// Installs new firmware on the Rabbit micro-controllers.
+//
+
+@Override
+public void updateRabbitCode()
+{
+
+for (int j = 0; j < numberOfUTBoards; j++)
+    if (utBoards[j] != null) utBoards[j].installNewRabbitFirmware();
+
+
+}//end of Hardware::updateRabbitCode
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1605,7 +1622,7 @@ try {Thread.sleep(pTime);} catch (InterruptedException e) { }
 void sendRunTriggers(DatagramSocket pSocket, DatagramPacket pOutPacket)
 {
 
-//send any command to skip past the UDP FPGA loading
+//send NO_ACTION to skip past the UDP FPGA loading
     
 sendByteUDP(pSocket, pOutPacket, UTBoard.NO_ACTION);
 

@@ -1154,6 +1154,12 @@ if ("Repair Job".equals(e.getActionCommand())) {
     return;
     }
 
+//this part handles updating the Rabbit code
+if ("Update Rabbit Code".equals(e.getActionCommand())) {
+    hardware.updateRabbitCode();
+    return;
+    }
+
 //this part handles setting up the system
 if ("Setup System".equals(e.getActionCommand())) {setupSystem(); return;}
 

@@ -580,6 +580,19 @@ public void displayMessages()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// AnalogPCIDAS6023::updateRabbitCode
+//
+// Installs new firmware on the Rabbit micro-controllers.
+//
+
+@Override
+public void updateRabbitCode()
+{
+
+}//end of AnalogPCIDAS6023::updateRabbitCode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // AnalogPCIDAS6023:readRAM
 //
   

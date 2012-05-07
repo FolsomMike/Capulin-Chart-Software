@@ -90,6 +90,8 @@ boolean prepareControlData();
 
 public void displayMessages();
 
+public void updateRabbitCode();
+
 public void doTasks();
 
 public void readRAM(int pChassis, int pSlot, int pDSPChip, int pDSPCore,

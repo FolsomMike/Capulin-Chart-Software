@@ -1498,6 +1498,22 @@ analogDriver.displayMessages();
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Hardware::updateRabbitCode
+//
+// Installs new firmware on the Rabbit micro-controllers.
+//
+
+public void updateRabbitCode()
+{
+
+analogDriver.updateRabbitCode();
+
+//wip mks -- add call to update ControlBoard Rabbit code
+
+}//end of Hardware::updateRabbitCode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Hardware::threadSafeLog
 //
 // This function allows a thread to add a log entry to the log window.  The
@@ -1660,7 +1676,7 @@ analogDriver.verifyAllDSPCode2();
 
 collectDataEnabled = true;
 
-}//end of Capulin1::verifyAllDSPCode2
+}//end of Hardware::verifyAllDSPCode2
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

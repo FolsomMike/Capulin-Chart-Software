@@ -74,6 +74,7 @@ JCheckBoxMenuItem restartNewPieceAtLeftEdgeMenuCheck;
 //JRadioButtonMenuItem englishRadioButton, chineseRadioButton, spanishRadioButton;
 JMenu helpMenu;
 JMenuItem aboutMenuItem, monitorMenuItem, debuggerMenuItem, repairJobMenuItem;
+JMenuItem updateRabbitCodeMenuItem;
 JMenuItem setupSystemMenuItem;
 JMenuItem renewalMenuItem, logMenuItem, configInfoItem, statusMenuItem;
 
@@ -418,6 +419,15 @@ repairJobMenuItem.setToolTipText("Repair Job Files");
 repairJobMenuItem.setActionCommand("Repair Job");
 repairJobMenuItem.addActionListener(globals);
 helpMenu.add(repairJobMenuItem);
+
+//option to install new Rabbit firmware
+updateRabbitCodeMenuItem = new JMenuItem("Update Rabbit Code");
+updateRabbitCodeMenuItem.setMnemonic(KeyEvent.VK_U);
+updateRabbitCodeMenuItem.setToolTipText(""
+                    + "Installs new software in the Rabbit micro-controllers");
+updateRabbitCodeMenuItem.setActionCommand("Update Rabbit Code");
+updateRabbitCodeMenuItem.addActionListener(globals);
+helpMenu.add(updateRabbitCodeMenuItem);
 
 //option to setup the system
 setupSystemMenuItem = new JMenuItem("Setup System");
