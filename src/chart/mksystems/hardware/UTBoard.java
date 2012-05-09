@@ -4313,8 +4313,12 @@ try {
 
         }// while(timeOutGet <...
 
+    if (fileDone)
+        threadSafeLog(
+           "UT " + ipAddrS + " firmware installed." + "\n");
+    else
     //remote has not responded if this part reached
-    threadSafeLog(
+        threadSafeLog(
            "UT " + ipAddrS + " error loading firmware - contact lost." + "\n");
 
     }//try
