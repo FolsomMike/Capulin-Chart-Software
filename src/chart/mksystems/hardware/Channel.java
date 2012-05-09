@@ -64,9 +64,10 @@ public int numberOfDACGates;
 int scopeMax = 350;
 
 //used by the calibration window to store reference to the channel selectors
-public Object calRadioButton;
+//and their accompanying copy buttons
+public Object calRadioButton, copyButton;
 
-public String title, shortTitle, type;
+public String title, shortTitle, detail, type;
 
 boolean channelOn;  //true: pulsed/displayed, off: not pulsed/displayed
 boolean channelMasked; //true: pulsed/not display, off: pulsed/displayed
@@ -1811,6 +1812,8 @@ title =
 
 shortTitle = pConfigFile.readString(
                         whichChannel, "Short Title", "Ch " + (channelIndex+1));
+
+detail = pConfigFile.readString(whichChannel, "Detail", title);
 
 chassisAddr = pConfigFile.readInt(whichChannel, "Chassis", 1);
 

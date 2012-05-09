@@ -520,7 +520,7 @@ String section = "Chart Group " + (chartGroup + 1)
 title = pConfigFile.readString(section, "Title", "Chart " + (chartIndex+1));
 
 shortTitle = pConfigFile.readString(
-                           section, "Short Title", "Cht " + (chartIndex+1));
+                           section, "Short Title", "Ch " + (chartIndex+1));
 
 borderColor = new Color(238,238,238);
 
@@ -1226,8 +1226,16 @@ String section = "Chart Group " + (chartGroup + 1)
 // job file is loaded - the user can modify the title inside the program so it
 // is saved with the job file info
 
-setTitle(pCalFile.readString(section, "Title", "*"));
-setShortTitle(pCalFile.readString(section, "Short Title", "*"));
+//only override the titles if the cal file strings are not empty and are not
+//the default asterisk -- this allows the titles from the config file to be
+//displayed if the user has not explictly set the titles
+
+String s;
+s = pCalFile.readString(section, "Title", "*");
+if (!s.equalsIgnoreCase("*")) setTitle(s);
+s = pCalFile.readString(section, "Short Title", "*");
+if (!s.equalsIgnoreCase("*")) setShortTitle(s);
+
 setChartVisible(pCalFile.readBoolean(section, "Chart is Visible", true));
 
 // call each threshold to load its data

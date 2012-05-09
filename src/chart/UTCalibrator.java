@@ -41,7 +41,7 @@ public class UTCalibrator extends JDialog implements ActionListener,
          WindowListener, MouseListener, MouseMotionListener, ComponentListener{
 
 public Oscilloscope scope1;
-JPanel channelSelector;
+JPanel channelSelector, copyPanel;
 JButton minMax, viewIP;
 Globals globals;
 
@@ -54,6 +54,8 @@ public Channel[] channels; //channels in the current group (chart)
 public Channel[] allChannels; //all channels in the system
 Gate gate;
 UTControls utControls;
+JButton copyButton, copyToAllButton;
+Component rigidArea1;
 
 double previousDelay;
 
@@ -276,14 +278,26 @@ if (channelSelectorGroup != null)
 //function has been called before
 channelSelectorGroup = new ButtonGroup();
 
+JPanel allSelectors, panel;
 JRadioButton rb;
+
+//put all channel selectors in a parent panel so they can be aligned
+allSelectors = new JPanel();
+allSelectors.setLayout(new BoxLayout(allSelectors, BoxLayout.Y_AXIS));
+allSelectors.setAlignmentX(Component.LEFT_ALIGNMENT);
+channelSelector.add(allSelectors); //add the sub-panel to the parent
 
 for (int i=0; i < numberOfChannels; i++){
 
+    //create a panel to hold each radio button with its accompanying copy button
+    panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    
     rb = new JRadioButton(channels[i].shortTitle);
 
-    channels[i].calRadioButton = rb; //store a reference to the button
-
+    channels[i].calRadioButton = rb; //store a reference to the radio button
+    
     //if the channel is off, display in red and change tool tip
     setChannelSelectorColor(channels[i]);
 
@@ -295,20 +309,71 @@ for (int i=0; i < numberOfChannels; i++){
     if (i == currentChannelIndex) rb.setSelected(true);
 
     channelSelectorGroup.add(rb); //group the radio buttons
+    
+    panel.add(rb); //add the radio button to the sub-panel
+    
+    //add the copy button to the sub-panel so it displays to the right
+    JButton b = new JButton("<");
+    //set the buttons name to the index number of its owner channel so when the
+    //button is clicked the associated channel can be discerned
+    b.setName(Integer.toString(i));
+    //get rid of the blank space around the text so button can be smaller
+    b.setMargin(new Insets(0, 0, 0, 0));
+    setSizes(b, 15, 18); //make button small
+    b.addActionListener(this);
+    b.setActionCommand("Copy to This Channel");
+    b.setToolTipText("Copy settings to this channel.");
+    b.setVisible(false);
+    channels[i].copyButton = b; //store a reference to the copy button
+    panel.add(b);
 
-    channelSelector.add(rb); //add the button to the panel
+    allSelectors.add(panel); //add the sub-panel to the parent
 
     }
 
-
 channelSelector.add(Box.createRigidArea(new Dimension(0,15))); //vertical spacer
 
+//create a panel to hold the "Copy" and "Cancel" buttons so that they can
+//be centered
+copyPanel = new JPanel();
+copyPanel.setLayout(new BoxLayout(copyPanel, BoxLayout.Y_AXIS));
+copyPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+//add a button for copying the selected channel settings to other channel(s)
+copyButton = new JButton("Copy");
+copyButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+copyButton.addActionListener(this);
+copyButton.setActionCommand("Copy");
+copyButton.setToolTipText(
+                "Copy settings for selected channel to other channel(s).");
+copyPanel.add(copyButton);
+
+//create a vertical spacer between the "Cancel Copy" and "Copy to All" buttons
+//to help prevent accidental clicking of the latter -- make the spacer invisible
+//(it's not really visible anyway) so that it doesn't create a space until the
+//"Copy" button is clicked
+rigidArea1 = Box.createRigidArea(new Dimension(0,30));
+rigidArea1.setVisible(false);
+copyPanel.add(rigidArea1);
+                
 //add a button for copying the selected channel settings to all channels
-JButton b = new JButton("Copy to All");
-b.addActionListener(this);
-b.setActionCommand("Copy to All");
-b.setToolTipText("Copy settings for selected channel to all other channels.");
-channelSelector.add(b);
+//this button is hidden until the "Copy" button is clicked
+copyToAllButton = new JButton("Copy to All");
+copyToAllButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+copyToAllButton.setVisible(false);
+copyToAllButton.addActionListener(this);
+copyToAllButton.setActionCommand("Copy to All");
+copyToAllButton.setToolTipText(
+                "Copy settings for selected channel to all other channels.");
+copyPanel.add(copyToAllButton);
+
+//set the panel's max size to unlimited so it will fill the width of its
+//parent panel, setting max height to it's preferred height keeps it from
+//growing vertically -- no way to only set max width only
+copyPanel.setMaximumSize(new Dimension(Short.MAX_VALUE, 
+        copyPanel.getPreferredSize().height));
+
+channelSelector.add(copyPanel);
 
 }//end of UTCalibrator::setupChannelSelectorPanel
 //-----------------------------------------------------------------------------
@@ -334,10 +399,32 @@ if (pChannel.getMode() == 4){
     }
 else{
     ((JRadioButton)pChannel.calRadioButton).setFont(blackFont);
-    ((JRadioButton)pChannel.calRadioButton).setToolTipText(pChannel.title);
+    ((JRadioButton)pChannel.calRadioButton).setToolTipText(pChannel.detail);
     }
 
 }//end of UTCalibrator::setChannelSelectorColor
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTCalibrator::setCopyToChannelButtonsVisibity
+//
+// Sets the visibility of all the "Copy to This Channel" buttons (which
+// actually have "<" as the text).  
+//
+// The button for the currently selected channel is also set visible because
+// the user can change the selection at any time when copy mode is active.
+//
+
+public void setCopyToChannelButtonsVisibity(boolean pVisible)
+{
+
+for (int ch = 0; ch < numberOfChannels; ch++){
+
+    ((JButton)channels[ch].copyButton).setVisible(pVisible);
+    
+}//for (int ch = 0; ch < numberOfChannels; ch++)
+
+}//end of UTCalibrator::setCopyToChannelButtonsVisibity
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -384,6 +471,89 @@ copyToAllHelper(channels[currentChannelIndex], allChannels,
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// UTCalibrator::copyChannel
+//
+// Copies the info from channel in pSource to the channel in pDestination.
+//
+// WARNING:  The source and destination channels must have the same number and
+// types of gates.
+//
+
+public void copyChannel(Channel pSource, Channel pDestination)
+{
+
+int numberOfGates, numberOfDACGates;
+
+//get the number of gates for the channel - note that all channels in the
+//destination group should have the same number of channels for this to work
+//properly
+
+numberOfGates = pSource.getNumberOfGates();
+numberOfDACGates = pSource.getNumberOfDACGates();
+
+// each call to set a value will set the trigger flag for the sending thread
+// to send the value next time it runs -- if it runs between setting of two
+// values tied to the same flag, a duplicate call might be made but causes no
+// harm
+// all setting / sending functions are synchronized so the value setting and
+// flag setting/clearing by different threads is protected against collision
+
+
+//copy the gate info for all gates of the channels
+for (int g = 0; g < numberOfGates; g++){
+
+    pDestination.setGateStart(g, pSource.getGateStart(g), false);
+    pDestination.setGateStartTrackingOn(
+                                g, pSource.getGateStartTrackingOn(g));
+    pDestination.setGateStartTrackingOff(
+                                g, pSource.getGateStartTrackingOff(g));
+    pDestination.setGateWidth(g, pSource.getGateWidth(g), false);
+    pDestination.setGateLevel(g, pSource.getGateLevel(g), false);
+    pDestination.setGateHitCount(g, pSource.getGateHitCount(g), false);
+    pDestination.setGateMissCount(g, pSource.getGateMissCount(g),
+                                                                     false);
+    }
+
+//copy the DAC gate info
+for (int dg = 0; dg < numberOfDACGates; dg++){
+    pDestination.copyGate(dg, pSource.dacGates[dg]);
+    }
+
+//copy the non-gate info for the channels
+
+//always set range after setting gate position or width, delay and interface
+//tracking as these affect the range
+
+//set the pForceUpdate flags false so that the values are only sent to the
+//DSPs if they have changed
+
+//wip mks -- need to convert into synced functions
+
+pDestination.setSoftwareGain(pSource.getSoftwareGain(), false);
+pDestination.setDelay(pSource.getDelay(), false);
+pDestination.setInterfaceTracking(pSource.getInterfaceTracking(),
+                                                                    false);
+pDestination.setRange(pSource.getRange(), false);
+pDestination.setMode(pSource.getMode(), false);
+pDestination.setHardwareGain(pSource.getHardwareGain1(),
+                                        pSource.getHardwareGain2(), false);
+pDestination.setRejectLevel(pSource.getRejectLevel(), false);
+pDestination.setAScanSmoothing(pSource.getAScanSmoothing(), false);
+pDestination.setDCOffset(pSource.getDCOffset(), false);
+
+pDestination.setDACEnabled(pSource.getDACEnabled(), false);
+
+//updates the channel number color to match the channel's on/off state
+//if all system channels are being copied, not all of those channels will
+//be in the group currently being displayed by the Calibrator window, those
+//not in the group will not have a radio button to set so skip them
+if (pDestination.calRadioButton != null)
+    setChannelSelectorColor(pDestination);
+    
+}//end of UTCalibrator::copyChannel
+//-----------------------------------------------------------------------------
+    
+//-----------------------------------------------------------------------------
 // UTCalibrator::copyToAllHelper
 //
 // Copies the info from channel in pSource to all the channels in
@@ -397,77 +567,13 @@ public void copyToAllHelper(Channel pSource, Channel[] pDestChannels,
                                                           int pNumDestChannels)
 {
 
-int numberOfGates, numberOfDACGates;
-
-//get the number of gates for the channel - note that all channels in the
-//destination group should have the same number of channels for this to work
-//properly
-
-numberOfGates = pSource.getNumberOfGates();
-numberOfDACGates = pSource.getNumberOfDACGates();
-
 //scan through all channels and copy info from currently selected channel
-
-// each call to set a value will set the trigger flag for the sending thread
-// to send the value next time it runs -- if it runs between setting of two
-// values tied to the same flag, a duplicate call might be made but causes no
-// harm
-// all setting / sending functions are synchronized so the value setting and
-// flag setting/clearing by different threads is protected against collision
+//to all other channels
 
 for (int ch = 0; ch < pNumDestChannels; ch++){
 
-    //copy the gate info for all gates of the channels
-    for (int g = 0; g < numberOfGates; g++){
-
-        pDestChannels[ch].setGateStart(g, pSource.getGateStart(g), false);
-        pDestChannels[ch].setGateStartTrackingOn(
-                                    g, pSource.getGateStartTrackingOn(g));
-        pDestChannels[ch].setGateStartTrackingOff(
-                                    g, pSource.getGateStartTrackingOff(g));
-        pDestChannels[ch].setGateWidth(g, pSource.getGateWidth(g), false);
-        pDestChannels[ch].setGateLevel(g, pSource.getGateLevel(g), false);
-        pDestChannels[ch].setGateHitCount(g, pSource.getGateHitCount(g), false);
-        pDestChannels[ch].setGateMissCount(g, pSource.getGateMissCount(g),
-                                                                         false);
-        }
-
-    //copy the DAC gate info
-    for (int dg = 0; dg < numberOfDACGates; dg++){
-        pDestChannels[ch].copyGate(dg, pSource.dacGates[dg]);
-        }
-
-    //copy the non-gate info for the channels
-
-    //always set range after setting gate position or width, delay and interface
-    //tracking as these affect the range
-
-    //set the pForceUpdate flags false so that the values are only sent to the
-    //DSPs if they have changed
-
-    //wip mks -- need to convert into synced functions
-
-    pDestChannels[ch].setSoftwareGain(pSource.getSoftwareGain(), false);
-    pDestChannels[ch].setDelay(pSource.getDelay(), false);
-    pDestChannels[ch].setInterfaceTracking(pSource.getInterfaceTracking(),
-                                                                        false);
-    pDestChannels[ch].setRange(pSource.getRange(), false);
-    pDestChannels[ch].setMode(pSource.getMode(), false);
-    pDestChannels[ch].setHardwareGain(pSource.getHardwareGain1(),
-                                            pSource.getHardwareGain2(), false);
-    pDestChannels[ch].setRejectLevel(pSource.getRejectLevel(), false);
-    pDestChannels[ch].setAScanSmoothing(pSource.getAScanSmoothing(), false);
-    pDestChannels[ch].setDCOffset(pSource.getDCOffset(), false);
-
-    pDestChannels[ch].setDACEnabled(pSource.getDACEnabled(), false);
-
-    //updates the channel number color to match the channel's on/off state
-    //if all system channels are being copied, not all of those channels will
-    //be in the group currently being displayed by the Calibrator window, those
-    //not in the group will not have a radio button to set so skip them
-    if (pDestChannels[ch].calRadioButton != null)
-        setChannelSelectorColor(pDestChannels[ch]);
-
+    copyChannel(pSource, pDestChannels[ch]);
+    
     }// for (int ch = 0; ch < pNumDestChannels; ch++)
 
 }//end of UTCalibrator::copyToAllHelper
@@ -595,6 +701,56 @@ utControls.updateAllSettings(false);
 public void actionPerformed(ActionEvent e)
 { 
 
+//trap "Copy" button
+if (e.getActionCommand().equals("Copy")){
+    //display "<" buttons next to each channel so selected channel can be
+    //copied to any channel for which the button is clicked
+    setCopyToChannelButtonsVisibity(true);
+    //display the vertical spacer between the "Copy Cancel" and "Copy to All"
+    rigidArea1.setVisible(true);
+    //display the "Copy to All" button so it can be clicked
+    copyToAllButton.setVisible(true);
+    //"Copy" button becomes "Cancel Copy" button
+    copyButton.setText("Cancel Copy");
+    copyButton.setActionCommand("Cancel Copy");
+    copyButton.setToolTipText("Cancel copy mode.");
+    //set new max height to account for the now visible button and spacer
+    copyPanel.setMaximumSize(new Dimension(Short.MAX_VALUE, 
+        copyPanel.getPreferredSize().height));
+    pack(); //resize the window
+    return;
+    }
+    
+//trap "Cancel" (cancel copy) button
+if (e.getActionCommand().equals("Cancel Copy")){
+    setCopyToChannelButtonsVisibity(false);
+    //hide the vertical spacer between the "Copy Cancel" and "Copy to All"
+    rigidArea1.setVisible(false);
+    copyToAllButton.setVisible(false);
+    //"Cancel" button becomes "Copy" button
+    copyButton.setText("Copy");    
+    copyButton.setActionCommand("Copy");
+    copyButton.setToolTipText(
+                    "Copy settings for selected channel to other channel(s).");
+    //set new max height to account for the now hidden button and spacer
+    copyPanel.setMaximumSize(new Dimension(Short.MAX_VALUE, 
+        copyPanel.getPreferredSize().height));    
+    pack(); //resize the window
+    return;
+    }
+
+//trap "Copy to This Channel" buttons
+if (e.getActionCommand().equals("Copy to This Channel")){
+
+    //each button has the index number of the channel to which it is associated
+    //stored in its name -- copy from the currently selected (by radio button)
+    //channel to the channel for which the "<" button was clicked
+    copyChannel(channels[currentChannelIndex], 
+            channels[Integer.valueOf(((Component)e.getSource()).getName())]);
+  
+    return;
+    }
+
 //trap "Copy to All" button
 if (e.getActionCommand().equals("Copy to All")){
 
@@ -605,7 +761,7 @@ if (e.getActionCommand().equals("Copy to All")){
     return;
     }
 
-//trap "All" radio button
+//trap "All" radio button -- does this exist????
 if (e.getActionCommand().equals("All")){
     return;
     }
@@ -837,6 +993,22 @@ public void mouseDragged(MouseEvent e)
 utControls.mouseDraggedOnScope(e);
 
 }//end of UTCalibrator::mouseDragged
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTCalibrator::setSizes
+//
+// Sets the min, max, and preferred sizes of pComponent to pWidth and pHeight.
+//
+
+public void setSizes(Component pComponent, int pWidth, int pHeight)
+{
+
+pComponent.setMinimumSize(new Dimension(pWidth, pHeight));
+pComponent.setPreferredSize(new Dimension(pWidth, pHeight));
+pComponent.setMaximumSize(new Dimension(pWidth, pHeight));
+        
+}//end of UTCalibrator::setSizes
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
