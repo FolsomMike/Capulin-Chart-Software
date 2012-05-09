@@ -9,6 +9,7 @@ archive/
 build/
 dist/
 DSP/
+Rabbit/
 
 # ignore any jar file which might be in the executable directory
 *.jar
