@@ -86,8 +86,8 @@ RemoteParam hardwareGain1, hardwareGain2;
 int rejectLevel;
 int aScanSmoothing;
 int dcOffset;
-double nSPerDataPoint;
-double uSPerDataPoint;
+public double nSPerDataPoint;
+public double uSPerDataPoint;
 public double nSPerPixel; //used by outside classes
 public double uSPerPixel; //used by outside classes
 
@@ -1178,6 +1178,9 @@ else{
 // data is software delay.  The AScan delay equals hardware delay plus
 // software delay.
 //
+// The hardwareDelay and softwareDelay values represent one sample period for
+// each count.  For a 66.666 MHz sample rate, this equates to 15nS per count.
+//
 // NOTE: This function must be called anytime a gate's position is changed so
 // that the sampling start can be adjusted to include the entire gate.
 //
@@ -1235,6 +1238,71 @@ public double getDelay()
 return aScanDelay;
 
 }//end of Channel::getDelay
+//-----------------------------------------------------------------------------
+
+
+//-----------------------------------------------------------------------------
+// Channel::getDelayInSamplePeriods
+//
+// Returns the delay time between the initial pulse and when the left edge
+// of the AScan should start.  This is essentially the same value as aScanDelay,
+// but that value is in uSec whereas the value returned by this function is the
+// actual number number of samples which were skipped, each sample representing
+// 15nS if using a 66.6666MHz sample clock.
+//
+// This value may be a bit more accurate than converting aScanDelay to sample
+// periods.
+//
+// The returned value represents one sample period for each count.  For a 
+// 66.666 MHz sample rate, this equates to 15nS per count.
+//
+// The value is obtained by summing hardwareDelay and softwareDelay.  The
+// hardwareDelay is the value fed into the FPGA to set the number of samples
+// it ignores before it starts recording.  This sample start point begins at
+// the left edge of the aScan OR EARLIER if a gate is set before the aScan
+// starts (sampling must occur at the start of the earliest gate in order for
+// the gate to be useful).  The software delay is used to delay the sample
+// window used for displaying the aScan after the start of sampling.
+//
+// If the location of a gate or signal is known by the number of sample periods
+// after the initial pulse, it can be positioned properly on the aScan display
+// by subtracting the value returned returned by this function and scaling
+// from sample periods to pixels.
+// 
+// More often, the location is known from the start of the DSP sample buffer.
+// In this case, only subtract the softwareDelay from the location -- use
+// getSoftwareDelay instead fo this function.
+//
+// Example:
+//
+// int peakPixelLoc = 
+//        (int) ((flightTime * pChannel.nSPerDataPoint) / pChannel.nSPerPixel);
+//
+
+public int getDelayInSamplePeriods()
+{
+
+return hardwareDelay + softwareDelay;
+
+}//end of Channel::getDelayInSamplePeriods
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::getSoftwareDelay
+//
+// Returns the delay time between the initial pulse and the start of the DSP
+// sample buffer.  Each count represents one sample (or 15nS) if using a
+// 66.6666MHz sample clock.
+//
+// See notes for getDelayInSamplePeriods for more info.
+//
+
+public int getSoftwareDelay()
+{
+
+return softwareDelay;
+
+}//end of Channel::getSoftwareDelay
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

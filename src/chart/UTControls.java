@@ -1643,6 +1643,9 @@ currentChannel.uSPerPixel =
 //prevent divide by zero errors
 if (currentChannel.uSPerPixel <= 0) currentChannel.uSPerPixel = .1;
 
+//also calculate nS per pixel
+currentChannel.nSPerPixel = currentChannel.uSPerPixel * 1000;
+
 currentChannel.delayPix = 
                 (int)(currentChannel.getDelay() / currentChannel.uSPerPixel);
 

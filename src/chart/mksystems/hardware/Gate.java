@@ -23,6 +23,7 @@ import java.util.*;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.stripchart.Threshold;
 import chart.mksystems.stripchart.Trace;
+import chart.Xfer;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -101,6 +102,7 @@ int peakTrack; //encoder tracking information
 //need to add a min peak capture as well -- especially for RF?
 
 public int aScanPeak = Integer.MIN_VALUE, aScanPeakD = Integer.MIN_VALUE;
+public int aScanPeakFlightTime;
 
 public Vector<String> flawGateProcessList, iFaceProcessList;
 public Vector<String> wallGateProcessList;
@@ -230,13 +232,17 @@ newDataReady = true;
 // Gate::storeNewAScanPeak
 //
 // If pPeak is higher than the peak value already stored, pPeak will replace
-// that value in aScanPeak.
+// that value in aScanPeak and the flight time (time after the initial pulse
+// at which the peak was detected) will be stored.
 //
 
-public void storeNewAScanPeak(int pPeak)
+public void storeNewAScanPeak(int pPeak, int pAScanPeakFlightTime)
 {
 
-if (pPeak > aScanPeak) aScanPeak = pPeak;
+if (pPeak > aScanPeak){
+    aScanPeak = pPeak;
+    aScanPeakFlightTime = pAScanPeakFlightTime;
+}
 
 }//end of Gate::storeNewAScanPeak
 //-----------------------------------------------------------------------------
@@ -245,17 +251,20 @@ if (pPeak > aScanPeak) aScanPeak = pPeak;
 // Gate::getAndClearAScanPeak()
 //
 // Returns aScanPeak and resets it to its minimum so the next peak can be
-// captured.
+// captured.  The peak's flight time (time after the initial pulse
+// at which the peak was detected) is also returned.
+//
+// The values are returned in the pAScanPeakInfo object.
 //
 
-public int getAndClearAScanPeak()
+public void getAndClearAScanPeak(Xfer pAScanPeakInfo)
 {
 
-int p = aScanPeak;
+pAScanPeakInfo.rInt1 = aScanPeak;
+
+pAScanPeakInfo.rInt2 = aScanPeakFlightTime;
 
 aScanPeak = Integer.MIN_VALUE;
-
-return(p);
 
 }//end of Gate::getAndClearAScanPeak
 //-----------------------------------------------------------------------------

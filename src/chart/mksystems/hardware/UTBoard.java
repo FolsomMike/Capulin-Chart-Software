@@ -3932,15 +3932,25 @@ for (int h=0; h < pNumberOfChannels; h++){
         if (bdChs[channel].gates[i].gateHitCount > 0 && !hitCountMet)
                                                                     peak %= 10;
 
-        bdChs[channel].gates[i].storeNewAScanPeak((int)(peak * ASCAN_SCALE));
-
-        peak *= SIGNAL_SCALE; //scale signal up or down
-
         peakFlightTime =
             (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
+        //the flight time value is the memory address of the peak in the DSP
+        //the data buffer starts at 0x8000 in memory, so subtracting 0x8000
+        //from the flight time value gives the time position in relation to the
+        //time the FPGA began recording data after the hardware delay
+        //NOTE: the FPGA should really subtract the 0x8000 instead of doing
+        //it here!
+                
+        peakFlightTime -= 0x8000;
+
         peakTrack =
             (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
+
+        bdChs[channel].gates[i].storeNewAScanPeak((int)(peak * ASCAN_SCALE),
+                                                                peakFlightTime);
+
+        peak *= SIGNAL_SCALE; //scale signal up or down
 
         bdChs[channel].gates[i].storeNewData(peak, 0, 0, 0,
                 peakFlags, peakFlightTime, peakTrack, pEncoder1, pEncoder2);

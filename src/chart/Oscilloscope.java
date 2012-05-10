@@ -46,6 +46,7 @@ double uSPerDataPoint;
 boolean dacEnabled = false;
 boolean dacLocked = true;
 int maxY;
+Xfer aScanPeakInfo;
 
 int vertOffset = 0; //vertical offset for the trace and gates
 
@@ -63,6 +64,8 @@ public OscopeCanvas(double pUSPerDataPoint, MouseListener pMouseListener,
 uSPerDataPoint = pUSPerDataPoint;
 
 maxY = 350;
+
+aScanPeakInfo = new Xfer();
 
 //we will handle drawing the background    
 setOpaque(false);
@@ -295,12 +298,12 @@ public void drawGates(Channel pChannel, Graphics2D pG2,
                                                 int pInterfaceCrossingPosition)
 {
 
-pG2.setColor(Color.RED);
-
-// draw each gate for the channel
+// draw each gate and peak indicator for the channel
 
 for (int i = 0; i < pChannel.numberOfGates; i++){
 
+    //draw each gate
+    pG2.setColor(Color.RED);
     pG2.drawLine(
             pChannel.gates[i].gatePixStartAdjusted,
             pChannel.gates[i].gatePixLevel,
@@ -312,20 +315,47 @@ for (int i = 0; i < pChannel.numberOfGates; i++){
     //the last draw
     if (true){
 
-        //invert level so 0,0 is at bottom left
-        int peak = pChannel.gates[i].getAndClearAScanPeak();
+        
+        pChannel.gates[i].getAndClearAScanPeak(aScanPeakInfo);
 
+        int peak = aScanPeakInfo.rInt1;
+        int flightTime = aScanPeakInfo.rInt2;
+       
+        //invert level so 0,0 is at bottom left
+        
         if (peak < 0) peak = 0; if (peak > maxY) peak = maxY;
         peak = maxY - peak;
 
+        /* not used now that we are drawing the peak in black at the
+         * actual location -- remove permanently or make a config file
+         * control for this?
+         
+        
+        //draw a peak meter bar in the center of the gate
         pG2.drawLine(
                 pChannel.gates[i].gatePixMidPointAdjusted,
                 maxY,
                 pChannel.gates[i].gatePixMidPointAdjusted,
                 peak
                 );
-        }
+         *  
+         */
         
+        //draw a pseudo signal peak where it would have been displayed had
+        //it been caught in the aScan sample set -- draw a triangle to mimic
+        //an actual peak (somewhat)
+        
+        flightTime -= pChannel.getSoftwareDelay();
+        int peakPixelLoc = 
+           (int) ((flightTime * pChannel.nSPerDataPoint) / pChannel.nSPerPixel);
+        
+        pG2.setColor(Color.BLACK);
+        pG2.drawLine(peakPixelLoc - 5, maxY, peakPixelLoc, peak);                
+        
+        pG2.drawLine(peakPixelLoc + 5, maxY, peakPixelLoc, peak);                
+
+        }//if (true)
+    
     }// for (int i = 0; i < pChannel.numberOfGates; i++)
 
 //if interface tracking is on, mark the point where the interface has
