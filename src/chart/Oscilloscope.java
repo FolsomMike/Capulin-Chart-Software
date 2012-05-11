@@ -26,6 +26,7 @@ import java.awt.image.BufferedImage;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
+import chart.mksystems.globals.Globals;
 import chart.mksystems.hardware.Channel;
 
 //-----------------------------------------------------------------------------
@@ -40,6 +41,7 @@ import chart.mksystems.hardware.Channel;
 
 class OscopeCanvas extends JPanel {
 
+Globals globals;
 public BufferedImage imageBuffer;
 Channel channel;
 double uSPerDataPoint;
@@ -58,10 +60,10 @@ int vertOffset = 0; //vertical offset for the trace and gates
 //
 
 public OscopeCanvas(double pUSPerDataPoint, MouseListener pMouseListener,
-                                       MouseMotionListener pMouseMotionListener)
+                     MouseMotionListener pMouseMotionListener, Globals pGlobals)
 {
-
-uSPerDataPoint = pUSPerDataPoint;
+    
+uSPerDataPoint = pUSPerDataPoint; globals = pGlobals;
 
 maxY = 350;
 
@@ -311,52 +313,54 @@ for (int i = 0; i < pChannel.numberOfGates; i++){
             pChannel.gates[i].gatePixLevel
             );
 
-    //if peak capture display is on, draw the peak recorded for that gate since
-    //the last draw
-    if (true){
+//if peak capture display is on, draw the peak recorded for that gate since
+//the last draw
 
         
-        pChannel.gates[i].getAndClearAScanPeak(aScanPeakInfo);
+    pChannel.gates[i].getAndClearAScanPeak(aScanPeakInfo);
 
-        int peak = aScanPeakInfo.rInt1;
-        int flightTime = aScanPeakInfo.rInt2;
-       
-        //invert level so 0,0 is at bottom left
-        
-        if (peak < 0) peak = 0; if (peak > maxY) peak = maxY;
-        peak = maxY - peak;
+    int peak = aScanPeakInfo.rInt1;
+    int flightTime = aScanPeakInfo.rInt2;
 
-        /* not used now that we are drawing the peak in black at the
-         * actual location -- remove permanently or make a config file
-         * control for this?
-         
-        
-        //draw a peak meter bar in the center of the gate
+    //invert level so 0,0 is at bottom left
+
+    if (peak < 0) peak = 0; if (peak > maxY) peak = maxY;
+    peak = maxY - peak;
+    
+    flightTime -= pChannel.getSoftwareDelay();
+    int peakPixelLoc = 
+        (int) ((flightTime * pChannel.nSPerDataPoint) / pChannel.nSPerPixel);
+
+    //display a red line in the center of the gate which shows the height of
+    //the peak
+    
+    if(globals.showRedPeakLineInGateCenter){
+        pG2.setColor(Color.RED);
         pG2.drawLine(
-                pChannel.gates[i].gatePixMidPointAdjusted,
-                maxY,
-                pChannel.gates[i].gatePixMidPointAdjusted,
-                peak
+                pChannel.gates[i].gatePixMidPointAdjusted, maxY,
+                pChannel.gates[i].gatePixMidPointAdjusted, peak
                 );
-         *  
-         */
+    }
+
+    //display a red line at the peak's location in the gate which shows the
+    //height of the peak
+    
+    if(globals.showRedPeakLineAtPeakLocation){
+        pG2.setColor(Color.RED);
+        pG2.drawLine(peakPixelLoc, maxY, peakPixelLoc, peak);                
+    }
         
-        //draw a pseudo signal peak where it would have been displayed had
-        //it been caught in the aScan sample set -- draw a triangle to mimic
-        //an actual peak (somewhat)
-        
-        flightTime -= pChannel.getSoftwareDelay();
-        int peakPixelLoc = 
-           (int) ((flightTime * pChannel.nSPerDataPoint) / pChannel.nSPerPixel);
-        
+    //draw a pseudo signal peak where it would have been displayed had
+    //it been caught in the aScan sample set -- draw a triangle to mimic
+    //an actual peak (somewhat)
+    
+    if(globals.showPseudoPeakAtPeakLocation){
         pG2.setColor(Color.BLACK);
         pG2.drawLine(peakPixelLoc - 5, maxY, peakPixelLoc, peak);                
-        
         pG2.drawLine(peakPixelLoc + 5, maxY, peakPixelLoc, peak);                
+    }
 
-        }//if (true)
-    
-    }// for (int i = 0; i < pChannel.numberOfGates; i++)
+}// for (int i = 0; i < pChannel.numberOfGates; i++)
 
 //if interface tracking is on, mark the point where the interface has
 //crossed the interface gate - the interface gate is always gate 0
@@ -472,6 +476,7 @@ public class Oscilloscope extends JPanel {
 
 Channel channel;
 OscopeCanvas canvas;
+Globals globals;
 
 //-----------------------------------------------------------------------------
 // Oscilloscope::Oscilloscope (constructor)
@@ -481,8 +486,11 @@ OscopeCanvas canvas;
 //
 
 public Oscilloscope(String pTitle, double pUSPerDataPoint,
-        MouseListener pMouseListener, MouseMotionListener pMouseMotionListener)
+        MouseListener pMouseListener, MouseMotionListener pMouseMotionListener,
+        Globals pGlobals)
 {
+    
+globals = pGlobals;    
     
 //set up the main panel - this panel does nothing more than provide a title
 //border and a spacing border
@@ -496,8 +504,8 @@ setBorder(BorderFactory.createTitledBorder(pTitle));
 //create a Canvas object to be placed on the main panel - the Canvas object
 //provides a panel and methods for drawing data - all the work is actually
 //done by the Canvas object
-canvas = new OscopeCanvas(
-                        pUSPerDataPoint, pMouseListener, pMouseMotionListener);
+canvas = new OscopeCanvas(pUSPerDataPoint, pMouseListener,
+                                                pMouseMotionListener, globals);
 
 add(canvas);
 

@@ -66,8 +66,11 @@ JMenuItem reportFinalMenuItem;
 JMenu viewMenu;
 JMenuItem viewSegmentMenuItem, viewIDInfoMenuItem;
 
-JMenu optionsMenu, chartMenu;
+JMenu optionsMenu, chartMenu, aScanMenu;
 JCheckBoxMenuItem restartNewPieceAtLeftEdgeMenuCheck;
+JCheckBoxMenuItem showRedPeakLineInGateCenter;
+JCheckBoxMenuItem showRedPeakLineAtPeakLocation;
+JCheckBoxMenuItem showPseudoPeakAtPeakLocation;
 
 //JMenuItem languageMenu;
 //ButtonGroup languageGroup;
@@ -356,9 +359,39 @@ optionsMenu.add(chartMenu);
 restartNewPieceAtLeftEdgeMenuCheck = new JCheckBoxMenuItem(
                             "Restart Each New Piece at Left Edge of Chart");
 restartNewPieceAtLeftEdgeMenuCheck.setToolTipText(
-                             "Restart Each New Piece at Left Edge of Chart.");
+                             "Restart each new piece at left edge of chart.");
 restartNewPieceAtLeftEdgeMenuCheck.addActionListener(globals);
 chartMenu.add(restartNewPieceAtLeftEdgeMenuCheck);
+
+//Options/A Scan menu
+aScanMenu = new JMenu("A Scan");
+aScanMenu.setMnemonic(KeyEvent.VK_A);
+aScanMenu.setToolTipText("A Scan Display Options");
+optionsMenu.add(aScanMenu);
+
+//Options/A Scan/Show Red Peak Line at Gate Center
+showRedPeakLineInGateCenter = new JCheckBoxMenuItem(
+                            "Show Red Peak Line at Gate Center");
+showRedPeakLineInGateCenter.setToolTipText(
+                             "Show red peak line at gate center.");
+showRedPeakLineInGateCenter.addActionListener(globals);
+aScanMenu.add(showRedPeakLineInGateCenter);
+
+//Options/A Scan/Show Red Peak Line at Peak Location
+showRedPeakLineAtPeakLocation = new JCheckBoxMenuItem(
+                            "Show Red Peak Line at Peak Location");
+showRedPeakLineAtPeakLocation.setToolTipText(
+                "Show red peak line at the location of the peak in the gate.");
+showRedPeakLineAtPeakLocation.addActionListener(globals);
+aScanMenu.add(showRedPeakLineAtPeakLocation);
+
+//Options/A Scan/Show Pseudo Peak at Peak Location
+showPseudoPeakAtPeakLocation = new JCheckBoxMenuItem(
+                            "Show Peak Symbol at Peak Location");
+showPseudoPeakAtPeakLocation.setToolTipText(
+"Show a symbol representing the peak at the location of the peak in the gate.");
+showPseudoPeakAtPeakLocation.addActionListener(globals);
+aScanMenu.add(showPseudoPeakAtPeakLocation);
 
 //Help menu
 helpMenu = new JMenu("Help");
@@ -463,7 +496,12 @@ public void refreshMenuSettings()
 {
 
 restartNewPieceAtLeftEdgeMenuCheck.setSelected(
-                                            globals.restartNewPieceAtLeftEdge);
+                                        globals.restartNewPieceAtLeftEdge);
+showRedPeakLineInGateCenter.setSelected(
+                                        globals.showRedPeakLineInGateCenter);
+showRedPeakLineAtPeakLocation.setSelected(
+                                        globals.showRedPeakLineAtPeakLocation);
+showPseudoPeakAtPeakLocation.setSelected(globals.showPseudoPeakAtPeakLocation);
 
 }//end of MainMenu::refreshMenuSettings
 //-----------------------------------------------------------------------------

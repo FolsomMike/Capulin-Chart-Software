@@ -131,6 +131,9 @@ public boolean simulateMechanical = false;
 public boolean timerDrivenTracking = false;
 
 public boolean restartNewPieceAtLeftEdge = true;
+public boolean showRedPeakLineInGateCenter = false;
+public boolean showRedPeakLineAtPeakLocation = false;
+public boolean showPseudoPeakAtPeakLocation = true;
 
 public int scanSpeed;
 
@@ -416,10 +419,32 @@ if (source.getActionCommand().startsWith("Display Configuration Info")){
 //sets a variable in Globals
 if (source.getActionCommand().equalsIgnoreCase(
                             "Restart Each New Piece at Left Edge of Chart")){
-
     restartNewPieceAtLeftEdge =
                             ((JCheckBoxMenuItem)(e.getSource())).isSelected();
+    return;
+    }
 
+//sets a variable in Globals
+if (source.getActionCommand().equalsIgnoreCase(
+                                        "Show Red Peak Line at Gate Center")){
+    showRedPeakLineInGateCenter =
+                            ((JCheckBoxMenuItem)(e.getSource())).isSelected();
+    return;
+    }
+
+//sets a variable in Globals
+if (source.getActionCommand().equalsIgnoreCase(
+                                        "Show Red Peak Line at Peak Location")){
+    showRedPeakLineAtPeakLocation =
+                            ((JCheckBoxMenuItem)(e.getSource())).isSelected();
+    return;
+    }
+
+//sets a variable in Globals
+if (source.getActionCommand().equalsIgnoreCase(
+                                        "Show Peak Symbol at Peak Location")){
+    showPseudoPeakAtPeakLocation =
+                            ((JCheckBoxMenuItem)(e.getSource())).isSelected();
     return;
     }
 

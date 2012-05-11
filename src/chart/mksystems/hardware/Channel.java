@@ -2993,7 +2993,8 @@ hardwareGain2.setInt(pCalFile.readInt(section, "Hardware Gain Stage 2", 1));
 interfaceTracking = pCalFile.readBoolean(section, "Interface Tracking", false);
 dacEnabled = pCalFile.readBoolean(section, "DAC Enabled", false);
 mode = pCalFile.readInt(section, "Signal Mode", 0);
-previousMode = pCalFile.readInt(section, "Previous Signal Mode", 0);
+//default previousMode to mode if previousMode has never been saved
+previousMode = pCalFile.readInt(section, "Previous Signal Mode", mode);
 channelOn = (mode != UTBoard.CHANNEL_OFF) ? true : false;
 rejectLevel = pCalFile.readInt(section, "Reject Level", 0);
 aScanSmoothing = pCalFile.readInt(section, "AScan Display Smoothing", 1);

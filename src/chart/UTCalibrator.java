@@ -109,7 +109,8 @@ scopeAndAlarms.setAlignmentX(Component.LEFT_ALIGNMENT);
 scopeAndAlarms.setLayout(new BoxLayout(scopeAndAlarms, BoxLayout.X_AXIS));
 
 //create the oscilloscope
-scope1 = new Oscilloscope("Scope", hardware.getUSPerDataPoint(), this, this);
+scope1 = new Oscilloscope("Scope", hardware.getUSPerDataPoint(), this, this,
+                                                                      globals);
 scope1.setAlignmentY(Component.TOP_ALIGNMENT);
 scopeAndAlarms.add(scope1);
 
@@ -624,8 +625,12 @@ for (int ch = 0; ch < numberOfChannels; ch++){
     }
 
     if(!pOn){
-        //store current mode
-        channels[ch].previousMode = channels[ch].getMode();
+        //store current mode, but only if it is not the "Off" mode or this will
+        //set the previous mode to "Off" also if the "All Off" button is hit
+        //twice and the real previous mode will be lost
+        if (channels[ch].getMode() != UTBoard.CHANNEL_OFF)
+            channels[ch].previousMode = channels[ch].getMode();
+        //turn the channel off
         channels[ch].setMode(UTBoard.CHANNEL_OFF, false);
     }
         

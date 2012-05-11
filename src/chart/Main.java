@@ -635,6 +635,14 @@ try {
 globals.restartNewPieceAtLeftEdge = calFile.readBoolean("General",
                           "Restart Each New Piece at Left Edge of Chart", true);
 
+//settings which control peak hold display on the A Scan
+globals.showRedPeakLineInGateCenter = calFile.readBoolean("General",
+                                    "Show Red Peak Line at Gate Center", false);
+globals.showRedPeakLineAtPeakLocation = calFile.readBoolean("General",
+                                  "Show Red Peak Line at Peak Location", false);
+globals.showPseudoPeakAtPeakLocation = calFile.readBoolean("General",
+                                  "Show Peak Symbol at Peak Location", true);
+
 globals.scanSpeed =
                 calFile.readInt("General", "Scanning and Inspecting Speed", 10);
 
@@ -703,6 +711,14 @@ try {
 //if false, new piece will be added to end of traces while chart scrolls
 calFile.writeBoolean("General", "Restart Each New Piece at Left Edge of Chart",
                                              globals.restartNewPieceAtLeftEdge);
+
+//settings which control peak hold display on the A Scan
+calFile.writeBoolean("General", "Show Red Peak Line at Gate Center",
+                                        globals.showRedPeakLineInGateCenter);
+calFile.writeBoolean("General", "Show Red Peak Line at Peak Location",
+                                        globals.showRedPeakLineAtPeakLocation);
+calFile.writeBoolean("General", "Show Peak Symbol at Peak Location", 
+                                        globals.showPseudoPeakAtPeakLocation);
 
 calFile.writeInt("General", "Scanning and Inspecting Speed", globals.scanSpeed);
 
