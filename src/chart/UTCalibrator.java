@@ -29,6 +29,7 @@ import chart.mksystems.stripchart.StripChart;
 import chart.mksystems.hardware.Hardware;
 import chart.mksystems.hardware.Channel;
 import chart.mksystems.hardware.Gate;
+import chart.mksystems.hardware.UTBoard;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -55,7 +56,8 @@ public Channel[] allChannels; //all channels in the system
 Gate gate;
 UTControls utControls;
 JButton copyButton, copyToAllButton;
-Component rigidArea1;
+JButton allOnButton, allOffButton;
+Component rigidArea, rigidAreaDynamic;
 
 double previousDelay;
 
@@ -333,11 +335,31 @@ for (int i=0; i < numberOfChannels; i++){
 
 channelSelector.add(Box.createRigidArea(new Dimension(0,15))); //vertical spacer
 
-//create a panel to hold the "Copy" and "Cancel" buttons so that they can
-//be centered
+//create a panel to hold the "Copy", "Cancel", and other buttons so that they
+//can be centered
 copyPanel = new JPanel();
 copyPanel.setLayout(new BoxLayout(copyPanel, BoxLayout.Y_AXIS));
 copyPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+//add a button for turning all channels on
+allOnButton = new JButton("All On");
+allOnButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+allOnButton.addActionListener(this);
+allOnButton.setActionCommand("All On");
+allOnButton.setToolTipText("Turn all channels on.");
+copyPanel.add(allOnButton);
+
+copyPanel.add(Box.createRigidArea(new Dimension(0,4)));
+
+//add a button for turning all channels off
+allOffButton = new JButton("All Off");
+allOffButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+allOffButton.addActionListener(this);
+allOffButton.setActionCommand("All Off");
+allOffButton.setToolTipText("Turn all channels off.");
+copyPanel.add(allOffButton);
+
+copyPanel.add(Box.createRigidArea(new Dimension(0,4)));
 
 //add a button for copying the selected channel settings to other channel(s)
 copyButton = new JButton("Copy");
@@ -352,9 +374,9 @@ copyPanel.add(copyButton);
 //to help prevent accidental clicking of the latter -- make the spacer invisible
 //(it's not really visible anyway) so that it doesn't create a space until the
 //"Copy" button is clicked
-rigidArea1 = Box.createRigidArea(new Dimension(0,30));
-rigidArea1.setVisible(false);
-copyPanel.add(rigidArea1);
+rigidAreaDynamic = Box.createRigidArea(new Dimension(0,60));
+rigidAreaDynamic.setVisible(false);
+copyPanel.add(rigidAreaDynamic);
                 
 //add a button for copying the selected channel settings to all channels
 //this button is hidden until the "Copy" button is clicked
@@ -580,6 +602,49 @@ for (int ch = 0; ch < pNumDestChannels; ch++){
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// UTCalibrator::turnAllChannelsOn
+//
+// Turns all channels on if pOn is true.
+// Turns all channels off if pOn is false.
+//
+// The current mode is stored so that if the channels are turned off and back
+// on a again later, they return to their original settings.
+//
+
+public void turnAllChannelsOn(boolean pOn)
+{
+    
+//scan through all channels and copy info from currently selected channel
+//to all other channels
+
+for (int ch = 0; ch < numberOfChannels; ch++){
+      
+    if(pOn){
+        channels[ch].setMode(channels[ch].previousMode, false);
+    }
+
+    if(!pOn){
+        //store current mode
+        channels[ch].previousMode = channels[ch].getMode();
+        channels[ch].setMode(UTBoard.CHANNEL_OFF, false);
+    }
+        
+    //updates the channel number color to match the channel's on/off state
+    //if all system channels are being copied, not all of those channels will
+    //be in the group currently being displayed by the Calibrator window, those
+    //not in the group will not have a radio button to set so skip them
+    if (channels[ch].calRadioButton != null)
+        setChannelSelectorColor(channels[ch]);
+
+}// for (int ch = 0; ch < pNumDestChannels; ch++)
+
+//force the radio button to display the newly changed setting
+utControls.updateSignalModeControl();
+
+}//end of UTCalibrator::turnAllChannelsOn
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // UTCalibrator::viewIP
 //
 // Stores the current delay value and then sets the delay to zero so the
@@ -701,13 +766,24 @@ utControls.updateAllSettings(false);
 public void actionPerformed(ActionEvent e)
 { 
 
+//trap "All On" button
+if (e.getActionCommand().equals("All On")){ turnAllChannelsOn(true); return;}
+    
+//trap "All Off" button
+if (e.getActionCommand().equals("All Off")){ turnAllChannelsOn(false); return;}
+
 //trap "Copy" button
 if (e.getActionCommand().equals("Copy")){
+    
+    //hide the all on/off buttons to reduce clutter during copy mode
+    allOnButton.setVisible(false);
+    allOffButton.setVisible(false);
+    
     //display "<" buttons next to each channel so selected channel can be
     //copied to any channel for which the button is clicked
     setCopyToChannelButtonsVisibity(true);
     //display the vertical spacer between the "Copy Cancel" and "Copy to All"
-    rigidArea1.setVisible(true);
+    rigidAreaDynamic.setVisible(true);
     //display the "Copy to All" button so it can be clicked
     copyToAllButton.setVisible(true);
     //"Copy" button becomes "Cancel Copy" button
@@ -723,9 +799,14 @@ if (e.getActionCommand().equals("Copy")){
     
 //trap "Cancel" (cancel copy) button
 if (e.getActionCommand().equals("Cancel Copy")){
+
+    //unhide the all on/off buttons
+    allOnButton.setVisible(true);
+    allOffButton.setVisible(true);
+    
     setCopyToChannelButtonsVisibity(false);
     //hide the vertical spacer between the "Copy Cancel" and "Copy to All"
-    rigidArea1.setVisible(false);
+    rigidAreaDynamic.setVisible(false);
     copyToAllButton.setVisible(false);
     //"Cancel" button becomes "Copy" button
     copyButton.setText("Copy");    

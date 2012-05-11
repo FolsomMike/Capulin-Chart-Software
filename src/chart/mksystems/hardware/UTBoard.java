@@ -269,11 +269,11 @@ static byte ENABLE_FPGA_INTERNALS = 3;
 int PEAK_DATA_BYTES_PER_GATE = 8;
 int PEAK_DATA_BYTES_FOR_WALL = 24;
 
-static byte POSITIVE_HALF = 0;
-static byte NEGATIVE_HALF = 1;
-static byte FULL_WAVE = 2;
-static byte RF_WAVE = 3;
-static byte CHANNEL_OFF = 4;
+public static byte POSITIVE_HALF = 0;
+public static byte NEGATIVE_HALF = 1;
+public static byte FULL_WAVE = 2;
+public static byte RF_WAVE = 3;
+public static byte CHANNEL_OFF = 4;
 
 // bits for flag1 variable in DSP's
 //The TRANSMITTER_ACTIVE bit should usually not be modified by the host.

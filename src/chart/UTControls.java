@@ -480,6 +480,40 @@ updateEnabled = true;
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// UTControls::updateSignalModeControl
+//
+// Updates the values in the Signal Mode radio button with data from the 
+// associated variables.  Use this if that value is changed programatically
+// and needs to be reflected back into the display object.
+//
+
+void updateSignalModeControl()
+{
+
+//disable updates so the controls don't respond while they are being updated
+//the values have already been written to the variables and if the controls
+//respond they may wipe out the values already set
+
+updateEnabled = false;
+
+displayMode = currentChannel.getMode();
+
+if (displayMode == 0)posHalfRadioButton.setSelected(true);
+else
+if (displayMode == 1)negHalfRadioButton.setSelected(true);
+else
+if (displayMode == 2)fullWaveRadioButton.setSelected(true);
+else
+if (displayMode == 3)rfRadioButton.setSelected(true);
+else
+if (displayMode == 4)offRadioButton.setSelected(true);
+
+updateEnabled = true;
+
+}//end of UTControls::updateSignalModeControl
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // UTControls::setupSignalTab
 //
 // Sets up a panel for the Signal tab - adds all necessary components to the
@@ -1544,6 +1578,7 @@ if (rfRadioButton.isSelected()) displayMode = 3;
 if (offRadioButton.isSelected()) displayMode = 4;
 
 ch.setMode(displayMode, pForceUpdate);
+ch.previousMode = displayMode;
 setChannelSelectorColor(ch);
 
 //always set range after setting gate position or width, delay and interface
