@@ -840,6 +840,12 @@ if (e.getActionCommand().equals("Copy to This Channel")){
 //trap "Copy to All" button
 if (e.getActionCommand().equals("Copy to All")){
 
+    int n = JOptionPane.showConfirmDialog(this,
+    "Are you sure you want to copy to all channels?",
+    "Confirm",
+    JOptionPane.YES_NO_OPTION);
+    if (n != JOptionPane.YES_OPTION) return;  //bail out if user cancels
+
     if (globals.copyToAllMode == 0) copyToAllChannelsForCurrentChart();
     else
     if (globals.copyToAllMode == 1) copyToAllChannelsForAllCharts();
