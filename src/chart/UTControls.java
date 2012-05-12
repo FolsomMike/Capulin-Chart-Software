@@ -38,6 +38,7 @@ import chart.mksystems.hardware.Hardware;
 import chart.mksystems.hardware.Channel;
 import chart.mksystems.hardware.Gate;
 import chart.mksystems.hardware.DACGate;
+import chart.mksystems.hardware.UTBoard;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -1578,7 +1579,9 @@ if (rfRadioButton.isSelected()) displayMode = 3;
 if (offRadioButton.isSelected()) displayMode = 4;
 
 ch.setMode(displayMode, pForceUpdate);
-ch.previousMode = displayMode;
+//only set the previous mode if the current mode is not "OFF" -- the previous
+//mode should always be the last "ON" mode so it can be restored
+if (displayMode != UTBoard.CHANNEL_OFF) ch.previousMode = displayMode;
 setChannelSelectorColor(ch);
 
 //always set range after setting gate position or width, delay and interface
