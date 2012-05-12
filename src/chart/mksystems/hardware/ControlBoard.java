@@ -89,6 +89,7 @@ static byte GET_STATUS_CMD = 12;
 static byte LOAD_FIRMWARE_CMD = 13;
 static byte SEND_DATA_CMD = 14;
 static byte DATA_CMD = 15;
+static byte GET_CHASSIS_SLOT_ADDRESS_CMD = 16;
 
 static byte ERROR = 125;
 static byte DEBUG_CMD = 126;
@@ -141,8 +142,8 @@ configure(configFile);
 //-----------------------------------------------------------------------------
 // ControlBoard::run
 //
-// This thread loads the board with FPGA and DSP code.  Using a thread allows
-// multiple boards to be loaded simultaneously.
+// This thread connects with the board and then sleeps.  It cannot be killed
+// or the socket will be closed.
 //
 
 @Override
@@ -237,8 +238,14 @@ setupComplete = true;
 //flag that setup was successful and board is ready for use
 ready = true;
 
-//debug mks -- chassisSlotAddr is still null -- need to add code like utBoard
-//which retrieves the slot address from the remote
+//retrieve the board's chassis and slot addresses
+getChassisSlotAddress();
+
+//NOTE: now that the chassis and slot addresses are known, display messages
+// using those to identify the board instead of the IP address so it is easier
+// to discern which board is which.
+
+chassisSlotAddr = chassisAddr + ":" + slotAddr;
 
 threadSafeLog("Control " + chassisSlotAddr + " is ready." + "\n");
 
@@ -259,6 +266,30 @@ public void initialize()
 setEncodersDeltaTrigger();
 
 }//end of ControlBoard::initialize
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlBoard::getChassisSlotAddress
+//
+// Retrieves the board's chassis and slot address settings.
+//
+// The switches are located on the motherboard.
+//
+
+private void getChassisSlotAddress()
+{
+
+//read the chassis and slot address from the remote
+byte address = getRemoteData(GET_CHASSIS_SLOT_ADDRESS_CMD, true);    
+
+//parse the returned value 
+chassisAddr =  (address>>4 & 0xf);
+slotAddr = address & 0xf;
+
+threadSafeLog("Control " + ipAddrS + " chassis & slot address: "
+                                        + chassisAddr + "-" + slotAddr + "\n");
+
+}//end of ControlBoard::getChassisSlotAddress
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -671,6 +702,7 @@ else return -1;
 // A return value of -1 means that the buffer does not contain a packet.
 //
 
+@Override
 public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
 {
 
@@ -721,6 +753,10 @@ try{
     //store the ID of the packet (the packet type)
     pktID = inBuffer[0];
 
+    if ( pktID == GET_STATUS_CMD) return process2BytePacket();
+    else
+    if ( pktID == GET_CHASSIS_SLOT_ADDRESS_CMD) return process2BytePacket();
+    else
     if ( pktID == GET_INSPECT_PACKET_CMD) return processInspectPacket();
     else
     if ( pktID == GET_MONITOR_PACKET_CMD) return processMonitorPacket();

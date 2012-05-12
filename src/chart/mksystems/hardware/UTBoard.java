@@ -99,7 +99,6 @@ boolean dspStatusMessageRcvd = false;
 int dbug = 0; //debug mks - remove this
 
 int timeOutRead = 0; //use this one in the read functions
-int timeOutProcess = 0; //use this one in the packet process functions
 int timeOutWFP = 0; //used by processDataPackets
 
 int getAScanTimeOut = 0, GET_ASCAN_TIMEOUT = 50;
@@ -361,7 +360,7 @@ static byte REP_RATE_1_REG = 0x04;
 static byte REP_RATE_2_REG = 0x05;
 static byte REP_RATE_3_REG = 0x06;
 
-static byte CHASSIS_BOARD_ADDRESS = 0x08;
+static byte CHASSIS_SLOT_ADDRESS = 0x08;
 
 static byte CH1_SAMPLE_DELAY_0 = 0x1b;
 static byte CH1_SAMPLE_DELAY_1 = 0x1c;
@@ -1102,7 +1101,7 @@ void getChassisSlotAddress()
 {
 
 //read the address from FPGA register connected to the switches
-byte address = getRemoteAddressedData(READ_FPGA_CMD, CHASSIS_BOARD_ADDRESS);
+byte address = getRemoteAddressedData(READ_FPGA_CMD, CHASSIS_SLOT_ADDRESS);
 
 //the address from the switches is inverted with the chassis address in the
 //upper nibble and the board address in the lower
@@ -3174,38 +3173,6 @@ syncSource = pConfigFile.readBoolean(
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTBoard::processDataPackets
-//
-// The amount of time the function is to wait for a packet is specified by
-// pTimeOut.  Each count of pTimeOut equals 10 ms.
-//
-// See processOneDataPacket notes for more info.
-//
-
-@Override
-public int processDataPackets(boolean pWaitForPkt, int pTimeOut)
-{
-
-int x = 0;
-
-//process packets until there is no more data available
-
-// if pWaitForPkt is true, only call once or an infinite loop will occur
-// because the subsequent call will still have the flag set but no data
-// will ever be coming because this same thread which is now blocked is
-// sometimes the one requesting data
-
-if (pWaitForPkt)
-    return processOneDataPacket(pWaitForPkt, pTimeOut);
-else
-    while ((x = processOneDataPacket(pWaitForPkt, pTimeOut)) != -1){}
-
-return x;
-
-}//end of UTBoard::processDataPackets
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // UTBoard::processOneDataPacket
 //
 // This function processes a single data packet if it is available.  If
@@ -3229,6 +3196,7 @@ return x;
 // A return value of -1 means that the buffer does not contain a packet.
 //
 
+@Override
 public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
 {
 
@@ -3291,7 +3259,7 @@ try{
 
     dspMsgID = DSP_NULL_MSG_CMD;
 
-    if ( pktID == GET_STATUS_CMD) return processStatusPacket();
+    if ( pktID == GET_STATUS_CMD) return process2BytePacket();
 
     if ( pktID == GET_ASCAN_CMD) return processAScanPacket();
 
@@ -3430,32 +3398,6 @@ try{
 catch(IOException e){}
 
 }//end of UTBoard::reSync
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// UTBoard::processStatusPacket
-//
-// Retrieves the status value from the packet and stores it in inBuffer.
-//
-// Returns number of bytes retrieved from the socket.
-//
-
-private int processStatusPacket()
-{
-
-try{
-    timeOutProcess = 0;
-    while(timeOutProcess++ < TIMEOUT){
-        if (byteIn.available() >= 2) break;
-        waitSleep(10);
-        }
-    if (byteIn.available() >= 2) return byteIn.read(inBuffer, 0, 2);
-    }// try
-catch(IOException e){}
-
-return 0;
-
-}//end of UTBoard::processStatusPacket
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

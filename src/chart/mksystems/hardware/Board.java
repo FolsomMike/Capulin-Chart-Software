@@ -85,6 +85,7 @@ int mainThreadMessagePtr = 0; //points next message in the array to be displayed
 static int NUMBER_THREADSAFE_MESSAGES = 100;
 
 int TIMEOUT = 50;
+int timeOutProcess = 0; //use this one in the packet process functions
 
 //-----------------------------------------------------------------------------
 // Board::setIPAddr
@@ -533,6 +534,32 @@ if (byteOut != null)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Board::process2BytePacket
+//
+// Retrieves two data bytes from the packet and stores them in inBuffer.
+//
+// Returns number of bytes retrieved from the socket.
+//
+
+public int process2BytePacket()
+{
+
+try{
+    timeOutProcess = 0;
+    while(timeOutProcess++ < TIMEOUT){
+        if (byteIn.available() >= 2) break;
+        waitSleep(10);
+        }
+    if (byteIn.available() >= 2) return byteIn.read(inBuffer, 0, 2);
+    }// try
+catch(IOException e){}
+
+return 0;
+
+}//end of Board::process2BytePacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Board::getRemoteData
 //
 // Retrieves two data bytes from the remote device, using the command specified
@@ -543,6 +570,12 @@ if (byteOut != null)
 // If pForceProcessDataPackets is true, the processDataPackets function will
 // be called.  This is for use when that function is not already being called
 // by another thread.
+//
+// IMPORTANT NOTE: For this function to work, the sub-class must catch
+// the return packet type in its processOneDataPacket method and then read in
+// the necessary data -- a simple way is to call process2BytePacket after
+// catching the return packet.
+// Search for GET_STATUS_CMD in UTBoard to see an example.
 //
 
 byte getRemoteData(byte pCommand, boolean pForceProcessDataPackets)
@@ -643,26 +676,52 @@ for (int i=0; i<pSize; i++) pBuffer[i] = (int)pktBuffer[i];
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTBoard::processDataPackets
-//
-// This function should be called often to allow processing of data packets
-// received from the remotes and stored in the socket buffer.
+// Board::processDataPackets
 //
 // The amount of time the function is to wait for a packet is specified by
 // pTimeOut.  Each count of pTimeOut equals 10 ms.
 //
-// If pWaitForPkt is true, the function will wait until data is available.
-//
-// Returns number of bytes retrieved from the socket, not including the
-// 4 header bytes, the packet ID, the DSP chip ID, and the DSP core ID.
+// See processOneDataPacket notes for more info.
 //
 
 public int processDataPackets(boolean pWaitForPkt, int pTimeOut)
 {
 
-return 0;
+int x = 0;
+
+//process packets until there is no more data available
+
+// if pWaitForPkt is true, only call once or an infinite loop will occur
+// because the subsequent call will still have the flag set but no data
+// will ever be coming because this same thread which is now blocked is
+// sometimes the one requesting data
+
+if (pWaitForPkt)
+    return processOneDataPacket(pWaitForPkt, pTimeOut);
+else
+    while ((x = processOneDataPacket(pWaitForPkt, pTimeOut)) != -1){}
+
+return x;
 
 }//end of Board::processDataPackets
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Board::processOneDataPacket
+//
+// This function processes a single data packet if it is available.  If
+// pWaitForPkt is true, the function will wait until data is available.
+//
+// This function should be overridden by sub-classes to provide specialized
+// functionality.
+//
+
+public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
+{
+
+return(0);
+    
+}//end of Board::processOneDataPacket
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

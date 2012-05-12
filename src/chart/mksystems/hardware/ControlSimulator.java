@@ -50,7 +50,6 @@ public ControlSimulator() throws SocketException{}; //default constructor - not 
 public static int controlBoardCounter = 0;
 int controlBoardNumber;
 
-
 boolean onPipeFlag = false;
 boolean delayingToOnPipe = true;
 boolean delayingToInspect = true;
@@ -100,7 +99,7 @@ configure();
 //this writer is only used to send the greeting back to the host
 
 PrintWriter out = new PrintWriter(localOutStream, true);
-out.println("Hello from Control Board!");
+out.println("Hello from Control Board Simulator!");
 
 }//end of ControlSimulator::ControlSimulator (constructor)
 //-----------------------------------------------------------------------------
@@ -193,6 +192,9 @@ try{
     if (pktID == ControlBoard.START_INSPECT_CMD) startInspect(pktID);
     else
     if (pktID == ControlBoard.STOP_INSPECT_CMD) stopInspect(pktID);
+    else
+    if (pktID == ControlBoard.GET_CHASSIS_SLOT_ADDRESS_CMD)
+        getChassisSlotAddress();
 
     return 0;
 
@@ -219,6 +221,27 @@ sendPacketHeader(ControlBoard.GET_STATUS_CMD);
 sendBytes2(status, (byte)0);
 
 }//end of ControlSimulator::getStatus
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlSimulator::getChassisSlotAddress
+//
+// Simulates returning of the chassis and slot address byte.
+// Also returns the status byte.
+//
+
+@Override
+void getChassisSlotAddress()
+{
+
+byte address = (byte)(((byte)chassisAddr<<4 & 0xf0) + ((byte)slotAddr & 0xf));
+
+//send standard packet header
+sendPacketHeader(ControlBoard.GET_CHASSIS_SLOT_ADDRESS_CMD);
+
+sendBytes2(address, status);
+
+}//end of ControlSimulator::getChassisSlotAddress
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -487,11 +510,7 @@ String section = "Simulated Control Board " + (controlBoardNumber + 1);
 
 chassisAddr = (byte)configFile.readInt(section, "Chassis Number", 0);
 
-chassisAddr = (byte)(~chassisAddr); //the switches invert the value
-
-boardAddr = (byte)configFile.readInt(section, "Slot Number", 0);
-
-boardAddr = (byte)(~boardAddr); //the switches invert the value
+slotAddr = (byte)configFile.readInt(section, "Slot Number", 0);
 
 }//end of ControlSimulator::configure
 //-----------------------------------------------------------------------------

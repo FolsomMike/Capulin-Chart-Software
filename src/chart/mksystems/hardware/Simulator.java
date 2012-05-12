@@ -46,7 +46,7 @@ int reSyncCount = 0;
 
 public static int instanceCounter = 0;
 
-byte chassisAddr, boardAddr;
+int chassisAddr, slotAddr;
 
 byte status = 0;
 
@@ -167,21 +167,21 @@ catch(IOException e){}
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Simulator::getAddress
+// Simulator::getChassisSlotAddress
 //
-// Returns the chassis and board address.
+// Returns the chassis and slot address for the simulated board.
 //
 
-void getAddress()
+void getChassisSlotAddress()
 {
 
 byte address = (byte)((chassisAddr << 4) & 0xf0);
 
-address += (byte)(boardAddr & 0x0f);
+address += (byte)(slotAddr & 0x0f);
 
 sendBytes2(address, (byte)0);
 
-}//end of Simulator::getAddress
+}//end of Simulator::getChassisSlotAddress
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

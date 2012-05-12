@@ -503,7 +503,7 @@ void readFPGA()
 try{byteIn.read(inBuffer, 0, 1);}
 catch(IOException e){}
 
-if (inBuffer[0] == UTBoard.CHASSIS_BOARD_ADDRESS) getAddress();
+if (inBuffer[0] == UTBoard.CHASSIS_SLOT_ADDRESS) getChassisSlotAddress();
 
 }//end of UTSimulator::readFPGA
 //-----------------------------------------------------------------------------
@@ -1035,9 +1035,9 @@ chassisAddr = (byte)configFile.readInt(section, "Chassis Number", 0);
 
 chassisAddr = (byte)(~chassisAddr); //the switches invert the value
 
-boardAddr = (byte)configFile.readInt(section, "Slot Number", 0);
+slotAddr = (byte)configFile.readInt(section, "Slot Number", 0);
 
-boardAddr = (byte)(~boardAddr); //the switches invert the value
+slotAddr = (byte)(~slotAddr); //the switches invert the value
 
 
 }//end of UTSimulator::configure
