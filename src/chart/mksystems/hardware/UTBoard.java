@@ -473,7 +473,6 @@ static byte FPGA_LOADED_FLAG = 0x01;
 
 //number of loops to wait for response before timeout
 static int FPGA_LOAD_TIMEOUT = 999999;
-static int FIRMWARE_LOAD_TIMEOUT = 999999;
 
 boolean reSynced;
 
@@ -4202,143 +4201,28 @@ return(numberReturnBytes); //number of bytes read from the socket
 //-----------------------------------------------------------------------------
 // Capulin1::installNewRabbitFirmware
 //
-// Transmits the Rabbit firmware code to the specified UT board to replace the
-// existing code.  
+// Transmits the Rabbit firmware image to the UT board to replace the existing
+// code.  
 //
-// The firmware in the Rabbit is stored in flash memory.  There is a slight
-// danger in installing new firmware because the Rabbit may become inoperable\
-// if a power glitch occurs during the process -- a reload via serial cable
-// would then be required.
-//
-// Since there is a danger of locking up the Rabbit and the flash memory can be
-// written to a finite number of times, the code is not sent each time the
-// system starts as is done with the FPGA code.  Rather, it is only updated
-// by explicit command.
-//
-// This function uses TCP/IP and transmits to the single board handled by
-// this UTBoard object.  If multiple boards are being loaded simultaneously,
-// the load time increases significantly.
-//
-// This function uses the "binary file" (*.bin) produced by the Dynamic C
-// compiler.
-//
-// The file is transmitted in 1025 byte blocks: one command byte followed by
-// 1024 data bytes. The last block is truncated as necessary.
-//
-// The remote should send the command SEND_DATA when it is ready for each
-// block, including the first one.
+// See corresponding function in the parent class Board.
 //
 
 public void installNewRabbitFirmware()
 {
 
-int CODE_BUFFER_SIZE = 1025; //transfer command word and 1024 data bytes
-byte[] codeBuffer; 
-codeBuffer = new byte[CODE_BUFFER_SIZE];
-int remoteStatus;
-
-int bufPtr;
-
-boolean fileDone = false;
-
-FileInputStream inFile = null;
-
-try {
- 
-    sendByte(LOAD_FIRMWARE_CMD); //send command to initiate loading
-
-    threadSafeLog("UT " + ipAddrS + " loading Rabbit firmware..." + "\n");
-
-    timeOutRead = 0;
-    inFile = new FileInputStream("Rabbit\\CAPULIN UT BOARD.bin");
-    int c, inCount;
-
-    while(timeOutRead < FIRMWARE_LOAD_TIMEOUT){
-
-        inBuffer[0] = NO_ACTION; //clear request byte from host
-        inBuffer[1] = NO_STATUS; //clear status word (upper byte) from host
-        inBuffer[2] = NO_STATUS; //clear status word (lower byte) from host
-        
-        remoteStatus = 0;
-        
-        //check for a request from the remote if connected
-        if (byteIn != null){
-            inCount = byteIn.available();
-            //0 = buffer offset, 2 = number of bytes to read
-            if (inCount >= 3) 
-                byteIn.read(inBuffer, 0, 3);
-            remoteStatus = (int)((inBuffer[0]<<8) & 0xff00)
-                                                    + (int)(inBuffer[1] & 0xff);
-        }
-
-        //trap and respond to messages from the remote
-        if (inBuffer[0] == ERROR){
-            threadSafeLog(
-                "UT " + ipAddrS + " error loading firmware, error code: " 
-                    + remoteStatus + "\n");
-            return;
-            }
-
-        //send data packet when requested by remote
-        if (inBuffer[0] == SEND_DATA_CMD && !fileDone){
-
-            bufPtr = 0; c = 0;
-            codeBuffer[bufPtr++] = DATA_CMD; // command byte = data packet
-
-            //be sure to check bufPtr on left side or a byte will get read
-            //and ignored every time bufPtr test fails
-            while (bufPtr < CODE_BUFFER_SIZE && (c = inFile.read()) != -1 ) {
-
-                //stuff the bytes into the buffer after the command byte
-                codeBuffer[bufPtr++] = (byte)c;             
-
-                //reset timer in this loop so it only gets reset when
-                //a request has been received AND not at end of file
-                timeOutRead = 0;
-
-                }
-
-            if (c == -1) fileDone = true;
-            
-            //send packet to remote -- at the end of the file, this may have
-            //random values as padding to fill out the buffer
-            byteOut.write(codeBuffer, 0 /*offset*/, CODE_BUFFER_SIZE);
-         
-            //send the exit command when the file is done
-            if (fileDone){
-                codeBuffer[0] = EXIT_CMD;
-                byteOut.write(codeBuffer, 0 /*offset*/, 1);
-                break;
-            }//if (fileDone)
-        
-        }//if (inBuffer[0] == SEND_DATA)
-                     
-        //count loops - will exit when max reached
-        //this is reset whenever a packet request is received and the end of
-        //file not reached - when end of file reached, loop will wait until
-        //timeout reached again before exiting in order to catch success/error
-        //messages from the remote
-        
-        timeOutRead++;
-
-        }// while(timeOutGet <...
-
-    if (fileDone)
-        threadSafeLog(
-           "UT " + ipAddrS + " firmware installed." + "\n");
-    else
-    //remote has not responded if this part reached
-        threadSafeLog(
-           "UT " + ipAddrS + " error loading firmware - contact lost." + "\n");
-
-    }//try
-catch(IOException e){
-    threadSafeLog("UT " + ipAddrS + " error loading firmware!" + "\n");
-}
-finally {
-    if (inFile != null) try {inFile.close();}catch(IOException e){}
-    }//finally
-
+//create an object to hold codes specific to the UT board for use by the
+//firmware installer method
+    
+InstallFirmwareSettings settings = new InstallFirmwareSettings();
+settings.loadFirmwareCmd = LOAD_FIRMWARE_CMD;
+settings.noAction = NO_ACTION;
+settings.error = ERROR;
+settings.sendDataCmd = SEND_DATA_CMD;
+settings.dataCmd = DATA_CMD;
+settings.exitCmd = EXIT_CMD;
+    
+super.installNewRabbitFirmware("UT", "Rabbit\\CAPULIN UT BOARD.bin", settings);
+    
 }//end of Capulin1::installNewRabbitFirmware
 //-----------------------------------------------------------------------------
 

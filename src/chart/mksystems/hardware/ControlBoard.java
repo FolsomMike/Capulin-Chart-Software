@@ -86,6 +86,11 @@ static byte STOP_INSPECT_CMD = 9;
 static byte START_MONITOR_CMD = 10;
 static byte STOP_MONITOR_CMD = 11;
 static byte GET_STATUS_CMD = 12;
+static byte LOAD_FIRMWARE_CMD = 13;
+static byte SEND_DATA_CMD = 14;
+static byte DATA_CMD = 15;
+
+static byte ERROR = 125;
 static byte DEBUG_CMD = 126;
 static byte EXIT_CMD = 127;
 
@@ -810,6 +815,35 @@ pICVars.encoder1Dir = encoder1Dir;
 pICVars.encoder2Dir = encoder2Dir;
 
 }//end of ControlBoard::getInspectControlVars
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlBoard::installNewRabbitFirmware
+//
+// Transmits the Rabbit firmware image to the Control board to replace the
+// existing code.  
+//
+// See corresponding function in the parent class Board.
+//
+
+public void installNewRabbitFirmware()
+{
+
+//create an object to hold codes specific to the UT board for use by the
+//firmware installer method
+    
+InstallFirmwareSettings settings = new InstallFirmwareSettings();
+settings.loadFirmwareCmd = LOAD_FIRMWARE_CMD;
+settings.noAction = NO_ACTION;
+settings.error = ERROR;
+settings.sendDataCmd = SEND_DATA_CMD;
+settings.dataCmd = DATA_CMD;
+settings.exitCmd = EXIT_CMD;
+    
+super.installNewRabbitFirmware("Control", "Rabbit\\CAPULIN CONTROL BOARD.bin",
+                                                                    settings);
+    
+}//end of ControlBoard::installNewRabbitFirmware
 //-----------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------

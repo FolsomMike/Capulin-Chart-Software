@@ -727,6 +727,8 @@ public void updateRabbitCode()
 for (int j = 0; j < numberOfUTBoards; j++)
     if (utBoards[j] != null) utBoards[j].installNewRabbitFirmware();
 
+for (int j = 0; j < numberOfControlBoards; j++)
+    if (controlBoards[j] != null) controlBoards[j].installNewRabbitFirmware();
 
 }//end of Hardware::updateRabbitCode
 //-----------------------------------------------------------------------------
