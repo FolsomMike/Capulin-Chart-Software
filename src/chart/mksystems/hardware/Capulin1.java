@@ -724,8 +724,10 @@ if (!logEnabled) return;
 public void updateRabbitCode()
 {
 
-for (int j = 0; j < numberOfUTBoards; j++)
-    if (utBoards[j] != null) utBoards[j].installNewRabbitFirmware();
+//debug mks -- give option to upload one or the other with a confirmation    
+    
+//for (int j = 0; j < numberOfUTBoards; j++)
+//    if (utBoards[j] != null) utBoards[j].installNewRabbitFirmware();
 
 for (int j = 0; j < numberOfControlBoards; j++)
     if (controlBoards[j] != null) controlBoards[j].installNewRabbitFirmware();

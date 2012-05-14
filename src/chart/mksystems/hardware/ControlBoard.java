@@ -958,10 +958,10 @@ outBuffer = new byte[RUNTIME_PACKET_SIZE];
 //debug mks -- calculate this delta to give one packet per pixel????
 
 encoder1DeltaTrigger = 
-          pConfigFile.readInt("Hardware", "Encoder 1 Delta Count Trigger", 166);
+          pConfigFile.readInt("Hardware", "Encoder 1 Delta Count Trigger", 83);
 
 encoder2DeltaTrigger = 
-          pConfigFile.readInt("Hardware", "Encoder 2 Delta Count Trigger", 166);
+          pConfigFile.readInt("Hardware", "Encoder 2 Delta Count Trigger", 83);
 
 }//end of ControlBoard::configure
 //-----------------------------------------------------------------------------

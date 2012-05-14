@@ -158,7 +158,7 @@ photoEye2DistanceFrontOfHead1 = pConfigFile.readDouble("Hardware",
                         "Photo Eye 2 Distance to Front Edge of Head 1", 58.0);
 
 photoEye2DistanceFrontOfHead2 = pConfigFile.readDouble("Hardware", 
-                        "Photo Eye 2 Distance to Front Edge of Head 1", 35.0);
+                        "Photo Eye 2 Distance to Front Edge of Head 2", 35.0);
 
 //the control board sends packets every so many counts and is susceptible to
 //cumulative round off error, but the values below can be tweaked to give
@@ -1391,6 +1391,8 @@ inspectCtrlVars.encoder2FwdDir = inspectCtrlVars.encoder2Dir;
 double position = encoder2InchesPerCount *
         (inspectCtrlVars.encoder2 - inspectCtrlVars.encoder2Start);
 
+position = Math.abs(position);
+
 //calculate the number of pixels moved since the last check
 int pixPosition = (int)(position * pixelsPerInch);
 
@@ -1398,7 +1400,7 @@ int pixPosition = (int)(position * pixelsPerInch);
 //the system so remove segment
 
 //take absolute value so head moving in reverse works the same as forward
-pixPosition = Math.abs(pixPosition);
+pixPosition = Math.abs(pixPosition); //debug mks -- remove this?
 
 //calculate the number of pixels moved since the last update
 int pixelsMoved = pixPosition - prevPixPosition;

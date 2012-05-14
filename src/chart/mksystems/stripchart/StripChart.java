@@ -1711,7 +1711,7 @@ if (displayComputedAtCursor)
 
 if (displayLinearPositionAtCursor)
     linearPositionAtCursor.updateDouble((Graphics2D)getGraphics(),
-                                                (e.getX() * 0.1), false);
+                        (e.getX() * 0.02083333333333333333333333333334), false);
 
 }//end of StripChart::mouseMoved
 //-----------------------------------------------------------------------------
