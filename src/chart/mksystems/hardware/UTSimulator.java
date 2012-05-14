@@ -693,12 +693,22 @@ for (int ch=0; ch<NUMBER_OF_BOARD_CHANNELS; ch++){
 
         //send peak flags - these need to be simulated in future code update
         sendShortInt((short)channelPeakSets[ch].peakFlags);
+        
+        channelPeakSets[ch].peak = 10;
+        
+        sendShortInt((short)channelPeakSets[ch].peak);
+        
+        //for debugging:
         //send the peak, offset by gate so traces will be separated
         //add in a little random value
-        sendShortInt((short)channelPeakSets[ch].peak - (gate * 6)
-                                                   + (int)(Math.random()*3));
+        //sendShortInt((short)channelPeakSets[ch].peak + (gate * 6)
+        //                                           + (int)(Math.random()*3));
 
-        if (channelPeakSets[ch].peak++ > 100) channelPeakSets[ch].peak = 0;
+        
+        //add next line in to generate a sawtooth wave form
+        //if (channelPeakSets[ch].peak++ > 100) channelPeakSets[ch].peak = 0;
+        
+        
         //send the flight time for the peak
         sendShortInt((short)channelPeakSets[ch].flightTime);
         //send the position track for the peak

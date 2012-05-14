@@ -88,10 +88,11 @@ byte[] getDSPRamChecksumResult;
 boolean getDSPRamChecksumDone;
 
 int aScanCoreSelector = 1;
-
-boolean aScanRcvd = false;
+//set aScanRcvd flag true so first request for peakData packet will succeed
+boolean aScanRcvd = true;
 boolean aScanDataPacketProcessed = false;
-boolean peakDataRcvd = false;
+//set peakDataRcvd flag true so first request for peakData packet will succeed
+boolean peakDataRcvd = true;
 boolean peakDataPacketProcessed = false;
 
 boolean dspStatusMessageRcvd = false;
@@ -3286,10 +3287,9 @@ return 0;
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTBoard::processDataPacketsUntilFirstPeakPacket
+// UTBoard::processDataPacketsUntilPeakPacket
 //
-// Processes incoming data packets until the first Peak Data packet has been
-// processed.
+// Processes incoming data packets until aPeak Data packet has been processed.
 //
 // Returns 1 if an Encoder data packet has been processed, -1 if all available
 // packets have been processed but no peak data packet was present.
@@ -3297,7 +3297,7 @@ return 0;
 // See processOneDataPacket notes for more info.
 //
 
-public int processDataPacketsUntilFirstPeakPacket()
+public int processDataPacketsUntilPeakPacket()
 {
 
 int x = 0;
@@ -3315,7 +3315,7 @@ while ((x = processOneDataPacket(false, TIMEOUT)) > 0
 if (peakDataPacketProcessed == true) return 1;
 else return -1;
 
-}//end of UTBoard::processDataPacketsUntilFirstPeakPacket
+}//end of UTBoard::processDataPacketsUntilPeakPacket
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

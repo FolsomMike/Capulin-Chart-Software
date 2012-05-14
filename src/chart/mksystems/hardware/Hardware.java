@@ -49,7 +49,12 @@ int opMode = STOPPED;
 //moving away is increasing or decreasing encoder counts
 int AwayDirection;
 
+double encoder1InchesPerCount;
+double encoder2InchesPerCount;
+
 int encoder1CntsPerPix, encoder2CntsPerPix;
+int pixelsPerInch;
+
 double enc1CorrFactor, enc2CorrFactor;
 int prevPixPosition;
 
@@ -89,6 +94,12 @@ public int markerMode = PULSE;
 
 String threadSafeMessage; //this needs to be an array
 int threadSafeMessagePtr; //points to next message in the array
+
+double photoEye1DistanceFrontOfHead1;
+double photoEye1DistanceFrontOfHead2;
+
+double photoEye2DistanceFrontOfHead1;
+double photoEye2DistanceFrontOfHead2;
 
 //-----------------------------------------------------------------------------
 // Hardware::Hardware (constructor)
@@ -137,10 +148,31 @@ hdwVs.nSPerDataPoint =
   pConfigFile.readDouble("Hardware", "nS per Data Point", 15.0);
 hdwVs.uSPerDataPoint = hdwVs.nSPerDataPoint / 1000;
 
+photoEye1DistanceFrontOfHead1 = pConfigFile.readDouble("Hardware", 
+                        "Photo Eye 1 Distance to Front Edge of Head 1", 22.0);
+
+photoEye1DistanceFrontOfHead2 = pConfigFile.readDouble("Hardware", 
+                        "Photo Eye 1 Distance to Front Edge of Head 2", 46.0);
+
+photoEye2DistanceFrontOfHead1 = pConfigFile.readDouble("Hardware", 
+                        "Photo Eye 2 Distance to Front Edge of Head 1", 58.0);
+
+photoEye2DistanceFrontOfHead2 = pConfigFile.readDouble("Hardware", 
+                        "Photo Eye 2 Distance to Front Edge of Head 1", 35.0);
+
 //the control board sends packets every so many counts and is susceptible to
 //cumulative round off error, but the values below can be tweaked to give
 //accurate results over the length of the piece -- the packet send trigger
 //counts are often the same as the values below
+
+encoder1InchesPerCount = 
+    pConfigFile.readDouble("Hardware", "Encoder 1 Inches Per Count", 0.003);
+        
+encoder2InchesPerCount = 
+    pConfigFile.readDouble("Hardware", "Encoder 2 Inches Per Count", 0.003);
+
+pixelsPerInch = 
+  pConfigFile.readInt("Hardware", "Pixels per Inch", 1);
 
 //this is the number of encoder counts per screen pixel -- the packet trigger
 //sent to the Control board is often the same number so that one packet is
@@ -210,7 +242,69 @@ if (analogDriver.getSimulate()){
 
 analogDriver.connect();
 
+//calculate the trace offsets from the point where the photo eye detects the
+//pipe so the traces can be delayed until their sensors reach the inspection
+//piece
+calculateTraceOffsetDelays();
+
 }//end of Hardware::connect
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::calculateTraceOffsetDelays
+//
+// Adds the appropriate photo eye distance to the front of each head to each
+// trace's distance from the front edge of its head.
+//
+// These offsets are used to delay the trace after the photo eye detects the
+// pipe until the sensor(s) associated to that trace reach the pipe.
+//
+
+void calculateTraceOffsetDelays()
+{
+
+Trace tracePtr;
+
+for (int cg = 0; cg < chartGroups.length; cg++){
+
+    int nSC = chartGroups[cg].getNumberOfStripCharts();
+
+    for (int sc = 0; sc < nSC; sc++){
+
+        int nTr = chartGroups[cg].getStripChart(sc).getNumberOfTraces();
+
+        for (int tr = 0; tr < nTr; tr++){
+            
+            tracePtr = chartGroups[cg].getStripChart(sc).getTrace(tr);
+            
+            
+            if ((tracePtr != null) && (tracePtr.head == 1)){
+                tracePtr.startFwdDelayDistance = 
+                        photoEye1DistanceFrontOfHead1
+                                    + tracePtr.distanceSensorToFrontEdgeOfHead;
+                
+                tracePtr.startRevDelayDistance = 
+                        photoEye2DistanceFrontOfHead1 -
+                                    tracePtr.distanceSensorToFrontEdgeOfHead;
+
+            }//if ((tracePtr != null) && (tracePtr.head == 1))
+
+            if ((tracePtr != null) && (tracePtr.head == 2)){
+                tracePtr.startFwdDelayDistance = 
+                        photoEye1DistanceFrontOfHead2
+                                    + tracePtr.distanceSensorToFrontEdgeOfHead;
+                
+                tracePtr.startRevDelayDistance = 
+                        photoEye2DistanceFrontOfHead2 -
+                                    tracePtr.distanceSensorToFrontEdgeOfHead;
+
+            }//if ((tracePtr != null) && (tracePtr.head == 2))
+                        
+        }//for (int tr = 0; tr < nTr; tr++)
+    }//for (int sc = 0; sc < nSC; sc++)
+}//for (int cg = 0; cg < chartGroups.length; cg++)
+        
+}//end of Hardware::calculateTraceOffsetDelays
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -878,7 +972,8 @@ if (dataStored && pChannelActive){
     //index by 2 as 0 = no flag and 1 = user flag
             
     for (int j = 0; j < gatePtr.thresholds.length; j++)
-        if (gatePtr.thresholds[j].checkViolation(newData)){
+        if (gatePtr.tracePtr.flaggingEnabled && 
+                            gatePtr.thresholds[j].checkViolation(newData)){
             //store the index of threshold violated in byte 1
             gatePtr.fBuffer[nextIndex] &= 0xffff01ff; //erase old
             gatePtr.fBuffer[nextIndex] += (j+2) << 9; //store new flag    
@@ -991,7 +1086,8 @@ if (dataStored){
     //index by 2 as 0 = no flag and 1 = user flag
 
     for (int j = 0; j < gatePtr.thresholds.length; j++)
-        if (gatePtr.thresholds[j].checkViolation(newMaxData)){
+        if (gatePtr.tracePtr.flaggingEnabled && 
+                gatePtr.thresholds[j].checkViolation(newMaxData)){
             //store the index of threshold violated in byte 1
             gatePtr.fBuffer[nextIndex] &= 0xffff01ff; //erase old
             gatePtr.fBuffer[nextIndex] += (j+2) << 9; //store new flag
@@ -1054,7 +1150,8 @@ if (dataStored){
     //index by 2 as 0 = no flag and 1 = user flag
             
     for (int j = 0; j < gatePtr.thresholds.length; j++)
-        if (gatePtr.thresholds[j].checkViolation(newMinData)){
+        if (gatePtr.tracePtr.flaggingEnabled && 
+                gatePtr.thresholds[j].checkViolation(newMinData)){
             //store the index of threshold violated in byte 1
             gatePtr.fBuffer[nextIndex] &= 0xffff01ff; //erase old
             gatePtr.fBuffer[nextIndex] += (j+2) << 9; //store new
@@ -1182,7 +1279,7 @@ if (!analogDriver.getNewInspectPacketReady()) return false;
 //same thread then no prob -- different thread, then problem
 
 
-//ignore further calls to this function until a new packet is received
+//ignore further calls to this function until a new packet is ready
 analogDriver.setNewInspectPacketReady(false);
 
 //retrieve all the info related to inpection control -- photo eye status,
@@ -1197,7 +1294,13 @@ analogDriver.getInspectControlVars(inspectCtrlVars);
 //if waiting for piece clear of system, do nothing until flag says true
 if (hdwVs.waitForOffPipe){
     if (inspectCtrlVars.onPipeFlag) return false;
-    else {hdwVs.waitForOffPipe = false; hdwVs.waitForOnPipe = true;}
+    else {
+        hdwVs.waitForOffPipe = false; 
+        hdwVs.waitForOnPipe = true;
+        //assume all heads up if off pipe and disable flagging
+        hdwVs.head1Down = false; enableHeadTraceFlagging(1, false);
+        hdwVs.head2Down = false; enableHeadTraceFlagging(2, false);
+        }
     }
 
 //if waiting for piece to enter the head, do nothing until flag says true
@@ -1213,7 +1316,28 @@ if (hdwVs.waitForOnPipe){
         //(this needs so be changed to store the value with each piece for
         // future units which might have multiple pieces in the system at once)
         inspectCtrlVars.encoder2Start = inspectCtrlVars.encoder2;
+        prevPixPosition = 0;
         }
+    }
+
+//if head 1 is up and goes down, enable flagging for all traces on head 1
+if (!hdwVs.head1Down && inspectCtrlVars.head1Down){
+    hdwVs.head1Down = true; enableHeadTraceFlagging(1, true);
+    }
+
+//if head 2 is up and goes down, enable flagging for all traces on head 2
+if (!hdwVs.head2Down && inspectCtrlVars.head2Down){
+    hdwVs.head2Down = true; enableHeadTraceFlagging(2, true);
+    }
+
+//if head 1 is down and goes up, disable flagging for all traces on head 1
+if (hdwVs.head1Down && !inspectCtrlVars.head1Down){
+    hdwVs.head1Down = false; enableHeadTraceFlagging(1, false);
+    }
+
+//if head 2 is down and goes up, disable flagging for all traces on head 2
+if (hdwVs.head2Down && !inspectCtrlVars.head2Down){
+    hdwVs.head2Down = false; enableHeadTraceFlagging(2, false);
     }
 
 //watch for piece to exit head
@@ -1263,14 +1387,17 @@ void moveEncoders()
     
 inspectCtrlVars.encoder2FwdDir = inspectCtrlVars.encoder2Dir;
 
-//calculate the number of pixels moved using counts since the start of the piece
-int pixPosition = 
- (int)(((inspectCtrlVars.encoder2 - inspectCtrlVars.encoder2Start)
-                                      * enc2CorrFactor) / encoder2CntsPerPix);
+//calculate the position in inches
+double position = encoder2InchesPerCount *
+        (inspectCtrlVars.encoder2 - inspectCtrlVars.encoder2Start);
+
+//calculate the number of pixels moved since the last check
+int pixPosition = (int)(position * pixelsPerInch);
 
 //debug mks -- check here for passing zero point -- means pipe has backed out of
 //the system so remove segment
 
+//take absolute value so head moving in reverse works the same as forward
 pixPosition = Math.abs(pixPosition);
 
 //calculate the number of pixels moved since the last update
@@ -1318,10 +1445,9 @@ for (int ch = 0; ch < numberOfChannels; ch++){
             //another gate tied to this same trace
             tracePtr.nextIndexUpdated = true;
 
-            //the trace does not start until its distance offset from the
-            //ON_PIPE signal has reached zero
-            if (tracePtr.startOffsetDelay != 0){
-                tracePtr.startOffsetDelay--;
+            //the trace does not start until its associated sensor(s) have
+            //reached the pipe after the photo eye has detected it
+            if (tracePtr.delayDistance > position ){
                 continue;
                 }
 
@@ -1370,6 +1496,40 @@ for (int ch = 0; ch < numberOfChannels; ch++){
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Hardware::enableHeadTraceFlagging
+//
+// Enables or disables all traces for the specified head.
+//
+
+void enableHeadTraceFlagging(int pHead, boolean pEnable)
+{
+
+Trace tracePtr;
+
+for (int cg = 0; cg < chartGroups.length; cg++){
+
+    int nSC = chartGroups[cg].getNumberOfStripCharts();
+
+    for (int sc = 0; sc < nSC; sc++){
+
+        int nTr = chartGroups[cg].getStripChart(sc).getNumberOfTraces();
+
+        for (int tr = 0; tr < nTr; tr++){
+            
+            tracePtr = chartGroups[cg].getStripChart(sc).getTrace(tr);
+            
+            if ((tracePtr != null) && (tracePtr.head == pHead))
+
+                tracePtr.flaggingEnabled = pEnable;
+                
+            }//for (int tr = 0; tr < nTr; tr++)
+        }//for (int sc = 0; sc < nSC; sc++)
+    }//for (int cg = 0; cg < chartGroups.length; cg++)
+        
+}//end of Hardware::enableHeadTraceFlagging
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Hardware::initializeTraceOffsetDelays
 //
 // Sets the trace start delays so the traces don't start until their associated
@@ -1382,13 +1542,27 @@ for (int ch = 0; ch < numberOfChannels; ch++){
 // The delay is necessary because each sensor may be a different distance from
 // the photo-eye which detects the start of the pipe.
 //
+// Two sets of values are stored:
+//
+// The distance of each sensor from the front edge of its head.
+// The front edge of the head is the edge which reaches the inspection piece
+// first when the carriage is moving away from the operator's station
+// (the "forward" direction).
+//
+// The distances of Photo Eye 1 and Photo Eye 2 to the front edge of each
+// head.
+// 
+// Photo Eye 1 is the photo eye which reaches the inspection piece first when
+// the carriage is moving away from the operator's station (the "forward" 
+// direction).
+//
 
 public void initializeTraceOffsetDelays(int pDirection)
 {
 
 Trace tracePtr;
 
-int leadingTraceCatch, trailingTraceCatch;
+double leadingTraceCatch, trailingTraceCatch;
 int lead = 0, trail = 0;
 
 for (int cg = 0; cg < chartGroups.length; cg++){
@@ -1401,32 +1575,33 @@ for (int cg = 0; cg < chartGroups.length; cg++){
 
         //these used to find the leading trace (smallest offset) and the
         //trailing trace (greatest offset) for each chart
-        leadingTraceCatch = Integer.MAX_VALUE;
-        trailingTraceCatch = Integer.MIN_VALUE;
+        leadingTraceCatch = Double.MAX_VALUE;
+        trailingTraceCatch = Double.MIN_VALUE;
 
         for (int tr = 0; tr < nTr; tr++){
             
             tracePtr = chartGroups[cg].getStripChart(sc).getTrace(tr);
-
-            //start with all false, one will be set true
-            tracePtr.leadTrace = false;
-
+            
             //if the current direction is the "Away" direction, then set the
             //offsets properly for the carriage moving away from the operator
             //otherwise set them for the carriage moving towards the operator
             //see more notes in this method's header
             
             if (tracePtr != null){
+                
+                //start with all false, one will be set true
+                tracePtr.leadTrace = false;
+                
                 if (pDirection == AwayDirection) 
-                    tracePtr.startOffsetDelay = tracePtr.distanceOffsetForward;
+                    tracePtr.delayDistance = tracePtr.startFwdDelayDistance;
                 else
-                    tracePtr.startOffsetDelay = tracePtr.distanceOffsetReverse;
+                    tracePtr.delayDistance = tracePtr.startRevDelayDistance;
 
                 //find the leading and trailing traces
-                if (tracePtr.startOffsetDelay < leadingTraceCatch)
-                    {lead = tr; leadingTraceCatch = tracePtr.startOffsetDelay;}
-                if (tracePtr.startOffsetDelay > trailingTraceCatch) 
-                    {trail = tr; trailingTraceCatch = tracePtr.startOffsetDelay;}
+                if (tracePtr.delayDistance < leadingTraceCatch)
+                    {lead = tr; leadingTraceCatch = tracePtr.delayDistance;}
+                if (tracePtr.delayDistance > trailingTraceCatch) 
+                    {trail = tr; trailingTraceCatch = tracePtr.delayDistance;}
 
                 }//if (tracePtr != null)
 

@@ -63,8 +63,12 @@ public String keyLabel;
 int keyXPosition, keyYPosition;
 public Rectangle2D keyBounds;
 Color traceColor;
-public int distanceOffsetForward, distanceOffsetReverse;
-public int startOffsetDelay;
+public int head;
+public boolean flaggingEnabled = false;
+public double distanceSensorToFrontEdgeOfHead;
+public double delayDistance;
+public double startFwdDelayDistance;
+public double startRevDelayDistance;
 public int sizeOfDataBuffer;
 int dataBuffer1[];
 int dataBuffer2[];
@@ -163,11 +167,10 @@ keyYPosition = pConfigFile.readInt(section, "Key Y Position", 23);
 
 traceColor = pConfigFile.readColor(section, "Color", Color.BLACK);
 
-distanceOffsetForward =
-                   pConfigFile.readInt(section, "Distance Offset Forward", 0);
+head = pConfigFile.readInt(section, "Head", 1);
 
-distanceOffsetReverse =
-                    pConfigFile.readInt(section, "Distance Offset Reverse", 0);
+distanceSensorToFrontEdgeOfHead = pConfigFile.readDouble(section, 
+                            "Distance From Sensor to Front Edge of Head", 0.0);
 
 sizeOfDataBuffer = pConfigFile.readInt(section, "Number of Data Points", 1200);
 
@@ -1012,7 +1015,7 @@ return(lastPlotted);
 // Trace::drawUserFlag
 //
 // Draws a user flag which is a circle using the color of the most severe
-// theshold.
+// threshold.
 //
 
 void drawUserFlag(Graphics2D pG2, int xPos, int pSigHeight)

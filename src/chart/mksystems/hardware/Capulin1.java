@@ -1107,20 +1107,20 @@ for (int i = 0; i < numberOfUTBoards; i++){
     //to signal that some data is ready to be processed and the peak data should
     //be transferred
 
-    //calling processDataPacketsUntilFirstPeakPacket will also result in other
+    //calling processDataPacketsUntilPeakPacket will also result in other
     //types of packets being processed as well, such as A-Scan packets - thus
     //calling this (prepareData) function serves to handle all packet types -
     //calling it repeatedly will serve to keep incoming data packets processed,
     //the only catch being that processing will be stopped briefly when a
     //peak data packet is encountered so that the peak may be handled
 
-    //NOTE: The processDataPacketsUntilFirstPeakPacket function returns
+    //NOTE: The processDataPacketsUntiPeakPacket function returns
     //immediately if no packets are available, so the name is not entirely
     //accurate - it will not wait until the first packet is encountered if
     //there are no packets waiting.  Also, any other packet types waiting will
     //be processed even if there is no peak data packet in the queue.
 
-    if (utBoards[i].processDataPacketsUntilFirstPeakPacket() == 1)
+    if (utBoards[i].processDataPacketsUntilPeakPacket() == 1)
         atLeastOnePeakDataPacketProcessed = true;
 
     }
@@ -1174,7 +1174,7 @@ for (int i = 0; i < numberOfControlBoards; i++){
     //true to signal that some data is ready to be processed and the control
     //data should be transferred
 
-    //calling processDataPacketsUntilFirstEncoderPacket will also result in
+    //calling processDataPacketsUntilEncoderPacket will also result in
     //other types of packets being processed as well, such as flag packets -
     //thus calling this (prepareData) function serves to handle all packet
     //types - calling it repeatedly will serve to keep incoming data packets
@@ -1182,13 +1182,13 @@ for (int i = 0; i < numberOfControlBoards; i++){
     //when an encoder packet is encountered so that the encoder data may be
     //handled
 
-    //NOTE: The processDataPacketsUntilFirstEncoderPacket function returns
+    //NOTE: The processDataPacketsUntilEncoderPacket function returns
     //immediately if no packets are available, so the name is not entirely
     //accurate - it will not wait until the first packet is encountered if
     //there are no packets waiting.  Also, any other packet types waiting will
     //be processed even if there is no encoder packet in the queue.
 
-    if (controlBoards[i].processDataPacketsUntilFirstEncoderPacket() == 1)
+    if (controlBoards[i].processDataPacketsUntilEncoderPacket() == 1)
         atLeastOneEncoderPacketProcessed = true;
 
     }

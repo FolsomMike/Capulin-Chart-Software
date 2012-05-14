@@ -52,18 +52,26 @@ int controlBoardNumber;
 
 boolean onPipeFlag = false;
 boolean delayingToOnPipe = true;
-boolean delayingToInspect = true;
-boolean inspectFlag = false;
+boolean delayingToHead1Down = true;
+boolean delayingToHead2Down = true;
+boolean delayingToHead1Up = false;
+boolean delayingToHead2Up = false;
+boolean head1Down = false;
+boolean head2Down = false;
 boolean inspectMode = false;
 int simulationMode = MessageLink.STOP;
 int encoder1 = 0, encoder2 = 0;
 int encoder1DeltaTrigger, encoder2DeltaTrigger;
 int inspectPacketCount = 0;
 
-byte portA = 0, portE = 0;
+byte controlFlags = 0, portE = 0;
 
 int delayToOnPipe = 1000;
-int delayToInspect = 1000;
+int delayToHead1Down = 0;
+int delayToHead2Down = 0;
+int delayToHead1Up = 0;
+int delayToHead2Up = 0;
+
 int lengthTrack;
 
 public static int DELAY_BETWEEN_INSPECT_PACKETS = 10;
@@ -291,8 +299,10 @@ void resetAll()
 
 onPipeFlag = false;
 delayingToOnPipe = true;
-delayingToInspect = false;
-inspectFlag = false;
+delayingToHead1Down = false;
+delayingToHead2Down = false;
+head1Down = false;
+head2Down = false;
 encoder1 = 0; encoder2 = 0;
 inspectPacketCount = 0;
 
@@ -357,19 +367,54 @@ if (delayingToOnPipe){
     else {
         onPipeFlag = true;
         delayingToOnPipe = false;
-        delayingToInspect = true;
-        delayToInspect = 10;
-        lengthTrack = 300;
+        delayingToHead1Down = true;
+        delayingToHead2Down = true;
+        delayToHead1Down = 100;
+        delayToHead2Down = 200;
+        lengthTrack = 600;
         }
     }
 
 //after timeout, simulate head reaching drop down point of tube by setting flag
-//this is when inspection actually begins
-if (delayingToInspect){
-    if (delayToInspect != 0){delayToInspect--;}
+//this is when trace threshold violation flagging can begin for that head
+if (delayingToHead1Down){
+    if (delayToHead1Down != 0){delayToHead1Down--;}
     else {
-        inspectFlag = true;
-        delayingToInspect = false;
+        head1Down = true;
+        delayingToHead1Down = false;
+        delayToHead1Up = 200;
+        delayingToHead1Up = true;
+
+        }
+    }
+
+//after timeout, simulate head reaching drop down point of tube by setting flag
+//this is when trace threshold violation flagging can begin for that head
+if (delayingToHead2Down){
+    if (delayToHead2Down != 0){delayToHead2Down--;}
+    else {
+        head2Down = true;
+        delayingToHead2Down = false;
+        delayToHead2Up = 200;
+        delayingToHead2Up = true;        
+        }
+    }
+
+//after head drop, simulate head reaching pull up point
+if (delayingToHead1Up){
+    if (delayToHead1Up != 0){delayToHead1Up--;}
+    else {
+        head1Down = false;
+        delayingToHead1Up = false;
+        }
+    }
+
+//after head drop, simulate head reaching pull up point
+if (delayingToHead2Up){
+    if (delayToHead2Up != 0){delayToHead2Up--;}
+    else {
+        head2Down = false;
+        delayingToHead2Up = false;
         }
     }
 
@@ -381,14 +426,18 @@ if (onPipeFlag){
         } 
     }
 
+//start with all control flags set to 0
+controlFlags = (byte)0x00;
+//start with portE bits set to 1, they are changed to zero if input is active
+portE = (byte)0xff;
 
-//start with all port inputs set to 1
-portA = (byte)0xff; portE = (byte)0xff;
-
-//set appropriate bit low for each flag which is active low
+//set appropriate bit high for each flag which is active low
 if (onPipeFlag)
-    portA = (byte)(portA & ~ControlBoard.ON_PIPE_MASK);
-if (inspectFlag) portA = (byte)(portA & ~ControlBoard.INSPECT_MASK);
+    controlFlags = (byte)(controlFlags | ControlBoard.ON_PIPE_CTRL);
+if (head1Down) 
+    controlFlags = (byte)(controlFlags | ControlBoard.HEAD1_DOWN_CTRL);
+if (head2Down) 
+    controlFlags = (byte)(controlFlags | ControlBoard.HEAD2_DOWN_CTRL);
 
 //move the encoders the amount expected by the host
 encoder1 += encoder1DeltaTrigger;
@@ -417,7 +466,7 @@ outBuffer[x++] = (byte)((encoder2 >> 8) & 0xff);
 outBuffer[x++] = (byte)(encoder2 & 0xff);
 
 
-outBuffer[x++] = portA;
+outBuffer[x++] = controlFlags;
 outBuffer[x++] = portE;
 
 //send packet to the host

@@ -43,7 +43,8 @@ public int encoder2Dir = INCREASING;
 public int encoder2FwdDir;
 
 public boolean onPipeFlag = false;
-public boolean inspectFlag = false;
+public boolean head1Down = false;
+public boolean head2Down = false;
 public boolean tdcFlag = false;
 
 }//end of class InspectControlVars

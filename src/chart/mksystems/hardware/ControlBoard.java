@@ -47,7 +47,6 @@ int pktID;
 boolean encoderDataPacketProcessed = false;
 boolean reSynced;
 int reSyncCount = 0, reSyncPktID;
-int timeOutProcess = 0; //use this one in the packet process functions
 int timeOutWFP = 0; //used by processDataPackets
 
 boolean newInspectPacketReady = false;
@@ -59,12 +58,15 @@ int encoder1Dir, encoder2Dir;
 int inspectPacketCount = 0;
 
 boolean onPipeFlag = false;
-boolean inspectFlag = false;
+boolean inspectControlFlag = false;
+boolean head1Down = false;
+boolean head2Down = false;
 boolean tdcFlag = false;
 boolean unused1Flag = false;
 boolean unused2Flag = false;
 boolean unused3Flag = false;
 byte controlPortA, controlPortE;
+byte controlFlags;
 
 //number of counts each encoder moves to trigger an inspection data packet
 //these values are read later from the config file
@@ -107,9 +109,20 @@ static int RUNTIME_PACKET_SIZE = 2048;
 static byte UNUSED1_MASK = (byte)0x10;	// bit on Port A
 static byte UNUSED2_MASK = (byte)0x20;	// bit on Port A
 static byte INSPECT_MASK = (byte)0x40;	// bit on Port A
-static byte ON_PIPE_MASK = (byte)0x80;	// bit on Port A
+static byte ON_PIPE_MASK = (byte)0x80;	// bit on Port A ??no longer true??
 static byte TDC_MASK = (byte)0x01;    	// bit on Port E
 static byte UNUSED3_MASK = (byte)0x20;	// bit on Port E
+
+//Masks for the Control Board command flags
+
+static byte ON_PIPE_CTRL =      (byte)0x01;
+static byte HEAD1_DOWN_CTRL =   (byte)0x02;
+static byte HEAD2_DOWN_CTRL =   (byte)0x04;
+static byte UNUSED1_CTRL =      (byte)0x08;
+static byte UNUSED2_CTRL =      (byte)0x10;
+static byte UNUSED3_CTRL =      (byte)0x20;
+static byte UNUSED4_CTRL =      (byte)0x40;
+static byte UNUSED5_CTRL =      (byte)0x80;
 
 //-----------------------------------------------------------------------------
 // UTBoard::UTBoard (constructor)
@@ -403,7 +416,7 @@ sendBytes2(GET_INSPECT_PACKET_CMD, (byte) 0);
 //-----------------------------------------------------------------------------
 // ControlBoard::processInspectPacket
 //
-// Processes and Inspect packet from the remote with flags and encoder values.
+// Processes an Inspect packet from the remote with flags and encoder values.
 //
 // Returns number of bytes retrieved from the socket.
 //
@@ -461,15 +474,22 @@ try{
     prevEncoder1 = encoder1; prevEncoder2 = encoder2;
 
     //transfer the status of the Control board input ports
-    controlPortA = inBuffer[x++];
+    controlFlags = inBuffer[x++];
     controlPortE = inBuffer[x++];
 
-    if ((controlPortA & ON_PIPE_MASK) == 0)
+    //control flags are active high
+    
+    if ((controlFlags & ON_PIPE_CTRL) != 0)
         onPipeFlag = true; else onPipeFlag = false;
 
-    if ((controlPortA & INSPECT_MASK) == 0)
-        inspectFlag = true; else inspectFlag = false;
+    if ((controlFlags & HEAD1_DOWN_CTRL) != 0)
+        head1Down = true; else head1Down = false;
 
+    if ((controlFlags & HEAD2_DOWN_CTRL) != 0)
+        head2Down = true; else head2Down = false;
+
+    //port E inputs are active low
+    
     if ((controlPortE & TDC_MASK) == 0)
         tdcFlag = true; else tdcFlag = false;
 
@@ -646,9 +666,9 @@ return true;
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// ControlBoard::processDataPacketsUntilFirstEncoderPacket
+// ControlBoard::processDataPacketsUntilEncoderPacket
 //
-// Processes incoming data packets until the first Encoder data packet has been
+// Processes incoming data packets until an Encoder data packet has been
 // processed.
 //
 // Returns 1 if an Encoder data packet has been processed, -1 if all available
@@ -657,7 +677,7 @@ return true;
 // See processOneDataPacket notes for more info.
 //
 
-public int processDataPacketsUntilFirstEncoderPacket()
+public int processDataPacketsUntilEncoderPacket()
 {
 
 int x = 0;
@@ -675,7 +695,7 @@ while ((x = processOneDataPacket(false, TIMEOUT)) > 0
 if (encoderDataPacketProcessed == true) return 1;
 else return -1;
 
-}//end of ControlBoard::processDataPacketsUntilFirstEncoderPacket
+}//end of ControlBoard::processDataPacketsUntilEncoderPacket
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -841,7 +861,9 @@ public void getInspectControlVars(InspectControlVars pICVars)
 
 pICVars.onPipeFlag = onPipeFlag;
 
-pICVars.inspectFlag = inspectFlag;
+pICVars.head1Down = head1Down;
+
+pICVars.head2Down = head2Down;
 
 pICVars.encoder1 = encoder1; pICVars.prevEncoder1 = prevEncoder1;
 
@@ -910,7 +932,7 @@ return mechSimulator.xmtMessage(pMessage, pValue);
 
 public boolean getOnPipeFlag(){return onPipeFlag;}
 
-public boolean getInspectFlag(){return inspectFlag;}
+public boolean getInspectFlag(){return false;} //replace this???
 
 public boolean getNewInspectPacketReady(){return newInspectPacketReady;}
 
@@ -933,12 +955,13 @@ private void configure(IniFile pConfigFile)
 inBuffer = new byte[RUNTIME_PACKET_SIZE];
 outBuffer = new byte[RUNTIME_PACKET_SIZE];
 
+//debug mks -- calculate this delta to give one packet per pixel????
 
 encoder1DeltaTrigger = 
-          pConfigFile.readInt("Hardware", "Encoder 1 Delta Count Trigger", 553);
+          pConfigFile.readInt("Hardware", "Encoder 1 Delta Count Trigger", 166);
 
 encoder2DeltaTrigger = 
-          pConfigFile.readInt("Hardware", "Encoder 2 Delta Count Trigger", 553);
+          pConfigFile.readInt("Hardware", "Encoder 2 Delta Count Trigger", 166);
 
 }//end of ControlBoard::configure
 //-----------------------------------------------------------------------------

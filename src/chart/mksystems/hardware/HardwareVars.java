@@ -45,6 +45,8 @@ boolean waitForOffPipe = false;
 boolean waitForOnPipe = false;
 boolean waitForInspectStart = false;
 boolean watchForOffPipe = false;
+boolean head1Down = false;
+boolean head2Down = false;
 
 //used to track count from photo eye clear to end of piece
 public int endOfPieceTracker;
