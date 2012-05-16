@@ -541,6 +541,7 @@ calChannels = new Channel[numberOfChannels];
 
 //create after hardware object created
 calWindow = new UTCalibrator(mainFrame, hardware, globals);
+calWindow.init();
 
 globals.configure(configFile);
 

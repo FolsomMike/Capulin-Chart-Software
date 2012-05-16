@@ -21,7 +21,7 @@ package chart;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.Hashtable;
+import java.util.*;
 import java.awt.font.TextAttribute;
 
 import chart.mksystems.globals.Globals;
@@ -41,11 +41,13 @@ import chart.mksystems.hardware.UTBoard;
 public class UTCalibrator extends JDialog implements ActionListener, 
          WindowListener, MouseListener, MouseMotionListener, ComponentListener{
 
+JFrame frame;
 public Oscilloscope scope1;
 JPanel channelSelector, copyPanel;
 JButton minMax, viewIP;
 Globals globals;
 
+CopyItemSelector copyItemSelector;
 public int currentChannelIndex=0;
 int numberOfChannels; //number of channels in the current group (chart)
 int numberOfChannelsInSystem; //number of all channels in the system
@@ -75,10 +77,20 @@ public UTCalibrator(JFrame pFrame, Hardware pHardware, Globals pGlobals)
 
 super(pFrame, "Calibration");
 
+frame = pFrame; hardware = pHardware; globals = pGlobals;
+
+}//end of UTCalibrator::UTCalibrator (constructor)
+//-----------------------------------------------------------------------------    
+
+//-----------------------------------------------------------------------------
+// UTCalibrator::init
+//
+
+public void init()
+{
+    
 addWindowListener(this);
 addComponentListener(this);
-
-hardware = pHardware; globals = pGlobals;
 
 //create red and black fonts for use with display objects
 Hashtable<TextAttribute, Object> map =
@@ -141,7 +153,12 @@ alarms.add(viewIP);
 scopeAndAlarms.add(alarms);
 panel.add(scopeAndAlarms);
 
-utControls = new UTControls(pFrame, scope1.getOscopeCanvas(), hardware);
+//create the window used to display items selected for copying
+copyItemSelector = new CopyItemSelector(frame);
+
+utControls = new UTControls(frame, scope1.getOscopeCanvas(), hardware, 
+                                                       copyItemSelector, this);
+utControls.init();
 utControls.setAlignmentX(Component.LEFT_ALIGNMENT);
 panel.add(utControls);
 
@@ -149,7 +166,26 @@ contentPane.add(panel);
 
 pack();
 
-}//end of UTCalibrator::UTCalibrator (constructor)
+}//end of UTCalibrator::init
+//-----------------------------------------------------------------------------    
+
+//-----------------------------------------------------------------------------
+// UTCalibrator::setCopyItemsWindowLocation
+//
+// This method sets the screen position of the window.  This must be done
+// each time it is displayed because it is best placed to the right of the
+// calibrator window which changes size depending on its contents.
+//
+
+public void setCopyItemsWindowLocation()
+{
+    
+//set the position of the "Copy Items" window so that it is to the right of the
+//calibrator window
+
+copyItemSelector.setLocation(getWidth(), 0);
+
+}//end of UTCalibrator::setCopyItemsWindowLocation
 //-----------------------------------------------------------------------------    
 
 //-----------------------------------------------------------------------------
@@ -498,14 +534,29 @@ copyToAllHelper(channels[currentChannelIndex], allChannels,
 //
 // Copies the info from channel in pSource to the channel in pDestination.
 //
+// If pCopyAll is true, all settings are copied.  If false, only the values
+// fromt the controls whose Name variable is included in pCopyList will be
+// copied.
+//
+// If the "Copy All Parameters" item is checked in the CopyItemSelector
+// window, pCopyAll will be forced true.
+//
 // WARNING:  The source and destination channels must have the same number and
 // types of gates.
 //
 
-public void copyChannel(Channel pSource, Channel pDestination)
+public void copyChannel(Channel pSource, Channel pDestination,
+                                                            boolean pCopyAll)
 {
 
+//if the user has selected to copy everything, then force pCopyAll to true    
+if(copyItemSelector.getItemState("Copy All Parameters"))
+    pCopyAll = true;
+    
 int numberOfGates, numberOfDACGates;
+
+//set the pForceUpdate flags false in each call to copy values so that the
+//values are only sent to the DSPs if they are altered
 
 //get the number of gates for the channel - note that all channels in the
 //destination group should have the same number of channels for this to work
@@ -521,25 +572,36 @@ numberOfDACGates = pSource.getNumberOfDACGates();
 // all setting / sending functions are synchronized so the value setting and
 // flag setting/clearing by different threads is protected against collision
 
+Gate sGate;
 
 //copy the gate info for all gates of the channels
 for (int g = 0; g < numberOfGates; g++){
 
-    pDestination.setGateStart(g, pSource.getGateStart(g), false);
-    pDestination.setGateStartTrackingOn(
-                                g, pSource.getGateStartTrackingOn(g));
-    pDestination.setGateStartTrackingOff(
-                                g, pSource.getGateStartTrackingOff(g));
-    pDestination.setGateWidth(g, pSource.getGateWidth(g), false);
-    pDestination.setGateLevel(g, pSource.getGateLevel(g), false);
-    pDestination.setGateHitCount(g, pSource.getGateHitCount(g), false);
-    pDestination.setGateMissCount(g, pSource.getGateMissCount(g),
-                                                                     false);
+    sGate = pSource.getGate(g);
+     
+    if(pCopyAll || itemCopySelected(sGate.gateStartAdjuster)){
+        pDestination.setGateStart(g, pSource.getGateStart(g), false);
+        pDestination.setGateStartTrackingOn(
+                                        g, pSource.getGateStartTrackingOn(g));        
+        pDestination.setGateStartTrackingOff(
+                                        g, pSource.getGateStartTrackingOff(g));
+    }
+    
+    if(pCopyAll || itemCopySelected(sGate.gateWidthAdjuster))
+        pDestination.setGateWidth(g, pSource.getGateWidth(g), false);
+    if(pCopyAll || itemCopySelected(sGate.gateLevelAdjuster))     
+        pDestination.setGateLevel(g, pSource.getGateLevel(g), false);
+    if(pCopyAll || itemCopySelected(sGate.gateHitCountAdjuster))
+        pDestination.setGateHitCount(g, pSource.getGateHitCount(g), false);
+    if(pCopyAll || itemCopySelected(sGate.gateMissCountAdjuster))
+        pDestination.setGateMissCount(g, pSource.getGateMissCount(g), false);
     }
 
 //copy the DAC gate info
-for (int dg = 0; dg < numberOfDACGates; dg++){
-    pDestination.copyGate(dg, pSource.dacGates[dg]);
+if(pCopyAll || copyItemSelector.getItemState("DAC")){
+    for (int dg = 0; dg < numberOfDACGates; dg++)
+        pDestination.copyGate(dg, pSource.dacGates[dg]);
+    pDestination.setDACEnabled(pSource.getDACEnabled(), false);
     }
 
 //copy the non-gate info for the channels
@@ -547,24 +609,28 @@ for (int dg = 0; dg < numberOfDACGates; dg++){
 //always set range after setting gate position or width, delay and interface
 //tracking as these affect the range
 
-//set the pForceUpdate flags false so that the values are only sent to the
-//DSPs if they have changed
-
 //wip mks -- need to convert into synced functions
 
-pDestination.setSoftwareGain(pSource.getSoftwareGain(), false);
-pDestination.setDelay(pSource.getDelay(), false);
-pDestination.setInterfaceTracking(pSource.getInterfaceTracking(),
-                                                                    false);
-pDestination.setRange(pSource.getRange(), false);
-pDestination.setMode(pSource.getMode(), false);
-pDestination.setHardwareGain(pSource.getHardwareGain1(),
+if(pCopyAll || copyItemSelector.getItemState("Gain"))
+    pDestination.setSoftwareGain(pSource.getSoftwareGain(), false);
+if(pCopyAll || copyItemSelector.getItemState("Delay"))
+    pDestination.setDelay(pSource.getDelay(), false);
+if(pCopyAll || copyItemSelector.getItemState("Range"))
+    pDestination.setRange(pSource.getRange(), false);
+if(pCopyAll || copyItemSelector.getItemState("Interface Tracking"))
+    pDestination.setInterfaceTracking(pSource.getInterfaceTracking(), false);
+if(pCopyAll || copyItemSelector.getItemState("Signal Mode / Off"))
+    pDestination.setMode(pSource.getMode(), false);
+if(pCopyAll || copyItemSelector.getItemState("Hardware Gain"))
+    pDestination.setHardwareGain(pSource.getHardwareGain1(),
                                         pSource.getHardwareGain2(), false);
-pDestination.setRejectLevel(pSource.getRejectLevel(), false);
-pDestination.setAScanSmoothing(pSource.getAScanSmoothing(), false);
-pDestination.setDCOffset(pSource.getDCOffset(), false);
 
-pDestination.setDACEnabled(pSource.getDACEnabled(), false);
+if(pCopyAll || copyItemSelector.getItemState("Reject Level"))
+    pDestination.setRejectLevel(pSource.getRejectLevel(), false);
+if(pCopyAll || copyItemSelector.getItemState("AScan Smoothing"))
+    pDestination.setAScanSmoothing(pSource.getAScanSmoothing(), false);
+if(pCopyAll || copyItemSelector.getItemState("DC Offset"))
+    pDestination.setDCOffset(pSource.getDCOffset(), false);
 
 //updates the channel number color to match the channel's on/off state
 //if all system channels are being copied, not all of those channels will
@@ -575,7 +641,29 @@ if (pDestination.calRadioButton != null)
     
 }//end of UTCalibrator::copyChannel
 //-----------------------------------------------------------------------------
-    
+
+//-----------------------------------------------------------------------------
+// UTCalibrator::itemCopySelected
+//
+// Returns true if the item has been selected for copying, false if not.
+// An item has been selected for copying if it has been added to the
+// CopyItemSelector window.
+//
+// Also returns false if pObject is null.
+//
+
+boolean itemCopySelected(Object pObject)
+{
+
+if ((pObject != null) && 
+        copyItemSelector.getItemState(((Component)pObject).getName()))
+    return(true);
+else    
+    return(false);
+
+}//end of UTCalibrator::itemCopySelected
+//-----------------------------------------------------------------------------
+
 //-----------------------------------------------------------------------------
 // UTCalibrator::copyToAllHelper
 //
@@ -595,7 +683,7 @@ public void copyToAllHelper(Channel pSource, Channel[] pDestChannels,
 
 for (int ch = 0; ch < pNumDestChannels; ch++){
 
-    copyChannel(pSource, pDestChannels[ch]);
+    copyChannel(pSource, pDestChannels[ch], false);
     
     }// for (int ch = 0; ch < pNumDestChannels; ch++)
 
@@ -799,6 +887,11 @@ if (e.getActionCommand().equals("Copy")){
     copyPanel.setMaximumSize(new Dimension(Short.MAX_VALUE, 
         copyPanel.getPreferredSize().height));
     pack(); //resize the window
+    //adjust the size of the "Copy Items" window
+    setCopyItemsWindowLocation();
+    //call with blank string so window is opened and "Copy All Parameters"
+    //option is displayed
+    copyItemSelector.addItem("");
     return;
     }
     
@@ -821,7 +914,14 @@ if (e.getActionCommand().equals("Cancel Copy")){
     //set new max height to account for the now hidden button and spacer
     copyPanel.setMaximumSize(new Dimension(Short.MAX_VALUE, 
         copyPanel.getPreferredSize().height));    
+
+    //remove all items selected for copying and hide the window
+    copyItemSelector.removeAll();
+    copyItemSelector.setVisible(false);
+
+    
     pack(); //resize the window
+    
     return;
     }
 
@@ -832,7 +932,7 @@ if (e.getActionCommand().equals("Copy to This Channel")){
     //stored in its name -- copy from the currently selected (by radio button)
     //channel to the channel for which the "<" button was clicked
     copyChannel(channels[currentChannelIndex], 
-            channels[Integer.valueOf(((Component)e.getSource()).getName())]);
+        channels[Integer.valueOf(((Component)e.getSource()).getName())], false);
   
     return;
     }
@@ -873,6 +973,8 @@ if (e.getActionCommand().equals("Min / Max")){
         }
 
     pack(); //force resizing of the window
+    //adjust the size of the "Copy Items" window
+    setCopyItemsWindowLocation();
     repaint();
     return;
     }
@@ -1020,7 +1122,7 @@ if (e.getComponent().getName().equals("Oscope Canvas"))
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTCalibrator::mouseRelease
+// UTCalibrator::mouseReleased
 //
 // Responds when the mouse button is release while over a component which is
 // listening to the mouse.

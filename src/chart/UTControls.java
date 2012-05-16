@@ -80,7 +80,8 @@ public JLabel unitsLabel;
 
 public SpinnerPanel(double pValue, double pMin,
                      double pMax, double pIncrement, String pFormatPattern,
-                   int pWidth, int pHeight, String pDescription, String pUnits)
+                   int pWidth, int pHeight, String pDescription, String pUnits,
+                   String pName, MouseListener pMouseListener)
 {
 
 setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
@@ -91,10 +92,42 @@ descriptionLabel.setToolTipText(pDescription);
 add (spinner = new MFloatSpinner(
               pValue, pMin, pMax, pIncrement, pFormatPattern, pWidth, pHeight));
 
+spinner.setName(pName);
+
+//watch for right mouse clicks
+setSpinnerNameAndMouseListener(spinner, spinner.getName(), pMouseListener);        
+
 add(unitsLabel = new JLabel(pUnits));
 unitsLabel.setToolTipText(pUnits);
 
 }//end of SpinnerPanel::SpinnerPanel (constructor for doubles)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SpinnerPanel::setSpinnerNameAndMouseListener
+//
+// A mouse listener cannot be added directly to a JSpinner or its sub-classes.
+// The listener must be added to the text field inside the spinner to work
+// properly.  This function also sets the name of the text field so that the
+// mouse listener response method can use it.
+//
+
+private void setSpinnerNameAndMouseListener(JSpinner pSpinner, String pName,
+                                                   MouseListener pMouseListener)
+{
+
+    for (Component child : pSpinner.getComponents()) {
+        if (child instanceof JSpinner.NumberEditor)
+            for (Component child2 : 
+                  ((javax.swing.JSpinner.NumberEditor) child).getComponents()){
+                if(pMouseListener != null)
+                    ((javax.swing.JFormattedTextField) child2).
+                                               addMouseListener(pMouseListener);
+                ((javax.swing.JFormattedTextField) child2).setName(pName);
+        }
+    }
+
+}//end of SpinnerPanel::setSpinnerNameAndMouseListener
 //-----------------------------------------------------------------------------
 
 }//end of class SpinnerPanel
@@ -109,12 +142,14 @@ unitsLabel.setToolTipText(pUnits);
 //
 
 public class UTControls extends JTabbedPane
-                        implements ItemListener, ActionListener, ChangeListener
+         implements ItemListener, ActionListener, ChangeListener, MouseListener
 {
 
 JFrame frame;
 JPanel oscopeCanvas;
 String language;
+CopyItemSelector copyItemSelector;
+UTCalibrator utCalibrator;
 
 Hardware hardware;
 Channel currentChannel;
@@ -181,8 +216,6 @@ double timeDistIncrement; //amount to increment when user clicks arrows
 
 //components on DAC tab
 
-JLabel mousePosition;
-
 JCheckBox dacLocked, dacEnabled;
 JButton deleteDACGate, deleteAllDACGates;
 
@@ -213,49 +246,64 @@ JRadioButton markerPulseButton, markerContinuousButton;
 // finish the setup.
 //
 
-public UTControls(JFrame pFrame, JPanel pOscopeCanvas, Hardware pHardware)
+public UTControls(JFrame pFrame, JPanel pOscopeCanvas, Hardware pHardware,
+                CopyItemSelector pCopyItemSelector, UTCalibrator pUTCalibrator)      
 {
 
-frame = pFrame;
-oscopeCanvas = pOscopeCanvas;
-hardware = pHardware;
-
-//create red and black fonts for use with display objects
-Hashtable<TextAttribute, Object> map =
-            new Hashtable<TextAttribute, Object>();
-blackFont = new Font("Dialog", Font.PLAIN, 12);
-map.put(TextAttribute.FOREGROUND, Color.RED);
-redFont = blackFont.deriveFont(map);
-
-//create the panels blank at this time - they will be filled in later by
-//a call to setChannel
-
-gatesTab = new JPanel();
-addTab("Gates", null, gatesTab, "Gates");
-
-signalTab = new JPanel();
-addTab("Signal", null, signalTab, "Signal");
-
-wallTab = new JPanel();
-addTab("Wall", null, wallTab, "Wall");
-
-dacTab = new JPanel();
-dacTab.setName("DAC Tab");
-addTab("DAC", null, dacTab, "DAC");
-
-chartTab = new JPanel();
-addTab("Chart", null, chartTab, "Chart");
-
-processTab = new JPanel();
-addTab("Process", null, processTab, "Gate signal processing methods.");
-
-configTab = new JPanel();
-addTab("Config", null, configTab, "Configuration");
-
-
-setSelectedIndex(0);
+    frame = pFrame;
+    oscopeCanvas = pOscopeCanvas;
+    hardware = pHardware;
+    copyItemSelector = pCopyItemSelector;
+    utCalibrator = pUTCalibrator;
 
 }//end of UTControls::UTControls (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTControls::init
+//
+
+public void init()
+{
+
+    //create red and black fonts for use with display objects
+    Hashtable<TextAttribute, Object> map =
+                new Hashtable<TextAttribute, Object>();
+    blackFont = new Font("Dialog", Font.PLAIN, 12);
+    map.put(TextAttribute.FOREGROUND, Color.RED);
+    redFont = blackFont.deriveFont(map);
+
+    //create the panels blank at this time - they will be filled in later by
+    //a call to setChannel
+
+    gatesTab = new JPanel();
+    addTab("Gates", null, gatesTab, "Gates");
+
+    signalTab = new JPanel();
+    addTab("Signal", null, signalTab, "Signal");
+
+    wallTab = new JPanel();
+    addTab("Wall", null, wallTab, "Wall");
+
+    dacTab = new JPanel();
+    dacTab.setName("DAC");
+    addTab("DAC", null, dacTab, "DAC");
+    //watch for right mouse clicks
+    dacTab.addMouseListener(this);
+
+    chartTab = new JPanel();
+    addTab("Chart", null, chartTab, "Chart");
+
+    processTab = new JPanel();
+    addTab("Process", null, processTab, "Gate signal processing methods.");
+
+    configTab = new JPanel();
+    addTab("Config", null, configTab, "Configuration");
+
+
+    setSelectedIndex(0);
+    
+}//end of UTControls::init
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -376,7 +424,6 @@ gatesTab.add(new JLabel("")); //fill blank grid spot
 
 JLabel label;
 MFloatSpinner mfSpinner;
-JComboBox jcb;
 
 //add controls for each gate of the current channel
 
@@ -394,11 +441,14 @@ for (int i=0; i < gridYCount; i++){
         label = new JLabel(currentChannel.getGate(i).title);
         label.setToolTipText(currentChannel.getGate(i).title);
         gatesTab.add(label);
-
+        
         mfSpinner = new MFloatSpinner(
              currentChannel.getGateStart(i) * timeDistMult,
                -273.0, 273.0, timeDistIncrement, timeDistDecimalPlaces, 60, -1);
+        mfSpinner.setName(label.getText() + " Gate Start");
         mfSpinner.addChangeListener(this); //monitor changes to value
+        //watch for right mouse clicks
+        setSpinnerNameAndMouseListener(mfSpinner,mfSpinner.getName(), this);        
         gatesTab.add(mfSpinner);
         //save a pointer to this adjuster in the gate object
         currentChannel.getGate(i).gateStartAdjuster = mfSpinner;
@@ -406,14 +456,20 @@ for (int i=0; i < gridYCount; i++){
         mfSpinner = new MFloatSpinner(
              currentChannel.getGateWidth(i) * timeDistMult,
                     0, 273.0, timeDistIncrement, timeDistDecimalPlaces, 60, -1);
+        mfSpinner.setName(label.getText() + " Gate Width");
         mfSpinner.addChangeListener(this); //monitor changes to value
+        //watch for right mouse clicks
+        setSpinnerNameAndMouseListener(mfSpinner,mfSpinner.getName(), this);
         gatesTab.add(mfSpinner);
         //save a pointer to this adjuster in the gate object
         currentChannel.getGate(i).gateWidthAdjuster = mfSpinner;
  
         mfSpinner = new MFloatSpinner(currentChannel.getGateLevel(i),
                                                     0, 100.0, 1, "##0", 60, -1);
+        mfSpinner.setName(label.getText() + " Gate Level");
         mfSpinner.addChangeListener(this); //monitor changes to value
+        //watch for right mouse clicks
+        setSpinnerNameAndMouseListener(mfSpinner,mfSpinner.getName(), this);
         gatesTab.add(mfSpinner);
         //save a pointer to this adjuster in the gate object
         currentChannel.getGate(i).gateLevelAdjuster = mfSpinner;
@@ -425,9 +481,10 @@ for (int i=0; i < gridYCount; i++){
             interfaceTrackingCheckBox = new JCheckBox("Track");
             interfaceTrackingCheckBox.setSelected(
                                     currentChannel.getInterfaceTracking());
-            interfaceTrackingCheckBox.setName("Interface Tracking");
             interfaceTrackingCheckBox.setActionCommand("Interface Tracking");
             interfaceTrackingCheckBox.addItemListener(this);
+            interfaceTrackingCheckBox.setName("Interface Tracking");
+            interfaceTrackingCheckBox.addMouseListener(this);
             interfaceTrackingCheckBox.setToolTipText(
             "Gates Will Follow the Interface Signal if Checked");
             gatesTab.add(interfaceTrackingCheckBox);
@@ -551,19 +608,21 @@ multiSpinnerPanel.setLayout(new GridLayout(2,2));
 //add a panel for Delay control
 multiSpinnerPanel.add(delaySpin = 
   new SpinnerPanel( currentChannel.getDelay() * timeDistMult, 0, 273.0,
-    timeDistIncrement, timeDistDecimalPlaces, 60, 23, "Delay ", timeDistLabel));
+    timeDistIncrement, timeDistDecimalPlaces, 60, 23, "Delay ", timeDistLabel,
+    "Delay", this));
 delaySpin.spinner.addChangeListener(this); //monitor changes to value
 
 //add a panel for Range control
 multiSpinnerPanel.add(rangeSpin =
   new SpinnerPanel(currentChannel.getRange() * timeDistMult, .1, 273.0,
-    timeDistIncrement, timeDistDecimalPlaces, 60, 23, "Range ", timeDistLabel));
+    timeDistIncrement, timeDistDecimalPlaces, 60, 23, "Range ", timeDistLabel,
+    "Range", this));
 rangeSpin.spinner.addChangeListener(this); //monitor changes to value
 
 //add a panel for Gain control
 multiSpinnerPanel.add(gainSpin =
             new SpinnerPanel(currentChannel.getSoftwareGain(),
-                                    0, 80, .1, "#0.0", 60, 23, "Gain ", " dB"));
+              0, 80, .1, "#0.0", 60, 23, "Gain ", " dB", "Gain", this));
 gainSpin.spinner.addChangeListener(this); //monitor changes to value
 
 //add a blank label for filler
@@ -581,23 +640,33 @@ rectificationPanel.setToolTipText("Rectification");
 posHalfRadioButton = new JRadioButton("+ Half");
 posHalfRadioButton.setToolTipText("View the positive half of the signal.");
 posHalfRadioButton.addActionListener(this);
+posHalfRadioButton.setName("Signal Mode / Off");
+posHalfRadioButton.addMouseListener(this);
 
 negHalfRadioButton = new JRadioButton("- Half");
 negHalfRadioButton.setToolTipText("View the negative half of the signal.");
 negHalfRadioButton.addActionListener(this);
+negHalfRadioButton.setName("Signal Mode / Off");
+negHalfRadioButton.addMouseListener(this);
 
 fullWaveRadioButton = new JRadioButton("Full Wave");
 fullWaveRadioButton.setToolTipText(
             "View the positive & negative halves of the signal overlapped.");
 fullWaveRadioButton.addActionListener(this);
+fullWaveRadioButton.setName("Signal Mode / Off");
+fullWaveRadioButton.addMouseListener(this);
 
 rfRadioButton = new JRadioButton("RF");
 rfRadioButton.setToolTipText("View the full signal.");
 rfRadioButton.addActionListener(this);
+rfRadioButton.setName("Signal Mode / Off");
+rfRadioButton.addMouseListener(this);
 
 offRadioButton = new JRadioButton("Off");
 offRadioButton.setToolTipText("Turn the channel off.");
 offRadioButton.addActionListener(this);
+offRadioButton.setName("Signal Mode / Off");
+offRadioButton.addMouseListener(this);
 
 ButtonGroup rectificationGroup = new ButtonGroup();
 rectificationGroup.add(posHalfRadioButton);
@@ -663,7 +732,7 @@ topLeftPanel.add(Box.createRigidArea(new Dimension(0,5))); //vertical spacer
 //add an entry for nominal wall thickness
 topLeftPanel.add(nomWallSpin = new SpinnerPanel(
         hardware.hdwVs.nominalWall, 0, 99.0,
-                              .001, "#0.000", 60, 23, "Nominal Wall ", units));
+         .001, "#0.000", 60, 23, "Nominal Wall ", units, "Nominal Wall", null));
 nomWallSpin.spinner.addChangeListener(this); //monitor changes to value
 nomWallSpin.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -672,7 +741,7 @@ topLeftPanel.add(Box.createRigidArea(new Dimension(0,5))); //vertical spacer
 //add an entry for nominal wall position on the chart
 topLeftPanel.add(nomWallPosSpin = new SpinnerPanel(
         hardware.hdwVs.nominalWallChartPosition, 0, 100, 1, "##0", 40, 23,
-                                    "Nominal Wall Position on Chart ", " %"));
+       "Nominal Wall Position on Chart ", " %", "Nominal Wall Position", null));
 nomWallPosSpin.spinner.addChangeListener(this); //monitor changes to value
 nomWallPosSpin.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -680,7 +749,8 @@ topLeftPanel.add(Box.createRigidArea(new Dimension(0,5))); //vertical spacer
 
 //add an entry for Wall chart scale
 topLeftPanel.add(wallScaleSpin = new SpinnerPanel(hardware.hdwVs.wallChartScale,
-     0, 99.0, .001, "#0.000", 60, 23, "Wall Chart Scale ", units + " per 1%"));
+     0, 99.0, .001, "#0.000", 60, 23, "Wall Chart Scale ", units + " per 1%",
+                                                    "Wall Chart Scale", null));
 wallScaleSpin.spinner.addChangeListener(this); //monitor changes to value
 wallScaleSpin.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -688,7 +758,8 @@ topLeftPanel.add(Box.createRigidArea(new Dimension(0,5))); //vertical spacer
 
 //add an entry for velocity of sound in the test piece
 topLeftPanel.add(velocitySpin = new SpinnerPanel(hardware.hdwVs.velocityUS,
-                   0, 5, .0001, "0.0000", 60, 23, "Velocity ", units + "/uS"));
+                0, 5, .0001, "0.0000", 60, 23, "Velocity ", units + "/uS", 
+                                            "Compression Wave Velocity", null));
 velocitySpin.spinner.addChangeListener(this); //monitor changes to value
 velocitySpin.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -696,8 +767,8 @@ topLeftPanel.add(Box.createRigidArea(new Dimension(0,5))); //vertical spacer
 
 //add an entry for number of multiples between wall gates
 topLeftPanel.add(numMultiplesSpin = new SpinnerPanel(
-        hardware.hdwVs.numberOfMultiples,
-                1, 10, 1, "0", 40, 23, "Multiples Between Wall Gates ", ""));
+    hardware.hdwVs.numberOfMultiples, 1, 10, 1, "0", 40, 23, 
+    "Multiples Between Wall Gates ", "", "Multiples Between Wall Gates", null));
 numMultiplesSpin.spinner.addChangeListener(this); //monitor changes to value
 numMultiplesSpin.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -773,9 +844,6 @@ label1.setAlignmentX(Component.LEFT_ALIGNMENT);
 
 panel1.setAlignmentX(Component.LEFT_ALIGNMENT);
 dacTab.add(panel1);
-
-
-dacTab.add(mousePosition = new JLabel("x,y"));
 
 deleteAllDACGates = new JButton("Delete All DAC Sections");
 deleteAllDACGates.setToolTipText("Use this button to delete all DAC sections.");
@@ -856,6 +924,8 @@ for (int i=0; i < gridYCount; i++){
         //give the spinner a name so the stateChanged function can parse
         mfSpinner.setName("Threshold Spinner " + i);
         mfSpinner.addChangeListener(this); //monitor changes to value
+        //watch for right mouse clicks
+        setSpinnerNameAndMouseListener(mfSpinner,mfSpinner.getName(), null);
         panel.add(mfSpinner);
         //save a pointer to this adjuster in the threshold object
         chart.getThreshold(i).levelAdjuster = mfSpinner;
@@ -975,14 +1045,14 @@ for (int i=0; i < gridYCount; i++){
         gate = currentChannel.getGate(i);
 
         sp = new SpinnerPanel(currentChannel.getGateHitCount(i), 0, 50, 1,
-                                                       "##0", 40, -1, "", "");
+              "##0", 40, -1, "", "", gate.title + " Gate Hit Count", this);
         sp.spinner.addChangeListener(this); //monitor changes to value
         hitMissPanel.add(sp);
         //save a pointer to this adjuster in the gate object
         gate.gateHitCountAdjuster = sp.spinner;
 
         sp = new SpinnerPanel(currentChannel.getGateMissCount(i), 0, 50, 1,
-                                                       "##0", 40, -1, "", "");
+             "##0", 40, -1, "", "", gate.title + " Gate Miss Count", this);
         sp.spinner.addChangeListener(this); //monitor changes to value
         hitMissPanel.add(sp);
         //save a pointer to this adjuster in the gate object
@@ -1015,6 +1085,8 @@ for (int i=0; i < gridYCount; i++){
         jcb.setSelectedIndex(gate.getSigProcIndex());
         jcb.setActionCommand("Signal Processing");
         jcb.addActionListener(this);
+        jcb.setName(gate.title + " Gate Signal Processing Type");
+        jcb.addMouseListener(this);
         gate.processSelector = jcb;
 
         processPanel.add(jcb);
@@ -1042,7 +1114,8 @@ for (int i=0; i < gridYCount; i++){
         gate = currentChannel.getGate(i);
 
         sp = new SpinnerPanel(currentChannel.getSigProcThreshold(i), 0, 65535,
-                                                      1, "##0", 60, -1, "", "");
+             1, "##0", 60, -1, "", "", gate.title + 
+                " Gate Signal Processing Threshold", this);
         sp.spinner.addChangeListener(this); //monitor changes to value
         thresholdPanel.add(sp);
         //save a pointer to this adjuster in the gate object
@@ -1086,8 +1159,8 @@ topLeftPanel.setAlignmentY(Component.TOP_ALIGNMENT);
 topLeftPanel.add(Box.createRigidArea(new Dimension(0,7))); //vertical spacer
 
 //add an entry for Reject
-topLeftPanel.add(rejectSpin = new SpinnerPanel(
- currentChannel.getRejectLevel(), 0, 100.0, 1, "##0", 50, 23, "Reject ", " %"));
+topLeftPanel.add(rejectSpin = new SpinnerPanel( currentChannel.getRejectLevel(),
+            0, 100.0, 1, "##0", 50, 23, "Reject ", " %", "Reject Level", this));
 rejectSpin.spinner.addChangeListener(this); //monitor changes to value
 rejectSpin.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -1095,8 +1168,8 @@ topLeftPanel.add(Box.createRigidArea(new Dimension(0,7))); //vertical spacer
 
 //add an entry for AScan Display Smoothing
 topLeftPanel.add(smoothingSpin = new SpinnerPanel(
-                currentChannel.getAScanSmoothing(), 1, 25, 1, "##0", 40, 23,
-                                                      "AScan Smoothing ", ""));
+        currentChannel.getAScanSmoothing(), 1, 25, 1, "##0", 40, 23,
+                              "AScan Smoothing ", "", "AScan Smoothing", this));
 smoothingSpin.spinner.addChangeListener(this); //monitor changes to value
 smoothingSpin.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -1105,7 +1178,7 @@ topLeftPanel.add(Box.createRigidArea(new Dimension(0,7))); //vertical spacer
 //add an entry for stage 1 hardware gain
 topLeftPanel.add(hardwareGainSpin1 = new SpinnerPanel(
                 currentChannel.getHardwareGain1(), 1, 16.0, 1, "##0", 40, 23,
-                                                 "Hardware Gain 1 ", " Vo/Vi"));
+                        "Hardware Gain 1 ", " Vo/Vi", "Hardware Gain", this));
 hardwareGainSpin1.spinner.addChangeListener(this); //monitor changes to value
 hardwareGainSpin1.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -1114,7 +1187,7 @@ topLeftPanel.add(Box.createRigidArea(new Dimension(0,7))); //vertical spacer
 //add an entry for stage 1 hardware gain
 topLeftPanel.add(hardwareGainSpin2 = new SpinnerPanel(
                 currentChannel.getHardwareGain2(), 1, 16.0, 1, "##0", 40, 23,
-                                                 "Hardware Gain 2 ", " Vo/Vi"));
+                        "Hardware Gain 2 ", " Vo/Vi", "Hardware Gain", this));
 hardwareGainSpin2.spinner.addChangeListener(this); //monitor changes to value
 hardwareGainSpin2.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -1123,7 +1196,7 @@ topLeftPanel.add(Box.createRigidArea(new Dimension(0,7))); //vertical spacer
 //add an entry for DC offset
 topLeftPanel.add(dcOffsetSpin = new SpinnerPanel(
                 currentChannel.getDCOffset(), -127, 127, 1, "##0", 60, 23,
-                                                   "DC Offset ", " mV"));
+                                    "DC Offset ", " mV", "DC Offset", this));
 dcOffsetSpin.spinner.addChangeListener(this); //monitor changes to value
 dcOffsetSpin.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -1189,7 +1262,7 @@ topRightPanel.add(Box.createRigidArea(new Dimension(0,7))); //vertical spacer
 //add an entry for velocity of shear wave sound in steel
 topRightPanel.add(velocityShearSpin = new SpinnerPanel(
                    hardware.hdwVs.velocityShearUS,
-             0, 5, .0001, "0.0000", 60, 23, "Velocity Shear ", units + "/uS"));
+    0, 5, .0001, "0.0000", 60, 23, "Velocity Shear ", units + "/uS", "", null));
 velocityShearSpin.spinner.addChangeListener(this); //monitor changes to value
 velocityShearSpin.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -1284,6 +1357,34 @@ g2.fillPolygon(xPoints, yPoints, 22);
 return new ImageIcon(imageBuffer);
 
 }//end of UTControls::createColorSwatch
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTControls::setSpinnerNameAndMouseListener
+//
+// A mouse listener cannot be added directly to a JSpinner or its sub-classes.
+// The listener must be added to the text field inside the spinner to work
+// properly.  This function also sets the name of the text field so that the
+// mouse listener response method can use it.
+//
+
+void setSpinnerNameAndMouseListener(JSpinner pSpinner, String pName,
+                                                   MouseListener pMouseListener)
+{
+
+    for (Component child : pSpinner.getComponents()) {
+        
+        if (child instanceof JSpinner.NumberEditor)
+            for (Component child2 : 
+                  ((javax.swing.JSpinner.NumberEditor) child).getComponents()){
+                ((javax.swing.JFormattedTextField) child2).
+                                               addMouseListener(pMouseListener);
+                                ((javax.swing.JFormattedTextField) child2).
+                                                                setName(pName);
+        }
+    }
+
+}//end of UTControls::setSpinnerNameAndMouseListener
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1813,6 +1914,10 @@ for (int i=0; i < numberOfDACGates; i++){
 //
 // Processes mouse button press events on the scope.
 //
+// NOTE: The actual mouse listener for this event is UTCalibrator which owns
+// the canvas.  It passes those events here.  This UTControls class serves
+// directly as a mouse listener for the controls on its window.
+//
 
 public void mousePressedOnScope(MouseEvent e)
 {
@@ -1821,7 +1926,7 @@ public void mousePressedOnScope(MouseEvent e)
 if (getSelectedComponent().getName() == null) return;
 
 //if the currently selected tab is the DAC, call associated function
-if (getSelectedComponent().getName().equals("DAC Tab"))
+if (getSelectedComponent().getName().equals("DAC"))
     handleMousePressForDAC(e);
 
 }//end of UTControls::mousePressedOnScope
@@ -1832,6 +1937,10 @@ if (getSelectedComponent().getName().equals("DAC Tab"))
 //
 // Processes mouse button release events on the scope.
 //
+// NOTE: The actual mouse listener for this event is UTCalibrator which owns
+// the canvas.  It passes those events here.  This UTControls class serves
+// directly as a mouse listener for the controls on its window.
+//
 
 public void mouseReleasedOnScope(MouseEvent e)
 {
@@ -1840,7 +1949,7 @@ public void mouseReleasedOnScope(MouseEvent e)
 if (getSelectedComponent().getName() == null) return;
 
 //if the currently selected tab is the DAC, call associated function
-if (getSelectedComponent().getName().equals("DAC Tab"))
+if (getSelectedComponent().getName().equals("DAC"))
     handleMouseReleaseForDAC(e);
 
 }//end of UTControls::mouseReleasedOnScope
@@ -1851,6 +1960,10 @@ if (getSelectedComponent().getName().equals("DAC Tab"))
 //
 // Processes mouse button press events on the scope when the DAC tab is
 // displayed.
+//
+// NOTE: The actual mouse listener for this event is UTCalibrator which owns
+// the canvas.  It passes those events here.  This UTControls class serves
+// directly as a mouse listener for the controls on its window.
 //
 
 public void handleMousePressForDAC(MouseEvent e)
@@ -1875,13 +1988,15 @@ if (e.getButton() == MouseEvent.BUTTON3) handleRightClickForDAC(e);
 // Processes mouse right click events on the scope when the DAC tab is
 // displayed.
 //
+// NOTE: The actual mouse listener for this event is UTCalibrator which owns
+// the canvas.  It passes those events here.  This UTControls class serves
+// directly as a mouse listener for the controls on its window.
+//
 
 public void handleRightClickForDAC(MouseEvent e)
 {
 
 Channel ch = currentChannel;
-
-mousePosition.setText(e.getX() + "," + e.getY());
 
 int x = e.getX();
 
@@ -1909,6 +2024,10 @@ calculateDACGateTimeLocation();
 //
 // Processes mouse left click events on the scope when the DAC tab is
 // displayed.
+//
+// NOTE: The actual mouse listener for this event is UTCalibrator which owns
+// the canvas.  It passes those events here.  This UTControls class serves
+// directly as a mouse listener for the controls on its window.
 //
 
 public void handleLeftClickForDAC(MouseEvent e)
@@ -1948,6 +2067,10 @@ deleteDACGate.setEnabled(true);
 // Processes mouse button release events on the scope when the DAC tab is
 // displayed.
 //
+// NOTE: The actual mouse listener for this event is UTCalibrator which owns
+// the canvas.  It passes those events here.  This UTControls class serves
+// directly as a mouse listener for the controls on its window.
+//
 
 public void handleMouseReleaseForDAC(MouseEvent e)
 {
@@ -1975,6 +2098,10 @@ if (e.getButton() == MouseEvent.BUTTON3) {}
 // Responds when the mouse is dragged on the scope.  If a gate has been
 // selected by clicking on its selection circle, then adjust the gate's
 // position.
+//
+// NOTE: The actual mouse listener for this event is UTCalibrator which owns
+// the canvas.  It passes those events here.  This UTControls class serves
+// directly as a mouse listener for the controls on its window.
 //
 
 public void mouseDraggedOnScope(MouseEvent e)
@@ -2035,6 +2162,71 @@ if (draggingDACGate > 0){
 }//end of UTControls::mouseDragged
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// UTCalibrator::mouseClicked
+//
+// Responds when the mouse button is release while over a component which is
+// listening to the mouse.
+//
+// NOTE: The controls which trigger this event by right click are expected to
+// be valid controls for copying between channels.  If other controls trigger
+// this event, they should be trapped and processed at the beginning of the
+// function to prevent their being added to the copy item list.
+//
+
+@Override
+public void mouseClicked(MouseEvent e)
+{
+
+    int button = e.getButton();
+
+    //catch left clicks
+    if (button == MouseEvent.BUTTON1){
+                
+        return;
+        
+    }
+    
+    //catch right clicks
+    if (button == MouseEvent.BUTTON3){
+        
+        //make sure the "Copy Items" window is displayed to the right of
+        //the calibrator window which changes size depending on its contents
+        utCalibrator.setCopyItemsWindowLocation();
+        
+        //add the item to the list of items to be copied
+        copyItemSelector.addItem(e.getComponent().getName());
+
+    //tell UTCalibrator object to display the "Copy" controls
+    utCalibrator.actionPerformed(new ActionEvent(this, 1, "Copy"));
+    
+    }
+
+}//end of UTCalibrator::mouseClicked
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTControls::(various mouse listener functions)
+//
+// These functions are implemented per requirements of interface MouseListener
+// but do nothing at the present time.  As code is added to each function, it
+// should be moved from this section and formatted properly.
+//
+
+@Override
+public void mousePressed(MouseEvent e){}
+
+@Override
+public void mouseReleased(MouseEvent e){}
+                
+@Override
+public void mouseEntered(MouseEvent e){}
+
+@Override
+public void mouseExited(MouseEvent e){}
+
+//end of UTControls::(various mouse listener functions)
+//-----------------------------------------------------------------------------
 
 //debug mks System.out.println(String.valueOf(value)); //debug mks
 
