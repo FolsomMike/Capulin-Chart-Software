@@ -1385,12 +1385,11 @@ void moveEncoders()
 //will arrive which skips a pixel.  In that case, the skipped pixels are filled
 //with data from the previous pixel.
     
-inspectCtrlVars.encoder2FwdDir = inspectCtrlVars.encoder2Dir;
-
 //calculate the position in inches
 double position = encoder2InchesPerCount *
         (inspectCtrlVars.encoder2 - inspectCtrlVars.encoder2Start);
 
+//take absolute value so head moving in reverse works the same as forward
 position = Math.abs(position);
 
 //calculate the number of pixels moved since the last check
@@ -1398,9 +1397,6 @@ int pixPosition = (int)(position * pixelsPerInch);
 
 //debug mks -- check here for passing zero point -- means pipe has backed out of
 //the system so remove segment
-
-//take absolute value so head moving in reverse works the same as forward
-pixPosition = Math.abs(pixPosition); //debug mks -- remove this?
 
 //calculate the number of pixels moved since the last update
 int pixelsMoved = pixPosition - prevPixPosition;
@@ -1461,6 +1457,14 @@ for (int ch = 0; ch < numberOfChannels; ch++){
                 if (tracePtr.beingFilledSlot == tracePtr.sizeOfDataBuffer)
                     tracePtr.beingFilledSlot = 0;
 
+                //debug mks
+                //the end of piece, near start of piece, and near endof piece
+                //tracking needs to be done separately for each trace, trigger
+                //distances need to be loaded from config, track counts (which
+                //is in pixels) needs to be converted from the inch distances
+                //for the desired effect
+                //see HardwareVars notes for more details
+                
                 //track position to find end of section at start of pipe where
                 //modifier is to be applied
                 if (hdwVs.nearStartOfPieceTracker != 0){

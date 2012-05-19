@@ -51,11 +51,6 @@ public static int controlBoardCounter = 0;
 int controlBoardNumber;
 
 boolean onPipeFlag = false;
-boolean delayingToOnPipe = true;
-boolean delayingToHead1Down = true;
-boolean delayingToHead2Down = true;
-boolean delayingToHead1Up = false;
-boolean delayingToHead2Up = false;
 boolean head1Down = false;
 boolean head2Down = false;
 boolean inspectMode = false;
@@ -66,15 +61,9 @@ int inspectPacketCount = 0;
 
 byte controlFlags = 0, portE = 0;
 
-int delayToOnPipe = 1000;
-int delayToHead1Down = 0;
-int delayToHead2Down = 0;
-int delayToHead1Up = 0;
-int delayToHead2Up = 0;
+int positionTrack;
 
-int lengthTrack;
-
-public static int DELAY_BETWEEN_INSPECT_PACKETS = 10;
+public static int DELAY_BETWEEN_INSPECT_PACKETS = 1;
 int delayBetweenPackets = DELAY_BETWEEN_INSPECT_PACKETS;
 
 //-----------------------------------------------------------------------------
@@ -297,16 +286,12 @@ return(bytesRead);
 void resetAll()
 {
 
+positionTrack = 0;    
 onPipeFlag = false;
-delayingToOnPipe = true;
-delayingToHead1Down = false;
-delayingToHead2Down = false;
 head1Down = false;
 head2Down = false;
 encoder1 = 0; encoder2 = 0;
 inspectPacketCount = 0;
-
-delayToOnPipe = 10;
 delayBetweenPackets = DELAY_BETWEEN_INSPECT_PACKETS;
 
 }//end of ControlSimulator::resetAll
@@ -354,129 +339,110 @@ return(bytesRead);
 void simulateInspection()
 {
 
-//delay between sending inspect packets to the host
-if (delayBetweenPackets-- != 0) return;
-//restart time for next packet send
-delayBetweenPackets = DELAY_BETWEEN_INSPECT_PACKETS;
+    //do nothing if in STOP mode    
+    if (simulationMode == MessageLink.STOP) return;
 
-inspectPacketCount++; //count packets sent to host
+    //delay between sending inspect packets to the host
+    if (delayBetweenPackets-- != 0) return;
+    //restart time for next packet send
+    delayBetweenPackets = DELAY_BETWEEN_INSPECT_PACKETS;
 
-//after timeout, simulate head reaching beginning of tube by setting flag
-if (delayingToOnPipe){
-    if (delayToOnPipe != 0){delayToOnPipe--;}
-    else {
-        onPipeFlag = true;
-        delayingToOnPipe = false;
-        delayingToHead1Down = true;
-        delayingToHead2Down = true;
-        delayToHead1Down = 100;
-        delayToHead2Down = 200;
-        lengthTrack = 600;
-        }
+    inspectPacketCount++; //count packets sent to host
+
+    //track distance moved by number of packets sent
+    if (simulationMode == MessageLink.FORWARD){
+        positionTrack++;
+    }
+    else
+    if (simulationMode == MessageLink.REVERSE){
+        positionTrack--;
     }
 
-//after timeout, simulate head reaching drop down point of tube by setting flag
-//this is when trace threshold violation flagging can begin for that head
-if (delayingToHead1Down){
-    if (delayToHead1Down != 0){delayToHead1Down--;}
-    else {
-        head1Down = true;
-        delayingToHead1Down = false;
-        delayToHead1Up = 200;
-        delayingToHead1Up = true;
+    //the position track will run negative if inspection is occurring in the
+    //reverse direction -- use absolute value to find trigger points for both
+    //directions
+    
+    int triggerTrack = Math.abs(positionTrack);
 
-        }
+    //after photo eye reaches piece, give "on pipe" signal
+    if (triggerTrack >= 10) onPipeFlag = true; else onPipeFlag = false;
+
+    //after head 1 reaches position, give head 1 down signal
+    if (triggerTrack >= 200) head1Down = true; else head1Down = false;
+
+    //after head 2 reaches position, give head 2 down signal
+    if (triggerTrack >= 250) head2Down = true; else head2Down = false;
+
+    //after head 1 reaches pick up position, give head 1 up signal
+    if (triggerTrack >= 610) head1Down = false;
+
+    //after head 2 reaches pick up position, give head 2 up signal
+    if (triggerTrack >= 710) head1Down = false;
+
+    //after photo eye reaches end of piece, turn off "on pipe" signal
+    if (triggerTrack >= 810) onPipeFlag = false;
+    
+    //a while after heads are up, simulate end of pipe reached
+    if (triggerTrack >= 910) resetAll();
+
+    //start with all control flags set to 0
+    controlFlags = (byte)0x00;
+    //start with portE bits = 1, they are changed to zero if input is active
+    portE = (byte)0xff;
+
+    //set appropriate bit high for each flag which is active low
+    if (onPipeFlag)
+        controlFlags = (byte)(controlFlags | ControlBoard.ON_PIPE_CTRL);
+    if (head1Down) 
+        controlFlags = (byte)(controlFlags | ControlBoard.HEAD1_DOWN_CTRL);
+    if (head2Down) 
+        controlFlags = (byte)(controlFlags | ControlBoard.HEAD2_DOWN_CTRL);
+
+    //move the encoders the forward or backward theamount expected by the host
+    if (simulationMode == MessageLink.FORWARD){
+        encoder1 += encoder1DeltaTrigger;
+        encoder2 += encoder2DeltaTrigger;
+    }
+    else
+    if (simulationMode == MessageLink.REVERSE){
+        encoder1 -= encoder1DeltaTrigger;
+        encoder2 -= encoder2DeltaTrigger;
     }
 
-//after timeout, simulate head reaching drop down point of tube by setting flag
-//this is when trace threshold violation flagging can begin for that head
-if (delayingToHead2Down){
-    if (delayToHead2Down != 0){delayToHead2Down--;}
-    else {
-        head2Down = true;
-        delayingToHead2Down = false;
-        delayToHead2Up = 200;
-        delayingToHead2Up = true;        
+    int pktSize = 12;
+    int x = 0;
+
+    sendPacketHeader(ControlBoard.GET_INSPECT_PACKET_CMD);
+
+    //send the packet count back to the host, MSB followed by LSB
+    outBuffer[x++] = (byte)((inspectPacketCount >> 8) & 0xff);
+    outBuffer[x++] = (byte)(inspectPacketCount++ & 0xff);
+
+    //place the encoder 1 values into the buffer by byte, MSB first
+    outBuffer[x++] = (byte)((encoder1 >> 24) & 0xff);
+    outBuffer[x++] = (byte)((encoder1 >> 16) & 0xff);
+    outBuffer[x++] = (byte)((encoder1 >> 8) & 0xff);
+    outBuffer[x++] = (byte)(encoder1 & 0xff);
+
+    //place the encoder 2 values into the buffer by byte, MSB first
+    //place the encoder 1 values into the buffer by byte, MSB first
+    outBuffer[x++] = (byte)((encoder2 >> 24) & 0xff);
+    outBuffer[x++] = (byte)((encoder2 >> 16) & 0xff);
+    outBuffer[x++] = (byte)((encoder2 >> 8) & 0xff);
+    outBuffer[x++] = (byte)(encoder2 & 0xff);
+
+
+    outBuffer[x++] = controlFlags;
+    outBuffer[x++] = portE;
+
+    //send packet to the host
+    if (byteOut != null)
+        try{
+            byteOut.write(outBuffer, 0 /*offset*/, pktSize);
         }
-    }
-
-//after head drop, simulate head reaching pull up point
-if (delayingToHead1Up){
-    if (delayToHead1Up != 0){delayToHead1Up--;}
-    else {
-        head1Down = false;
-        delayingToHead1Up = false;
-        }
-    }
-
-//after head drop, simulate head reaching pull up point
-if (delayingToHead2Up){
-    if (delayToHead2Up != 0){delayToHead2Up--;}
-    else {
-        head2Down = false;
-        delayingToHead2Up = false;
-        }
-    }
-
-//if on pipe, use counter to trigger a simulated end of the piece
-if (onPipeFlag){
-    if (lengthTrack != 0){lengthTrack--;}
-    else {
-        resetAll();
-        } 
-    }
-
-//start with all control flags set to 0
-controlFlags = (byte)0x00;
-//start with portE bits set to 1, they are changed to zero if input is active
-portE = (byte)0xff;
-
-//set appropriate bit high for each flag which is active low
-if (onPipeFlag)
-    controlFlags = (byte)(controlFlags | ControlBoard.ON_PIPE_CTRL);
-if (head1Down) 
-    controlFlags = (byte)(controlFlags | ControlBoard.HEAD1_DOWN_CTRL);
-if (head2Down) 
-    controlFlags = (byte)(controlFlags | ControlBoard.HEAD2_DOWN_CTRL);
-
-//move the encoders the amount expected by the host
-encoder1 += encoder1DeltaTrigger;
-encoder2 += encoder2DeltaTrigger;
-
-int pktSize = 12;
-int x = 0;
-
-sendPacketHeader(ControlBoard.GET_INSPECT_PACKET_CMD);
-
-//send the packet count back to the host, MSB followed by LSB
-outBuffer[x++] = (byte)((inspectPacketCount >> 8) & 0xff);
-outBuffer[x++] = (byte)(inspectPacketCount++ & 0xff);
-
-//place the encoder 1 values into the buffer by byte, MSB first
-outBuffer[x++] = (byte)((encoder1 >> 24) & 0xff);
-outBuffer[x++] = (byte)((encoder1 >> 16) & 0xff);
-outBuffer[x++] = (byte)((encoder1 >> 8) & 0xff);
-outBuffer[x++] = (byte)(encoder1 & 0xff);
-
-//place the encoder 2 values into the buffer by byte, MSB first
-//place the encoder 1 values into the buffer by byte, MSB first
-outBuffer[x++] = (byte)((encoder2 >> 24) & 0xff);
-outBuffer[x++] = (byte)((encoder2 >> 16) & 0xff);
-outBuffer[x++] = (byte)((encoder2 >> 8) & 0xff);
-outBuffer[x++] = (byte)(encoder2 & 0xff);
-
-
-outBuffer[x++] = controlFlags;
-outBuffer[x++] = portE;
-
-//send packet to the host
-if (byteOut != null)
-    try{
-        byteOut.write(outBuffer, 0 /*offset*/, 12);
-        }
-    catch (IOException e) {
-        System.out.println(
-                        "Control Board simulateInspection: " + e.getMessage());
+        catch (IOException e) {
+            System.out.println(
+                         "Control Board simulateInspection: " + e.getMessage());
         }
 
 }//end of ControlSimulator::simulateInspection
