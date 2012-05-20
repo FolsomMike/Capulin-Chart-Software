@@ -194,6 +194,8 @@ int interfaceStartSim =1300;
 int farReflectionStartSim = 0;
 int nearReflectionStartSim = 0;
 
+int peakSpacing;
+
 int ifaceProfileSize;
 int ifaceProfileCounter;
 int[] ifaceProfile = {10,  3,  7, 15, 17, 14, 20, 21, 18, 25,
@@ -694,8 +696,17 @@ for (int ch=0; ch<NUMBER_OF_BOARD_CHANNELS; ch++){
         //send peak flags - these need to be simulated in future code update
         sendShortInt((short)channelPeakSets[ch].peakFlags);
         
-        channelPeakSets[ch].peak = 10;
+        channelPeakSets[ch].peak = 5;
+  
+        if (peakSpacing++ == 20){
+            channelPeakSets[ch].peak = 45;
+            peakSpacing = 0;
+            };
         
+//        if(((int)(Math.random()*30)) == 1)
+//            channelPeakSets[ch].peak = 85;
+//            channelPeakSets[ch].peak = (int)(Math.random()*100);
+                
         sendShortInt((short)channelPeakSets[ch].peak);
         
         //for debugging:

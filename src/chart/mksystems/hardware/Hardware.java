@@ -53,7 +53,7 @@ double encoder1InchesPerCount;
 double encoder2InchesPerCount;
 
 int encoder1CntsPerPix, encoder2CntsPerPix;
-int pixelsPerInch;
+double pixelsPerInch;
 
 double enc1CorrFactor, enc2CorrFactor;
 int prevPixPosition;
@@ -82,6 +82,8 @@ int numberOfGates;
 
 String analogDriverName;
 String digitalDriverName;
+
+boolean manualInspectControl = false;
 
 public static int INCHES = 0, MM = 1;
 public int units = INCHES;
@@ -172,7 +174,7 @@ encoder2InchesPerCount =
     pConfigFile.readDouble("Hardware", "Encoder 2 Inches Per Count", 0.003);
 
 pixelsPerInch = 
-  pConfigFile.readInt("Hardware", "Pixels per Inch", 1);
+  pConfigFile.readDouble("Hardware", "Pixels per Inch", 1.0);
 
 //this is the number of encoder counts per screen pixel -- the packet trigger
 //sent to the Control board is often the same number so that one packet is
@@ -194,6 +196,9 @@ enc1CorrFactor =
         
 enc2CorrFactor = 
     pConfigFile.readDouble("Hardware", "Encoder 2 Correction Factor", 1.0);
+
+manualInspectControl = pConfigFile.readBoolean(
+        "Hardware", "Manual Inspection Start/Stop Control", false);
 
 if (numberOfAnalogChannels > 100) numberOfAnalogChannels = 100;
 
@@ -841,11 +846,28 @@ for (int ch = 0; ch < numberOfChannels; ch++){
         boolean channelActive = analogDriver.getNewData(ch, g, hdwVs);
 
         if (hdwVs.gatePtr.tracePtr != null)
-            if (hdwVs.gatePtr.plotStyle == TraceHdwVars.SPAN)
-                collectAnalogDataMinAndMax(hdwVs.gatePtr, channelActive);
-            else           
-                while(!collectAnalogDataMinOrMax(hdwVs.gatePtr, channelActive)){}
+            do{
+                //debug mks -- following code won't work if data starts over
+                //in circular buffer -- check of filledSlot > inProcessSlot
+                //will fail even though the former is ahead of the latter.
+                //need to track data position with a variable which never
+                //restarts even when end of buffer is reached -- buffer position
+                //would then be calculated by dividing that variable by the
+                //size of the buffer
+                
+                //collect new data and move trace forward or back it up as
+                //required by movement of inspection head -- use >= because
+                //collectAnalogDataMinOrMax must be called even if the pointers
+                //haven't moved to collect peak data which will then be written
+                //over old data in the pointer positions
+                if (hdwVs.gatePtr.tracePtr.beingFilledSlot >= 
+                                    hdwVs.gatePtr.tracePtr.inProcessSlot)
+                    collectAnalogDataMinOrMax(hdwVs.gatePtr, channelActive);
+                else
+                    backUpTraces(hdwVs.gatePtr, channelActive);
 
+            }while(hdwVs.gatePtr.tracePtr.inProcessSlot != 
+                                        hdwVs.gatePtr.tracePtr.beingFilledSlot);
         }// for (int g = 0; g < numberOfGates; g++)
 
     }// for (int ch = 0; ch < numberOfChannels; ch++)
@@ -882,22 +904,18 @@ for (int ch = 0; ch < numberOfChannels; ch++){
 // more than one position.
 //
 
-public boolean collectAnalogDataMinOrMax(Gate gatePtr, boolean pChannelActive)
+void collectAnalogDataMinOrMax(Gate gatePtr, boolean pChannelActive)
 {
 
+Trace trace = gatePtr.tracePtr;    
+    
 //only move forward if the position pointer has moved
-if(gatePtr.tracePtr.inProcessSlot != gatePtr.tracePtr.beingFilledSlot)
-    gatePtr.tracePtr.inProcessSlot++;
+if(trace.inProcessSlot != trace.beingFilledSlot) trace.inProcessSlot++;
 
 //the buffer is circular - start over at beginning
-if (gatePtr.tracePtr.inProcessSlot == gatePtr.tracePtr.sizeOfDataBuffer)
-    gatePtr.tracePtr.inProcessSlot = 0;
+if (trace.inProcessSlot == trace.sizeOfDataBuffer) trace.inProcessSlot = 0;
 
-int nextIndex = gatePtr.tracePtr.inProcessSlot; //use shorter name
-
-//check if this function has caught up to the position function pointer
-boolean caughtUp = false;
-if(nextIndex == gatePtr.tracePtr.beingFilledSlot) caughtUp = true;
+int nextIndex = trace.inProcessSlot; //use shorter name
 
 boolean dataStored = false;
         
@@ -959,10 +977,10 @@ else{
 if (dataStored && pChannelActive){
 
     //store the hardware channel from which the data was obtained
-    gatePtr.tracePtr.peakChannel = gatePtr.channelIndex;
+    trace.peakChannel = gatePtr.channelIndex;
 
     //store the wall thickness for display as a number
-    gatePtr.tracePtr.wallThickness = gatePtr.wallThickness;
+    trace.wallThickness = gatePtr.wallThickness;
 
     //store the clock position for the data in bits 8-0
     gatePtr.fBuffer[nextIndex] &= 0xfffffe00; //erase old
@@ -972,7 +990,7 @@ if (dataStored && pChannelActive){
     //index by 2 as 0 = no flag and 1 = user flag
             
     for (int j = 0; j < gatePtr.thresholds.length; j++)
-        if (gatePtr.tracePtr.flaggingEnabled && 
+        if (trace.flaggingEnabled && 
                             gatePtr.thresholds[j].checkViolation(newData)){
             //store the index of threshold violated in byte 1
             gatePtr.fBuffer[nextIndex] &= 0xffff01ff; //erase old
@@ -999,14 +1017,48 @@ if (nextIndex < gatePtr.dBuffer1.length-1){
 //endPlotSlot is always one spot behind the one being filled with data
 //adjusting it allows the plot functions to plot up to that point
 
-if (gatePtr.tracePtr.inProcessSlot == 0)
-    gatePtr.tracePtr.endPlotSlot = gatePtr.tracePtr.sizeOfDataBuffer-1;
+if (trace.inProcessSlot == 0)
+    trace.endPlotSlot = trace.sizeOfDataBuffer-1;
 else
-    gatePtr.tracePtr.endPlotSlot = gatePtr.tracePtr.inProcessSlot-1;
-
-return(caughtUp);
+    trace.endPlotSlot = trace.inProcessSlot-1;
 
 }//end of Hardware::collectAnalogDataMinOrMax
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::backUpTraces
+//
+// Handles case where system has been reversed to re-inspect a segment.
+// Trace pointers are decremented and buffers set back to default value.
+//
+// Only call this function if beingFilledSlot is less than inProcessSlot.
+//
+
+void backUpTraces(Gate gatePtr, boolean pChannelActive)
+{
+
+Trace trace = gatePtr.tracePtr;
+    
+//erase data stored in the current position
+gatePtr.dBuffer1[trace.inProcessSlot] = Integer.MAX_VALUE;
+gatePtr.fBuffer[trace.inProcessSlot] = 0;
+
+//move backward one slot
+trace.inProcessSlot--;
+
+//the buffer is circular - start over at beginning
+if (trace.inProcessSlot == -1)
+    trace.inProcessSlot = trace.sizeOfDataBuffer-1;
+
+//endPlotSlot is always one spot behind the one being filled with data
+//adjusting it allows the plot functions to plot up to that point
+
+if (trace.inProcessSlot == 0)
+    trace.endPlotSlot = trace.sizeOfDataBuffer-1;
+else
+    trace.endPlotSlot = trace.inProcessSlot-1;
+
+}//end of Hardware::backUpTraces
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1291,8 +1343,15 @@ analogDriver.getInspectControlVars(inspectCtrlVars);
 //until the head is on the pipe or pipe enters the system before moving the
 //traces
 
+// manual control option will override signals from the Control Board and
+// begin inspection immediately after the operator presses the Inspect button
+// should manual control option be removed after fixing XXtreme unit?
+
 //if waiting for piece clear of system, do nothing until flag says true
 if (hdwVs.waitForOffPipe){
+    
+    if (manualInspectControl) inspectCtrlVars.onPipeFlag = false;
+    
     if (inspectCtrlVars.onPipeFlag) return false;
     else {
         hdwVs.waitForOffPipe = false; 
@@ -1303,8 +1362,11 @@ if (hdwVs.waitForOffPipe){
         }
     }
 
+if (manualInspectControl) inspectCtrlVars.onPipeFlag = true;
+
 //if waiting for piece to enter the head, do nothing until flag says true
 if (hdwVs.waitForOnPipe){
+    
     if (!inspectCtrlVars.onPipeFlag) return false;
     else {
         hdwVs.waitForOnPipe = false; hdwVs.watchForOffPipe = true;
@@ -1319,6 +1381,11 @@ if (hdwVs.waitForOnPipe){
         prevPixPosition = 0;
         }
     }
+
+if (manualInspectControl){
+    inspectCtrlVars.head1Down = true;
+    inspectCtrlVars.head2Down = true;    
+}
 
 //if head 1 is up and goes down, enable flagging for all traces on head 1
 if (!hdwVs.head1Down && inspectCtrlVars.head1Down){
@@ -1439,66 +1506,148 @@ for (int ch = 0; ch < numberOfChannels; ch++){
 
         if (tracePtr != null && tracePtr.nextIndexUpdated == false){
 
-            //set flag so this trace's index won't be updated again by
-            //another gate tied to this same trace
-            tracePtr.nextIndexUpdated = true;
-
-            //the trace does not start until its associated sensor(s) have
-            //reached the pipe after the photo eye has detected it
-            if (tracePtr.delayDistance > position ){
-                continue;
-                }
-
-            for (int x = 0; x < pixelsMoved; x++){
+            if (pixelsMoved > 0)
+                moveTracesForward(tracePtr, pixelsMoved, position);
+            else
+                moveTracesBackward(tracePtr, Math.abs(pixelsMoved), position);
             
-                tracePtr.beingFilledSlot++;
-
-                //the buffer is circular - start over at beginning
-                if (tracePtr.beingFilledSlot == tracePtr.sizeOfDataBuffer)
-                    tracePtr.beingFilledSlot = 0;
-
-                //debug mks
-                //the end of piece, near start of piece, and near endof piece
-                //tracking needs to be done separately for each trace, trigger
-                //distances need to be loaded from config, track counts (which
-                //is in pixels) needs to be converted from the inch distances
-                //for the desired effect
-                //see HardwareVars notes for more details
-                
-                //track position to find end of section at start of pipe where
-                //modifier is to be applied
-                if (hdwVs.nearStartOfPieceTracker != 0){
-                    hdwVs.nearStartOfPieceTracker--;                
-                    }
-                else{
-                    hdwVs.nearStartOfPiece = false;
-                    }
-                
-                if (hdwVs.trackToNearEndofPiece){                
-                    if (hdwVs.nearEndOfPieceTracker != 0){
-                        hdwVs.nearEndOfPieceTracker--;                
-                        }
-                    else{
-                        hdwVs.nearEndOfPiece = true;
-                        }
-                    }
-
-                if (hdwVs.trackToEndOfPiece){                
-                    if (hdwVs.endOfPieceTracker != 0){
-                        hdwVs.endOfPieceTracker--;                
-                        }
-                    else{
-                    //set flag to force preparation for a new piece
-                    globals.prepareForNewPiece = true;
-                        }
-                    }
-                              
-                }//for (int x = 0; x < pixelsMoved; x++){
-            }
+            }//if (tracePtr != null...
         }// for (int g = 0; g < numberOfGates; g++)
     }// for (int ch = 0; ch < numberOfChannels; ch++)
 
 }//end of Hardware::moveEncoders
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::moveTracesForward
+//
+// Moves the trace pointers forward to respond to forward inspection direction.
+//
+// Parameter pTrace is the trace to be updated.
+//
+// Parameter pPixelsMoved is the number of pixels the trace is to be moved.
+//
+// Parameter pPosition is the position of the head or inspection piece as
+// measured from the point where the photo eye was blocked.
+//
+
+void moveTracesForward(Trace pTrace, int pPixelsMoved, double pPosition)
+{
+
+//set flag so this trace's index won't be updated again by
+//another gate tied to this same trace
+pTrace.nextIndexUpdated = true;
+
+//the trace does not start until its associated sensor(s) have
+//reached the pipe after the photo eye has detected it
+if (pTrace.delayDistance > pPosition )return;
+
+for (int x = 0; x < pPixelsMoved; x++){
+
+    pTrace.beingFilledSlot++;
+
+    //the buffer is circular - start over at beginning
+    if (pTrace.beingFilledSlot == pTrace.sizeOfDataBuffer)
+        pTrace.beingFilledSlot = 0;
+
+    //debug mks
+    //the end of piece, near start of piece, and near endof piece
+    //tracking needs to be done separately for each trace, trigger
+    //distances need to be loaded from config, track counts (which
+    //is in pixels) needs to be converted from the inch distances
+    //for the desired effect
+    //see HardwareVars notes for more details
+
+    //track position to find end of section at start of pipe where
+    //modifier is to be applied
+    if (hdwVs.nearStartOfPieceTracker != 0){
+        hdwVs.nearStartOfPieceTracker--;                
+        }
+    else{
+        hdwVs.nearStartOfPiece = false;
+        }
+
+    if (hdwVs.trackToNearEndofPiece){                
+        if (hdwVs.nearEndOfPieceTracker != 0){
+            hdwVs.nearEndOfPieceTracker--;                
+            }
+        else{
+            hdwVs.nearEndOfPiece = true;
+            }
+        }
+
+    if (hdwVs.trackToEndOfPiece){                
+        if (hdwVs.endOfPieceTracker != 0){
+            hdwVs.endOfPieceTracker--;                
+            }
+        else{
+        //set flag to force preparation for a new piece
+        globals.prepareForNewPiece = true;
+            }
+        }
+
+    }//for (int x = 0; x < pixelsMoved; x++){
+
+}//end of Hardware::moveTracesForward
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::moveTracesBackward
+//
+// Moves the trace pointers backward to respond to system being reversed.
+// This is not to be confused with inspecting in the reverse direction.
+// Inspection can occur in either directon.  This code handles cases where the
+// head or piece is backed up for the current inspection forward direction to
+// re-inspect a segment.
+//
+// Parameter pTrace is the trace to be updated.
+//
+// Parameter pPixelsMoved is the number of pixels the trace is to be moved and
+// should always be positive.
+//
+// Parameter pPosition is the position of the head or inspection piece as
+// measured from the point where the photo eye was blocked.
+//
+
+void moveTracesBackward(Trace pTrace, int pPixelsMoved, double pPosition)
+{
+
+//set flag so this trace's index won't be updated again by
+//another gate tied to this same trace
+pTrace.nextIndexUpdated = true;
+
+//the trace does not start until its associated sensor(s) have
+//reached the pipe after the photo eye has detected it
+if (pTrace.delayDistance > pPosition )return;
+
+for (int x = 0; x < pPixelsMoved; x++){
+
+    pTrace.beingFilledSlot--;
+
+    //the buffer is circular - start over at end
+    if (pTrace.beingFilledSlot == -1)
+        pTrace.beingFilledSlot = pTrace.sizeOfDataBuffer - 1;
+
+    //currently, the nearStartOfPiece and nearEndOfPiece conditions are not
+    //tracked in reverse -- should probably be fixed just in case reversing
+    //occurs in these areas
+    
+    //if tracking to the end of the piece after end of piece photo eye signal,
+    //reverse this process
+
+    if (hdwVs.trackToEndOfPiece){                
+        if (hdwVs.endOfPieceTracker != hdwVs.endOfPiecePosition){
+            hdwVs.endOfPieceTracker++;                
+            }
+        else{
+            //original trigger point passed, so no longer near end
+            hdwVs.trackToEndOfPiece = false;
+            }
+        }
+
+    }//for (int x = 0; x < pixelsMoved; x++){
+
+}//end of Hardware::moveTracesBackward
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1614,6 +1763,7 @@ for (int cg = 0; cg < chartGroups.length; cg++){
             }//for (int tr = 0; tr < nTr; tr++)
 
             chartGroups[cg].getStripChart(sc).getTrace(lead).leadTrace = true;
+            chartGroups[cg].getStripChart(sc).getTrace(trail).trailTrace = true;
             chartGroups[cg].getStripChart(sc).setLeadTrailTraces(lead, trail);
 
         }//for (int sc = 0; sc < nSC; sc++)

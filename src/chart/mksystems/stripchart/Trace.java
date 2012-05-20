@@ -56,6 +56,7 @@ PlotVars plotVs, repaintVs;
 TraceHdwVars hdwVs;
 int gridXSpacing, gridXSpacingT;
 public boolean leadTrace = false;
+public boolean trailTrace = false;
 
 String title;
 String shortTitle;
@@ -828,7 +829,11 @@ segmentStartCounter++;
 //plot the new point, using the plotVs variable set - this variable set tracks
 //new data to be plotted
 
-return plotPoint(pG2, plotVs);
+if (endPlotSlot > plotVs.bufPtr) return plotPoint(pG2, plotVs);
+
+if (endPlotSlot < plotVs.bufPtr) return erasePoint(pG2, plotVs);
+
+return(0);
 
 }//end of Trace::plotNewData
 //-----------------------------------------------------------------------------
@@ -1009,6 +1014,76 @@ else
 return(lastPlotted);
 
 }//end of Trace::plotPoint
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Trace::erasesPoint
+//
+// Erases a single data point in the array.
+//
+// All variables are passed via pVars, so different sets can be used depending
+// on the context.
+//
+
+public int erasePoint(Graphics2D pG2, PlotVars pVars)
+{
+
+//decrement to the previous buffer position
+//if at the beginning of the buffer, wrap to the end
+
+pVars.bufPtr--;
+if (pVars.bufPtr == -1) pVars.bufPtr = dataBuffer1.length-1;
+
+//debug mks -- next section for scrolling in reverse NOT tested well!
+
+//decrement the pixel pointer until it reaches the left edge, then shift the
+//screen right and keep pointer the same to create scrolling effect
+    
+if (pVars.pixPtr > 0) pVars.pixPtr--;
+else{    
+    //if this is the trailing trace, shift the chart right and erase left slice
+    if (trailTrace){
+        //scroll the screen 1 pixel to the left
+        pG2.copyArea(0, 0, canvas.getWidth(), canvas.getHeight(), 1, 0);
+        //erase the line at the far right
+        pG2.setColor(backgroundColor);
+        pG2.drawLine(0, 0, 0, canvas.getHeight());
+
+        //shift the buffer location where the display starts - this is done
+        //when plotting new data but not when the screen is being repainted
+        //as this section is not reached when called by the repaint code; the
+        //drawing stops before the right edge of the screen is reached
+        //the counter is global for all traces on a chart because they all
+        //are shifted when trace 0 shifts the canvas
+
+        traceGlobals.bufOffset--;
+        if (traceGlobals.bufOffset == -1)
+            traceGlobals.bufOffset = dataBuffer1.length-1;
+
+        //track the number of pixels the chart has been scrolled - this is
+        //used to determine the proper location of grid marks and other
+        //decorations when the screen is repainted
+
+        traceGlobals.scrollCount--;
+
+        }//if (traceIndex == 0)
+        
+    }//else if (pixPtr <...
+
+
+pG2.setColor(backgroundColor);
+pG2.drawLine(pVars.pixPtr+1, 0, pVars.pixPtr+1, canvas.getHeight());
+
+//debug mks -- next values necessary? need to return lastPlotted?
+
+//save current pointers for use during next loop
+pVars.prevPtr = pVars.bufPtr;
+//save the value plotted so it can be returned on exit
+int lastPlotted = pVars.y2;
+
+return(lastPlotted);
+
+}//end of Trace::erasePoint
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
