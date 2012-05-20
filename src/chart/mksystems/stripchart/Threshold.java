@@ -429,7 +429,7 @@ while ((line = pIn.readLine()) != null){
 
 //apply settings
 title = titleRead; shortTitle = shortTitleRead;
-thresholdLevel = levelRead;
+setThresholdLevel(levelRead);
 
 if (!success) throw new IOException(
         "The file could not be read - missing end of section for Chart Group "
