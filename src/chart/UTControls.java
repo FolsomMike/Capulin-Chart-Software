@@ -625,8 +625,9 @@ multiSpinnerPanel.add(gainSpin =
               0, 80, .1, "#0.0", 60, 23, "Gain ", " dB", "Gain", this));
 gainSpin.spinner.addChangeListener(this); //monitor changes to value
 
-//add a blank label for filler
-multiSpinnerPanel.add(new JLabel());
+//display the rep rate
+multiSpinnerPanel.add(new JLabel("Rep Rate: " + 
+                                  currentChannel.utBoard.getRepRate() + " Hz"));
 
 //Display/Rectification selection panel and radio buttons
 

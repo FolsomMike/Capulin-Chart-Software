@@ -38,7 +38,7 @@ boolean fpgaLoaded = false;
 String fpgaCodeFilename;
 String dspCodeFilename;
 double nSPerDataPoint, uSPerDataPoint;
-int repRate;
+int repRateInHertz, repRate;
 int triggerWidth;
 int syncWidth;
 int pulseDelay;
@@ -1183,6 +1183,20 @@ writeFPGAReg(REP_RATE_2_REG, (byte) ((pValue >> 16) & 0xff));
 writeFPGAReg(REP_RATE_3_REG, (byte) ((pValue >> 24) & 0xff));
 
 }//end of UTBoard::sendRepRate
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::getRepRate
+//
+// Returns the UT board's pulser rep rate.
+//
+
+public int getRepRate()
+{
+
+return (repRateInHertz);
+    
+}//end of UTBoard::getRepRate
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -3137,7 +3151,7 @@ numberOfBanks = pConfigFile.readInt(section, "Number Of Banks", 1) - 1;
 //check for validity - set to one bank (value of zero)
 if (numberOfBanks < 0 || numberOfBanks > 3) numberOfBanks = 0;
 
-repRate = pConfigFile.readInt(section, "Pulse Rep Rate in Hertz", 2000);
+repRateInHertz = pConfigFile.readInt(section, "Pulse Rep Rate in Hertz", 2000);
 
 //rep rate is for each channel
 //multipy the rep rate by the number of banks and multiply by the clock period
@@ -3146,7 +3160,7 @@ repRate = pConfigFile.readInt(section, "Pulse Rep Rate in Hertz", 2000);
 // 0.000000015 = 15 ns
 // add one to numberOfBanks because it is zero based
 
-repRate = (int)(1/(repRate * (numberOfBanks+1) * 0.000000015));
+repRate = (int)(1/(repRateInHertz * (numberOfBanks+1) * 0.000000015));
 
 //limit to a safe value - if the rep rate is too high and the pulse width too
 //wide, the pulser circuitry will have an excessive duty cycle and burn up
