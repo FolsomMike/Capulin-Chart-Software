@@ -21,7 +21,7 @@ Rabbit/
 # these change frequently and it is not useful to propagate the changes to each developer
 # for downloading the entire project from scratch, copies of these files can be found in Golden Copies of Configuration Files Etc
 
-*.ini
+# we track ini files now -- *.ini
 
 
 # all golden copies are tracked so they can be propagated between developers
