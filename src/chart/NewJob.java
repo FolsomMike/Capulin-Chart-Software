@@ -41,6 +41,7 @@ JComboBox presetSelect;
 Vector<String> presetList;
 Xfer xfer;
 String primaryDataPath, backupDataPath;
+String fileFormat;
 
 //-----------------------------------------------------------------------------
 // NewJob::NewJob (constructor)
@@ -48,7 +49,7 @@ String primaryDataPath, backupDataPath;
 //
   
 public NewJob(JFrame pFrame, String pPrimaryDataPath, String pBackupDataPath,
-                                                                     Xfer pXfer)
+                                                 Xfer pXfer, String pFileFormat)
 {
 
 super(pFrame, "Create New Job");
@@ -56,6 +57,7 @@ super(pFrame, "Create New Job");
 frame = pFrame; 
 primaryDataPath = pPrimaryDataPath; backupDataPath = pBackupDataPath;
 xfer = pXfer;
+fileFormat = pFileFormat;
 
 xfer.rBoolean1 = false; //new job created flag
 
@@ -367,8 +369,10 @@ if (presetSelected &&
 
 //create the "Piece Number File.ini" file in the new folders with starting
 //values of 1 for the next inspection piece and next cal piece numbers
-ControlPanel.saveSettingsHelper(primaryFolder + "/", newJobName, 1, 1);
-ControlPanel.saveSettingsHelper(backupFolder + "/", newJobName, 1, 1);
+ControlPanel.saveSettingsHelper(
+                            primaryFolder + "/", newJobName, 1, 1, fileFormat);
+ControlPanel.saveSettingsHelper(
+                            backupFolder + "/", newJobName, 1, 1, fileFormat);
 
 //signal the class which invoked this window that a new job or jobs have been
 //created and pass back the name of the last valid job created

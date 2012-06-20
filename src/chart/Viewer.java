@@ -359,7 +359,7 @@ handleSizeChanges();
 
 //create an object to hold info about each piece
 pieceIDInfo = new PieceInfo(this, jobPrimaryPath, jobBackupPath,
-                                                 currentJobName, this, true);
+                                currentJobName, this, true, globals.fileFormat);
 pieceIDInfo.init();
 
 //load the last file saved - this is the most likely to be viewed
@@ -386,7 +386,7 @@ IniFile configFile = null;
 //if the ini file cannot be opened and loaded, exit without action
 try {
     configFile = new IniFile(jobPrimaryPath
-                         + "01 - " + currentJobName + " Configuration.ini");
+         + "01 - " + currentJobName + " Configuration.ini", globals.fileFormat);
     }
     catch(IOException e){return;}
 
@@ -489,7 +489,7 @@ IniFile calFile = null;
 try {
     
     calFile = new IniFile(jobPrimaryPath
-                        + "00 - " + currentJobName + " Calibration File.ini");
+      + "00 - " + currentJobName + " Calibration File.ini", globals.fileFormat);
     }
     catch(IOException e){return;}
 
@@ -1872,7 +1872,8 @@ BufferedReader in = null;
 try{
 
     fileInputStream = new FileInputStream(pFilename);
-    inputStreamReader = new InputStreamReader(fileInputStream, "UTF-16LE");
+    inputStreamReader = new InputStreamReader(fileInputStream, 
+                                                            globals.fileFormat);
     in = new BufferedReader(inputStreamReader);
 
     in = new BufferedReader(inputStreamReader);

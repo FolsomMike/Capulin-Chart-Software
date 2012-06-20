@@ -548,7 +548,8 @@ language = pLanguage;
 IniFile ini = null;
 
 //if the ini file cannot be opened and loaded, exit without action
-try {ini = new IniFile("language\\Main Menu - Capulin UT.language");}
+try {ini = new IniFile("language\\Main Menu - Capulin UT.language", 
+                                                        globals.fileFormat);}
 catch(IOException e){return;}
 
 

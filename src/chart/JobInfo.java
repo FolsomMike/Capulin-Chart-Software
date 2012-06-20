@@ -88,6 +88,7 @@ String configFilename;
 String primaryDataPath, backupDataPath;
 String currentWorkOrder;
 ActionListener actionListener;
+String fileFormat;
 
 Item[] items;
 static int NUMBER_OF_ITEMS = 100;
@@ -97,13 +98,16 @@ static int NUMBER_OF_ITEMS = 100;
 //
   
 public JobInfo(JFrame pFrame, String pPrimaryDataPath, String pBackupDataPath,
-                      String pCurrentWorkOrder, ActionListener pActionListener)
+                      String pCurrentWorkOrder, ActionListener pActionListener,
+                      String pFileFormat)
 {
 
 super(pFrame, "Job Info");
 
 primaryDataPath = pPrimaryDataPath; backupDataPath = pBackupDataPath;
 currentWorkOrder = pCurrentWorkOrder; actionListener = pActionListener;
+
+fileFormat = pFileFormat;
 
 addWindowListener(this);
 
@@ -159,7 +163,7 @@ IniFile configFile;
 String section, text;
 
 //if the ini file cannot be opened and loaded, exit without action
-try {configFile = new IniFile(pConfigFilename);}
+try {configFile = new IniFile(pConfigFilename, fileFormat);}
     catch(IOException e){return;}
 
 //scan through the array checking to see if an item exists in the configuration
@@ -314,7 +318,7 @@ String jobInfoFilename = primaryDataPath + "03 - " + currentWorkOrder
 IniFile jobInfoFile;
 
 //if the ini file cannot be opened and loaded, exit without action
-try {jobInfoFile = new IniFile(jobInfoFilename);}
+try {jobInfoFile = new IniFile(jobInfoFilename, fileFormat);}
     catch(IOException e){return;}
 
 String section = "Job Info";
@@ -348,7 +352,7 @@ String jobInfoFilename = pDataPath + "03 - " + currentWorkOrder
 IniFile jobInfoFile;
 
 //if the ini file cannot be opened and loaded, exit without action
-try {jobInfoFile = new IniFile(jobInfoFilename);}
+try {jobInfoFile = new IniFile(jobInfoFilename, fileFormat);}
     catch(IOException e){return;}
 
 String section = "Job Info";

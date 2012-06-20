@@ -63,6 +63,7 @@ public static String SOFTWARE_VERSION = "1.93";
 //version 1.0 saved with the "Threshold" tag misspelled as "Theshold"
 public static String SEGMENT_DATA_VERSION = "1.1";
 
+public String fileFormat="UTF-16LE";
 
 //set this to equal the number of UT channels - each channel's values will be
 //saved with an identifying number
@@ -641,6 +642,15 @@ for (int i = 0; i < lineCount; i++){
     configInfo.add(line);
     }
 
+//Original file format for config/ini files and data files was UTF-16LE.  
+//Switched to UTF-8 so that Git version control software could parse the files.
+//Any job configuration file without the fileFormat entry will default to the
+//UTF-16LE as required.  Thus, old jobs using their old job config files will
+//always be able to read their data files -- their config files should never
+//have the fileFormat entry set to UTF-8 or they will no longer be able to
+//access their data files.
+fileFormat = pConfigFile.readString(section, "File Format ", "UTF-16LE");
+
 }//end of Globals::configure
 //-----------------------------------------------------------------------------
 
@@ -684,7 +694,7 @@ public void loadLanguage()
 IniFile ini = null;
 
 //if the ini file cannot be opened and loaded, exit without action
-try {ini = new IniFile("language\\Globals - Capulin UT.language");}
+try {ini = new IniFile("language\\Globals - Capulin UT.language", fileFormat);}
 catch(IOException e){return;}
 
 }//end of Globals::loadLanguage

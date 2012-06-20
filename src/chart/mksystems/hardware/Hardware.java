@@ -222,7 +222,8 @@ if (pDriverName.equalsIgnoreCase("PCI-DAS6023")) analogDriver =
           new AnalogPCIDAS6023(configFile, true, numberOfAnalogChannels, hdwVs);
 
 if (pDriverName.equalsIgnoreCase("Capulin 1")) analogDriver = 
-    new Capulin1(configFile, true, numberOfAnalogChannels, hdwVs, log);
+    new Capulin1(configFile, true, numberOfAnalogChannels, hdwVs, log, 
+                                                           globals.fileFormat );
   
 }//end of Hardware::createAnalogDriver
 //-----------------------------------------------------------------------------

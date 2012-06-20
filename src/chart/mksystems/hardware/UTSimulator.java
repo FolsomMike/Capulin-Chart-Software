@@ -180,6 +180,7 @@ public UTSimulator() throws SocketException{}; //default constructor - not used
 
 static int MAX_BOARD_CHANNELS = 4;
 BoardChannel[] boardChannels;
+String fileFormat;
 
 static int ASCAN_BUFFER_SIZE = 8 * 1024; //matches RAM sample buffer in FPGA
 int[] aScanBuffer;
@@ -228,11 +229,14 @@ int peakPacketCount;
 // UTSimulator::UTSimulator (constructor)
 //
   
-public UTSimulator(InetAddress pIPAddress, int pPort) throws SocketException
+public UTSimulator(InetAddress pIPAddress, int pPort, String pFileFormat)
+                                                        throws SocketException
 {
 
 //call the parent class constructor
 super(pIPAddress, pPort);
+
+fileFormat = pFileFormat;
 
 //give each UT board a unique number so it can load data from the simulation.ini
 //file and such
@@ -1045,7 +1049,7 @@ private void configure()
 IniFile configFile;
 
 //if the ini file cannot be opened and loaded, exit without action
-try {configFile = new IniFile("Simulation.ini");}
+try {configFile = new IniFile("Simulation.ini", fileFormat);}
     catch(IOException e){
     return;
     }

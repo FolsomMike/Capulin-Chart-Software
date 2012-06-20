@@ -36,6 +36,7 @@ public class ControlBoard extends Board implements MessageLink{
 
 byte[] monitorBuffer;
 static int MONITOR_PACKET_SIZE = 20;
+String fileFormat;
 
 int packetRequestTimer = 0;
 
@@ -132,7 +133,7 @@ static byte UNUSED5_CTRL =      (byte)0x80;
 //
 
 public ControlBoard(IniFile pConfigFile, String pBoardName, int pBoardIndex,
-                      int pRuntimePacketSize, boolean pSimulate, JTextArea pLog)
+  int pRuntimePacketSize, boolean pSimulate, JTextArea pLog, String pFileFormat)
 {
 
 configFile = pConfigFile; 
@@ -140,6 +141,7 @@ boardName = pBoardName;
 boardIndex = pBoardIndex;
 runtimePacketSize = pRuntimePacketSize;
 simulate = pSimulate;
+fileFormat = pFileFormat;
 
 log = pLog;
 threadSafeMessage = new String[NUMBER_THREADSAFE_MESSAGES];
@@ -215,7 +217,7 @@ try {
     else {
         
         socket = new ControlSimulator(ipAddr, 23, 
-                                   encoder1DeltaTrigger, encoder2DeltaTrigger);
+                       encoder1DeltaTrigger, encoder2DeltaTrigger, fileFormat);
         //when simulating, the socket is a ControlSimulator class object which
         //is also a MessageLink implementor, so cast it for use as such so that
         //messages can be sent to the object

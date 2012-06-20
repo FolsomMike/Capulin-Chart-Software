@@ -45,6 +45,8 @@ int showCount2 = 0;
 int reflectionTimer = 0;
 //debug mks end  - this is only for demo - delete later
 
+String fileFormat;
+
 boolean utBoardsReady = false;
 boolean controlBoardsReady = false;
 
@@ -95,14 +97,16 @@ boolean controlBoardInspectMode = false;
 //
 
 Capulin1(IniFile pConfigFile, boolean pSimulationMode,
-               int pNumberOfAnalogChannels, HardwareVars pHdwVs, JTextArea pLog)
+               int pNumberOfAnalogChannels, HardwareVars pHdwVs, JTextArea pLog,
+               String pFileFormat)
 
 {
 
 configFile = pConfigFile; simulationMode = pSimulationMode;
 numberOfAnalogChannels = pNumberOfAnalogChannels;
 hdwVs = pHdwVs;
-    
+fileFormat = pFileFormat;    
+
 log = pLog;
 
 threadSafeMessage = new String[NUMBER_THREADSAFE_MESSAGES];
@@ -1380,7 +1384,7 @@ if (numberOfControlBoards > 0){
 
     for (int i = 0; i < numberOfControlBoards; i++)
         controlBoards[i] = new ControlBoard(configFile, "Control " + (i+1), i,
-                              RUNTIME_PACKET_SIZE, simulateControlBoards, log);
+                   RUNTIME_PACKET_SIZE, simulateControlBoards, log, fileFormat);
 
     }//if (numberOfControlBoards > 0)
 
@@ -1409,7 +1413,7 @@ if (numberOfUTBoards > 0){
 
     for (int i = 0; i < numberOfUTBoards; i++)
        utBoards[i] = new UTBoard(configFile.filename,
-                                "UT "+ (i+1), i, simulateUTBoards, log, hdwVs);
+             "UT "+ (i+1), i, simulateUTBoards, log, hdwVs, fileFormat);
     
     }//if (numberOfUTBoards > 0)
  

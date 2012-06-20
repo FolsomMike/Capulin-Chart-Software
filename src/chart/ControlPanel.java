@@ -493,7 +493,7 @@ IniFile settingsFile = null;
 //if the ini file cannot be opened and loaded, exit without action
 try {
     settingsFile = new IniFile(currentJobPrimaryPath + "02 - "
-                                + jobName + " Piece Number File.ini");
+                     + jobName + " Piece Number File.ini", globals.fileFormat);
     }
     catch(IOException e){return;}
 
@@ -531,9 +531,9 @@ else
     nextPieceNumber = statusPanel.pieceNumberEditor.getIntValue();
 
 saveSettingsHelper(currentJobPrimaryPath, jobName,
-                                        nextPieceNumber, nextCalPieceNumber);
+                       nextPieceNumber, nextCalPieceNumber, globals.fileFormat);
 saveSettingsHelper(currentJobBackupPath, jobName,
-                                        nextPieceNumber, nextCalPieceNumber);
+                       nextPieceNumber, nextCalPieceNumber, globals.fileFormat);
         
 }//end of ControlPanel::saveSettings
 //-----------------------------------------------------------------------------
@@ -550,7 +550,7 @@ saveSettingsHelper(currentJobBackupPath, jobName,
 //
 
 static void saveSettingsHelper(String pJobPath, String pJobName,
-                                int pNextPieceNumber, int pNextCalPieceNumber)
+     int pNextPieceNumber, int pNextCalPieceNumber, String pFileFormat)
 {
 
 IniFile settingsFile = null;
@@ -558,7 +558,7 @@ IniFile settingsFile = null;
 //if the ini file cannot be opened and loaded, exit without action
 try {
     settingsFile = new IniFile(pJobPath + "02 - "
-                                    + pJobName + " Piece Number File.ini");
+                     + pJobName + " Piece Number File.ini", pFileFormat);
     }
     catch(IOException e){return;}
 

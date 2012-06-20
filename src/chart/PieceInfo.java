@@ -47,6 +47,7 @@ int prevPrintedPosition;
 boolean displayUpdateButton;
 JButton updateButton;
 String filename;
+String fileFormat;
 
 Item[] items;
 static int NUMBER_OF_ITEMS = 100;
@@ -110,7 +111,7 @@ textField.setMaximumSize(new Dimension(1, dHeight));
   
 public PieceInfo(JFrame pFrame, String pPrimaryDataPath, String pBackupDataPath,
                       String pCurrentWorkOrder, ActionListener pActionListener,
-                      boolean pDisplayUpdateButton)
+                      boolean pDisplayUpdateButton, String pFileFormat)
 {
 
 super(pFrame, "Identifier Info");
@@ -118,6 +119,7 @@ super(pFrame, "Identifier Info");
 primaryDataPath = pPrimaryDataPath; backupDataPath = pBackupDataPath;
 currentWorkOrder = pCurrentWorkOrder; actionListener = pActionListener;
 displayUpdateButton = pDisplayUpdateButton;
+fileFormat = pFileFormat;
 
 }//end of PieceInfo::PieceInfo (constructor)
 //-----------------------------------------------------------------------------    
@@ -167,7 +169,7 @@ IniFile configFile;
 String section, text;
 
 //if the ini file cannot be opened and loaded, exit without action
-try {configFile = new IniFile(pConfigFilename);}
+try {configFile = new IniFile(pConfigFilename, fileFormat);}
     catch(IOException e){return;}
 
 //scan through the array checking to see if an item exists in the configuration
@@ -481,7 +483,7 @@ filename = pFilename;
 IniFile jobInfoFile;
 
 //if the ini file cannot be opened and loaded, exit without action
-try {jobInfoFile = new IniFile(pFilename);}
+try {jobInfoFile = new IniFile(pFilename, fileFormat);}
     catch(IOException e){return;}
 
 String section = "Identifying Information";
@@ -530,7 +532,7 @@ public void saveData(String pFilename)
 IniFile jobInfoFile;
 
 //if the ini file cannot be opened and loaded, exit without action
-try {jobInfoFile = new IniFile(pFilename);}
+try {jobInfoFile = new IniFile(pFilename, fileFormat);}
     catch(IOException e){return;}
 
 String section = "Identifying Information";

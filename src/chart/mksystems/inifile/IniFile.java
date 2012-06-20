@@ -271,6 +271,8 @@ return(pColor.getRed() + "," + pColor.getGreen() + "," + pColor.getBlue());
 
 public class IniFile extends Object{
 
+String fileFormat;    
+    
 private ArrayList<String> buffer;
 public String filename;
 private boolean modified;
@@ -281,9 +283,19 @@ DecimalFormat[] DecimalFormats;
 // IniFile::IniFile (constructor)
 //
 
-public IniFile(String pFilename) throws IOException
+public IniFile(String pFilename, String pFileFormat) throws IOException
 {
 
+//String autoDetectedFileFormat = autoDetectFormat(pFilename);
+    
+//debug mks
+//autoDetectedFileFormat = autoDetectFormat("language\\Main Window - Capulin UT - Unicode.language");
+//autoDetectedFileFormat = autoDetectFormat("language\\Main Window - Capulin UT - Unicode BE.language");
+//autoDetectedFileFormat = autoDetectFormat("language\\Main Window - Capulin UT - UTF-8.language");
+//debug mks end
+
+fileFormat = pFileFormat;    
+    
 //create a vector to hold the lines of text read from the file
 buffer = new ArrayList<String>(1000);
 
@@ -314,7 +326,7 @@ try{
 
     fileInputStream = new FileInputStream(filename);
 
-    inputStreamReader = new InputStreamReader(fileInputStream, "UTF-16LE");
+    inputStreamReader = new InputStreamReader(fileInputStream, fileFormat);
 
     in = new BufferedReader(inputStreamReader);
 
@@ -366,7 +378,7 @@ BufferedWriter out = null;
 try{
 
     fileOutputStream = new FileOutputStream(filename);
-    outputStreamWriter = new OutputStreamWriter(fileOutputStream, "UTF-16LE");
+    outputStreamWriter = new OutputStreamWriter(fileOutputStream, fileFormat);
     out = new BufferedWriter(outputStreamWriter);
 
     ListIterator i;
@@ -893,6 +905,73 @@ writeValue(pSection, pKey, newEntry);
 
 }//end of IniFile::writeString
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// IniFile::detectUTF16LEFormat
+//
+// Determines if the specified file is a UTF-16LE file created by this program,
+// in which case it will have a readily identifiable header string which can
+// be read in UTF-16LE format.
+//
+// Returns true if file was created in UTF-16LE format, false if otherwise.
+//
+
+static public boolean detectUTF16LEFormat(String pFilename)
+{
+    
+FileInputStream fileInputStream = null;
+InputStreamReader inputStreamReader = null;
+BufferedReader in = null;
+
+try{
+
+    fileInputStream = new FileInputStream(pFilename);
+
+    inputStreamReader = new InputStreamReader(fileInputStream, "UTF-16LE");
+
+    in = new BufferedReader(inputStreamReader);
+
+    int i = 0;
+ 
+    String line;
+    
+    //read until header line found, max lines read, or end of file reached
+
+    while ((line = in.readLine()) != null){
+        
+        //return true if the header line used in UTF-16LE files is found
+        if (line.startsWith(";Do not erase")) return(true);
+        //return false if header line not found near beginning
+        if (i++ >= 5) return(false);
+                                
+    }//while...
+    
+    //return false if header line not found before EOF reached
+    return(false);
+    
+}//try
+catch (FileNotFoundException e){
+
+}//catch
+//catch(IOException e){throw new IOException();}
+catch(IOException e){
+    return(false);
+}//catch
+finally{
+    try{if (in != null) in.close();}
+        catch(IOException e){}
+    try{if (inputStreamReader != null) inputStreamReader.close();}
+        catch(IOException e){}
+    try{if (fileInputStream != null) fileInputStream.close();}
+        catch(IOException e){}
+}//finally
+
+//if this part reached, then some sort of error occurred so return false
+return(false);
+
+}//end of IniFile::detectUTF16LEFormat
+//-----------------------------------------------------------------------------
+
 
 //debug System.out.println(String.valueOf(value)); //debug mks
 
