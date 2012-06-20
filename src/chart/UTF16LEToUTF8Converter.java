@@ -246,28 +246,33 @@ protected boolean compareFile(String pOldFile, String pTempFile)
 
     File oldFile = new File(pOldFile); File tempFile = new File(pTempFile);
 
+    //if the old file is not present, then exit without error -- the temp
+    //file may be orphaned so return without error so it will be renamed
+    
+    if (!oldFile.exists()){
+        logFile.log("Compare ignored -- there is no old file: " + oldFile);
+        return(compareGood);        
+    }
+        
     //if a new temp file is not present, then exit without error -- the temp
     //file was probably already renamed for this set on a previous conversion
     //attempt
     
     if (!tempFile.exists()){
-        logFile.log("There is no temp file: " + tempFile);
+        logFile.log("Compare ignored -- there is no temp file: " + tempFile);
         return(compareGood);        
     }
     
-    //If the old file does not exist, do not try to delete it but do not
-    //treat as an error as there may still be a new version file which needs
-    //to be renamed.  This would occur if there was an error on a previous
-    //clean up and rename between the delete and the rename.
     
-    if (oldFile.exists())
-        if (!oldFile.isFile()){
-            logFile.log("Compare fail - old file is not a normal file.");
-            compareGood = false; return(compareGood);
-        }
+    //make sure old file is a normal file
+    if (!oldFile.isFile()){
+        logFile.log("Compare fail - old file is not a normal file.");
+        compareGood = false; return(compareGood);
+    }
     
+    //make sure temp file is a normal file
     if (!tempFile.isFile()){
-        logFile.log("Compare fail - new file is not a normal file.");
+        logFile.log("Compare fail - temp file is not a normal file.");
         compareGood = false; return(compareGood);
     }
   
@@ -323,7 +328,7 @@ protected boolean compareFile(String pOldFile, String pTempFile)
             
             //if end of new file reached too soon, fail compare
             if (newLine == null){
-                logFile.log("Compare fail - new file is shorter.");
+                logFile.log("Compare fail - temp file is shorter.");
                 compareGood = false; return(compareGood);
             }
             
@@ -341,17 +346,17 @@ protected boolean compareFile(String pOldFile, String pTempFile)
 
         //if end of new file not reached, fail compare
         if (newLine != null){
-            logFile.log("Compare fail - new file is longer.");
+            logFile.log("Compare fail - temp file is longer.");
             compareGood = false;
         }
         
     }//try
     catch (FileNotFoundException e){
-        logFile.log("Compare fail - old or new file not found.");
+        logFile.log("Compare fail - old or temp file not found.");
         compareGood = false;
     }//catch...
     catch(IOException e){
-        logFile.log("Compare fail - IO error for old or new file.");
+        logFile.log("Compare fail - IO error for old or temp file.");
         compareGood = false;
     }//catch...
     finally{

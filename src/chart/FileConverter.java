@@ -82,7 +82,6 @@ import java.io.*;
 class MKSFilenameFilter implements FilenameFilter
 {
 
-String extensionLC = "";
 String extensionUC = "";
 
 //-----------------------------------------------------------------------------
@@ -95,7 +94,6 @@ String extensionUC = "";
 public MKSFilenameFilter(String pExtension)
 {
 
-    extensionLC = "." + pExtension.toLowerCase();    
     extensionUC = "." + pExtension.toUpperCase();
 
 }//end of MKSFilenameFilter::MKSFilenameFilter
@@ -114,7 +112,7 @@ public boolean accept(File dir, String name)
 
     //the file satisfies the filter if it ends with the extension value,
     //ignoring case
-    if (name.endsWith(extensionUC) || name.endsWith(extensionLC)) 
+    if (name.toUpperCase().endsWith(extensionUC))
         return(true); 
     else 
         return(false);
@@ -192,7 +190,7 @@ protected void init()
 
     for (int x = 0; x < pathList.length; x++){
         if (!convertFiles(extList[x], pathList[x])) processGood = false;
-        logFile.log(""); //log a blank line
+        logFile.log(""); //log a blank line between each path/ext group
     }
     
     //verify all the converted files, delete old version, rename new to old
@@ -202,9 +200,26 @@ protected void init()
     for (int x = 0; x < pathList.length; x++){
         if (!compareFilesAndCleanUp(extList[x], pathList[x]))
             processGood = false;
-        logFile.log(""); //log a blank line
+        logFile.log(""); //log a blank line between each path/ext group
     }
-        
+
+    //Sometimes the new version file will be left hanging after the old file
+    //has been deleted -- if this happens on a prior conversion attempt, the
+    //file name won't be found since only the temp file name exists. To catch
+    //these orphans, rerun compareFilesAndCleanUp looking for any files with
+    //the tempFileSuffix appended.  The method compareFilesAndCleanUp will
+    //automatically remove the suffix if it exists so the function can operate
+    //as normal -- expecting the files found to be without the suffix.
+    
+    logFile.log("Validating conversions and cleaning up orphans:");
+    logFile.log(""); // blank line
+    
+    for (int x = 0; x < pathList.length; x++){
+        if (!compareFilesAndCleanUp(extList[x] + tempFileSuffix, pathList[x]))
+            processGood = false;
+        logFile.log(""); //log a blank line between each path/ext group
+    }
+
     //if no errors encountered while converting, comparing, deleting, and
     //renaming the files, create a flag file to signal that the files have all
     //been converted to UTF-8 format -- this class checks for this flag file and
@@ -256,7 +271,7 @@ private boolean convertFiles(String pExtension, String pPath)
     }
     
     for (int i = 0; i < files.length; i++){
-
+        
         filename = pPath + "/" + files[i];
 
         file = new File(filename);
@@ -312,6 +327,16 @@ private boolean compareFilesAndCleanUp(String pExtension, String pPath)
     
     for (int i = 0; i < files.length; i++){
 
+        //remove the tempFileSuffix if it is present -- this function is called
+        //with a list of suffixed files if temp files are orphaned after the
+        //old file is deleted -- removing the suffix allows the rest of the
+        //function to perform normally
+        if(files[i].endsWith(tempFileSuffix)){
+           //strip off the suffix
+           files[i] = files[i].substring(0,
+                                          files[i].lastIndexOf(tempFileSuffix));
+        }
+                
         oldFile = pPath + "/" + files[i];
         tempFile = oldFile + tempFileSuffix;
         
@@ -362,7 +387,8 @@ protected boolean deleteOldRenameNew(String pOldFile, String pTempFile)
     //attempt
     
     if (!tempFile.exists()){
-        logFile.log("There is no temp file: " + tempFile);
+        logFile.log("Delete and rename ignored -- there is no temp file: " 
+                                                                    + tempFile);
         return(cleanUpGood);        
     }
 
