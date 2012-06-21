@@ -402,7 +402,7 @@ protected boolean deleteOldRenameNew(String pOldFile, String pTempFile)
     
     //if old file successfully deleted, rename new file to old name
     if (tempFile.renameTo(oldFile)){
-        logFile.log("Success -- new version in place: " + oldFile);
+        logFile.log("Success -- temp file renamed: " + oldFile);
     }
     else{
         logFile.log("Error - could not rename: " + tempFile);
