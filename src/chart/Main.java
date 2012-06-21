@@ -209,6 +209,11 @@ catch (Exception e) {}
 decimalFormats = new DecimalFormat[1];
 decimalFormats[0] = new  DecimalFormat("0000000");
 
+//convert all config files from UTF-16LE to UTF-8 format
+//(this does not convert files already in use in the job folders)
+UTF16LEToUTF8Converter converter = new UTF16LEToUTF8Converter();
+converter.init();
+
 globals = new Globals(this, this);
 
 xfer = new Xfer();
@@ -500,10 +505,6 @@ configFile.save();
 
 private void configure()
 {
-
-    
-UTF16LEToUTF8Converter converter = new UTF16LEToUTF8Converter();
-converter.init();
 
 IniFile configFile = null;
 
