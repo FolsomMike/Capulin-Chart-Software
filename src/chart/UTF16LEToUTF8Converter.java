@@ -135,6 +135,13 @@ protected boolean convertFile(String pOldFile, String pTempFile)
     //this is not an error, so return true
     if(!IniFile.detectUTF16LEFormat(pOldFile)) return(convertGood);
     
+    boolean addFormatTypeEntry = false;
+    
+    //for config files, add a line specifying the new format of UTF-8 when
+    //the proper section is reached
+    if (pOldFile.contains("configurations") && pOldFile.endsWith("config"))
+        addFormatTypeEntry = true;
+
     FileInputStream fileInputStream = null;
     InputStreamReader inputStreamReader = null;
     BufferedReader in = null;
@@ -175,10 +182,17 @@ protected boolean convertFile(String pOldFile, String pTempFile)
             if (!firstNonBlankLineReached) continue;        
             if (line.startsWith(";Do not erase")) continue;
             if (line.startsWith(";To make a new")) continue;        
-        
+                    
             //write each line to the new UTF-8 file
             out.write(line); out.newLine();
 
+            //for applicable files, add a line to specify new format of UTF-8
+            if (addFormatTypeEntry && line.startsWith("[Main Configuration]")){
+                out.write("Job File Format=UTF-8");
+                out.newLine();
+            }
+                        
+            
         }//while...
         
     }//try
@@ -281,7 +295,14 @@ protected boolean compareFile(String pOldFile, String pTempFile)
         logFile.log("Compare fail - old file is not in UTF-16LE format.");
         compareGood = false; return(compareGood);
     }
+
+    boolean ignoreFormatTypeEntry = false;
     
+    //for config files, add a line specifying the new format of UTF-8 when
+    //the proper section is reached
+    if (pOldFile.contains("configurations") && pOldFile.endsWith("config"))
+        ignoreFormatTypeEntry = true;
+        
     FileInputStream oldInputStream = null;
     InputStreamReader oldInputStreamReader = null;
     BufferedReader oldIn = null;
@@ -325,7 +346,14 @@ protected boolean compareFile(String pOldFile, String pTempFile)
         
             //read line from the new version to compare
             newLine = newIn.readLine();
-            
+
+            //for applicable files, ignore the format entry which was added
+            //to the new file by the convertFile method
+            if (ignoreFormatTypeEntry && 
+                            newLine.startsWith("Job File Format=UTF-8")){
+                newLine = newIn.readLine();
+            }
+                        
             //if end of new file reached too soon, fail compare
             if (newLine == null){
                 logFile.log("Compare fail - temp file is shorter.");

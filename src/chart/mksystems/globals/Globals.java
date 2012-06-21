@@ -654,6 +654,8 @@ for (int i = 0; i < lineCount; i++){
     configInfo.add(line);
     }
 
+section = "Main Configuration";
+
 //Original file format for config/ini files and data files was UTF-16LE.  
 //Switched to UTF-8 so that Git version control software could parse the files.
 //Any job configuration file without the fileFormat entry will default to the
