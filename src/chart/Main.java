@@ -298,7 +298,8 @@ private void loadMainStaticSettings()
 IniFile configFile = null;
 
 //if the ini file cannot be opened and loaded, exit without action
-try {configFile = new IniFile("Main Static Settings.ini", globals.fileFormat);}
+try {configFile = new IniFile("Main Static Settings.ini", 
+                                                    Globals.mainFileFormat);}
     catch(IOException e){return;}
 
 //set the data folders to empty if values cannot be read from the ini file
@@ -337,7 +338,8 @@ private void saveMainStaticSettings()
 IniFile configFile = null;
 
 //if the ini file cannot be opened and loaded, exit without action
-try {configFile = new IniFile("Main Static Settings.ini", globals.fileFormat);}
+try {configFile = new IniFile("Main Static Settings.ini", 
+                                                       Globals.mainFileFormat);}
     catch(IOException e){
         System.err.println("Error opening: " + "Main Static Settings.ini");
         return;
@@ -368,7 +370,7 @@ IniFile configFile = null;
 
 //if the ini file cannot be opened and loaded, exit without action
 try {configFile = new IniFile(
-                            "Configuration - General.ini", globals.fileFormat);}
+                       "Configuration - General.ini", Globals.mainFileFormat);}
     catch(IOException e){return;}
 
 globals.primaryFolderName = configFile.readString(
@@ -423,7 +425,7 @@ private void loadMainSettings()
 IniFile configFile = null;
 
 //if the ini file cannot be opened and loaded, exit without action
-try {configFile = new IniFile("Main Settings.ini", globals.fileFormat);}
+try {configFile = new IniFile("Main Settings.ini", Globals.mainFileFormat);}
     catch(IOException e){return;}
 
 currentJobName = configFile.readString(
@@ -469,7 +471,7 @@ private void saveMainSettings()
 IniFile configFile = null;
 
 //if the ini file cannot be opened and loaded, exit without action
-try {configFile = new IniFile("Main Settings.ini", globals.fileFormat);}
+try {configFile = new IniFile("Main Settings.ini", Globals.mainFileFormat);}
 catch(IOException e){
     System.err.println("Error opening: " + "Main Settings.ini");
     return;
@@ -508,17 +510,17 @@ IniFile configFile = null;
 //if the ini file cannot be opened and loaded, exit without action
 try {
     configFile = new IniFile(currentJobPrimaryPath
-         + "01 - " + currentJobName + " Configuration.ini", globals.fileFormat);
+      + "01 - " + currentJobName + " Configuration.ini", globals.jobFileFormat);
     }
     catch(IOException e){return;}
 
 //create an object to hold job info
 jobInfo = new JobInfo(mainFrame, currentJobPrimaryPath,
-               currentJobBackupPath, currentJobName, this, globals.fileFormat);
+             currentJobBackupPath, currentJobName, this, globals.jobFileFormat);
 
 //create an object to hold info about each piece
 pieceIDInfo = new PieceInfo(mainFrame, currentJobPrimaryPath,
-         currentJobBackupPath, currentJobName, this, false, globals.fileFormat);
+      currentJobBackupPath, currentJobName, this, false, globals.jobFileFormat);
 pieceIDInfo.init();
 
 //create a window for displaying messages
@@ -632,7 +634,7 @@ IniFile calFile = null;
 //if the ini file cannot be opened and loaded, exit without action
 try {
     calFile = new IniFile(currentJobPrimaryPath + "00 - "
-                + currentJobName + " Calibration File.ini", globals.fileFormat);
+             + currentJobName + " Calibration File.ini", globals.jobFileFormat);
     }
     catch(IOException e){return;}
 
@@ -709,7 +711,7 @@ IniFile calFile = null;
 //if the ini file cannot be opened and loaded, exit without action
 try {
     calFile = new IniFile(pJobPath + "00 - "
-                + currentJobName + " Calibration File.ini", globals.fileFormat);
+             + currentJobName + " Calibration File.ini", globals.jobFileFormat);
     }
     catch(IOException e){return;}
 
@@ -910,7 +912,7 @@ try{
 
     fileOutputStream = new FileOutputStream(pFilename);
     outputStreamWriter = new OutputStreamWriter(fileOutputStream, 
-                                                            globals.fileFormat);
+                                                         globals.jobFileFormat);
     out = new BufferedWriter(outputStreamWriter);
 
     //write a warning note at the top of the file
@@ -978,7 +980,7 @@ try{
 
     fileOutputStream = new FileOutputStream(pFilename);
     outputStreamWriter = new OutputStreamWriter(fileOutputStream, 
-                                                            globals.fileFormat);
+                                                         globals.jobFileFormat);
     out = new BufferedWriter(outputStreamWriter);
 
     //write a warning note at the top of the file
@@ -1386,7 +1388,7 @@ public void createNewJob()
 saveEverything(); //save all data
 
 NewJob newJob = new NewJob(mainFrame, primaryDataPath, backupDataPath, xfer, 
-                                                            globals.fileFormat);
+                                                         globals.jobFileFormat);
 
 //if the NewJob window set rBoolean1 true, switch to the new job
 if (xfer.rBoolean1){
@@ -1965,7 +1967,7 @@ IniFile ini = null;
 
 //if the ini file cannot be opened and loaded, exit without action
 try {ini = new IniFile(
-            "language\\Main Window - Capulin UT.language", globals.fileFormat);}
+        "language\\Main Window - Capulin UT.language", Globals.mainFileFormat);}
 catch(IOException e){return;}
 
 }//end of MainWindow::loadLanguage

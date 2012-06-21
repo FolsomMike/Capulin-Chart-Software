@@ -549,7 +549,7 @@ IniFile ini = null;
 
 //if the ini file cannot be opened and loaded, exit without action
 try {ini = new IniFile("language\\Main Menu - Capulin UT.language", 
-                                                        globals.fileFormat);}
+                                                        globals.jobFileFormat);}
 catch(IOException e){return;}
 
 

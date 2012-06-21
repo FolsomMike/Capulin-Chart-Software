@@ -63,7 +63,19 @@ public static String SOFTWARE_VERSION = "1.93";
 //version 1.0 saved with the "Threshold" tag misspelled as "Theshold"
 public static String SEGMENT_DATA_VERSION = "1.1";
 
-public String fileFormat="UTF-16LE";
+//This is the format used for non-job files such as those in the root
+//program folder, presets, config files, etc. -- older files were in UTF-16LE
+//format, new ones in UTF-8.  The UTF-16LE files are now converted to UTF-8
+//automatically if they are found on program start up.
+
+public static String mainFileFormat = "UTF-8";
+
+//this is the format used for files stored in the job folder
+//old jobs used UTF-16LE format, newer ones use UTF-8
+//the format used is specified in the newer files, defaults to UTF-16LE for
+//older jobs
+
+public String jobFileFormat="UTF-16LE";
 
 //set this to equal the number of UT channels - each channel's values will be
 //saved with an identifying number
@@ -649,7 +661,8 @@ for (int i = 0; i < lineCount; i++){
 //always be able to read their data files -- their config files should never
 //have the fileFormat entry set to UTF-8 or they will no longer be able to
 //access their data files.
-fileFormat = pConfigFile.readString(section, "File Format ", "UTF-16LE");
+
+jobFileFormat = pConfigFile.readString(section, "Job File Format ", "UTF-16LE");
 
 }//end of Globals::configure
 //-----------------------------------------------------------------------------
@@ -694,7 +707,8 @@ public void loadLanguage()
 IniFile ini = null;
 
 //if the ini file cannot be opened and loaded, exit without action
-try {ini = new IniFile("language\\Globals - Capulin UT.language", fileFormat);}
+try {ini = new IniFile("language\\Globals - Capulin UT.language", 
+                                                            mainFileFormat);}
 catch(IOException e){return;}
 
 }//end of Globals::loadLanguage

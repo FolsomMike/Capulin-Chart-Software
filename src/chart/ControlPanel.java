@@ -481,7 +481,7 @@ return (button);
 //-----------------------------------------------------------------------------
 // ControlPanel::loadSettings
 //
-// Saves settings such as the next piece and calibration piece numbers.
+// Loads settings such as the next piece and calibration piece numbers.
 // These values often changed as part of normal operation.
 //
 
@@ -493,7 +493,7 @@ IniFile settingsFile = null;
 //if the ini file cannot be opened and loaded, exit without action
 try {
     settingsFile = new IniFile(currentJobPrimaryPath + "02 - "
-                     + jobName + " Piece Number File.ini", globals.fileFormat);
+                   + jobName + " Piece Number File.ini", globals.jobFileFormat);
     }
     catch(IOException e){return;}
 
@@ -531,9 +531,9 @@ else
     nextPieceNumber = statusPanel.pieceNumberEditor.getIntValue();
 
 saveSettingsHelper(currentJobPrimaryPath, jobName,
-                       nextPieceNumber, nextCalPieceNumber, globals.fileFormat);
+                    nextPieceNumber, nextCalPieceNumber, globals.jobFileFormat);
 saveSettingsHelper(currentJobBackupPath, jobName,
-                       nextPieceNumber, nextCalPieceNumber, globals.fileFormat);
+                    nextPieceNumber, nextCalPieceNumber, globals.jobFileFormat);
         
 }//end of ControlPanel::saveSettings
 //-----------------------------------------------------------------------------

@@ -286,14 +286,6 @@ DecimalFormat[] DecimalFormats;
 public IniFile(String pFilename, String pFileFormat) throws IOException
 {
 
-//String autoDetectedFileFormat = autoDetectFormat(pFilename);
-    
-//debug mks
-//autoDetectedFileFormat = autoDetectFormat("language\\Main Window - Capulin UT - Unicode.language");
-//autoDetectedFileFormat = autoDetectFormat("language\\Main Window - Capulin UT - Unicode BE.language");
-//autoDetectedFileFormat = autoDetectFormat("language\\Main Window - Capulin UT - UTF-8.language");
-//debug mks end
-
 fileFormat = pFileFormat;    
     
 //create a vector to hold the lines of text read from the file
