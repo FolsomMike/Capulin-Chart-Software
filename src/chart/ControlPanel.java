@@ -520,7 +520,7 @@ if (nextCalPieceNumber < 1) nextCalPieceNumber = 1;
 
 public void saveSettings()
 {
-
+        
 //copy the control value to the appropriate variable depending on the cal mode
 //setting - this makes sure the value gets saved in case it was changed
 //manually by the user
@@ -532,6 +532,7 @@ else
 
 saveSettingsHelper(currentJobPrimaryPath, jobName,
                     nextPieceNumber, nextCalPieceNumber, globals.jobFileFormat);
+
 saveSettingsHelper(currentJobBackupPath, jobName,
                     nextPieceNumber, nextCalPieceNumber, globals.jobFileFormat);
         
@@ -553,6 +554,12 @@ static void saveSettingsHelper(String pJobPath, String pJobName,
      int pNextPieceNumber, int pNextCalPieceNumber, String pFileFormat)
 {
 
+//if the job path has not been set, don't save anything or it will be saved in
+//the program root folder -- this occurs when the current job path specified in
+//the Main Settings.ini
+
+if (pJobPath.equals("")) return;    
+    
 IniFile settingsFile = null;
 
 //if the ini file cannot be opened and loaded, exit without action

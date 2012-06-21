@@ -707,6 +707,12 @@ fileSaver.start();
 protected void saveCalFileHelper(String pJobPath)
 {
 
+//if the job path has not been set, don't save anything or it will be saved in
+//the program root folder -- this occurs when the current job path specified in
+//the Main Settings.ini
+
+if (pJobPath.equals("")) return;    
+    
 IniFile calFile = null;
 
 //if the ini file cannot be opened and loaded, exit without action
