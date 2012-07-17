@@ -27,3 +27,9 @@ Rabbit/
 # all golden copies are tracked so they can be propagated between developers
 
 !Golden Copies of Configuration Files Etc/*.*
+
+# all unit installation files are tracked so a system can be restored
+
+!Unit Installation Files/*.*
+
+!Unit Installation Files/XXtreme/*.*
