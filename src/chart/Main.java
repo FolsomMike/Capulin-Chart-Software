@@ -505,14 +505,21 @@ configFile.save();
 private void configure()
 {
 
+String configFilename = currentJobPrimaryPath + "01 - " + currentJobName
+                                                        + " Configuration.ini";
+    
+if(IniFile.detectUTF16LEFormat(configFilename))
+    globals.jobFileFormat = "UTF-16LE";
+else
+    globals.jobFileFormat = "UTF-8";
+
 IniFile configFile = null;
 
 //if the ini file cannot be opened and loaded, exit without action
 try {
-    configFile = new IniFile(currentJobPrimaryPath
-      + "01 - " + currentJobName + " Configuration.ini", globals.jobFileFormat);
+    configFile = new IniFile(configFilename, globals.jobFileFormat);
     }
-    catch(IOException e){return;}
+catch(IOException e){return;}
 
 //create an object to hold job info
 jobInfo = new JobInfo(mainFrame, currentJobPrimaryPath,

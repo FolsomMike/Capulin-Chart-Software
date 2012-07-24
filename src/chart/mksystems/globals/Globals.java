@@ -75,7 +75,7 @@ public static String mainFileFormat = "UTF-8";
 //the format used is specified in the newer files, defaults to UTF-16LE for
 //older jobs
 
-public String jobFileFormat="UTF-16LE";
+public String jobFileFormat = "UTF-16LE";
 
 //set this to equal the number of UT channels - each channel's values will be
 //saved with an identifying number
@@ -663,16 +663,6 @@ for (int i = 0; i < lineCount; i++){
     }
 
 section = "Main Configuration";
-
-//Original file format for config/ini files and data files was UTF-16LE.  
-//Switched to UTF-8 so that Git version control software could parse the files.
-//Any job configuration file without the fileFormat entry will default to the
-//UTF-16LE as required.  Thus, old jobs using their old job config files will
-//always be able to read their data files -- their config files should never
-//have the fileFormat entry set to UTF-8 or they will no longer be able to
-//access their data files.
-
-jobFileFormat = pConfigFile.readString(section, "Job File Format ", "UTF-16LE");
 
 }//end of Globals::configure
 //-----------------------------------------------------------------------------
