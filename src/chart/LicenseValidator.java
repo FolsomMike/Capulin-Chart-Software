@@ -39,6 +39,11 @@ import java.util.Date;
 import javax.swing.JOptionPane;
 import java.awt.event.WindowEvent;
 
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 // class LicenseValidator
@@ -78,15 +83,17 @@ mainFrame = pMainFrame; licenseFilename = pLicenseFilename;
 public void validateLicense()
 {
 
-File license = new File(licenseFilename);
+    getMACAddress(); //debug mks -- just displays for testing
+    
+    File license = new File(licenseFilename);
 
-//if the license file does not exist then, request renewal code
-// the program will be aborted if proper renewal code is not supplied
-if (!license.exists()) requestLicenseRenewal(true);
+    //if the license file does not exist then, request renewal code
+    // the program will be aborted if proper renewal code is not supplied
+    if (!license.exists()) requestLicenseRenewal(true);
 
-//if the license file is invalid or the date has expired, request renewal code
-// the program will be aborted if proper renewal code is not supplied
-if (!validateLicenseFile()) requestLicenseRenewal(true);
+    //if the license file is invalid or the date has expired, request renewal code
+    // the program will be aborted if proper renewal code is not supplied
+    if (!validateLicenseFile()) requestLicenseRenewal(true);
 
 }//end of LicenseValidator::validateLicense
 //-----------------------------------------------------------------------------
@@ -486,6 +493,61 @@ JOptionPane.showMessageDialog(mainFrame, pMessage,
 
 }//end of LicenseValidator::displayErrorMessage
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// LicenseValidator::getMACAddress
+//
+// Retrieves the MAC address for the computer.
+//
+ 
+public void getMACAddress() {
+    
+    try {
+        
+        //get the IP address of the local host
+        //(What if there are two network cards?)
+        //(What if network connection switches between the two?)
+        //(What if network is not connected?
+        
+        //(getHardwareAddress call seems to fail if network is not connected.)
+        
+        InetAddress address = InetAddress.getLocalHost();
+        //InetAddress address = InetAddress.getByName("192.168.46.53");
+
+        NetworkInterface ni = NetworkInterface.getByInetAddress(address);
+        
+        if (ni != null) {
+            
+            //get the MAC address -- returned in an array
+            byte[] mac = ni.getHardwareAddress();
+            
+            if (mac != null) {
+
+                 // extract each piece of mac address and convert it
+                 // to hexa with the following format
+                 // 08-00-27-DC-4A-9E.
+
+                for (int i = 0; i < mac.length; i++) {
+                    System.out.format("%02X%s",
+                            mac[i], (i < mac.length - 1) ? "-" : "");
+                }
+            } else {
+                System.out.println("Address doesn't exist or is not " +
+                        "accessible.");
+            }
+        } else {
+            System.out.println("Network Interface for the specified " +
+                    "address is not found.");
+        }
+    } catch (UnknownHostException e) {
+        System.out.println(e.getMessage());
+    } catch (SocketException e) {
+        System.out.println(e.getMessage());
+    }
+
+}//end of LicenseValidator::getMACAddress
+//-----------------------------------------------------------------------------
+
 
 }//end of class LicenseValidator
 //-----------------------------------------------------------------------------
