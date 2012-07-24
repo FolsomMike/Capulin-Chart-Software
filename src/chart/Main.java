@@ -64,7 +64,6 @@ public Hardware hardware;
 Globals globals;
 UTCalibrator calWindow;
 
-
 //-----------------------------------------------------------------------------
 // MainThread::MainThread (constructor)
 //
@@ -529,6 +528,7 @@ logWindow = new Log(mainFrame); logWindow.setVisible(true);
 
 //create a window for monitoring status and inputs
 monitorWindow = new Monitor(mainFrame, configFile, this);
+monitorWindow.init();
 
 //create the hardware interface first so the traces can link to it
 hardware = new Hardware(configFile, globals, logWindow.textArea);
@@ -1188,8 +1188,14 @@ if ("Repair Job".equals(e.getActionCommand())) {
     }
 
 //this part handles updating the Rabbit code
-if ("Update Rabbit Code".equals(e.getActionCommand())) {
-    hardware.updateRabbitCode();
+if ("Update UT Rabbit Code".equals(e.getActionCommand())) {
+    hardware.updateRabbitCode(Hardware.UT_RABBITS);
+    return;
+    }
+
+//this part handles updating the Rabbit code
+if ("Update Control Rabbit Code".equals(e.getActionCommand())) {
+    hardware.updateRabbitCode(Hardware.CONTROL_RABBITS);
     return;
     }
 
@@ -1785,12 +1791,12 @@ if (monitorWindow.isVisible()) {
         monitorMode = true;
         byte[] monitorBuffer = hardware.getMonitorPacket(true);
         monitorWindow.updateStatus(monitorBuffer);
-        }
+}
 else
     if (monitorMode){ //if in monitor mode and window closes, exit the mode
         monitorMode = false;
         hardware.stopMonitor();
-        }
+}
 
 
 //if the cal window is opened, allow it to update it's display with the latest

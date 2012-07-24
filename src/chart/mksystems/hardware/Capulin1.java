@@ -212,7 +212,7 @@ try{socket.setSoTimeout(1000);} catch(SocketException e){}
 
 //broadcast the roll call greeting several times - bail out when the expected
 //number of different Control boards have responded
-while(loopCount < 50 && responseCount < numberOfControlBoards){
+while(loopCount++ < 10 && responseCount < numberOfControlBoards){
 
     try {socket.send(outPacket);} catch(IOException e) {socket.close(); return;}
 
@@ -252,11 +252,14 @@ while(loopCount < 50 && responseCount < numberOfControlBoards){
 
 socket.close();
 
+//bail out if no Control boards responded
+if (responseCount == 0) return;
+
 //start the run method of each ControlBoard thread class - the run method makes
 //the TCP/IP connections and uploads FPGA and DSP code simultaneously to
 //shorten start up time
 
-if (numberOfControlBoards > 0){
+if (responseCount > 0){
     for (int i = 0; i < numberOfControlBoards; i++){
         //pass the Runnable interfaced controlBoard object to a thread and start
         //the run function of the controlBoard will peform the connection tasks
@@ -338,7 +341,7 @@ try{socket.setSoTimeout(3000);} catch(SocketException e){}
 
 //broadcast the roll call greeting repeatedly - bail out when the expected
 //number of different UT boards have responded
-while(loopCount < 10000 && responseCount < numberOfUTBoards){
+while(loopCount++ < 20 && responseCount < numberOfUTBoards){
             
     try {socket.send(outPacket);} catch(IOException e) {socket.close(); return;}
 
@@ -721,21 +724,42 @@ if (!logEnabled) return;
 //-----------------------------------------------------------------------------
 // Hardware::updateRabbitCode
 //
-// Installs new firmware on the Rabbit micro-controllers.
+// Installs new firmware on the Rabbit micro-controllers.  Which boards are
+// updated is selected by pWhichRabbits -- all, UT, or Control boards.
 //
 
 @Override
-public void updateRabbitCode()
+public void updateRabbitCode(int pWhichRabbits)
 {
-
-//debug mks -- give option to upload one or the other with a confirmation    
+        
+    String which = "";
     
-//for (int j = 0; j < numberOfUTBoards; j++)
-//    if (utBoards[j] != null) utBoards[j].installNewRabbitFirmware();
+    if (pWhichRabbits == Hardware.ALL_RABBITS) which = "all";
+    else
+    if (pWhichRabbits == Hardware.UT_RABBITS) which = "the UT";
+    else
+    if (pWhichRabbits == Hardware.CONTROL_RABBITS) which = "the Control";
+    
+    int n = JOptionPane.showConfirmDialog( null,
+    "Update " + which + " Rabbit micro-controllers?",
+    "Warning", JOptionPane.YES_NO_OPTION);
 
-for (int j = 0; j < numberOfControlBoards; j++)
-    if (controlBoards[j] != null) controlBoards[j].installNewRabbitFirmware();
+    //bail out if user does not click yes
+    if (n != JOptionPane.YES_OPTION) return; 
 
+    if (pWhichRabbits == Hardware.UT_RABBITS 
+            || pWhichRabbits == Hardware.ALL_RABBITS){
+        for (int j = 0; j < numberOfUTBoards; j++)
+            if (utBoards[j] != null) utBoards[j].installNewRabbitFirmware();
+    }
+
+    if (pWhichRabbits == Hardware.CONTROL_RABBITS 
+            || pWhichRabbits == Hardware.ALL_RABBITS){
+        for (int j = 0; j < numberOfControlBoards; j++)
+            if (controlBoards[j] != null) 
+                controlBoards[j].installNewRabbitFirmware();
+    }
+    
 }//end of Hardware::updateRabbitCode
 //-----------------------------------------------------------------------------
 

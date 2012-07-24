@@ -73,6 +73,10 @@ int scanRateCounter;
 
 InspectControlVars inspectCtrlVars;
 
+public static int ALL_RABBITS = 0;
+public static int UT_RABBITS = 1;
+public static int CONTROL_RABBITS = 2;
+
 public boolean connected = false;
 boolean collectDataEnabled = true;
 
@@ -1835,13 +1839,11 @@ analogDriver.displayMessages();
 // Installs new firmware on the Rabbit micro-controllers.
 //
 
-public void updateRabbitCode()
+public void updateRabbitCode(int pWhichRabbits)
 {
 
-analogDriver.updateRabbitCode();
-
-//wip mks -- add call to update ControlBoard Rabbit code
-
+    analogDriver.updateRabbitCode(pWhichRabbits);
+    
 }//end of Hardware::updateRabbitCode
 //-----------------------------------------------------------------------------
 

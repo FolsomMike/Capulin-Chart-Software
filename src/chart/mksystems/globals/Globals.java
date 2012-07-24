@@ -374,11 +374,19 @@ if (source.getActionCommand().equalsIgnoreCase("Repair Job")){
     }
 
 //calls function in Main
-if (source.getActionCommand().equalsIgnoreCase("Update Rabbit Code")){
+if (source.getActionCommand().equalsIgnoreCase("Update UT Rabbit Code")){
     actionListener.actionPerformed(
-                                new ActionEvent(this, 1, "Update Rabbit Code"));
+                           new ActionEvent(this, 1, source.getActionCommand()));
     return;
     }
+
+//calls function in Main
+if (source.getActionCommand().equalsIgnoreCase("Update Control Rabbit Code")){
+    actionListener.actionPerformed(
+                           new ActionEvent(this, 1, source.getActionCommand()));
+    return;
+    }
+
 
 //calls function in Main
 if (source.getActionCommand().equalsIgnoreCase("Setup System")){

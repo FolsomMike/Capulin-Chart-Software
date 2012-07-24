@@ -77,7 +77,7 @@ JCheckBoxMenuItem showPseudoPeakAtPeakLocation;
 //JRadioButtonMenuItem englishRadioButton, chineseRadioButton, spanishRadioButton;
 JMenu helpMenu;
 JMenuItem aboutMenuItem, monitorMenuItem, debuggerMenuItem, repairJobMenuItem;
-JMenuItem updateRabbitCodeMenuItem;
+JMenuItem updateUTRabbitCodeMenuItem, updateControlRabbitCodeMenuItem;
 JMenuItem setupSystemMenuItem;
 JMenuItem renewalMenuItem, logMenuItem, configInfoItem, statusMenuItem;
 
@@ -453,14 +453,23 @@ repairJobMenuItem.setActionCommand("Repair Job");
 repairJobMenuItem.addActionListener(globals);
 helpMenu.add(repairJobMenuItem);
 
-//option to install new Rabbit firmware
-updateRabbitCodeMenuItem = new JMenuItem("Update Rabbit Code");
-updateRabbitCodeMenuItem.setMnemonic(KeyEvent.VK_U);
-updateRabbitCodeMenuItem.setToolTipText(""
-                    + "Installs new software in the Rabbit micro-controllers");
-updateRabbitCodeMenuItem.setActionCommand("Update Rabbit Code");
-updateRabbitCodeMenuItem.addActionListener(globals);
-helpMenu.add(updateRabbitCodeMenuItem);
+//option to install new Rabbit firmware in the UT boards
+updateUTRabbitCodeMenuItem = new JMenuItem("Update UT Rabbit Code");
+updateUTRabbitCodeMenuItem.setMnemonic(KeyEvent.VK_U);
+updateUTRabbitCodeMenuItem.setToolTipText(""
+   + "Installs new software in the Rabbit micro-controllers on all UT boards.");
+updateUTRabbitCodeMenuItem.setActionCommand("Update UT Rabbit Code");
+updateUTRabbitCodeMenuItem.addActionListener(globals);
+helpMenu.add(updateUTRabbitCodeMenuItem);
+
+//option to install new Rabbit firmware in the Control board
+updateControlRabbitCodeMenuItem = new JMenuItem("Update Control Rabbit Code");
+updateControlRabbitCodeMenuItem.setMnemonic(KeyEvent.VK_U);
+updateControlRabbitCodeMenuItem.setToolTipText(""
++ "Installs new software in the Rabbit micro-controllers on all Control boards.");
+updateControlRabbitCodeMenuItem.setActionCommand("Update Control Rabbit Code");
+updateControlRabbitCodeMenuItem.addActionListener(globals);
+helpMenu.add(updateControlRabbitCodeMenuItem);
 
 //option to setup the system
 setupSystemMenuItem = new JMenuItem("Setup System");

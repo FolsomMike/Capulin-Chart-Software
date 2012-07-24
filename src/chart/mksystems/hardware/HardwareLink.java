@@ -90,7 +90,7 @@ boolean prepareControlData();
 
 public void displayMessages();
 
-public void updateRabbitCode();
+public void updateRabbitCode(int pWhichRabbits);
 
 public void doTasks();
 

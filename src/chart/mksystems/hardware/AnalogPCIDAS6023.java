@@ -586,7 +586,7 @@ public void displayMessages()
 //
 
 @Override
-public void updateRabbitCode()
+public void updateRabbitCode(int pWhichRabbits)
 {
 
 }//end of AnalogPCIDAS6023::updateRabbitCode
