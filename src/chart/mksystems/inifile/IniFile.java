@@ -907,6 +907,8 @@ writeValue(pSection, pKey, newEntry);
 //
 // Returns true if file was created in UTF-16LE format, false if otherwise.
 //
+// Returns false if the file is not found or on I/O error.
+//
 
 static public boolean detectUTF16LEFormat(String pFilename)
 {
@@ -943,7 +945,7 @@ try{
     
 }//try
 catch (FileNotFoundException e){
-
+    return(false);
 }//catch
 //catch(IOException e){throw new IOException();}
 catch(IOException e){
@@ -957,9 +959,6 @@ finally{
     try{if (fileInputStream != null) fileInputStream.close();}
         catch(IOException e){}
 }//finally
-
-//if this part reached, then some sort of error occurred so return false
-return(false);
 
 }//end of IniFile::detectUTF16LEFormat
 //-----------------------------------------------------------------------------

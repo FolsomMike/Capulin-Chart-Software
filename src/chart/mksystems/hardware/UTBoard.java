@@ -46,7 +46,7 @@ int numberOfBanks;
 int reSyncCount = 0, reSyncDSPChip, reSyncDSPCore, reSyncPktID, reSyncDSPMsgID;
 boolean syncSource;
 HardwareVars hdwVs;
-String fileFormat;
+String jobFileFormat, mainFileFormat;
 
 //ASCAN_MAX_HEIGHT and SIGNAL_SCALE should be changed to variables
 //which can be initialized and or adjusted
@@ -488,15 +488,16 @@ boolean reSynced;
 //
 
 public UTBoard(String pConfigFilename, String pBoardName, int pBoardIndex,
-     boolean pSimulate, JTextArea pLog, HardwareVars pHdwVs, String pFileFormat)
+     boolean pSimulate, JTextArea pLog, HardwareVars pHdwVs, 
+     String pJobFileFormat, String pMainFileFormat)
 {
 
 configFilename = pConfigFilename;
 hdwVs = pHdwVs;
-fileFormat = pFileFormat;
+jobFileFormat = pJobFileFormat; mainFileFormat = pMainFileFormat;
 
 //if the ini file cannot be opened and loaded, continue on - values will default
-try {configFile = new IniFile(configFilename, fileFormat);}
+try {configFile = new IniFile(configFilename, jobFileFormat);}
     catch(IOException e){}
 
 boardName = pBoardName;
@@ -672,7 +673,7 @@ try {
     threadSafeLog("Connecting to UT board " + ipAddrS + "...\n"); 
 
     if (!simulate) socket = new Socket(ipAddr, 23);
-    else socket = new UTSimulator(ipAddr, 23, fileFormat);
+    else socket = new UTSimulator(ipAddr, 23, mainFileFormat);
 
     //set amount of time in milliseconds that a read from the socket will
     //wait for data - this prevents program lock up when no data is ready
@@ -1145,7 +1146,7 @@ int byte3 = (int)(ipAddr.getAddress()[3] & 0xff);
 IniFile configFileL;
 
 //if the ini file cannot be opened and loaded, exit without action
-try {configFileL = new IniFile("Board Slot Overrides.ini", fileFormat);}
+try {configFileL = new IniFile("Board Slot Overrides.ini", mainFileFormat);}
     catch(IOException e){
     return;
     }

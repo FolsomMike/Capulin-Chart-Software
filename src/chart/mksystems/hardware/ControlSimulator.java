@@ -49,7 +49,7 @@ public ControlSimulator() throws SocketException{}; //default constructor - not 
 
 public static int controlBoardCounter = 0;
 int controlBoardNumber;
-String fileFormat;
+String mainFileFormat;
 
 boolean onPipeFlag = false;
 boolean head1Down = false;
@@ -72,14 +72,14 @@ int delayBetweenPackets = DELAY_BETWEEN_INSPECT_PACKETS;
 //
 
 public ControlSimulator(InetAddress pIPAddress, int pPort, 
-      int pEncoder1DeltaTrigger, int pEncoder2DeltaTrigger, String pFileFormat)
-                                                        throws SocketException
+      int pEncoder1DeltaTrigger, int pEncoder2DeltaTrigger, 
+                                String pMainFileFormat) throws SocketException
 {
 
 //call the parent class constructor
 super(pIPAddress, pPort);
 
-fileFormat = pFileFormat;
+mainFileFormat = pMainFileFormat;
 
 //give each Control board a unique number so it can load data from the
 //simulation.ini file and such
@@ -519,7 +519,7 @@ private void configure()
 IniFile configFile;
 
 //if the ini file cannot be opened and loaded, exit without action
-try {configFile = new IniFile("Simulation.ini", fileFormat);}
+try {configFile = new IniFile("Simulation.ini", mainFileFormat);}
     catch(IOException e){
     return;
     }
