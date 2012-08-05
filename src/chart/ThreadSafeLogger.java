@@ -32,7 +32,9 @@
 
 package chart;
 
+import java.util.Date;
 import javax.swing.*;
+import java.io.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -42,6 +44,8 @@ import javax.swing.*;
 public class ThreadSafeLogger {
     
 JTextArea log;    
+
+String filenameSuffix;
 
 String[] messages; //stores messages to be displayed by main thread
 int messagePtr = 0; //tracks message position for new messages
@@ -65,7 +69,7 @@ messages = new String[NUMBER_THREADSAFE_MESSAGES];
 //-----------------------------------------------------------------------------    
 
 //-----------------------------------------------------------------------------
-// Board::logMessage
+// ThreadSafeLogger::logMessage
 //
 // This function allows a thread to add a log entry to the log window.  The
 // actual call is passed to the invokeLater function so it will be safely
@@ -78,24 +82,23 @@ messages = new String[NUMBER_THREADSAFE_MESSAGES];
 public void logMessage(String pMessage)
 {
 
+//store the message in a buffer where the helper can find it
+        
 messages[messagePtr++] = pMessage;
 if (messagePtr == NUMBER_THREADSAFE_MESSAGES) messagePtr = 0;
 
- //store the message where the helper can find it
-
-//Schedule a job for the event-dispatching thread: 
-//creating and showing this application's GUI. 
+//schedule a job for the event-dispatching thread to add the message to the log
     
 javax.swing.SwingUtilities.invokeLater(
         new Runnable() {
             @Override
             public void run() { logMessageThreadSafe(); } }); 
 
-}//end of  Board::logMessage
+}//end of ThreadSafeLogger::logMessage
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Board::logMessageThreadSafe
+// ThreadSafeLogger::logMessageThreadSafe
 //
 // This function is passed to invokeLater by threadSafeLog so that it will be
 // run by the main Java thread and display the stored message on the log
@@ -117,7 +120,142 @@ log.append(messages[mainThreadMessagePtr++]);
 if (mainThreadMessagePtr == NUMBER_THREADSAFE_MESSAGES)
     mainThreadMessagePtr = 0;
 
-}//end of  Board::logMessageThreadSafe
+}//end of ThreadSafeLogger::logMessageThreadSafe
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ThreadSafeLogger::separate
+//
+// Write a separator (such as a line of dashes) to the file.
+//    
+
+public void separate()
+{
+
+    logMessage(
+      "--------------------------------------------------------------------\n");
+
+}//end of ThreadSafeLogger::separator
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ThreadSafeLogger::date
+//
+// Write the date to the file.
+//    
+
+public void date()
+{
+
+    logMessage(new Date().toString() + "\n");
+
+}//end of ThreadSafeLogger::date
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ThreadSafeLogger::section
+//
+// Writes a blank line, a separator, the date, a blank line.
+//    
+
+public void section()
+{
+    
+    logMessage("\n");
+    separate();
+    date();
+    logMessage("\n");
+
+}//end of ThreadSafeLogger::section
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ThreadSafeLogger::saveToFile
+//
+// Saves the current log window contents to a disk file in a thread safe manner.
+//
+// The filename will be the date stamp with pFilenameSuffix appended and .txt
+// for the extension.
+//
+// The file will be saved to the "Log Files" folder in the root program
+// folder.
+//
+
+public void saveToFile(String pFilenameSuffix)
+{
+
+//store the suffix in a buffer where the helper can find it
+    
+filenameSuffix = pFilenameSuffix;    
+    
+//Schedule a job for the event-dispatching thread to do actual saving
+    
+javax.swing.SwingUtilities.invokeLater(
+        new Runnable() {
+            @Override
+            public void run() { saveToFileThreadSafe(); } }); 
+
+}//end of ThreadSafeLogger::saveToFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ThreadSafeLogger::saveToFileThreadSafe
+//
+// Saves the current log window contents to a disk file in a thread safe manner.
+//
+// The filename will be the date stamp with pFilenameSuffix appended and .txt
+// for the extension.
+//
+// The file will be saved to the "Log Files" folder in the root program
+// folder.
+//
+
+public void saveToFileThreadSafe()
+{
+
+    String lineSeparator = System.getProperty("line.separator");
+    
+    String filename = 
+        "Log Files" + File.separator + new Date().toString().replace(":", ".")
+         + " ~ " + filenameSuffix + ".txt";
+         
+    PrintWriter file = null;
+        
+    try{
+        file = new PrintWriter(new FileWriter(filename, true));
+        
+        file.println(log.getText().replace("\n", lineSeparator));
+        
+        if (file != null) file.close();
+        
+    }
+    catch(IOException e){
+        
+        //if the log file cannot be opened, just display an error message
+        //no messages will be written to the file -- this is not a super
+        //critical error and should happen rarely
+        
+        displayErrorMessage("Could not open log file: " + filename);
+        if (file != null) file.close();
+        
+    }
+
+}//end of ThreadSafeLogger::saveToFileThreadSafe
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ThreadSafeLogger::displayErrorMessage
+//
+// Displays an error dialog with message pMessage.
+//
+
+private void displayErrorMessage(String pMessage)
+{
+
+JOptionPane.showMessageDialog(null, pMessage,
+                                            "Error", JOptionPane.ERROR_MESSAGE);
+
+}//end of ThreadSafeLogger::displayErrorMessage
 //-----------------------------------------------------------------------------
 
 

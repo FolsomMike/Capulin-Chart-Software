@@ -24,7 +24,7 @@ import javax.swing.*;
 import chart.MessageLink;
 import chart.mksystems.globals.Globals;
 import chart.mksystems.inifile.IniFile;
-import chart.mksystems.stripchart.TraceHdwVars;
+import chart.ThreadSafeLogger;
 import chart.mksystems.stripchart.Threshold;
 import chart.mksystems.stripchart.Trace;
 import chart.mksystems.stripchart.ChartGroup;
@@ -44,6 +44,8 @@ public class Hardware extends Object implements TraceValueCalculator, Runnable,
 static public int SCAN = 0, INSPECT = 1, STOPPED = 2;
 static public int INSPECT_WITH_TIMER_TRACKING = 3, PAUSED = 4;
 int opMode = STOPPED;
+
+ThreadSafeLogger logger;
 
 //debug mks -- needs to be loaded from config file -- specifies if carriage
 //moving away is increasing or decreasing encoder counts
@@ -116,6 +118,8 @@ public Hardware(IniFile pConfigFile, Globals pGlobals, JTextArea pLog)
 
 hdwVs = new HardwareVars(); configFile = pConfigFile; log = pLog;
 globals = pGlobals;
+
+logger = new ThreadSafeLogger(pLog);
 
 inspectCtrlVars = new InspectControlVars();
 
@@ -238,6 +242,9 @@ if (pDriverName.equalsIgnoreCase("Capulin 1")) analogDriver =
 public void connect()
 {
 
+logger.section();    
+logger.logMessage("Connecting With Chassis and Configuring\n\n");
+    
 connected = true;
 
 //before attempting to connect with the boards, start a thread to run the
@@ -253,6 +260,10 @@ analogDriver.connect();
 //pipe so the traces can be delayed until their sensors reach the inspection
 //piece
 calculateTraceOffsetDelays();
+
+logger.logMessage("\nChassis configuration complete.\n");
+
+logger.saveToFile("Chassis Configuration Log");
 
 }//end of Hardware::connect
 //-----------------------------------------------------------------------------
