@@ -10,6 +10,7 @@ build/
 dist/
 DSP/
 Rabbit/
+Log Files/*.*
 
 # ignore any jar file which might be in the executable directory
 *.jar
