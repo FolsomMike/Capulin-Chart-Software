@@ -35,7 +35,7 @@ import chart.mksystems.inifile.IniFile;
 public class ControlBoard extends Board implements MessageLink{
 
 byte[] monitorBuffer;
-static int MONITOR_PACKET_SIZE = 20;
+static int MONITOR_PACKET_SIZE = 25;
 String fileFormat;
 
 int packetRequestTimer = 0;
@@ -136,15 +136,14 @@ public ControlBoard(IniFile pConfigFile, String pBoardName, int pBoardIndex,
   int pRuntimePacketSize, boolean pSimulate, JTextArea pLog, String pFileFormat)
 {
 
+super(pLog);    
+    
 configFile = pConfigFile; 
 boardName = pBoardName;
 boardIndex = pBoardIndex;
 runtimePacketSize = pRuntimePacketSize;
 simulate = pSimulate;
 fileFormat = pFileFormat;
-
-log = pLog;
-threadSafeMessage = new String[NUMBER_THREADSAFE_MESSAGES];
 
 monitorBuffer = new byte[MONITOR_PACKET_SIZE];
 
@@ -207,11 +206,11 @@ public synchronized void connect()
 {
 
 //displays message on bottom panel of IDE
-threadSafeLog("Opening connection with Control board...\n"); 
+logger.logMessage("Opening connection with Control board...\n"); 
   
 try {
 
-    threadSafeLog("Control Board IP Address: " + ipAddr.toString() + "\n");
+    logger.logMessage("Control Board IP Address: " + ipAddr.toString() + "\n");
 
     if (!simulate) socket = new Socket(ipAddr, 23);
     else {
@@ -237,13 +236,13 @@ try {
 
     }//try
     catch (IOException e) {
-        threadSafeLog("Couldn't get I/O for " + ipAddrS + "\n");
+        logger.logMessage("Couldn't get I/O for " + ipAddrS + "\n");
         return;
         }
 
 try {
     //display the greeting message sent by the remote
-    threadSafeLog(ipAddrS + " says " + in.readLine() + "\n");
+    logger.logMessage(ipAddrS + " says " + in.readLine() + "\n");
     }
 catch(IOException e){}
 
@@ -262,7 +261,7 @@ getChassisSlotAddress();
 
 chassisSlotAddr = chassisAddr + ":" + slotAddr;
 
-threadSafeLog("Control " + chassisSlotAddr + " is ready." + "\n");
+logger.logMessage("Control " + chassisSlotAddr + " is ready." + "\n");
 
 notifyAll(); //wake up all threads that are waiting for this to complete
 
@@ -301,7 +300,7 @@ byte address = getRemoteData(GET_CHASSIS_SLOT_ADDRESS_CMD, true);
 chassisAddr =  (address>>4 & 0xf);
 slotAddr = address & 0xf;
 
-threadSafeLog("Control " + ipAddrS + " chassis & slot address: "
+logger.logMessage("Control " + ipAddrS + " chassis & slot address: "
                                         + chassisAddr + "-" + slotAddr + "\n");
 
 }//end of ControlBoard::getChassisSlotAddress

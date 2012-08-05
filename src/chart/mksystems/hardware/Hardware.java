@@ -98,9 +98,6 @@ public int unitsTimeDistance = TIME;
 public static int PULSE = 0, CONTINUOUS = 1;
 public int markerMode = PULSE;
 
-String threadSafeMessage; //this needs to be an array
-int threadSafeMessagePtr; //points to next message in the array
-
 double photoEye1DistanceFrontOfHead1;
 double photoEye1DistanceFrontOfHead2;
 
@@ -227,7 +224,7 @@ if (pDriverName.equalsIgnoreCase("PCI-DAS6023")) analogDriver =
 
 if (pDriverName.equalsIgnoreCase("Capulin 1")) analogDriver = 
     new Capulin1(configFile, true, numberOfAnalogChannels, hdwVs, log, 
-                                 globals.jobFileFormat, globals.mainFileFormat);
+                                 globals.jobFileFormat, Globals.mainFileFormat);
   
 }//end of Hardware::createAnalogDriver
 //-----------------------------------------------------------------------------
@@ -1845,49 +1842,6 @@ public void updateRabbitCode(int pWhichRabbits)
     analogDriver.updateRabbitCode(pWhichRabbits);
     
 }//end of Hardware::updateRabbitCode
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Hardware::threadSafeLog
-//
-// This function allows a thread to add a log entry to the log window.  The
-// actual call is passed to the invokeLater function so it will be safely
-// executed by the main Java thread.
-// 
-//
-
-public void threadSafeLog(String pMessage)
-{
-
-threadSafeMessage = pMessage; //store the message where the helper can find it
-
-//Schedule a job for the event-dispatching thread: 
-//creating and showing this application's GUI. 
-    
-javax.swing.SwingUtilities.invokeLater(
-        new Runnable() {
-            @Override
-            public void run() { threadSafeLogHelper(); } }); 
-
-}//end of  Hardware::threadSafeLog
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Hardware::threadSafeLogHelper
-//
-// This function is passed to invokeLater by threadSafeLog so that it will be
-// run by the main Java thread and display the stored message on the log
-// window.
-// 
-//
-
-public void threadSafeLogHelper()
-{
-
-//display the stored message
-log.append(threadSafeMessage);
-    
-}//end of  Hardware::threadSafeLogHelper
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

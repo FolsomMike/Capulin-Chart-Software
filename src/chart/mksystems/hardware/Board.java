@@ -23,6 +23,7 @@ import java.io.*;
 import java.net.*;
 import javax.swing.*;
 
+import chart.ThreadSafeLogger;
 import chart.mksystems.inifile.IniFile;
 
 //-----------------------------------------------------------------------------
@@ -59,6 +60,7 @@ IniFile configFile;
 String boardName;
 int boardIndex;
 JTextArea log;
+ThreadSafeLogger logger;
 
 boolean setupComplete = false; //set true if set was completed
 boolean ready = false; //set true if board is successfully setup
@@ -79,13 +81,23 @@ byte[] outBuffer;
 DataOutputStream byteOut = null;
 DataInputStream byteIn = null;
 
-String[] threadSafeMessage; //stores messages to be displayed by main thread
-int threadSafeMessagePtr = 0; //points next message in the array for saving
-int mainThreadMessagePtr = 0; //points next message in the array to be displayed
-static int NUMBER_THREADSAFE_MESSAGES = 100;
-
 int TIMEOUT = 50;
 int timeOutProcess = 0; //use this one in the packet process functions
+
+//-----------------------------------------------------------------------------
+// Board::Board (constructor)
+//
+
+public Board(JTextArea pLog)
+{
+
+log = pLog;
+
+//create an object to log messages to the log window in thread safe manner
+logger = new ThreadSafeLogger(log);
+
+}//end of Board::Board (constructor)
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // Board::setIPAddr
@@ -767,63 +779,6 @@ public void logStatus(JTextArea pTextArea)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Board::threadSafeLog
-//
-// This function allows a thread to add a log entry to the log window.  The
-// actual call is passed to the invokeLater function so it will be safely
-// executed by the main Java thread.
-// 
-// Messages are stored in a circular buffer so that the calling thead does
-// not overwrite the previous message before the main thread can process it.
-//
-
-public void threadSafeLog(String pMessage)
-{
-
-threadSafeMessage[threadSafeMessagePtr++] = pMessage;
-if (threadSafeMessagePtr == NUMBER_THREADSAFE_MESSAGES)
-    threadSafeMessagePtr = 0;
-
- //store the message where the helper can find it
-
-//Schedule a job for the event-dispatching thread: 
-//creating and showing this application's GUI. 
-    
-javax.swing.SwingUtilities.invokeLater(
-        new Runnable() {
-            @Override
-            public void run() { threadSafeLogHelper(); } }); 
-
-}//end of  Board::threadSafeLog
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Board::threadSafeLogHelper
-//
-// This function is passed to invokeLater by threadSafeLog so that it will be
-// run by the main Java thread and display the stored message on the log
-// window.
-// 
-//
-
-public void threadSafeLogHelper()
-{
-
-// Since this function will be invoked once for every message placed in the
-// array, no need to check if there is a message available?  Would be a problem
-// if the calling thread began to overwrite the buffer before it could be
-// displayed?
-
-//display the next message stored in the array
-log.append(threadSafeMessage[mainThreadMessagePtr++]);
-
-if (mainThreadMessagePtr == NUMBER_THREADSAFE_MESSAGES)
-    mainThreadMessagePtr = 0;
-
-}//end of  Board::threadSafeLogHelper
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // Board::installNewRabbitFirmware
 //
 // Transmits the Rabbit firmware code to the specified board to replace the
@@ -872,7 +827,7 @@ try {
  
     sendByte(pS.loadFirmwareCmd); //send command to initiate loading
 
-    threadSafeLog(pBoardType + " " + ipAddrS + 
+    logger.logMessage(pBoardType + " " + ipAddrS + 
                                         " loading Rabbit firmware..." + "\n");
 
     timeOutRead = 0;
@@ -899,7 +854,7 @@ try {
 
         //trap and respond to messages from the remote
         if (inBuffer[0] == pS.error){
-            threadSafeLog(pBoardType + " " + ipAddrS + 
+            logger.logMessage(pBoardType + " " + ipAddrS + 
                 " error loading firmware, error code: " + remoteStatus + "\n");
             return;
             }
@@ -949,16 +904,16 @@ try {
         }// while(timeOutGet <...
 
     if (fileDone)
-        threadSafeLog(
+        logger.logMessage(
            pBoardType + " " + ipAddrS + " firmware installed." + "\n");
     else
     //remote has not responded if this part reached
-        threadSafeLog(pBoardType + " " + ipAddrS
+        logger.logMessage(pBoardType + " " + ipAddrS
                         + " error loading firmware - contact lost." + "\n");
 
     }//try
 catch(IOException e){
-    threadSafeLog(
+    logger.logMessage(
             pBoardType + " " + ipAddrS + " error loading firmware!" + "\n");
 }
 finally {

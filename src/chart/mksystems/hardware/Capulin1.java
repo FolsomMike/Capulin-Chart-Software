@@ -23,6 +23,7 @@ import java.net.*;
 import javax.swing.*;
 
 import chart.MessageLink;
+import chart.ThreadSafeLogger;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.stripchart.Threshold;
 import chart.mksystems.stripchart.Trace;
@@ -44,6 +45,8 @@ int showCount1 = 0;
 int showCount2 = 0;
 int reflectionTimer = 0;
 //debug mks end  - this is only for demo - delete later
+
+ThreadSafeLogger logger;
 
 String jobFileFormat, mainFileFormat;
 
@@ -71,11 +74,6 @@ int numberOfAnalogChannels;
 
 Channel[] channels;
 public int numberOfChannels;
-
-String[] threadSafeMessage; //stores messages to be displayed by main thread
-int threadSafeMessagePtr = 0; //points next message in the array for saving
-int mainThreadMessagePtr = 0; //points next message in the array to be displayed
-static int NUMBER_THREADSAFE_MESSAGES = 100;
 
 UTBoard[] utBoards;
 int numberOfUTBoards;
@@ -105,12 +103,11 @@ Capulin1(IniFile pConfigFile, boolean pSimulationMode,
 configFile = pConfigFile; simulationMode = pSimulationMode;
 numberOfAnalogChannels = pNumberOfAnalogChannels;
 hdwVs = pHdwVs;
+log = pLog;
 jobFileFormat = pJobFileFormat;  
 mainFileFormat = pMainFileFormat;
 
-log = pLog;
-
-threadSafeMessage = new String[NUMBER_THREADSAFE_MESSAGES];
+logger = new ThreadSafeLogger(pLog);
 
 pktBuffer = new byte[RUNTIME_PACKET_SIZE];
 
@@ -161,6 +158,10 @@ connectControlBoard();
 
 connectUTBoards();
 
+
+//debug mks zzz
+
+
 }//end of Capulin1::connect
 //-----------------------------------------------------------------------------
 
@@ -174,7 +175,7 @@ public void connectControlBoard()
 {
 
 //displays message on bottom panel of IDE
-threadSafeLog("Broadcasting greeting to all Control boards...\n");
+logger.logMessage("Broadcasting greeting to all Control boards...\n");
 
 DatagramSocket socket;
 
@@ -186,7 +187,7 @@ try{
 
     }
 catch (IOException e) {
-        threadSafeLog("Couldn't create Control broadcast socket.\n");
+        logger.logMessage("Couldn't create Control broadcast socket.\n");
         return;
         }
 
@@ -243,7 +244,7 @@ while(loopCount++ < 10 && responseCount < numberOfControlBoards){
 
             //if receive finds a packet before timing out, this reached
             //display the greeting string from the remote
-            threadSafeLog(
+            logger.logMessage(
                 new String(inPacket.getData(), 0, inPacket.getLength()) + "\n");
 
             }//while(true)
@@ -278,7 +279,7 @@ if (responseCount > 0){
 for (int i = 0; i < numberOfControlBoards; i++)
     controlBoards[i].waitForConnectCompletion();
 
-threadSafeLog("All Control boards ready.\n");
+logger.logMessage("All Control boards ready.\n");
 
 //initialize each Control board
 initializeControlBoards();
@@ -296,7 +297,7 @@ public synchronized void connectUTBoards()
 {
 
 //displays message on bottom panel of IDE
-threadSafeLog("Broadcasting greeting to all UT boards...\n"); 
+logger.logMessage("Broadcasting greeting to all UT boards...\n"); 
 
 DatagramSocket socket;
 
@@ -313,7 +314,7 @@ try{
     else socket = new UDPSimulator(4445, "UT board present, FPGA loaded...");
     } 
 catch (IOException e) {
-        threadSafeLog("Couldn't create UT broadcast socket.\n");
+        logger.logMessage("Couldn't create UT broadcast socket.\n");
         return;
         }
 
@@ -387,7 +388,7 @@ while(loopCount++ < 20 && responseCount < numberOfUTBoards){
                     if (response.contains("FPGA loaded")) fpgaLoadedCount++;
 
                     //display the greeting string from the remote
-                    threadSafeLog(response + "\n");                   
+                    logger.logMessage(response + "\n");                   
                     
                     //stop scanning the boards now that ip saved
                     break;
@@ -429,7 +430,7 @@ if (numberOfUTBoards > 0){
 for (int i = 0; i < numberOfUTBoards; i++)
     utBoards[i].waitForConnectCompletion();
 
-threadSafeLog("All UT boards connected...\n");
+logger.logMessage("All UT boards connected...\n");
 
 //Connect the UT boards to their software channels.
 //Set the utBoard pointer for each channel to the utBoard object which has a
@@ -458,7 +459,7 @@ initializeUTBoards();
 
 waitSleep(3000); //sleep for a bit to allow DSPs to start up
 
-threadSafeLog("All UT boards initialized...\n");
+logger.logMessage("All UT boards initialized...\n");
 
 //set up each channel
 // CAUTION: the next should only be called after each channel's loadCalFile
@@ -470,8 +471,8 @@ threadSafeLog("All UT boards initialized...\n");
 
 initializeChannels();
 
-threadSafeLog("All channels initialized...\n");
-threadSafeLog("All UT boards ready.\n");
+logger.logMessage("All channels initialized...\n");
+logger.logMessage("All UT boards ready.\n");
 
 }//end of Capulin1::connectUTBoards
 //-----------------------------------------------------------------------------
@@ -762,64 +763,6 @@ public void updateRabbitCode(int pWhichRabbits)
     }
     
 }//end of Hardware::updateRabbitCode
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Hardware::threadSafeLog
-//
-// This function allows a thread to add a log entry to the log window.  The
-// actual call is passed to the invokeLater function so it will be safely
-// executed by the main Java thread.
-// 
-// Messages are stored in a circular buffer so that the calling thead does
-// not overwrite the previous message before the main thread can process it.
-//
-
-public void threadSafeLog(String pMessage)
-{
-
-threadSafeMessage[threadSafeMessagePtr++] = pMessage;
-if (threadSafeMessagePtr == NUMBER_THREADSAFE_MESSAGES)
-    threadSafeMessagePtr = 0;
-
- //store the message where the helper can find it
-
-//Schedule a job for the event-dispatching thread: 
-//creating and showing this application's GUI. 
-    
-javax.swing.SwingUtilities.invokeLater(
-        new Runnable() {
-            @Override
-            public void run() { threadSafeLogHelper(); } }); 
-
-}//end of  Hardware::threadSafeLog
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Hardware::threadSafeLogHelper
-//
-// This function is passed to invokeLater by threadSafeLog so that it will be
-// run by the main Java thread and display the stored message on the log
-// window.
-// 
-//
-
-public void threadSafeLogHelper()
-{
-
-// Since this function will be invoked once for every message placed in the
-// array, no need to check if there is a message available?  Would be a problem
-// if the calling thread began to overwrite the buffer before it coulde be
-// displayed?
-
-//display the next message stored in the array
-log.append(threadSafeMessage[mainThreadMessagePtr++]);
-
-if (mainThreadMessagePtr == NUMBER_THREADSAFE_MESSAGES)
-    mainThreadMessagePtr = 0;
-
-    
-}//end of  Hardware::threadSafeLogHelper
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1740,7 +1683,7 @@ try {
      //send command to initiate FPGA loading
     sendByteUDP(pSocket, outPacket, UTBoard.LOAD_FPGA_CMD);
 
-    threadSafeLog("Loading all UT board FPGAs..." + "\n");
+    logger.logMessage("Loading all UT board FPGAs..." + "\n");
 
     inFile = new FileInputStream("fpga\\" + fpgaCodeFilename);
     int c;
@@ -1852,25 +1795,25 @@ while(!timeOut){
     //trap error and finished status messages, second byte in buffer
 
     if (inBuffer[1] == UTBoard.FPGA_INITB_ERROR){
-        threadSafeLog(
+        logger.logMessage(
                   "UT " + ipAddrS + " error loading FPGA - INIT_B" + "\n");
         return(-1);
         }
 
     if (inBuffer[1] == UTBoard.FPGA_DONE_ERROR){
-        threadSafeLog(
+        logger.logMessage(
                   "UT " + ipAddrS + " error loading FPGA - DONE" + "\n");
         return(-1);
         }
 
     if (inBuffer[1] == UTBoard.FPGA_CONFIG_CRC_ERROR){
-        threadSafeLog(
+        logger.logMessage(
                     "UT " + ipAddrS + " error loading FPGA - CRC" + "\n");
         return(-1);
         }
 
     if (inBuffer[1] == UTBoard.FPGA_CONFIG_GOOD){
-        threadSafeLog("UT " + ipAddrS + " FPGA Loaded." + "\n");
+        logger.logMessage("UT " + ipAddrS + " FPGA Loaded." + "\n");
         //count boards which return good code
         fpgaConfigGoodCount++;
         //exit when all boards return good
@@ -1888,7 +1831,7 @@ while(!timeOut){
     }// while(!timeOut)
 
 //remote has not responded -- timeout if this part reached
-threadSafeLog("Error loading FPGA(s) - contact lost." + "\n");
+logger.logMessage("Error loading FPGA(s) - contact lost." + "\n");
 
 return(-1);
 

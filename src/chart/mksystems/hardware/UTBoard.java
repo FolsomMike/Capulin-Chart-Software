@@ -492,6 +492,8 @@ public UTBoard(String pConfigFilename, String pBoardName, int pBoardIndex,
      String pJobFileFormat, String pMainFileFormat)
 {
 
+super(pLog);    
+    
 configFilename = pConfigFilename;
 hdwVs = pHdwVs;
 jobFileFormat = pJobFileFormat; mainFileFormat = pMainFileFormat;
@@ -506,9 +508,6 @@ simulate = pSimulate;
 
 //FIR filter buffer -- same length as number of filter taps
 firBuf = new int[firCoef.length];
-
-log = pLog;
-threadSafeMessage = new String[NUMBER_THREADSAFE_MESSAGES];
 
 //aScan holds an aScan data set for transfer to the display object
 aScan = new AScan(ASCAN_BUFFER_SIZE);
@@ -670,7 +669,7 @@ public synchronized void connect()
 try {
 
     //displays message on bottom panel of IDE
-    threadSafeLog("Connecting to UT board " + ipAddrS + "...\n"); 
+    logger.logMessage("Connecting to UT board " + ipAddrS + "...\n"); 
 
     if (!simulate) socket = new Socket(ipAddr, 23);
     else socket = new UTSimulator(ipAddr, 23, mainFileFormat);
@@ -684,11 +683,11 @@ try {
     //socket.setReceiveBufferSize(10240 or as needed);
 
     //allow verification that the hinted size is actually used
-    threadSafeLog("UT " + ipAddrS + " receive buffer size: " +
+    logger.logMessage("UT " + ipAddrS + " receive buffer size: " +
                                     socket.getReceiveBufferSize() + "...\n");
 
     //allow verification that the hinted size is actually used
-    threadSafeLog("UT " + ipAddrS + " send buffer size: " +
+    logger.logMessage("UT " + ipAddrS + " send buffer size: " +
                                     socket.getSendBufferSize() + "...\n");
 
     out = new PrintWriter(socket.getOutputStream(), true);
@@ -701,18 +700,18 @@ try {
 
     } 
 catch (UnknownHostException e) {
-    threadSafeLog("Unknown host: UT " + ipAddrS + ".\n");
+    logger.logMessage("Unknown host: UT " + ipAddrS + ".\n");
     return;
     }
 catch (IOException e) {
-    threadSafeLog("Couldn't get I/O for UT " + ipAddrS + "\n");
-    threadSafeLog("--" + e.getMessage() + "--\n");
+    logger.logMessage("Couldn't get I/O for UT " + ipAddrS + "\n");
+    logger.logMessage("--" + e.getMessage() + "--\n");
     return;
     }
 
 try {
     //display the greeting message sent by the remote
-    threadSafeLog("UT " + ipAddrS + " says " + in.readLine() + "\n");
+    logger.logMessage("UT " + ipAddrS + " says " + in.readLine() + "\n");
     }
 catch(IOException e){}
 
@@ -764,7 +763,7 @@ setupComplete = true;
 //flag that setup was successful and board is ready for use
 ready = true;
 
-threadSafeLog("UT " + chassisSlotAddr + " is ready." + "\n");
+logger.logMessage("UT " + chassisSlotAddr + " is ready." + "\n");
 
 notifyAll(); //wake up all threads that are waiting for this to complete
 
@@ -783,7 +782,7 @@ while (true){
     status2 = getRemoteAddressedData(READ_FPGA_CMD, STATUS2_REG);
 
     if (status1 != status1p || status2 != status2p)
-        threadSafeLog("Status 1: " + status1 + " Status 2: " + status2 + "\n"); 
+        logger.logMessage("Status 1: " + status1 + " Status 2: " + status2 + "\n"); 
 
     status1p = status1; status2p = status2; 
 
@@ -871,7 +870,7 @@ if (byteOut == null) return;
 
 // check to see if the FPGA has already been loaded
 if ((getRemoteData(GET_STATUS_CMD, true) & FPGA_LOADED_FLAG) != 0) {
-    threadSafeLog("UT " + ipAddrS + " FPGA already loaded..." + "\n");
+    logger.logMessage("UT " + ipAddrS + " FPGA already loaded..." + "\n");
 
     return;
     }
@@ -892,7 +891,7 @@ try {
  
     sendByte(LOAD_FPGA_CMD); //send command to initiate loading
 
-    threadSafeLog("UT " + ipAddrS + " loading FPGA..." + "\n");
+    logger.logMessage("UT " + ipAddrS + " loading FPGA..." + "\n");
 
     timeOutRead = 0;
     inFile = new FileInputStream("fpga\\" + fpgaCodeFilename);
@@ -914,25 +913,25 @@ try {
         //trap error and finished status messages, second byte in buffer
 
         if (inBuffer[1] == FPGA_INITB_ERROR){
-            threadSafeLog(
+            logger.logMessage(
                       "UT " + ipAddrS + " error loading FPGA - INIT_B" + "\n");
             return;
             }
 
         if (inBuffer[1] == FPGA_DONE_ERROR){
-            threadSafeLog(
+            logger.logMessage(
                       "UT " + ipAddrS + " error loading FPGA - DONE" + "\n");
             return;
             }
 
         if (inBuffer[1] == FPGA_CONFIG_CRC_ERROR){
-            threadSafeLog(
+            logger.logMessage(
                         "UT " + ipAddrS + " error loading FPGA - CRC" + "\n");
             return;
             }
 
         if (inBuffer[1] == FPGA_CONFIG_GOOD){
-            threadSafeLog("UT " + ipAddrS + " FPGA Loaded." + "\n");
+            logger.logMessage("UT " + ipAddrS + " FPGA Loaded." + "\n");
             return;
             }
 
@@ -973,7 +972,7 @@ try {
         }// while(timeOutGet <...
 
     //remote has not responded if this part reached
-    threadSafeLog(
+    logger.logMessage(
                 "UT " + ipAddrS + " error loading FPGA - contact lost." + "\n");
 
     }//try
@@ -1113,7 +1112,7 @@ byte address = getRemoteAddressedData(READ_FPGA_CMD, CHASSIS_SLOT_ADDRESS);
 chassisAddr =  (~address>>4 & 0xf);
 slotAddr = ~address & 0xf;
 
-threadSafeLog("UT " + ipAddrS + " chassis & slot address: "
+logger.logMessage("UT " + ipAddrS + " chassis & slot address: "
                                         + chassisAddr + "-" + slotAddr + "\n");
 
 }//end of UTBoard::getChassisSlotAddress
@@ -1164,7 +1163,7 @@ if (chassisAddrL != -1) chassisAddr = chassisAddrL;
 if (slotAddrL != -1) slotAddr = slotAddrL;
 
 if (chassisAddrL != -1 || slotAddrL != -1)
-    threadSafeLog("UT " + ipAddrS + " chassis & slot override: "
+    logger.logMessage("UT " + ipAddrS + " chassis & slot override: "
                                         + chassisAddr + "-" + slotAddr + "\n");
 
 }//end of UTBoard::getChassisSlotAddressOverride
@@ -1756,7 +1755,7 @@ else
 if (pDSPCore == 3) core = "C & D";
 else core = "";
 
-threadSafeLog("UT " + chassisSlotAddr + " loading DSP code for" + "\n"
+logger.logMessage("UT " + chassisSlotAddr + " loading DSP code for" + "\n"
         + "    Chip " + pDSPChip + " Cores " + core + "\n");
 
 try {
@@ -1839,7 +1838,7 @@ try {
     }// try
 catch(IOException e){
     
-    threadSafeLog("Error opening DSP code file " + dspCodeFilename + "\n");
+    logger.logMessage("Error opening DSP code file " + dspCodeFilename + "\n");
 
     }
 finally {
@@ -1882,7 +1881,7 @@ else
 if (pDSPCore == 3) core = "C & D";
 else core = "";
 
-threadSafeLog("UT " + chassisSlotAddr + " verifying DSP code for" + "\n"
+logger.logMessage("UT " + chassisSlotAddr + " verifying DSP code for" + "\n"
         + "    Chip " + pDSPChip + " Cores " + core + "\n");
 
 byte[] buffer = new byte[2];
@@ -1927,7 +1926,7 @@ try {
 
                 //compare the local and remote checksums
                 if (checksum != remoteChecksum){
-                    threadSafeLog("UT " + chassisSlotAddr + " DSP code error"
+                    logger.logMessage("UT " + chassisSlotAddr + " DSP code error"
                      + "\n" + "    Chip " + pDSPChip + " Cores " + core
                      + "  Block: " + blockCount + "\n");
                     success = false;
@@ -1993,7 +1992,7 @@ try {
 
         //compare the local and remote checksums
         if (checksum != remoteChecksum){
-            threadSafeLog("UT " + chassisSlotAddr + " DSP code error"
+            logger.logMessage("UT " + chassisSlotAddr + " DSP code error"
                      + "\n" + "    Chip " + pDSPChip + " Cores " + core
                      + "  Block: " + blockCount + "\n");
                     success = false;
@@ -2004,7 +2003,7 @@ try {
     }// try
 catch(IOException e){
 
-    threadSafeLog("Error opening DSP code file " + dspCodeFilename + "\n");
+    logger.logMessage("Error opening DSP code file " + dspCodeFilename + "\n");
     success = false;
 
     }
@@ -2041,7 +2040,7 @@ else
 if (pDSPCore == 3) core = "C & D";
 else core = "";
 
-threadSafeLog("UT " + chassisSlotAddr + " verifying DSP code for" + "\n"
+logger.logMessage("UT " + chassisSlotAddr + " verifying DSP code for" + "\n"
         + "    Chip " + pDSPChip + " Cores " + core + "\n");
 
 byte[] buffer = new byte[2];
@@ -2107,7 +2106,8 @@ try {
 
                 //compare the value read from memory with the code from file
                 if (value != memValue)
-                    threadSafeLog("UT " + chassisSlotAddr + " DSP code error"
+                    logger.logMessage(
+                     "UT " + chassisSlotAddr + " DSP code error"
                      + "\n" + "    Chip " + pDSPChip + " Cores " + core 
                      + "  Address: " + (address-1) + "\n");
 
@@ -2135,7 +2135,7 @@ try {
     }// try
 catch(IOException e){
 
-    threadSafeLog("Error opening DSP code file " + dspCodeFilename + "\n");
+    logger.logMessage("Error opening DSP code file " + dspCodeFilename + "\n");
 
     }
 finally {
@@ -2774,14 +2774,14 @@ if (bytesRead > 0){
     int status = (int)((inBuffer[1]<<8) & 0xff00) + (int)(inBuffer[2] & 0xff);
 
     //displays status code in log window
-    threadSafeLog("UT " + chassisSlotAddr + " Chip: " + pDSPChip + " Core: "
+    logger.logMessage("UT " + chassisSlotAddr + " Chip: " + pDSPChip + " Core: "
               + pDSPCore + " Status: " + dspCoreFromPkt + "-" + status + "\n");
     return(true);
 
     }
 else{
 
-    threadSafeLog("UT " + chassisSlotAddr + " Chip: " + pDSPChip + " Core: "
+    logger.logMessage("UT " + chassisSlotAddr + " Chip: " + pDSPChip + " Core: "
             + pDSPCore + " Status Packet Error" + "\n");
     return(false);
 
