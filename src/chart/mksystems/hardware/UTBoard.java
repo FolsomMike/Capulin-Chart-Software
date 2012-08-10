@@ -76,6 +76,7 @@ static int ASCAN_FIFO_SIZE = 25; //fifo is used for smoothing - larger number
                                 //allows for more smoothing
 int aScanFIFOIndex = 0;
 
+boolean udpResponseFlag = false;
 
 int hardwareDelay;
 
@@ -253,7 +254,7 @@ static int AD_RAW_DATA_BUFFER_ADDRESS = 0x4000;
 
 static int RUNTIME_PACKET_SIZE = 2048;
 
-//the hardware uses a 4 byte unsigned integer for MAX_DELAY_COUNT - Java 
+//the hardware uses a 4 byte unsigned integer for MAX_DELAY_COUNT - Java
 //doesn't do unsigned easily, so the max value is limited to the maximum
 //positive value Java allows for a signed integer just to make the Java side
 //easier
@@ -488,12 +489,12 @@ boolean reSynced;
 //
 
 public UTBoard(String pConfigFilename, String pBoardName, int pBoardIndex,
-     boolean pSimulate, JTextArea pLog, HardwareVars pHdwVs, 
+     boolean pSimulate, JTextArea pLog, HardwareVars pHdwVs,
      String pJobFileFormat, String pMainFileFormat)
 {
 
-super(pLog);    
-    
+super(pLog);
+
 configFilename = pConfigFilename;
 hdwVs = pHdwVs;
 jobFileFormat = pJobFileFormat; mainFileFormat = pMainFileFormat;
@@ -608,7 +609,7 @@ bdChs[0].ducerSetupReg = DUCER_SETUP_1_REG;
 bdChs[1].ducerSetupReg = DUCER_SETUP_2_REG;
 bdChs[2].ducerSetupReg = DUCER_SETUP_3_REG;
 bdChs[3].ducerSetupReg = DUCER_SETUP_4_REG;
-        
+
 }//end of UTBoard::setupBoardChannels
 //-----------------------------------------------------------------------------
 
@@ -620,11 +621,11 @@ bdChs[3].ducerSetupReg = DUCER_SETUP_4_REG;
 //
 
 @Override
-public void run() { 
-         
+public void run() {
+
 //link with all the remotes
 connect();
-    
+
 //Since the sockets and associated streams were created by this
 //thread, it cannot be closed without disrupting the connections. If
 //other threads try to read from the socket after the thread which
@@ -634,7 +635,7 @@ connect();
 //reopen it, but this results in a lot of overhead.
 
 waitForever();
-            
+
 }//end of UTBoard::run
 //-----------------------------------------------------------------------------
 
@@ -669,7 +670,7 @@ public synchronized void connect()
 try {
 
     //displays message on bottom panel of IDE
-    logger.logMessage("Connecting to UT board " + ipAddrS + "...\n"); 
+    logger.logMessage("Connecting to UT board " + ipAddrS + "...\n");
 
     if (!simulate) socket = new Socket(ipAddr, 23);
     else socket = new UTSimulator(ipAddr, 23, mainFileFormat);
@@ -698,7 +699,7 @@ try {
     byteOut = new DataOutputStream(socket.getOutputStream());
     byteIn = new DataInputStream(socket.getInputStream());
 
-    } 
+    }
 catch (UnknownHostException e) {
     logger.logMessage("Unknown host: UT " + ipAddrS + ".\n");
     return;
@@ -782,9 +783,9 @@ while (true){
     status2 = getRemoteAddressedData(READ_FPGA_CMD, STATUS2_REG);
 
     if (status1 != status1p || status2 != status2p)
-        logger.logMessage("Status 1: " + status1 + " Status 2: " + status2 + "\n"); 
+        logger.logMessage("Status 1: " + status1 + " Status 2: " + status2 + "\n");
 
-    status1p = status1; status2p = status2; 
+    status1p = status1; status2p = status2;
 
     }
 
@@ -878,7 +879,7 @@ if ((getRemoteData(GET_STATUS_CMD, true) & FPGA_LOADED_FLAG) != 0) {
 fpgaLoaded = true;
 
 int CODE_BUFFER_SIZE = 1025; //transfer command word and 1024 data bytes
-byte[] codeBuffer; 
+byte[] codeBuffer;
 codeBuffer = new byte[CODE_BUFFER_SIZE];
 
 int bufPtr;
@@ -888,7 +889,7 @@ boolean fileDone = false;
 FileInputStream inFile = null;
 
 try {
- 
+
     sendByte(LOAD_FPGA_CMD); //send command to initiate loading
 
     logger.logMessage("UT " + ipAddrS + " loading FPGA..." + "\n");
@@ -899,7 +900,7 @@ try {
 
     while(timeOutRead < FPGA_LOAD_TIMEOUT){
 
-        
+
         inBuffer[0] = NO_ACTION; //clear request byte from host
         inBuffer[1] = NO_STATUS; //clear status byte from host
 
@@ -946,7 +947,7 @@ try {
             while (bufPtr < CODE_BUFFER_SIZE && (c = inFile.read()) != -1 ) {
 
                 //stuff the bytes into the buffer after the command byte
-                codeBuffer[bufPtr++] = (byte)c;             
+                codeBuffer[bufPtr++] = (byte)c;
 
                 //reset timer in this loop so it only gets reset when
                 //a request has been received AND not at end of file
@@ -958,7 +959,7 @@ try {
 
             //send packet to remote
             byteOut.write(codeBuffer, 0 /*offset*/, CODE_BUFFER_SIZE);
-            
+
             }//if (inBuffer[0] == SEND_DATA)
 
         //count loops - will exit when max reached
@@ -966,7 +967,7 @@ try {
         //file not reached - when end of file reached, loop will wait until
         //timeout reached again before exiting in order to catch success/error
         //messages from the remote
-        
+
         timeOutRead++;
 
         }// while(timeOutGet <...
@@ -1130,11 +1131,11 @@ logger.logMessage("UT " + ipAddrS + " chassis & slot address: "
 // Each UTBoard object must open its own iniFile object because they are created
 // simultaneously in different threads.  The iniFile object is not guaranteed
 // to be thread safe.
-// 
+//
 
 void getChassisSlotAddressOverride()
 {
- 
+
 //use integers with zeroing of upper bits to represent the bytes as unsigned
 //values - without zeroing, sign extension during transfer to the int makes
 //values above 127 negative
@@ -1197,7 +1198,7 @@ public int getRepRate()
 {
 
 return (repRateInHertz);
-    
+
 }//end of UTBoard::getRepRate
 //-----------------------------------------------------------------------------
 
@@ -1419,7 +1420,7 @@ void sendDCOffset(int pChannel, int pDCOffset)
 // 1, the value will be written to shared program memory.
 //
 
-void writeDSPRam(int pDSPChip, int pDSPCore, int pRAMType, 
+void writeDSPRam(int pDSPChip, int pDSPCore, int pRAMType,
                    int pPage, int pAddress, int pValue)
 {
 
@@ -1437,7 +1438,7 @@ void writeDSPRam(int pDSPChip, int pDSPCore, int pRAMType,
 //if shared memory is selected, set bit 20 of the HPIA register - this is
 //bit 4 of the upper address byte 2
 
-sendBytes8(WRITE_DSP_CMD, (byte)pDSPChip, (byte)pDSPCore, 
+sendBytes8(WRITE_DSP_CMD, (byte)pDSPChip, (byte)pDSPCore,
             (byte)(pPage |= ((pRAMType == 1) ? 0x10 : 0x00)),
             (byte)((pAddress >> 8) & 0xff),(byte)(pAddress & 0xff),
             (byte)((pValue >> 8) & 0xff), (byte)(pValue & 0xff));
@@ -1492,7 +1493,7 @@ while (i < pBlockSize){
     else
         writeNextDSPRam(pDSPChip, pDSPCore, pValue);
 
-    }//while (i < pBlockSize) 
+    }//while (i < pBlockSize)
 
 }//end of Capulin1::fillRAM
 //-----------------------------------------------------------------------------
@@ -1785,9 +1786,9 @@ try {
             n0 = fromHex(inputStream.read());
 
            address =
-                (int)((n3<<12) & 0xf000) +     
-                (int)((n2<<8) & 0xf00) +     
-                (int)((n1<<4) & 0xf0) +     
+                (int)((n3<<12) & 0xf000) +
+                (int)((n2<<8) & 0xf00) +
+                (int)((n1<<4) & 0xf0) +
                 (int)(n0 & 0xf);
 
             continue;
@@ -1806,7 +1807,7 @@ try {
             else
             if (place == 1) value += (int)((c<<4) & 0xf0);
             else{
-                
+
                 //fourth character converted, add it in and write word
 
                 value += (int)(c & 0xf);
@@ -1837,7 +1838,7 @@ try {
         }//while ((c =
     }// try
 catch(IOException e){
-    
+
     logger.logMessage("Error opening DSP code file " + dspCodeFilename + "\n");
 
     }
@@ -2097,7 +2098,7 @@ try {
                 //fourth character converted, add it in and write word
 
                 value += (int)(c & 0xf);
-                
+
                 //read from shared program memory page 0
                 readRAMDSP(pDSPChip, pDSPCore, 1, 0, address++, buffer, true);
 
@@ -2108,7 +2109,7 @@ try {
                 if (value != memValue)
                     logger.logMessage(
                      "UT " + chassisSlotAddr + " DSP code error"
-                     + "\n" + "    Chip " + pDSPChip + " Cores " + core 
+                     + "\n" + "    Chip " + pDSPChip + " Cores " + core
                      + "  Address: " + (address-1) + "\n");
 
                 //request and wait for a status flag ever so often to make sure
@@ -2574,13 +2575,13 @@ if (pWhich == ENABLE_SAMPLING){
     if (pValue == FALSE)
         masterControlShadow &= (~SETUP_RUN_MODE); //clear the flag (setup mode)
     else{
-        
+
         //If entering run mode, always read a word from the DSP RAM page where
         //the A/D values are to be stored by the FPGA.  The FPGA does not set
         //the upper bits of the HPIA register - reading from the desired page
         //here first will set the bits properly.  This must be done for each
         //DSP core.
-        
+
         byte[] buffer = new byte[2];
 
         //read from local data memory page 0 for all cores
@@ -2652,7 +2653,7 @@ if (pWhich == ENABLE_FPGA_INTERNALS){
 
 public void sendSoftwareGain(int pChannel, double pSoftwareGain)
 {
-    
+
 //convert decibels to linear gain: dB = 20 * log10(gain)
 double gain = Math.pow(10, pSoftwareGain/20);
 
@@ -2805,7 +2806,7 @@ sendBytes15(MESSAGE_DSP_CMD,
            (byte) DSP_GET_STATUS_CMD, // DSP message type id
            (byte) 2, //return packet size expected
            (byte) 9, //data packet size sent (DSP always expects 9)
-           (byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) 0 , (byte) 0, 
+           (byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) 0 , (byte) 0,
            (byte) 0, (byte)0, (byte)0
            );
 
@@ -2839,7 +2840,7 @@ sendBytes15(MESSAGE_DSP_CMD, bdChs[pChannel].dspChip, bdChs[pChannel].dspCore1,
            pMsgID, // DSP message type id
            (byte) 1, //return packet size expected (expects an ACK packet)
            (byte) 9, //data packet size sent
-           pByte1, pByte2, pByte3, pByte4, 
+           pByte1, pByte2, pByte3, pByte4,
            pByte5, pByte6, pByte7, pByte8, pByte9
            );
 
@@ -2869,7 +2870,7 @@ sendBytes15(MESSAGE_DSP_CMD, bdChs[pChannel].dspChip, bdChs[pChannel].dspCore2,
 
 public void sendDSPSampleSize(int pChannel, int pSampleSize)
 {
-    
+
 sendChannelParam(pChannel, (byte)DSP_SET_AD_SAMPLE_SIZE_CMD,
                (byte)((pSampleSize >> 8) & 0xff), (byte)(pSampleSize & 0xff),
                (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0);
@@ -3079,7 +3080,7 @@ public void getPeakDataFromDSP(int pChannel)
 
 //the number of data bytes expected in the return packet is determined by the
 //number of gates for the channel
-int numberReturnBytes = 
+int numberReturnBytes =
         bdChs[pChannel].numberOfGates * PEAK_DATA_BYTES_PER_GATE;
 
 sendBytes15(MESSAGE_DSP_CMD,
@@ -3123,10 +3124,10 @@ private void configure(IniFile pConfigFile)
 inBuffer = new byte[RUNTIME_PACKET_SIZE];
 outBuffer = new byte[RUNTIME_PACKET_SIZE];
 
-fpgaCodeFilename = 
+fpgaCodeFilename =
   pConfigFile.readString("Hardware", "UT FPGA Code Filename", "not specified");
 
-dspCodeFilename = 
+dspCodeFilename =
   pConfigFile.readString("Hardware", "UT DSP Code Filename", "not specified");
 
 }//end of UTBoard::configure
@@ -3202,7 +3203,7 @@ syncSource = pConfigFile.readBoolean(
 // This function should be called often to allow processing of data packets
 // received from the remotes and stored in the socket buffer.
 //
-// All packets received from the remote devices should begin with 
+// All packets received from the remote devices should begin with
 // 0xaa, 0x55, 0xbb, 0x66, followed by the packet identifier, the DSP chip
 // identifier, and the DSP core identifier.
 //
@@ -3515,7 +3516,7 @@ try{
         readDSPDone = true;
         return(c);
         }
-    
+
 }// try
 catch(IOException e){}
 
@@ -3699,14 +3700,14 @@ for (int i = 0; i < firBuf.length; i++) firBuf[i] = 0;
 for (int i=0; i<ASCAN_SAMPLE_SIZE; i++){
 
     int raw = 0, filtered = 0;
-    
+
      raw =
        (int)((int)(inBuffer[i*2+4]<<8) + (inBuffer[(i*2)+5] & 0xff));
 
     if (raw > 0 && raw < bdChs[channel].rejectLevel) raw = raw % 10;
     else
     if (raw < 0 && raw > -bdChs[channel].rejectLevel) raw = raw % 10;
-     
+
     raw *= ASCAN_SCALE;
 
     boolean filterActive = false;
@@ -3841,7 +3842,7 @@ for (int h=0; h < pNumberOfChannels; h++){
     int numberDataBytes = numberOfGates * PEAK_DATA_BYTES_PER_GATE;
 
     //add extra for wall data if the specified channel has such
-    if (bdChs[channel].isWallChannel) 
+    if (bdChs[channel].isWallChannel)
         numberDataBytes += PEAK_DATA_BYTES_FOR_WALL;
 
     try{
@@ -3899,7 +3900,7 @@ for (int h=0; h < pNumberOfChannels; h++){
         //time the FPGA began recording data after the hardware delay
         //NOTE: the FPGA should really subtract the 0x8000 instead of doing
         //it here!
-                
+
         peakFlightTime -= 0x8000;
 
         peakTrack =
@@ -3915,12 +3916,12 @@ for (int h=0; h < pNumberOfChannels; h++){
 
         //if the channel has been configured to modify the wall, then save
         //the data so that it can be used to modify the wall elsewhere
-        if (bdChs[channel].gates[i].modifyWall){    
+        if (bdChs[channel].gates[i].modifyWall){
             //store the value if it is greater than the stored peak
             if (peak > hdwVs.wallMinModifier)
                 hdwVs.wallMinModifier = peak;
             }
-        
+
         }// for (int i=0; i < numberOfGates; i++)
 
     if (bdChs[channel].isWallChannel){
@@ -3933,7 +3934,7 @@ for (int h=0; h < pNumberOfChannels; h++){
         // used as the fractional math has been abandonded.
         // See Git commit tag VersionWithFractionalMathForThickness in the
         // Java and DSP code archives for version which used fractional math.
-        
+
         int wallMaxPeak =
                  (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
 
@@ -3953,16 +3954,16 @@ for (int h=0; h < pNumberOfChannels; h++){
                  (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
 
         double maxThickness = (double)wallMaxPeak;
-        
+
         //if the max value returns as minimum int, then the wall reading is
         //invalid (missed interface or echo, etc.)  use the previous reading
         //instead -- if value is good then save as the previous value
-        
+
         if (maxThickness == -32768)
             maxThickness = prevMaxThickness;
         else
             prevMaxThickness = maxThickness;
-                
+
         //store the max peak - overwrites info saved for this gate above
         //debug mks - gates[1] should use the wallStartGate specified by user
         bdChs[channel].gates[1].storeNewDataD(maxThickness, wallMaxTrack);
@@ -3991,11 +3992,11 @@ for (int h=0; h < pNumberOfChannels; h++){
                  (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
 
         double minThickness = (double)wallMinPeak;
-        
+
         //if the min value returns as max int, then the wall reading is
         //invalid (missed interface or echo, etc.)  use the previous reading
         //instead -- if value is good then save as the previous value
-        
+
         if (minThickness == 32767)
             minThickness = prevMinThickness;
         else {
@@ -4010,7 +4011,7 @@ for (int h=0; h < pNumberOfChannels; h++){
                 }
             prevMinThickness = minThickness;
             }
-                
+
         //store the min peak - overwrites info saved for this gate above
         //debug mks - gates[2] should use the wallEndGate specified by user
         bdChs[channel].gates[2].storeNewDataD(minThickness, wallMinTrack);
@@ -4161,7 +4162,7 @@ return(numberReturnBytes); //number of bytes read from the socket
 // Capulin1::installNewRabbitFirmware
 //
 // Transmits the Rabbit firmware image to the UT board to replace the existing
-// code.  
+// code.
 //
 // See corresponding function in the parent class Board.
 //
@@ -4171,7 +4172,7 @@ public void installNewRabbitFirmware()
 
 //create an object to hold codes specific to the UT board for use by the
 //firmware installer method
-    
+
 InstallFirmwareSettings settings = new InstallFirmwareSettings();
 settings.loadFirmwareCmd = LOAD_FIRMWARE_CMD;
 settings.noAction = NO_ACTION;
@@ -4179,9 +4180,9 @@ settings.error = ERROR;
 settings.sendDataCmd = SEND_DATA_CMD;
 settings.dataCmd = DATA_CMD;
 settings.exitCmd = EXIT_CMD;
-    
+
 super.installNewRabbitFirmware("UT", "Rabbit\\CAPULIN UT BOARD.bin", settings);
-    
+
 }//end of Capulin1::installNewRabbitFirmware
 //-----------------------------------------------------------------------------
 
