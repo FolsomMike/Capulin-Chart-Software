@@ -54,6 +54,12 @@ public boolean scanDataModified = false;
 
 Link mainWindow;
 
+public int mainWindowLocationX = 0;
+public int mainWindowLocationY = 0;
+
+public int utCalWindowLocationX = 0;
+public int utCalWindowLocationY = 0;
+
 //Constants
 
 public static String SOFTWARE_VERSION = "1.93";
@@ -163,7 +169,7 @@ public double scanYDistance;
 
 //maximum size allowed for profile scan - this is determined by the size of
 //the plot window, the step size, and allowable scaling.
-public double maxXScan, maxYScan; 
+public double maxXScan, maxYScan;
 
 //set true if currently performing a scan
 public boolean isScanning = false;
@@ -196,8 +202,8 @@ public ArrayList<String> configInfo;
 public Globals(Link pMainWindow, ActionListener pActionListener)
 {
 
-//store parameters in persistent variables    
-    
+//store parameters in persistent variables
+
 mainWindow = pMainWindow; actionListener = pActionListener;
 
 optionsModified = false; //no options modified yet
@@ -280,7 +286,7 @@ optionsModified = true;
 //-----------------------------------------------------------------------------
 // Globals::actionPerformed
 //
-// Catches action events from menu.  
+// Catches action events from menu.
 //
 // If necessary calls actionListener.actionPerformed for the parent form which
 // was passed into this class via the constructor so that it can respond to
@@ -580,7 +586,7 @@ public void loadDBColors(IniFile pIni)
 public void saveDBColors(IniFile pIni)
 {
 
-    
+
 }//end of Globals::saveDBColors
 //-----------------------------------------------------------------------------
 
@@ -595,8 +601,8 @@ public String dBColorsToText(Color pColor)
 
 //scan the color array looking for match
 for(int i = 0; i < colorArray.length; i++ )
-                       if (pColor == colorArray[i]) return colorNamesArray[i];   
-    
+                       if (pColor == colorArray[i]) return colorNamesArray[i];
+
 //if color not found, return "Undefined"
 return("Undefined");
 
@@ -614,8 +620,8 @@ public Color textToDBColors(int pIndex, String pColor)
 
 //scan the color array looking for match
 for(int i = 0; i < colorNamesArray.length; i++ )
-         if (pColor.equalsIgnoreCase(colorNamesArray[i])) return colorArray[i];   
-    
+         if (pColor.equalsIgnoreCase(colorNamesArray[i])) return colorArray[i];
+
 //if color not found, return the original default color already in the
 //array slot
 
@@ -636,8 +642,8 @@ return Color.BLACK; //not used in this program yet
 public void configure(IniFile pConfigFile)
 {
 
-String section = "Configuration Info";    
-    
+String section = "Configuration Info";
+
 //get the number of lines in the description, bail out if illegal value
 
 int lineCount = pConfigFile.readInt(section, "Number of Lines", 0);
@@ -649,7 +655,7 @@ configInfo = new ArrayList<String>(lineCount);
 String line, number;
 
 for (int i = 0; i < lineCount; i++){
-    
+
     //convert the index number to a string to load each line -- in the file,
     //the numbers are all 3 characters long and right justified with blanks
     //prepended for padding -- add the necessary space padding here
@@ -657,7 +663,7 @@ for (int i = 0; i < lineCount; i++){
     if (number.length() == 1) number = "  " + number;
     else
     if (number.length() == 2) number = " " + number;
-    
+
     line = pConfigFile.readString(section, "Line " + number, "");
     configInfo.add(line);
     }
@@ -676,14 +682,14 @@ section = "Main Configuration";
 public void displayConfigInfo(JTextArea pTextArea)
 {
 
-   
+
 pTextArea.append("\n");
 pTextArea.append(
             "------------------------------------------------------------\n");
 pTextArea.append("\n");
 
-ListIterator i;    
-    
+ListIterator i;
+
 for (i = configInfo.listIterator(); i.hasNext(); ){
     pTextArea.append((String)i.next() + "\n");
     }
@@ -707,7 +713,7 @@ public void loadLanguage()
 IniFile ini = null;
 
 //if the ini file cannot be opened and loaded, exit without action
-try {ini = new IniFile("language\\Globals - Capulin UT.language", 
+try {ini = new IniFile("language\\Globals - Capulin UT.language",
                                                             mainFileFormat);}
 catch(IOException e){return;}
 

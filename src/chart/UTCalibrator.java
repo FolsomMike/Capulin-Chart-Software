@@ -38,7 +38,7 @@ import chart.mksystems.hardware.UTBoard;
 // This class displays a text area in a window.
 //
 
-public class UTCalibrator extends JDialog implements ActionListener, 
+public class UTCalibrator extends JDialog implements ActionListener,
          WindowListener, MouseListener, MouseMotionListener, ComponentListener{
 
 JFrame frame;
@@ -71,7 +71,7 @@ Font blackFont, redFont;
 // UTCalibrator::UTCalibrator (constructor)
 //
 //
-  
+
 public UTCalibrator(JFrame pFrame, Hardware pHardware, Globals pGlobals)
 {
 
@@ -80,7 +80,7 @@ super(pFrame, "Calibration");
 frame = pFrame; hardware = pHardware; globals = pGlobals;
 
 }//end of UTCalibrator::UTCalibrator (constructor)
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // UTCalibrator::init
@@ -88,7 +88,7 @@ frame = pFrame; hardware = pHardware; globals = pGlobals;
 
 public void init()
 {
-    
+
 addWindowListener(this);
 addComponentListener(this);
 
@@ -156,7 +156,7 @@ panel.add(scopeAndAlarms);
 //create the window used to display items selected for copying
 copyItemSelector = new CopyItemSelector(frame);
 
-utControls = new UTControls(frame, scope1.getOscopeCanvas(), hardware, 
+utControls = new UTControls(frame, scope1.getOscopeCanvas(), hardware,
                                                        copyItemSelector, this);
 utControls.init();
 utControls.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -164,10 +164,12 @@ panel.add(utControls);
 
 contentPane.add(panel);
 
+setLocation(globals.utCalWindowLocationX, globals.utCalWindowLocationY);
+
 pack();
 
 }//end of UTCalibrator::init
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // UTCalibrator::setCopyItemsWindowLocation
@@ -179,14 +181,14 @@ pack();
 
 public void setCopyItemsWindowLocation()
 {
-    
+
 //set the position of the "Copy Items" window so that it is to the right of the
 //calibrator window
 
 copyItemSelector.setLocation(getWidth(), 0);
 
 }//end of UTCalibrator::setCopyItemsWindowLocation
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // UTCalibrator::displayData
@@ -227,7 +229,7 @@ else{
     //multiply pInterfaceCrossingPosition by .015 to convert from samples
     //of 15 ns each to total us
     //interface gate MUST be gate 0 for compatibility with DSP code
-    
+
     ch.gates[0].interfaceCrossingPixAdjusted =
      (int)((double)((pInterfaceCrossingPosition * 0.015)
         / ch.uSPerPixel) - ch.delayPix);
@@ -241,7 +243,7 @@ else{
 
     for (int i = 1; i < ch.getNumberOfGates(); i++)
         ch.gates[i].adjustPositionsWithTracking(offset);
-        
+
     //interface gate does not track the interface
     ch.gates[0].adjustPositionsNoTracking();
 
@@ -257,7 +259,7 @@ if (pUTAscanData != null && scope1 != null)
                                                                 pUTAscanData);
 
 }//end of UTCalibrator::displayData
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // UTCalibrator::setChannels
@@ -332,11 +334,11 @@ for (int i=0; i < numberOfChannels; i++){
     panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
     panel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    
+
     rb = new JRadioButton(channels[i].shortTitle);
 
     channels[i].calRadioButton = rb; //store a reference to the radio button
-    
+
     //if the channel is off, display in red and change tool tip
     setChannelSelectorColor(channels[i]);
 
@@ -348,9 +350,9 @@ for (int i=0; i < numberOfChannels; i++){
     if (i == currentChannelIndex) rb.setSelected(true);
 
     channelSelectorGroup.add(rb); //group the radio buttons
-    
+
     panel.add(rb); //add the radio button to the sub-panel
-    
+
     //add the copy button to the sub-panel so it displays to the right
     JButton b = new JButton("<");
     //set the buttons name to the index number of its owner channel so when the
@@ -414,7 +416,7 @@ copyPanel.add(copyButton);
 rigidAreaDynamic = Box.createRigidArea(new Dimension(0,60));
 rigidAreaDynamic.setVisible(false);
 copyPanel.add(rigidAreaDynamic);
-                
+
 //add a button for copying the selected channel settings to all channels
 //this button is hidden until the "Copy" button is clicked
 copyToAllButton = new JButton("Copy to All");
@@ -429,7 +431,7 @@ copyPanel.add(copyToAllButton);
 //set the panel's max size to unlimited so it will fill the width of its
 //parent panel, setting max height to it's preferred height keeps it from
 //growing vertically -- no way to only set max width only
-copyPanel.setMaximumSize(new Dimension(Short.MAX_VALUE, 
+copyPanel.setMaximumSize(new Dimension(Short.MAX_VALUE,
         copyPanel.getPreferredSize().height));
 
 channelSelector.add(copyPanel);
@@ -468,7 +470,7 @@ else{
 // UTCalibrator::setCopyToChannelButtonsVisibity
 //
 // Sets the visibility of all the "Copy to This Channel" buttons (which
-// actually have "<" as the text).  
+// actually have "<" as the text).
 //
 // The button for the currently selected channel is also set visible because
 // the user can change the selection at any time when copy mode is active.
@@ -480,7 +482,7 @@ public void setCopyToChannelButtonsVisibity(boolean pVisible)
 for (int ch = 0; ch < numberOfChannels; ch++){
 
     ((JButton)channels[ch].copyButton).setVisible(pVisible);
-    
+
 }//for (int ch = 0; ch < numberOfChannels; ch++)
 
 }//end of UTCalibrator::setCopyToChannelButtonsVisibity
@@ -549,10 +551,10 @@ public void copyChannel(Channel pSource, Channel pDestination,
                                                             boolean pCopyAll)
 {
 
-//if the user has selected to copy everything, then force pCopyAll to true    
+//if the user has selected to copy everything, then force pCopyAll to true
 if(copyItemSelector.getItemState("Copy All Parameters"))
     pCopyAll = true;
-    
+
 int numberOfGates, numberOfDACGates;
 
 //set the pForceUpdate flags false in each call to copy values so that the
@@ -578,18 +580,18 @@ Gate sGate;
 for (int g = 0; g < numberOfGates; g++){
 
     sGate = pSource.getGate(g);
-     
+
     if(pCopyAll || itemCopySelected(sGate.gateStartAdjuster)){
         pDestination.setGateStart(g, pSource.getGateStart(g), false);
         pDestination.setGateStartTrackingOn(
-                                        g, pSource.getGateStartTrackingOn(g));        
+                                        g, pSource.getGateStartTrackingOn(g));
         pDestination.setGateStartTrackingOff(
                                         g, pSource.getGateStartTrackingOff(g));
     }
-    
+
     if(pCopyAll || itemCopySelected(sGate.gateWidthAdjuster))
         pDestination.setGateWidth(g, pSource.getGateWidth(g), false);
-    if(pCopyAll || itemCopySelected(sGate.gateLevelAdjuster))     
+    if(pCopyAll || itemCopySelected(sGate.gateLevelAdjuster))
         pDestination.setGateLevel(g, pSource.getGateLevel(g), false);
     if(pCopyAll || itemCopySelected(sGate.gateHitCountAdjuster))
         pDestination.setGateHitCount(g, pSource.getGateHitCount(g), false);
@@ -638,7 +640,7 @@ if(pCopyAll || copyItemSelector.getItemState("DC Offset"))
 //not in the group will not have a radio button to set so skip them
 if (pDestination.calRadioButton != null)
     setChannelSelectorColor(pDestination);
-    
+
 }//end of UTCalibrator::copyChannel
 //-----------------------------------------------------------------------------
 
@@ -655,10 +657,10 @@ if (pDestination.calRadioButton != null)
 boolean itemCopySelected(Object pObject)
 {
 
-if ((pObject != null) && 
+if ((pObject != null) &&
         copyItemSelector.getItemState(((Component)pObject).getName()))
     return(true);
-else    
+else
     return(false);
 
 }//end of UTCalibrator::itemCopySelected
@@ -684,7 +686,7 @@ public void copyToAllHelper(Channel pSource, Channel[] pDestChannels,
 for (int ch = 0; ch < pNumDestChannels; ch++){
 
     copyChannel(pSource, pDestChannels[ch], false);
-    
+
     }// for (int ch = 0; ch < pNumDestChannels; ch++)
 
 }//end of UTCalibrator::copyToAllHelper
@@ -702,12 +704,12 @@ for (int ch = 0; ch < pNumDestChannels; ch++){
 
 public void turnAllChannelsOn(boolean pOn)
 {
-    
+
 //scan through all channels and copy info from currently selected channel
 //to all other channels
 
 for (int ch = 0; ch < numberOfChannels; ch++){
-      
+
     if(pOn){
         channels[ch].setMode(channels[ch].previousMode, false);
     }
@@ -721,7 +723,7 @@ for (int ch = 0; ch < numberOfChannels; ch++){
         //turn the channel off
         channels[ch].setMode(UTBoard.CHANNEL_OFF, false);
     }
-        
+
     //updates the channel number color to match the channel's on/off state
     //if all system channels are being copied, not all of those channels will
     //be in the group currently being displayed by the Calibrator window, those
@@ -857,21 +859,21 @@ utControls.updateAllSettings(false);
 
 @Override
 public void actionPerformed(ActionEvent e)
-{ 
+{
 
 //trap "All On" button
 if (e.getActionCommand().equals("All On")){ turnAllChannelsOn(true); return;}
-    
+
 //trap "All Off" button
 if (e.getActionCommand().equals("All Off")){ turnAllChannelsOn(false); return;}
 
 //trap "Copy" button
 if (e.getActionCommand().equals("Copy")){
-    
+
     //hide the all on/off buttons to reduce clutter during copy mode
     allOnButton.setVisible(false);
     allOffButton.setVisible(false);
-    
+
     //display "<" buttons next to each channel so selected channel can be
     //copied to any channel for which the button is clicked
     setCopyToChannelButtonsVisibity(true);
@@ -884,7 +886,7 @@ if (e.getActionCommand().equals("Copy")){
     copyButton.setActionCommand("Cancel Copy");
     copyButton.setToolTipText("Cancel copy mode.");
     //set new max height to account for the now visible button and spacer
-    copyPanel.setMaximumSize(new Dimension(Short.MAX_VALUE, 
+    copyPanel.setMaximumSize(new Dimension(Short.MAX_VALUE,
         copyPanel.getPreferredSize().height));
     pack(); //resize the window
     //adjust the size of the "Copy Items" window
@@ -894,34 +896,34 @@ if (e.getActionCommand().equals("Copy")){
     copyItemSelector.addItem("");
     return;
     }
-    
+
 //trap "Cancel" (cancel copy) button
 if (e.getActionCommand().equals("Cancel Copy")){
 
     //unhide the all on/off buttons
     allOnButton.setVisible(true);
     allOffButton.setVisible(true);
-    
+
     setCopyToChannelButtonsVisibity(false);
     //hide the vertical spacer between the "Copy Cancel" and "Copy to All"
     rigidAreaDynamic.setVisible(false);
     copyToAllButton.setVisible(false);
     //"Cancel" button becomes "Copy" button
-    copyButton.setText("Copy");    
+    copyButton.setText("Copy");
     copyButton.setActionCommand("Copy");
     copyButton.setToolTipText(
                     "Copy settings for selected channel to other channel(s).");
     //set new max height to account for the now hidden button and spacer
-    copyPanel.setMaximumSize(new Dimension(Short.MAX_VALUE, 
-        copyPanel.getPreferredSize().height));    
+    copyPanel.setMaximumSize(new Dimension(Short.MAX_VALUE,
+        copyPanel.getPreferredSize().height));
 
     //remove all items selected for copying and hide the window
     copyItemSelector.removeAll();
     copyItemSelector.setVisible(false);
 
-    
+
     pack(); //resize the window
-    
+
     return;
     }
 
@@ -931,9 +933,9 @@ if (e.getActionCommand().equals("Copy to This Channel")){
     //each button has the index number of the channel to which it is associated
     //stored in its name -- copy from the currently selected (by radio button)
     //channel to the channel for which the "<" button was clicked
-    copyChannel(channels[currentChannelIndex], 
+    copyChannel(channels[currentChannelIndex],
         channels[Integer.valueOf(((Component)e.getSource()).getName())], false);
-  
+
     return;
     }
 
@@ -1041,7 +1043,7 @@ public void windowActivated(WindowEvent e)
 
 //mask all channels except the selected one when the window is active so only
 //the data from the selected channel is applied to the trace(s)
-    
+
 for (int i=0; i<numberOfChannels; i++)
     if (channels[i] != null) channels[i].setMasked(true);
 
@@ -1115,7 +1117,7 @@ public void mousePressed(MouseEvent e)
 
 if (e.getComponent().getName().equals("View IP")) viewIP();
 
-if (e.getComponent().getName().equals("Oscope Canvas")) 
+if (e.getComponent().getName().equals("Oscope Canvas"))
     utControls.mousePressedOnScope(e);
 
 }//end of UTCalibrator::mousePressed
@@ -1201,7 +1203,7 @@ public void setSizes(Component pComponent, int pWidth, int pHeight)
 pComponent.setMinimumSize(new Dimension(pWidth, pHeight));
 pComponent.setPreferredSize(new Dimension(pWidth, pHeight));
 pComponent.setMaximumSize(new Dimension(pWidth, pHeight));
-        
+
 }//end of UTCalibrator::setSizes
 //-----------------------------------------------------------------------------
 

@@ -56,9 +56,9 @@ import chart.mksystems.hardware.AScan;
 //
 //
 
-class MainThread implements Runnable { 
- 
-int i = 0;    
+class MainThread implements Runnable {
+
+int i = 0;
 
 public Hardware hardware;
 Globals globals;
@@ -81,8 +81,8 @@ calWindow = pCalWindow; globals = pGlobals;
 //
 
 @Override
-public void run() { 
-         
+public void run() {
+
 try{
     while (true){
 
@@ -98,7 +98,7 @@ try{
 
         //trigger data collection from remote devices
         //this does not display the data - that is handled by a timer
-        
+
         hardware.collectData();
 
         //if the calibration window is active, request aScan packets
@@ -115,12 +115,12 @@ try{
         hardware.sendDataChangesToRemotes();
 
         Thread.sleep(10);
-        
+
         }//while
-    
+
     }//try
-    
-catch (InterruptedException e) {    
+
+catch (InterruptedException e) {
     }
 
 }//end of MainThread::run
@@ -143,7 +143,7 @@ catch (InterruptedException e) {
 
 class MainWindow implements WindowListener, ActionListener, ChangeListener,
                                 ComponentListener, DocumentListener, Link {
-    
+
 Globals globals;
 String language;
 Xfer xfer;
@@ -192,11 +192,11 @@ DecimalFormat[] decimalFormats;
 //
 
 public MainWindow()
-{   
-    
-//turn off default bold for Metal look and feel    
-UIManager.put("swing.boldMetal", Boolean.FALSE);    
-    
+{
+
+//turn off default bold for Metal look and feel
+UIManager.put("swing.boldMetal", Boolean.FALSE);
+
 //force "look and feel" to Java style
 try {
     UIManager.setLookAndFeel(
@@ -225,7 +225,7 @@ mainFrame.addComponentListener(this);
 mainFrame.addWindowListener(this);
 
 //change the layout manager
-BoxLayout boxLayout = 
+BoxLayout boxLayout =
                     new BoxLayout(mainFrame.getContentPane(), BoxLayout.Y_AXIS);
 //mainFrame.setLayout(new BoxLayout(mainFrame, BoxLayout.Y_AXIS));
 mainFrame.getContentPane().setLayout(boxLayout);
@@ -249,6 +249,8 @@ loadMainSettings();
 //loads the job file
 configure();
 
+mainFrame.setLocation(globals.mainWindowLocationX, globals.mainWindowLocationY);
+
 mainFrame.pack();
 mainFrame.setVisible(true);
 
@@ -260,7 +262,7 @@ initialHeight = mainFrame.getHeight();
 //reset the charts
 resetChartGroups();
 
-//tell cal window to create an image 
+//tell cal window to create an image
 calWindow.scope1.createImageBuffer();
 calWindow.scope1.clearPlot();
 
@@ -302,7 +304,7 @@ private void loadMainStaticSettings()
 IniFile configFile = null;
 
 //if the ini file cannot be opened and loaded, exit without action
-try {configFile = new IniFile("Main Static Settings.ini", 
+try {configFile = new IniFile("Main Static Settings.ini",
                                                     Globals.mainFileFormat);}
     catch(IOException e){return;}
 
@@ -342,7 +344,7 @@ private void saveMainStaticSettings()
 IniFile configFile = null;
 
 //if the ini file cannot be opened and loaded, exit without action
-try {configFile = new IniFile("Main Static Settings.ini", 
+try {configFile = new IniFile("Main Static Settings.ini",
                                                        Globals.mainFileFormat);}
     catch(IOException e){
         System.err.println("Error opening: " + "Main Static Settings.ini");
@@ -419,7 +421,7 @@ globals.printQuality  = configFile.readString(
 //-----------------------------------------------------------------------------
 // MainWindow::loadMainSettings
 //
-// Loads settings such as the current work order. 
+// Loads settings such as the current work order.
 // These values often changed as part of normal operation.
 //
 
@@ -458,7 +460,19 @@ if(!currentJobName.equals("")){
     if(!backupDataPath.equals("")) currentJobBackupPath =
                              backupDataPath + currentJobName + File.separator;
     }
-    
+
+globals.mainWindowLocationX = configFile.readInt(
+                        "Main Configuration", "Main Window Location X", 0);
+
+globals.mainWindowLocationY = configFile.readInt(
+                        "Main Configuration", "Main Window Location Y", 0);
+
+globals.utCalWindowLocationX = configFile.readInt(
+                   "Main Configuration", "UT Calibrator Window Location X", 0);
+
+globals.utCalWindowLocationY = configFile.readInt(
+                   "Main Configuration", "UT Calibrator Window Location Y", 0);
+
 }//end of MainWindow::loadMainSettings
 //-----------------------------------------------------------------------------
 
@@ -507,7 +521,7 @@ private void configure()
 
 String configFilename = currentJobPrimaryPath + "01 - " + currentJobName
                                                         + " Configuration.ini";
-    
+
 if(IniFile.detectUTF16LEFormat(configFilename))
     globals.jobFileFormat = "UTF-16LE";
 else
@@ -584,15 +598,15 @@ globals.copyToAllMode = configFile.readInt(
 globals.timerDrivenTracking = configFile.readBoolean(
                                 "Hardware", "Timer Driven Tracking", false);
 
-numberOfChartGroups = 
+numberOfChartGroups =
           configFile.readInt("Main Configuration", "Number of Chart Groups", 1);
 
 //create an array of chart groups per the config file setting
 if (numberOfChartGroups > 0){
-    
+
     //protect against too many groups
     if (numberOfChartGroups > 10) numberOfChartGroups = 10;
-    
+
     chartGroups = new ChartGroup[numberOfChartGroups];
 
     for (int i = 0; i < numberOfChartGroups; i++){
@@ -600,14 +614,14 @@ if (numberOfChartGroups > 0){
                     globals, configFile, i, hardware, this, false, hardware);
         mainFrame.add(chartGroups[i]);
         }
-    
+
     }//if (numberOfChartGroups > 0)
 
 //give hardware a connection to the charts
 hardware.chartGroups = chartGroups;
 
 //create a panel to hold user controls and status displays
-mainFrame.add(controlPanel = 
+mainFrame.add(controlPanel =
     new ControlPanel(configFile, currentJobPrimaryPath,
     currentJobBackupPath, hardware, mainFrame, this,
     currentJobName, globals, hardware));
@@ -718,8 +732,8 @@ protected void saveCalFileHelper(String pJobPath)
 //the program root folder -- this occurs when the current job path specified in
 //the Main Settings.ini
 
-if (pJobPath.equals("")) return;    
-    
+if (pJobPath.equals("")) return;
+
 IniFile calFile = null;
 
 //if the ini file cannot be opened and loaded, exit without action
@@ -739,7 +753,7 @@ calFile.writeBoolean("General", "Show Red Peak Line at Gate Center",
                                         globals.showRedPeakLineInGateCenter);
 calFile.writeBoolean("General", "Show Red Peak Line at Peak Location",
                                         globals.showRedPeakLineAtPeakLocation);
-calFile.writeBoolean("General", "Show Peak Symbol at Peak Location", 
+calFile.writeBoolean("General", "Show Peak Symbol at Peak Location",
                                         globals.showPseudoPeakAtPeakLocation);
 
 calFile.writeInt("General", "Scanning and Inspecting Speed", globals.scanSpeed);
@@ -792,7 +806,7 @@ private void resetChartGroups()
 {
 
 for (int i = 0; i < numberOfChartGroups; i++) chartGroups[i].resetChartGroup();
-    
+
 }//end of MainWindow::resetChartGroups
 //-----------------------------------------------------------------------------
 
@@ -925,7 +939,7 @@ BufferedWriter out = null;
 try{
 
     fileOutputStream = new FileOutputStream(pFilename);
-    outputStreamWriter = new OutputStreamWriter(fileOutputStream, 
+    outputStreamWriter = new OutputStreamWriter(fileOutputStream,
                                                          globals.jobFileFormat);
     out = new BufferedWriter(outputStreamWriter);
 
@@ -993,7 +1007,7 @@ BufferedWriter out = null;
 try{
 
     fileOutputStream = new FileOutputStream(pFilename);
-    outputStreamWriter = new OutputStreamWriter(fileOutputStream, 
+    outputStreamWriter = new OutputStreamWriter(fileOutputStream,
                                                          globals.jobFileFormat);
     out = new BufferedWriter(outputStreamWriter);
 
@@ -1020,7 +1034,7 @@ try{
 
     //allow the pieceInfo object to save its data to the file
     pieceIDInfo.saveDataToStream(out);
-        
+
     }
 catch(IOException e){}
 finally{
@@ -1045,7 +1059,7 @@ finally{
 public final void handleSizeChanges()
 {
 
-for (int i = 0; i < numberOfChartGroups; i++) 
+for (int i = 0; i < numberOfChartGroups; i++)
                                             chartGroups[i].handleSizeChanges();
 
 }//end of MainWindow::handleSizeChanges
@@ -1059,7 +1073,7 @@ for (int i = 0; i < numberOfChartGroups; i++)
 
 @Override
 public void actionPerformed(ActionEvent e)
-{ 
+{
 
 //this part handles saving all data
 if ("Save".equals(e.getActionCommand())) {
@@ -1084,7 +1098,7 @@ if ("Copy Preset From Job".equals(e.getActionCommand())) {
     if(isConfigGoodA()) copyPreset();
     return;
     }
-          
+
 //this part handles saving current settings to a preset
 if ("Save Preset".equals(e.getActionCommand())) {
     new SavePreset(mainFrame, primaryDataPath, backupDataPath,
@@ -1128,7 +1142,7 @@ if ("Open Viewer".equals(e.getActionCommand())) {
 
     if(isConfigGoodA()) {
         Viewer viewer;
-        viewer = new Viewer(globals, jobInfo, currentJobPrimaryPath, 
+        viewer = new Viewer(globals, jobInfo, currentJobPrimaryPath,
                                         currentJobBackupPath, currentJobName);
         viewer.init();
         }
@@ -1286,7 +1300,7 @@ if (segmentStarted()){
     controlPanel.incrementPieceNumber();
 
     }
-    
+
 }//end of MainWindow::processFinishedPiece
 //-----------------------------------------------------------------------------
 
@@ -1306,8 +1320,8 @@ public void prepareForNextPiece()
 if (globals.restartNewPieceAtLeftEdge) resetChartGroups();
 
 //mark the starting point of a new piece in the data buffers
-markSegmentStart();    
-    
+markSegmentStart();
+
 }//end of MainWindow::prepareForNextPiece
 //-----------------------------------------------------------------------------
 
@@ -1322,12 +1336,12 @@ public void handlePieceTransition()
 {
 
 //save the piece just finished
-processFinishedPiece();    
-    
-//prepare buffers for next piece
-prepareForNextPiece();    
+processFinishedPiece();
 
-//prepare hardware interface for new piece 
+//prepare buffers for next piece
+prepareForNextPiece();
+
+//prepare hardware interface for new piece
 hardware.setMode(Hardware.INSPECT);
 
 }//end of MainWindow::handlePieceTransition
@@ -1407,7 +1421,7 @@ public void createNewJob()
 
 saveEverything(); //save all data
 
-NewJob newJob = new NewJob(mainFrame, primaryDataPath, backupDataPath, xfer, 
+NewJob newJob = new NewJob(mainFrame, primaryDataPath, backupDataPath, xfer,
                                                          globals.jobFileFormat);
 
 //if the NewJob window set rBoolean1 true, switch to the new job
@@ -1419,7 +1433,7 @@ if (xfer.rBoolean1){
     //update the data paths
     currentJobPrimaryPath = primaryDataPath + currentJobName + "/";
     currentJobBackupPath = backupDataPath + currentJobName + "/";
-    
+
     //save a copy of the job info to the new work order
     jobInfo.prepareForNewJob(currentJobPrimaryPath,
                                 currentJobBackupPath, currentJobName);
@@ -1672,8 +1686,8 @@ public void displayCalWindow(String pActionCommand)
 int invokingChartGroupIndex =
    Integer.valueOf( pActionCommand.substring(pActionCommand.indexOf('~')+1,
                                               pActionCommand.lastIndexOf('~')));
-        
-int invokingChartIndex = 
+
+int invokingChartIndex =
    Integer.valueOf(pActionCommand.substring(pActionCommand.lastIndexOf('~')+1));
 
 //clear out the list of channels assigned to the chart
@@ -1728,7 +1742,7 @@ calWindow.setVisible(true);
 
 }//end of MainWindow::displayCalWindow
 //-----------------------------------------------------------------------------
-    
+
 //-----------------------------------------------------------------------------
 // MainWindow::processMainTimerEvent
 //
@@ -1752,7 +1766,7 @@ if (globals.beginExitProgram){
 //When it goes null, saving is finished and the program can be shut down.
 //Must stop the timer or it will call again during the destruction of objects
 //it accesses.
-    
+
 if (globals.exitProgram) {
 
     if (fileSaver != null) return; //wait until saving is done
@@ -1772,7 +1786,7 @@ if (globals.exitProgram) {
     MainWindow mainWindow;
 
     //if a restart was requested, make a new main frame and start over
-    if (globals.restartProgram) 
+    if (globals.restartProgram)
         mainWindow = new MainWindow();
     else
         System.exit(0);
@@ -1785,7 +1799,7 @@ if (globals.prepareForNewPiece){
     globals.prepareForNewPiece = false;
     handlePieceTransition();
     }
-    
+
 //plot data on the graphs - if no data is being collected by the hardware
 //because it is not in scan or inspect mode, then nothing will be plotted
 doScan();
@@ -1808,7 +1822,7 @@ else
 
 //if the cal window is opened, allow it to update it's display with the latest
 //A-Scan from the currently selected channel
-if (calWindow.isVisible()){    
+if (calWindow.isVisible()){
     //the channel index in the UTCalibrator object only relates to the list of
     //channels currently being handled by the UTCalibrator - use the channel's
     //actual channelIndex number stored in the channel object itself for
@@ -1839,7 +1853,7 @@ public void doScan()
 {
 
 for (int i = 0; i < numberOfChartGroups; i++) chartGroups[i].plotData();
-        
+
 }//end of MainWindow::doScan
 //-----------------------------------------------------------------------------
 
@@ -1884,7 +1898,7 @@ updateAllSettings();
 
 }//end of MainWindow::insertUpdate
 //-----------------------------------------------------------------------------
- 
+
 //-----------------------------------------------------------------------------
 // MainWindow::removeUpdate
 //
@@ -2131,7 +2145,7 @@ public void componentResized(ComponentEvent e)
 //the resize attempt
 
 mainFrame.pack();
-    
+
 }//end of MainWindow::componentResized
 //-----------------------------------------------------------------------------
 
@@ -2219,31 +2233,31 @@ public class Main{
 // dispatching thread.  This is necessary because the main function is not
 // operating in the event-dispatching thread.  See the main function for more
 // info.
-//    
-    
+//
+
 private static void createAndShowGUI()
 {
 
 //instantiate an object to create and handle the main window JFrame
 MainWindow mainWindow = new MainWindow();
-    
+
 }//end of Main::createAndShowGUI
-//-----------------------------------------------------------------------------   
-    
+//-----------------------------------------------------------------------------
+
 //-----------------------------------------------------------------------------
 // Main::main
 //
 
 public static void main(String[] args)
 {
-    
-//Schedule a job for the event-dispatching thread: 
-//creating and showing this application's GUI. 
-    
+
+//Schedule a job for the event-dispatching thread:
+//creating and showing this application's GUI.
+
 javax.swing.SwingUtilities.invokeLater(
         new Runnable() {
             @Override
-            public void run() { createAndShowGUI(); } }); 
+            public void run() { createAndShowGUI(); } });
 
 }//end of Main::main
 //-----------------------------------------------------------------------------
@@ -2265,7 +2279,7 @@ javax.swing.SwingUtilities.invokeLater(
 //end debug mks
 
 //displays message on bottom panel of IDE
-//System.out.println("File not found"); 
+//System.out.println("File not found");
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
