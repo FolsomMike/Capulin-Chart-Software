@@ -58,6 +58,9 @@ super(pFrame, "Copy Items");
 public void init()
 {
 
+//don't allow user to close the window with the x in the corner
+setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+
 //add panel to hold everything
 JPanel mainPanel = new JPanel();
 mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));

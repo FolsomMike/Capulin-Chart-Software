@@ -186,7 +186,8 @@ public void setCopyItemsWindowLocation()
 //set the position of the "Copy Items" window so that it is to the right of the
 //calibrator window
 
-copyItemSelector.setLocation(getWidth() + (int)getLocation().getX(), 0);
+copyItemSelector.setLocation(getWidth() + (int)getLocation().getX(),
+                                                (int)getLocation().getY());
 
 }//end of UTCalibrator::setCopyItemsWindowLocation
 //-----------------------------------------------------------------------------
@@ -1226,6 +1227,22 @@ pack();
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// UTCalibrator::componentHidden
+//
+// Handles actions necessary when the window is hidden.
+//
+
+@Override
+public void componentHidden(ComponentEvent e)
+{
+
+//close the copy item selector window in case is was open
+if (copyItemSelector != null) copyItemSelector.setVisible(false);
+
+}//end of UTCalibrator::componentHidden
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // UTCalibrator::(various component listener functions)
 //
 // These functions are implemented per requirements of interface
@@ -1233,8 +1250,6 @@ pack();
 // each function, it should be moved from this section and formatted properly.
 //
 
-@Override
-public void componentHidden(ComponentEvent e){}
 @Override
 public void componentShown(ComponentEvent e){}
 @Override
