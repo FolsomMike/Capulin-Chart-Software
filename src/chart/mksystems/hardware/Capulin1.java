@@ -361,7 +361,8 @@ while(loopCount++ < 20 && responseCount < numberOfUTBoards){
                 //host repeatedly broadcasts the greeting
                 //since the first utBoard objects in the array are filled first
                 // this will catch duplicates
-                if (utBoards[i].ipAddr == inPacket.getAddress()){
+                if (utBoards[i].ipAddr != null
+                        && utBoards[i].ipAddr.equals(inPacket.getAddress())){
                     break;
                     }
 
@@ -443,12 +444,18 @@ logger.logMessage("All UT boards connected...\n");
 //successfully setup because it's addresses aren't trusted in that case
 
 for (int i = 0; i < numberOfUTBoards; i++){
-    if (utBoards[i].ready)
+    if (utBoards[i].ready){
         for (int j = 0; j < numberOfChannels; j++)
             if (channels[j].chassisAddr == utBoards[i].chassisAddr
                     && channels[j].slotAddr == utBoards[i].slotAddr)
                 channels[j].utBoard = utBoards[i];
-        }//for (int i = 0;...
+    }
+    else
+        System.out.println("UT Board " + i
+                                + " not ready at time of channel assignment");
+
+
+}//for (int i = 0;...
 
 //initialize each UT board
 initializeUTBoards();
