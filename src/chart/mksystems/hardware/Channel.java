@@ -103,8 +103,8 @@ int pulseChannel, pulseBank;
 // The parameter configFile is used to load configuration data.  The IniFile
 // should already be opened and ready to access.
 //
-  
-public Channel(IniFile pConfigFile, int pChannelIndex, 
+
+public Channel(IniFile pConfigFile, int pChannelIndex,
                                                 SyncFlag pOwnerDataChanged)
 {
 
@@ -696,9 +696,9 @@ return numberOfGates;
 
 public Gate getGate(int pGate)
 {
-        
+
 return gates[pGate];
-  
+
 }//end of Channel::getGate
 //-----------------------------------------------------------------------------
 
@@ -788,7 +788,10 @@ dataChanged.flag = true; flags1SetMaskChanged = true;
 public synchronized void sendSetFlags1()
 {
 
-utBoard.sendSetFlags1(boardChannel, flags1SetMask);
+if (utBoard != null)
+    utBoard.sendSetFlags1(boardChannel, flags1SetMask);
+else
+    System.out.println("UT Board not assigned to channel " + channelIndex);
 
 flags1SetMaskChanged = false;
 
@@ -1112,7 +1115,7 @@ else{
         lastGateEdgePos = interfaceGateTrail;
         return;
         }
-    
+
     //find the earliest gate, not including the interface gate
     //the interface gate always uses absolute positioning whereas the other
     //gates will be relative to the interface crossing if tracking is on
@@ -1254,7 +1257,7 @@ return aScanDelay;
 // This value may be a bit more accurate than converting aScanDelay to sample
 // periods.
 //
-// The returned value represents one sample period for each count.  For a 
+// The returned value represents one sample period for each count.  For a
 // 66.666 MHz sample rate, this equates to 15nS per count.
 //
 // The value is obtained by summing hardwareDelay and softwareDelay.  The
@@ -1269,14 +1272,14 @@ return aScanDelay;
 // after the initial pulse, it can be positioned properly on the aScan display
 // by subtracting the value returned returned by this function and scaling
 // from sample periods to pixels.
-// 
+//
 // More often, the location is known from the start of the DSP sample buffer.
 // In this case, only subtract the softwareDelay from the location -- use
 // getSoftwareDelay instead fo this function.
 //
 // Example:
 //
-// int peakPixelLoc = 
+// int peakPixelLoc =
 //        (int) ((flightTime * pChannel.nSPerDataPoint) / pChannel.nSPerPixel);
 //
 
@@ -1320,7 +1323,7 @@ if (pRejectLevel != rejectLevel) pForceUpdate = true;
 
 rejectLevel = pRejectLevel;
 
-if (utBoard != null && pForceUpdate) 
+if (utBoard != null && pForceUpdate)
     utBoard.setRejectLevel(boardChannel, pRejectLevel);
 
 }//end of Channel::setRejectLevel
@@ -1783,7 +1786,7 @@ if (pForceUpdate){
     gateFlagsChanged = true; dacGateFlagsChanged = true;
 
     }// if (utBoard != null && pForceUpdate)
-   
+
 }//end of Channel::setInterfaceTracking
 //-----------------------------------------------------------------------------
 
@@ -1830,7 +1833,7 @@ channelOn = pChannelOn; pulseBank = pPulseBank; pulseChannel = pPulseChannel;
 
 channelOn = (mode != UTBoard.CHANNEL_OFF) ? true : false;
 
-if (utBoard != null && pForceUpdate) 
+if (utBoard != null && pForceUpdate)
     utBoard.sendTransducer(boardChannel,
                  (byte)(channelOn ? 1:0), (byte)pulseBank, (byte)pulseChannel);
 
@@ -1868,14 +1871,14 @@ private void configure(IniFile pConfigFile)
 
 //load the nS per data point value and compute the uS per data point as well
 
-nSPerDataPoint = 
+nSPerDataPoint =
   pConfigFile.readDouble("Hardware", "nS per Data Point", 15.0);
 uSPerDataPoint = nSPerDataPoint / 1000;
 
 
 String whichChannel = "Channel " + (channelIndex + 1);
 
-title = 
+title =
       pConfigFile.readString(
                          whichChannel, "Title", "Channel " + (channelIndex+1));
 
@@ -1921,17 +1924,17 @@ private void configureGates()
 
 //create an array of gates per the config file setting
 if (numberOfGates > 0){
-    
+
     //protect against too many
     if (numberOfGates > 20) numberOfGates = 20;
-    
+
     gates = new Gate[numberOfGates];
 
     for (int i = 0; i < numberOfGates; i++)
         gates[i] = new Gate(configFile, channelIndex, i);
 
     }//if (numberOfGates > 0)
- 
+
 }//end of Channel::configureGates
 //-----------------------------------------------------------------------------
 
@@ -2120,7 +2123,7 @@ return gates[pGate].gateStartTrackingOn;
 
 public void setGateStartTrackingOff(int pGate, double pStart)
 {
-    
+
 gates[pGate].gateStartTrackingOff = pStart;
 
 }//end of Channel::setGateStartTrackingOff
@@ -2613,7 +2616,7 @@ for (int i = 0; i < numberOfGates; i++){
         if (utBoard != null)
             utBoard.sendHitMissCounts(boardChannel, i,
                         gates[i].gateHitCount, gates[i].gateMissCount);
-        
+
         gates[i].hitMissChanged = false;
 
         }// if (gates[i].hitMissChanged == true)
@@ -2646,7 +2649,7 @@ for (int i = 0; i < numberOfDACGates; i++){
     if (dacGates[i].parametersChanged == true){
 
         if (utBoard != null){
-        
+
             //the DAC's gain value depends upon the value of softwareGain and
             //the DAC's level in pixels
             //at 50% scope height, the DAC's gain equals softwareGain
@@ -3038,7 +3041,7 @@ pCalFile.writeInt(section, "Previous Signal Mode", previousMode);
 pCalFile.writeInt(section, "Reject Level", rejectLevel);
 pCalFile.writeInt(section, "AScan Display Smoothing", aScanSmoothing);
 
-// call each gate to save its data        
+// call each gate to save its data
 for (int i = 0; i < numberOfGates; i++)
     gates[i].saveCalFile(pCalFile);
 

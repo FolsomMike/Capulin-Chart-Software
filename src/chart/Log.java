@@ -36,13 +36,13 @@ public JTextArea textArea;
 // Log::Log (constructor)
 //
 //
-  
+
 public Log(JFrame frame)
 {
 
 super(frame, "Message Log");
 
-int panelWidth = 300;
+int panelWidth = 330;
 int panelHeight = 500;
 
 setMinimumSize(new Dimension(panelWidth, panelHeight));
@@ -59,7 +59,7 @@ add(areaScrollPane);
 
 
 }//end of Log::Log (constructor)
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 }//end of class Log
 //-----------------------------------------------------------------------------

@@ -133,7 +133,7 @@ public Object thresholdAdjuster;
 // The parameter configFile is used to load configuration data.  The IniFile
 // should already be opened and ready to access.
 //
-  
+
 public Gate(IniFile pConfigFile, int pChannelIndex, int pGateIndex)
 {
 
@@ -889,7 +889,7 @@ public void linkTraces(int pChartGroup, int pChart, int pTrace, int[] pDBuffer,
 {
 
 if (pChartGroup == chartGroup && pChart == chart && pTrace == trace){
-    
+
     //store the buffer references in the specified channel to link the trace
     dBuffer1 = pDBuffer; dBuffer2 = pDBuffer2; fBuffer = pFBuffer;
 
@@ -917,7 +917,7 @@ private void configure(IniFile pConfigFile)
 
 String whichGate = "Channel " + (channelIndex+1) + " Gate " + (gateIndex+1);
 
-title = 
+title =
       pConfigFile.readString(whichGate, "Title", "Gate " + (gateIndex+1));
 
 shortTitle = pConfigFile.readString(
@@ -966,8 +966,8 @@ gateStartTrackingOff = pCalFile.readDouble(section,
             "Gate Start without Interface Tracking", 50);
 gateWidth = pCalFile.readDouble(section, "Gate Width", 2);
 gateLevel = pCalFile.readInt(section, "Gate Level", 15);
-gateHitCount = pCalFile.readInt(section, "Gate Hit Count", 1);
-gateMissCount = pCalFile.readInt(section, "Gate Miss Count", 1);
+gateHitCount = pCalFile.readInt(section, "Gate Hit Count", 0);
+gateMissCount = pCalFile.readInt(section, "Gate Miss Count", 0);
 
 sigProcThreshold =
       pCalFile.readInt(section, "Signal Processing Threshold", 0);

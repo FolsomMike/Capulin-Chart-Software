@@ -47,14 +47,14 @@ String fileFormat;
 // NewJob::NewJob (constructor)
 //
 //
-  
+
 public NewJob(JFrame pFrame, String pPrimaryDataPath, String pBackupDataPath,
                                                  Xfer pXfer, String pFileFormat)
 {
 
 super(pFrame, "Create New Job");
 
-frame = pFrame; 
+frame = pFrame;
 primaryDataPath = pPrimaryDataPath; backupDataPath = pBackupDataPath;
 xfer = pXfer;
 fileFormat = pFileFormat;
@@ -132,7 +132,7 @@ pack();
 setVisible(true);
 
 }//end of NewJob::NewJob (constructor)
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // NewJob::loadConfigList
@@ -159,7 +159,7 @@ Collections.sort(configList);
 configList.add(0, "Select a Configuration (required)");
 
 }//end of NewJob::loadConfigList
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // NewJob::loadPresetList
@@ -353,8 +353,8 @@ boolean presetSelected =
 //note that the "00 - " prefix is to force the file to the top of the
 //explorer window when the files are alphabetized to make it easier to find
 
-if (presetSelected &&
-    (!copyFile("presets" + "/" + presetName,
+if (presetSelected){
+   if( (!copyFile("presets" + "/" + presetName,
                primaryFolder + "/00 - " + newJobName + " Calibration File.ini")
  ||
     !copyFile("presets" + "/" + presetName,
@@ -365,7 +365,15 @@ if (presetSelected &&
         "to the primary and/or backup directories.",
         "Error", JOptionPane.ERROR_MESSAGE);
     }
-
+}
+else{
+    //if no preset selected for copying, then create a blank place holder file
+    //so error won't be generated the first time the job is opened
+    createPlaceHolderCalFile(
+            primaryFolder + "/00 - " + newJobName + " Calibration File.ini");
+    createPlaceHolderCalFile(
+            backupFolder + "/00 - " + newJobName + " Calibration File.ini");
+}
 
 //create the "Piece Number File.ini" file in the new folders with starting
 //values of 1 for the next inspection piece and next cal piece numbers
@@ -452,6 +460,45 @@ return(true);
 
 }//end of NewJob::copyFile
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// NewJob::createPlaceHolderCalFile
+//
+// Creates an empty Calibration file in the new job folder.  This done so that
+// an error will not be displayed the first time the job is loaded due to a
+// missing calibration file.  The empty file will cause defaults to be used
+// for the cal settings.  After the job is opened for the first time, a
+// complete cal file will be saved.
+//
+// It is only necessary to place the place holder in the primary folder.
+//
+
+void createPlaceHolderCalFile(String pFilename)
+{
+
+PrintWriter file = null;
+
+try{
+        file = new PrintWriter(new FileWriter(pFilename, true));
+}
+catch(IOException e){
+
+        //no need to worry about error here -- an error will be generated
+        //when the job is first opened due to the missing cal file, but a new
+        //valid file will then be saved for the job
+
+}
+
+//don't put any text in the file or it will remain there even when the
+//new proper cal file is created as it appends rather than overwrites
+
+file.println("\n");
+
+file.close();
+
+}//end of NewJob::createPlaceHolderCalFile
+//-----------------------------------------------------------------------------
+
 
 }//end of class NewJob
 //-----------------------------------------------------------------------------

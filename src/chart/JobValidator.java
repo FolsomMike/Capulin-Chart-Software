@@ -214,7 +214,7 @@ catch(IOException e){
 finally{
     if (logFile != null) logFile.close();
     }
-    
+
 }//end of JobValidator::JobValidator (constructor)
 //-----------------------------------------------------------------------------
 
@@ -272,7 +272,7 @@ if (pPath.equals("")){
 File folder = new File(pPath);
 
 //all good
-if (folder.exists()) return(true); 
+if (folder.exists()) return(true);
 
 //path bad, don't repair if pRepair is false
 if (!pRepair) {
@@ -309,11 +309,11 @@ else{
 // All repair actions are logged in a text file in the primary folder.
 //
 
-public void validate(String pPrefix, String pFilename, int pFileType,
+private void validate(String pPrefix, String pFilename, int pFileType,
                                                                int pWhichFolder)
 {
 
-String toFix = "", backup = "";    
+String toFix = "", backup = "";
 //select the folder to be repaired and the folder to provide backup copies
 if  (pWhichFolder == PRIMARY){
     toFix = currentJobPrimaryPath;
@@ -400,7 +400,7 @@ public boolean handleConfigFileBackupRestoreFailure()
 
 {
 
-new LoadConfiguration(null, currentJobPrimaryPath, currentJobBackupPath, 
+new LoadConfiguration(null, currentJobPrimaryPath, currentJobBackupPath,
                                                                 jobName, xfer);
 
 return true;
@@ -429,10 +429,10 @@ public boolean handleJobInfoConfigFileBackupRestoreFailure(
 
 boolean successP = false, successB = false;
 
-if (!(successP = 
+if (!(successP =
             copyFile("Configuration - Job Info Window.ini", pFilenamePrimary))
     ||
-    !(successB = 
+    !(successB =
             copyFile("Configuration - Job Info Window.ini", pFilenameBackup))){
 
     displayErrorMessage("The job information configuration file "
@@ -490,7 +490,7 @@ return success;
 // way of logging a message with no date.
 //
 
-public void logMessage(String pMessage, boolean pLogDate)
+private void logMessage(String pMessage, boolean pLogDate)
 {
 
 if (pLogDate) logFile.println(new Date().toString());
@@ -508,7 +508,7 @@ logFile.println(pMessage);
 // Use this method to print a message without logging the date.
 //
 
-public void logMessage(String pMessage)
+private void logMessage(String pMessage)
 {
 
 logMessage(pMessage, false);

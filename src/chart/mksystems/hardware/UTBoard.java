@@ -749,11 +749,13 @@ resetShadow = writeFPGAReg(RESET_REG, (byte)0x3e);
 //sleep for a bit to allow DSPs to start up
 waitSleep(1000);
 
+/* debug mks
 logDSPStatus(1, 1, true); logDSPStatus(1, 2, true);
 logDSPStatus(1, 3, true); logDSPStatus(1, 4, true);
 
 logDSPStatus(2, 1, true); logDSPStatus(2, 2, true);
 logDSPStatus(2, 3, true); logDSPStatus(2, 4, true);
+*/
 
 //enable sampling - FPGA has control of the HPI bus to transfer A/D data
 setState(0, 1);
@@ -764,7 +766,8 @@ setupComplete = true;
 //flag that setup was successful and board is ready for use
 ready = true;
 
-logger.logMessage("UT " + chassisSlotAddr + " is ready." + "\n");
+logger.logMessage(
+              "UT " + chassisSlotAddr + " ~ " + ipAddrS + " is ready." + "\n");
 
 notifyAll(); //wake up all threads that are waiting for this to complete
 
