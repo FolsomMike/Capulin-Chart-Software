@@ -93,8 +93,8 @@ addWindowListener(this);
 addComponentListener(this);
 
 //create red and black fonts for use with display objects
-Hashtable<TextAttribute, Object> map =
-            new Hashtable<TextAttribute, Object>();
+HashMap<TextAttribute, Object> map =
+            new HashMap<TextAttribute, Object>();
 blackFont = new Font("Dialog", Font.PLAIN, 12);
 map.put(TextAttribute.FOREGROUND, Color.RED);
 redFont = blackFont.deriveFont(map);
@@ -186,7 +186,7 @@ public void setCopyItemsWindowLocation()
 //set the position of the "Copy Items" window so that it is to the right of the
 //calibrator window
 
-copyItemSelector.setLocation(getWidth(), 0);
+copyItemSelector.setLocation(getWidth() + (int)getLocation().getX(), 0);
 
 }//end of UTCalibrator::setCopyItemsWindowLocation
 //-----------------------------------------------------------------------------
@@ -922,7 +922,6 @@ if (e.getActionCommand().equals("Cancel Copy")){
     copyItemSelector.removeAll();
     copyItemSelector.setVisible(false);
 
-
     pack(); //resize the window
 
     return;
@@ -942,6 +941,9 @@ if (e.getActionCommand().equals("Copy to This Channel")){
 
 //trap "Copy to All" button
 if (e.getActionCommand().equals("Copy to All")){
+
+    //set the items to copy window visible in case user has closed it
+    copyItemSelector.setVisible(true);
 
     int n = JOptionPane.showConfirmDialog(this,
     "Are you sure you want to copy to all channels?",

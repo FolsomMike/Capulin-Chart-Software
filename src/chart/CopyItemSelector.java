@@ -40,39 +40,50 @@ JPanel panel;
 // CopyItemSelector::CopyItemSelector (constructor)
 //
 //
-  
+
 public CopyItemSelector(JFrame pFrame)
 {
 
-    super(pFrame, "Copy Items");
+super(pFrame, "Copy Items");
 
-    //add panel to hold everything
-    JPanel mainPanel = new JPanel();
-    mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
-    mainPanel.setOpaque(true);
-    add(mainPanel);
-    
-    //add panel to hold list of items as check boxes
-    panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-    panel.setOpaque(true);
-    panel.setAlignmentX(Component.CENTER_ALIGNMENT);
-    mainPanel.add(panel);
-
-    //add panel to hold "Help" button
-    JPanel helpPanel = new JPanel();
-    helpPanel.setLayout(new BoxLayout(helpPanel, BoxLayout.Y_AXIS));
-    helpPanel.setOpaque(true);
-    JButton b = new JButton("Help");
-    b.addActionListener(this);
-    b.setActionCommand("Help");
-    helpPanel.add(b);
-    helpPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-    mainPanel.add(helpPanel);
-    
-    
 }//end of CopyItemSelector::CopyItemSelector (constructor)
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// CopyItemSelector::init
+//
+// Initializes the object.  Must be called immediately after instantiation.
+//
+
+public void init()
+{
+
+//add panel to hold everything
+JPanel mainPanel = new JPanel();
+mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+mainPanel.setOpaque(true);
+add(mainPanel);
+
+//add panel to hold list of items as check boxes
+panel = new JPanel();
+panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+panel.setOpaque(true);
+panel.setAlignmentX(Component.CENTER_ALIGNMENT);
+mainPanel.add(panel);
+
+//add panel to hold "Help" button
+JPanel helpPanel = new JPanel();
+helpPanel.setLayout(new BoxLayout(helpPanel, BoxLayout.Y_AXIS));
+helpPanel.setOpaque(true);
+JButton b = new JButton("Help");
+b.addActionListener(this);
+b.setActionCommand("Help");
+helpPanel.add(b);
+helpPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+mainPanel.add(helpPanel);
+
+}//end of CopyItemSelector::init
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // CopyItemSelector::getItemState
@@ -93,7 +104,7 @@ if (cb != null)
     return cb.isSelected();
 else
     return(false);
-    
+
 }//end of CopyItemSelector::getItemState
 //-----------------------------------------------------------------------------
 
@@ -106,7 +117,7 @@ else
 // The name is added to the window as a checkbox with the text set to that
 // name.
 //
-// If the panel currently contains no items, the special item 
+// If the panel currently contains no items, the special item
 // "Copy All Parameters" is added so it shows up at the top of the list.  If
 // the user checks this box, then all parameters will be copied.
 //
@@ -119,29 +130,29 @@ else
 public void addItem(String pItemName)
 {
 
-    JCheckBox cb;
-    
-    //add special item so user can choose to select all parameters for copy
-    if (getItemWithName("Copy All Parameters") == null){
-        cb = new JCheckBox("Copy All Parameters");
-        cb.setSelected(false);
-        panel.add(cb);        
-        }
+JCheckBox cb;
 
-    //only add item if it is not already present
-    if (!pItemName.equals("") && getItemWithName(pItemName) == null){
-        //add a new checkbox for the item
-        cb = new JCheckBox(pItemName);
-        cb.setSelected(true);
-        panel.add(cb);
-    }
-        
-    setVisible(true); //display the window
-    
-    pack();
-    
+//add special item so user can choose to select all parameters for copy
+if (getItemWithName("Copy All Parameters") == null){
+    cb = new JCheckBox("Copy All Parameters");
+    cb.setSelected(false);
+    panel.add(cb);
+}
+
+//only add item if it is not already present
+if (!pItemName.equals("") && getItemWithName(pItemName) == null){
+    //add a new checkbox for the item
+    cb = new JCheckBox(pItemName);
+    cb.setSelected(true);
+    panel.add(cb);
+}
+
+setVisible(true); //display the window
+
+pack();
+
 }//end of CopyItemSelector::addItem
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // CopyItemSelector::getItemWithName
@@ -153,15 +164,15 @@ public void addItem(String pItemName)
 JCheckBox getItemWithName(String pItemName)
 {
 
-    for (Component child : panel.getComponents())
-        if (child instanceof JCheckBox)
-            if (((JCheckBox)child).getText().equals(pItemName)) 
-                return((JCheckBox)child);
-    
+for (Component child : panel.getComponents())
+    if (child instanceof JCheckBox)
+        if (((JCheckBox)child).getText().equals(pItemName))
+            return((JCheckBox)child);
+
 return(null);
-    
+
 }//end of CopyItemSelector::getItemWithName
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // CopyItemSelector::removeAll
@@ -174,9 +185,9 @@ public void removeAll()
 {
 
 panel.removeAll();
-    
+
 }//end of CopyItemSelector::removeAll
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // CopyItemSelector::displayHelp
@@ -186,26 +197,26 @@ panel.removeAll();
 
 public void displayHelp()
 {
-    
-    JOptionPane.showMessageDialog(this,
-         "   Copying Parameters Between Channels\n\n"   
-         + "Right click on the controls in the Calibration window to add them"
-         + " to the Copy Items window.\n"
-         + "Any item listed there will be copied if checked. To copy all"
-         + " settings for a channel, check the\n"
-         + "Copy All Parameters entry.\n"
-         + "To add the DAC settings to the list, right click anywhere on the"
-         + " DAC tab.\n"
-         + "To copy the chosen items from the currently selected channel to"
-         + " another channel, click the <\n"
-         + "button to the right of the destination channel.  To copy"
-         + " from the selected channel to all other\n"
-         + "channels, click the Copy to All button.\n"
-         + "To close the Copy Items window and clear all items, click the"
-         + " Cancel Copy button");
+
+JOptionPane.showMessageDialog(this,
+     "   Copying Parameters Between Channels\n\n"
+     + "Right click on the controls in the Calibration window to add them"
+     + " to the Copy Items window.\n"
+     + "Any item listed there will be copied if checked. To copy all"
+     + " settings for a channel, check the\n"
+     + "Copy All Parameters entry.\n"
+     + "To add the DAC settings to the list, right click anywhere on the"
+     + " DAC tab.\n"
+     + "To copy the chosen items from the currently selected channel to"
+     + " another channel, click the <\n"
+     + "button to the right of the destination channel.  To copy"
+     + " from the selected channel to all other\n"
+     + "channels, click the Copy to All button.\n"
+     + "To close the Copy Items window and clear all items, click the"
+     + " Cancel Copy button");
 
 }//end of CopyItemSelector::displayHelp
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // CopyItemSelector::actionPerformed
@@ -215,15 +226,15 @@ public void displayHelp()
 
 @Override
 public void actionPerformed(ActionEvent e)
-{ 
+{
 
 //trap "Help" button
 if (e.getActionCommand().equals("Help")) displayHelp();
-    
-}//end of CopyItemSelector::actionPerformed
-//-----------------------------------------------------------------------------    
 
-    
+}//end of CopyItemSelector::actionPerformed
+//-----------------------------------------------------------------------------
+
+
 }//end of class CopyItemSelector
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
