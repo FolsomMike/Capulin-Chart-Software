@@ -155,6 +155,7 @@ panel.add(scopeAndAlarms);
 
 //create the window used to display items selected for copying
 copyItemSelector = new CopyItemSelector(frame);
+copyItemSelector.init();
 
 utControls = new UTControls(frame, scope1.getOscopeCanvas(), hardware,
                                                        copyItemSelector, this);
