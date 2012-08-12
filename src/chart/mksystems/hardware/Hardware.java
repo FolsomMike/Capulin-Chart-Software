@@ -64,7 +64,7 @@ boolean output1On = false;
 
 Globals globals;
 public ChartGroup chartGroups[];
-    
+
 public HardwareVars hdwVs;
 IniFile configFile;
 HardwareLink analogDriver;
@@ -112,7 +112,7 @@ double photoEye2DistanceFrontOfHead2;
 // The parameter configFile is used to load configuration data.  The IniFile
 // should already be opened and ready to access.
 //
-  
+
 public Hardware(IniFile pConfigFile, Globals pGlobals, JTextArea pLog)
 {
 
@@ -141,13 +141,13 @@ configure(configFile);
 private void configure(IniFile pConfigFile)
 {
 
-analogDriverName = 
+analogDriverName =
   pConfigFile.readString("Hardware", "Analog Input Driver Name", "PCI-DAS6023");
 
-digitalDriverName = 
+digitalDriverName =
   pConfigFile.readString("Hardware", "Digital Input Driver Name", "PCI-QUAD04");
 
-numberOfAnalogChannels = 
+numberOfAnalogChannels =
   pConfigFile.readInt("Hardware", "Number of Analog Channels", 50);
 
 //load the nS per data point value and compute the uS per data point as well
@@ -155,16 +155,16 @@ hdwVs.nSPerDataPoint =
   pConfigFile.readDouble("Hardware", "nS per Data Point", 15.0);
 hdwVs.uSPerDataPoint = hdwVs.nSPerDataPoint / 1000;
 
-photoEye1DistanceFrontOfHead1 = pConfigFile.readDouble("Hardware", 
+photoEye1DistanceFrontOfHead1 = pConfigFile.readDouble("Hardware",
                         "Photo Eye 1 Distance to Front Edge of Head 1", 22.0);
 
-photoEye1DistanceFrontOfHead2 = pConfigFile.readDouble("Hardware", 
+photoEye1DistanceFrontOfHead2 = pConfigFile.readDouble("Hardware",
                         "Photo Eye 1 Distance to Front Edge of Head 2", 46.0);
 
-photoEye2DistanceFrontOfHead1 = pConfigFile.readDouble("Hardware", 
+photoEye2DistanceFrontOfHead1 = pConfigFile.readDouble("Hardware",
                         "Photo Eye 2 Distance to Front Edge of Head 1", 58.0);
 
-photoEye2DistanceFrontOfHead2 = pConfigFile.readDouble("Hardware", 
+photoEye2DistanceFrontOfHead2 = pConfigFile.readDouble("Hardware",
                         "Photo Eye 2 Distance to Front Edge of Head 2", 35.0);
 
 //the control board sends packets every so many counts and is susceptible to
@@ -172,23 +172,23 @@ photoEye2DistanceFrontOfHead2 = pConfigFile.readDouble("Hardware",
 //accurate results over the length of the piece -- the packet send trigger
 //counts are often the same as the values below
 
-encoder1InchesPerCount = 
+encoder1InchesPerCount =
     pConfigFile.readDouble("Hardware", "Encoder 1 Inches Per Count", 0.003);
-        
-encoder2InchesPerCount = 
+
+encoder2InchesPerCount =
     pConfigFile.readDouble("Hardware", "Encoder 2 Inches Per Count", 0.003);
 
-pixelsPerInch = 
+pixelsPerInch =
   pConfigFile.readDouble("Hardware", "Pixels per Inch", 1.0);
 
 //this is the number of encoder counts per screen pixel -- the packet trigger
 //sent to the Control board is often the same number so that one packet is
 //received per packet (with some variance due to round off error)
 
-encoder1CntsPerPix = 
+encoder1CntsPerPix =
   pConfigFile.readInt("Hardware", "Encoder 1 Counts Per Pixel", 175);
 
-encoder2CntsPerPix = 
+encoder2CntsPerPix =
   pConfigFile.readInt("Hardware", "Encoder 2 Counts Per Pixel", 175);
 
 
@@ -196,10 +196,10 @@ encoder2CntsPerPix =
 //up error over distance -- these scaling values are applied to all encoder
 //calculations to correct for that error
 
-enc1CorrFactor = 
+enc1CorrFactor =
     pConfigFile.readDouble("Hardware", "Encoder 1 Correction Factor", 1.0);
-        
-enc2CorrFactor = 
+
+enc2CorrFactor =
     pConfigFile.readDouble("Hardware", "Encoder 2 Correction Factor", 1.0);
 
 manualInspectControl = pConfigFile.readBoolean(
@@ -222,14 +222,14 @@ createAnalogDriver(analogDriverName);
 
 private void createAnalogDriver(String pDriverName)
 {
-        
-if (pDriverName.equalsIgnoreCase("PCI-DAS6023")) analogDriver = 
+
+if (pDriverName.equalsIgnoreCase("PCI-DAS6023")) analogDriver =
           new AnalogPCIDAS6023(configFile, true, numberOfAnalogChannels, hdwVs);
 
-if (pDriverName.equalsIgnoreCase("Capulin 1")) analogDriver = 
-    new Capulin1(configFile, true, numberOfAnalogChannels, hdwVs, log, 
+if (pDriverName.equalsIgnoreCase("Capulin 1")) analogDriver =
+    new Capulin1(configFile, true, numberOfAnalogChannels, hdwVs, log,
                                  globals.jobFileFormat, Globals.mainFileFormat);
-  
+
 }//end of Hardware::createAnalogDriver
 //-----------------------------------------------------------------------------
 
@@ -242,9 +242,9 @@ if (pDriverName.equalsIgnoreCase("Capulin 1")) analogDriver =
 public void connect()
 {
 
-logger.section();    
+logger.section();
 logger.logMessage("Connecting With Chassis and Configuring\n\n");
-    
+
 connected = true;
 
 //before attempting to connect with the boards, start a thread to run the
@@ -292,36 +292,36 @@ for (int cg = 0; cg < chartGroups.length; cg++){
         int nTr = chartGroups[cg].getStripChart(sc).getNumberOfTraces();
 
         for (int tr = 0; tr < nTr; tr++){
-            
+
             tracePtr = chartGroups[cg].getStripChart(sc).getTrace(tr);
-            
-            
+
+
             if ((tracePtr != null) && (tracePtr.head == 1)){
-                tracePtr.startFwdDelayDistance = 
+                tracePtr.startFwdDelayDistance =
                         photoEye1DistanceFrontOfHead1
                                     + tracePtr.distanceSensorToFrontEdgeOfHead;
-                
-                tracePtr.startRevDelayDistance = 
+
+                tracePtr.startRevDelayDistance =
                         photoEye2DistanceFrontOfHead1 -
                                     tracePtr.distanceSensorToFrontEdgeOfHead;
 
             }//if ((tracePtr != null) && (tracePtr.head == 1))
 
             if ((tracePtr != null) && (tracePtr.head == 2)){
-                tracePtr.startFwdDelayDistance = 
+                tracePtr.startFwdDelayDistance =
                         photoEye1DistanceFrontOfHead2
                                     + tracePtr.distanceSensorToFrontEdgeOfHead;
-                
-                tracePtr.startRevDelayDistance = 
+
+                tracePtr.startRevDelayDistance =
                         photoEye2DistanceFrontOfHead2 -
                                     tracePtr.distanceSensorToFrontEdgeOfHead;
 
             }//if ((tracePtr != null) && (tracePtr.head == 2))
-                        
+
         }//for (int tr = 0; tr < nTr; tr++)
     }//for (int sc = 0; sc < nSC; sc++)
 }//for (int cg = 0; cg < chartGroups.length; cg++)
-        
+
 }//end of Hardware::calculateTraceOffsetDelays
 //-----------------------------------------------------------------------------
 
@@ -373,7 +373,7 @@ markerMode = pCalFile.readInt("Hardware",
        ") or fires continuously during the violation (" + CONTINUOUS + ")", 0);
 
 analogDriver.loadCalFile(pCalFile);
-  
+
 }//end of Hardware::loadCalFile
 //-----------------------------------------------------------------------------
 
@@ -418,7 +418,7 @@ pCalFile.writeInt("Hardware",
                                                                     markerMode);
 
 analogDriver.saveCalFile(pCalFile);
-  
+
 }//end of Hardware::saveCalFile
 //-----------------------------------------------------------------------------
 
@@ -430,9 +430,9 @@ analogDriver.saveCalFile(pCalFile);
 
 public double getUSPerDataPoint()
 {
-        
+
 return hdwVs.uSPerDataPoint;
-  
+
 }//end of Hardware::getUSPerDataPoint
 //-----------------------------------------------------------------------------
 
@@ -458,9 +458,9 @@ return analogDriver.getNumberOfChannels();
 
 public Channel[] getChannels()
 {
-        
+
 return analogDriver.getChannels();
-  
+
 }//end of Hardware::getChannels
 //-----------------------------------------------------------------------------
 
@@ -472,9 +472,9 @@ return analogDriver.getChannels();
 
 public Gate getGate(int pChannel, int pGate)
 {
-        
+
 return analogDriver.getGate(pChannel, pGate);
-  
+
 }//end of Hardware::getGate
 //-----------------------------------------------------------------------------
 
@@ -511,7 +511,7 @@ analogDriver.startMonitor();
 // Commands the hardware to exit the status monitor mode.
 //
 
-public void stopMonitor()  
+public void stopMonitor()
 {
 
 analogDriver.stopMonitor();
@@ -660,7 +660,7 @@ public void setMode(int pOpMode)
 opMode = pOpMode;
 
 analogDriver.setMode(pOpMode);
-    
+
 }//end of Hardware::setMode
 //-----------------------------------------------------------------------------
 
@@ -867,27 +867,36 @@ for (int ch = 0; ch < numberOfChannels; ch++){
                 //restarts even when end of buffer is reached -- buffer position
                 //would then be calculated by dividing that variable by the
                 //size of the buffer
-                
+
+                //NOTE: The check for SCAN mode is a quick fix to make this
+                //work.  Since SCAN is the only mode which wraps around in the
+                //buffer and also never reverses, this fix works.  However,
+                //some inspection modes will use wrap around and won't work
+                //because they do reverse.
+                //FIX THIS!!!!
+
+
                 //collect new data and move trace forward or back it up as
                 //required by movement of inspection head -- use >= because
                 //collectAnalogDataMinOrMax must be called even if the pointers
                 //haven't moved to collect peak data which will then be written
                 //over old data in the pointer positions
-                if (hdwVs.gatePtr.tracePtr.beingFilledSlot >= 
-                                    hdwVs.gatePtr.tracePtr.inProcessSlot)
+                if (opMode == SCAN ||
+                        (hdwVs.gatePtr.tracePtr.beingFilledSlot >=
+                                    hdwVs.gatePtr.tracePtr.inProcessSlot))
                     collectAnalogDataMinOrMax(hdwVs.gatePtr, channelActive);
                 else
                     backUpTraces(hdwVs.gatePtr, channelActive);
 
-            }while(hdwVs.gatePtr.tracePtr.inProcessSlot != 
+            }while(hdwVs.gatePtr.tracePtr.inProcessSlot !=
                                         hdwVs.gatePtr.tracePtr.beingFilledSlot);
         }// for (int g = 0; g < numberOfGates; g++)
 
     }// for (int ch = 0; ch < numberOfChannels; ch++)
-            
+
 }//end of Hardware::collectAnalogData
 //-----------------------------------------------------------------------------
-        
+
 //-----------------------------------------------------------------------------
 // Hardware::collectAnalogDataMinOrMax
 //
@@ -920,8 +929,8 @@ for (int ch = 0; ch < numberOfChannels; ch++){
 void collectAnalogDataMinOrMax(Gate gatePtr, boolean pChannelActive)
 {
 
-Trace trace = gatePtr.tracePtr;    
-    
+Trace trace = gatePtr.tracePtr;
+
 //only move forward if the position pointer has moved
 if(trace.inProcessSlot != trace.beingFilledSlot) trace.inProcessSlot++;
 
@@ -931,7 +940,7 @@ if (trace.inProcessSlot == trace.sizeOfDataBuffer) trace.inProcessSlot = 0;
 int nextIndex = trace.inProcessSlot; //use shorter name
 
 boolean dataStored = false;
-        
+
 //get the clock and data for this channel
 int clockPos = gatePtr.clockPos;
 int newData = gatePtr.dataPeak;
@@ -959,7 +968,7 @@ else{
     //data is more severe than what is already stored there - whether
     //more severe is greater or smaller is decided by an option in the
     //configuration file and passed in via the method linkTraces
-            
+
     // peakDirection == 0 means higher data is more severe
     if (gatePtr.peakDirection == 0){
         //higher values are more severe - keep highest value
@@ -982,7 +991,7 @@ else{
 //this must be done in this thread because the flags are used to fire
 //the paint markers in real time and this thread is close to real time
 //whereas the display code is not
-            
+
 //if the new data point was written into the array, store clock
 //position and check for theshold violation
 //ignore this part for off or masked channels as their data is driven high or
@@ -1001,22 +1010,22 @@ if (dataStored && pChannelActive){
 
     //check thresholds and store flag if violation - shift threshold
     //index by 2 as 0 = no flag and 1 = user flag
-            
+
     for (int j = 0; j < gatePtr.thresholds.length; j++)
-        if (trace.flaggingEnabled && 
+        if (trace.flaggingEnabled &&
                             gatePtr.thresholds[j].checkViolation(newData)){
             //store the index of threshold violated in byte 1
             gatePtr.fBuffer[nextIndex] &= 0xffff01ff; //erase old
-            gatePtr.fBuffer[nextIndex] += (j+2) << 9; //store new flag    
+            gatePtr.fBuffer[nextIndex] += (j+2) << 9; //store new flag
             startMarker(gatePtr, j); //handle marking the violation
             break; //stop after first threshold violation found
             }
         else{
             endMarker(gatePtr, j);
             }//if (chInfo[pCh].thresholds[j]...
-    
+
     }//if (datastored)...
-        
+
 //reset the data point just ahead - wrap around to beginning
 if (nextIndex < gatePtr.dBuffer1.length-1){
             gatePtr.dBuffer1[nextIndex+1] = Integer.MAX_VALUE;
@@ -1051,7 +1060,7 @@ void backUpTraces(Gate gatePtr, boolean pChannelActive)
 {
 
 Trace trace = gatePtr.tracePtr;
-    
+
 //erase data stored in the current position
 gatePtr.dBuffer1[trace.inProcessSlot] = Integer.MAX_VALUE;
 gatePtr.fBuffer[trace.inProcessSlot] = 0;
@@ -1093,11 +1102,11 @@ else
 
 public void collectAnalogDataMinAndMax(Gate gatePtr, boolean pChannelActive)
 {
-        
+
 int nextIndex = gatePtr.tracePtr.beingFilledSlot;
 
 boolean dataStored = false;
-        
+
 //get the clock and data for this channel
 
 //get the clock and data for this channel
@@ -1126,7 +1135,7 @@ else{
     //if the array value already has data, only overwrite it if the new
     //data is more severe than what is already stored there
     //more severe is always greater for the peakMax in span mode
-            
+
     //higher values are more severe - keep highest value
     if (newMaxData > gatePtr.dBuffer1[nextIndex]){
         gatePtr.dBuffer1[nextIndex] = newMaxData;
@@ -1139,7 +1148,7 @@ else{
 //this must be done in this thread because the flags are used to fire
 //the paint markers in real time and this thread is close to real time
 //whereas the display code is not
-            
+
 //if the new data point was written into the array, store clock
 //position and check for theshold violation
 if (dataStored){
@@ -1151,7 +1160,7 @@ if (dataStored){
     //index by 2 as 0 = no flag and 1 = user flag
 
     for (int j = 0; j < gatePtr.thresholds.length; j++)
-        if (gatePtr.tracePtr.flaggingEnabled && 
+        if (gatePtr.tracePtr.flaggingEnabled &&
                 gatePtr.thresholds[j].checkViolation(newMaxData)){
             //store the index of threshold violated in byte 1
             gatePtr.fBuffer[nextIndex] &= 0xffff01ff; //erase old
@@ -1168,7 +1177,7 @@ if (dataStored){
 
 
     }//if (datastored)...
-        
+
 //process the Min Data ----------------------------------------------------
 
 dataStored = false;
@@ -1183,7 +1192,7 @@ else{
     //if the array value already has data, only overwrite it if the new
     //data is more severe than what is already stored there
     //more severe is always less than for the peakMin in span mode
-            
+
     //lower values are more severe - keep lowest value
     if (newMinData < gatePtr.dBuffer2[nextIndex]){
         gatePtr.dBuffer2[nextIndex] = newMinData;
@@ -1196,7 +1205,7 @@ else{
 //this must be done in this thread because the flags are used to fire
 //the paint markers in real time and this thread is close to real time
 //whereas the display code is not
-            
+
 //if the new data point was written into the array, store clock
 //position and check for theshold violation
 if (dataStored){
@@ -1213,9 +1222,9 @@ if (dataStored){
 
     //check thresholds and store flag if violation - shift threshold
     //index by 2 as 0 = no flag and 1 = user flag
-            
+
     for (int j = 0; j < gatePtr.thresholds.length; j++)
-        if (gatePtr.tracePtr.flaggingEnabled && 
+        if (gatePtr.tracePtr.flaggingEnabled &&
                 gatePtr.thresholds[j].checkViolation(newMinData)){
             //store the index of threshold violated in byte 1
             gatePtr.fBuffer[nextIndex] &= 0xffff01ff; //erase old
@@ -1226,9 +1235,9 @@ if (dataStored){
             //stop after first threshold violation found
             break;
             }//if (chInfo[pCh].thresholds[j]...
-    
+
     }//if (datastored)...
-        
+
 
 //-----------------------------------------------------------------
 
@@ -1309,7 +1318,7 @@ for (int ch = 0; ch < numberOfChannels; ch++){
             //the buffer is circular - start over at beginning
             if (tracePtr.beingFilledSlot == tracePtr.sizeOfDataBuffer)
                 tracePtr.beingFilledSlot = 0;
-            
+
             }
         }// for (int g = 0; g < numberOfGates; g++)
     }// for (int ch = 0; ch < numberOfChannels; ch++)
@@ -1362,12 +1371,12 @@ analogDriver.getInspectControlVars(inspectCtrlVars);
 
 //if waiting for piece clear of system, do nothing until flag says true
 if (hdwVs.waitForOffPipe){
-    
+
     if (manualInspectControl) inspectCtrlVars.onPipeFlag = false;
-    
+
     if (inspectCtrlVars.onPipeFlag) return false;
     else {
-        hdwVs.waitForOffPipe = false; 
+        hdwVs.waitForOffPipe = false;
         hdwVs.waitForOnPipe = true;
         //assume all heads up if off pipe and disable flagging
         hdwVs.head1Down = false; enableHeadTraceFlagging(1, false);
@@ -1379,7 +1388,7 @@ if (manualInspectControl) inspectCtrlVars.onPipeFlag = true;
 
 //if waiting for piece to enter the head, do nothing until flag says true
 if (hdwVs.waitForOnPipe){
-    
+
     if (!inspectCtrlVars.onPipeFlag) return false;
     else {
         hdwVs.waitForOnPipe = false; hdwVs.watchForOffPipe = true;
@@ -1397,7 +1406,7 @@ if (hdwVs.waitForOnPipe){
 
 if (manualInspectControl){
     inspectCtrlVars.head1Down = true;
-    inspectCtrlVars.head2Down = true;    
+    inspectCtrlVars.head2Down = true;
 }
 
 //if head 1 is up and goes down, enable flagging for all traces on head 1
@@ -1423,18 +1432,18 @@ if (hdwVs.head2Down && !inspectCtrlVars.head2Down){
 //watch for piece to exit head
 if (hdwVs.watchForOffPipe){
     if (!inspectCtrlVars.onPipeFlag){
-        
+
         //use tracking counter to delay after leading photo eye cleared until
         //position where modifier is to be added until the end of the piece
         hdwVs.nearEndOfPieceTracker = hdwVs.nearEndOfPiecePosition;
         //start counting down to near end of piece modifier apply start position
         hdwVs.trackToNearEndofPiece = true;
-        
+
         //use tracking counter to delay after leading photo eye cleared until
         //end of piece
         hdwVs.trackToEndOfPiece = true;
         hdwVs.endOfPieceTracker = hdwVs.endOfPiecePosition;
-        
+
         hdwVs.watchForOffPipe = false;
         }
     }
@@ -1464,7 +1473,7 @@ void moveEncoders()
 //incoming data is still stored in the previous pixel.  Sometimes, a packet
 //will arrive which skips a pixel.  In that case, the skipped pixels are filled
 //with data from the previous pixel.
-    
+
 //calculate the position in inches
 double position = encoder2InchesPerCount *
         (inspectCtrlVars.encoder2 - inspectCtrlVars.encoder2Start);
@@ -1523,7 +1532,7 @@ for (int ch = 0; ch < numberOfChannels; ch++){
                 moveTracesForward(tracePtr, pixelsMoved, position);
             else
                 moveTracesBackward(tracePtr, Math.abs(pixelsMoved), position);
-            
+
             }//if (tracePtr != null...
         }// for (int g = 0; g < numberOfGates; g++)
     }// for (int ch = 0; ch < numberOfChannels; ch++)
@@ -1574,24 +1583,24 @@ for (int x = 0; x < pPixelsMoved; x++){
     //track position to find end of section at start of pipe where
     //modifier is to be applied
     if (hdwVs.nearStartOfPieceTracker != 0){
-        hdwVs.nearStartOfPieceTracker--;                
+        hdwVs.nearStartOfPieceTracker--;
         }
     else{
         hdwVs.nearStartOfPiece = false;
         }
 
-    if (hdwVs.trackToNearEndofPiece){                
+    if (hdwVs.trackToNearEndofPiece){
         if (hdwVs.nearEndOfPieceTracker != 0){
-            hdwVs.nearEndOfPieceTracker--;                
+            hdwVs.nearEndOfPieceTracker--;
             }
         else{
             hdwVs.nearEndOfPiece = true;
             }
         }
 
-    if (hdwVs.trackToEndOfPiece){                
+    if (hdwVs.trackToEndOfPiece){
         if (hdwVs.endOfPieceTracker != 0){
-            hdwVs.endOfPieceTracker--;                
+            hdwVs.endOfPieceTracker--;
             }
         else{
         //set flag to force preparation for a new piece
@@ -1644,13 +1653,13 @@ for (int x = 0; x < pPixelsMoved; x++){
     //currently, the nearStartOfPiece and nearEndOfPiece conditions are not
     //tracked in reverse -- should probably be fixed just in case reversing
     //occurs in these areas
-    
+
     //if tracking to the end of the piece after end of piece photo eye signal,
     //reverse this process
 
-    if (hdwVs.trackToEndOfPiece){                
+    if (hdwVs.trackToEndOfPiece){
         if (hdwVs.endOfPieceTracker != hdwVs.endOfPiecePosition){
-            hdwVs.endOfPieceTracker++;                
+            hdwVs.endOfPieceTracker++;
             }
         else{
             //original trigger point passed, so no longer near end
@@ -1683,17 +1692,17 @@ for (int cg = 0; cg < chartGroups.length; cg++){
         int nTr = chartGroups[cg].getStripChart(sc).getNumberOfTraces();
 
         for (int tr = 0; tr < nTr; tr++){
-            
+
             tracePtr = chartGroups[cg].getStripChart(sc).getTrace(tr);
-            
+
             if ((tracePtr != null) && (tracePtr.head == pHead))
 
                 tracePtr.flaggingEnabled = pEnable;
-                
+
             }//for (int tr = 0; tr < nTr; tr++)
         }//for (int sc = 0; sc < nSC; sc++)
     }//for (int cg = 0; cg < chartGroups.length; cg++)
-        
+
 }//end of Hardware::enableHeadTraceFlagging
 //-----------------------------------------------------------------------------
 
@@ -1719,9 +1728,9 @@ for (int cg = 0; cg < chartGroups.length; cg++){
 //
 // The distances of Photo Eye 1 and Photo Eye 2 to the front edge of each
 // head.
-// 
+//
 // Photo Eye 1 is the photo eye which reaches the inspection piece first when
-// the carriage is moving away from the operator's station (the "forward" 
+// the carriage is moving away from the operator's station (the "forward"
 // direction).
 //
 
@@ -1747,20 +1756,20 @@ for (int cg = 0; cg < chartGroups.length; cg++){
         trailingTraceCatch = Double.MIN_VALUE;
 
         for (int tr = 0; tr < nTr; tr++){
-            
+
             tracePtr = chartGroups[cg].getStripChart(sc).getTrace(tr);
-            
+
             //if the current direction is the "Away" direction, then set the
             //offsets properly for the carriage moving away from the operator
             //otherwise set them for the carriage moving towards the operator
             //see more notes in this method's header
-            
+
             if (tracePtr != null){
-                
+
                 //start with all false, one will be set true
                 tracePtr.leadTrace = false;
-                
-                if (pDirection == AwayDirection) 
+
+                if (pDirection == AwayDirection)
                     tracePtr.delayDistance = tracePtr.startFwdDelayDistance;
                 else
                     tracePtr.delayDistance = tracePtr.startRevDelayDistance;
@@ -1768,7 +1777,7 @@ for (int cg = 0; cg < chartGroups.length; cg++){
                 //find the leading and trailing traces
                 if (tracePtr.delayDistance < leadingTraceCatch)
                     {lead = tr; leadingTraceCatch = tracePtr.delayDistance;}
-                if (tracePtr.delayDistance > trailingTraceCatch) 
+                if (tracePtr.delayDistance > trailingTraceCatch)
                     {trail = tr; trailingTraceCatch = tracePtr.delayDistance;}
 
                 }//if (tracePtr != null)
@@ -1832,10 +1841,10 @@ pGatePtr.thresholds[pWhichThreshold].okToMark = true;
 // NOTE: If a message needs to be displayed by a thread other than the main
 // Java thread, use threadSafeLog instead.
 //
-  
+
 public void displayMessages()
 {
-    
+
 analogDriver.displayMessages();
 
 }//end of  Hardware::displayMessages
@@ -1851,7 +1860,7 @@ public void updateRabbitCode(int pWhichRabbits)
 {
 
     analogDriver.updateRabbitCode(pWhichRabbits);
-    
+
 }//end of Hardware::updateRabbitCode
 //-----------------------------------------------------------------------------
 
@@ -1968,7 +1977,7 @@ public void verifyAllDSPCode2()
 
 //disable the data collection thread so it doesn't collide with access by
 //the verifyAllDSPCode function
-    
+
 collectDataEnabled = false;
 
 analogDriver.verifyAllDSPCode2();
@@ -2050,7 +2059,7 @@ public void linkTraces(int pChartGroup, int pChart, int pTrace, int[] pDBuffer,
   int[] pDBuffer2, int[] pFBuffer, Threshold[] pThresholds, int pPlotStyle,
                                                             Trace pTracePtr)
 {
-    
+
 analogDriver.linkTraces(pChartGroup, pChart, pTrace, pDBuffer, pDBuffer2,
                          pFBuffer, pThresholds, pPlotStyle, pTracePtr);
 
@@ -2063,21 +2072,21 @@ analogDriver.linkTraces(pChartGroup, pChart, pTrace, pDBuffer, pDBuffer2,
 
 @Override
 public void run()
-{ 
-         
+{
+
 try{
     while (true){
-    
+
         //drive any simulation functions if they are active
         driveSimulation();
 
         Thread.sleep(10);
-        
+
         }//while
-    
+
     }//try
-    
-catch (InterruptedException e) {    
+
+catch (InterruptedException e) {
     }
 
 }//end of Hardware::run
@@ -2119,7 +2128,7 @@ return (hdwVs.nominalWall + offset);
 @Override
 public int xmtMessage(int pMessage, int pValue)
 {
-    
+
 //pass the message on to the mechanical simulation object
 return analogDriver.xmtMessage(pMessage, pValue);
 
@@ -2128,5 +2137,4 @@ return analogDriver.xmtMessage(pMessage, pValue);
 
 }//end of class Hardware
 //-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------    
-    
+//-----------------------------------------------------------------------------
