@@ -112,7 +112,7 @@ PrintProgress printProgress;
 // This is run by the thread which handles printing.
 //
 
-class PrintRunnable implements Runnable { 
+class PrintRunnable implements Runnable {
 
 PrintRequestAttributeSet aset;
 
@@ -128,7 +128,7 @@ public PrintRunnable(PrintRequestAttributeSet pAset)
 {
 
 aset = pAset;
-    
+
 }//end of PrintRunnable::PrintRunnable (constructor)
 //-----------------------------------------------------------------------------
 
@@ -137,8 +137,8 @@ aset = pAset;
 //
 
 @Override
-public void run() { 
-         
+public void run() {
+
 while (true){
 
     try{
@@ -157,7 +157,7 @@ while (true){
 
         //disable the print buttons using thread safe code
         controlPanel.setEnabledButtonsThreadSafe(false);
-        
+
         inJobPrintMethod = true;
         job.print(aset);
         inJobPrintMethod = false;
@@ -165,14 +165,14 @@ while (true){
         //if the thread was interrupted while in the job.print method, kill
         //the thread immediately
         if (Thread.interrupted()) return;
-        
+
         //set label to default and close the printProgress window
         printProgress.setLabel("Printing...");
         printProgress.setVisible(false);
-        
+
         //enable the print buttons using thread safe code
         controlPanel.setEnabledButtonsThreadSafe(true);
-        
+
         }
     catch (PrinterException e) {
         displayErrorMessage("Error sending to printer."); //debug mks wrap this in thread safe code
@@ -191,10 +191,10 @@ while (true){
 // startPrint true and uses notifyAll to wake this thread up.
 //
 
-public synchronized void waitForPrintTrigger() throws InterruptedException { 
-    
-startPrint = false;    
-    
+public synchronized void waitForPrintTrigger() throws InterruptedException {
+
+startPrint = false;
+
 while (!startPrint) {
     try {
         wait();
@@ -202,9 +202,9 @@ while (!startPrint) {
     catch (InterruptedException e) {
         throw new InterruptedException();
         }
-    
+
     }//while (!printTrigger)
-    
+
 }//end of PrintRunnable::waitForPrintTrigger
 //-----------------------------------------------------------------------------
 
@@ -214,12 +214,12 @@ while (!startPrint) {
 // Sets startPrint true and calls notifyAll to wake up the print thread.
 //
 
-public synchronized void triggerPrint() { 
-    
-startPrint = true; 
+public synchronized void triggerPrint() {
+
+startPrint = true;
 
 notifyAll();
-        
+
 }//end of PrintRunnable::triggerPrint
 //-----------------------------------------------------------------------------
 
@@ -234,14 +234,14 @@ notifyAll();
 // thread safe (partly because of Swing usage), they should be called in the
 // main event thread using invokeLater.  Since invokeLater results in a delayed
 // call to load the segment, this thread must wait until that operation is
-// completed.  Using this method to pause the thread and unPauseThread to 
+// completed.  Using this method to pause the thread and unPauseThread to
 // release it allows the thread to wait for the functions to complete.
 //
 
-public synchronized void pauseThread() throws InterruptedException { 
-    
-pauseThreadFlag = true;    
-    
+public synchronized void pauseThread() throws InterruptedException {
+
+pauseThreadFlag = true;
+
 while (pauseThreadFlag) {
     try {
         wait();
@@ -250,7 +250,7 @@ while (pauseThreadFlag) {
         throw new InterruptedException();
         }
     }//while (pausePrintThread)
-    
+
 }//end of PrintRunnable::pauseThread
 //-----------------------------------------------------------------------------
 
@@ -260,12 +260,12 @@ while (pauseThreadFlag) {
 // Sets pauseThreadFlag false and calls notifyAll to wake up the print thread.
 //
 
-public synchronized void unPauseThread() { 
-    
-pauseThreadFlag = false; 
+public synchronized void unPauseThread() {
+
+pauseThreadFlag = false;
 
 notifyAll();
-        
+
 }//end of PrintRunnable::unPauseThread
 //-----------------------------------------------------------------------------
 
@@ -275,9 +275,9 @@ notifyAll();
 // Enables the "Print" and "Print Multiple" buttons.
 //
 
-public synchronized void enablePrintButtonsThreadSafe() 
-{ 
-               
+public synchronized void enablePrintButtonsThreadSafe()
+{
+
 controlPanel.setEnabledButtonsThreadSafe(true);
 
 }//end of PrintRunnable::enablePrintButtonsThreadSafe
@@ -370,7 +370,7 @@ pack();
 
 //let's have a look, shall we?
 setVisible(true);
-        
+
 }//end of Viewer::init
 //-----------------------------------------------------------------------------
 
@@ -415,7 +415,6 @@ if (numberOfChartGroups > 0){
         }
 
     }//if (numberOfChartGroups > 0)
-
 
 //put the chartGroupPanel in a scroll pane so the user can scroll to see
 //a chart wider than the screen - this is different from the program's main
@@ -487,8 +486,8 @@ IniFile calFile = null;
 
 //if the ini file cannot be opened and loaded, exit without action
 try {
-    
-    calFile = new IniFile(jobPrimaryPath + "00 - " 
+
+    calFile = new IniFile(jobPrimaryPath + "00 - "
             + currentJobName + " Calibration File.ini", globals.jobFileFormat);
     }
     catch(IOException e){return;}
@@ -593,8 +592,8 @@ for (int i = 0; i < numberOfChartGroups; i++)
 void loadFirstOrLastAvailableSegment(int pWhich)
 {
 
-int segNumber = getFirstOrLastAvailableSegmentNumber(pWhich);    
-    
+int segNumber = getFirstOrLastAvailableSegmentNumber(pWhich);
+
 if (currentSegmentNumber == -1){
     displayErrorMessage("Error with name in file list.");
     return;
@@ -828,8 +827,8 @@ void startPrint()
 {
 
 //clear all attributes from the set
-aset.clear();    
-    
+aset.clear();
+
 
 //*** see notes regarding resolution problems in the header notes above ***
 
@@ -881,7 +880,7 @@ if (job.printDialog(aset)) {
         //Letter size with 1" margins (adjusted to 1/2" margins below)
         mPA = new MediaPrintableArea(
                (float)25.4, (float)25.4, (float)165.1, (float)228.6,
-                                                    MediaPrintableArea.MM);            
+                                                    MediaPrintableArea.MM);
         }
 
     //use the MediaPrintableArea retrieved from the aset, which has the
@@ -896,7 +895,7 @@ if (job.printDialog(aset)) {
                MediaPrintableArea.MM));
 
     //get the page range from the print dialog (adjustable by user)
-    //(not used in this program, only included for educational purposes)        
+    //(not used in this program, only included for educational purposes)
 
     //See notes at the top of the print method for details on how the
     //program uses piece ranges and page ranges specified by the user.
@@ -908,7 +907,7 @@ if (job.printDialog(aset)) {
         }
     catch(ClassNotFoundException cnfe){
         //if cannot be retrieved, set to null which equates to "print all"
-        pageRanges = null;            
+        pageRanges = null;
         }
 
     if (pageRanges == null){
@@ -935,7 +934,7 @@ if (job.printDialog(aset)) {
 
     //tell the print thread to start printing
     printRunnable.triggerPrint();
-                
+
     }//if (job.printDialog(aset))
 
 }//end of Viewer::startPrint
@@ -961,7 +960,7 @@ if (job.printDialog(aset)) {
 // The problem is handled by ignoring the page number passed in by Java as it
 // would take a lot of work to match the requested pages to the appropriate
 // piece files.  Instead, a dialog window is presented to the user allowing
-// them to choose the range of pieces to be printed.  
+// them to choose the range of pieces to be printed.
 //
 // If the Java print dialog is left on "Print All", it will continue to call
 // the print method until that method returns NO_SUCH_PAGE.  This works best
@@ -985,14 +984,14 @@ if (job.printDialog(aset)) {
 public int print(Graphics g, PageFormat pPF, int pPage) throws
                                                             PrinterException {
 
-//cease printing if user has pressed Cancel button on print progress dialog    
-if (printProgress.userCancel) return(NO_SUCH_PAGE);    
-    
+//cease printing if user has pressed Cancel button on print progress dialog
+if (printProgress.userCancel) return(NO_SUCH_PAGE);
+
 //NOTE: for some reason, the Java print system calls this function twice (or
 //perhaps more in some cases?) for each page to be printed.  This is not fully
 //explained in the Java documentation, but the consensus seems to be that this
 //behavior is correct.
-        
+
 //if only the piece being viewed is to be printed, the variables should be
 // startPiece = -1 endPiece = -1 pieceTrack = -1  before starting printing
 //this way, incrementing pieceTrack once will trigger the end of printing while
@@ -1019,18 +1018,18 @@ if (printProgress.userCancel) return(NO_SUCH_PAGE);
 if (pPage != printCallPageTrack){
 
     printCallPageTrack = pPage; //store for next comparison
-    
+
     //only check if at end of print if the page number has changed -- this
     //ensures that the second call for that last piece has been made
-    
+
     if (pieceTrack > endPiece) return(NO_SUCH_PAGE);
-    
+
     //if startPiece is -1, don't load a new piece as the user only wants
     //to print the currently displayed piece
 
     if (startPiece != -1) {
-        currentSegmentNumber = pieceTrack; 
-        
+        currentSegmentNumber = pieceTrack;
+
         //try loading segments until an existing one is found
         try{
             while (pieceTrack <= endPiece && loadSegmentThreadSafe() != 0){
@@ -1045,13 +1044,13 @@ if (pPage != printCallPageTrack){
             printThread.interrupt();
             return(NO_SUCH_PAGE);
             }
-                        
+
         //if missing segments skipped until endPiece reached, halt printing
         if (pieceTrack > endPiece) return(NO_SUCH_PAGE);
-        
+
         //update the progress window to show the current piece
         printProgress.setLabel(currentSegmentNumber);
-        
+
         }
 
     //next time, load the next piece or will cause the end of printing
@@ -1095,14 +1094,14 @@ public int loadSegmentThreadSafe() throws InterruptedException
 {
 
 //invoke the main event thread to load the segment
-    
+
 javax.swing.SwingUtilities.invokeLater(
     new Runnable() {
         @Override
-        public void run() { 
-            
+        public void run() {
+
         loadSegment(true); //load segment without dialogs
-        
+
         }});
 
 //halt here (this is running in printThread) and wait for the main event thread
@@ -1124,20 +1123,20 @@ return(loadSegmentError);
 // The current thread is paused until the main thread finishes printing.
 //
 
-public void printChartGroupThreadSafe(final Graphics pG, 
+public void printChartGroupThreadSafe(final Graphics pG,
           final PageFormat pPF, final int pPage, final ChartGroup pChartGroup)
                                                     throws InterruptedException
 {
 
 //invoke the main event thread to print the chart group
-    
+
 javax.swing.SwingUtilities.invokeLater(
     new Runnable() {
         @Override
-        public void run() { 
-            
+        public void run() {
+
         printChartGroup(pG, pPF, pPage, pChartGroup);
-        
+
         }});
 
 //halt here (this is running in printThread) and wait for the main event thread
@@ -1164,15 +1163,15 @@ printRunnable.pauseThread();
 public void displayPrintProgressDialog()
 {
 
-//center the dialog on the main window    
+//center the dialog on the main window
 int x = getX() + getWidth()/2;
 int y = getY() + getHeight()/2;
-    
+
 printProgress.userCancel = false;
 printProgress.setLocation(x,y);
 printProgress.setLabel("Printing...");
-printProgress.setVisible(true);    
-    
+printProgress.setVisible(true);
+
 }//end of Viewer::displayPrintProgressDialog
 //-----------------------------------------------------------------------------
 
@@ -1319,14 +1318,14 @@ g2.scale(unscaleX, unscaleY);
 //reduce available height to account for the header and the footer -- scale the
 //output to fit in the leftover space
 double paperX = (pPF.getImageableWidth() / 72) * resolutionX;
-double paperY = 
+double paperY =
   ((pPF.getImageableHeight() - headerHeight - footerHeight) / 72) * resolutionY;
 
 //calculate the scale so that either width or length fits the paper per the
 //user's setting
 
 if (globals.graphPrintLayout.contains("Fit Width")){
-    
+
     //if the user does not choose "Fit to Data" for the magnification, then
     //calculate the scale to fit the entire chart width on the paper
     if (!globals.userPrintMagnify.contains("Fit to Data")){
@@ -1334,30 +1333,30 @@ if (globals.graphPrintLayout.contains("Fit Width")){
         scaleY = scaleX; //fix this - scaleY reflect possibly different DPI?
         }
     else{
-        
+
         //if the user chooses "Fit to Data", then calcualate the width required
         //to display all the data, chopping off the unused chart portion
         //this option is not used for the "Fit Height" layouts
         //all traces should have the same amount of data, so use one trace
         //to determine the width for all
-        
-        int dataWidth = 
+
+        int dataWidth =
                 chartGroups[0].getStripChart(0).getTrace(0).getDataWidth();
-        
+
         //if no data was found, use the entire group width
-        if (dataWidth == -1) 
+        if (dataWidth == -1)
             dataWidth = groupWidth;
         else
             dataWidth += 30; //add room for the chart border
-                
+
         //prevent short data widths from blowing the vertical up too much
         //allow width to be no less than half the group width
-        if (((double)groupWidth / ((double)dataWidth)) > 2) 
+        if (((double)groupWidth / ((double)dataWidth)) > 2)
             dataWidth = groupWidth / 2;
 
-        scaleX = paperX / dataWidth;        
+        scaleX = paperX / dataWidth;
         scaleY = scaleX; //fix this - scaleY reflect possibly different DPI?
-                
+
         }
     }//if (globals.graphPrintLayout.contains("Fit Width"))
 
@@ -1370,14 +1369,14 @@ if (globals.graphPrintLayout.contains("Fit Height")){
 // the magnification for that case is already applied above
 
 if (!globals.userPrintMagnify.contains("Fit to Data")){
-    
+
     //get the numeric portion of the magnify string (skip the label)
     Double magnify = Double.valueOf(globals.userPrintMagnify.substring(8));
-    
+
     scaleX *= magnify;
     scaleY *= magnify;
     }
-    
+
 //apply desired scaling here
 g2.scale(scaleX, scaleY);
 
@@ -1398,7 +1397,7 @@ printRunnable.unPauseThread(); //release the print thread if it is waiting
 //
 // Disables double buffering for Component pC and all components it might
 // contain.
-//  
+//
 // This should be done before rendering to a print graphic object so that
 // scaling works properly and unnecessary data is not sent to the print spooler.
 //
@@ -1442,8 +1441,8 @@ currentManager.setDoubleBufferingEnabled(true);
 //-----------------------------------------------------------------------------
 // Viewer::formatPieceIDEntriesForPrinting
 //
-// Adds entries in the pieceIDInfo object to a string which can be printed.  
-// The resulting string is returned. 
+// Adds entries in the pieceIDInfo object to a string which can be printed.
+// The resulting string is returned.
 //
 // Entries to be printed and the order in which they are to be printed are
 // specified in the "Configuration - Piece Info Window" file.
@@ -1451,9 +1450,9 @@ currentManager.setDoubleBufferingEnabled(true);
 
 public String formatPieceIDEntriesForPrinting()
 {
-    
+
 String result = "";
-    
+
 KeyValue keyValue = new KeyValue();
 
 //if nothing to print, bail out
@@ -1462,7 +1461,7 @@ if (!pieceIDInfo.getFirstToPrint(keyValue)) return(result);
 //add first entry to the footer string
 result = keyValue.keyString + ": " + keyValue.valueString + "    ";
 
-//add remaining printable entries to the string 
+//add remaining printable entries to the string
 while(pieceIDInfo.getNextToPrint(keyValue))
     result = result + keyValue.keyString + ": " + keyValue.valueString + "    ";
 
@@ -1477,29 +1476,29 @@ return(result);
 // Finds the max and min for the Wall trace and adds the values to a string
 // which can be printed.
 //
-// The resulting string is returned. 
+// The resulting string is returned.
 //
 
 public String formatWallMaxMinForPrinting()
 {
 
 String result = "", maxWall = "", minWall = "";
-StripChart stripChart = null;    
+StripChart stripChart = null;
 
 //scan through all charts to find the one with the title containing "Wall"
 
 for (int i = 0; i < numberOfChartGroups; i++){
     for (int j = 0; j < chartGroups[i].getNumberOfStripCharts(); j++){
-    
+
         if(chartGroups[i].getStripChart(j).getTitle().contains("Wall")){
-            
+
             stripChart = chartGroups[i].getStripChart(j);
             break;
-            
-            }      
+
+            }
         }//for (int i = 0; i < numberOfStripCharts; i++){
     }//for (int i = 0; i < numberOfChartGroups; i++)
-    
+
 //if no "Wall" chart found, exit with empty string
 if (stripChart == null) return(result);
 
@@ -1512,30 +1511,30 @@ for (int i = 0; i < stripChart.getNumberOfTraces(); i++){
 
     if(stripChart.getTrace(i).getTitle().contains("Min"))
         minTrace = i;
-        
+
     if(stripChart.getTrace(i).getTitle().contains("Max"))
         maxTrace = i;
-        
+
     }//for (int i = 0; i < stripChart.getNumberOfTraces(); i++){
 
 int min = 0, max = 0;
 
 if (minTrace != -1){
-    
-    min = stripChart.findMinValueOfTrace(minTrace);    
-    
+
+    min = stripChart.findMinValueOfTrace(minTrace);
+
     minWall = Integer.toString(min);
-    
+
     }
 
 if (maxTrace != -1){
-    
+
     max = stripChart.findMaxValueOfTrace(maxTrace);
-    
+
     maxWall = Integer.toString(max);
 
     }
-     
+
 DecimalFormat decimalFormat = new DecimalFormat("0.000");
 
 if (min < 0) min = 0;
@@ -1544,16 +1543,16 @@ if (min > stripChart.chartHeight) min = stripChart.chartHeight;
 if (max < 0) max = 0;
 if (max > stripChart.chartHeight) max = stripChart.chartHeight;
 
-result = "Max Wall: " + 
+result = "Max Wall: " +
             decimalFormat.format(calculateInvertedComputedValue1(max)) + "    ";
-    
-result += "Min Wall: " + 
+
+result += "Min Wall: " +
             decimalFormat.format(calculateInvertedComputedValue1(min)) + "    ";
 
 //debug mks
 //Use to display wall string in the piece ID info window
 
-//pieceIDInfo.items[2].textField.setText(result);        
+//pieceIDInfo.items[2].textField.setText(result);
 
 //debug mks
 
@@ -1588,7 +1587,7 @@ if (e.getItemSelectable() == controlPanel.calModeCheckBox){
 
     //load the last file saved -- either info or cal
     loadFirstOrLastAvailableSegment(LAST);
-    
+
     }// if (e.getItemSelectable() == statusPanel.calModeCheckBox)
 
 }//end of ViewerPanel::itemStateChanged
@@ -1668,7 +1667,7 @@ if ("Print".equals(e.getActionCommand())) {
 
 if ("Print Multiple".equals(e.getActionCommand())) {
     //display the regular or cal print range window
-    displayPrintRangeWindow();    
+    displayPrintRangeWindow();
     }
 
 if ("Show Info Details".equals(e.getActionCommand())){
@@ -1691,30 +1690,30 @@ if ("Show Info Details".equals(e.getActionCommand())){
 public void displayPrintRangeWindow()
 {
 
-PrintRange dialog;    
-    
+PrintRange dialog;
+
 //choose the proper dialog window depending on the state of the Cal switch
 if (!controlPanel.calModeCheckBox.isSelected())
     dialog = printRange;
 else
     dialog = printCalsRange;
-    
+
 //position the dialog near the "Print Multiple" button
 int x = getX() + controlPanel.getX() + controlPanel.printControls.getX();
 int y = getY() + controlPanel.getY();
-       
+
 //display the print range window near the "Print Multiple" button
 dialog.setLocation(x, y);
 
 //if both the start and end piece range entries are blank, then fill in with
 //values which would print all the pieces
 
-if (dialog.startPiece.getText().isEmpty() 
+if (dialog.startPiece.getText().isEmpty()
         && dialog.endPiece.getText().isEmpty() ){
     //get the first piece file in the folder -- on error default to 1
     int first = getFirstOrLastAvailableSegmentNumber(FIRST);
     if (first < 1) first = 1;
-    //get the last piece file in the folder -- on error default to 1    
+    //get the last piece file in the folder -- on error default to 1
     int last = getFirstOrLastAvailableSegmentNumber(LAST);
     if (last < 1) last = 1;
 
@@ -1726,8 +1725,8 @@ if (dialog.startPiece.getText().isEmpty()
 dialog.setVisible(true);
 
 //if user clicked print, then begin printing else do nothing
-if (dialog.okToPrint) {    
-    
+if (dialog.okToPrint) {
+
     try{
         startPiece = Integer.valueOf(dialog.startPiece.getText());
         endPiece = Integer.valueOf(dialog.endPiece.getText());
@@ -1737,7 +1736,7 @@ if (dialog.okToPrint) {
     catch(NumberFormatException nfe)  {
         displayErrorMessage("Error in print range.");
         }
-    
+
     }//if (dialog.okToPrint)
 
 
@@ -1841,7 +1840,18 @@ loadInfoHelper(jobPrimaryPath + segmentFilename + infoExt);
 
 loadCalFile(); //load calibration settings needed for viewing
 
-repaint();
+//adjust the height of the scroll pane down for each chart which is hidden
+
+int adjustedPaneHeight = chartGroups[0].viewerChartScrollPaneHeight;
+
+for (int i = 0; i < chartGroups[0].getNumberOfStripCharts(); i++)
+    if (chartGroups[0].getStripChart(i).isChartVisible())
+        adjustedPaneHeight -= 50;
+
+setSizes(scrollPane,
+            chartGroups[0].viewerChartScrollPaneWidth, adjustedPaneHeight);
+
+pack();
 
 loadSegmentError = 0;
 printRunnable.unPauseThread(); //release the print thread if it is waiting
@@ -1872,7 +1882,7 @@ BufferedReader in = null;
 try{
 
     fileInputStream = new FileInputStream(pFilename);
-    inputStreamReader = new InputStreamReader(fileInputStream, 
+    inputStreamReader = new InputStreamReader(fileInputStream,
                                                          globals.jobFileFormat);
     in = new BufferedReader(inputStreamReader);
 
@@ -1920,8 +1930,8 @@ return("");
 private void loadInfoHelper(String pFilename)
 {
 
-pieceIDInfo.loadData(pFilename);    
-    
+pieceIDInfo.loadData(pFilename);
+
 }//end of Viewer::loadInfoHelper
 //-----------------------------------------------------------------------------
 
@@ -1967,7 +1977,7 @@ while ((line = pIn.readLine()) != null){
         break;
         }
 
-    //read the "Segment Data Version" entry - if not found, default to "0.0"  
+    //read the "Segment Data Version" entry - if not found, default to "0.0"
     if (matchAndParseString(line, "Segment Data Version", "0.0", matchSet))
         segmentDataVersion = matchSet.rString1;
     }
@@ -2437,7 +2447,7 @@ printControls.add(Box.createRigidArea(new Dimension(3,0))); //horizontal spacer
 //using HTML <center> makes the text shift to one side when the button size is
 //limited, so a non-breaking space is used to center "Print" above "Multiple"
 //and centering is not used
-String buttonText = 
+String buttonText =
                 "<html>"+"&nbsp Print &nbsp"+"<br>"+"Multiple"+"</html>";
 printControls.add(printMultiple = new JButton(buttonText));
 //using HTML text makes button use too much space, so limit its size
@@ -2530,7 +2540,7 @@ add(gotoPanel);
 //
 // Sets the enable state for the all the buttons and controls which could
 // cause problems if changed or clicked while printing.
-// 
+//
 // Uses invokeLater to set the enabled states in order to be thread safe
 // when called from any thread.
 //
@@ -2541,8 +2551,8 @@ public void setEnabledButtonsThreadSafe(final boolean pState)
 javax.swing.SwingUtilities.invokeLater(
     new Runnable() {
         @Override
-        public void run() { 
-            
+        public void run() {
+
         infoDetails.setEnabled(pState);
         first.setEnabled(pState); previous.setEnabled(pState);
         next.setEnabled(pState); last.setEnabled(pState);
@@ -2551,9 +2561,9 @@ javax.swing.SwingUtilities.invokeLater(
         userMagnifySelector.setEnabled(pState);
         calModeCheckBox.setEnabled(pState);
         load.setEnabled(pState); list.setEnabled(pState);
-        
+
         }});
-    
+
 }//end of ViewerControlPanel::setEnabledButtonsThreadSafe
 //-----------------------------------------------------------------------------
 
@@ -2737,10 +2747,10 @@ add(Box.createRigidArea(new Dimension(0,15)));
 pack();
 
 setVisible(true);
-    
+
 }//end of SegmentChooser::init
 //-----------------------------------------------------------------------------
-    
+
 //-----------------------------------------------------------------------------
 // SegmentChooser::actionPerformed
 //
