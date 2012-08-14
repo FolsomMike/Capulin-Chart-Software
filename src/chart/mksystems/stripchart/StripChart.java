@@ -492,7 +492,7 @@ if (displayComputedAtCursor) computedAtCursor = new ValueDisplay(
       650, 23, 720, 23,  "At Cursor:", "0.000", Color.BLACK, borderColor);
 
 if (displayChartHeightAtCursor) chartHeightAtCursor  = new ValueDisplay(
-      800, 23, 865, 23,  "Y Position:", "0", Color.BLACK, borderColor);
+      800, 23, 865, 23,  "Amplitude:", "0", Color.BLACK, borderColor);
 
 if (displayLinearPositionAtCursor) linearPositionAtCursor  = new ValueDisplay(
     950, 23, 1050, 23,  "Linear Position:", "0.0", Color.BLACK, borderColor);
