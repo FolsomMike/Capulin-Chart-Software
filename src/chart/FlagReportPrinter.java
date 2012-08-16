@@ -421,13 +421,39 @@ public void printReportForPiece(String pReportsPrimaryPath, int pPiece)
 //
 // Prints all the flags for pChart.
 //
+// If multiple flags from the same flaw trace are located at the same tenth of a
+// foot (or equivalent for metric) and clock position, the first flag is always
+// printed but subsequent flags are not printed if they are the same amplitude
+// than the flag just before.
+//
+// For wall traces, subsequent flags are not shown if they have the same wall
+// value.
+//
+// This method is not perfect as multiple flags with differing amplitudes will
+// all be printed, but a lot of duplication is of the same amplitude.  To solve
+// the problem totally, the grouped flags would need to be preloaded into a
+// buffer and scanned for the highest amplitude amongst the group, which would
+// then be printed.
+//
+// For the multiple flag checks, the formatted string version of some of the
+// values are used for comparison as this takes into account round off.  This
+// does make it difficult to use comparison to find the worst case if that
+// option is ever implemented.
+//
 
 public void printFlagsForChart(PrintWriter pFile, StripChart pChart)
 {
 
+    boolean isWallChart = false;
+    if (pChart.shortTitle.contains("Wall")) isWallChart = true;
+
     for (int i = 0; i < pChart.getNumberOfTraces(); i++){
 
         Trace trace = pChart.getTrace(i);
+
+        String linearPos = "", prevLinearPos = "";
+        String amplitudeText = "", prevAmplitudeText = "";
+        int clockPos = -1, prevClockPos = -1;
 
         int flagThreshold;
 
@@ -436,44 +462,57 @@ public void printFlagsForChart(PrintWriter pFile, StripChart pChart)
             //extract the flag threshold -- if greater than 0, then a flag
             //is set at this position (note that threshold 1 denotes a user
             //set flag)
-            if ((flagThreshold =
-                        (trace.flagBuffer[j] & 0x0000fe00) >> 9) > 0){
+            if ((flagThreshold = (trace.flagBuffer[j] & 0x0000fe00) >> 9) > 0){
 
-                //debug mks -- needs to be read from the joint file, not
-                //config file as it may change
+                //debug mks -- pixelsPerInch needs to be read from the joint
+                //file, not config file as it may change
 
-                //convert index to decimal feet, format, and print
-                pFile.print(prePad(
-                    decimalFormats[1].format(j / hardware.pixelsPerInch / 12.0),
-                    5) + "\t");
+                //convert the position and amplitude first so they can be
+                //used to detect duplicate flags (see notes in function header)
 
-                //extract and print the clock position
-                int clockPos = trace.flagBuffer[j] & 0x1ff;
-                pFile.print(clockPos+"\t"); //radial position
+                //convert index to decimal feet, format, and pad to length
+                linearPos = prePad(decimalFormats[1].format(j /
+                        hardware.pixelsPerInch / 12.0), 5);
 
-                //print the short title of trace which should have
-                //been set up in the config file to describe some or all of
-                //orientation, ID/OD designation, and channel number
-                pFile.print(postPad(trace.shortTitle, 10)+"\t");
-
+                //convert and format the amplitude depending on chart type
                 int amplitude = trace.dataBuffer1[j];
                 double wall;
-                String amplitudeText;
-
-                //convert and format the amplitude depending on the type of
-                //chart
-
-                if (pChart.shortTitle.contains("Wall")){
+                if (isWallChart){
                     wall = calculateComputedValue1(amplitude);
                     amplitudeText = decimalFormats[2].format(wall);
                     amplitudeText = prePad(amplitudeText, 5);
                 }
                 else{
                     if (amplitude > 100) amplitude = 100;
-                    amplitudeText = prePad(""+amplitude, 5);
+                    amplitudeText = prePad("" + amplitude, 5);
                 }
 
-                pFile.print(amplitudeText+"\t"); //amplitude
+                //extract the clock position from the flag
+                clockPos = trace.flagBuffer[j] & 0x1ff;
+
+                //if the flag is in the same linear and clock position as the
+                //previous flag and has the same amplitude, then the flag is
+                //not printed (see notes in function header)
+                if (linearPos.equals(prevLinearPos)
+                        && amplitudeText.equals(prevAmplitudeText)
+                                            && clockPos == prevClockPos){
+                    continue;
+                }
+
+                prevLinearPos = linearPos;
+                prevAmplitudeText = amplitudeText;
+                prevClockPos = clockPos;
+
+                pFile.print(linearPos + "\t");
+
+                pFile.print(clockPos + "\t"); //radial position
+
+                //print the short title of trace which should have
+                //been set up in the config file to describe some or all of
+                //orientation, ID/OD designation, and channel number
+                pFile.print(postPad(trace.shortTitle, 10) + "\t");
+
+                pFile.print(amplitudeText + "\t"); //amplitude
 
                 //print a line for handwritten notes and initials
                 pFile.println("________________________________________");
