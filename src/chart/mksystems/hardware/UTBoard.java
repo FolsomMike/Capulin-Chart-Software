@@ -34,6 +34,8 @@ import chart.mksystems.inifile.IniFile;
 
 public class UTBoard extends Board{
 
+    int debug = 0; //debug mks
+
 boolean fpgaLoaded = false;
 String fpgaCodeFilename;
 String dspCodeFilename;
@@ -51,6 +53,11 @@ String jobFileFormat, mainFileFormat;
 //ASCAN_MAX_HEIGHT and SIGNAL_SCALE should be changed to variables
 //which can be initialized and or adjusted
 static int ASCAN_MAX_HEIGHT = 350;
+
+static int MAX_CLOCK_POSITION = 11; //0 to 11 positions
+//offset gets added to clock position to account for various sensor positions
+//and errors
+static int CLOCK_OFFSET = 6;
 
 //WARNING:  In general it is a bad idea to use any value other than 1 for
 //        SIGNAL_SCALE.  If greater than 1, the result will look choppy.  Less
@@ -3909,13 +3916,52 @@ for (int h=0; h < pNumberOfChannels; h++){
         peakTrack =
             (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
+        //debug mks
+
+        //debug code for testing tdc
+        //if reset pulse is missed, peakTrack will be greater than 11
+
+        debug++;
+
+        if (peakTrack > 14)
+            debug = 0;
+
+        if (peakTrack > 22)
+            debug = 0;
+
+        //catch a particular slot and board channel
+        if (slotAddr == 6 && channel == 1)
+            debug = 26;
+
+        //end debug mks
+
+        //Add in the clock position adjustment to account for offset sensor
+        //positions and timing errors.  Wraparound past the max clock position
+        //gets taken care of with modulo in the next bit of code.
+        peakTrack += CLOCK_OFFSET;
+
+        //If the TDC input is missed, the counter will not be reset and will
+        //continue counting past the maximum clock position.  It should still be
+        //accurate, so the actual clock position can be determined by computing
+        //the wrap around.
+
+        if (peakTrack > MAX_CLOCK_POSITION)
+            peakTrack = peakTrack % (MAX_CLOCK_POSITION + 1);
+
         bdChs[channel].gates[i].storeNewAScanPeak((int)(peak * ASCAN_SCALE),
                                                                 peakFlightTime);
 
         peak *= SIGNAL_SCALE; //scale signal up or down
 
+        //the peakTrack variable denotes the clock position, replace position
+        //0 with 12 before saving
+
+        int clockPos = peakTrack;
+        if (clockPos == 0) clockPos = 12;
+
         bdChs[channel].gates[i].storeNewData(peak, 0, 0, 0,
-                peakFlags, peakFlightTime, peakTrack, pEncoder1, pEncoder2);
+                peakFlags, peakFlightTime, peakTrack, clockPos,
+                pEncoder1, pEncoder2);
 
         //if the channel has been configured to modify the wall, then save
         //the data so that it can be used to modify the wall elsewhere
