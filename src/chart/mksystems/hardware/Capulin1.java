@@ -335,7 +335,7 @@ catch (UnknownHostException e) {socket.close(); return;}
 outPacket = new DatagramPacket(outBuf, outBuf.length, group, 4446);
 
 //force socket.receive to return if no packet available within 3 seconds
-try{socket.setSoTimeout(3000);} catch(SocketException e){}
+try{socket.setSoTimeout(6000);} catch(SocketException e){} //debug mks -- was 3000
 
 //broadcast the roll call greeting repeatedly - bail out when the expected
 //number of different UT boards have responded
@@ -399,10 +399,16 @@ while(loopCount++ < 20 && responseCount < numberOfUTBoards){
 
 //if not all boards reported that their FPGAs were already loaded, load them
 //all now
+
+/*
 if (fpgaLoadedCount < numberOfUTBoards)
     loadFPGAViaUDP(socket);
 else
     sendRunTriggers(socket, outPacket);
+
+ */
+
+sendRunTriggers(socket, outPacket); //debug mks -- remove this put code above back in
 
 socket.close();
 
