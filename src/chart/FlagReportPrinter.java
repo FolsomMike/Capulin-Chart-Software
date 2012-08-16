@@ -29,6 +29,7 @@ import chart.mksystems.globals.Globals;
 import chart.mksystems.stripchart.StripChart;
 import chart.mksystems.stripchart.Trace;
 import chart.mksystems.hardware.Hardware;
+import chart.mksystems.inifile.IniFile;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -52,6 +53,8 @@ public class FlagReportPrinter extends ViewerReporter
     String pieceDescriptionPlural, pieceDescriptionPluralLC;
 
     JCheckBox calModeCheckBox;
+
+    IniFile jobInfoFile = null;
 
 //-----------------------------------------------------------------------------
 // FlagReportPrinter::FlagReportPrinter (constructor)
@@ -99,6 +102,9 @@ public void init()
 
     //create the chart groups to hold data for the reports
     configure();
+
+    //load the job information
+    loadJobInfo();
 
     //create a panel to hold everything
 
@@ -491,19 +497,33 @@ public void printHeader(PrintWriter pFile, int pPiece)
 
     //title
 
+    pFile.println("");
     pFile.println(
             "\t\t\tFlag Report for " + globals.pieceDescription + " " + pPiece);
     pFile.println("");
 
     //job info
 
-    pFile.print("Customer: " + "   ");
-    pFile.print("Date: " + "   ");
-    pFile.print("Customer Job #: " + "   ");
-    pFile.println("Work Order: " + "   ");
+    pFile.print("Customer: " + truncate(
+        jobInfoFile.readString("Job Info", "Customer Name", ""),20) + "  ");
+    pFile.print("Date: " + truncate(
+        jobInfoFile.readString("Job Info", "Date Job Started", ""),10) + "  ");
+    pFile.println("Customer Job #: " + truncate(
+        jobInfoFile.readString("Job Info", "Customer PO", ""),10) + "  ");
+    pFile.print("Work Order: " + truncate(
+            jobInfoFile.readString("Job Info", "Work Order", ""),10) + "  ");
+
     pFile.print("Length: " + "   ");
-    pFile.print("Wall: " + "   ");
-    pFile.println("Wall less 5%: " + "   ");
+
+    //use the values entered for the Wall chart rather than the job info data
+    //as the former is more likely to be accurate
+    double wall = hdwVs.nominalWall;
+    //calculate wall minus 5%
+    double wallMinusFive = wall - (wall * .05);
+
+    pFile.print("Wall: " + truncate(decimalFormats[2].format(wall), 6) + "  ");
+    pFile.println("Wall less 5%: "
+                        + truncate(decimalFormats[2].format(wallMinusFive), 6));
     pFile.println("");
     pFile.println("");
 
@@ -575,7 +595,24 @@ String postPad(String pSource, int pLength)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Hardware::calculateComputedValue1
+// FlagReportPrinter::truncate
+//
+// Truncates pSource to pLength.  The truncated string is returned.
+//
+
+String truncate(String pSource, int pLength)
+{
+
+    if(pSource.length() > pLength)
+       return (pSource.substring(0, pLength));
+    else
+       return(pSource);
+
+}//end of FlagReportPrinter::truncate
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// FlagReportPrinter::calculateComputedValue1
 //
 // For this version of Hardware.java, calculates the wall thickness based upon
 // the amplitude.
@@ -594,8 +631,32 @@ double offset = (pAmplitude - hdwVs.nominalWallChartPosition)
 //calculate wall at cursor y position relative to nominal wall value
 return (hdwVs.nominalWall + offset);
 
-}//end of Hardware::calculateComputedValue1
+}//end of FlagReportPrinter::calculateComputedValue1
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// FlagReportPrinter::loadJobInfo
+//
+// Loads the job information into an iniFile object.  No values are transferred
+// out -- they are extracted by other functions as needed.
+//
+
+public void loadJobInfo()
+{
+
+    //if the ini file cannot be opened and loaded, exit without action and
+    //default values will be used
+
+    try {
+        jobInfoFile = new IniFile(
+            jobPrimaryPath + "03 - " + currentJobName
+            + " Job Info.ini", globals.jobFileFormat);
+    }
+    catch(IOException e){return;}
+
+}//end of FlagReportPrinter::loadJobInfo
+//-----------------------------------------------------------------------------
+
 
 }//end of class FlagReportPrinter
 //-----------------------------------------------------------------------------

@@ -762,8 +762,8 @@ public void configure()
 
     //if the ini file cannot be opened and loaded, exit without action
     try {
-        configFile = new IniFile(jobPrimaryPath
-          + "01 - " + currentJobName + " Configuration.ini", globals.jobFileFormat);
+        configFile = new IniFile(jobPrimaryPath + "01 - " + currentJobName
+                                + " Configuration.ini", globals.jobFileFormat);
         }
         catch(IOException e){return;}
 
@@ -783,7 +783,8 @@ public void configure()
 
         chartGroups = new ChartGroup[numberOfChartGroups];
 
-        //pass null for the hardware object as that object is not needed for viewing
+        //pass null for the hardware object as that object is not needed for
+        //viewing
 
         for (int i = 0; i < numberOfChartGroups; i++){
             chartGroups[i] = new ChartGroup(
