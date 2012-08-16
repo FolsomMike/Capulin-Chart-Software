@@ -95,7 +95,7 @@ add (spinner = new MFloatSpinner(
 spinner.setName(pName);
 
 //watch for right mouse clicks
-setSpinnerNameAndMouseListener(spinner, spinner.getName(), pMouseListener);        
+setSpinnerNameAndMouseListener(spinner, spinner.getName(), pMouseListener);
 
 add(unitsLabel = new JLabel(pUnits));
 unitsLabel.setToolTipText(pUnits);
@@ -118,7 +118,7 @@ private void setSpinnerNameAndMouseListener(JSpinner pSpinner, String pName,
 
     for (Component child : pSpinner.getComponents()) {
         if (child instanceof JSpinner.NumberEditor)
-            for (Component child2 : 
+            for (Component child2 :
                   ((javax.swing.JSpinner.NumberEditor) child).getComponents()){
                 if(pMouseListener != null)
                     ((javax.swing.JFormattedTextField) child2).
@@ -247,7 +247,7 @@ JRadioButton markerPulseButton, markerContinuousButton;
 //
 
 public UTControls(JFrame pFrame, JPanel pOscopeCanvas, Hardware pHardware,
-                CopyItemSelector pCopyItemSelector, UTCalibrator pUTCalibrator)      
+                CopyItemSelector pCopyItemSelector, UTCalibrator pUTCalibrator)
 {
 
     frame = pFrame;
@@ -302,7 +302,7 @@ public void init()
 
 
     setSelectedIndex(0);
-    
+
 }//end of UTControls::init
 //-----------------------------------------------------------------------------
 
@@ -318,7 +318,7 @@ public void setChannel(StripChart pChart, Channel pChannel)
 
 chart = pChart;
 currentChannel = pChannel;
-    
+
 //clear all the tabs first so that if a cal window is opened for a chart
 //with no channels assigned the user will only see blank controls
 gatesTab.removeAll(); signalTab.removeAll(); wallTab.removeAll();
@@ -441,14 +441,14 @@ for (int i=0; i < gridYCount; i++){
         label = new JLabel(currentChannel.getGate(i).title);
         label.setToolTipText(currentChannel.getGate(i).title);
         gatesTab.add(label);
-        
+
         mfSpinner = new MFloatSpinner(
              currentChannel.getGateStart(i) * timeDistMult,
                -273.0, 273.0, timeDistIncrement, timeDistDecimalPlaces, 60, -1);
         mfSpinner.setName(label.getText() + " Gate Start");
         mfSpinner.addChangeListener(this); //monitor changes to value
         //watch for right mouse clicks
-        setSpinnerNameAndMouseListener(mfSpinner,mfSpinner.getName(), this);        
+        setSpinnerNameAndMouseListener(mfSpinner,mfSpinner.getName(), this);
         gatesTab.add(mfSpinner);
         //save a pointer to this adjuster in the gate object
         currentChannel.getGate(i).gateStartAdjuster = mfSpinner;
@@ -463,7 +463,7 @@ for (int i=0; i < gridYCount; i++){
         gatesTab.add(mfSpinner);
         //save a pointer to this adjuster in the gate object
         currentChannel.getGate(i).gateWidthAdjuster = mfSpinner;
- 
+
         mfSpinner = new MFloatSpinner(currentChannel.getGateLevel(i),
                                                     0, 100.0, 1, "##0", 60, -1);
         mfSpinner.setName(label.getText() + " Gate Level");
@@ -473,7 +473,7 @@ for (int i=0; i < gridYCount; i++){
         gatesTab.add(mfSpinner);
         //save a pointer to this adjuster in the gate object
         currentChannel.getGate(i).gateLevelAdjuster = mfSpinner;
- 
+
         //if the gate just added is the interface gate, add a "Track" checkbox
         //to allow selecton of interface tracking, otherwise add a processing
         //type selector
@@ -540,7 +540,7 @@ updateEnabled = true;
 //-----------------------------------------------------------------------------
 // UTControls::updateSignalModeControl
 //
-// Updates the values in the Signal Mode radio button with data from the 
+// Updates the values in the Signal Mode radio button with data from the
 // associated variables.  Use this if that value is changed programatically
 // and needs to be reflected back into the display object.
 //
@@ -606,7 +606,7 @@ setSizes(multiSpinnerPanel, 280, 60);
 multiSpinnerPanel.setLayout(new GridLayout(2,2));
 
 //add a panel for Delay control
-multiSpinnerPanel.add(delaySpin = 
+multiSpinnerPanel.add(delaySpin =
   new SpinnerPanel( currentChannel.getDelay() * timeDistMult, 0, 273.0,
     timeDistIncrement, timeDistDecimalPlaces, 60, 23, "Delay ", timeDistLabel,
     "Delay", this));
@@ -626,7 +626,7 @@ multiSpinnerPanel.add(gainSpin =
 gainSpin.spinner.addChangeListener(this); //monitor changes to value
 
 //display the rep rate
-multiSpinnerPanel.add(new JLabel("Rep Rate: " + 
+multiSpinnerPanel.add(new JLabel("Rep Rate: " +
                                   currentChannel.utBoard.getRepRate() + " Hz"));
 
 //Display/Rectification selection panel and radio buttons
@@ -759,7 +759,7 @@ topLeftPanel.add(Box.createRigidArea(new Dimension(0,5))); //vertical spacer
 
 //add an entry for velocity of sound in the test piece
 topLeftPanel.add(velocitySpin = new SpinnerPanel(hardware.hdwVs.velocityUS,
-                0, 5, .0001, "0.0000", 60, 23, "Velocity ", units + "/uS", 
+                0, 5, .0001, "0.0000", 60, 23, "Velocity ", units + "/uS",
                                             "Compression Wave Velocity", null));
 velocitySpin.spinner.addChangeListener(this); //monitor changes to value
 velocitySpin.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -768,7 +768,7 @@ topLeftPanel.add(Box.createRigidArea(new Dimension(0,5))); //vertical spacer
 
 //add an entry for number of multiples between wall gates
 topLeftPanel.add(numMultiplesSpin = new SpinnerPanel(
-    hardware.hdwVs.numberOfMultiples, 1, 10, 1, "0", 40, 23, 
+    hardware.hdwVs.numberOfMultiples, 1, 10, 1, "0", 40, 23,
     "Multiples Between Wall Gates ", "", "Multiples Between Wall Gates", null));
 numMultiplesSpin.spinner.addChangeListener(this); //monitor changes to value
 numMultiplesSpin.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -1115,7 +1115,7 @@ for (int i=0; i < gridYCount; i++){
         gate = currentChannel.getGate(i);
 
         sp = new SpinnerPanel(currentChannel.getSigProcThreshold(i), 0, 65535,
-             1, "##0", 60, -1, "", "", gate.title + 
+             1, "##0", 60, -1, "", "", gate.title +
                 " Gate Signal Processing Threshold", this);
         sp.spinner.addChangeListener(this); //monitor changes to value
         thresholdPanel.add(sp);
@@ -1312,7 +1312,7 @@ public void setSizes(Component pComponent, int pWidth, int pHeight)
 pComponent.setMinimumSize(new Dimension(pWidth, pHeight));
 pComponent.setPreferredSize(new Dimension(pWidth, pHeight));
 pComponent.setMaximumSize(new Dimension(pWidth, pHeight));
-        
+
 }//end of UTControls::setSizes
 //-----------------------------------------------------------------------------
 
@@ -1374,9 +1374,9 @@ void setSpinnerNameAndMouseListener(JSpinner pSpinner, String pName,
 {
 
     for (Component child : pSpinner.getComponents()) {
-        
+
         if (child instanceof JSpinner.NumberEditor)
-            for (Component child2 : 
+            for (Component child2 :
                   ((javax.swing.JSpinner.NumberEditor) child).getComponents()){
                 ((javax.swing.JFormattedTextField) child2).
                                                addMouseListener(pMouseListener);
@@ -1410,8 +1410,8 @@ public void itemStateChanged(ItemEvent e)
 
 //NOTE: ItemEvent does not have an action command, detect component by getName
 
-String name;    
-    
+String name;
+
 //try  casting to a component to use getName
 try{
     name = ((Component)e.getSource()).getName();
@@ -1642,7 +1642,7 @@ Gate gate;
 for (int i=0; i < numberOfGates; i++){
 
     gate = ch.getGate(i);
-    
+
     ch.setGateStart(i,
       ((MFloatSpinner) gate.gateStartAdjuster).getDoubleValue() / timeDistMult,
                                                                   pForceUpdate);
@@ -1657,7 +1657,7 @@ for (int i=0; i < numberOfGates; i++){
     ch.setGateMissCount(i,
       ((MFloatSpinner) gate.gateMissCountAdjuster).getIntValue(), pForceUpdate);
 
-    ch.setGateSigProc(i, 
+    ch.setGateSigProc(i,
         (String)(((JComboBox)gate.processSelector).getSelectedItem()),
                                                                  pForceUpdate);
 
@@ -1751,7 +1751,7 @@ if (pChannel.getMode() == 4){
     }
 else{
     ((JRadioButton)pChannel.calRadioButton).setFont(blackFont);
-    ((JRadioButton)pChannel.calRadioButton).setToolTipText(pChannel.title);
+    ((JRadioButton)pChannel.calRadioButton).setToolTipText(pChannel.detail);
     }
 
 }//end of UTControls::setChannelSelectorColor
@@ -1762,7 +1762,7 @@ else{
 //
 // Calculates all UT values based on user and ini file settings.  Call this
 // at startup and any time a user changes an input value.
-// 
+//
 
 public void calculateAllUTValues()
 {
@@ -1777,16 +1777,16 @@ else
     ((OscopeCanvas)oscopeCanvas).setVertOffset(0);
 
 //calculate the uS per pixel using the current Range setting and canvas width
-currentChannel.uSPerPixel =  
+currentChannel.uSPerPixel =
                         currentChannel.getRange() / oscopeCanvas.getWidth();
-    
+
 //prevent divide by zero errors
 if (currentChannel.uSPerPixel <= 0) currentChannel.uSPerPixel = .1;
 
 //also calculate nS per pixel
 currentChannel.nSPerPixel = currentChannel.uSPerPixel * 1000;
 
-currentChannel.delayPix = 
+currentChannel.delayPix =
                 (int)(currentChannel.getDelay() / currentChannel.uSPerPixel);
 
 calculateGatePixelLocation();
@@ -2183,24 +2183,24 @@ public void mouseClicked(MouseEvent e)
 
     //catch left clicks
     if (button == MouseEvent.BUTTON1){
-                
+
         return;
-        
+
     }
-    
+
     //catch right clicks
     if (button == MouseEvent.BUTTON3){
-        
+
         //make sure the "Copy Items" window is displayed to the right of
         //the calibrator window which changes size depending on its contents
         utCalibrator.setCopyItemsWindowLocation();
-        
+
         //add the item to the list of items to be copied
         copyItemSelector.addItem(e.getComponent().getName());
 
     //tell UTCalibrator object to display the "Copy" controls
     utCalibrator.actionPerformed(new ActionEvent(this, 1, "Copy"));
-    
+
     }
 
 }//end of UTCalibrator::mouseClicked
@@ -2219,7 +2219,7 @@ public void mousePressed(MouseEvent e){}
 
 @Override
 public void mouseReleased(MouseEvent e){}
-                
+
 @Override
 public void mouseEntered(MouseEvent e){}
 
