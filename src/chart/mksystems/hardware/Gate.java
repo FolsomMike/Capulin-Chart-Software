@@ -187,7 +187,7 @@ setActive(true);
 
 public void storeNewData(int pDataPeak, int pDataMaxPeak, int pDataMinPeak,
         double pDataPeakD, int dPeakFlags, int dPeakFlightTime, int dPeakTrack,
-        int pEncoder1, int pEncoder2)
+        int pClockPos, int pEncoder1, int pEncoder2)
 {
 
 dataPeak = pDataPeak;
@@ -199,6 +199,7 @@ dataPeakD = pDataPeakD;
 peakFlags = dPeakFlags;
 peakFlightTime = dPeakFlightTime;
 peakTrack = dPeakTrack;
+clockPos = pClockPos;
 
 encoder1 = pEncoder1; encoder2 = pEncoder2;
 

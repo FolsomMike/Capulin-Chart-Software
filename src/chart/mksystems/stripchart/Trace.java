@@ -42,7 +42,7 @@ import chart.Xfer;
 
 public class Trace extends Object{
 
-Globals globals;    
+Globals globals;
 IniFile configFile;
 TraceGlobals traceGlobals;
 int chartGroup;
@@ -59,7 +59,7 @@ public boolean leadTrace = false;
 public boolean trailTrace = false;
 
 String title;
-String shortTitle;
+public String shortTitle;
 public String keyLabel;
 int keyXPosition, keyYPosition;
 public Rectangle2D keyBounds;
@@ -71,13 +71,13 @@ public double delayDistance;
 public double startFwdDelayDistance;
 public double startRevDelayDistance;
 public int sizeOfDataBuffer;
-int dataBuffer1[];
+public int dataBuffer1[];
 int dataBuffer2[];
-int flagBuffer[];   //stores various flags for plotting
-                    //0000 0000 0000 0000 | 0000 000 | 0 0000 0000
-                    //                 || | threshold| clock position
-                    //                 |> min or max was flagged
-                    //                 > segment separator
+public int flagBuffer[];     //stores various flags for plotting
+                             //0000 0000 0000 0000 | 0000 000 | 0 0000 0000
+                             //                 || | threshold| clock position
+                             //                 |> min or max was flagged
+                             //                 > segment separator
 
 boolean invert;
 int pixelOffset;
@@ -111,7 +111,7 @@ int lastSegmentEndIndex;
 // The parameter configFile is used to load configuration data.  The IniFile
 // should already be opened and ready to access.
 //
-  
+
 public Trace(Globals pGlobals, IniFile pConfigFile, int pChartGroup,
             int pChartIndex, int pTraceIndex, TraceGlobals pTraceGlobals,
             Color pBackgroundColor, Color pGridColor, int pGridXSpacing,
@@ -147,7 +147,7 @@ if (hardware != null)
 //-----------------------------------------------------------------------------
 // Trace::configure
 //
-// Loads configuration settings from the configuration.ini file.  
+// Loads configuration settings from the configuration.ini file.
 //
 
 private void configure(IniFile pConfigFile)
@@ -170,7 +170,7 @@ traceColor = pConfigFile.readColor(section, "Color", Color.BLACK);
 
 head = pConfigFile.readInt(section, "Head", 1);
 
-distanceSensorToFrontEdgeOfHead = pConfigFile.readDouble(section, 
+distanceSensorToFrontEdgeOfHead = pConfigFile.readDouble(section,
                             "Distance From Sensor to Front Edge of Head", 0.0);
 
 sizeOfDataBuffer = pConfigFile.readInt(section, "Number of Data Points", 1200);
@@ -251,15 +251,15 @@ if (keyLabel.compareTo("<not visible>") == 0) return;
 
 //set the background color for the text to white so that most colors are more
 //visible
-    
+
 Hashtable<TextAttribute, Object> map =
             new Hashtable<TextAttribute, Object>();
-    
+
 Font font = new Font(Font.SERIF, Font.PLAIN, 12);
 
 map.put(TextAttribute.BACKGROUND, Color.WHITE);
 font = font.deriveFont(map);
-pG2.setFont(font); 
+pG2.setFont(font);
 
 String keyString = " " + keyLabel + " ";
 
@@ -283,7 +283,7 @@ keyBounds.setRect(keyBounds.getX() + keyXPosition,
 //outline the text with a rectangle
 pG2.setColor(Color.BLACK);
 pG2.draw(keyBounds);
- 
+
 }//end of Trace::drawKeyLabel
 //-----------------------------------------------------------------------------
 
@@ -337,7 +337,7 @@ dataBuffer1[1] = 0;
 
 //used in span mode
 if (dataBuffer2 != null)
-    for (int i = 0; i < dataBuffer1.length; i++) 
+    for (int i = 0; i < dataBuffer1.length; i++)
         dataBuffer2[i] = Integer.MAX_VALUE;
 
 }//end of Trace::resetTrace
@@ -691,7 +691,7 @@ while ((line = pIn.readLine()) != null){
         //convert the text to an integer and save in the buffer
         int data = Integer.parseInt(line);
         pBuffer[i++] = data;
-        
+
         //catch buffer overflow
         if (i == pBuffer.length)
             throw new IOException(
@@ -735,18 +735,18 @@ return(line); //should be "[xxxx]" tag on success, unknown value if not
 public int findMinValue(int pStart, int pEnd)
 {
 
-if (pStart < 0) pStart = 0; 
-if (pStart >= dataBuffer1.length) pStart = dataBuffer1.length - 1;     
-    
-if (pEnd < 0) pEnd = 0; 
-if (pEnd >= dataBuffer1.length) pEnd = dataBuffer1.length - 1;     
-        
-int peak = Integer.MAX_VALUE;    
+if (pStart < 0) pStart = 0;
+if (pStart >= dataBuffer1.length) pStart = dataBuffer1.length - 1;
+
+if (pEnd < 0) pEnd = 0;
+if (pEnd >= dataBuffer1.length) pEnd = dataBuffer1.length - 1;
+
+int peak = Integer.MAX_VALUE;
 
 for (int i = pStart; i < pEnd; i++){
 
     if (dataBuffer1[i] < peak) peak = dataBuffer1[i];
-         
+
     }
 
 return(peak);
@@ -767,18 +767,18 @@ return(peak);
 public int findMaxValue(int pStart, int pEnd)
 {
 
-if (pStart < 0) pStart = 0; 
-if (pStart >= dataBuffer1.length) pStart = dataBuffer1.length - 1;     
-    
-if (pEnd < 0) pEnd = 0; 
-if (pEnd >= dataBuffer1.length) pEnd = dataBuffer1.length - 1;     
+if (pStart < 0) pStart = 0;
+if (pStart >= dataBuffer1.length) pStart = dataBuffer1.length - 1;
 
-int peak = Integer.MIN_VALUE;    
+if (pEnd < 0) pEnd = 0;
+if (pEnd >= dataBuffer1.length) pEnd = dataBuffer1.length - 1;
+
+int peak = Integer.MIN_VALUE;
 
 for (int i = pStart; i < pEnd; i++){
 
     if (dataBuffer1[i] > peak) peak = dataBuffer1[i];
-    
+
     }
 
 return(peak);
@@ -865,9 +865,9 @@ if (pVars.bufPtr == dataBuffer1.length) pVars.bufPtr = 0;
 //increment the pixel pointer until it reaches the right edge, then shift the
 //screen left and keep pointer the same to create scrolling effect
 //the scrolling starts at canvasXLimit-10 to allow room for flags
-    
+
 if (pVars.pixPtr < canvasXLimit-10) pVars.pixPtr++;
-else{    
+else{
     //if this is the lead trace, shift the chart left and erase right slice
     if (leadTrace){
         //scroll the screen 1 pixel to the left
@@ -894,14 +894,14 @@ else{
         traceGlobals.scrollCount++;
 
         }//if (traceIndex == 0)
-        
+
     }//else if (pixPtr <...
-    
+
 //if this is the lead trace draw the decorations
 if (leadTrace){
     for (int j = 0; j < numberOfThresholds; j++)
         thresholds[j].drawSlice(pG2, pVars.pixPtr);
-        
+
     if (pVars.gridCounter++ == gridXSpacingT){
         drawGrid(pG2, pVars.pixPtr, canvasYLimit);
         pVars.gridCounter = 0;
@@ -970,7 +970,7 @@ if (pVars.y1 > canvasYLimit) pVars.y1 = canvasYLimit;
 if (pVars.y2 > canvasYLimit) pVars.y2 = canvasYLimit;
 
 //invert y value if specified
-if (invert) {        
+if (invert) {
     pVars.y1 = canvasYLimit - pVars.y1;
     pVars.y2 = canvasYLimit - pVars.y2;
     }
@@ -1000,12 +1000,12 @@ if (hdwVs.plotStyle == TraceHdwVars.SPAN)
 if ((flagThreshold = ((flagBuffer[pVars.bufPtr] & 0x0000fe00) >> 9)-2) >= 0){
 
     int flagY = pVars.y2; //draw flag at height of peak for non-SPAN styles
-    
+
     //for span mode, draw flag at min or max depending on bit in flagBuffer
     if (hdwVs.plotStyle == TraceHdwVars.SPAN){
         if ((flagBuffer[pVars.bufPtr] & 0x00010000) == 0) flagY = pVars.y1;
-        }//if (hdwVs.plotStyle == 
-    
+        }//if (hdwVs.plotStyle ==
+
     thresholds[flagThreshold].drawFlag(pG2, pVars.pixPtr, flagY);
     }
 else
@@ -1038,9 +1038,9 @@ if (pVars.bufPtr == -1) pVars.bufPtr = dataBuffer1.length-1;
 
 //decrement the pixel pointer until it reaches the left edge, then shift the
 //screen right and keep pointer the same to create scrolling effect
-    
+
 if (pVars.pixPtr > 0) pVars.pixPtr--;
-else{    
+else{
     //if this is the trailing trace, shift the chart right and erase left slice
     if (trailTrace){
         //scroll the screen 1 pixel to the left
@@ -1067,7 +1067,7 @@ else{
         traceGlobals.scrollCount--;
 
         }//if (traceIndex == 0)
-        
+
     }//else if (pixPtr <...
 
 
@@ -1098,11 +1098,11 @@ void drawUserFlag(Graphics2D pG2, int xPos, int pSigHeight)
 {
 
 //add 1 to xPos so flag is drawn to the right of the peak
-   
+
 pG2.setColor(thresholds[0].thresholdColor);
 
 pG2.fillOval(xPos+1, pSigHeight, 8, 8);
-    
+
 }//end of Trace::drawUserFlag
 //-----------------------------------------------------------------------------
 
@@ -1118,13 +1118,13 @@ void drawGrid(Graphics2D pG2, int pXPos, int pCanvasYLimit)
 //for screen display, zero width/height for grid pixels looks best
 //when rendering for printing, must set width to 1 or pixels disappear
 int width = globals.printMode ?  1 : 0;
-    
+
 pG2.setColor(gridColor);
 
-for(int i = 9; i < pCanvasYLimit; i+=10){    
+for(int i = 9; i < pCanvasYLimit; i+=10){
     pG2.drawRect(pXPos, i, width, 0);
     }
-    
+
 }//end of Trace::drawGrid
 //-----------------------------------------------------------------------------
 
@@ -1167,8 +1167,8 @@ return(dataBuffer1);
 public int getDataWidth()
 {
 
-int endOfData = -1;    
-    
+int endOfData = -1;
+
 //NOTE: Start at dataBuffer1.length - 2 as the last element seems to be filled
 // with zero -- why is this? -- fix?
 
@@ -1178,7 +1178,7 @@ for (int i = (dataBuffer1.length - 2); i > 0; i--){
         break;
         }
     }//for (int i = (pBuffer.length - 1); i <= 0; i--){
-    
+
 return(endOfData);
 
 }//end of Trace::getDataWidth
@@ -1238,7 +1238,7 @@ int stop = canvasXLimit-10;
 
 for (int i = 0; i < stop; i++){
     //plot each point, the plotPoint function increments all pointers
-    plotPoint(pG2, repaintVs);    
+    plotPoint(pG2, repaintVs);
     }
 
 }//end of Trace::paintComponent

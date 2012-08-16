@@ -251,7 +251,8 @@ reportAnyMenuItem = new JMenuItem("Flag report(s) for Selected " +
                                                 globals.pieceDescriptionPlural);
 reportAnyMenuItem.setMnemonic(KeyEvent.VK_S);
 reportAnyMenuItem.setToolTipText("Print the flag report(s) for selected " +
-                                               globals.pieceDescriptionPluralLC);
+                                              globals.pieceDescriptionPluralLC);
+reportAnyMenuItem.setActionCommand("Print Flag Report");
 reportAnyMenuItem.addActionListener(globals);
 reportMenu.add(reportAnyMenuItem);
 
@@ -528,17 +529,17 @@ showPseudoPeakAtPeakLocation.setSelected(globals.showPseudoPeakAtPeakLocation);
 public boolean isSelected()
 {
 
-//return true if any top level menu item is selected    
-    
+//return true if any top level menu item is selected
+
 if (fileMenu.isSelected() || printMenu.isSelected()
     || helpMenu.isSelected())
     return(true);
-    
+
 return false;
-    
+
 }//end of MainMenu::isSelected
 //-----------------------------------------------------------------------------
-        
+
 //-----------------------------------------------------------------------------
 // MainMenu::loadLanguage
 //
@@ -557,7 +558,7 @@ language = pLanguage;
 IniFile ini = null;
 
 //if the ini file cannot be opened and loaded, exit without action
-try {ini = new IniFile("language\\Main Menu - Capulin UT.language", 
+try {ini = new IniFile("language\\Main Menu - Capulin UT.language",
                                                         globals.jobFileFormat);}
 catch(IOException e){return;}
 

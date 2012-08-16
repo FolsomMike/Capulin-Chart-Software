@@ -221,27 +221,6 @@ loadOptions(); //read option settings from ini file
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Globals::finalize
-//
-// This function is inherited from the object class and is called by the Java
-// VM before the object is discarded.
-//
-// If any data has been changed, it will be saved when this function is called.
-//
-
-@Override
-protected void finalize() throws Throwable
-{
-
-saveOptions();
-
-//allow the parent classes to finalize
-super.finalize();
-
-}//end of Globals::finalize
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // Globals::setOptionsModifiedFlag
 //
 // Allows optionsModified flag to be set so values will be saved to file
@@ -472,6 +451,13 @@ if (source.getActionCommand().equalsIgnoreCase(
                                         "Show Peak Symbol at Peak Location")){
     showPseudoPeakAtPeakLocation =
                             ((JCheckBoxMenuItem)(e.getSource())).isSelected();
+    return;
+    }
+
+//calls function in Main
+if (source.getActionCommand().startsWith("Print Flag Report")){
+    actionListener.actionPerformed(
+                                new ActionEvent(this, 1, "Print Flag Report"));
     return;
     }
 

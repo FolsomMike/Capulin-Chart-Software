@@ -1149,6 +1149,17 @@ if ("Open Viewer".equals(e.getActionCommand())) {
     return;
     }
 
+//this part opens a window to print a flag report
+if ("Print Flag Report".equals(e.getActionCommand())) {
+    FlagReportPrinter printFlagReport = new FlagReportPrinter(
+       mainFrame, globals, jobInfo,
+       currentJobPrimaryPath, currentJobBackupPath, currentJobName,
+       (int)mainFrame.getLocation().getX() + 80,
+       (int)mainFrame.getLocation().getY() + 30,
+       globals.pieceDescriptionPlural, globals.pieceDescriptionPluralLC);
+       printFlagReport.init();
+}
+
 //this part handles starting the status monitor
 if ("Monitor".equals(e.getActionCommand())) {
     monitorWindow.setVisible(true);
