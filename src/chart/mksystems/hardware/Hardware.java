@@ -53,11 +53,8 @@ int AwayDirection;
 
 double encoder1InchesPerCount;
 double encoder2InchesPerCount;
+public double pixelsPerInch;
 
-int encoder1CntsPerPix, encoder2CntsPerPix;
-double pixelsPerInch;
-
-double enc1CorrFactor, enc2CorrFactor;
 int prevPixPosition;
 
 boolean output1On = false;
@@ -178,29 +175,7 @@ encoder1InchesPerCount =
 encoder2InchesPerCount =
     pConfigFile.readDouble("Hardware", "Encoder 2 Inches Per Count", 0.003);
 
-pixelsPerInch =
-  pConfigFile.readDouble("Hardware", "Pixels per Inch", 1.0);
-
-//this is the number of encoder counts per screen pixel -- the packet trigger
-//sent to the Control board is often the same number so that one packet is
-//received per packet (with some variance due to round off error)
-
-encoder1CntsPerPix =
-  pConfigFile.readInt("Hardware", "Encoder 1 Counts Per Pixel", 175);
-
-encoder2CntsPerPix =
-  pConfigFile.readInt("Hardware", "Encoder 2 Counts Per Pixel", 175);
-
-
-//the number of encoder counts per pixel is always an approximation and builds
-//up error over distance -- these scaling values are applied to all encoder
-//calculations to correct for that error
-
-enc1CorrFactor =
-    pConfigFile.readDouble("Hardware", "Encoder 1 Correction Factor", 1.0);
-
-enc2CorrFactor =
-    pConfigFile.readDouble("Hardware", "Encoder 2 Correction Factor", 1.0);
+pixelsPerInch = pConfigFile.readDouble("Hardware", "Pixels per Inch", 1.0);
 
 manualInspectControl = pConfigFile.readBoolean(
         "Hardware", "Manual Inspection Start/Stop Control", false);

@@ -73,6 +73,8 @@ public class ViewerReporter implements ActionListener, TraceValueCalculator {
 
     int startPiece = 0, endPiece = 0, pieceTrack = 0;
 
+    double pixelsPerInch;
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 // class PrintRunnable
@@ -272,8 +274,10 @@ public ViewerReporter(Globals pGlobals, JobInfo pJobInfo,
     currentJobName = pCurrentJobName;
 
     //create various decimal formats
-    decimalFormats = new DecimalFormat[1];
+    decimalFormats = new DecimalFormat[3];
     decimalFormats[0] = new  DecimalFormat("0000000");
+    decimalFormats[1] = new  DecimalFormat("0.0");
+    decimalFormats[2] = new  DecimalFormat("0.000");
 
 }//end of Viewer::Viewer (constructor)
 //-----------------------------------------------------------------------------
@@ -683,6 +687,13 @@ private void loadCalFile()
     //which are needed for viewing which would normally be loaded by the
     //Hardware class
 
+    //NOTE -- debug MKS
+    // THESE VALUES NEED TO BE SAVED WITH THE JOINT DATA FILE
+    // AND READ FROM THERE INSTEAD OF THE CONFIG FILE
+    // Each chart needs to store the variables in case there are multiple wall
+    // charts.  If a chart doesn't use these values, then they can save random
+    // values -- will be ignored when loaded for viewing/reporting.
+
     hdwVs.nominalWall = calFile.readDouble("Hardware", "Nominal Wall", 0.250);
 
     hdwVs.nominalWallChartPosition =
@@ -782,6 +793,11 @@ public void configure()
 
         }//if (numberOfChartGroups > 0)
 
+    //NOTE -- debug MKS
+    // pixelsPerInch VALUES NEED TO BE SAVED WITH THE JOINT DATA FILE
+    // AND READ FROM THERE INSTEAD OF THE CONFIG FILE
+
+    pixelsPerInch = configFile.readDouble("Hardware", "Pixels per Inch", 1.0);
 
 }//end of ViewerReporter::configure
 //-----------------------------------------------------------------------------

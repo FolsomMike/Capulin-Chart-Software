@@ -1156,7 +1156,8 @@ if ("Print Flag Report".equals(e.getActionCommand())) {
        currentJobPrimaryPath, currentJobBackupPath, currentJobName,
        (int)mainFrame.getLocation().getX() + 80,
        (int)mainFrame.getLocation().getY() + 30,
-       globals.pieceDescriptionPlural, globals.pieceDescriptionPluralLC);
+       globals.pieceDescriptionPlural, globals.pieceDescriptionPluralLC,
+       hardware);
        printFlagReport.init();
 }
 

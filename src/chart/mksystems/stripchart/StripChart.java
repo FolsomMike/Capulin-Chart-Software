@@ -423,7 +423,7 @@ ValueDisplay chartHeightAtCursor;
 boolean displayLinearPositionAtCursor;
 ValueDisplay linearPositionAtCursor;
 
-String title, shortTitle;
+public String title, shortTitle;
 int numberOfTraces;
 Trace[] traces;
 int numberOfThresholds;

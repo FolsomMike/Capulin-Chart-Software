@@ -28,6 +28,7 @@ import java.io.*;
 import chart.mksystems.globals.Globals;
 import chart.mksystems.stripchart.StripChart;
 import chart.mksystems.stripchart.Trace;
+import chart.mksystems.hardware.Hardware;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -39,6 +40,8 @@ public class FlagReportPrinter extends ViewerReporter
                                                 implements ActionListener {
 
     JDialog dialog;
+
+    Hardware hardware;
 
     public JTextField startPieceBox, endPieceBox;
 
@@ -57,11 +60,13 @@ public class FlagReportPrinter extends ViewerReporter
 public FlagReportPrinter(JFrame pFrame, Globals pGlobals, JobInfo pJobInfo,
         String pJobPrimaryPath, String pJobBackupPath, String pCurrentJobName,
         int pLocationX, int pLocationY, String pPieceDescriptionPlural,
-        String pPieceDescriptionPluralLC)
+        String pPieceDescriptionPluralLC, Hardware pHardware)
 
 {
 
     super(pGlobals, pJobInfo, pJobPrimaryPath, pJobBackupPath, pCurrentJobName);
+
+    hardware = pHardware;
 
     //set up as modal window
     dialog = new JDialog(pFrame, true);
@@ -207,7 +212,6 @@ public void configure()
 {
 
     super.configure();
-
 
 }//end of FlagReportPrinter::configure
 //-----------------------------------------------------------------------------
@@ -357,7 +361,7 @@ public void printReportForPiece(String pReportsPrimaryPath, int pPiece)
 {
 
     String filename = pReportsPrimaryPath + File.separator +
-           decimalFormats[0].format(pPiece)+ " Flag Report.txt";
+           decimalFormats[0].format(pPiece) + " Flag Report.txt";
 
     PrintWriter file = null;
 
@@ -429,20 +433,41 @@ public void printFlagsForChart(PrintWriter pFile, StripChart pChart)
             if ((flagThreshold =
                         (trace.flagBuffer[j] & 0x0000fe00) >> 9) > 0){
 
-                pFile.print(j+"\t"); //linear location
+                //debug mks -- needs to be read from the joint file, not
+                //config file as it may change
+
+                //convert index to decimal feet, format, and print
+                pFile.print(prePad(
+                    decimalFormats[1].format(j / hardware.pixelsPerInch / 12.0),
+                    5) + "\t");
 
                 //extract and print the clock position
                 int clockPos = trace.flagBuffer[j] & 0x1ff;
                 pFile.print(clockPos+"\t"); //radial position
 
-                //print the short title of the trace which should have been
-                //set up in the config file to describe some or all of
+                //print the short title of trace which should have
+                //been set up in the config file to describe some or all of
                 //orientation, ID/OD designation, and channel number
-                pFile.print(addPadding(trace.shortTitle, 10)+"\t");
+                pFile.print(postPad(trace.shortTitle, 10)+"\t");
 
                 int amplitude = trace.dataBuffer1[j];
-                if (amplitude > 100) amplitude = 100;
-                pFile.print(addPadding(""+amplitude, 3)+"\t"); //amplitude
+                double wall;
+                String amplitudeText;
+
+                //convert and format the amplitude depending on the type of
+                //chart
+
+                if (pChart.shortTitle.contains("Wall")){
+                    wall = calculateComputedValue1(amplitude);
+                    amplitudeText = decimalFormats[2].format(wall);
+                    amplitudeText = prePad(amplitudeText, 5);
+                }
+                else{
+                    if (amplitude > 100) amplitude = 100;
+                    amplitudeText = prePad(""+amplitude, 5);
+                }
+
+                pFile.print(amplitudeText+"\t"); //amplitude
 
                 //print a line for handwritten notes and initials
                 pFile.println("________________________________________");
@@ -489,11 +514,10 @@ public void printHeader(PrintWriter pFile, int pPiece)
     //column headers
 
     pFile.println("Linear\tRadial\tTransducer\tAmplitude\t"
-                                                    + "Notes & Initials");
+                                                         + "Notes & Initials");
     pFile.println("(feet)\t(clock)");
 
     printSeparator(pFile);
-
 
 }//end of FlagReportPrinter::printHeader
 //-----------------------------------------------------------------------------
@@ -515,12 +539,31 @@ pFile.println(
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// FlagReportPrinter::addPadding
+// FlagReportPrinter::prePad
 //
-// Adds spaces to pSource until it is length pLength.  Returns the new string.
+// Adds spaces to the beginning of pSource until it is length pLength.
+// Returns the new string.
 //
 
-String addPadding(String pSource, int pLength)
+String prePad(String pSource, int pLength)
+{
+
+   while(pSource.length() < pLength)
+       pSource = " " + pSource;
+
+   return(pSource);
+
+}//end of FlagReportPrinter::prePad
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// FlagReportPrinter::postPad
+//
+// Adds spaces to the end of pSource until it is length pLength.
+// Returns the new string.
+//
+
+String postPad(String pSource, int pLength)
 {
 
    while(pSource.length() < pLength)
@@ -528,9 +571,31 @@ String addPadding(String pSource, int pLength)
 
    return(pSource);
 
-}//end of FlagReportPrinter::addPadding
+}//end of FlagReportPrinter::postPad
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// Hardware::calculateComputedValue1
+//
+// For this version of Hardware.java, calculates the wall thickness based upon
+// the amplitude.
+//
+// This function is duplicated in multiple objects.  Should make a separate
+// class which each of those objects creates to avoid duplication?
+//
+
+@Override
+public double calculateComputedValue1(int pAmplitude)
+{
+
+double offset = (pAmplitude - hdwVs.nominalWallChartPosition)
+                                                        * hdwVs.wallChartScale;
+
+//calculate wall at cursor y position relative to nominal wall value
+return (hdwVs.nominalWall + offset);
+
+}//end of Hardware::calculateComputedValue1
+//-----------------------------------------------------------------------------
 
 }//end of class FlagReportPrinter
 //-----------------------------------------------------------------------------
