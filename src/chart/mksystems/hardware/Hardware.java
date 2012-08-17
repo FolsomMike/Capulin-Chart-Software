@@ -632,9 +632,15 @@ if (opMode == INSPECT || opMode == INSPECT_WITH_TIMER_TRACKING
 public void setMode(int pOpMode)
 {
 
-opMode = pOpMode;
+    opMode = pOpMode;
 
-analogDriver.setMode(pOpMode);
+    analogDriver.setMode(pOpMode);
+
+    //if in scan mode, enable flagging always
+    if (opMode == Hardware.SCAN){
+        hdwVs.head1Down = true; enableHeadTraceFlagging(1, true);
+        hdwVs.head2Down = true; enableHeadTraceFlagging(2, true);
+    }
 
 }//end of Hardware::setMode
 //-----------------------------------------------------------------------------
@@ -1424,6 +1430,9 @@ if (hdwVs.watchForOffPipe){
         //end of piece
         hdwVs.trackToEndOfPiece = true;
         hdwVs.endOfPieceTracker = hdwVs.endOfPiecePosition;
+
+//debug mks        zzzz
+
 
         hdwVs.watchForOffPipe = false;
         }
