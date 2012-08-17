@@ -71,8 +71,8 @@ int delayBetweenPackets = DELAY_BETWEEN_INSPECT_PACKETS;
 // ControlSimulator::ControlSimulator (constructor)
 //
 
-public ControlSimulator(InetAddress pIPAddress, int pPort, 
-      int pEncoder1DeltaTrigger, int pEncoder2DeltaTrigger, 
+public ControlSimulator(InetAddress pIPAddress, int pPort,
+      int pEncoder1DeltaTrigger, int pEncoder2DeltaTrigger,
                                 String pMainFileFormat) throws SocketException
 {
 
@@ -289,7 +289,7 @@ return(bytesRead);
 void resetAll()
 {
 
-positionTrack = 0;    
+positionTrack = 0;
 onPipeFlag = false;
 head1Down = false;
 head2Down = false;
@@ -342,7 +342,7 @@ return(bytesRead);
 void simulateInspection()
 {
 
-    //do nothing if in STOP mode    
+    //do nothing if in STOP mode
     if (simulationMode == MessageLink.STOP) return;
 
     //delay between sending inspect packets to the host
@@ -364,7 +364,7 @@ void simulateInspection()
     //the position track will run negative if inspection is occurring in the
     //reverse direction -- use absolute value to find trigger points for both
     //directions
-    
+
     int triggerTrack = Math.abs(positionTrack);
 
     //after photo eye reaches piece, give "on pipe" signal
@@ -380,11 +380,11 @@ void simulateInspection()
     if (triggerTrack >= 610) head1Down = false;
 
     //after head 2 reaches pick up position, give head 2 up signal
-    if (triggerTrack >= 710) head1Down = false;
+    if (triggerTrack >= 710) head2Down = false;
 
     //after photo eye reaches end of piece, turn off "on pipe" signal
     if (triggerTrack >= 810) onPipeFlag = false;
-    
+
     //a while after heads are up, simulate end of pipe reached
     if (triggerTrack >= 910) resetAll();
 
@@ -396,9 +396,9 @@ void simulateInspection()
     //set appropriate bit high for each flag which is active low
     if (onPipeFlag)
         controlFlags = (byte)(controlFlags | ControlBoard.ON_PIPE_CTRL);
-    if (head1Down) 
+    if (head1Down)
         controlFlags = (byte)(controlFlags | ControlBoard.HEAD1_DOWN_CTRL);
-    if (head2Down) 
+    if (head2Down)
         controlFlags = (byte)(controlFlags | ControlBoard.HEAD2_DOWN_CTRL);
 
     //move the encoders the forward or backward theamount expected by the host
@@ -490,14 +490,14 @@ public int xmtMessage(int pMessage, int pValue)
 {
 
 if (pMessage == MessageLink.SET_MODE){
-    
+
     simulationMode = pValue;
-    
+
     return(MessageLink.NULL);
-    
+
     }//if (pMessage == MessageLink.SET_MODE)
-    
-return(MessageLink.NULL);    
+
+return(MessageLink.NULL);
 
 }//end of ControlSimulator::xmtMessage
 //----------------------------------------------------------------------------
