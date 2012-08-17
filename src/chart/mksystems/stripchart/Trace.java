@@ -46,7 +46,7 @@ Globals globals;
 IniFile configFile;
 TraceGlobals traceGlobals;
 int chartGroup;
-int chartIndex;
+public int chartIndex;
 int traceIndex;
 Hardware hardware;
 JPanel canvas;
@@ -66,6 +66,8 @@ public Rectangle2D keyBounds;
 Color traceColor;
 public int head;
 public boolean flaggingEnabled = false;
+public boolean useVerticalBarToMarkEndMasks = false;
+public boolean suppressTraceInEndMasks = false;
 public double distanceSensorToFrontEdgeOfHead;
 public double delayDistance;
 public double startFwdDelayDistance;
@@ -75,9 +77,12 @@ public int dataBuffer1[];
 int dataBuffer2[];
 public int flagBuffer[];     //stores various flags for plotting
                              //0000 0000 0000 0000 | 0000 000 | 0 0000 0000
-                             //                 || | threshold| clock position
-                             //                 |> min or max was flagged
-                             //                 > segment separator
+                             //               |||| | threshold| clock position
+                             //               |||> min or max was flagged
+                             //               ||> segment start separator
+                             //               |> segment end separator
+                             //               > end mask marks
+
 
 boolean invert;
 int pixelOffset;
@@ -187,6 +192,12 @@ preOffset = pConfigFile.readDouble(section, "PreOffset", 0.0);
 
 higherMoreSevere = pConfigFile.readBoolean(
                                 section, "Higher Signal is More Severe", true);
+
+useVerticalBarToMarkEndMasks = pConfigFile.readBoolean(
+                         section, "Use Vertical Bar to Mark End Masks", false);
+
+suppressTraceInEndMasks = pConfigFile.readBoolean(
+                                section, "Suppress Traces in End Masks", true);
 
 hdwVs.setPlotStyle(pConfigFile.readInt(section, "Plot Style", 0));
 
@@ -407,6 +418,37 @@ flagBuffer[index] |= 1 << 18;
 lastSegmentEndIndex = index;
 
 }//end of Trace::markSegmentEnd
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Trace::markEndMask
+//
+// Places a vertical bar on the graph to show the start or end flag mask.  This
+// indicates the areas in which no flags are registered even if the trace
+// breaks a threshold. This is used for the beginning and end of the piece to
+// ignore false indications caused by piece entry or head settling.
+//
+// NOTE: End masks don't work well for UT units in which the head
+//  moves across spinning pipe because when the head is dropped each transducer
+//  is expected to start flagging at that time even though each is at a
+//  different location.  Thus, each trace on a chart would have its own end
+//  mask bar which would be confusing.  There is an option in the config file
+//  to use trace suppression instead to mark the end mask area.
+//
+// NOTE: This function might be place the flag prematurely if the thread
+//  drawing the trace gets behind data collection.  It is usually better for
+//  the data collection / position tracking thread to set the flag bit.
+//
+
+public void markEndMask()
+{
+
+int index = plotVs.bufPtr + 1;
+
+//set flag to display a separator bar at the start of the segment
+flagBuffer[index] |= 1 << 19;
+
+}//end of Trace::markEndMask
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -895,7 +937,7 @@ else{
 
         }//if (traceIndex == 0)
 
-    }//else if (pixPtr <...
+    }//else if (pVars.pixPtr...
 
 //if this is the lead trace draw the decorations
 if (leadTrace){
@@ -913,13 +955,20 @@ if (leadTrace){
         pG2.drawLine(pVars.pixPtr, canvasYLimit, pVars.pixPtr, 0);
         }
 
-    //if segment start end set, draw a vertical separator bar
+    //if segment end flag set, draw a vertical separator bar
     if ((flagBuffer[pVars.bufPtr] & 0x00040000) != 0){
         pG2.setColor(gridColor);
         pG2.drawLine(pVars.pixPtr, canvasYLimit, pVars.pixPtr, 0);
         }
 
-    }// if (traceIndex == 0)
+    //if end mask flag set and option enabled, draw a vertical separator bar
+    if (useVerticalBarToMarkEndMasks
+                        && (flagBuffer[pVars.bufPtr] & 0x00080000) != 0){
+        pG2.setColor(Color.GREEN);
+        pG2.drawLine(pVars.pixPtr, canvasYLimit, pVars.pixPtr, 0);
+        }
+
+    }// if (leadTrace)
 
 //apply offset, scaling, limits to y value
 //for span style, the high peaks and low peaks are in separate buffers in the

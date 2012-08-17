@@ -926,7 +926,13 @@ int newData = gatePtr.dataPeak;
 //without changing the data, a trace won't move if all channels for that trace
 //are turned off -- when a channel is turned back on the trace will never
 //start again or takes a long time
-if (!pChannelActive){
+
+//if the flaggingEnabled flag is false and suppressTraceInEndMasks is true,
+//then traces are also suppressed -- assumed to be in the end mask area, this is
+//useful when end mask areas are not being marked by vertical separators
+
+if (!pChannelActive
+        || (trace.suppressTraceInEndMasks && !trace.flaggingEnabled )){
     if (gatePtr.peakDirection == 0) //0 means higher data more severe
         newData = Integer.MIN_VALUE;
     else
@@ -1670,10 +1676,14 @@ for (int cg = 0; cg < chartGroups.length; cg++){
 
             tracePtr = chartGroups[cg].getStripChart(sc).getTrace(tr);
 
-            if ((tracePtr != null) && (tracePtr.head == pHead))
+            if ((tracePtr != null) && (tracePtr.head == pHead)){
 
                 tracePtr.flaggingEnabled = pEnable;
 
+                //set flag bit to draw a vertical bar to show the mask point
+                tracePtr.flagBuffer[tracePtr.beingFilledSlot] |= 1 << 19;
+
+                }//if ((tracePtr != null) && (tracePtr.head == pHead))
             }//for (int tr = 0; tr < nTr; tr++)
         }//for (int sc = 0; sc < nSC; sc++)
     }//for (int cg = 0; cg < chartGroups.length; cg++)
