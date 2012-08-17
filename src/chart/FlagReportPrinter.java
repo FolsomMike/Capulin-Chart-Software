@@ -26,6 +26,7 @@ import java.awt.event.ActionEvent;
 import java.io.*;
 
 import chart.mksystems.globals.Globals;
+import chart.mksystems.stripchart.ChartGroup;
 import chart.mksystems.stripchart.StripChart;
 import chart.mksystems.stripchart.Trace;
 import chart.mksystems.hardware.Hardware;
@@ -402,14 +403,38 @@ public void printReportForPiece(String pReportsPrimaryPath, int pPiece)
         return;
     }
 
+    //prepare for printing
+    resetTracePreviousFlagVariables();
 
-    for (int i = 0; i < numberOfChartGroups; i++){
-        for (int j = 0; j < chartGroups[i].getNumberOfStripCharts(); j++){
+    //report is printed in linear order, so use outer loop as the trace position
+    //index and call each trace with the index
 
-            printFlagsForChart(file, chartGroups[i].getStripChart(j));
+    //use the length of the first trace in the first chart in the first group
+    //as all traces should be the same length -- check first to make sure that
+    //there is at least one trace and bail out if not
 
-        }//for (int j = 0; j < numberOfStripCharts;...
-    }//for (int i = 0; i < numberOfChartGroups;...
+    if( (numberOfChartGroups == 0)
+         || (chartGroups[0].getNumberOfStripCharts() == 0)
+            || (chartGroups[0].getStripChart(0).getNumberOfTraces() == 0)){
+        return;
+    }
+
+    int traceLength =
+                chartGroups[0].getStripChart(0).getTrace(0).flagBuffer.length;
+
+    for (int i = 0; i < traceLength; i++){
+        for (int j = 0; j < numberOfChartGroups; j++){
+            ChartGroup cGroup = chartGroups[j];
+            for (int k = 0; k < cGroup.getNumberOfStripCharts(); k++){
+                StripChart chart = cGroup.getStripChart(k);
+                for (int l = 0; l < chart.getNumberOfTraces(); l++){
+
+                printFlagForTrace(file, chart, chart.getTrace(l), i);
+
+                }//for (int l = 0; l < chart.getNumberOfTraces()
+            }//for (int k = 0; k < numberOfStripCharts;...
+        }//for (int j = 0; j < numberOfChartGroups;...
+    }//for (int i = 0; i < traceLength...
 
     file.close();
 
@@ -417,9 +442,9 @@ public void printReportForPiece(String pReportsPrimaryPath, int pPiece)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// FlagReportPrinter::printFlagsForChart
+// FlagReportPrinter::printFlagForTrace
 //
-// Prints all the flags for pChart.
+// Prints the flag at buffer index pDataIndex for trace pTrace.
 //
 // If multiple flags from the same flaw trace are located at the same tenth of a
 // foot (or equivalent for metric) and clock position, the first flag is always
@@ -441,88 +466,107 @@ public void printReportForPiece(String pReportsPrimaryPath, int pPiece)
 // option is ever implemented.
 //
 
-public void printFlagsForChart(PrintWriter pFile, StripChart pChart)
+public void printFlagForTrace(PrintWriter pFile, StripChart pChart,
+                                                Trace pTrace, int pDataIndex)
 {
 
     boolean isWallChart = false;
     if (pChart.shortTitle.contains("Wall")) isWallChart = true;
 
-    for (int i = 0; i < pChart.getNumberOfTraces(); i++){
+    String linearPos = "";
+    String amplitudeText = "";
+    int clockPos = -1;
 
-        Trace trace = pChart.getTrace(i);
+    //extract the flag threshold -- if greater than 0, then a flag
+    //is set at this position (note that threshold 1 denotes a user
+    //set flag)
+    if (((pTrace.flagBuffer[pDataIndex] & 0x0000fe00) >> 9) > 0){
 
-        String linearPos = "", prevLinearPos = "";
-        String amplitudeText = "", prevAmplitudeText = "";
-        int clockPos = -1, prevClockPos = -1;
+        //debug mks -- pixelsPerInch needs to be read from the joint
+        //file, not config file as it may change
 
-        int flagThreshold;
+        //convert the position and amplitude first so they can be
+        //used to detect duplicate flags (see notes in function header)
 
-        for (int j=0; j<trace.flagBuffer.length; j++){
+        //convert index to decimal feet, format, and pad to length
+        linearPos = prePad(decimalFormats[1].format(pDataIndex /
+                hardware.pixelsPerInch / 12.0), 5);
 
-            //extract the flag threshold -- if greater than 0, then a flag
-            //is set at this position (note that threshold 1 denotes a user
-            //set flag)
-            if ((flagThreshold = (trace.flagBuffer[j] & 0x0000fe00) >> 9) > 0){
+        //convert and format the amplitude depending on chart type
+        int amplitude = pTrace.dataBuffer1[pDataIndex];
+        double wall;
+        if (isWallChart){
+            wall = calculateComputedValue1(amplitude);
+            amplitudeText = decimalFormats[2].format(wall);
+            amplitudeText = prePad(amplitudeText, 5);
+        }
+        else{
+            if (amplitude > 100) amplitude = 100;
+            amplitudeText = prePad("" + amplitude, 5);
+        }
 
-                //debug mks -- pixelsPerInch needs to be read from the joint
-                //file, not config file as it may change
+        //extract the clock position from the flag
+        clockPos = pTrace.flagBuffer[pDataIndex] & 0x1ff;
 
-                //convert the position and amplitude first so they can be
-                //used to detect duplicate flags (see notes in function header)
+        //if the flag is in the same linear and clock position as the
+        //previous flag printed for this trace and has the same amplitude, then
+        //the flag is not printed (see notes in function header)
+        if (linearPos.equals(pTrace.prevLinearPos)
+                && amplitudeText.equals(pTrace.prevAmplitudeText)
+                                    && clockPos == pTrace.prevClockPos){
+            return;
+        }
 
-                //convert index to decimal feet, format, and pad to length
-                linearPos = prePad(decimalFormats[1].format(j /
-                        hardware.pixelsPerInch / 12.0), 5);
+        pTrace.prevLinearPos = linearPos;
+        pTrace.prevAmplitudeText = amplitudeText;
+        pTrace.prevClockPos = clockPos;
 
-                //convert and format the amplitude depending on chart type
-                int amplitude = trace.dataBuffer1[j];
-                double wall;
-                if (isWallChart){
-                    wall = calculateComputedValue1(amplitude);
-                    amplitudeText = decimalFormats[2].format(wall);
-                    amplitudeText = prePad(amplitudeText, 5);
-                }
-                else{
-                    if (amplitude > 100) amplitude = 100;
-                    amplitudeText = prePad("" + amplitude, 5);
-                }
+        pFile.print(linearPos + "\t");
 
-                //extract the clock position from the flag
-                clockPos = trace.flagBuffer[j] & 0x1ff;
+        pFile.print(clockPos + "\t"); //radial position
 
-                //if the flag is in the same linear and clock position as the
-                //previous flag and has the same amplitude, then the flag is
-                //not printed (see notes in function header)
-                if (linearPos.equals(prevLinearPos)
-                        && amplitudeText.equals(prevAmplitudeText)
-                                            && clockPos == prevClockPos){
-                    continue;
-                }
+        //print the short title of trace which should have
+        //been set up in the config file to describe some or all of
+        //orientation, ID/OD designation, and channel number
+        pFile.print(postPad(pTrace.shortTitle, 10) + "\t");
 
-                prevLinearPos = linearPos;
-                prevAmplitudeText = amplitudeText;
-                prevClockPos = clockPos;
+        pFile.print(amplitudeText + "\t"); //amplitude
 
-                pFile.print(linearPos + "\t");
+        //print a line for handwritten notes and initials
+        pFile.println("________________________________________");
 
-                pFile.print(clockPos + "\t"); //radial position
-
-                //print the short title of trace which should have
-                //been set up in the config file to describe some or all of
-                //orientation, ID/OD designation, and channel number
-                pFile.print(postPad(trace.shortTitle, 10) + "\t");
-
-                pFile.print(amplitudeText + "\t"); //amplitude
-
-                //print a line for handwritten notes and initials
-                pFile.println("________________________________________");
-
-
-            }//if ((flagThreshold =
-        }//for (int j=0; j<trace.flagBuffer.length; j++)
-    }//for (int I = 0; i < stripChart.getNumberOfTraces();...
+    }//if (((pTrace.flagBuffer[pDataIndex] & 0x0000fe00) >> 9) > 0)
 
 }//end of FlagReportPrinter::printFlagsForChart
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// FlagReportPrinter::resetTracePreviousFlagVariables
+//
+// Resets all the variables used to store the previous flag printed before
+// the report is printed.  These variables are used to prevent duplicate flags
+// from being printed.
+//
+
+public void resetTracePreviousFlagVariables()
+{
+
+    for (int j = 0; j < numberOfChartGroups; j++){
+        ChartGroup cGroup = chartGroups[j];
+        for (int k = 0; k < cGroup.getNumberOfStripCharts(); k++){
+            StripChart chart = cGroup.getStripChart(k);
+            for (int l = 0; l < chart.getNumberOfTraces(); l++){
+
+                Trace trace = chart.getTrace(l);
+                trace.prevLinearPos = "";
+                trace.prevAmplitudeText = "";
+                trace.prevClockPos = -1;
+
+            }//for (int l = 0; l < chart.getNumberOfTraces()
+        }//for (int k = 0; k < numberOfStripCharts;...
+    }//for (int j = 0; j < numberOfChartGroups;...
+
+}//end of FlagReportPrinter::resetTracePreviousFlagVariables
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

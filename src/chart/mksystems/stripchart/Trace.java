@@ -91,6 +91,10 @@ double preScaling;
 double preOffset;
 boolean higherMoreSevere;
 
+public String prevLinearPos = "";
+public String prevAmplitudeText = "";
+public int prevClockPos = -1;
+
 Color backgroundColor;
 Color gridColor;
 Threshold[] thresholds;
