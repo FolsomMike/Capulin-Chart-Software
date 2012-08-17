@@ -37,7 +37,8 @@ import chart.mksystems.inifile.IniFile;
 
 public class ControlSimulator extends Simulator implements MessageLink{
 
-public ControlSimulator() throws SocketException{}; //default constructor - not used
+//default constructor - not used
+public ControlSimulator() throws SocketException{};
 
 //simulates the default size of a socket created for ethernet access
 // NOTE: If the pipe size is too small, the outside object can fill the buffer
@@ -62,10 +63,29 @@ int inspectPacketCount = 0;
 
 byte controlFlags = 0, portE = 0;
 
-int positionTrack;
+int positionTrack; // this is the number of packets sent, not the encoder
+                   // value
 
 public static int DELAY_BETWEEN_INSPECT_PACKETS = 1;
 int delayBetweenPackets = DELAY_BETWEEN_INSPECT_PACKETS;
+
+//This mimics the 7-5/8 IRNDT test joint used at Tubo Belle Chasse
+//Number of encoder counts (using leading eye for both ends): 90107
+//The PLC actually gives pipe-on when the lead eye hits the pipe and pipe-off
+//when the trailing eye leaves the pipe:
+// eye to eye distance is 53.4375", or 17,653 encoder counts.
+//Number of encoder counts for simulated joint: 90107 + 17,653 = 107,760
+// (this assumes starting with lead eye and ending with trail eye)
+//Number of counts per packet: 83
+//Number of packets for complete simulated joint: 107,760 / 83 = 1298
+
+//number of packets to skip before simulating lead eye reaching pipe
+//this simulates the head moving from the off-pipe position to on-pipe
+public static int START_DELAY_IN_PACKETS = 10;
+
+//number of packets for length of tube -- take into account the start delay
+//packets as inspection does not occur during that time
+public static int LENGTH_OF_JOINT_IN_PACKETS = 1298 + START_DELAY_IN_PACKETS;
 
 //-----------------------------------------------------------------------------
 // ControlSimulator::ControlSimulator (constructor)
@@ -377,16 +397,16 @@ void simulateInspection()
     if (triggerTrack >= 250) head2Down = true; else head2Down = false;
 
     //after head 1 reaches pick up position, give head 1 up signal
-    if (triggerTrack >= 610) head1Down = false;
+    if (triggerTrack >= LENGTH_OF_JOINT_IN_PACKETS-100) head1Down = false;
 
     //after head 2 reaches pick up position, give head 2 up signal
-    if (triggerTrack >= 710) head2Down = false;
+    if (triggerTrack >= LENGTH_OF_JOINT_IN_PACKETS-50) head2Down = false;
 
     //after photo eye reaches end of piece, turn off "on pipe" signal
-    if (triggerTrack >= 810) onPipeFlag = false;
+    if (triggerTrack >= LENGTH_OF_JOINT_IN_PACKETS) onPipeFlag = false;
 
-    //a while after heads are up, simulate end of pipe reached
-    if (triggerTrack >= 910) resetAll();
+    //wait a bit after head has passed the end and prepare for the next piece
+    if (triggerTrack >= LENGTH_OF_JOINT_IN_PACKETS + 10) resetAll();
 
     //start with all control flags set to 0
     controlFlags = (byte)0x00;

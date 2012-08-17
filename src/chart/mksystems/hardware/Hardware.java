@@ -103,6 +103,10 @@ double photoEye1DistanceFrontOfHead2;
 double photoEye2DistanceFrontOfHead1;
 double photoEye2DistanceFrontOfHead2;
 
+//distance between the laser spots of the two perpendicular eyes used to
+//trigger on-pipe and off-pipe signals
+double photoEyeToPhotoEyeDistance;
+
 //-----------------------------------------------------------------------------
 // Hardware::Hardware (constructor)
 //
@@ -153,16 +157,19 @@ hdwVs.nSPerDataPoint =
 hdwVs.uSPerDataPoint = hdwVs.nSPerDataPoint / 1000;
 
 photoEye1DistanceFrontOfHead1 = pConfigFile.readDouble("Hardware",
-                        "Photo Eye 1 Distance to Front Edge of Head 1", 22.0);
+                        "Photo Eye 1 Distance to Front Edge of Head 1", 8.0);
 
 photoEye1DistanceFrontOfHead2 = pConfigFile.readDouble("Hardware",
-                        "Photo Eye 1 Distance to Front Edge of Head 2", 46.0);
+                        "Photo Eye 1 Distance to Front Edge of Head 2", 32.0);
 
 photoEye2DistanceFrontOfHead1 = pConfigFile.readDouble("Hardware",
-                        "Photo Eye 2 Distance to Front Edge of Head 1", 58.0);
+                        "Photo Eye 2 Distance to Front Edge of Head 1", 46.0);
 
 photoEye2DistanceFrontOfHead2 = pConfigFile.readDouble("Hardware",
-                        "Photo Eye 2 Distance to Front Edge of Head 2", 35.0);
+                        "Photo Eye 2 Distance to Front Edge of Head 2", 22.0);
+
+photoEyeToPhotoEyeDistance = pConfigFile.readDouble("Hardware",
+                        "Distance Between Perpendicular Photo Eyes", 53.4375);
 
 //the control board sends packets every so many counts and is susceptible to
 //cumulative round off error, but the values below can be tweaked to give
@@ -1431,8 +1438,22 @@ if (hdwVs.watchForOffPipe){
         hdwVs.trackToEndOfPiece = true;
         hdwVs.endOfPieceTracker = hdwVs.endOfPiecePosition;
 
-//debug mks        zzzz
+        //calculate number of counts recorded between start/stop eyes
+        int pieceLengthEncoderCounts =
+                inspectCtrlVars.encoder2 - inspectCtrlVars.encoder2Start;
 
+        //convert to inches
+        double pieceLength = pieceLengthEncoderCounts *encoder2InchesPerCount;
+
+        //subtract the distance between the perpendicular eyes -- tracking
+        //starts when lead eye hits pipe but ends when trailing eye clears,
+        //so the extra distance between the eyes must be accounted for
+
+        pieceLength -= photoEyeToPhotoEyeDistance;
+
+        pieceLength /= 12; //convert to decimal feet
+
+//debug mks        zzzz
 
         hdwVs.watchForOffPipe = false;
         }
