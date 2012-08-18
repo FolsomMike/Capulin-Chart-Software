@@ -206,6 +206,7 @@ JRadioButton rfRadioButton, offRadioButton;
 //if set to display in distance, the multiplier is changed to
 //Velocity Shear Wave  (the velocity is entered by the user)
 public double timeDistMult;
+double timeDistMax;
 int displayMode = 0;
 //number of decimal places to display for values which can be displayed as
 //either time or distance - this is set by a string such as "##0.0"
@@ -335,11 +336,13 @@ if (hardware.unitsTimeDistance == Hardware.TIME){
     timeDistMult = 1.0;
     timeDistDecimalPlaces = "##0.0"; //one decimal place for time values
     timeDistIncrement = .1;
+    timeDistMax = 112.8;
     }
 else {
     timeDistMult = hardware.hdwVs.velocityShearUS;
     timeDistDecimalPlaces = "#0.000"; //three decimal places for distances
     timeDistIncrement = .01;
+    timeDistMax = 15.0;
     }
 
 //The grid for the gates and the grid for the threshold cannot use set sizes
@@ -613,8 +616,15 @@ multiSpinnerPanel.add(delaySpin =
 delaySpin.spinner.addChangeListener(this); //monitor changes to value
 
 //add a panel for Range control
+
+//check for out-of-range value or exception will be thrown
+
+double rangeCheck = currentChannel.getRange() * timeDistMult;
+if (rangeCheck < .1) rangeCheck = .1;
+if (rangeCheck > timeDistMax) rangeCheck = timeDistMax;
+
 multiSpinnerPanel.add(rangeSpin =
-  new SpinnerPanel(currentChannel.getRange() * timeDistMult, .1, 273.0,
+  new SpinnerPanel(rangeCheck, .1, timeDistMax,
     timeDistIncrement, timeDistDecimalPlaces, 60, 23, "Range ", timeDistLabel,
     "Range", this));
 rangeSpin.spinner.addChangeListener(this); //monitor changes to value
