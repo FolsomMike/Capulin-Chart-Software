@@ -104,8 +104,8 @@ int peakTrack; //encoder tracking information
 public int aScanPeak = Integer.MIN_VALUE, aScanPeakD = Integer.MIN_VALUE;
 public int aScanPeakFlightTime;
 
-public Vector<String> flawGateProcessList, iFaceProcessList;
-public Vector<String> wallGateProcessList;
+public ArrayList<String> flawGateProcessList, iFaceProcessList;
+public ArrayList<String> wallGateProcessList;
 
 // The encoder1 parameter is the entry encoder or the carriage encoder
 // depending on unit type.
@@ -147,16 +147,16 @@ configure(configFile);
 //         the UT calibrator window and make it look bad.
 
 //processing options for a normal gate
-flawGateProcessList = new Vector<String>();
+flawGateProcessList = new ArrayList<String>();
 flawGateProcessList.add("peak");
 flawGateProcessList.add("integrate above gate");
 //processing options for an interface gate
-iFaceProcessList = new Vector<String>();
+iFaceProcessList = new ArrayList<String>();
 iFaceProcessList.add("ignore bad interface");
 iFaceProcessList.add("quench on bad interface");
 
 //processing options for a wall start/end gate
-wallGateProcessList = new Vector<String>();
+wallGateProcessList = new ArrayList<String>();
 wallGateProcessList.add("first crossing");
 wallGateProcessList.add("peak");
 wallGateProcessList.add("midpoint");
@@ -450,11 +450,11 @@ public void setSignalProcessing(String pMode)
 {
 
 //get the signal processing list for the gate type
-Vector<String> pl = getSigProcList();
+ArrayList<String> pl = getSigProcList();
 
 //if the selection is not in the valid list for the gate type, reset it to
 //the first entry in that valid list
-if (!pl.contains(pMode)) pMode = pl.elementAt(0);
+if (!pl.contains(pMode)) pMode = pl.get(0);
 
 signalProcessing = pMode;
 
@@ -542,7 +542,7 @@ public int getSigProcIndex()
 {
 
 //get the signal processing list for the gate type
-Vector<String> pl = getSigProcList();
+ArrayList<String> pl = getSigProcList();
 
 int index = pl.indexOf(signalProcessing);
 
@@ -561,11 +561,11 @@ return(index);
 // type.
 //
 
-public Vector<String> getSigProcList()
+public ArrayList<String> getSigProcList()
 {
 
 //default to flawGateProcessList -- will be reset to proper list
-Vector<String> pl = flawGateProcessList;
+ArrayList<String> pl = flawGateProcessList;
 
 //choose the appropriate list for the gate type
 if (isInterfaceGate) pl = iFaceProcessList;

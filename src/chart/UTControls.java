@@ -28,7 +28,6 @@ import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.image.BufferedImage;
-import java.util.Hashtable;
 import java.util.*;
 import java.awt.font.TextAttribute;
 
@@ -268,8 +267,8 @@ public void init()
 {
 
     //create red and black fonts for use with display objects
-    Hashtable<TextAttribute, Object> map =
-                new Hashtable<TextAttribute, Object>();
+    HashMap<TextAttribute, Object> map =
+                new HashMap<TextAttribute, Object>();
     blackFont = new Font("Dialog", Font.PLAIN, 12);
     map.put(TextAttribute.FOREGROUND, Color.RED);
     redFont = blackFont.deriveFont(map);
@@ -1090,9 +1089,9 @@ for (int i=0; i < gridYCount; i++){
         gate = currentChannel.getGate(i);
 
         //get the signal processing list for the gate type
-        Vector<String> pl = gate.getSigProcList();
+        ArrayList<String> pl = gate.getSigProcList();
 
-        jcb = new JComboBox(pl);
+        jcb = new JComboBox(pl.toArray());
         jcb.setSelectedIndex(gate.getSigProcIndex());
         jcb.setActionCommand("Signal Processing");
         jcb.addActionListener(this);
