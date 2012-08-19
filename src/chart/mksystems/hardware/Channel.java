@@ -72,6 +72,7 @@ public String title, shortTitle, detail, type;
 boolean channelOn;  //true: pulsed/displayed, off: not pulsed/displayed
 boolean channelMasked; //true: pulsed/not display, off: pulsed/displayed
 
+boolean disabled = true; //overrides mode -- always off if true
 int mode = UTBoard.POSITIVE_HALF;
 public int previousMode;
 boolean interfaceTracking = false;
@@ -1443,6 +1444,9 @@ return dcOffset;
 public void setMode(int pMode, boolean pForceUpdate)
 {
 
+//if the channel is disabled in the configuration file, mode is always off
+if (disabled) pMode = UTBoard.CHANNEL_OFF;
+
 if (pMode != mode) pForceUpdate = true;
 
 mode = pMode;
@@ -1896,6 +1900,8 @@ boardChannel = pConfigFile.readInt(whichChannel, "Board Channel", 1) - 1;
 pulseChannel = pConfigFile.readInt(whichChannel, "Pulse Channel", 1) - 1;
 
 pulseBank = pConfigFile.readInt(whichChannel, "Pulse Bank", 1) - 1;
+
+disabled = pConfigFile.readBoolean(whichChannel, "Disabled", false);
 
 type = pConfigFile.readString(whichChannel, "Type", "Other");
 
