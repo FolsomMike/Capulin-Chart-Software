@@ -172,8 +172,6 @@ public class UTControls extends JTabbedPane
 
     //components on Modes tab
 
-    JCheckBox scopeOnCheckBox, chartOnCheckBox;
-
     TitledBorder inspectionModeBorder, whichEndBorder;
     JRadioButton flawRadioButton, wallRadioButton;
     JRadioButton boxRadioButton, pinRadioButton;
@@ -401,10 +399,10 @@ void setupGatesTab()
     gatesTab.removeAll();
 
     //all other objects besides the interfaceTrackingCheckBox get replaced
-    //if there is no interface gate for the current channel but there was one for
-    //the previously active channel, this checkbox will not get replaced/deleted
-    //and will cause problems because the new current channel is not set up to
-    //deal with the box
+    //if there is no interface gate for the current channel but there was one
+    //for the previously active channel, this checkbox will not get
+    //replaced/deleted and will cause problems because the new current channel
+    //is not set up to deal with the box
     interfaceTrackingCheckBox = null;
 
     int numberOfGates = currentChannel.getNumberOfGates();
@@ -479,23 +477,15 @@ void setupGatesTab()
             currentChannel.getGate(i).gateLevelAdjuster = mfSpinner;
 
             //if the gate just added is the interface gate, add a "Track"
-            //checkbox to allow selecton of interface tracking, otherwise add a
-            //processing type selector
+            //checkbox to allow selecton of interface tracking, otherwise add
+            //an AScan trigger box so user can choose one or more gates to
+            //trigger an AScan send
 
             if (currentChannel.getGate(i).getInterfaceGate()){
-                interfaceTrackingCheckBox = new JCheckBox("Track");
-                interfaceTrackingCheckBox.setSelected(
-                                        currentChannel.getInterfaceTracking());
-                interfaceTrackingCheckBox.setActionCommand("Interface Tracking");
-                interfaceTrackingCheckBox.addItemListener(this);
-                interfaceTrackingCheckBox.setName("Interface Tracking");
-                interfaceTrackingCheckBox.addMouseListener(this);
-                interfaceTrackingCheckBox.setToolTipText(
-                "Gates Will Follow the Interface Signal if Checked");
-                gatesTab.add(interfaceTrackingCheckBox);
+                addInterfaceTrackingCheckBox();
             }
             else{
-                gatesTab.add(new JLabel("")); //fill blank grid spot
+                addAScanTriggerCheckBox(i);
             }
         }// if (i < numberOfGates)
         else{
@@ -509,6 +499,57 @@ void setupGatesTab()
     }// for (int i=0; i < gridYCount+1; i++)
 
 }//end of UTControls::setupGatesTab
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTControls::addInterfaceTrackingCheckBox
+//
+// Sets up and adds the Interface Tracking Checkbox.
+//
+
+void addInterfaceTrackingCheckBox()
+{
+
+    interfaceTrackingCheckBox = new JCheckBox("Track");
+    interfaceTrackingCheckBox.setSelected(
+                            currentChannel.getInterfaceTracking());
+    interfaceTrackingCheckBox.setActionCommand("Interface Tracking");
+    interfaceTrackingCheckBox.addItemListener(this);
+    interfaceTrackingCheckBox.setName("Interface Tracking");
+    interfaceTrackingCheckBox.addMouseListener(this);
+    interfaceTrackingCheckBox.setToolTipText(
+    "Gates Will Follow the Interface Signal if Checked");
+    gatesTab.add(interfaceTrackingCheckBox);
+
+}//end of UTControls::addInterfaceTrackingCheckBox
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTControls::addAScanTriggerCheckBox
+//
+// Sets up and adds the AScan Trigger CheckBox.  This box allows the user to
+// select one or more gates to trigger the sending of an AScan. The AScan will
+// be sent when the signal exceeds the gate to allow those signals to be
+// displayed clearly instead of randomly when the AScan sends are not
+// synchronized to the signal.
+//
+
+void addAScanTriggerCheckBox(int pWhichGate)
+{
+
+    JCheckBox box;
+    box = new JCheckBox("Trigger");
+    //store with channel so it can be accessed later
+    currentChannel.getGate(pWhichGate).aScanTriggerCheckBox = box;
+    //always starts unselected
+    box.setSelected(false);
+    box.setActionCommand("AScan Trigger");
+    box.addItemListener(this);
+    box.setName("AScan Trigger");
+    box.setToolTipText("AScan will lock onto signals which exceed this gate.");
+    gatesTab.add(box);
+
+}//end of UTControls::addAScanTriggerCheckBox
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1428,7 +1469,8 @@ void setSpinnerNameAndMouseListener(JSpinner pSpinner, String pName,
 public void itemStateChanged(ItemEvent e)
 {
 
-    //NOTE: ItemEvent does not have an action command, detect component by getName
+    //NOTE: ItemEvent does not have an action command, detect component by
+    // method getName
 
     String name;
 
@@ -1452,7 +1494,7 @@ public void itemStateChanged(ItemEvent e)
             //clear the selected flag for the currently selected gate
             //will do nothing if no gate is selected
             currentChannel.setSelectedDACGate(
-                                        currentChannel.getSelectedDACGate(), false);
+                                   currentChannel.getSelectedDACGate(), false);
 
             //disable the delete buttons each time so it gets disabled when the
             //user clicks in a blank space
@@ -1470,7 +1512,6 @@ public void itemStateChanged(ItemEvent e)
         return;
     }// if (e.getItemSelectable() == dacLocked)
 
-
     //handle the "Hide Chart" checkbox
     if (name.equals("Hide Chart")){
         updateChartSettings();
@@ -1482,14 +1523,15 @@ public void itemStateChanged(ItemEvent e)
 
     if (name.equals("Interface Tracking")){
 
-        //call here to switch values (gets called again by updateAllSettings, but
-        // is not a problem)
+        //call here to switch values (gets called again by updateAllSettings,
+        //but is not a problem)
         currentChannel.setInterfaceTracking(
-                                    interfaceTrackingCheckBox.isSelected(), false);
+                                 interfaceTrackingCheckBox.isSelected(), false);
 
         updateGateControls(currentChannel);
 
-        //copy values and states of all display controls to the Global variable set
+        //copy values and states of all display controls to the Global variable
+        // set
         updateAllSettings(false);
 
         return;
@@ -1637,7 +1679,7 @@ void updateChartSettings()
 // UTControls::updateAllSettings
 //
 // Copies the values and states of all display controls to the corresponding
-// variables in the Globals object.
+// variables.
 //
 // This function should be called when ANY control is modified so that the new
 // states and values will be copied to the variable set.
@@ -1686,9 +1728,13 @@ public void updateAllSettings(boolean pForceUpdate)
         ch.setGateSigProcThreshold(i,
           ((MFloatSpinner) gate.thresholdAdjuster).getIntValue(), pForceUpdate);
 
+        ch.setAScanTrigger(i,
+             ((JCheckBox)gate.aScanTriggerCheckBox).isSelected(), pForceUpdate);
+
         }
 
     ch.setDelay(delaySpin.spinner.getDoubleValue() / timeDistMult, pForceUpdate);
+
     if (interfaceTrackingCheckBox != null) ch.setInterfaceTracking(
                           interfaceTrackingCheckBox.isSelected(), pForceUpdate);
 

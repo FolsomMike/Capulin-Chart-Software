@@ -295,6 +295,7 @@ static byte GATES_ENABLED = 0x0002;      //gates enabled flag
 static byte DAC_ENABLED = 0x0004;        //DAC enabled flag
 static byte ASCAN_FAST_ENABLED = 0x0008; //fast AScan enabled flag
 static byte ASCAN_SLOW_ENABLED = 0x0010; //slow AScan enabled flag
+static byte ASCAN_FREE_RUN = 0X0020;    //AScan free run, not triggered by gate
 
 //Messages for DSPs
 //These should match the values in the code for those DSPs

@@ -77,6 +77,7 @@ int mode = UTBoard.POSITIVE_HALF;
 public int previousMode;
 boolean interfaceTracking = false;
 boolean dacEnabled = false, aScanSlowEnabled = false, aScanFastEnabled = false;
+boolean aScanFreeRun = true;
 double aScanDelay = 0;
 int hardwareDelay, softwareDelay;
 public int delayPix = 0;
@@ -1046,6 +1047,66 @@ return aScanSlowEnabled;
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Channel::setAScanFreeRun
+//
+// Sets appropriate mask word to set or clear the ASCAN_FREE_RUN bit in the
+// DSP's flags1 variable.  This flag controls whether AScan data is saved
+// immediately upon a request or if it is saved when an AScan trigger gate is
+// exceeded.  The latter allows the AScan display to be synchronized with a
+// signal peak in the gate.
+//
+// NOTE: A delay should be inserted between calls to this function and setFlags1
+// and clearFlags1 as they are actually sent to the remotes by another thread.
+// The delay should be long enough to ensure that the other thread has had time
+// to send the first command.
+//
+// If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
+// the flag is false, the value(s) will be sent only if they have changed.
+//
+// This and all functions which set data changed flag(s) should be
+// synchronized to avoid thread conficts.  Typically, one thread changes the
+// data while another transmits it to the remotes.
+//
+
+public synchronized void setAFreeRun(boolean pEnable, boolean pForceUpdate)
+{
+
+if (pEnable != aScanFreeRun) pForceUpdate = true;
+
+aScanFreeRun = pEnable;
+
+//flag that new data needs to be sent to remotes
+if (pForceUpdate){
+    if (aScanFreeRun){
+        flags1SetMask = UTBoard.ASCAN_FREE_RUN;
+        flags1SetMaskChanged = true;
+        }
+    else{
+        flags1ClearMask = ~UTBoard.ASCAN_FREE_RUN;
+        flags1ClearMaskChanged = true;
+        }
+    ownerDataChanged.set(true);
+    dataChanged.flag = true;
+    }
+
+}//end of Channel::setAScanFreeRun
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::getAScanFreeRun
+//
+// Returns the aScanFreeRun flag.
+//
+
+public boolean getAScanFreeRun()
+{
+
+return aScanFreeRun;
+
+}//end of Channel::getAScanFreeRun
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Channel::calculateGateSpan
 //
 // Records the position in sample counts of the leading edge of the first
@@ -1764,12 +1825,12 @@ return hardwareGain2.getInt();
 // the flag is false, the value(s) will be sent only if they have changed.
 //
 
-public void setInterfaceTracking(boolean pOn, boolean pForceUpdate)
+public void setInterfaceTracking(boolean pState, boolean pForceUpdate)
 {
 
-if (pOn != interfaceTracking) pForceUpdate = true;
+if (pState != interfaceTracking) pForceUpdate = true;
 
-interfaceTracking = pOn;
+interfaceTracking = pState;
 
 //switch gate start positions to the appropriate values for the current mode
 for (int i = 0; i < numberOfGates; i++)
@@ -1781,10 +1842,10 @@ calculateGateSpan();
 
 if (pForceUpdate){
     for (int i = 0; i < numberOfGates; i++)
-        gates[i].setInterfaceTracking(pOn);
+        gates[i].setInterfaceTracking(pState);
 
     for (int i = 0; i < numberOfDACGates; i++)
-        dacGates[i].setInterfaceTracking(pOn);
+        dacGates[i].setInterfaceTracking(pState);
 
     ownerDataChanged.set(true); dataChanged.flag = true;
     gateFlagsChanged = true; dacGateFlagsChanged = true;
@@ -1806,6 +1867,35 @@ public boolean getInterfaceTracking()
 return interfaceTracking;
 
 }//end of Channel::getInterfaceTracking
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::setAScanTrigger
+//
+// Sets the AScan trigger on/off flag for pChannel in the DSPs.  If set, the
+// gate will trigger an AScan save when the signal exceeds the gate level.
+// This allows the display to be synchronized with signals of interest so they
+// are displayed clearly rather than as brief flashes.
+//
+// If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
+// the flag is false, the value(s) will be sent only if they have changed.
+//
+
+public void setAScanTrigger(int pGate, boolean pState, boolean pForceUpdate)
+{
+
+    if (pState != gates[pGate].isAScanTriggerGate) pForceUpdate = true;
+
+    gates[pGate].isAScanTriggerGate = pState;
+
+    if (pForceUpdate){
+
+        ownerDataChanged.set(true); dataChanged.flag = true;
+        gateFlagsChanged = true;
+
+        }// if (pForceUpdate)
+
+}//end of Channel::setAScanTrigger
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

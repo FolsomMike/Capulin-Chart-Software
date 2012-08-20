@@ -57,6 +57,7 @@ public class Gate extends BasicGate{
     boolean doFindPeak = false;
     boolean doIntegrateAboveGate = false;
     boolean doQuenchOnOverLimit = false;
+    public boolean isAScanTriggerGate = false;
 
     //if true, then data from this gate is stored where it can be used to modify
     //the wall data -- this allows a flaw gate to produce a kick on the wall
@@ -343,6 +344,11 @@ void setFlags()
         gateFlags |= GATE_QUENCH_IF_OVERLIMIT;
     else
         gateFlags &= (~GATE_QUENCH_IF_OVERLIMIT);
+
+    if (isAScanTriggerGate)
+        gateFlags |= GATE_TRIGGER_ASCAN_SAVE;
+    else
+        gateFlags &= (~GATE_TRIGGER_ASCAN_SAVE);
 
     flagsChanged = true;
 
@@ -850,6 +856,25 @@ public void setQuenchOnOverLimit(boolean pOn)
     setFlags();
 
 }//end of Gate::setQuenchOnOverLimit
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Gate::setAScanTriggerGate
+//
+// Turns the isAScanTriggerGate flag on or off.
+//
+// Does not set the flag in the DSP.
+//
+
+public final void setAScanTriggerGate(boolean pValue)
+{
+
+    isAScanTriggerGate = pValue;
+
+    //update the flags to reflect the change
+    setFlags();
+
+}//end of Gate::setAScanTriggerGate
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
