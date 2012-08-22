@@ -1435,6 +1435,7 @@ saveEverything(); //save all data
 
 NewJob newJob = new NewJob(mainFrame, primaryDataPath, backupDataPath, xfer,
                                                          globals.jobFileFormat);
+newJob.init();
 
 //if the NewJob window set rBoolean1 true, switch to the new job
 if (xfer.rBoolean1){

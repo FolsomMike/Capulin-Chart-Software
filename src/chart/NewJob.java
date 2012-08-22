@@ -33,15 +33,15 @@ import java.util.*;
 
 class NewJob extends JDialog implements ActionListener{
 
-JFrame frame;
-JTextField jobName;
-JComboBox configSelect;
-Vector<String> configList;
-JComboBox presetSelect;
-Vector<String> presetList;
-Xfer xfer;
-String primaryDataPath, backupDataPath;
-String fileFormat;
+    JFrame frame;
+    JTextField jobName;
+    JComboBox configSelect;
+    ArrayList<String> configList;
+    JComboBox presetSelect;
+    ArrayList<String> presetList;
+    Xfer xfer;
+    String primaryDataPath, backupDataPath;
+    String fileFormat;
 
 //-----------------------------------------------------------------------------
 // NewJob::NewJob (constructor)
@@ -58,6 +58,18 @@ frame = pFrame;
 primaryDataPath = pPrimaryDataPath; backupDataPath = pBackupDataPath;
 xfer = pXfer;
 fileFormat = pFileFormat;
+
+}//end of NewJob::NewJob (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// NewJob::init
+//
+// Initializes the object.  MUST be called by sub classes after instantiation.
+//
+
+protected void init()
+{
 
 xfer.rBoolean1 = false; //new job created flag
 
@@ -86,7 +98,7 @@ add(Box.createRigidArea(new Dimension(0,5)));
 tPanel = new JPanel();
 tPanel.setLayout(new BoxLayout(tPanel, BoxLayout.LINE_AXIS));
 tPanel.add(Box.createRigidArea(new Dimension(5,0)));
-configSelect = new JComboBox(configList);
+configSelect = new JComboBox(configList.toArray());
 tPanel.add(configSelect);
 tPanel.add(Box.createRigidArea(new Dimension(5,0)));
 add(tPanel);
@@ -97,7 +109,7 @@ add(Box.createRigidArea(new Dimension(0,15)));
 tPanel = new JPanel();
 tPanel.setLayout(new BoxLayout(tPanel, BoxLayout.LINE_AXIS));
 tPanel.add(Box.createRigidArea(new Dimension(5,0)));
-presetSelect = new JComboBox(presetList);
+presetSelect = new JComboBox(presetList.toArray());
 tPanel.add(presetSelect);
 tPanel.add(Box.createRigidArea(new Dimension(5,0)));
 add(tPanel);
@@ -131,7 +143,7 @@ pack();
 
 setVisible(true);
 
-}//end of NewJob::NewJob (constructor)
+}//end of NewJob::init
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -140,7 +152,7 @@ setVisible(true);
 // Loads a list of the available configurations for selecton by the user.
 //
 
-void loadConfigList()
+private void loadConfigList()
 {
 
 //directory containing the various configuration files
@@ -149,9 +161,8 @@ File configDir = new File("configurations");
 String[] configs = configDir.list();
 
 //create a list to hold the configuration filenames
-configList = new Vector<String>();
-//put the array of configurations into the vector
-for (int i=0; i<configs.length; i++) configList.add(configs[i]);
+configList = new ArrayList<String>();
+configList.addAll(Arrays.asList(configs));
 //sort the configurations alphabetically
 Collections.sort(configList);
 
@@ -170,7 +181,7 @@ configList.add(0, "Select a Configuration (required)");
 // time for the user.
 //
 
-void loadPresetList()
+private void loadPresetList()
 {
 
 //directory containing the various preset files
@@ -179,9 +190,8 @@ File presetDir = new File("presets");
 String[] presets = presetDir.list();
 
 //create a list to hold the preset filenames
-presetList = new Vector<String>();
-//put the array of presets into the vector
-for (int i=0; i<presets.length; i++) presetList.add(presets[i]);
+presetList = new ArrayList<String>();
+presetList.addAll(Arrays.asList(presets));
 //sort the presets alphabetically
 Collections.sort(presetList);
 
