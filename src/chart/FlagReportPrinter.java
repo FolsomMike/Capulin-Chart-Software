@@ -367,8 +367,13 @@ public void startPrint()
 public void printReportForPiece(String pReportsPrimaryPath, int pPiece)
 {
 
+    //Prepend "Cal" to cal joint reports.  Prepend is used over append so that
+    //the files are sorted by group when listed in alphabetical order.
+
+    String prefix = isCalSelected() ? "Cal " : "";
+
     String filename = pReportsPrimaryPath + File.separator +
-           decimalFormats[0].format(pPiece) + " Flag Report.txt";
+       prefix + decimalFormats[0].format(pPiece) + " Flag Report.txt";
 
     PrintWriter file = null;
 
@@ -383,6 +388,7 @@ public void printReportForPiece(String pReportsPrimaryPath, int pPiece)
 
         displayErrorMessage("Could not create report file.");
         if (file != null) file.close();
+        return;
 
     }
 
