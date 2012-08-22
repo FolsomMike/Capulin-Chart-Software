@@ -356,7 +356,7 @@ void createJob()
 
     //determine if the user has selected a preset
     boolean presetSelected =
-                        !presetName.equalsIgnoreCase("Select a Preset (optional)");
+                     !presetName.equalsIgnoreCase("Select a Preset (optional)");
 
     //put a copy of the selected preset file into the job folder
     //this is the Job Info file and stores user settings
@@ -365,10 +365,10 @@ void createJob()
 
     if (presetSelected){
        if( (!copyFile("presets" + "/" + presetName,
-                   primaryFolder + "/00 - " + newJobName + " Calibration File.ini")
+               primaryFolder + "/00 - " + newJobName + " Calibration File.ini")
      ||
         !copyFile("presets" + "/" + presetName,
-                  backupFolder + "/00 - " + newJobName + " Calibration File.ini"))){
+              backupFolder + "/00 - " + newJobName + " Calibration File.ini"))){
 
             JOptionPane.showMessageDialog(frame,
             "The preset file could not be copied " +
@@ -377,23 +377,23 @@ void createJob()
         }
     }
     else{
-        //if no preset selected for copying, then create a blank place holder file
-        //so error won't be generated the first time the job is opened
+        //if no preset selected for copying, then create a blank place holder
+        //file so error won't be generated the first time the job is opened
         createPlaceHolderCalFile(
-                primaryFolder + "/00 - " + newJobName + " Calibration File.ini");
+               primaryFolder + "/00 - " + newJobName + " Calibration File.ini");
         createPlaceHolderCalFile(
-                backupFolder + "/00 - " + newJobName + " Calibration File.ini");
+               backupFolder + "/00 - " + newJobName + " Calibration File.ini");
     }
 
     //create the "Piece Number File.ini" file in the new folders with starting
     //values of 1 for the next inspection piece and next cal piece numbers
     ControlPanel.saveSettingsHelper(
-                                primaryFolder + "/", newJobName, 1, 1, fileFormat);
+                            primaryFolder + "/", newJobName, 1, 1, fileFormat);
     ControlPanel.saveSettingsHelper(
-                                backupFolder + "/", newJobName, 1, 1, fileFormat);
+                            backupFolder + "/", newJobName, 1, 1, fileFormat);
 
-    //signal the class which invoked this window that a new job or jobs have been
-    //created and pass back the name of the last valid job created
+    //signal the class which invoked this window that a new job or jobs have
+    //been created and pass back the name of the last valid job created
 
     xfer.rBoolean1 = true; //set new job created flag to true
     xfer.rString1 = newJobName; //pass back the last job name created
@@ -412,9 +412,9 @@ void createJob()
 boolean validateFilename(String pString)
 {
 
-    //the matches function for the String class could not be used since it compares
-    //the entire string - Internet search suggest using a Whitelist rather than a
-    //Blacklist
+    //the matches function for the String class could not be used since it
+    //compares the entire string - Internet search suggest using a Whitelist
+    //rather than a Blacklist
 
     if (pString.contains("<")  ||
         pString.contains(">")  ||
@@ -494,8 +494,8 @@ void createPlaceHolderCalFile(String pFilename)
     catch(IOException e){
 
             //no need to worry about error here -- an error will be generated
-            //when the job is first opened due to the missing cal file, but a new
-            //valid file will then be saved for the job
+            //when the job is first opened due to the missing cal file, but a
+            //new valid file will then be saved for the job
 
     }
 
