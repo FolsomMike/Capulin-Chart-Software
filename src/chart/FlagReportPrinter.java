@@ -649,8 +649,10 @@ public void printHeader(PrintWriter pFile, int pPiece)
     pFile.println("Nominal Wall less " +
       truncate(wallRejectPercentParsedText, 4) + "%: " + wallMinusRejectText);
 
-    pFile.println("Unit Operator: " + truncate(
-                jobInfoFile.readString("Job Info", "Unit Operator", ""),90));
+    pFile.print("Unit Operator: " + truncate(
+          jobInfoFile.readString("Job Info", "Unit Operator", ""),30) + "   ");
+
+    pFile.println("Inspection Direction: " + truncate(inspectionDirection,20));
 
     pFile.println("");
     pFile.println("");

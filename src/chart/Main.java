@@ -954,6 +954,9 @@ try{
     out.newLine();
     out.write("Measured Length=" + hardware.pieceLength);
     out.newLine();
+    out.write("Inspection Direction="
+                                    + hardware.inspectionDirectionDescription);
+    out.newLine();
     out.write("[Header End]"); out.newLine(); out.newLine();
 
     for (int i = 0; i < numberOfChartGroups; i++)

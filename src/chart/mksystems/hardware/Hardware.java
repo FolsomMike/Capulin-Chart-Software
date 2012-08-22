@@ -62,6 +62,13 @@ boolean output1On = false;
 public boolean prepareForNewPiece;
 public double pieceLength;
 
+//these are the descriptions to be used for the direction the piece was
+//inspected -- towards home is towards the operator's compartment, away from
+//home is away from the operator's compartment -- these are loaded from the
+//configuration file so that they can be customized
+String towardsHome, awayFromHome;
+public String inspectionDirectionDescription;
+
 Globals globals;
 public ChartGroup chartGroups[];
 
@@ -173,6 +180,18 @@ photoEye2DistanceFrontOfHead2 = pConfigFile.readDouble("Hardware",
 
 photoEyeToPhotoEyeDistance = pConfigFile.readDouble("Hardware",
                         "Distance Between Perpendicular Photo Eyes", 53.4375);
+
+towardsHome =
+    pConfigFile.readString(
+        "Hardware",
+        "Description for inspecting in the direction leading away from the"
+        + " operator's compartment", "Away From Home");
+
+awayFromHome =
+    pConfigFile.readString(
+        "Hardware",
+        "Description for inspecting in the direction leading toward the"
+        + " operator's compartment", "Towards Home");
 
 //the control board sends packets every so many counts and is susceptible to
 //cumulative round off error, but the values below can be tweaked to give
@@ -1393,6 +1412,13 @@ if (hdwVs.waitForOnPipe){
         //the direction of the linear encoder at the start of the inspection
         //sets the forward direction (increasing or decreasing encoder count)
         inspectCtrlVars.encoder2FwdDir = inspectCtrlVars.encoder2Dir;
+
+        //set the text description for the direction of inspection
+        if (inspectCtrlVars.encoder2FwdDir == AwayDirection)
+            inspectionDirectionDescription = awayFromHome;
+        else
+            inspectionDirectionDescription = towardsHome;
+
         //record the value of linear encoder at start of inspection
         //(this needs so be changed to store the value with each piece for
         // future units which might have multiple pieces in the system at once)

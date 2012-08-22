@@ -57,6 +57,8 @@ public class ViewerReporter implements ActionListener, TraceValueCalculator {
     String measuredLengthText;
     double measuredLength;
 
+    String inspectionDirection;
+
     int numberOfChartGroups;
     ChartGroup[] chartGroups;
 
@@ -505,6 +507,11 @@ private String processHeader(BufferedReader pIn) throws IOException
 
         try{measuredLength = Double.valueOf(measuredLengthText);}
         catch(NumberFormatException nfe){measuredLength = 0;}
+
+        //read the "Inspection Direction" entry
+        if (matchAndParseString(
+                            line, "Inspection Direction", "Unknown", matchSet))
+            inspectionDirection = matchSet.rString1;
 
     }//while ((line = pIn.readLine()) != null)
 
