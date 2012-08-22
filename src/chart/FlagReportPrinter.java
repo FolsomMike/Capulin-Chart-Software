@@ -593,31 +593,71 @@ public void printHeader(PrintWriter pFile, int pPiece)
 
     //job info
 
-    pFile.print("Customer: " + truncate(
-        jobInfoFile.readString("Job Info", "Customer Name", ""),20) + "  ");
+    //give work order an entire line as it is sometimes nice to use a long
+    //descriptive name
+    pFile.println("Work Order: " + truncate(
+                    jobInfoFile.readString("Job Info", "Work Order", ""),90));
+
     pFile.print("Date: " + truncate(
         jobInfoFile.readString("Job Info", "Date Job Started", ""),10) + "  ");
-    pFile.println("Customer Job #: " + truncate(
-        jobInfoFile.readString("Job Info", "Customer PO", ""),10) + "  ");
-    pFile.print("Work Order: " + truncate(
-            jobInfoFile.readString("Job Info", "Work Order", ""),10) + "  ");
 
-    pFile.print("Length: " + "   ");
+    pFile.print("Customer: " + truncate(
+        jobInfoFile.readString("Job Info", "Customer Name", ""),20) + "  ");
+    pFile.println("Customer Job #: " + truncate(
+        jobInfoFile.readString("Job Info", "Customer PO", ""),10));
+
+    pFile.println("Job Location: " + truncate(
+    jobInfoFile.readString("Job Info", "Job Location", ""),70));
 
     //use the values entered for the Wall chart rather than the job info data
     //as the former is more likely to be accurate
     double wall = hdwVs.nominalWall;
-    //calculate wall minus 5%
-    double wallMinusFive = wall - (wall * .05);
 
-    pFile.print("Wall: " + truncate(decimalFormats[2].format(wall), 6) + "  ");
-    pFile.println("Wall less 5%: "
-                        + truncate(decimalFormats[2].format(wallMinusFive), 6));
+    pFile.print("Diameter: " + truncate(
+            jobInfoFile.readString("Job Info", "Pipe Diameter", ""),6) + "  ");
+
+    pFile.print("Nominal Wall: " +
+                            truncate(decimalFormats[2].format(wall), 6) + "  ");
+
+    pFile.println("Length: " + decimalFormats[1].format(measuredLength));
+
+    String wallRejectPercentText =
+              jobInfoFile.readString("Job Info", "Wall Reject Percentage", "");
+
+    //attempt to extract a wall reject percentage from the user input
+    double wallRejectPercent = parseWallRejectPercentage(wallRejectPercentText);
+
+    String wallRejectPercentParsedText = (wallRejectPercent > 0) ?
+                        decimalFormats[1].format(wallRejectPercent) : "?";
+
+    pFile.print("Wall Reject Percentage: "
+                                + truncate(wallRejectPercentText,6) + "  ");
+
+    double wallMinusReject; String wallMinusRejectText;
+
+    //calculate wall minus the reject percentage
+    if (wallRejectPercent > 0){
+        //wall reject percent > 0 so no parse error
+        wallMinusReject = wall - (wall * (wallRejectPercent/100));
+        wallMinusRejectText =
+              truncate(decimalFormats[2].format(wallMinusReject), 6);
+    }
+    else{
+        wallMinusRejectText = "?";
+    }
+
+    pFile.println("Nominal Wall less " +
+      truncate(wallRejectPercentParsedText, 4) + "%: " + wallMinusRejectText);
+
+    pFile.println("Unit Operator: " + truncate(
+                jobInfoFile.readString("Job Info", "Unit Operator", ""),90));
+
     pFile.println("");
     pFile.println("");
 
-    //prove up person signature
-    pFile.println("Prove up by: _____________________________________________");
+    //prove up person name/signature blank
+    pFile.println("Prove up by: _____________________________________________"
+                                                         + "________________");
     pFile.println("");
 
     //column headers
@@ -744,6 +784,72 @@ public void loadJobInfo()
     catch(IOException e){return;}
 
 }//end of FlagReportPrinter::loadJobInfo
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// FlagReportPrinter::parseWallRejectPercentage
+//
+// Converts the user text input pInput for wall reject percentage into a number.
+// If the text cannot be parsed, returns -1;
+//
+
+public double parseWallRejectPercentage(String pInput)
+{
+
+    String s = "";
+
+    //strip out all characters except numbers and decimal points
+
+    for(int i=0; i< pInput.length(); i++){
+
+        if (isNumerical(pInput.charAt(i)))
+            s = s + pInput.charAt(i);
+
+    }
+
+    //convert text to double
+
+    double dValue;
+
+    try{
+        dValue = Double.valueOf(s);
+    }
+    catch(NumberFormatException nfe){
+        //return an error code
+        return(-1);
+    }
+
+    //return the valid value
+
+    return(dValue);
+
+}//end of FlagReportPrinter::parseWallRejectPercentage
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// FlagReportPrinter::isNumerical
+//
+// Returns true if pInput is a number or a decimal point.
+//
+
+public boolean isNumerical(char pInput)
+{
+
+    if(    (pInput == '0')
+        || (pInput == '1')
+        || (pInput == '2')
+        || (pInput == '3')
+        || (pInput == '4')
+        || (pInput == '5')
+        || (pInput == '6')
+        || (pInput == '7')
+        || (pInput == '8')
+        || (pInput == '9')
+        || (pInput == '.') ) return(true);
+
+    return(false); //not a numerical type character
+
+}//end of FlagReportPrinter::isNumerical
 //-----------------------------------------------------------------------------
 
 

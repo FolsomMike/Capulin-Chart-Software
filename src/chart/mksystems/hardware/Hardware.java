@@ -59,6 +59,9 @@ int prevPixPosition;
 
 boolean output1On = false;
 
+public boolean prepareForNewPiece;
+public double pieceLength;
+
 Globals globals;
 public ChartGroup chartGroups[];
 
@@ -1443,7 +1446,7 @@ if (hdwVs.watchForOffPipe){
                 inspectCtrlVars.encoder2 - inspectCtrlVars.encoder2Start;
 
         //convert to inches
-        double pieceLength = pieceLengthEncoderCounts *encoder2InchesPerCount;
+        pieceLength = pieceLengthEncoderCounts *encoder2InchesPerCount;
 
         //subtract the distance between the perpendicular eyes -- tracking
         //starts when lead eye hits pipe but ends when trailing eye clears,
@@ -1452,8 +1455,6 @@ if (hdwVs.watchForOffPipe){
         pieceLength -= photoEyeToPhotoEyeDistance;
 
         pieceLength /= 12; //convert to decimal feet
-
-//debug mks        zzzz
 
         hdwVs.watchForOffPipe = false;
         }
@@ -1614,8 +1615,8 @@ for (int x = 0; x < pPixelsMoved; x++){
             hdwVs.endOfPieceTracker--;
             }
         else{
-        //set flag to force preparation for a new piece
-        globals.prepareForNewPiece = true;
+            //set flag to force preparation for a new piece
+            prepareForNewPiece = true;
             }
         }
 

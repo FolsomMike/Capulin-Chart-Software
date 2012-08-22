@@ -54,6 +54,9 @@ public class ViewerReporter implements ActionListener, TraceValueCalculator {
     int loadSegmentError;
     String segmentDataVersion;
 
+    String measuredLengthText;
+    double measuredLength;
+
     int numberOfChartGroups;
     ChartGroup[] chartGroups;
 
@@ -493,7 +496,18 @@ private String processHeader(BufferedReader pIn) throws IOException
         //read the "Segment Data Version" entry - if not found, default to "0.0"
         if (matchAndParseString(line, "Segment Data Version", "0.0", matchSet))
             segmentDataVersion = matchSet.rString1;
-        }
+
+        measuredLengthText = "";
+
+        //read the "Measured Length" entry - if not found, default to "0.0"
+        if (matchAndParseString(line, "Measured Length", "0.0", matchSet))
+            measuredLengthText = matchSet.rString1;
+
+        try{measuredLength = Double.valueOf(measuredLengthText);}
+        catch(NumberFormatException nfe){measuredLength = 0;}
+
+    }//while ((line = pIn.readLine()) != null)
+
 
     if (!success) throw new IOException(
                         "The file could not be read - missing end of header.");

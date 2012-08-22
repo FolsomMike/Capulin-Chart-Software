@@ -943,13 +943,6 @@ try{
                                                          globals.jobFileFormat);
     out = new BufferedWriter(outputStreamWriter);
 
-    //write a warning note at the top of the file
-
-    out.newLine();
-    out.write(";Do not erase blank line above -"
-               + " has hidden code needed by UTF-16 files.");
-    out.newLine(); out.newLine();
-
     //write the header information - this portion can be read by the iniFile
     //class which will only read up to the "[Header End]" tag - this allows
     //simple parsing of the header information while ignoring the data stream
@@ -959,12 +952,12 @@ try{
     out.newLine();
     out.write("Segment Data Version=" + Globals.SEGMENT_DATA_VERSION);
     out.newLine();
+    out.write("Measured Length=" + hardware.pieceLength);
     out.newLine();
     out.write("[Header End]"); out.newLine(); out.newLine();
 
     for (int i = 0; i < numberOfChartGroups; i++)
         chartGroups[i].saveSegment(out);
-
     }
 catch(IOException e){}
 finally{
@@ -1808,8 +1801,8 @@ if (globals.exitProgram) {
 
 //if the hardware interface has received an end of piece signal, save the
 //finished piece and prepare for the next one
-if (globals.prepareForNewPiece){
-    globals.prepareForNewPiece = false;
+if (hardware.prepareForNewPiece){
+    hardware.prepareForNewPiece = false;
     handlePieceTransition();
     }
 

@@ -184,9 +184,6 @@ public String backupFolderName =  "";
 // 1: copies currently selected channel to all other channels for all charts
 public int copyToAllMode;
 
-//set by the Hardware class to signal for preparations to process a new piece
-public boolean prepareForNewPiece;
-
 public boolean printMode = false;
 
 public ArrayList<String> configInfo;
