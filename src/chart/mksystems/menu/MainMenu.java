@@ -181,7 +181,7 @@ fileMenu.add(exitMenuItem);
 printMenu = new JMenu("Print");
 printMenu.setMnemonic(KeyEvent.VK_P);
 printMenu.setToolTipText("Print");
-add(printMenu);
+//add(printMenu); DISABLED UNTIL FUNCTIONAL
 
 //Print/Current Joint
 printCurrentMenuItem = new JMenuItem("Chart for " +
@@ -206,7 +206,7 @@ printAnyMenuItem = new JMenuItem("Chart(s) for selected " +
                                                 globals.pieceDescriptionPlural);
 printAnyMenuItem.setMnemonic(KeyEvent.VK_S);
 printAnyMenuItem.setToolTipText("Print the chart(s) for Selected " +
-                                               globals.pieceDescriptionPluralLC);
+                                              globals.pieceDescriptionPluralLC);
 printAnyMenuItem.addActionListener(globals);
 printMenu.add(printAnyMenuItem);
 
@@ -235,7 +235,8 @@ reportCurrentMenuItem.setMnemonic(KeyEvent.VK_I);
 reportCurrentMenuItem.setToolTipText("Print the flag report for " +
                     globals.pieceDescriptionLC + " currently being inspected.");
 reportCurrentMenuItem.addActionListener(globals);
-reportMenu.add(reportCurrentMenuItem);
+//reportMenu.add(reportCurrentMenuItem);  DISABLED UNTIL FUNCTIONAL
+//NOTE:  This option might not make sense and might should be removed.
 
 //Report/Last Joint completed
 reportLastMenuItem = new JMenuItem("Flag Report for Last " +
@@ -256,7 +257,7 @@ reportAnyMenuItem.setActionCommand("Print Flag Report");
 reportAnyMenuItem.addActionListener(globals);
 reportMenu.add(reportAnyMenuItem);
 
-reportMenu.addSeparator();
+//reportMenu.addSeparator();  DISABLED UNTIL FUNCTIONAL
 
 //Report/Auto Report
 autoReportMenuCheck = new JCheckBoxMenuItem("Auto Print Flag Report After Each "
@@ -266,9 +267,9 @@ autoReportMenuCheck.setToolTipText(
     "Prints flag report automatically after each "
                             + globals.pieceDescriptionLC + " is inspected.");
 autoReportMenuCheck.addActionListener(globals);
-reportMenu.add(autoReportMenuCheck);
+//reportMenu.add(autoReportMenuCheck);  DISABLED UNTIL FUNCTIONAL
 
-reportMenu.addSeparator();
+//reportMenu.addSeparator();  DISABLED UNTIL FUNCTIONAL
 
 //Report/Tally Report
 reportTallyMenuItem = new JMenuItem("Print Tally Report");
@@ -276,7 +277,7 @@ reportTallyMenuItem.setMnemonic(KeyEvent.VK_T);
 reportTallyMenuItem.setToolTipText(
                             "Print the tally report.");
 reportTallyMenuItem.addActionListener(globals);
-reportMenu.add(reportTallyMenuItem);
+//reportMenu.add(reportTallyMenuItem);  DISABLED UNTIL FUNCTIONAL
 
 
 //Report/Final Report
@@ -285,7 +286,7 @@ reportFinalMenuItem.setMnemonic(KeyEvent.VK_F);
 reportFinalMenuItem.setToolTipText(
                             "Prepare and print the final inspection report.");
 reportFinalMenuItem.addActionListener(globals);
-reportMenu.add(reportFinalMenuItem);
+//reportMenu.add(reportFinalMenuItem);  DISABLED UNTIL FUNCTIONAL
 
 //View menu
 viewMenu = new JMenu("View");
