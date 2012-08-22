@@ -57,7 +57,7 @@ public class Gate extends BasicGate{
     boolean doFindPeak = false;
     boolean doIntegrateAboveGate = false;
     boolean doQuenchOnOverLimit = false;
-    public boolean isAScanTriggerGate = false;
+    boolean isAScanTriggerGate = false;
 
     //if true, then data from this gate is stored where it can be used to modify
     //the wall data -- this allows a flaw gate to produce a kick on the wall
@@ -875,6 +875,21 @@ public final void setAScanTriggerGate(boolean pValue)
     setFlags();
 
 }//end of Gate::setAScanTriggerGate
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Gate::getIsAScanTriggerGate
+//
+// Returns the isAScanTriggerGate flag - true if the gate is designated as a
+// trigger for an AScan capture, false if not.
+//
+
+public boolean getIsAScanTriggerGate()
+{
+
+    return (isAScanTriggerGate);
+
+}//end of Gate::getIsAScanTriggerGate
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

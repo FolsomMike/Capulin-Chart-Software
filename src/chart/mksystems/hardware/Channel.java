@@ -185,7 +185,9 @@ public void initialize()
     //all flags1 variables should be set at once in the init to avoid conflicts
     //due to all flag1 setting functions using the same mask storage variables
     int flags1Mask = UTBoard.GATES_ENABLED;
-    if (dacEnabled) flags1Mask += UTBoard.DAC_ENABLED;
+    if (dacEnabled) flags1Mask |= UTBoard.DAC_ENABLED;
+    flags1Mask |= UTBoard.ASCAN_FREE_RUN;
+
     setFlags1(flags1Mask);
 
     //setup various things
@@ -1887,9 +1889,27 @@ public boolean getInterfaceTracking()
 public void setAScanTrigger(int pGate, boolean pState, boolean pForceUpdate)
 {
 
-    if (pState != gates[pGate].isAScanTriggerGate) pForceUpdate = true;
+    if (pState != gates[pGate].getIsAScanTriggerGate()) pForceUpdate = true;
 
-    gates[pGate].isAScanTriggerGate = pState;
+    //store the AScan trigger gate setting for the specified gate
+    gates[pGate].setAScanTriggerGate(pState);
+
+    //Look at all gates' AScan trigger settings -- if any gate(s) are set as
+    //trigger gates, then the DSP's flags are set to enable the triggered AScan
+    //mode.  If no gate is a trigger gate, then the DSP's AScan mode is set to
+    //free run.
+
+    boolean triggerGateFound = false;
+    for(int i = 0; i < numberOfGates; i++){
+        if(gates[i].getIsAScanTriggerGate()){
+            triggerGateFound = true;
+            setAFreeRun(false, false);
+            break;
+        }
+    }//for(int i = 0; i < numberOfGates; i++)
+
+    //no gate was a trigger gate so set DSP's AScan mode to free-run
+    if (!triggerGateFound) setAFreeRun(true, false);
 
     if (pForceUpdate){
 

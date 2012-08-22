@@ -468,6 +468,7 @@ static byte DSPD_RST = 0x20;
 
 static byte HIT_COUNT_MET = 0x0001;
 static byte MISS_COUNT_MET = 0x0002;
+static byte GATE_EXCEEDED = 0x0004;
 
 //shadow registers for FPGA registers which do not already have an associated
 //variable
@@ -2893,7 +2894,30 @@ sendChannelParam(pChannel, (byte)DSP_SET_AD_SAMPLE_SIZE_CMD,
 // UTBoard::requestAScan
 //
 // Requests an aScan packet for the board analog channel specified by
-// pChannel.
+// pChannel.  When the packet is returned, it will be processed by a different
+// section of code.
+//
+// The DSP's have multiple AScan modes -- Free Run and Triggered.
+//
+// Free Run Mode:
+//
+// Upon receiving a request for an AScan, the DSP immediately returns the
+// AScan data set created after the last request.  The DSP then creates a new
+// data set from whatever data is in the sample buffer to be ready for the next
+// AScan request.  Thus the display always reflects the data stored after the
+// previous request, but this is not obvious to the user.
+//
+// When viewing brief signal indications, the signal will not be very clear as
+// the indications will only occasionally flash into view when they happen to
+// coincide with the time of request.
+//
+// Triggered:
+//
+// The DSP will only create and store an AScan packet when any gate flagged as
+// a trigger gate is exceeded by the signal.  An AScan request is answered with
+// the latest packet created.  This allows the user to adjust the gate such that
+// only the signal of interest triggers a save, thus making sure that that
+// signal is clearly captured and displayed.
 //
 // The parameter pHardwareDelay is stored for use by the function which
 // processes the returned packet.

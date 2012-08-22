@@ -1537,6 +1537,12 @@ public void itemStateChanged(ItemEvent e)
         return;
     }
 
+    //handle the gate AScan "Trigger" mode checkbox
+    if (name.equals("AScan Trigger")){
+        updateAllSettings(false);
+        return;
+    }
+
 }//end of UTControls::itemStateChanged
 //-----------------------------------------------------------------------------
 
@@ -1728,9 +1734,12 @@ public void updateAllSettings(boolean pForceUpdate)
         ch.setGateSigProcThreshold(i,
           ((MFloatSpinner) gate.thresholdAdjuster).getIntValue(), pForceUpdate);
 
-        ch.setAScanTrigger(i,
-             ((JCheckBox)gate.aScanTriggerCheckBox).isSelected(), pForceUpdate);
+        //not all gates have a trigger check box (such as interface gates), so
+        //check for null before using
 
+        if (((JCheckBox)gate.aScanTriggerCheckBox) != null)
+            ch.setAScanTrigger(i,
+             ((JCheckBox)gate.aScanTriggerCheckBox).isSelected(), pForceUpdate);
         }
 
     ch.setDelay(delaySpin.spinner.getDoubleValue() / timeDistMult, pForceUpdate);
