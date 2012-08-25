@@ -28,6 +28,7 @@ package chart.mksystems.hardware;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.stripchart.Threshold;
 import chart.mksystems.stripchart.Trace;
+import chart.mksystems.threadsafe.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -40,15 +41,11 @@ public class Channel extends Object{
 
     IniFile configFile;
 
-    SyncFlag ownerDataChanged;
-    public SyncFlag dataChanged;
+    SyncedVariableSet syncedVarMgr;
 
-    public boolean gateParamsChanged, gateHitMissChanged, gateFlagsChanged;
     public boolean gateSigProcThresholdChanged;
-    public boolean flags1SetMaskChanged, flags1ClearMaskChanged;
-    public boolean dacGateParamsChanged, dacGateFlagsChanged;
 
-    int flags1SetMask, flags1ClearMask;
+    SyncedInteger flags1SetMask, flags1ClearMask;
 
     int chassisAddr, slotAddr, boardChannel;
 
@@ -73,7 +70,7 @@ public class Channel extends Object{
     boolean channelMasked; //true: pulsed/not display, off: pulsed/displayed
 
     boolean disabled = true; //overrides mode -- always off if true
-    int mode = UTBoard.POSITIVE_HALF;
+    SyncedInteger mode;
     public int previousMode;
     boolean interfaceTracking = false;
     boolean dacEnabled = false, aScanSlowEnabled = false;
@@ -82,12 +79,12 @@ public class Channel extends Object{
     int hardwareDelay, softwareDelay;
     public int delayPix = 0;
     double aScanRange = 0;
-    int hardwareRange;
-    public int aScanScale;
-    RemoteParam softwareGain;
-    RemoteParam hardwareGain1, hardwareGain2;
+    public SyncedInteger hardwareRange;
+    public SyncedInteger aScanScale;
+    SyncedDouble softwareGain;
+    SyncedInteger hardwareGain1, hardwareGain2;
     int rejectLevel;
-    int aScanSmoothing;
+    SyncedInteger aScanSmoothing;
     int dcOffset;
     public double nSPerDataPoint;
     public double uSPerDataPoint;
@@ -105,22 +102,29 @@ public class Channel extends Object{
 // The parameter configFile is used to load configuration data.  The IniFile
 // should already be opened and ready to access.
 //
+// The constructing class should pass a pointer to a SyncedVariableSet for the
+// values in this class which can be changed by the user and are sent to the
+// remotes so that they will be managed in a threadsafe manner.
+//
 
 public Channel(IniFile pConfigFile, int pChannelIndex,
-                                                SyncFlag pOwnerDataChanged)
+                                              SyncedVariableSet pSyncedVarMgr)
 {
 
     configFile = pConfigFile; channelIndex = pChannelIndex;
 
-    ownerDataChanged = pOwnerDataChanged;
+    syncedVarMgr = pSyncedVarMgr;
 
-    dataChanged = new SyncFlag();
-
-    softwareGain = new RemoteParam(ownerDataChanged, dataChanged, null, null);
-
-    hardwareGain1 = new RemoteParam(ownerDataChanged, dataChanged, null, null);
-
-    hardwareGain2 = new RemoteParam(ownerDataChanged, dataChanged, null, null);
+    softwareGain = new SyncedDouble(syncedVarMgr);
+    hardwareGain1 = new SyncedInteger(syncedVarMgr);
+    hardwareGain2 = new SyncedInteger(syncedVarMgr);
+    aScanSmoothing = new SyncedInteger(syncedVarMgr);
+    flags1SetMask = new SyncedInteger(syncedVarMgr);
+    flags1ClearMask = new SyncedInteger(syncedVarMgr);
+    mode = new SyncedInteger(syncedVarMgr);
+    mode.setValue((int)UTBoard.POSITIVE_HALF);
+    hardwareRange = new SyncedInteger(syncedVarMgr);
+    aScanScale = new SyncedInteger(syncedVarMgr);
 
     //read the configuration file and create/setup the charting/control elements
     configure(configFile);
@@ -188,46 +192,21 @@ public void initialize()
     if (dacEnabled) flags1Mask |= UTBoard.DAC_ENABLED;
     flags1Mask |= UTBoard.ASCAN_FREE_RUN;
 
-    setFlags1(flags1Mask);
+    setFlags1(flags1Mask, true);
 
     //setup various things
-    setAScanSmoothing(aScanSmoothing, true);
+    setAScanSmoothing(aScanSmoothing.getValue(), true);
     setRejectLevel(rejectLevel, true);
     setDCOffset(dcOffset, true);
-    setMode(mode, true);  //setMode also calls setTransducer
+    setMode(mode.getValue(), true);  //setMode also calls setTransducer
     setInterfaceTracking(interfaceTracking, true);
     setDelay(aScanDelay, true);
 
     //setRange calculates based upon some of the settings above so do last
     setRange(aScanRange, true);
 
-    //set all the data changed flags so the call to
-    //  sendDataChangesToRemotes() will send all data to the remotes
-    //the gates and DAC gates will have set their internal data changed flags
-    //true upon loading data from the cal file
-
-    dataChanged.flag = true;
-    gateParamsChanged = true; gateHitMissChanged = true;
-    gateFlagsChanged = true;
-    dacGateParamsChanged = true; dacGateFlagsChanged = true;
-
     //send all the changes made above to the remotes
-    //call the function in owner because it clears the data changed flag in that
-    //object - since that function is synchronized, conflicts with other channel
-    //object setup threads will be avoided - the function sends the data for
-    //whatever channels have data changed flags set true at the time, so a call
-    //from  one channel may send data for other channels, but will set the flags
-    //false so when those channels call nothing might be done because their data
-    //may alread have been sent
-
     sendDataChangesToRemotes();
-
-    //NOTE: some of the above calls may have invoked
-    //      channelOwner.setChannelDataChangedFlag(true) so the
-    // sendDataChangesToRemotes() function in that owner may be called when
-    // the main thread starts up - nothing will be sent to the remotes because
-    // all the data changed flags will have been set false by the above call to
-    // sendDataChangesToRemotes in this class
 
 }//end of Channel::initialize
 //-----------------------------------------------------------------------------
@@ -390,12 +369,8 @@ public int getActiveDACGateCount()
 // The start location of the gate will be adjusted to match the end location
 // of the previous gate.
 //
-// This and all functions which set the data changed flag(s) should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
 
-public synchronized void insertDACGate(int pStart, int pLevel)
+public void insertDACGate(int pStart, int pLevel)
 {
 
     //do not allow insertion if gate array is full
@@ -462,12 +437,8 @@ public synchronized void insertDACGate(int pStart, int pLevel)
 //
 // Deletes the DAC gate specified by pGate.
 //
-// This and all functions which set the data changed flag(s) should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
 
-public synchronized void deleteDACGate(int pGate)
+public void deleteDACGate(int pGate)
 {
 
     if (pGate < 0 || pGate >= numberOfDACGates) return;
@@ -495,12 +466,8 @@ public synchronized void deleteDACGate(int pGate)
 //
 // Deletes all the DAC gates by setting their active states to false.
 //
-// This and all functions which set the data changed flag(s) should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
 
-public synchronized void deleteAllDACGates()
+public void deleteAllDACGates()
 {
 
     for (int i = 0; i < numberOfDACGates; i++) setDACActive(i, false, false);
@@ -513,12 +480,8 @@ public synchronized void deleteAllDACGates()
 //
 // Shifts all gates beginning with index pStart down one slot.
 //
-// This and all functions which set the data changed flag(s) should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
 
-public synchronized void shiftDACGatesDown(int pStart)
+public void shiftDACGatesDown(int pStart)
 {
 
     int newFirstGate = pStart - 1;
@@ -543,12 +506,8 @@ public synchronized void shiftDACGatesDown(int pStart)
 //
 // Shifts all gates beginning with index pStart up one slot.
 //
-// This and all functions which set the data changed flag(s) should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
 
-public synchronized void shiftDACGatesUp(int pStart)
+public void shiftDACGatesUp(int pStart)
 {
 
     int newLastGate = getActiveDACGateCount();
@@ -571,12 +530,8 @@ public synchronized void shiftDACGatesUp(int pStart)
 //
 // Sets the pixel location values and active flag of the specified DAC gate.
 //
-// This and all functions which set the data changed flag(s) should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
 
-public synchronized void setDACGatePixelValues(int pGate, int pStart, int pEnd,
+public void setDACGatePixelValues(int pGate, int pStart, int pEnd,
                                  int pLevel, boolean pActive, boolean pSelected)
 {
 
@@ -598,24 +553,14 @@ public synchronized void setDACGatePixelValues(int pGate, int pStart, int pEnd,
 // If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
 // the flag is false, the value(s) will be sent only if they have changed.
 //
-// This and all functions which set the data changed flag(s) should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
 
-public synchronized void setDACPixStart(
+public void setDACPixStart(
                                    int pGate, int pStart, boolean pForceUpdate)
 {
 
     if (pStart != dacGates[pGate].gatePixStart) pForceUpdate = true;
 
-    dacGates[pGate].gatePixStart = pStart;
-
-    //flag that new data needs to be sent to remotes
-    if (pForceUpdate){
-        ownerDataChanged.set(true); dataChanged.flag = true;
-        dacGateParamsChanged = true;  dacGates[pGate].parametersChanged = true;
-    }
+    if (pForceUpdate) dacGates[pGate].gatePixStart = pStart;
 
 }//end of Channel::setDACPixStart
 //-----------------------------------------------------------------------------
@@ -628,24 +573,14 @@ public synchronized void setDACPixStart(
 // If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
 // the flag is false, the value(s) will be sent only if they have changed.
 //
-// This and all functions which set the data changed flag(s) should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
 
-public synchronized void setDACPixEnd(
+public void setDACPixEnd(
                                     int pGate, int pEnd, boolean pForceUpdate)
 {
 
     if (pEnd != dacGates[pGate].gatePixEnd) pForceUpdate = true;
 
-    dacGates[pGate].gatePixEnd = pEnd;
-
-    //flag that new data needs to be sent to remotes
-    if (pForceUpdate){
-        ownerDataChanged.set(true); dataChanged.flag = true;
-        dacGateParamsChanged = true;  dacGates[pGate].parametersChanged = true;
-    }
+    if (pForceUpdate) dacGates[pGate].gatePixEnd = pEnd;
 
 }//end of Channel::setDACPixEnd
 //-----------------------------------------------------------------------------
@@ -658,24 +593,13 @@ public synchronized void setDACPixEnd(
 // If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
 // the flag is false, the value(s) will be sent only if they have changed.
 //
-// This and all functions which set the data changed flag(s) should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
 
-public synchronized void setDACPixLevel(
-                                   int pGate, int pLevel, boolean pForceUpdate)
+public void setDACPixLevel(int pGate, int pLevel, boolean pForceUpdate)
 {
 
     if (pLevel != dacGates[pGate].gatePixLevel) pForceUpdate = true;
 
-    dacGates[pGate].gatePixLevel = pLevel;
-
-    //flag that new data needs to be sent to remotes
-    if (pForceUpdate){
-        ownerDataChanged.set(true); dataChanged.flag = true;
-        dacGateParamsChanged = true;  dacGates[pGate].parametersChanged = true;
-    }
+    if (pForceUpdate) dacGates[pGate].gatePixLevel = pLevel;
 
 }//end of Channel::setDACPixLevel
 //-----------------------------------------------------------------------------
@@ -764,18 +688,25 @@ public Trace getTrace(int pGate)
 // should be long enough to ensure that the other thread has had time to send
 // the first command before the mask is overwritten by the second change.
 //
-// This and all functions which set data changed flag(s) should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
+// NOTE: This functionality should be replaced.  The DSP currently stores
+// flags from the host in the same word as status flags it updates.  Thus it
+// is necessary for the host to send flag masks to alter only specific bits
+// to avoid overwriting the flags the DSP is tracking itself.  The DSP should
+// keep its flags in a separate word to avoid overlap
+// Then, flags here can be handled as they are in the Channel class.
+//
+// If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
+// the flag is false, the value(s) will be sent only if they have changed.
 //
 
-public synchronized void setFlags1(int pSetMask)
+public void setFlags1(int pSetMask, boolean pForceUpdate)
 {
 
-    flags1SetMask = pSetMask;
+    if (pSetMask != flags1SetMask.getValue()) pForceUpdate = true;
 
-    ownerDataChanged.set(true);
-    dataChanged.flag = true; flags1SetMaskChanged = true;
+    if (!pForceUpdate) return; //do nothing unless value change or forced
+
+    flags1SetMask.setValue(pSetMask);
 
 }//end of Channel::setFlags1
 //-----------------------------------------------------------------------------
@@ -786,20 +717,21 @@ public synchronized void setFlags1(int pSetMask)
 // Sends the flags1SetMask to the remotes to set bits in variable flags1.
 // See setFlags1 function for more info.
 //
-// This and all functions which set data changed flag(s) should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
+// NOTE: This functionality should be replaced.  The DSP currently stores
+// flags from the host in the same word as status flags it updates.  Thus it
+// is necessary for the host to send flag masks to alter only specific bits
+// to avoid overwriting the flags the DSP is tracking itself.  The DSP should
+// keep its flags in a separate word to avoid overlap
+// Then, flags here can be handled as they are in the Channel class.
 //
 
-public synchronized void sendSetFlags1()
+public void sendSetFlags1()
 {
 
     if (utBoard != null)
-        utBoard.sendSetFlags1(boardChannel, flags1SetMask);
+        utBoard.sendSetFlags1(boardChannel, flags1SetMask.applyValue());
     else
         System.out.println("UT Board not assigned to channel " + channelIndex);
-
-    flags1SetMaskChanged = false;
 
 }//end of Channel::sendSetFlags1
 //-----------------------------------------------------------------------------
@@ -819,18 +751,25 @@ public synchronized void sendSetFlags1()
 // The command is always sent to the DSP regardless of it being a new value as
 // it does not require much overhead and is infrequently used.
 //
-// This and all functions which set data changed flag(s) should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
+// NOTE: This functionality should be replaced.  The DSP currently stores
+// flags from the host in the same word as status flags it updates.  Thus it
+// is necessary for the host to send flag masks to alter only specific bits
+// to avoid overwriting the flags the DSP is tracking itself.  The DSP should
+// keep its flags in a separate word to avoid overlap
+// Then, flags here can be handled as they are in the Channel class.
+//
+// If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
+// the flag is false, the value(s) will be sent only if they have changed.
 //
 
-public synchronized void clearFlags1(int pClearMask)
+public void clearFlags1(int pClearMask, boolean pForceUpdate)
 {
 
-    flags1ClearMask = pClearMask;
+    if (pClearMask != flags1ClearMask.getValue()) pForceUpdate = true;
 
-    ownerDataChanged.set(true);
-    dataChanged.flag = true; flags1ClearMaskChanged = true;
+    if (!pForceUpdate) return; //do nothing unless value change or forced
+
+    flags1ClearMask.setValue(pClearMask);
 
 }//end of Channel::clearFlags1
 //-----------------------------------------------------------------------------
@@ -841,17 +780,18 @@ public synchronized void clearFlags1(int pClearMask)
 // Sends the flags1ClearMask to the remotes to clear bits in variable flags1.
 // See clearFlags1 function for more info.
 //
-// This and all functions which set data changed flag(s) should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
+// NOTE: This functionality should be replaced.  The DSP currently stores
+// flags from the host in the same word as status flags it updates.  Thus it
+// is necessary for the host to send flag masks to alter only specific bits
+// to avoid overwriting the flags the DSP is tracking itself.  The DSP should
+// keep its flags in a separate word to avoid overlap
+// Then, flags here can be handled as they are in the Channel class.
 //
 
-public synchronized void sendClearFlags1()
+public void sendClearFlags1()
 {
 
-    utBoard.sendClearFlags1(boardChannel, flags1ClearMask);
-
-    flags1ClearMaskChanged = false;
+    utBoard.sendClearFlags1(boardChannel, flags1ClearMask.applyValue());
 
 }//end of Channel::sendClearFlags1
 //-----------------------------------------------------------------------------
@@ -870,31 +810,20 @@ public synchronized void sendClearFlags1()
 // If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
 // the flag is false, the value(s) will be sent only if they have changed.
 //
-// This and all functions which set data changed flag(s) should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
 
-public synchronized void setDACEnabled(boolean pEnable, boolean pForceUpdate)
+public void setDACEnabled(boolean pEnable, boolean pForceUpdate)
 {
 
     if (pEnable != dacEnabled) pForceUpdate = true;
 
+    if (!pForceUpdate) return; //do nothing unless value change or forced
+
     dacEnabled = pEnable;
 
-    //flag that new data needs to be sent to remotes
-    if (pForceUpdate){
-        if (dacEnabled){
-            flags1SetMask = UTBoard.DAC_ENABLED;
-            flags1SetMaskChanged = true;
-        }
-        else{
-            flags1ClearMask = ~UTBoard.DAC_ENABLED;
-            flags1ClearMaskChanged = true;
-        }
-        ownerDataChanged.set(true);
-        dataChanged.flag = true;
-    }
+    if (dacEnabled)
+        flags1SetMask.setValue((int)UTBoard.DAC_ENABLED);
+    else
+        flags1ClearMask.setValue((int)~UTBoard.DAC_ENABLED);
 
 }//end of Channel::setDACEnabled
 //-----------------------------------------------------------------------------
@@ -938,12 +867,8 @@ public boolean getDACEnabled()
 // If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
 // the flag is false, the value(s) will be sent only if they have changed.
 //
-// This and all functions which set data changed flag(s) should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
 
-public synchronized void setAScanFastEnabled(boolean pEnable,
+public void setAScanFastEnabled(boolean pEnable,
                                                            boolean pForceUpdate)
 {
 
@@ -954,15 +879,11 @@ public synchronized void setAScanFastEnabled(boolean pEnable,
     //flag that new data needs to be sent to remotes
     if (pForceUpdate){
         if (aScanFastEnabled){
-            flags1SetMask = UTBoard.ASCAN_FAST_ENABLED;
-            flags1SetMaskChanged = true;
+            flags1SetMask.setValue((int)UTBoard.ASCAN_FAST_ENABLED);
         }
         else{
-            flags1ClearMask = ~UTBoard.ASCAN_FAST_ENABLED;
-            flags1ClearMaskChanged = true;
+            flags1ClearMask.setValue((int)~UTBoard.ASCAN_FAST_ENABLED);
         }
-        ownerDataChanged.set(true);
-        dataChanged.flag = true;
     }
 
 }//end of Channel::setAScanFastEnabled
@@ -1006,32 +927,21 @@ public boolean getAScanFastEnabled()
 // If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
 // the flag is false, the value(s) will be sent only if they have changed.
 //
-// This and all functions which set data changed flag(s) should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
 
-public synchronized void setAScanSlowEnabled(boolean pEnable,
+public void setAScanSlowEnabled(boolean pEnable,
                                                            boolean pForceUpdate)
 {
 
     if (pEnable != aScanSlowEnabled) pForceUpdate = true;
 
+    if (!pForceUpdate) return; //do nothing unless value change or forced
+
     aScanSlowEnabled = pEnable;
 
-    //flag that new data needs to be sent to remotes
-    if (pForceUpdate){
-        if (aScanSlowEnabled){
-            flags1SetMask = UTBoard.ASCAN_SLOW_ENABLED;
-            flags1SetMaskChanged = true;
-        }
-        else{
-            flags1ClearMask = ~UTBoard.ASCAN_SLOW_ENABLED;
-            flags1ClearMaskChanged = true;
-        }
-        ownerDataChanged.set(true);
-        dataChanged.flag = true;
-    }
+        if (aScanSlowEnabled)
+            flags1SetMask.setValue((int)UTBoard.ASCAN_SLOW_ENABLED);
+        else
+            flags1ClearMask.setValue((int)~UTBoard.ASCAN_SLOW_ENABLED);
 
 }//end of Channel::setAScanSlowEnabled
 //-----------------------------------------------------------------------------
@@ -1067,31 +977,20 @@ public boolean getAScanSlowEnabled()
 // If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
 // the flag is false, the value(s) will be sent only if they have changed.
 //
-// This and all functions which set data changed flag(s) should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
 
-public synchronized void setAFreeRun(boolean pEnable, boolean pForceUpdate)
+public void setAScanFreeRun(boolean pEnable, boolean pForceUpdate)
 {
 
     if (pEnable != aScanFreeRun) pForceUpdate = true;
 
+    if (!pForceUpdate) return; //do nothing unless value change or forced
+
     aScanFreeRun = pEnable;
 
-    //flag that new data needs to be sent to remotes
-    if (pForceUpdate){
-        if (aScanFreeRun){
-            flags1SetMask = UTBoard.ASCAN_FREE_RUN;
-            flags1SetMaskChanged = true;
-        }
-        else{
-            flags1ClearMask = ~UTBoard.ASCAN_FREE_RUN;
-            flags1ClearMaskChanged = true;
-        }
-        ownerDataChanged.set(true);
-        dataChanged.flag = true;
-    }
+    if (aScanFreeRun)
+        flags1SetMask.setValue((int)UTBoard.ASCAN_FREE_RUN);
+    else
+        flags1ClearMask.setValue((int)~UTBoard.ASCAN_FREE_RUN);
 
 }//end of Channel::setAScanFreeRun
 //-----------------------------------------------------------------------------
@@ -1148,32 +1047,37 @@ void calculateGateSpan()
 
         int firstGate = 0;
         for (int i = 0; i < numberOfGates; i++)
-            if (gates[i].gateStart < gates[firstGate].gateStart) firstGate = i;
+            if (gates[i].gateStart.getValue()
+                                        < gates[firstGate].gateStart.getValue())
+                firstGate = i;
 
         //find the latest gate
 
         int lastGate = 0;
         for (int i = 0; i < numberOfGates; i++)
-            if ((gates[i].gateStart + gates[i].gateWidth)
-                     > (gates[lastGate].gateStart + gates[lastGate].gateWidth))
+            if ((gates[i].gateStart.getValue() + gates[i].gateWidth.getValue())
+                            > (gates[lastGate].gateStart.getValue()
+                                       + gates[lastGate].gateWidth.getValue()))
                 lastGate = i;
 
         //absolute positioning
 
         //calculate the position (in samples) of the leading edge of first gate
-        firstGateEdgePos = (int)(gates[firstGate].gateStart / uSPerDataPoint);
+        firstGateEdgePos =
+                 (int)(gates[firstGate].gateStart.getValue() / uSPerDataPoint);
 
         //calculate the position in number of samples of trailing edge of
         //last gate
-        lastGateEdgePos = (int)((gates[lastGate].gateStart
-                                + gates[lastGate].gateWidth)  / uSPerDataPoint);
+        lastGateEdgePos = (int)((gates[lastGate].gateStart.getValue()
+                    + gates[lastGate].gateWidth.getValue())  / uSPerDataPoint);
 
     }// if (!interfaceTracking)
     else{
 
-        int interfaceGateLead = (int)(gates[0].gateStart / uSPerDataPoint);
-        int interfaceGateTrail =
-              (int)((gates[0].gateStart + gates[0].gateWidth) / uSPerDataPoint);
+        int interfaceGateLead =
+                        (int)(gates[0].gateStart.getValue() / uSPerDataPoint);
+        int interfaceGateTrail = (int)((gates[0].gateStart.getValue() +
+                             gates[0].gateWidth.getValue()) / uSPerDataPoint);
 
         //if there is only one gate, it must be the interface gate so use its
         //position and return
@@ -1189,14 +1093,17 @@ void calculateGateSpan()
 
         int firstGate = 1;
         for (int i = 1; i < numberOfGates; i++)
-            if (gates[i].gateStart < gates[firstGate].gateStart) firstGate = i;
+            if (gates[i].gateStart.getValue() <
+                                        gates[firstGate].gateStart.getValue())
+                firstGate = i;
 
         //find the latest gate, not including the interface gate (see note above)
 
         int lastGate = 1;
         for (int i = 1; i < numberOfGates; i++)
-            if ((gates[i].gateStart + gates[i].gateWidth)
-                     > (gates[lastGate].gateStart + gates[lastGate].gateWidth))
+            if ((gates[i].gateStart.getValue() + gates[i].gateWidth.getValue())
+                           > (gates[lastGate].gateStart.getValue()
+                                        + gates[lastGate].gateWidth.getValue()))
                 lastGate = i;
 
         //positioning relative to interface gate
@@ -1204,8 +1111,8 @@ void calculateGateSpan()
 
         //calculate the position (in samples) of the leading edge of first gate
         //relative to the leading edge of interface gate (worst case)
-        firstGateEdgePos = (int)(
-            (gates[0].gateStart + gates[firstGate].gateStart) / uSPerDataPoint);
+        firstGateEdgePos = (int)((gates[0].gateStart.getValue()
+                + gates[firstGate].gateStart.getValue()) / uSPerDataPoint);
 
         //if the interface gate is before all other gates, use its position
         if (interfaceGateLead < firstGateEdgePos)
@@ -1214,9 +1121,9 @@ void calculateGateSpan()
         //calculate the position in number of samples of trailing edge of last
         //gate relative to the trailing edge of interface gate (worst case)
         lastGateEdgePos = (int)(
-                (gates[0].gateStart + gates[0].gateWidth +
-                gates[lastGate].gateStart + gates[lastGate].gateWidth)
-                / uSPerDataPoint);
+                (gates[0].gateStart.getValue() + gates[0].gateWidth.getValue() +
+                gates[lastGate].gateStart.getValue()
+                + gates[lastGate].gateWidth.getValue()) / uSPerDataPoint);
 
         //if the interface gate is after all other gates, use its position
         if (interfaceGateTrail > lastGateEdgePos)
@@ -1421,22 +1328,20 @@ public int getRejectLevel()
 // both together.
 //
 
-//debug mks -- need to separate set and send ala software gain
-
-public synchronized void setAScanSmoothing(int pAScanSmoothing,
-                                                        boolean pForceUpdate)
+public void setAScanSmoothing(int pAScanSmoothing, boolean pForceUpdate)
 {
 
-    if (pAScanSmoothing != aScanSmoothing) pForceUpdate = true;
+    if (pAScanSmoothing != aScanSmoothing.getValue()) pForceUpdate = true;
 
-    aScanSmoothing = pAScanSmoothing;
+    if (pForceUpdate){
 
-    if (utBoard != null && pForceUpdate)
-                        utBoard.setAScanSmoothing(boardChannel, aScanSmoothing);
+        aScanSmoothing.setValue(pAScanSmoothing);
 
-    //update all gates to update averaging value used by DSPs
-    for (int i = 0; i < numberOfGates; i++) gates[i].flagsChanged = true;
-    sendGateFlags(); //debug mks -- don't do this?  setting flags will cause this to be sent? need to set all related changed flags
+        //update all gates with new averaging value
+        for (int i = 0; i < numberOfGates; i++)
+            gates[i].setAScanSmoothing(pAScanSmoothing);
+
+    }
 
 }//end of Channel::setAScanSmoothing
 //-----------------------------------------------------------------------------
@@ -1450,9 +1355,24 @@ public synchronized void setAScanSmoothing(int pAScanSmoothing,
 public int getAScanSmoothing()
 {
 
-    return aScanSmoothing;
+    return aScanSmoothing.getValue();
 
 }//end of Channel::getAScanSmoothing
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::sendAScanSmoothing
+//
+// Sends the AScanSmoothing value to the remotes.
+//
+
+public void sendAScanSmoothing()
+{
+
+    if (utBoard != null)
+        utBoard.setAScanSmoothing(boardChannel, aScanSmoothing.applyValue());
+
+}//end of Channel::sendAScanSmoothing
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1512,18 +1432,33 @@ public void setMode(int pMode, boolean pForceUpdate)
     //if the channel is disabled in the configuration file, mode is always off
     if (disabled) pMode = UTBoard.CHANNEL_OFF;
 
-    if (pMode != mode) pForceUpdate = true;
+    if (pMode != mode.getValue()) pForceUpdate = true;
 
-    mode = pMode;
+    if (!pForceUpdate) return; //do nothing unless value change or forced
 
-    boolean lChannelOn = (mode != UTBoard.CHANNEL_OFF) ? true : false;
+    mode.setValue(pMode);
+
+    boolean lChannelOn =
+                    (mode.getValue() != UTBoard.CHANNEL_OFF) ? true : false;
 
     //update the tranducer settings as the on/off status is set that way
     setTransducer(lChannelOn, pulseBank, pulseChannel, pForceUpdate);
 
-    if (utBoard != null && pForceUpdate) utBoard.sendMode(boardChannel, mode);
-
 }//end of Channel::setMode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::sendMode
+//
+// Sends the signal mode to the remote.
+//
+
+public void sendMode()
+{
+
+    if (utBoard != null) utBoard.sendMode(boardChannel, mode.applyValue());
+
+}//end of Channel::sendMode
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1535,7 +1470,7 @@ public void setMode(int pMode, boolean pForceUpdate)
 public int getMode()
 {
 
-    return mode;
+    return mode.getValue();
 
 }//end of Channel::getMode
 //-----------------------------------------------------------------------------
@@ -1592,8 +1527,8 @@ public int getMode()
 public void setRange(double pRange, boolean pForceUpdate)
 {
 
-    int oldHardwareRange = hardwareRange;
-    int oldAScanScale = aScanScale;
+    int oldHardwareRange = hardwareRange.getValue();
+    int oldAScanScale = aScanScale.getValue();
 
     aScanRange = pRange;
 
@@ -1620,37 +1555,54 @@ public void setRange(double pRange, boolean pForceUpdate)
     else stop = lastGateEdgePos;
 
     //calculate the number of required samples to cover the range specified
-    hardwareRange = stop - start;
+    hardwareRange.setValue(stop - start);
 
     //force sample size to be even - see notes at top of
     //UTboard.setHardwareRange for more info
-    if (hardwareRange % 2 != 0) hardwareRange++;
+    if (hardwareRange.getValue() % 2 != 0)
+        hardwareRange.setValue(hardwareRange.getValue() + 1);
 
     //calculate the compression needed to fit at least the desired number of
     //AScan samples into the 400 sample AScan buffer - the scale factor is
     //rounded up rather than down to make sure the desired range is collected
 
-    aScanScale = (rightEdgeAScan - leftEdgeAScan) / UTBoard.ASCAN_SAMPLE_SIZE;
+    aScanScale.setValue(
+                (rightEdgeAScan - leftEdgeAScan) / UTBoard.ASCAN_SAMPLE_SIZE);
 
     //if the range is not a perfect integer, round it up
     if (((rightEdgeAScan - leftEdgeAScan) % UTBoard.ASCAN_SAMPLE_SIZE) != 0)
-        aScanScale++;
+        aScanScale.setValue(aScanScale.getValue() + 1);
 
-    if (hardwareRange != oldHardwareRange) pForceUpdate = true;
-    if (aScanScale != oldAScanScale) pForceUpdate = true;
+}//end of Channel::setRange
+//-----------------------------------------------------------------------------
 
-    if (utBoard != null && pForceUpdate){
+//-----------------------------------------------------------------------------
+// Channel::sendRange
+//
+// Sends the necessary information regarding the range to the remotes.  Note
+// that aScanRange itself is not sent, so it is not a threadsafe variable.
+//
+// The values which are calculated and sent are threadsafe.
+//
 
-        utBoard.sendHardwareRange(boardChannel, hardwareRange);
+private void sendRange()
+{
+
+    if (utBoard != null){
+
+        //lock in the synced value since it is used twice here
+        int lHardwareRange = hardwareRange.applyValue();
+
+        utBoard.sendHardwareRange(boardChannel, lHardwareRange);
 
         //tell the DSP cores how big the sample set is
-        utBoard.sendDSPSampleSize(boardChannel, hardwareRange);
+        utBoard.sendDSPSampleSize(boardChannel, lHardwareRange);
 
-        utBoard.sendAScanScale(boardChannel, aScanScale);
+        utBoard.sendAScanScale(boardChannel, aScanScale.applyValue());
 
     }
 
-}//end of Channel::setRange
+}//end of Channel::sendRange
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1692,22 +1644,18 @@ public void setSampleBufferStart()
 // If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
 // the flag is false, the value(s) will be sent only if they have changed.
 //
-// This and all functions which set the data changed flag(s) should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
 
-public synchronized void setSoftwareGain(double pSoftwareGain,
-                                                         boolean pForceUpdate)
+public void setSoftwareGain(double pSoftwareGain, boolean pForceUpdate)
 {
 
-    if (pSoftwareGain != softwareGain.getDouble()) pForceUpdate = true;
+    if (pSoftwareGain != softwareGain.getValue()) pForceUpdate = true;
 
-    if (pForceUpdate) {
-        softwareGain.setDouble(pSoftwareGain);
-        //if the DAC is enabled, all DAC gains must be recalculated and resent
-        if (dacEnabled) udpateDACGains();
-    }
+    if (!pForceUpdate) return; //do nothing unless value change or forced
+
+    softwareGain.setValue(pSoftwareGain);
+
+    for (int i = 0; i < numberOfDACGates; i++)
+        dacGates[i].setSoftwareGain(pSoftwareGain, pForceUpdate);
 
 }//end of Channel::setSoftwareGain
 //-----------------------------------------------------------------------------
@@ -1717,16 +1665,12 @@ public synchronized void setSoftwareGain(double pSoftwareGain,
 //
 // Sends the software gain to the DSP.
 //
-// This and all functions which set the data changed flag(s) should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
 
-public synchronized void sendSoftwareGain()
+public void sendSoftwareGain()
 {
 
     if (utBoard != null)
-        utBoard.sendSoftwareGain(boardChannel, softwareGain.xmtDouble());
+        utBoard.sendSoftwareGain(boardChannel, softwareGain.applyValue());
 
 }//end of Channel::sendSoftwareGain
 //-----------------------------------------------------------------------------
@@ -1740,7 +1684,7 @@ public synchronized void sendSoftwareGain()
 public double getSoftwareGain()
 {
 
-    return softwareGain.getDouble();
+    return softwareGain.getValue();
 
 }//end of Channel::getSoftwareGain
 //-----------------------------------------------------------------------------
@@ -1753,22 +1697,18 @@ public double getSoftwareGain()
 // If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
 // the flag is false, the value(s) will be sent only if they have changed.
 //
-// This and all functions which set the data changed flag(s) should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
 
-public synchronized void setHardwareGain(int pHardwareGain1, int pHardwareGain2,
+public void setHardwareGain(int pHardwareGain1, int pHardwareGain2,
                                                            boolean pForceUpdate)
 {
 
-    if ((pHardwareGain1 != hardwareGain1.getInt()) ||
-                                    (pHardwareGain2 != hardwareGain2.getInt() ))
+    if ((pHardwareGain1 != hardwareGain1.getValue()) ||
+                                 (pHardwareGain2 != hardwareGain2.getValue() ))
         pForceUpdate = true;
 
     if (pForceUpdate){
-        hardwareGain1.setInt(pHardwareGain1);
-        hardwareGain2.setInt(pHardwareGain2);
+        hardwareGain1.setValue(pHardwareGain1);
+        hardwareGain2.setValue(pHardwareGain2);
     }
 
 }//end of Channel::setHardwareGain
@@ -1779,16 +1719,12 @@ public synchronized void setHardwareGain(int pHardwareGain1, int pHardwareGain2,
 //
 // Sends the hardware gain to the DSP.
 //
-// This and all functions which set the data changed flag(s) should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
 
-public synchronized void sendHardwareGain()
+public void sendHardwareGain()
 {
 
-    if (utBoard != null) utBoard.sendHardwareGain(boardChannel,
-                                hardwareGain1.xmtInt(), hardwareGain2.xmtInt());
+    if (utBoard != null) utBoard.sendHardwareGain(
+        boardChannel, hardwareGain1.applyValue(), hardwareGain2.applyValue());
 
 }//end of Channel::sendHardwareGain
 //-----------------------------------------------------------------------------
@@ -1802,7 +1738,7 @@ public synchronized void sendHardwareGain()
 public int getHardwareGain1()
 {
 
-    return hardwareGain1.getInt();
+    return hardwareGain1.getValue();
 
 }//end of Channel::getHardwareGain1
 //-----------------------------------------------------------------------------
@@ -1816,7 +1752,7 @@ public int getHardwareGain1()
 public int getHardwareGain2()
 {
 
-    return hardwareGain2.getInt();
+    return hardwareGain2.getValue();
 
 }//end of Channel::getHardwareGain2
 //-----------------------------------------------------------------------------
@@ -1835,6 +1771,8 @@ public void setInterfaceTracking(boolean pState, boolean pForceUpdate)
 
     if (pState != interfaceTracking) pForceUpdate = true;
 
+    if (!pForceUpdate) return; //do nothing unless value change or forced
+
     interfaceTracking = pState;
 
     //switch gate start positions to the appropriate values for the current mode
@@ -1845,17 +1783,11 @@ public void setInterfaceTracking(boolean pState, boolean pForceUpdate)
     //determine the span from the earliest gate edge to the latest (in time)
     calculateGateSpan();
 
-    if (pForceUpdate){
-        for (int i = 0; i < numberOfGates; i++)
-            gates[i].setInterfaceTracking(pState);
+    for (int i = 0; i < numberOfGates; i++)
+        gates[i].setInterfaceTracking(pState);
 
-        for (int i = 0; i < numberOfDACGates; i++)
-            dacGates[i].setInterfaceTracking(pState);
-
-        ownerDataChanged.set(true); dataChanged.flag = true;
-        gateFlagsChanged = true; dacGateFlagsChanged = true;
-
-    }// if (pForceUpdate)
+    for (int i = 0; i < numberOfDACGates; i++)
+        dacGates[i].setInterfaceTracking(pState);
 
 }//end of Channel::setInterfaceTracking
 //-----------------------------------------------------------------------------
@@ -1891,6 +1823,8 @@ public void setAScanTrigger(int pGate, boolean pState, boolean pForceUpdate)
 
     if (pState != gates[pGate].getIsAScanTriggerGate()) pForceUpdate = true;
 
+    if (!pForceUpdate) return; //do nothing unless value change or forced
+
     //store the AScan trigger gate setting for the specified gate
     gates[pGate].setAScanTriggerGate(pState);
 
@@ -1903,20 +1837,13 @@ public void setAScanTrigger(int pGate, boolean pState, boolean pForceUpdate)
     for(int i = 0; i < numberOfGates; i++){
         if(gates[i].getIsAScanTriggerGate()){
             triggerGateFound = true;
-            setAFreeRun(false, false);
+            setAScanFreeRun(false, false);
             break;
         }
     }//for(int i = 0; i < numberOfGates; i++)
 
     //no gate was a trigger gate so set DSP's AScan mode to free-run
-    if (!triggerGateFound) setAFreeRun(true, false);
-
-    if (pForceUpdate){
-
-        ownerDataChanged.set(true); dataChanged.flag = true;
-        gateFlagsChanged = true;
-
-    }// if (pForceUpdate)
+    if (!triggerGateFound) setAScanFreeRun(true, false);
 
 }//end of Channel::setAScanTrigger
 //-----------------------------------------------------------------------------
@@ -1949,7 +1876,7 @@ void setTransducer(boolean pChannelOn, int pPulseBank, int pPulseChannel,
     channelOn =
             pChannelOn; pulseBank = pPulseBank; pulseChannel = pPulseChannel;
 
-    channelOn = (mode != UTBoard.CHANNEL_OFF) ? true : false;
+    channelOn = (mode.getValue() != UTBoard.CHANNEL_OFF) ? true : false;
 
     if (utBoard != null && pForceUpdate)
         utBoard.sendTransducer(boardChannel,
@@ -2051,7 +1978,7 @@ private void configureGates()
         gates = new Gate[numberOfGates];
 
         for (int i = 0; i < numberOfGates; i++)
-            gates[i] = new Gate(configFile, channelIndex, i);
+            gates[i] = new Gate(configFile, channelIndex, i, syncedVarMgr);
 
     }//if (numberOfGates > 0)
 
@@ -2077,7 +2004,8 @@ private void configureDACGates()
         dacGates = new DACGate[numberOfDACGates];
 
         for (int i = 0; i < numberOfDACGates; i++)
-            dacGates[i] = new DACGate(configFile, channelIndex, i);
+            dacGates[i] = new DACGate(configFile, channelIndex, i,
+                                                    syncedVarMgr, scopeMax);
 
     }//if (numberOfDACGates > 0)
 
@@ -2151,18 +2079,15 @@ public void requestPeakData()
 // If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
 // the flag is false, the value(s) will be sent only if they have changed.
 //
-// This and all functions which set the data changed flag(s) should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
 
-public synchronized void setGateStart(
-                                int pGate, double pStart, boolean pForceUpdate)
+public void setGateStart(int pGate, double pStart, boolean pForceUpdate)
 {
 
-    if (pStart != gates[pGate].gateStart) pForceUpdate = true;
+    if (pStart != gates[pGate].gateStart.getValue()) pForceUpdate = true;
 
-    gates[pGate].gateStart = pStart;
+    if (!pForceUpdate) return; //do nothing unless value change or forced
+
+    gates[pGate].gateStart.setValue(pStart);
 
     //store the variable as appropriate for the interface tracking mode - this
     //allows switching back and forth between modes
@@ -2173,13 +2098,6 @@ public synchronized void setGateStart(
 
     //determine the span from the earliest gate edge to the latest (in time)
     calculateGateSpan();
-
-    //flag that new data needs to be sent to remotes
-    if (pForceUpdate){
-        ownerDataChanged.set(true);
-        dataChanged.flag = true; gateParamsChanged = true;
-        gates[pGate].parametersChanged = true;
-    }
 
 }//end of Channel::setGateStart
 //-----------------------------------------------------------------------------
@@ -2193,7 +2111,7 @@ public synchronized void setGateStart(
 public double getGateStart(int pGate)
 {
 
-    return gates[pGate].gateStart;
+    return gates[pGate].gateStart.getValue();
 
 }//end of Channel::getGateStart
 //-----------------------------------------------------------------------------
@@ -2300,28 +2218,18 @@ public double getPreviousGateStart(int pGate)
 // If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
 // the flag is false, the value(s) will be sent only if they have changed.
 //
-// This and all functions which set the gateParamsChanged flag should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
 
-public synchronized void setGateWidth(
-                                int pGate, double pWidth, boolean pForceUpdate)
+public void setGateWidth(int pGate, double pWidth, boolean pForceUpdate)
 {
 
-    if (pWidth != gates[pGate].gateWidth) pForceUpdate = true;
+    if (pWidth != gates[pGate].gateWidth.getValue()) pForceUpdate = true;
 
-    gates[pGate].gateWidth = pWidth;
+    if (!pForceUpdate) return; //do nothing unless value change or forced
+
+    gates[pGate].gateWidth.setValue(pWidth);
 
     //determine the span from the earliest gate edge to the latest (in time)
     calculateGateSpan();
-
-    //flag that new data needs to be sent to remotes
-    if (pForceUpdate){
-        ownerDataChanged.set(true);
-        dataChanged.flag = true; gateParamsChanged = true;
-        gates[pGate].parametersChanged = true;
-    }
 
 }//end of Channel::setGateWidth
 //-----------------------------------------------------------------------------
@@ -2335,7 +2243,7 @@ public synchronized void setGateWidth(
 public double getGateWidth(int pGate)
 {
 
-    return gates[pGate].gateWidth;
+    return gates[pGate].gateWidth.getValue();
 
 }//end of Channel::getGateWidth
 //-----------------------------------------------------------------------------
@@ -2377,7 +2285,7 @@ public double getPreviousGateWidth(int pGate)
 public int getGateFlags(int pGate)
 {
 
-    return gates[pGate].gateFlags;
+    return gates[pGate].gateFlags.getValue();
 
 }//end of Channel::getGateFlags
 //-----------------------------------------------------------------------------
@@ -2390,25 +2298,15 @@ public int getGateFlags(int pGate)
 // If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
 // the flag is false, the value(s) will be sent only if they have changed.
 //
-// This and all functions which set the gateParamsChanged flag should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
 
-public synchronized void setGateLevel(
-                                   int pGate, int pLevel, boolean pForceUpdate)
+public void setGateLevel(int pGate, int pLevel, boolean pForceUpdate)
 {
 
-    if (pLevel != gates[pGate].gateLevel) pForceUpdate = true;
+    if (pLevel != gates[pGate].gateLevel.getValue()) pForceUpdate = true;
 
-    gates[pGate].gateLevel = pLevel;
+    if (!pForceUpdate) return; //do nothing unless value change or forced
 
-    //flag that new data needs to be sent to remotes
-    if (pForceUpdate){
-        ownerDataChanged.set(true);
-        dataChanged.flag = true; gateParamsChanged = true;
-        gates[pGate].parametersChanged = true;
-    }
+    gates[pGate].gateLevel.setValue(pLevel);
 
 }//end of Channel::setGateLevel
 //-----------------------------------------------------------------------------
@@ -2422,7 +2320,7 @@ public synchronized void setGateLevel(
 public int getGateLevel(int pGate)
 {
 
-    return gates[pGate].gateLevel;
+    return gates[pGate].gateLevel.getValue();
 
 }//end of Channel::getGateLevel
 //-----------------------------------------------------------------------------
@@ -2436,25 +2334,15 @@ public int getGateLevel(int pGate)
 // If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
 // the flag is false, the value(s) will be sent only if they have changed.
 //
-// This and all functions which set the gateHitMissChanged flag should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
 
-public synchronized void setGateHitCount(
-                                int pGate, int pHitCount, boolean pForceUpdate)
+public void setGateHitCount(int pGate, int pHitCount, boolean pForceUpdate)
 {
 
-    if (pHitCount != gates[pGate].gateHitCount) pForceUpdate = true;
+    if (pHitCount != gates[pGate].gateHitCount.getValue()) pForceUpdate = true;
 
-    gates[pGate].gateHitCount = pHitCount;
+    if (!pForceUpdate) return; //do nothing unless value change or forced
 
-    //flag that new data needs to be sent to remotes
-    if (pForceUpdate){
-        ownerDataChanged.set(true);
-        dataChanged.flag = true; gateHitMissChanged = true;
-        gates[pGate].hitMissChanged = true;
-    }
+    gates[pGate].gateHitCount.setValue(pHitCount);
 
 }//end of Channel::setGateHitCount
 //-----------------------------------------------------------------------------
@@ -2469,7 +2357,7 @@ public synchronized void setGateHitCount(
 public int getGateHitCount(int pGate)
 {
 
-    return gates[pGate].gateHitCount;
+    return gates[pGate].gateHitCount.getValue();
 
 }//end of Channel::getGateHitCount
 //-----------------------------------------------------------------------------
@@ -2484,25 +2372,16 @@ public int getGateHitCount(int pGate)
 // If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
 // the flag is false, the value(s) will be sent only if they have changed.
 //
-// This and all functions which set data changed flag(s) should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
 
-public synchronized void setGateMissCount(
-                               int pGate, int pMissCount, boolean pForceUpdate)
+public void setGateMissCount(int pGate, int pMissCount, boolean pForceUpdate)
 {
 
-    if (pMissCount != gates[pGate].gateMissCount) pForceUpdate = true;
+    if (pMissCount != gates[pGate].gateMissCount.getValue())
+        pForceUpdate = true;
 
-    gates[pGate].gateMissCount = pMissCount;
+    if (!pForceUpdate) return; //do nothing unless value change or forced
 
-    //flag that new data needs to be sent to remotes
-    if (pForceUpdate){
-        ownerDataChanged.set(true);
-        dataChanged.flag = true; gateHitMissChanged = true;
-        gates[pGate].hitMissChanged = true;
-    }
+    gates[pGate].gateMissCount.setValue(pMissCount);
 
 }//end of Channel::setGateMissCount
 //-----------------------------------------------------------------------------
@@ -2517,7 +2396,7 @@ public synchronized void setGateMissCount(
 public int getGateMissCount(int pGate)
 {
 
-    return gates[pGate].gateMissCount;
+    return gates[pGate].gateMissCount.getValue();
 
 }//end of Channel::getGateMissCount
 //-----------------------------------------------------------------------------
@@ -2532,7 +2411,7 @@ public int getGateMissCount(int pGate)
 public int getSigProcThreshold(int pGate)
 {
 
-    return gates[pGate].sigProcThreshold;
+    return gates[pGate].sigProcThreshold.getValue();
 
 }//end of Channel::getSigProcThreshold
 //-----------------------------------------------------------------------------
@@ -2546,19 +2425,14 @@ public int getSigProcThreshold(int pGate)
 // the flag is false, the value(s) will be sent only if they have changed.
 //
 
-public synchronized void setGateSigProc(int pGate, String pMode,
-                                                         boolean pForceUpdate)
+public void setGateSigProc(int pGate, String pMode, boolean pForceUpdate)
 {
 
     if (!pMode.equals(gates[pGate].getSignalProcessing())) pForceUpdate = true;
 
-    gates[pGate].setSignalProcessing(pMode);
+    if (!pForceUpdate) return; //do nothing unless value change or forced
 
-    //flag that new data needs to be sent to remotes
-    if (pForceUpdate){
-        ownerDataChanged.set(true); dataChanged.flag = true;
-        gateFlagsChanged = true;
-    }
+    gates[pGate].setSignalProcessing(pMode);
 
 }//end of Channel::setGateSigProc
 //-----------------------------------------------------------------------------
@@ -2572,27 +2446,122 @@ public synchronized void setGateSigProc(int pGate, String pMode,
 // If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
 // the flag is false, the value(s) will be sent only if they have changed.
 //
-// This and all functions which set data changed flag(s) should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
 
-public synchronized void setGateSigProcThreshold(
-                           int pGate, int pThreshold, boolean pForceUpdate)
+public void setGateSigProcThreshold(
+                               int pGate, int pThreshold, boolean pForceUpdate)
 {
 
-    if (pThreshold != gates[pGate].sigProcThreshold) pForceUpdate = true;
+    if (pThreshold != gates[pGate].sigProcThreshold.getValue())
+        pForceUpdate = true;
 
-    gates[pGate].sigProcThreshold = pThreshold;
+    if (!pForceUpdate) return; //do nothing unless value change or forced
 
-    //flag that new data needs to be sent to remotes
-    if (pForceUpdate){
-        ownerDataChanged.set(true);
-        dataChanged.flag = true; gateSigProcThresholdChanged = true;
-        gates[pGate].sigProcThresholdChanged = true;
-    }
+    gates[pGate].sigProcThreshold.setValue(pThreshold);
 
 }//end of Channel::setGateSigProcThreshold
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::isAnyGatePositionChanged
+//
+// Checks if any gate start, width, or level values have been changed.
+//
+
+private boolean isAnyGatePositionChanged()
+{
+
+    for (int i = 0; i < numberOfGates; i++)
+        if (gates[i].isPositionChanged()) return(true);
+
+   return(false);
+
+}//end of Channel::isAnyGatePositionChanged
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::isAnyGateSigProcThresholdChanged
+//
+// Checks if any gate's signal processing threshold has changed.
+//
+
+private boolean isAnyGateSigProcThresholdChanged()
+{
+
+    for (int i = 0; i < numberOfGates; i++)
+        if (gates[i].sigProcThreshold.getDataChanged()) return(true);
+
+   return(false);
+
+}//end of Channel::isAnyGateSigProcThresholdChanged
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::isAnyGateFlagsChanged
+//
+// Checks if any gate flags have changed.
+//
+
+private boolean isAnyGateFlagsChanged()
+{
+
+    for (int i = 0; i < numberOfGates; i++)
+        if (gates[i].isFlagsChanged()) return(true);
+
+   return(false);
+
+}//end of Channel::isAnyGateFlagsChanged
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::isAnyDACGatePositionChanged
+//
+// Checks if any DAC gate start, width, or gain values have been changed.
+//
+
+private boolean isAnyDACGatePositionChanged()
+{
+
+    for (int i = 0; i < numberOfDACGates; i++)
+        if (dacGates[i].isPositionChanged()) return(true);
+
+   return(false);
+
+}//end of Channel::isAnyDACGatePositionChanged
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::isAnyDACGateFlagsChanged
+//
+// Checks if any DAC gate flags have changed.
+//
+
+private boolean isAnyDACGateFlagsChanged()
+{
+
+    for (int i = 0; i < numberOfDACGates; i++)
+        if (dacGates[i].isFlagsChanged()) return(true);
+
+   return(false);
+
+}//end of Channel::isAnyDACGateFlagsChanged
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::isAnyGateHitMissChanged
+//
+// Checks if any gate Hit/Miss count values have changed.
+//
+
+private boolean isAnyGateHitMissChanged()
+{
+
+    for (int i = 0; i < numberOfGates; i++)
+        if (gates[i].gateHitCount.getDataChanged()
+            || gates[i].gateMissCount.getDataChanged()) return(true);
+
+   return(false);
+
+}//end of Channel::isAnyGateHitMissChanged
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -2600,34 +2569,24 @@ public synchronized void setGateSigProcThreshold(
 //
 // Sends gate start, width, and level to the remotes.
 //
-// This and all functions which set data changed flag(s) should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
 
-public synchronized void sendGateParameters()
+public void sendGateParameters()
 {
 
     //unknown which gate(s) have changed data, so check them all
-    //clear the flags even if utBoard is null so they won't be checked again
 
     for (int i = 0; i < numberOfGates; i++){
 
-        if (gates[i].parametersChanged == true){
+        if (gates[i].isPositionChanged()){
 
             if (utBoard != null)
                 utBoard.sendGate(boardChannel, i,
-                    (int)(gates[i].gateStart / uSPerDataPoint),
-                    (int)(gates[i].gateWidth / uSPerDataPoint),
-                    gates[i].gateLevel);
+                    (int)(gates[i].gateStart.applyValue() / uSPerDataPoint),
+                    (int)(gates[i].gateWidth.applyValue() / uSPerDataPoint),
+                    gates[i].gateLevel.applyValue());
 
-            gates[i].parametersChanged = false;
-
-        }// if (gates[i].parametersChanged == true)
+        }//gates[i].gateStart.getDataChanged()...
     }// for (int i = 0; i < numberOfGates; i++)
-
-    //clear the flag
-    gateParamsChanged = false;
 
 }//end of Channel::sendGateParameters
 //-----------------------------------------------------------------------------
@@ -2637,42 +2596,20 @@ public synchronized void sendGateParameters()
 //
 // Sends gate flags to the remotes.
 //
-// This and all functions which set the data changed flag(s) should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
 
-public synchronized void sendGateFlags()
+public void sendGateFlags()
 {
 
     //unknown which gate(s) have changed data, so check them all
-    //clear the flags even if utBoard is null so they won't be checked again
 
     for (int i = 0; i < numberOfGates; i++){
+        if (gates[i].getFlags().getDataChanged()){
 
-        if (gates[i].flagsChanged == true){
+            if (utBoard != null) utBoard.sendGateFlags(
+                             boardChannel, i, gates[i].getFlags().applyValue());
 
-            //all gates use the channel's aScanSmoothing value to determine
-            //their data averaging depth, but 4 is max allowed even though
-            //aScanSmoothing can be higher
-
-            int averaging = aScanSmoothing;
-            if (averaging > 4) averaging = 4;
-            if (averaging < 1) averaging = 1;
-            //shift down ~ 1-4 -> 0-3
-            averaging--;
-            //merge into bits 15,14 of flags value
-            int flags = gates[i].getFlags() | (averaging<<14);
-
-            if (utBoard != null) utBoard.sendGateFlags(boardChannel, i, flags);
-
-            gates[i].flagsChanged = false;
-
-            }// if (gates[i].parametersChanged == true)
+            }//if (gates[i].getFlags().getDataChanged() == true)
         }// for (int i = 0; i < numberOfGates; i++)
-
-    //clear the flag
-    gateFlagsChanged = false;
 
 }//end of Channel::sendGateFlags
 //-----------------------------------------------------------------------------
@@ -2682,33 +2619,23 @@ public synchronized void sendGateFlags()
 //
 // Sends gate signal processing thresholds to the remotes.
 //
-// This and all functions which set the data changed flag(s) should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
 
-public synchronized void sendGateSigProcThreshold()
+public void sendGateSigProcThreshold()
 {
 
     //unknown which gate(s) have changed data, so check them all
-    //clear the flags even if utBoard is null so they won't be checked again
 
     for (int i = 0; i < numberOfGates; i++){
 
-        if (gates[i].sigProcThresholdChanged == true){
+        if (gates[i].sigProcThreshold.getDataChanged()){
 
-            int threshold = gates[i].sigProcThreshold;
+            int threshold = gates[i].sigProcThreshold.applyValue();
 
             if (utBoard != null)
                 utBoard.sendGateSigProcThreshold(boardChannel, i, threshold);
 
-            gates[i].sigProcThresholdChanged = false;
-
-        }// if (gates[i].parametersChanged == true)
+        }//if (gates[i].sigProcThreshold.getDataChanged())
     }// for (int i = 0; i < numberOfGates; i++)
-
-    //clear the flag
-    gateSigProcThresholdChanged = false;
 
 }//end of Channel::sendGateSigProcThreshold
 //-----------------------------------------------------------------------------
@@ -2718,32 +2645,23 @@ public synchronized void sendGateSigProcThreshold()
 //
 // Sends gate hit and miss values to the remotes.
 //
-// This and all functions which set the gateHitMissChanged flag should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
 
-public synchronized void sendGateHitMiss()
+public void sendGateHitMiss()
 {
-
     //unknown which gate(s) have changed data, so check them all
-    //clear the flags even if utBoard is null so they won't be checked again
 
     for (int i = 0; i < numberOfGates; i++){
 
-        if (gates[i].hitMissChanged == true){
+        if (gates[i].gateHitCount.getDataChanged()
+             || gates[i].gateMissCount.getDataChanged()){
 
             if (utBoard != null)
                 utBoard.sendHitMissCounts(boardChannel, i,
-                            gates[i].gateHitCount, gates[i].gateMissCount);
+                gates[i].gateHitCount.applyValue(),
+                gates[i].gateMissCount.applyValue());
 
-            gates[i].hitMissChanged = false;
-
-        }// if (gates[i].hitMissChanged == true)
+        }//if (gates[i].gateHitCount.getDataChanged()...
     }// for (int i = 0; i < numberOfGates; i++)
-
-    //clear the flag
-    gateHitMissChanged = false;
 
 }//end of Channel::sendGateHitMiss
 //-----------------------------------------------------------------------------
@@ -2753,12 +2671,8 @@ public synchronized void sendGateHitMiss()
 //
 // Sends DAC gate start, width, and level to the remotes.
 //
-// This and all functions which set the dacGateParamsChanged flag should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
 
-public synchronized void sendDACGateParameters()
+public void sendDACGateParameters()
 {
 
     //unknown which gate(s) have changed data, so check them all
@@ -2766,49 +2680,18 @@ public synchronized void sendDACGateParameters()
 
     for (int i = 0; i < numberOfDACGates; i++){
 
-        if (dacGates[i].parametersChanged == true){
+        if (dacGates[i].isPositionChanged()){
 
             if (utBoard != null){
 
-                //the DAC's gain value depends upon the value of softwareGain and
-                //and the DAC's level in pixels
-                //at 50% scope height, the DAC's gain equals softwareGain
-                //it is desirable to have a +/- 20dB adjustment for each DAC
-                //gate thus each pixel above or below mid-height will raise or
-                //lower gain
-
-                //calculate number of dB per pixel to get +/-20dB total
-                double dBPerPix = 20.0 / (scopeMax/2);
-                //convert gateLevel from percentage of screen height to pixels
-                int pixLevel =
-                       (int)Math.round(dacGates[i].gateLevel * scopeMax / 100);
-                //calculate distance from the center
-                int fromCenter = pixLevel - (scopeMax/2);
-                //calculate gain for the DAC section
-                double gain = softwareGain.getDouble() + fromCenter * dBPerPix;
-
-                //convert decibels to linear gain: dB = 20 * log10(gain)
-                //see notes in UTBoard.sendSoftwareGain for details
-                gain = Math.pow(10, gain/20);
-
-                gain *= 6.476;
-
-                int roundedGain = (int)Math.round(gain);
-
                 utBoard.sendDAC(boardChannel, i,
-                    (int)(dacGates[i].gateStart / uSPerDataPoint),
-                    (int)(dacGates[i].gateWidth / uSPerDataPoint),
-                     roundedGain);
+                    (int)(dacGates[i].gateStart.applyValue() / uSPerDataPoint),
+                    (int)(dacGates[i].gateWidth.applyValue() / uSPerDataPoint),
+                    dacGates[i].gainForRemote.applyValue());
 
             }//if (utBoard != null)
-
-            dacGates[i].parametersChanged = false;
-
-        }// if (dacGates[i].parametersChanged == true)
+        }//if (dacGates[i].isPositionChanged())
     }// for (int i = 0; i < numberOfDACGates; i++)
-
-    //clear the flag
-    dacGateParamsChanged = false;
 
 }//end of Channel::sendDACGateParameters
 //-----------------------------------------------------------------------------
@@ -2821,24 +2704,15 @@ public synchronized void sendDACGateParameters()
 // If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
 // the flag is false, the value(s) will be sent only if they have changed.
 //
-// This and all functions which set the data change flag(s) should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
 
-public synchronized void setDACActive(int pGate, boolean pValue,
-                                                          boolean pForceUpdate)
+public void setDACActive(int pGate, boolean pValue, boolean pForceUpdate)
 {
 
     if (pValue != dacGates[pGate].getActive()) pForceUpdate = true;
 
-    dacGates[pGate].setActive(pValue);
+    if (!pForceUpdate) return; //do nothing unless value change or forced
 
-    //flag that new data needs to be sent to remotes
-    if (pForceUpdate){
-        ownerDataChanged.set(true);
-        dataChanged.flag = true; dacGateFlagsChanged = true;
-    }
+    dacGates[pGate].setActive(pValue);
 
 }//end of Channel::setDACActive
 //-----------------------------------------------------------------------------
@@ -2849,24 +2723,12 @@ public synchronized void setDACActive(int pGate, boolean pValue,
 // Copies the appropriate values from source gate pSourceGate to gate indexed
 // by gate pDestGate.
 //
-// Sets all appropriate data changed flags true so that changes will be sent
-// to the host.
-//
-// This and all functions which set the data change flag(s) should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
 
-public synchronized void copyGate(int pDestGate, DACGate pSourceGate)
+public void copyGate(int pDestGate, DACGate pSourceGate)
 {
 
     //copy pSourceGate to pDestGate
     dacGates[pDestGate].copyFromGate(pSourceGate);
-
-    //set all appropriate data changed flags
-    ownerDataChanged.set(true);
-    dataChanged.flag = true; dacGateParamsChanged = true;
-    dacGateFlagsChanged = true;
 
 }//end of DACGate::copyGate
 //-----------------------------------------------------------------------------
@@ -2876,32 +2738,20 @@ public synchronized void copyGate(int pDestGate, DACGate pSourceGate)
 //
 // Sends DAC flags to the remotes.
 //
-// This and all functions which set the data changed flag(s) should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
 
-public synchronized void sendDACGateFlags()
+public void sendDACGateFlags()
 {
 
     //unknown which gate(s) have changed data, so check them all
-    //clear the flags even if utBoard is null so they won't be checked again
 
     for (int i = 0; i < numberOfDACGates; i++){
+        if (dacGates[i].gateFlags.getDataChanged()){
 
-        if (dacGates[i].flagsChanged == true){
+            if (utBoard != null) utBoard.sendDACGateFlags(
+                          boardChannel, i, dacGates[i].getFlags().applyValue());
 
-            if (utBoard != null)
-                utBoard.sendDACGateFlags(
-                                      boardChannel, i, dacGates[i].getFlags());
-
-            dacGates[i].flagsChanged = false;
-
-        }// if (dacGates[i].parametersChanged == true)
+        }//if (dacGates[i].gateFlags.getDataChanged())
     }// for (int i = 0; i < numberOfDACGates; i++)
-
-    //clear the flag
-    dacGateFlagsChanged = false;
 
 }//end of Channel::sendDACGateFlags
 //-----------------------------------------------------------------------------
@@ -2912,62 +2762,16 @@ public synchronized void sendDACGateFlags()
 // Forces the specified DAC gate to update its position, width, and level time
 // values by calculating them from its pixel location values.
 //
-// If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
-// the flag is false, the value(s) will be sent only if they have changed.
-//
-// This and all functions which set the gateParamsChanged flag should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
 
-public synchronized void calculateDACGateTimeLocation(int pDACGate,
+public void calculateDACGateTimeLocation(int pDACGate,
        double pUSPerPixel, int pDelayPix, int pCanvasHeight, int pVertOffset,
                                                           boolean pForceUpdate)
 {
 
-    boolean valueChanged = dacGates[pDACGate].calculateGateTimeLocation(
-                               pUSPerPixel, pDelayPix, pCanvasHeight, pVertOffset);
-
-    if (valueChanged) pForceUpdate = true;
-
-    //flag that new data needs to be sent to remotes
-    if (pForceUpdate){
-        ownerDataChanged.set(true);
-        dataChanged.flag = true; dacGateParamsChanged = true;
-        dacGates[pDACGate].parametersChanged = true;
-    }
+    dacGates[pDACGate].calculateGateTimeLocation(
+                            pUSPerPixel, pDelayPix, pCanvasHeight, pVertOffset);
 
 }//end of Channel::calculateDACGateTimeLocation
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Channel::updateDACGains
-//
-// Forces all DACs to have their gains recalculated and the new DAC parameters
-// sent to the remote.  This is useful if the master gain has been changed as
-// all DAC gains are relative to that.
-//
-// If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
-// the flag is false, the value(s) will be sent only if they have changed.
-//
-// This and all functions which set the gateParamsChanged flag should be
-// synchronized to avoid thread conficts.  Typically, one thread changes the
-// data while another transmits it to the remotes.
-//
-
-public synchronized void udpateDACGains()
-{
-
-    ownerDataChanged.set(true);
-    dataChanged.flag = true; dacGateParamsChanged = true;
-
-    //set the changed flags true for all gates -- will cause a resend to the
-    //remotes -- the resend code recalculates the DAC gains
-
-    for (int i = 0; i < numberOfDACGates; i++)
-        dacGates[i].parametersChanged = true;
-
-}//end of Channel::udpateDACGains
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -2975,39 +2779,41 @@ public synchronized void udpateDACGains()
 //
 // If any data has been changed, sends the changes to the remotes.
 //
-// This and all functions which set the change flags should be synchronized to
-// avoid thread conficts.  Typically, one thread changes the data while another
-// transmits it to the remotes.
-//
 
-public synchronized void sendDataChangesToRemotes()
+public void sendDataChangesToRemotes()
 {
 
-    if (!dataChanged.flag) return; //do nothing if not data changed
+     //do nothing if no data changed for any synced variables.
+    if (!syncedVarMgr.getDataChangedMaster()) return;
 
-    if (softwareGain.isDataChanged()) sendSoftwareGain();
+    if (flags1SetMask.getDataChanged()) sendSetFlags1();
 
-    if (hardwareGain1.isDataChanged()) sendHardwareGain();
+    if (flags1ClearMask.getDataChanged()) sendClearFlags1();
 
-    if (hardwareGain2.isDataChanged()) sendHardwareGain();
+    if (softwareGain.getDataChanged()) sendSoftwareGain();
 
-    if (gateParamsChanged) sendGateParameters();
+    if (hardwareGain1.getDataChanged()) sendHardwareGain();
 
-    if (gateFlagsChanged) sendGateFlags();
+    if (hardwareGain2.getDataChanged()) sendHardwareGain();
 
-    if (gateHitMissChanged) sendGateHitMiss();
+    if (aScanSmoothing.getDataChanged()) sendAScanSmoothing();
 
-    if (gateSigProcThresholdChanged) sendGateSigProcThreshold();
+    if (mode.getDataChanged()) sendMode();
 
-    if (dacGateParamsChanged) sendDACGateParameters();
+    if (hardwareRange.getDataChanged() || aScanScale.getDataChanged())
+        sendRange();
 
-    if (dacGateFlagsChanged) sendDACGateFlags();
+    if (isAnyGatePositionChanged()) sendGateParameters();
 
-    if (flags1SetMaskChanged) sendSetFlags1();
+    if (isAnyGateFlagsChanged()) sendGateFlags();
 
-    if (flags1ClearMaskChanged) sendClearFlags1();
+    if (isAnyGateHitMissChanged()) sendGateHitMiss();
 
-    dataChanged.flag = false;  //clear the global flag
+    if (isAnyGateSigProcThresholdChanged()) sendGateSigProcThreshold();
+
+    if (isAnyDACGatePositionChanged()) sendDACGateParameters();
+
+    if (isAnyDACGateFlagsChanged()) sendDACGateFlags();
 
 }//end of Channel::sendDataChangesToRemotes
 //-----------------------------------------------------------------------------
@@ -3021,7 +2827,7 @@ public synchronized void sendDataChangesToRemotes()
 public double getDACGateStart(int pGate)
 {
 
-    return dacGates[pGate].gateStart;
+    return dacGates[pGate].gateStart.getValue();
 
 }//end of Channel::getDACGateStart
 //-----------------------------------------------------------------------------
@@ -3035,7 +2841,7 @@ public double getDACGateStart(int pGate)
 public double getDACGateWidth(int pGate)
 {
 
-    return dacGates[pGate].gateWidth;
+    return dacGates[pGate].gateWidth.getValue();
 
 }//end of Channel::getDACGateWidth
 //-----------------------------------------------------------------------------
@@ -3049,7 +2855,7 @@ public double getDACGateWidth(int pGate)
 public int getDACGateLevel(int pGate)
 {
 
-    return dacGates[pGate].gateLevel;
+    return dacGates[pGate].gateLevel.getValue();
 
 }//end of Channel::getDACGateLevel
 //-----------------------------------------------------------------------------
@@ -3089,7 +2895,7 @@ public boolean getDACGateSelected(int pGate)
 // will force all data to be sent to the remotes.
 //
 
-public synchronized void setAllDACGateDataChangedFlags(boolean pValue)
+public void setAllDACGateDataChangedFlags(boolean pValue)
 {
 
     //not used at this time
@@ -3114,18 +2920,22 @@ public void loadCalFile(IniFile pCalFile)
 
     aScanDelay = pCalFile.readDouble(section, "Sample Delay", 0);
     aScanRange = pCalFile.readDouble(section, "Range", 53.0);
-    softwareGain.setDouble(pCalFile.readDouble(section, "Software Gain", 0));
-    hardwareGain1.setInt(pCalFile.readInt(section, "Hardware Gain Stage 1", 2));
-    hardwareGain2.setInt(pCalFile.readInt(section, "Hardware Gain Stage 2", 1));
+    softwareGain.setValue(pCalFile.readDouble(section, "Software Gain", 0));
+    hardwareGain1.setValue(
+                        pCalFile.readInt(section, "Hardware Gain Stage 1", 2));
+    hardwareGain2.setValue(
+                        pCalFile.readInt(section, "Hardware Gain Stage 2", 1));
     interfaceTracking = pCalFile.readBoolean(
                                         section, "Interface Tracking", false);
     dacEnabled = pCalFile.readBoolean(section, "DAC Enabled", false);
-    mode = pCalFile.readInt(section, "Signal Mode", 0);
+    mode.setValue(pCalFile.readInt(section, "Signal Mode", 0));
     //default previousMode to mode if previousMode has never been saved
-    previousMode = pCalFile.readInt(section, "Previous Signal Mode", mode);
-    channelOn = (mode != UTBoard.CHANNEL_OFF) ? true : false;
+    previousMode =
+            pCalFile.readInt(section, "Previous Signal Mode", mode.getValue());
+    channelOn = (mode.getValue() != UTBoard.CHANNEL_OFF) ? true : false;
     rejectLevel = pCalFile.readInt(section, "Reject Level", 0);
-    aScanSmoothing = pCalFile.readInt(section, "AScan Display Smoothing", 1);
+    aScanSmoothing.setValue(
+                      pCalFile.readInt(section, "AScan Display Smoothing", 1));
 
     // call each gate to load its data
     for (int i = 0; i < numberOfGates; i++) gates[i].loadCalFile(pCalFile);
@@ -3157,15 +2967,18 @@ public void saveCalFile(IniFile pCalFile)
 
     pCalFile.writeDouble(section, "Sample Delay", aScanDelay);
     pCalFile.writeDouble(section, "Range", aScanRange);
-    pCalFile.writeDouble(section, "Software Gain", softwareGain.getDouble());
-    pCalFile.writeInt(section, "Hardware Gain Stage 1", hardwareGain1.getInt());
-    pCalFile.writeInt(section, "Hardware Gain Stage 2", hardwareGain2.getInt());
+    pCalFile.writeDouble(section, "Software Gain", softwareGain.getValue());
+    pCalFile.writeInt(
+                    section, "Hardware Gain Stage 1", hardwareGain1.getValue());
+    pCalFile.writeInt(
+                    section, "Hardware Gain Stage 2", hardwareGain2.getValue());
     pCalFile.writeBoolean(section, "Interface Tracking", interfaceTracking);
     pCalFile.writeBoolean(section, "DAC Enabled", dacEnabled);
-    pCalFile.writeInt(section, "Signal Mode", mode);
+    pCalFile.writeInt(section, "Signal Mode", mode.getValue());
     pCalFile.writeInt(section, "Previous Signal Mode", previousMode);
     pCalFile.writeInt(section, "Reject Level", rejectLevel);
-    pCalFile.writeInt(section, "AScan Display Smoothing", aScanSmoothing);
+    pCalFile.writeInt(
+                section, "AScan Display Smoothing", aScanSmoothing.getValue());
 
     // call each gate to save its data
     for (int i = 0; i < numberOfGates; i++)

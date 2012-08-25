@@ -27,6 +27,7 @@ import chart.ThreadSafeLogger;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.stripchart.Threshold;
 import chart.mksystems.stripchart.Trace;
+import chart.mksystems.threadsafe.SyncedVariableSet;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -45,6 +46,8 @@ int showCount1 = 0;
 int showCount2 = 0;
 int reflectionTimer = 0;
 //debug mks end  - this is only for demo - delete later
+
+SyncedVariableSet syncedVarMgr;
 
 ThreadSafeLogger logger;
 
@@ -106,6 +109,8 @@ hdwVs = pHdwVs;
 log = pLog;
 jobFileFormat = pJobFileFormat;
 mainFileFormat = pMainFileFormat;
+
+syncedVarMgr = new SyncedVariableSet();
 
 logger = new ThreadSafeLogger(pLog);
 
@@ -554,15 +559,10 @@ for (int i = 0; i < numberOfChannels; i++) channels[i].initialize();
 //
 // If any data has been changed, sends the changes to the remotes.
 //
-// NOTE:  This function should NOT be synchronized as it calls synchronized
-// functions in the Channel class.  Another thread is calling synced functions
-// in Channel which call synced functions here.  If the other thread locks
-// a channel object and then tries to get the lock for this object while the
-// GUI thread already has the lock here and is trying to get the lock for a
-// Channel object, a deadlock will occur.
-//
-// The channelDataChangedFlag is set/read/reset by synced functions which do
-// not call other synced functions in the Channel class to avoid this problem.
+// One SyncedVariableSet manager handles all the values which can be modified
+// be the user and are sent to the remotes.  The dataChangedMaster flag can
+// be checked on the manager to determine if any data needs to be sent.  This
+// saves a lot of time over checking every single variable each time.
 //
 
 @Override
@@ -570,48 +570,12 @@ public void sendDataChangesToRemotes()
 {
 
 //do nothing if data has not been changed for any channel
-if (!getAndClearDataChangedFlag()) return;
+if (!syncedVarMgr.getDataChangedMaster()) return;
 
 for (int i = 0; i < numberOfChannels; i++)
     channels[i].sendDataChangesToRemotes();
 
 }//end of Capulin1::sendDataChangesToRemotes
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Capulin1:setChannelDataChangedFlag
-//
-// Synchronized method to set the value of a flag so it can be used as a
-// semaphore between different threads.
-//
-// It is synchronized in the SyncFlag method call.
-//
-
-public void setDataChangedFlag(boolean pValue)
-{
-
-dataChangedFlag.set(pValue);
-
-}//end of Capulin1:setChannelDataChangedFlag
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Capulin1:getAndClearDataChangedFlag
-//
-// Synchronized method to read and clear the value of the flag so it can be used
-// as a semaphore between different threads.
-//
-// It is synchronized in the SyncFlag method call.
-//
-// Returns true if the flag was true, false otherwise.  Always clears the flag.
-//
-
-public boolean getAndClearDataChangedFlag()
-{
-
-return(dataChangedFlag.getAndClear());
-
-}//end of Capulin1:getAndClearDataChangedFlag
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1415,7 +1379,7 @@ if (numberOfChannels > 0){
     channels = new Channel[numberOfChannels];
 
     for (int i = 0; i < numberOfChannels; i++)
-       channels[i] = new Channel(configFile, i, dataChangedFlag);
+       channels[i] = new Channel(configFile, i, syncedVarMgr);
 
     }//if (numberOfChannels > 0)
 

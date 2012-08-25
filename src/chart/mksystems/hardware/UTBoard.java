@@ -3923,7 +3923,7 @@ for (int h=0; h < pNumberOfChannels; h++){
         //gate, the hitCountMet flag never gets set even if the hitCount is
         //zero, so have to catch that special case here
 
-        if (bdChs[channel].gates[i].gateHitCount > 0 && !hitCountMet)
+        if (bdChs[channel].gates[i].gateHitCount.getValue() > 0 && !hitCountMet)
                                                                     peak %= 10;
 
         peakFlightTime =

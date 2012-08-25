@@ -19,6 +19,8 @@
 package chart.mksystems.hardware;
 
 import chart.mksystems.inifile.IniFile;
+import chart.mksystems.threadsafe.*;
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -31,21 +33,22 @@ public class BasicGate extends Object{
 
 IniFile configFile;
 
+SyncedVariableSet syncedVarMgr;
+
 int channelIndex, gateIndex;
 
 public String title, shortTitle;
 
 boolean selectedFlag = false;
 
-boolean newDataReady;
-public boolean parametersChanged, flagsChanged;
+boolean newDataReady = false;
 
 // NOTE regarding "Adjusted" values:
 //  These are actually to be used for drawing the gates.  An external object
 //  must call adjustPositionsNoTracking or adjustPositionsWithTracking before
 //  each gate draw to set these values.  See notes in those functions.
 
-double gateStart = 0;
+SyncedDouble gateStart;
 double gateStartTrackingOn = 0;
 double gateStartTrackingOff = 0;
 public int gatePixStart = 0;
@@ -56,10 +59,10 @@ public int gatePixMidPoint = 0;
 public int gatePixMidPointAdjusted = 0;
 
 public boolean gateActive;
-double gateWidth = 0;
-int gateLevel = 0;
+SyncedDouble gateWidth;
+SyncedInteger gateLevel;
 public int gatePixLevel = 0;
-int gateFlags = 0;
+SyncedInteger gateFlags;
 
 double previousGateStart;
 double previousGateWidth;
@@ -89,6 +92,28 @@ public Object gateLevelAdjuster;
 public Object aScanTriggerCheckBox;
 
 //-----------------------------------------------------------------------------
+// BasicGate::BasicGate (constructor)
+//
+// The constructing class should pass a pointer to a SyncedVariableSet for the
+// values in this class which can be changed by the user and are sent to the
+// remotes so that they will be managed in a threadsafe manner.
+//
+
+public BasicGate(SyncedVariableSet pSyncedVarMgr)
+{
+
+    syncedVarMgr = pSyncedVarMgr;
+
+    gateStart = new SyncedDouble(syncedVarMgr);
+    gateWidth = new SyncedDouble(syncedVarMgr);
+    gateLevel = new SyncedInteger(syncedVarMgr);
+
+    gateFlags = new SyncedInteger(syncedVarMgr);
+
+}//end of BasicGate::BasicGate
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // BasicGate::calculateGatePixelLocation
 //
 // Calculates the pixel locations for a gate from its time locations and
@@ -101,17 +126,19 @@ public Object aScanTriggerCheckBox;
 //
 
 public boolean calculateGatePixelLocation(double pUSPerPixel, int pDelayPix,
-                                             int pCanvasHeight, int pVertOffset)
+                                           int pCanvasHeight, int pVertOffset)
 {
 
 boolean valueChanged = false;
 
-int nGatePixStart = (int)Math.round(gateStart / pUSPerPixel - pDelayPix);
+int nGatePixStart =
+                (int)Math.round(gateStart.getValue() / pUSPerPixel - pDelayPix);
 if (gatePixStart != nGatePixStart){
     gatePixStart = nGatePixStart; valueChanged = true;
     }
 
-int nGatePixEnd = gatePixStart + (int)Math.round(gateWidth / pUSPerPixel);
+int nGatePixEnd =
+             gatePixStart + (int)Math.round(gateWidth.getValue() / pUSPerPixel);
 if (gatePixEnd != nGatePixEnd){
     gatePixEnd = nGatePixEnd; valueChanged = true;
     }
@@ -120,7 +147,7 @@ if (gatePixEnd != nGatePixEnd){
 gatePixMidPoint = (gatePixStart + gatePixEnd) / 2;
 
 //make first calculation from the percentage value of gateLevel
-int nGatePixLevel = (int)Math.round(gateLevel * pCanvasHeight / 100);
+int nGatePixLevel = (int)Math.round(gateLevel.getValue() * pCanvasHeight / 100);
 
 //add in the current vertical offset
 nGatePixLevel += pVertOffset;
@@ -158,10 +185,16 @@ public boolean calculateGateTimeLocation(double pUSPerPixel, int pDelayPix,
 boolean valueChanged = false;
 
 double nGateStart =  (gatePixStart + pDelayPix) * pUSPerPixel;
-if (gateStart != nGateStart){gateStart = nGateStart; valueChanged = true;}
+if (gateStart.getValue() != nGateStart){
+    gateStart.setValue(nGateStart);
+    valueChanged = true;
+}
 
 double nGateWidth = (gatePixEnd - gatePixStart) * pUSPerPixel;
-if (gateWidth != nGateWidth){gateWidth = nGateWidth; valueChanged = true;}
+if (gateWidth.getValue() != nGateWidth){
+    gateWidth.setValue(nGateWidth);
+    valueChanged = true;
+}
 
 int nPixLevel = gatePixLevel; //use a temp variable - don't modify original
 
@@ -176,7 +209,10 @@ nPixLevel = nPixLevel - pVertOffset;
 int nGateLevel =
             (int)Math.round(((double)nPixLevel / (double)pCanvasHeight * 100));
 
-if (gateLevel != nGateLevel){gateLevel = nGateLevel; valueChanged = true;}
+if (gateLevel.getValue() != nGateLevel){
+    gateLevel.setValue(nGateLevel);
+    valueChanged = true;
+}
 
 return(valueChanged);
 
@@ -235,6 +271,44 @@ gatePixMidPointAdjusted = gatePixMidPoint + pOffset;
 
 }//end of BasicGate::adjustPositionsWithTracking
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// BasicGate::isPositionChanged
+//
+// Returns true if the start, width, or level of the gate have been changed.
+//
+
+public boolean isPositionChanged()
+{
+
+if (     gateStart.getDataChanged()
+      || gateWidth.getDataChanged()
+      || gateLevel.getDataChanged())
+
+    return(true);
+else
+    return(false);
+
+}//end of BasicGate::isPositionChanged
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// BasicGate::isFlagsChanged
+//
+// Returns true if the gateFlags variable has been changed.
+//
+
+public boolean isFlagsChanged()
+{
+
+if ( gateFlags.getDataChanged())
+    return(true);
+else
+    return(false);
+
+}//end of BasicGate::isFlagsChanged
+//-----------------------------------------------------------------------------
+
 
 }//end of class BasicGate
 //-----------------------------------------------------------------------------

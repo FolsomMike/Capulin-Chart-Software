@@ -19,6 +19,7 @@
 package chart.mksystems.hardware;
 
 import chart.mksystems.inifile.IniFile;
+import chart.mksystems.threadsafe.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -32,6 +33,10 @@ public class DACGate extends BasicGate{
 
 boolean doInterfaceTracking = false;
 
+int scopeMax;
+double softwareGain;
+SyncedInteger gainForRemote;
+
 //-----------------------------------------------------------------------------
 // DACGate::DACGate (constructor)
 //
@@ -39,10 +44,16 @@ boolean doInterfaceTracking = false;
 // should already be opened and ready to access.
 //
 
-public DACGate(IniFile pConfigFile, int pChannelIndex, int pGateIndex)
+public DACGate(IniFile pConfigFile, int pChannelIndex, int pGateIndex,
+                                 SyncedVariableSet pSyncedVarMgr, int pScopeMax)
 {
 
+super(pSyncedVarMgr);
+
 configFile = pConfigFile; channelIndex = pChannelIndex; gateIndex = pGateIndex;
+scopeMax = pScopeMax;
+
+gainForRemote = new SyncedInteger(syncedVarMgr);
 
 //read the configuration file and create/setup the charting/control elements
 configure(configFile);
@@ -67,19 +78,21 @@ configure(configFile);
 void setFlags()
 {
 
-//set the bits common to all gate types
+    int flags = 0;
 
-if (gateActive)
-    gateFlags |= GATE_ACTIVE;
-else
-    gateFlags &= (~GATE_ACTIVE);
+    //set the bits common to all gate types
 
-if (doInterfaceTracking)
-    gateFlags |= GATE_USES_TRACKING;
-else
-    gateFlags &= (~GATE_USES_TRACKING);
+    if (gateActive)
+        flags |= GATE_ACTIVE;
+    else
+        flags &= (~GATE_ACTIVE);
 
-flagsChanged = true;
+    if (doInterfaceTracking)
+        flags |= GATE_USES_TRACKING;
+    else
+        flags &= (~GATE_USES_TRACKING);
+
+    gateFlags.setValue(flags);
 
 }//end of DACGate::setFlags
 //-----------------------------------------------------------------------------
@@ -90,12 +103,104 @@ flagsChanged = true;
 // Returns the gate's flags.
 //
 
-public int getFlags()
+public SyncedInteger getFlags()
 {
 
-return gateFlags;
+    return gateFlags;
 
 }//end of DACGate::getFlags
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// DACGate::setSoftwareGain
+//
+// Sets the software gain and calculates the gain for the DAC gate.
+//
+// If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
+// the flag is false, the value(s) will be sent only if they have changed.
+//
+
+public void setSoftwareGain(double pSoftwareGain, boolean pForceUpdate)
+{
+
+    softwareGain = pSoftwareGain;
+
+    //recalculate the gain to be sent to the DSP
+    calculateDACGain(pForceUpdate);
+
+}//end of DACGate::setSoftwareGain
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// DACGate::setLevel
+//
+// Sets the gate level and calculates the gain for the DAC gate.
+//
+// If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
+// the flag is false, the value(s) will be sent only if they have changed.
+//
+
+public void setLevel(int pLevel, boolean pForceUpdate)
+{
+
+    gateLevel.setValue(pLevel);
+
+    //recalculate the gain to be sent to the DSP
+    calculateDACGain(pForceUpdate);
+
+}//end of DACGate::setLevel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// DACGate::calculateDACGain
+//
+// Calculates the gain for the gate to be sent to the DSP.  Should be called
+// when any of the variables used in the calculation are changed.
+//
+// If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
+// the flag is false, the value(s) will be sent only if they have changed.
+//
+
+public void calculateDACGain(boolean pForceUpdate)
+{
+
+    //the DAC's gain value depends upon the value of softwareGain and
+    //and the DAC's level in pixels
+    //at 50% scope height, the DAC's gain equals softwareGain
+    //it is desirable to have a +/- 20dB adjustment for each DAC
+    //gate thus each pixel above or below mid-height will raise or
+    //lower gain
+
+    //calculate number of dB per pixel to get +/-20dB total
+    double dBPerPix = 20.0 / (scopeMax/2);
+
+    //convert gateLevel from percentage of screen height to pixels
+    //use applyValue on gateLevel here because the value's changed status
+    //will be transferred to gainForDSP, which is the value actually sent
+    //to the remotes, thus the gateLevel value's change is applied here while
+    //the gainForDSP's value change will be applied when it is transmitted
+
+    int pixLevel = (int)Math.round(gateLevel.applyValue() * scopeMax / 100);
+    //calculate distance from the center
+    int fromCenter = pixLevel - (scopeMax/2);
+    //calculate gain for the DAC section
+    double gain = softwareGain + fromCenter * dBPerPix;
+
+    //convert decibels to linear gain: dB = 20 * log10(gain)
+    //see notes in UTBoard.sendSoftwareGain for details
+    gain = Math.pow(10, gain/20);
+
+    gain *= 6.476;
+
+    int roundedGain = (int)Math.round(gain);
+
+    if (roundedGain != gainForRemote.getValue()) pForceUpdate = true;
+
+    if (!pForceUpdate) return; //do nothing unless value change or forced
+
+    gainForRemote.setValue(roundedGain);
+
+}//end of DACGate::setSoftwareGain
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -191,9 +296,6 @@ doInterfaceTracking = pSourceGate.doInterfaceTracking;
 //update the flags to reflect any changes
 setFlags();
 
-//setFlags sets flagsChanged, but must set parametersChanged here
-parametersChanged = true;
-
 }//end of DACGate::copyFromGate
 //-----------------------------------------------------------------------------
 
@@ -214,6 +316,30 @@ doInterfaceTracking = pOn;
 setFlags();
 
 }//end of DACGate::setInterfaceTracking
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// DACGate::isPositionChanged
+//
+// Returns true if the start, width, or level of the gate have been changed.
+//
+// Overrides the BasicGate::isPositionChanged to return the gain for the
+// channel rather than the level.
+//
+
+@Override
+public boolean isPositionChanged()
+{
+
+if (     gateStart.getDataChanged()
+      || gateWidth.getDataChanged()
+      || gainForRemote.getDataChanged())
+
+    return(true);
+else
+    return(false);
+
+}//end of DACGate::isPositionChanged
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -259,16 +385,13 @@ String section = "Channel " + (channelIndex+1) + " DAC Gate " + (gateIndex+1);
 
 
 setActive(pCalFile.readBoolean(section, "Gate is Active", false));
-gateStart = pCalFile.readDouble(section, "Gate Start", 50);
+gateStart.setValue(pCalFile.readDouble(section, "Gate Start", 50));
 gateStartTrackingOn = pCalFile.readDouble(section,
                 "Gate Start with Interface Tracking", 50);
 gateStartTrackingOff = pCalFile.readDouble(section,
             "Gate Start without Interface Tracking", 50);
-gateWidth = pCalFile.readDouble(section, "Gate Width", 2);
-gateLevel = pCalFile.readInt(section, "Gate Level", 15);
-
-//set all the data changed flags so data will be sent to remotes
-parametersChanged = true; flagsChanged = true;
+gateWidth.setValue(pCalFile.readDouble(section, "Gate Width", 2));
+setLevel(pCalFile.readInt(section, "Gate Level", 15), true);
 
 }//end of DACGate::loadCalFile
 //-----------------------------------------------------------------------------
@@ -289,13 +412,13 @@ public void saveCalFile(IniFile pCalFile)
 String section = "Channel " + (channelIndex+1) + " DAC Gate " + (gateIndex+1);
 
 pCalFile.writeBoolean(section, "Gate is Active", getActive());
-pCalFile.writeDouble(section, "Gate Start", gateStart);
+pCalFile.writeDouble(section, "Gate Start", gateStart.getValue());
 pCalFile.writeDouble(section,
                 "Gate Start with Interface Tracking",  gateStartTrackingOn);
 pCalFile.writeDouble(section,
             "Gate Start without Interface Tracking",  gateStartTrackingOff);
-pCalFile.writeDouble(section, "Gate Width", gateWidth);
-pCalFile.writeInt(section, "Gate Level", gateLevel);
+pCalFile.writeDouble(section, "Gate Width", gateWidth.getValue());
+pCalFile.writeInt(section, "Gate Level", gateLevel.getValue());
 
 }//end of DACGate::saveCalFile
 //-----------------------------------------------------------------------------

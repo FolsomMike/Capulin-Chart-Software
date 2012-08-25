@@ -24,6 +24,7 @@ import chart.mksystems.inifile.IniFile;
 import chart.mksystems.stripchart.Threshold;
 import chart.mksystems.stripchart.Trace;
 import chart.Xfer;
+import chart.mksystems.threadsafe.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -43,9 +44,6 @@ public class Gate extends BasicGate{
     // vice versa.
     int peakDirection;
 
-    public boolean hitMissChanged;
-    public boolean sigProcThresholdChanged;
-
     boolean isInterfaceGate = false;
     boolean isWallStartGate = false;
     boolean isWallEndGate = false;
@@ -58,6 +56,8 @@ public class Gate extends BasicGate{
     boolean doIntegrateAboveGate = false;
     boolean doQuenchOnOverLimit = false;
     boolean isAScanTriggerGate = false;
+
+    int aScanSmoothing = 1;
 
     //if true, then data from this gate is stored where it can be used to modify
     //the wall data -- this allows a flaw gate to produce a kick on the wall
@@ -115,9 +115,9 @@ public class Gate extends BasicGate{
     // depending on unit type.
     int encoder1, encoder2;
 
-    public int gateHitCount = 0;
-    public int gateMissCount = 0;
-    public int sigProcThreshold = 0;
+    SyncedInteger gateHitCount;
+    SyncedInteger gateMissCount;
+    SyncedInteger sigProcThreshold;
     public String signalProcessing = "undefined";
 
     // references to point at the controls used to adjust the values - these
@@ -135,12 +135,23 @@ public class Gate extends BasicGate{
 // The parameter configFile is used to load configuration data.  The IniFile
 // should already be opened and ready to access.
 //
+// The constructing class should pass a pointer to a SyncedVariableSet for the
+// values in this class which can be changed by the user and are sent to the
+// remotes so that they will be managed in a threadsafe manner.
+//
 
-public Gate(IniFile pConfigFile, int pChannelIndex, int pGateIndex)
+public Gate(IniFile pConfigFile, int pChannelIndex, int pGateIndex,
+                                            SyncedVariableSet pSyncedVarMgr)
 {
+
+    super(pSyncedVarMgr);
 
     configFile = pConfigFile; channelIndex = pChannelIndex;
     gateIndex = pGateIndex;
+
+    gateHitCount = new SyncedInteger(syncedVarMgr);
+    gateMissCount = new SyncedInteger(syncedVarMgr);
+    sigProcThreshold = new SyncedInteger(syncedVarMgr);
 
     //read the configuration file and create/setup the charting/control elements
     configure(configFile);
@@ -285,72 +296,88 @@ public void getAndClearAScanPeak(Xfer pAScanPeakInfo)
 // Does not set the flag in the DSP.
 //
 
-void setFlags()
+private void setFlags()
 {
+
+    int flags = 0;
 
     //set the bits common to all gate types
 
     if (gateActive)
-        gateFlags |= GATE_ACTIVE;
+        flags |= GATE_ACTIVE;
     else
-        gateFlags &= (~GATE_ACTIVE);
+        flags &= (~GATE_ACTIVE);
 
     if (doFindPeak)
-        gateFlags |= GATE_FIND_PEAK;
+        flags |= GATE_FIND_PEAK;
     else
-        gateFlags &= (~GATE_FIND_PEAK);
+        flags &= (~GATE_FIND_PEAK);
 
     if (doIntegrateAboveGate)
-        gateFlags |= GATE_INTEGRATE_ABOVE_PEAK;
+        flags |= GATE_INTEGRATE_ABOVE_PEAK;
     else
-        gateFlags &= (~GATE_INTEGRATE_ABOVE_PEAK);
+        flags &= (~GATE_INTEGRATE_ABOVE_PEAK);
 
     if (maxMin)
-        gateFlags &= (~GATE_MAX_MIN); //b = 0 for max gate
+        flags &= (~GATE_MAX_MIN); //b = 0 for max gate
     else
-        gateFlags |= GATE_MAX_MIN; //b = 1 for min gate
+        flags |= GATE_MAX_MIN; //b = 1 for min gate
 
     if (isWallStartGate)
-        gateFlags |= GATE_WALL_START;
+        flags |= GATE_WALL_START;
     else
-        gateFlags &= (~GATE_WALL_START);
+        flags &= (~GATE_WALL_START);
 
     if (isWallEndGate)
-        gateFlags |= GATE_WALL_END;
+        flags |= GATE_WALL_END;
     else
-        gateFlags &= (~GATE_WALL_END);
+        flags &= (~GATE_WALL_END);
 
     if (doCrossingSearch)
-        gateFlags |= GATE_FIND_CROSSING;
+        flags |= GATE_FIND_CROSSING;
     else
-        gateFlags &= (~GATE_FIND_CROSSING);
+        flags &= (~GATE_FIND_CROSSING);
 
     if (isInterfaceGate)
-        gateFlags |= GATE_FOR_INTERFACE;
+        flags |= GATE_FOR_INTERFACE;
     else
-        gateFlags &= (~GATE_FOR_INTERFACE);
+        flags &= (~GATE_FOR_INTERFACE);
 
     if (reportNotExceeding)
-        gateFlags |= GATE_REPORT_NOT_EXCEED;
+        flags |= GATE_REPORT_NOT_EXCEED;
     else
-        gateFlags &= (~GATE_REPORT_NOT_EXCEED);
+        flags &= (~GATE_REPORT_NOT_EXCEED);
 
     if (doInterfaceTracking)
-        gateFlags |= GATE_USES_TRACKING;
+        flags |= GATE_USES_TRACKING;
     else
-        gateFlags &= (~GATE_USES_TRACKING);
+        flags &= (~GATE_USES_TRACKING);
 
     if (doQuenchOnOverLimit)
-        gateFlags |= GATE_QUENCH_IF_OVERLIMIT;
+        flags |= GATE_QUENCH_IF_OVERLIMIT;
     else
-        gateFlags &= (~GATE_QUENCH_IF_OVERLIMIT);
+        flags &= (~GATE_QUENCH_IF_OVERLIMIT);
 
     if (isAScanTriggerGate)
-        gateFlags |= GATE_TRIGGER_ASCAN_SAVE;
+        flags |= GATE_TRIGGER_ASCAN_SAVE;
     else
-        gateFlags &= (~GATE_TRIGGER_ASCAN_SAVE);
+        flags &= (~GATE_TRIGGER_ASCAN_SAVE);
 
-    flagsChanged = true;
+    //insert the AScan averaging value into the flags
+
+    //all gates use the channel's aScanSmoothing value to determine
+    //their data averaging depth, but 4 is max allowed even though
+    //aScanSmoothing can be higher
+
+    int averaging = aScanSmoothing;
+    if (averaging > 4) averaging = 4;
+    if (averaging < 1) averaging = 1;
+    //shift down ~ 1-4 -> 0-3
+    averaging--;
+    //merge into bits 15,14 of flags value
+    flags |= (averaging<<14);
+
+    gateFlags.setValue(flags);
 
 }//end of Gate::setFlags
 //-----------------------------------------------------------------------------
@@ -361,10 +388,10 @@ void setFlags()
 // Returns the gate's flags.
 //
 
-public int getFlags()
+public SyncedInteger getFlags()
 {
 
-    return gateFlags;
+    return (gateFlags);
 
 }//end of Gate::getFlags
 //-----------------------------------------------------------------------------
@@ -601,6 +628,26 @@ public final void setActive(boolean pValue)
     setFlags();
 
 }//end of Gate::setActive
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Gate::setAScanSmoothing
+//
+// Sets the AScan smoothing averaging value.  This value is stored in bits
+// in the flags.
+//
+// Does not set the flag in the DSP.
+//
+
+public final void setAScanSmoothing(int pAScanSmoothing)
+{
+
+    aScanSmoothing = pAScanSmoothing;
+
+    //update the flags to reflect the change
+    setFlags();
+
+}//end of Gate::setAScanSmoothing
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -992,30 +1039,27 @@ private void configure(IniFile pConfigFile)
 // own data.
 //
 
-public synchronized void loadCalFile(IniFile pCalFile)
+public void loadCalFile(IniFile pCalFile)
 {
 
     String section = "Channel " + (channelIndex + 1) + " Gate "
                                                             + (gateIndex + 1);
 
-    gateStart = pCalFile.readDouble(section, "Gate Start", 50);
+    gateStart.setValue(pCalFile.readDouble(section, "Gate Start", 50));
     gateStartTrackingOn = pCalFile.readDouble(section,
                     "Gate Start with Interface Tracking", 50);
     gateStartTrackingOff = pCalFile.readDouble(section,
                 "Gate Start without Interface Tracking", 50);
-    gateWidth = pCalFile.readDouble(section, "Gate Width", 2);
-    gateLevel = pCalFile.readInt(section, "Gate Level", 15);
-    gateHitCount = pCalFile.readInt(section, "Gate Hit Count", 0);
-    gateMissCount = pCalFile.readInt(section, "Gate Miss Count", 0);
+    gateWidth.setValue(pCalFile.readDouble(section, "Gate Width", 2));
+    gateLevel.setValue(pCalFile.readInt(section, "Gate Level", 15));
+    gateHitCount.setValue(pCalFile.readInt(section, "Gate Hit Count", 0));
+    gateMissCount.setValue(pCalFile.readInt(section, "Gate Miss Count", 0));
 
-    sigProcThreshold =
-          pCalFile.readInt(section, "Signal Processing Threshold", 0);
+    sigProcThreshold.setValue(
+                pCalFile.readInt(section, "Signal Processing Threshold", 0));
 
     setSignalProcessing(
        pCalFile.readString(section, "Signal Processing Function", "undefined"));
-
-    //set all the data changed flags so data will be sent to remotes
-    parametersChanged = true; hitMissChanged = true; flagsChanged = true;
 
 }//end of Gate::loadCalFile
 //-----------------------------------------------------------------------------
@@ -1036,18 +1080,19 @@ public void saveCalFile(IniFile pCalFile)
     String section = "Channel " + (channelIndex + 1) + " Gate " +
                                                                 (gateIndex + 1);
 
-    pCalFile.writeDouble(section, "Gate Start", gateStart);
+    pCalFile.writeDouble(section, "Gate Start", gateStart.getValue());
     pCalFile.writeDouble(section,
                     "Gate Start with Interface Tracking",  gateStartTrackingOn);
     pCalFile.writeDouble(section,
                 "Gate Start without Interface Tracking",  gateStartTrackingOff);
-    pCalFile.writeDouble(section, "Gate Width", gateWidth);
-    pCalFile.writeInt(section, "Gate Level", gateLevel);
+    pCalFile.writeDouble(section, "Gate Width", gateWidth.getValue());
+    pCalFile.writeInt(section, "Gate Level", gateLevel.getValue());
 
-    pCalFile.writeInt(section, "Gate Hit Count", gateHitCount);
-    pCalFile.writeInt(section, "Gate Miss Count", gateMissCount);
+    pCalFile.writeInt(section, "Gate Hit Count", gateHitCount.getValue());
+    pCalFile.writeInt(section, "Gate Miss Count", gateMissCount.getValue());
 
-    pCalFile.writeInt(section, "Signal Processing Threshold", sigProcThreshold);
+    pCalFile.writeInt(section,
+                   "Signal Processing Threshold", sigProcThreshold.getValue());
 
     pCalFile.writeString(section, "Signal Processing Function",
                                                         getSignalProcessing());
