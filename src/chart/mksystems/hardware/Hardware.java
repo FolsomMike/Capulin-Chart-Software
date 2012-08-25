@@ -1483,6 +1483,15 @@ if (hdwVs.watchForOffPipe){
         pieceLength /= 12; //convert to decimal feet
 
         hdwVs.watchForOffPipe = false;
+
+        //debug mks -- next flag added because the Belle Chasse unit does not
+        //turn the encoder after the home end of the pipe is passed
+        //previously this flag would only be set if the encoder turned a bit
+
+        //set flag to force preparation for a new piece
+        prepareForNewPiece = true;
+
+
         }
     }
 

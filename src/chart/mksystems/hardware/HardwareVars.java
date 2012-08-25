@@ -64,7 +64,7 @@ boolean head2Down = false;
 
 public int endOfPieceTracker;
 public boolean trackToEndOfPiece;
-public int endOfPiecePosition = 210; //NOTE: load this from config file
+public int endOfPiecePosition = 0; //NOTE: load this from config file
 
 //Sometimes, special processing is applied at the beginning of the inspection
 //piece.  The following variables are used to signal when the inspection heads
@@ -100,4 +100,4 @@ public int wallMinModifier;
 
 }//end of class HardwareVars
 //-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------

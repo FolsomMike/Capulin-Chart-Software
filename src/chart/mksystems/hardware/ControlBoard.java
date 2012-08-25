@@ -136,9 +136,9 @@ public ControlBoard(IniFile pConfigFile, String pBoardName, int pBoardIndex,
   int pRuntimePacketSize, boolean pSimulate, JTextArea pLog, String pFileFormat)
 {
 
-super(pLog);    
-    
-configFile = pConfigFile; 
+super(pLog);
+
+configFile = pConfigFile;
 boardName = pBoardName;
 boardIndex = pBoardIndex;
 runtimePacketSize = pRuntimePacketSize;
@@ -161,8 +161,8 @@ configure(configFile);
 //
 
 @Override
-public void run() { 
-         
+public void run() {
+
 //link with all the remotes
 connect();
 
@@ -206,16 +206,16 @@ public synchronized void connect()
 {
 
 //displays message on bottom panel of IDE
-logger.logMessage("Opening connection with Control board...\n"); 
-  
+logger.logMessage("Opening connection with Control board...\n");
+
 try {
 
     logger.logMessage("Control Board IP Address: " + ipAddr.toString() + "\n");
 
     if (!simulate) socket = new Socket(ipAddr, 23);
     else {
-        
-        socket = new ControlSimulator(ipAddr, 23, 
+
+        socket = new ControlSimulator(ipAddr, 23,
                        encoder1DeltaTrigger, encoder2DeltaTrigger, fileFormat);
         //when simulating, the socket is a ControlSimulator class object which
         //is also a MessageLink implementor, so cast it for use as such so that
@@ -226,7 +226,7 @@ try {
     //set amount of time in milliseconds that a read from the socket will
     //wait for data - this prevents program lock up when no data is ready
     socket.setSoTimeout(250);
-    
+
     out = new PrintWriter(socket.getOutputStream(), true);
 
     in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -294,9 +294,9 @@ private void getChassisSlotAddress()
 {
 
 //read the chassis and slot address from the remote
-byte address = getRemoteData(GET_CHASSIS_SLOT_ADDRESS_CMD, true);    
+byte address = getRemoteData(GET_CHASSIS_SLOT_ADDRESS_CMD, true);
 
-//parse the returned value 
+//parse the returned value
 chassisAddr =  (address>>4 & 0xf);
 slotAddr = address & 0xf;
 
@@ -329,7 +329,7 @@ sendBytes2(START_MONITOR_CMD, (byte) 0);
 
 public void stopMonitor()
 {
-    
+
 sendBytes2(STOP_MONITOR_CMD, (byte) 0);
 
 }//end of ControlBoard::stopMonitor
@@ -479,9 +479,11 @@ try{
     controlPortE = inBuffer[x++];
 
     //control flags are active high
-    
+
     if ((controlFlags & ON_PIPE_CTRL) != 0)
-        onPipeFlag = true; else onPipeFlag = false;
+        onPipeFlag = true;
+    else
+        onPipeFlag = false;
 
     if ((controlFlags & HEAD1_DOWN_CTRL) != 0)
         head1Down = true; else head1Down = false;
@@ -490,7 +492,7 @@ try{
         head2Down = true; else head2Down = false;
 
     //port E inputs are active low
-    
+
     if ((controlPortE & TDC_MASK) == 0)
         tdcFlag = true; else tdcFlag = false;
 
@@ -523,7 +525,7 @@ return(0);
 
 public void zeroEncoderCounts()
 {
-    
+
 sendBytes2(ZERO_ENCODERS_CMD, (byte) 0);
 
 }//end of ControlBoard::zeroEncoderCounts
@@ -647,16 +649,16 @@ public boolean prepareData()
 
 if (byteIn != null)
     try {
- 
+
         int c = byteIn.available();
 
         //if a full packet is not ready, return false
         if (c < runtimePacketSize) return false;
-        
+
         byteIn.read(inBuffer, 0, runtimePacketSize);
 
         //wip mks - distribute the data to the gate's newData variables here
-        
+
         }
     catch(EOFException eof){log.append("End of stream.\n"); return false;}
     catch(IOException e){return false;}
@@ -880,7 +882,7 @@ pICVars.encoder2Dir = encoder2Dir;
 // ControlBoard::installNewRabbitFirmware
 //
 // Transmits the Rabbit firmware image to the Control board to replace the
-// existing code.  
+// existing code.
 //
 // See corresponding function in the parent class Board.
 //
@@ -890,7 +892,7 @@ public void installNewRabbitFirmware()
 
 //create an object to hold codes specific to the UT board for use by the
 //firmware installer method
-    
+
 InstallFirmwareSettings settings = new InstallFirmwareSettings();
 settings.loadFirmwareCmd = LOAD_FIRMWARE_CMD;
 settings.noAction = NO_ACTION;
@@ -898,10 +900,10 @@ settings.error = ERROR;
 settings.sendDataCmd = SEND_DATA_CMD;
 settings.dataCmd = DATA_CMD;
 settings.exitCmd = EXIT_CMD;
-    
+
 super.installNewRabbitFirmware("Control", "Rabbit\\CAPULIN CONTROL BOARD.bin",
                                                                     settings);
-    
+
 }//end of ControlBoard::installNewRabbitFirmware
 //-----------------------------------------------------------------------------
 
@@ -919,8 +921,8 @@ super.installNewRabbitFirmware("Control", "Rabbit\\CAPULIN CONTROL BOARD.bin",
 public int xmtMessage(int pMessage, int pValue)
 {
 
-if (mechSimulator == null) return MessageLink.NULL;    
-    
+if (mechSimulator == null) return MessageLink.NULL;
+
 //pass the message on to the mechanical simulation object
 return mechSimulator.xmtMessage(pMessage, pValue);
 
@@ -958,10 +960,10 @@ outBuffer = new byte[RUNTIME_PACKET_SIZE];
 
 //debug mks -- calculate this delta to give one packet per pixel????
 
-encoder1DeltaTrigger = 
+encoder1DeltaTrigger =
           pConfigFile.readInt("Hardware", "Encoder 1 Delta Count Trigger", 83);
 
-encoder2DeltaTrigger = 
+encoder2DeltaTrigger =
           pConfigFile.readInt("Hardware", "Encoder 2 Delta Count Trigger", 83);
 
 }//end of ControlBoard::configure
@@ -987,7 +989,7 @@ try{
     if (out != null) out.close();
     if (in != null) in.close();
     if (socket != null) socket.close();
-    
+
     }
 catch(IOException e){}
 
@@ -996,4 +998,4 @@ catch(IOException e){}
 
 }//end of class ControlBoard
 //-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
