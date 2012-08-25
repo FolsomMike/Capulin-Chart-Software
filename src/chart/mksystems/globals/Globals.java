@@ -452,9 +452,18 @@ if (source.getActionCommand().equalsIgnoreCase(
     }
 
 //calls function in Main
-if (source.getActionCommand().startsWith("Print Flag Report")){
+if (source.getActionCommand().
+                    startsWith("Print Flag Report for Last Piece Inspected")){
     actionListener.actionPerformed(
-                                new ActionEvent(this, 1, "Print Flag Report"));
+       new ActionEvent(this, 1, "Print Flag Report for Last Piece Inspected"));
+    return;
+    }
+
+//calls function in Main
+if (source.getActionCommand().
+                    startsWith("Print Flag Report for User Selection")){
+    actionListener.actionPerformed(
+       new ActionEvent(this, 1, "Print Flag Report for User Selection"));
     return;
     }
 

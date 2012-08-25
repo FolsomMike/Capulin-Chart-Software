@@ -57,20 +57,27 @@ public class FlagReportPrinter extends ViewerReporter
 
     IniFile jobInfoFile = null;
 
+    String reportsPath = "";
+
 //-----------------------------------------------------------------------------
 // FlagReportPrinter::FlagReportPrinter (constructor)
 //
 
 public FlagReportPrinter(JFrame pFrame, Globals pGlobals, JobInfo pJobInfo,
-        String pJobPrimaryPath, String pJobBackupPath, String pCurrentJobName,
-        int pLocationX, int pLocationY, String pPieceDescriptionPlural,
-        String pPieceDescriptionPluralLC, Hardware pHardware)
+        String pJobPrimaryPath, String pJobBackupPath, String pReportsPath,
+        String pCurrentJobName, int pLocationX, int pLocationY,
+        String pPieceDescriptionPlural, String pPieceDescriptionPluralLC,
+        Hardware pHardware, int pPieceToPrint, boolean pIsCalPiece)
 
 {
 
     super(pGlobals, pJobInfo, pJobPrimaryPath, pJobBackupPath, pCurrentJobName);
 
-    hardware = pHardware;
+    hardware = pHardware; reportsPath = pReportsPath;
+
+    //if pPieceToPrint is not a negative, number then the report is to be
+    //printed for that piece without asking the user to specify a piece
+    pieceToPrint = pPieceToPrint; isCalPiece = pIsCalPiece;
 
     //set up as modal window
     dialog = new JDialog(pFrame, true);
@@ -327,35 +334,93 @@ String loadSegment(boolean pQuietMode)
 public void startPrint()
 {
 
-    //remove the folder separator from the end of the job path if it exists
-    //so we can make a new folder name
+    //if it does not already exist, create a folder to hold the report
+    String lReportsPath = createFolder();
 
-    String stripped = jobPrimaryPath;
-    if (stripped.endsWith(File.separator))
-    stripped = stripped.substring(0, stripped.length()-1);
-
-    //create a new folder which will be sorted next to the job data folder
-    String reportsPrimaryPath = stripped + " ~ Reports";
-
-    //create a folder using the job name to hold the reports
-    File folder = new File(reportsPrimaryPath);
-    if (!folder.exists()){
-        //attempt to create the folder
-        if (!folder.mkdirs()){
-            displayErrorMessage("The reports folder could not be created.");
-            return;
-            }
-    }
+    //don't print if the path could not be created
+    if (lReportsPath.isEmpty()) return;
 
     //print a report for each piece in the range
 
     for (int i = startPiece; i <= endPiece; i++){
 
-        printReportForPiece(reportsPrimaryPath, i);
+        printReportForPiece(lReportsPath, i);
 
     }
 
 }//end of FlagReportPrinter::startPrint
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// FlagReportPrinter::createFolder
+//
+// Creates a folder to hold the reports if it does not already exist.
+//
+// Returns the full path to the folder.
+//
+
+public String createFolder()
+{
+
+    //remove the folder separator from the end of the reports path if it exists
+    //so we can make a new folder name
+
+    String lReportsPath = "";
+    File folder;
+
+    if(!reportsPath.isEmpty()){
+        lReportsPath = reportsPath;
+        if (lReportsPath.endsWith(File.separator))
+        lReportsPath = lReportsPath.substring(0, lReportsPath.length()-1);
+
+        //create a folder using the job name to hold the reports
+        folder = new File(lReportsPath);
+        if (!folder.exists()){
+            //attempt to create the folder
+            if (!folder.mkdirs()){
+                displayErrorMessage("The reports folder could not be created.");
+                return("");
+                }
+        }//if(!reportsPath.isEmpty)
+    }//if(!reportsPath.isEmpty())
+
+   //remove the folder separator from the end of the job path if it exists
+   //so we can make a new folder name
+
+    String lJobPrimaryPath = jobPrimaryPath;
+    if (lJobPrimaryPath.endsWith(File.separator))
+    lJobPrimaryPath = lJobPrimaryPath.substring(0, lJobPrimaryPath.length()-1);
+
+    String finalReportsPath = "";
+
+    //if a specific folder has been specified to hold reports, then place
+    //the new folder there -- if not, then place the folder in the primary
+    //data folder
+    if (!lReportsPath.isEmpty()){
+        finalReportsPath = lReportsPath + File.separator + currentJobName;
+    }
+    else{
+        finalReportsPath = lJobPrimaryPath;
+    }
+
+    //create a new folder which will be sorted next to the job data folder
+    finalReportsPath = finalReportsPath + " ~ Reports";
+
+    //create a folder using the job name to hold the reports
+    folder = new File(finalReportsPath);
+    if (!folder.exists()){
+        //attempt to create the folder
+        if (!folder.mkdirs()){
+            displayErrorMessage(
+                            "The job's reports folder could not be created.");
+            return("");
+            }
+    }
+
+//if all folders created okay, return the full path
+return(finalReportsPath);
+
+}//end of FlagReportPrinter::createFolder
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

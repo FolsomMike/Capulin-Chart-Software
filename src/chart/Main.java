@@ -151,7 +151,7 @@ Xfer xfer;
 FileSaver fileSaver = null;
 
 String currentJobName;
-String currentJobPrimaryPath, currentJobBackupPath;
+String currentJobPrimaryPath, currentJobBackupPath, reportsPath;
 String primaryDataPath;
 String backupDataPath;
 
@@ -186,6 +186,9 @@ AScan aScan;
 int initialWidth, initialHeight;
 
 DecimalFormat[] decimalFormats;
+
+int lastPieceInspected = -1;
+boolean isLastPieceInspectedACal = false;
 
 //-----------------------------------------------------------------------------
 // MainWindow::MainWindow (constructor)
@@ -311,23 +314,33 @@ try {configFile = new IniFile("Main Static Settings.ini",
 //set the data folders to empty if values cannot be read from the ini file
 //all functions which write data should abort if the folder names are empty
 
-primaryDataPath = configFile.readString(
-                                "Main Configuration", "Primary Data Path", "");
+primaryDataPath = formatPath(configFile.readString(
+                               "Main Configuration", "Primary Data Path", ""));
 
-//append a fwd/backslash if the path does not already end with one
-//use File.separator to apply the correct character for the operating system
-if (!primaryDataPath.equals("") && !primaryDataPath.endsWith(File.separator))
-    primaryDataPath += File.separator;
+backupDataPath = formatPath(configFile.readString(
+                                "Main Configuration", "Backup Data Path", ""));
 
-backupDataPath = configFile.readString(
-                                 "Main Configuration", "Backup Data Path", "");
-
-//append a fwd/backslash if the path does not already end with one
-//use File.separator to apply the correct character for the operating system
-if (!backupDataPath.equals("") && !backupDataPath.endsWith(File.separator))
-    backupDataPath += File.separator;
+reportsPath = formatPath(configFile.readString(
+                                    "Main Configuration", "Reports Path", ""));
 
 }//end of MainWindow::loadMainStaticSettings
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainWindow::formatPath
+//
+// Append a fwd/backslash if pPath does not already end with one.
+// Use File.separator to apply the correct character for the operating system.
+//
+
+private String formatPath (String pPath){
+
+    if (!pPath.equals("") && !pPath.endsWith(File.separator))
+        pPath += File.separator;
+
+    return(pPath);
+
+}//end of MainWindow::formatPath
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -888,6 +901,9 @@ private void saveSegment()
 
 String segmentFilename;
 
+lastPieceInspected = controlPanel.nextPieceNumber;
+isLastPieceInspectedACal = controlPanel.calMode;
+
 //inspected pieces are saved with the prefix 20 while calibration pieces are
 //saved with the prefix 30 - this forces them to be grouped together and
 //controls the order in which the types are listed when the folder is viewed
@@ -1146,16 +1162,18 @@ if ("Open Viewer".equals(e.getActionCommand())) {
     }
 
 //this part opens a window to print a flag report
-if ("Print Flag Report".equals(e.getActionCommand())) {
-    FlagReportPrinter printFlagReport = new FlagReportPrinter(
-       mainFrame, globals, jobInfo,
-       currentJobPrimaryPath, currentJobBackupPath, currentJobName,
-       (int)mainFrame.getLocation().getX() + 80,
-       (int)mainFrame.getLocation().getY() + 30,
-       globals.pieceDescriptionPlural, globals.pieceDescriptionPluralLC,
-       hardware);
-       printFlagReport.init();
+if ("Print Flag Report for Last Piece Inspected".equals(e.getActionCommand())) {
+    //pass -1 to force display of dialog so user can specify print range
+    printFlagReport(lastPieceInspected, isLastPieceInspectedACal);
 }
+
+//this part opens a window to print a flag report
+if ("Print Flag Report for User Selection".equals(e.getActionCommand())) {
+    //pass the number and type of the last joint inspected so it can be
+    //printed without the user having to
+    printFlagReport(-1, false);
+}
+
 
 //this part handles starting the status monitor
 if ("Monitor".equals(e.getActionCommand())) {
@@ -1281,6 +1299,32 @@ if ("Display Configuration Info".equals(e.getActionCommand())){
 if ("Timer".equals(e.getActionCommand())) processMainTimerEvent();
 
 }//end of MainWindow::actionPerformed
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainWindow::printFlagReport
+//
+// Prints a flag report.  If pPieceToPrint is not -1 then that piece will
+// be printed with pIsCalPiece specifying inspection or cal piece.  If it is
+// -1, then a dialog will be displayed to allow the user to specify the
+// piece or pieces to print.
+//
+//
+
+public void printFlagReport(int pPieceToPrint, boolean pIsCalPiece)
+{
+
+    FlagReportPrinter printFlagReport = new FlagReportPrinter(
+       mainFrame, globals, jobInfo,
+       currentJobPrimaryPath, currentJobBackupPath, reportsPath, currentJobName,
+       (int)mainFrame.getLocation().getX() + 80,
+       (int)mainFrame.getLocation().getY() + 30,
+       globals.pieceDescriptionPlural, globals.pieceDescriptionPluralLC,
+       hardware, pPieceToPrint, pIsCalPiece);
+
+    printFlagReport.init();
+
+}//end of MainWindow::printFlagReport
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

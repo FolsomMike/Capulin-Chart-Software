@@ -244,6 +244,7 @@ reportLastMenuItem = new JMenuItem("Flag Report for Last " +
 reportLastMenuItem.setMnemonic(KeyEvent.VK_L);
 reportLastMenuItem.setToolTipText("Print the flag report for last " +
                                  globals.pieceDescriptionLC + " completed.");
+reportLastMenuItem.setActionCommand("Print Flag Report for Last Piece Inspected");
 reportLastMenuItem.addActionListener(globals);
 reportMenu.add(reportLastMenuItem);
 
@@ -253,7 +254,7 @@ reportAnyMenuItem = new JMenuItem("Flag report(s) for Selected " +
 reportAnyMenuItem.setMnemonic(KeyEvent.VK_S);
 reportAnyMenuItem.setToolTipText("Print the flag report(s) for selected " +
                                               globals.pieceDescriptionPluralLC);
-reportAnyMenuItem.setActionCommand("Print Flag Report");
+reportAnyMenuItem.setActionCommand("Print Flag Report for User Selection");
 reportAnyMenuItem.addActionListener(globals);
 reportMenu.add(reportAnyMenuItem);
 
