@@ -56,6 +56,7 @@ public class Gate extends BasicGate{
     boolean doIntegrateAboveGate = false;
     boolean doQuenchOnOverLimit = false;
     boolean isAScanTriggerGate = false;
+    boolean doSubsequentShotDifferential = false;
 
     int aScanSmoothing = 1;
 
@@ -164,6 +165,8 @@ public Gate(IniFile pConfigFile, int pChannelIndex, int pGateIndex,
     flawGateProcessList = new ArrayList<String>();
     flawGateProcessList.add("peak");
     flawGateProcessList.add("integrate above gate");
+    flawGateProcessList.add("subsequent shot differential");
+
     //processing options for an interface gate
     iFaceProcessList = new ArrayList<String>();
     iFaceProcessList.add("ignore bad interface");
@@ -363,6 +366,11 @@ private void setFlags()
     else
         flags &= (~GATE_TRIGGER_ASCAN_SAVE);
 
+    if (doSubsequentShotDifferential)
+        flags |= SUBSEQUENT_SHOT_DIFFERENTIAL;
+    else
+        flags &= (~SUBSEQUENT_SHOT_DIFFERENTIAL);
+
     //insert the AScan averaging value into the flags
 
     //all gates use the channel's aScanSmoothing value to determine
@@ -496,10 +504,19 @@ public void setSignalProcessing(String pMode)
     if (signalProcessing.equals("peak")){
         setFindPeak(true);
         setIntegrateAboveGate(false);
+        setSubsequentShotDifferential(false);
         return;
     }
 
     if (signalProcessing.equals("integrate above gate")){
+        setIntegrateAboveGate(true);
+        setFindPeak(false);
+        setSubsequentShotDifferential(false);
+        return;
+    }
+
+    if (signalProcessing.equals("subsequent shot differential")){
+        setSubsequentShotDifferential(true);
         setIntegrateAboveGate(true);
         setFindPeak(false);
         return;
@@ -844,7 +861,6 @@ public boolean getFlawGate()
 //-----------------------------------------------------------------------------
 // Gate::setFindPeak
 //
-//
 // Turns the gate signal peak search function flag on or off.  If pOn is
 // true, the gate will be scanned for the greatest signal in the min or max
 // direction depending on the type of gate.
@@ -866,7 +882,6 @@ public void setFindPeak(boolean pOn)
 //-----------------------------------------------------------------------------
 // Gate::setIntegrateAboveGate
 //
-//
 // Turns the integrate above gate flag on or off.  If pOn is true, the data
 // above the gate level will be integrated for the result.
 //
@@ -882,6 +897,27 @@ public void setIntegrateAboveGate(boolean pOn)
     setFlags();
 
 }//end of Gate::setIntegrateAboveGate
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Gate::setSubsequentShotDifferential
+//
+// Turns the subsequent shot differential noise cancelling algorithm on or off.
+// If pState is true, the data above the gate level will be integrated for the
+// result.
+//
+// Does not set the flag in the DSP.
+//
+
+public void setSubsequentShotDifferential(boolean pState)
+{
+
+    doSubsequentShotDifferential = pState;
+
+    //update the flags to reflect the change
+    setFlags();
+
+}//end of Gate::setSubsequentShotDifferential
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
