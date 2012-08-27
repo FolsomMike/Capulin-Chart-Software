@@ -1582,8 +1582,8 @@ String loadSegment(boolean pQuietMode)
     int adjustedPaneHeight = chartGroups[0].viewerChartScrollPaneHeight;
 
     for (int i = 0; i < chartGroups[0].getNumberOfStripCharts(); i++)
-        if (chartGroups[0].getStripChart(i).isChartVisible())
-            adjustedPaneHeight -= 50;
+        if (!chartGroups[0].getStripChart(i).isChartVisible())
+            adjustedPaneHeight -= chartGroups[0].getStripChart(i).chartHeight;
 
     setSizes(scrollPane,
                 chartGroups[0].viewerChartScrollPaneWidth, adjustedPaneHeight);
