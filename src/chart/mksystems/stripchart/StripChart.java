@@ -620,10 +620,11 @@ if (numberOfTraces > 0){
 
     traces = new Trace[numberOfTraces];
 
-    for (int i = 0; i < numberOfTraces; i++) traces[i] =
+    for (int i = 0; i < numberOfTraces; i++){ traces[i] =
        new Trace(globals, configFile, chartGroup, chartIndex, i, traceGlobals,
              backgroundColor, gridColor, gridXSpacing, thresholds, hardware);
-
+       traces[i].init();
+    }
 
     //default to trace 0 as the leading trace for now so the chart decorations
     //will be drawn
