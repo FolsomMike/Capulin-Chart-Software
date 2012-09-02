@@ -150,9 +150,9 @@ public Gate(IniFile pConfigFile, int pChannelIndex, int pGateIndex,
     configFile = pConfigFile; channelIndex = pChannelIndex;
     gateIndex = pGateIndex;
 
-    gateHitCount = new SyncedInteger(syncedVarMgr);
-    gateMissCount = new SyncedInteger(syncedVarMgr);
-    sigProcThreshold = new SyncedInteger(syncedVarMgr);
+    gateHitCount = new SyncedInteger(syncedVarMgr); gateHitCount.init();
+    gateMissCount = new SyncedInteger(syncedVarMgr); gateMissCount.init();
+    sigProcThreshold = new SyncedInteger(syncedVarMgr); sigProcThreshold.init();
 
     //read the configuration file and create/setup the charting/control elements
     configure(configFile);

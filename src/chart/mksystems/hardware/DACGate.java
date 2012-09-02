@@ -53,7 +53,7 @@ super(pSyncedVarMgr);
 configFile = pConfigFile; channelIndex = pChannelIndex; gateIndex = pGateIndex;
 scopeMax = pScopeMax;
 
-gainForRemote = new SyncedInteger(syncedVarMgr);
+gainForRemote = new SyncedInteger(syncedVarMgr); gainForRemote.init();
 
 //read the configuration file and create/setup the charting/control elements
 configure(configFile);

@@ -129,7 +129,7 @@ public synchronized boolean getDataChangedMaster()
 // are modified, the master flag is set true.
 //
 
-public synchronized void notifyDataUnchanged()
+public synchronized void notifyDataUnchanged(SyncedVariable pSV)
 {
 
     boolean someDataChanged = false;

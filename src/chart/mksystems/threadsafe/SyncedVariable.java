@@ -50,9 +50,21 @@ public SyncedVariable(SyncedVariableSet pSyncedVariableSet)
 
     syncedVariableSet = pSyncedVariableSet;
 
+}//end of SyncedVariable::SyncedVariable (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SyncedVariableSet::init
+//
+
+//
+
+public void init()
+{
+
     if(syncedVariableSet != null) syncedVariableSet.addVariable(this);
 
-}//end of SyncedVariable::SyncedVariable (constructor)
+}//end of SyncedVariable::init
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -80,7 +92,7 @@ public synchronized void setDataChangedTrue()
 public synchronized void setDataChangedFalse()
 {
     dataChanged = false;
-    if (syncedVariableSet != null) syncedVariableSet.notifyDataUnchanged();
+    if (syncedVariableSet != null) syncedVariableSet.notifyDataUnchanged(this);
 
 }//end of SyncedVariableSet::setDataChangedFalse
 //-----------------------------------------------------------------------------

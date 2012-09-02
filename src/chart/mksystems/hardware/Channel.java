@@ -14,13 +14,6 @@
 *
 */
 
-//wip mks - gate width, height, start, hit count, miss count are now
-// sent to the DSP by a thread other than the GUI thread to avoid collisions
-//  see setGartStart et. al. for example.
-// Same is done for the DAC gates.
-// The other values which are user adjustable need to be handled in the same
-// way, such as master gain, delay, range, etc..
-
 //-----------------------------------------------------------------------------
 
 package chart.mksystems.hardware;
@@ -115,16 +108,16 @@ public Channel(IniFile pConfigFile, int pChannelIndex,
 
     syncedVarMgr = pSyncedVarMgr;
 
-    softwareGain = new SyncedDouble(syncedVarMgr);
-    hardwareGain1 = new SyncedInteger(syncedVarMgr);
-    hardwareGain2 = new SyncedInteger(syncedVarMgr);
-    aScanSmoothing = new SyncedInteger(syncedVarMgr);
-    flags1SetMask = new SyncedInteger(syncedVarMgr);
-    flags1ClearMask = new SyncedInteger(syncedVarMgr);
-    mode = new SyncedInteger(syncedVarMgr);
+    softwareGain = new SyncedDouble(syncedVarMgr); softwareGain.init();
+    hardwareGain1 = new SyncedInteger(syncedVarMgr); hardwareGain1.init();
+    hardwareGain2 = new SyncedInteger(syncedVarMgr); hardwareGain2.init();
+    aScanSmoothing = new SyncedInteger(syncedVarMgr); aScanSmoothing.init();
+    flags1SetMask = new SyncedInteger(syncedVarMgr); flags1SetMask.init();
+    flags1ClearMask = new SyncedInteger(syncedVarMgr); flags1ClearMask.init();
+    mode = new SyncedInteger(syncedVarMgr); mode.init();
     mode.setValue((int)UTBoard.POSITIVE_HALF);
-    hardwareRange = new SyncedInteger(syncedVarMgr);
-    aScanScale = new SyncedInteger(syncedVarMgr);
+    hardwareRange = new SyncedInteger(syncedVarMgr); hardwareRange.init();
+    aScanScale = new SyncedInteger(syncedVarMgr); aScanScale.init();
 
     //read the configuration file and create/setup the charting/control elements
     configure(configFile);
@@ -2783,7 +2776,7 @@ public void calculateDACGateTimeLocation(int pDACGate,
 public void sendDataChangesToRemotes()
 {
 
-     //do nothing if no data changed for any synced variables.
+    //do nothing if no data changed for any synced variables
     if (!syncedVarMgr.getDataChangedMaster()) return;
 
     if (flags1SetMask.getDataChanged()) sendSetFlags1();

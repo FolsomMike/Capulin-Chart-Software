@@ -105,11 +105,11 @@ public BasicGate(SyncedVariableSet pSyncedVarMgr)
 
     syncedVarMgr = pSyncedVarMgr;
 
-    gateStart = new SyncedDouble(syncedVarMgr);
-    gateWidth = new SyncedDouble(syncedVarMgr);
-    gateLevel = new SyncedInteger(syncedVarMgr);
+    gateStart = new SyncedDouble(syncedVarMgr); gateStart.init();
+    gateWidth = new SyncedDouble(syncedVarMgr); gateWidth.init();
+    gateLevel = new SyncedInteger(syncedVarMgr); gateLevel.init();
 
-    gateFlags = new SyncedInteger(syncedVarMgr);
+    gateFlags = new SyncedInteger(syncedVarMgr); gateFlags.init();
 
 }//end of BasicGate::BasicGate
 //-----------------------------------------------------------------------------

@@ -212,7 +212,7 @@ public void configure()
 
     //create a thread to handle printing in the background
     printRunnable = new PrintRunnable(aset);
-    printThread = new Thread(printRunnable);
+    printThread = new Thread(printRunnable, "Print Thread");
 
     printThread.start();
 

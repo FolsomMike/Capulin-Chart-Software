@@ -255,7 +255,7 @@ connected = true;
 //simulation functions so the simulated boards can respond
 
 if (analogDriver.getSimulate()){
-    Thread thread = new Thread(this); thread.start();
+    Thread thread = new Thread(this, "Simulator"); thread.start();
     }
 
 analogDriver.connect();

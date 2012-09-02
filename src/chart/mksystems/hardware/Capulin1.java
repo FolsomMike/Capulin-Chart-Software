@@ -266,7 +266,7 @@ if (responseCount > 0){
     for (int i = 0; i < numberOfControlBoards; i++){
         //pass the Runnable interfaced controlBoard object to a thread and start
         //the run function of the controlBoard will peform the connection tasks
-        Thread thread = new Thread(controlBoards[i]);
+        Thread thread = new Thread(controlBoards[i], "Control Board " + i);
         thread.start();
         }
     }//if (numberOfControlBoards > 0)
@@ -425,7 +425,7 @@ if (numberOfUTBoards > 0){
     for (int i = 0; i < numberOfUTBoards; i++){
         //pass the Runnable interfaced utBoard object to a thread and start it
         //the run function of the utBoard will peform the connection tasks
-        Thread thread = new Thread(utBoards[i]);
+        Thread thread = new Thread(utBoards[i], "UT Board " + i);
         thread.start();
         }
     }//if (numberOfUTBoards > 0)

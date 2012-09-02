@@ -271,7 +271,7 @@ calWindow.scope1.clearPlot();
 
 //create and start a thread to collect data from the hardware
 mainThread = new MainThread(calWindow, globals);
-Thread thread = new Thread(mainThread);
+Thread thread = new Thread(mainThread, "Main Thread");
 mainThread.hardware = hardware;
 thread.start();
 
