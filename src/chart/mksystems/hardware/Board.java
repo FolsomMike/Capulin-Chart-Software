@@ -42,10 +42,10 @@ public byte error;
 public byte sendDataCmd;
 public byte dataCmd;
 public byte exitCmd;
-    
+
 }//end of class InstallFirmwareSettings
 //-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -133,7 +133,7 @@ outBuffer[0] = pByte;
 outBuffer[1] = (byte)( (0x100 - outBuffer[0]) & 0xff  );
 
 //send packet to remote
-if (byteOut != null) 
+if (byteOut != null)
     try{
         byteOut.write(outBuffer, 0 /*offset*/, 2);
         byteOut.flush();
@@ -161,7 +161,7 @@ outBuffer[0] = pByte1; outBuffer[1] = pByte2;
 outBuffer[2] = (byte)( (0x100 - outBuffer[0] - outBuffer[1]) & 0xff );
 
 //send packet to remote
-if (byteOut != null) 
+if (byteOut != null)
     try{
         byteOut.write(outBuffer, 0 /*offset*/, 3);
         byteOut.flush();
@@ -222,7 +222,7 @@ outBuffer[4] = (byte)(
          & 0xff );
 
 //send packet to remote
-if (byteOut != null) 
+if (byteOut != null)
     try{
         byteOut.write(outBuffer, 0 /*offset*/, 5);
         byteOut.flush();
@@ -289,7 +289,7 @@ outBuffer[6] = (byte)(
          & 0xff );
 
 //send packet to remote
-if (byteOut != null) 
+if (byteOut != null)
     try{
         byteOut.write(outBuffer, 0 /*offset*/, 7);
         byteOut.flush();
@@ -346,7 +346,7 @@ void sendBytes8(byte pByte1, byte pByte2, byte pByte3, byte pByte4,
 {
 
 sendHeader(); //send the packet header
-    
+
 outBuffer[0] = pByte1; outBuffer[1] = pByte2;
 outBuffer[2] = pByte3; outBuffer[3] = pByte4;
 outBuffer[4] = pByte5; outBuffer[5] = pByte6;
@@ -359,7 +359,7 @@ outBuffer[8] = (byte)(
          & 0xff );
 
 //send packet to remote
-if (byteOut != null) 
+if (byteOut != null)
     try{
         byteOut.write(outBuffer, 0 /*offset*/, 9);
         byteOut.flush();
@@ -631,7 +631,7 @@ try{
 
             byteIn.read(inBuf, 0, IN_BUFFER_SIZE);
             break;
-            
+
             }// if
         }// while...
     }// try
@@ -650,7 +650,7 @@ return inBuf[0];
 // size specified by pSize.  The data is returned via pBuffer.
 //
 
-void getRemoteDataBlock(byte pCommand, byte pQualifier, int pSize, 
+void getRemoteDataBlock(byte pCommand, byte pQualifier, int pSize,
                                                                  int[] pBuffer)
 {
 
@@ -660,7 +660,7 @@ return; //debug mks - remove this line - reinsert next block
 
 if (byteIn == null) return;
 
-sendBytes4(pCommand, pQualifier, 
+sendBytes4(pCommand, pQualifier,
           (byte) ((pSize >> 8) & 0xff), (byte) (pSize & 0xff));
 
 try{
@@ -670,7 +670,7 @@ try{
 
             byteIn.read(pktBuffer, 0, pSize);
             break;
-            
+
             }// if
         }// while...
     }// try
@@ -732,7 +732,7 @@ public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
 {
 
 return(0);
-    
+
 }//end of Board::processOneDataPacket
 //-----------------------------------------------------------------------------
 
@@ -742,7 +742,7 @@ return(0);
 // Sleeps for pTime milliseconds.
 //
 
-void waitSleep(int pTime)
+public void waitSleep(int pTime)
 {
 
 try {Thread.sleep(pTime);} catch (InterruptedException e) { }
@@ -782,7 +782,7 @@ public void logStatus(JTextArea pTextArea)
 // Board::installNewRabbitFirmware
 //
 // Transmits the Rabbit firmware code to the specified board to replace the
-// existing code.  
+// existing code.
 //
 // The firmware in the Rabbit is stored in flash memory.  There is a slight
 // danger in installing new firmware because the Rabbit may become inoperable\
@@ -813,7 +813,7 @@ void installNewRabbitFirmware(String pBoardType, String pFilename,
 {
 
 int CODE_BUFFER_SIZE = 1025; //transfer command word and 1024 data bytes
-byte[] codeBuffer; 
+byte[] codeBuffer;
 codeBuffer = new byte[CODE_BUFFER_SIZE];
 int remoteStatus;
 int timeOutRead;
@@ -824,10 +824,10 @@ boolean fileDone = false;
 FileInputStream inFile = null;
 
 try {
- 
+
     sendByte(pS.loadFirmwareCmd); //send command to initiate loading
 
-    logger.logMessage(pBoardType + " " + ipAddrS + 
+    logger.logMessage(pBoardType + " " + ipAddrS +
                                         " loading Rabbit firmware..." + "\n");
 
     timeOutRead = 0;
@@ -839,14 +839,14 @@ try {
         inBuffer[0] = pS.noAction; //clear request byte from host
         inBuffer[1] = pS.noAction; //clear status word (upper byte) from host
         inBuffer[2] = pS.noAction; //clear status word (lower byte) from host
-        
+
         remoteStatus = 0;
-        
+
         //check for a request from the remote if connected
         if (byteIn != null){
             inCount = byteIn.available();
             //0 = buffer offset, 2 = number of bytes to read
-            if (inCount >= 3) 
+            if (inCount >= 3)
                 byteIn.read(inBuffer, 0, 3);
             remoteStatus = (int)((inBuffer[0]<<8) & 0xff00)
                                                     + (int)(inBuffer[1] & 0xff);
@@ -854,7 +854,7 @@ try {
 
         //trap and respond to messages from the remote
         if (inBuffer[0] == pS.error){
-            logger.logMessage(pBoardType + " " + ipAddrS + 
+            logger.logMessage(pBoardType + " " + ipAddrS +
                 " error loading firmware, error code: " + remoteStatus + "\n");
             return;
             }
@@ -870,7 +870,7 @@ try {
             while (bufPtr < CODE_BUFFER_SIZE && (c = inFile.read()) != -1 ) {
 
                 //stuff the bytes into the buffer after the command byte
-                codeBuffer[bufPtr++] = (byte)c;             
+                codeBuffer[bufPtr++] = (byte)c;
 
                 //reset timer in this loop so it only gets reset when
                 //a request has been received AND not at end of file
@@ -879,26 +879,26 @@ try {
                 }
 
             if (c == -1) fileDone = true;
-            
+
             //send packet to remote -- at the end of the file, this may have
             //random values as padding to fill out the buffer
             byteOut.write(codeBuffer, 0 /*offset*/, CODE_BUFFER_SIZE);
-         
+
             //send the exit command when the file is done
             if (fileDone){
                 codeBuffer[0] = pS.exitCmd;
                 byteOut.write(codeBuffer, 0 /*offset*/, 1);
                 break;
             }//if (fileDone)
-        
+
         }//if (inBuffer[0] == SEND_DATA)
-                     
+
         //count loops - will exit when max reached
         //this is reset whenever a packet request is received and the end of
         //file not reached - when end of file reached, loop will wait until
         //timeout reached again before exiting in order to catch success/error
         //messages from the remote
-        
+
         timeOutRead++;
 
         }// while(timeOutGet <...
@@ -925,4 +925,4 @@ finally {
 
 }//end of class Board
 //-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
