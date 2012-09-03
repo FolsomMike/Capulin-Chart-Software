@@ -63,8 +63,8 @@ public SyncedInteger(SyncedVariableSet pSyncedVariableSet)
 public synchronized void setValue(Integer pValue)
 {
 
-    setDataChangedTrue();
     value = pValue;
+    setDataChangedTrue();
 
 }//end of SyncedInteger::setValue
 //-----------------------------------------------------------------------------

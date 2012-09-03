@@ -32,6 +32,10 @@
 * synchronized to be sure there is no question about when any operation is
 * thread safe.
 *
+* IMPORTANT:  This class cannot call any synchronized methods in any of the
+*  SyncedVariable objects it controls.  This can cause a thread lock up if
+*  another thread is accessing one of those objects simultaneously.
+*
 * Open Source Policy:
 *
 * This source code is Public Domain and free to any interested party.  Any
@@ -128,8 +132,19 @@ public synchronized boolean getDataChangedMaster()
 // that no modified data is present in any of the SyncedVariables.  If ANY
 // are modified, the master flag is set true.
 //
+// Note that the unsynchronized version of getDataChanged is called in the
+// SyncedVariable objects.  This is done to avoid thread lockup when another
+// thread happens to be in the SyncedVariable::setValue method which will try
+// to call notifyDataChanged in this class.  Thus, one thread is in this class
+// trying to access getDataChanged method in the variable oject while the other
+// thread is in the variable object trying to access notifyDataChanged in this
+// class -- each thread blocks the other.
+//
+// The unsynchonized version works because the flag is atomic and is set
+// by the calling object prior to calling.
+//
 
-public synchronized void notifyDataUnchanged(SyncedVariable pSV)
+public synchronized void notifyDataUnchanged()
 {
 
     boolean someDataChanged = false;
@@ -144,7 +159,7 @@ public synchronized void notifyDataUnchanged(SyncedVariable pSV)
 
         debug++;
 
-        if ( sv.getDataChanged()) {
+        if ( sv.getDataChangedUnSynced()) {
             someDataChanged = true;
             break;
         }

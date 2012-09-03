@@ -63,9 +63,9 @@ public SyncedBoolean(SyncedVariableSet pSyncedVariableSet)
 public synchronized void setValue(Boolean pValue)
 {
 
-    setDataChangedTrue();
     value = pValue;
-
+    setDataChangedTrue();
+    
 }//end of SyncedBoolean::setValue
 //-----------------------------------------------------------------------------
 

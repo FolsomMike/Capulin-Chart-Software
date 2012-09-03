@@ -63,8 +63,8 @@ public SyncedDouble(SyncedVariableSet pSyncedVariableSet)
 public synchronized void setValue(double pValue)
 {
 
-    setDataChangedTrue();
     value = pValue;
+    setDataChangedTrue();
 
 }//end of SyncedDouble::setValue
 //-----------------------------------------------------------------------------

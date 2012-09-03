@@ -92,7 +92,7 @@ public synchronized void setDataChangedTrue()
 public synchronized void setDataChangedFalse()
 {
     dataChanged = false;
-    if (syncedVariableSet != null) syncedVariableSet.notifyDataUnchanged(this);
+    if (syncedVariableSet != null) syncedVariableSet.notifyDataUnchanged();
 
 }//end of SyncedVariableSet::setDataChangedFalse
 //-----------------------------------------------------------------------------
@@ -100,8 +100,7 @@ public synchronized void setDataChangedFalse()
 //-----------------------------------------------------------------------------
 // SyncedVariable::getDataChanged
 //
-// Sets the dataChangedMaster flag true.  Should be called by any SyncedVariable
-// managed by this object when its data has been modified.
+// Returns the dataChanged flag.
 //
 
 public synchronized boolean getDataChanged()
@@ -110,6 +109,23 @@ public synchronized boolean getDataChanged()
     return(dataChanged);
 
 }//end of SyncedVariable::getDataChanged
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SyncedVariable::getDataChangedUnSynced
+//
+// Returns the dataChanged flag.
+//
+// IMPORTANT: This unsynchronized version is meant for use only by a
+// SyncedVariableSet object to avoid thread blocking.
+//
+
+public boolean getDataChangedUnSynced()
+{
+
+    return(dataChanged);
+
+}//end of SyncedVariable::getDataChangedUnSynced
 //-----------------------------------------------------------------------------
 
 
