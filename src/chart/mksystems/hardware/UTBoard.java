@@ -758,13 +758,11 @@ resetShadow = writeFPGAReg(RESET_REG, (byte)0x3e);
 //sleep for a bit to allow DSPs to start up
 waitSleep(1000);
 
-/* debug mks
 logDSPStatus(1, 1, true); logDSPStatus(1, 2, true);
 logDSPStatus(1, 3, true); logDSPStatus(1, 4, true);
 
 logDSPStatus(2, 1, true); logDSPStatus(2, 2, true);
 logDSPStatus(2, 3, true); logDSPStatus(2, 4, true);
-*/
 
 //enable sampling - FPGA has control of the HPI bus to transfer A/D data
 setState(0, 1);
