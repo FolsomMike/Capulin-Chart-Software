@@ -106,7 +106,12 @@ public Channel(IniFile pConfigFile, int pChannelIndex,
 
     configFile = pConfigFile; channelIndex = pChannelIndex;
 
-    syncedVarMgr = pSyncedVarMgr;
+    //if a SyncedVariableSet manager is provided use it, if not then create one
+
+    if (pSyncedVarMgr != null)
+        syncedVarMgr = pSyncedVarMgr;
+    else
+        syncedVarMgr = new SyncedVariableSet();
 
     softwareGain = new SyncedDouble(syncedVarMgr); softwareGain.init();
     hardwareGain1 = new SyncedInteger(syncedVarMgr); hardwareGain1.init();

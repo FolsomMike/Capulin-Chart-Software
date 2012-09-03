@@ -47,8 +47,6 @@ int showCount2 = 0;
 int reflectionTimer = 0;
 //debug mks end  - this is only for demo - delete later
 
-SyncedVariableSet syncedVarMgr;
-
 ThreadSafeLogger logger;
 
 String jobFileFormat, mainFileFormat;
@@ -109,8 +107,6 @@ hdwVs = pHdwVs;
 log = pLog;
 jobFileFormat = pJobFileFormat;
 mainFileFormat = pMainFileFormat;
-
-syncedVarMgr = new SyncedVariableSet();
 
 logger = new ThreadSafeLogger(pLog);
 
@@ -557,20 +553,12 @@ for (int i = 0; i < numberOfChannels; i++) channels[i].initialize();
 //-----------------------------------------------------------------------------
 // Capulin1:sendDataChangesToRemotes
 //
-// If any data has been changed, sends the changes to the remotes.
-//
-// One SyncedVariableSet manager handles all the values which can be modified
-// be the user and are sent to the remotes.  The dataChangedMaster flag can
-// be checked on the manager to determine if any data needs to be sent.  This
-// saves a lot of time over checking every single variable each time.
+// If any channel data has been changed, sends the changes to the remotes.
 //
 
 @Override
 public void sendDataChangesToRemotes()
 {
-
-//do nothing if data has not been changed for any channel
-if (!syncedVarMgr.getDataChangedMaster()) return;
 
 for (int i = 0; i < numberOfChannels; i++)
     channels[i].sendDataChangesToRemotes();
@@ -1379,7 +1367,7 @@ if (numberOfChannels > 0){
     channels = new Channel[numberOfChannels];
 
     for (int i = 0; i < numberOfChannels; i++)
-       channels[i] = new Channel(configFile, i, syncedVarMgr);
+       channels[i] = new Channel(configFile, i, null);
 
     }//if (numberOfChannels > 0)
 
