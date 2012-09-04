@@ -70,6 +70,77 @@ public synchronized void setValue(Integer pValue)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// SyncedVariable::increment
+//
+// Adds one to pValue, sets the dataChangedFlag, and notifies the
+// manager of the change.
+//
+// This method should be used by the controlling object.  The responding
+// object should use getPosition to determine if the value is non-zero and
+// increment/decrement it at the same time in order to be thread safe.
+//
+
+public synchronized void increment()
+{
+
+    value++;
+    setDataChangedTrue();
+
+}//end of SyncedBoolean::increment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SyncedVariable::decrement
+//
+// Subtracts one from pValue, sets the dataChangedFlag, and notifies the
+// manager of the change.
+//
+// This method should be used by the controlling object.  The responding
+// object should use getPosition to determine if the value is non-zero and
+// increment/decrement it at the same time in order to be thread safe.
+//
+
+public synchronized void decrement()
+{
+
+    value--;
+    setDataChangedTrue();
+
+}//end of SyncedBoolean::decrement
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SyncedVariable::getPosition
+//
+// This method is for use by the responding object to check if the value has
+// been changed from zero.  It returns the value and then increments or
+// decrements it as necessary to adjust it towards zero.
+//
+// If the value is changed, sets the dataChangedFlag and notifies the
+// manager of the change.
+//
+
+public synchronized int getPosition()
+{
+
+    int lValue = value;
+
+    if (value > 0){
+        value--;
+        setDataChangedTrue();
+    }
+
+    if (value < 0){
+        value++;
+        setDataChangedTrue();
+    }
+
+    return(lValue);
+
+}//end of SyncedBoolean::getPosition
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // SyncedVariable::applyValue
 //
 // Returns the value, clears the dataChanged flag, and notifies the manager
@@ -108,7 +179,6 @@ public synchronized Integer getValue()
 
 }//end of SyncedInteger::getValue
 //-----------------------------------------------------------------------------
-
 
 }//end of class SyncedInteger
 //-----------------------------------------------------------------------------
