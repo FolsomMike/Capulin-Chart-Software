@@ -2902,6 +2902,22 @@ public void setAllDACGateDataChangedFlags(boolean pValue)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Channel::warmReset
+//
+// Resets the UT board for this channel as well as the other channels on that
+// board. The channel settings, including FPGA register values will be
+// reloaded.
+//
+
+public void warmReset()
+{
+
+    if (utBoard != null) utBoard.warmReset();
+
+}//end of Channel::warmReset
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Channel::loadCalFile
 //
 // This loads the file used for storing calibration information pertinent to a

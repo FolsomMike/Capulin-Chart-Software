@@ -232,6 +232,7 @@ public class UTControls extends JTabbedPane
     JRadioButton inchesRadioButton, mmRadioButton;
     JRadioButton timeRadioButton, distanceRadioButton;
     JRadioButton markerPulseButton, markerContinuousButton;
+    JButton resetChannelButton;
 
     //end of components on Configuration tab
 
@@ -1354,6 +1355,18 @@ void setupConfigTab()
     else
         markerContinuousButton.setSelected(true);
 
+    //vertical spacer
+    topRightPanel.add(Box.createRigidArea(new Dimension(0,10)));
+
+    resetChannelButton = new JButton("Reset Channel");
+    resetChannelButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+    resetChannelButton.setName("Reset Channel");
+    resetChannelButton.setToolTipText(
+                                "Performs a hardware reset on the channel.");
+    resetChannelButton.addActionListener(this);
+    resetChannelButton.setActionCommand("Reset Channel");
+    topRightPanel.add(resetChannelButton);
+
     configTab.add(topLeftPanel);
     configTab.add(Box.createRigidArea(new Dimension(7,0))); //horizontal spacer
     configTab.add(topRightPanel);
@@ -1573,6 +1586,13 @@ public void actionPerformed(ActionEvent e)
     //no assigned channels is modified
     if ("Set Chart Values".equals(e.getActionCommand())){
         updateChartSettings();
+        return;
+    }
+
+    //handle the "Reset Channel" button - bail out afterwards instead of
+    //calling updateAllSettings
+    if ("Reset Channel".equals(e.getActionCommand())){
+        currentChannel.warmReset();
         return;
     }
 

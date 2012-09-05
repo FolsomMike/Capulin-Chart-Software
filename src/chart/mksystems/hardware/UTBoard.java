@@ -1102,6 +1102,39 @@ resetShadow = writeFPGAReg(RESET_REG, (byte)(resetShadow & (~0x01)));
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// UTBoard::warmReset
+//
+// Resets various board and channel settings, including FPGA register values.
+//
+
+public void warmReset()
+{
+
+    initFPGA();
+
+    //release FPGA internals from reset (low = no reset)
+    //release DSP Global reset so HPI bus can be used (high = no reset)
+    //release DSPs A,B,C,D resets (low = reset)
+    resetShadow = writeFPGAReg(RESET_REG, (byte)0x3e);
+
+    //sleep for a bit to allow DSPs to start up
+    waitSleep(1000);
+
+    logDSPStatus(1, 1, true); logDSPStatus(1, 2, true);
+    logDSPStatus(1, 3, true); logDSPStatus(1, 4, true);
+
+    logDSPStatus(2, 1, true); logDSPStatus(2, 2, true);
+    logDSPStatus(2, 3, true); logDSPStatus(2, 4, true);
+
+    //enable sampling - FPGA has control of the HPI bus to transfer A/D data
+    setState(0, 1);
+
+    initialize();
+
+}//end of UTBoard::warmReset
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // UTBoard::getChassisSlotAddress
 //
 // Retrieves the board's chassis and slot address settings.  This function
