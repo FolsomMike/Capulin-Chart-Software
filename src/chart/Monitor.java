@@ -21,6 +21,8 @@ package chart;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.*;
+import java.awt.font.TextAttribute;
 
 import chart.mksystems.inifile.IniFile;
 
@@ -36,10 +38,15 @@ class Monitor extends JDialog implements ActionListener {
 
 JPanel panel;
 
+Font blackFont, redFont;
+
 ActionListener actionListener;
+IniFile configFile;
 
 JLabel chassisNumLabel, boardNumLabel;
 JLabel Encoder1CountLabel, Encoder2CountLabel;
+
+JLabel inspectionStatusLabel, rpmLabel, rpmVarianceLabel;
 
 JLabel input1Label, input2Label, input3Label, input4Label;
 JLabel input5Label, input6Label, input7Label, input8Label;
@@ -53,16 +60,29 @@ String Encoder1CountText, Encoder2CountText;
 // Monitor::Monitor (constructor)
 //
 //
-  
-public Monitor(JFrame frame, IniFile pConfigFile, 
+
+public Monitor(JFrame frame, IniFile pConfigFile,
                                                 ActionListener pActionListener)
 {
 
 super(frame, "System Monitor");
 
 actionListener = pActionListener;
+configFile = pConfigFile;
 
-configure(pConfigFile);
+}//end of Monitor::Monitor (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Monitor::init
+//
+// Initializes the object.
+//
+
+public void init()
+{
+
+configure(configFile);
 
 int panelWidth = 250;
 int panelHeight = 500;
@@ -70,6 +90,13 @@ int panelHeight = 500;
 setMinimumSize(new Dimension(panelWidth, panelHeight));
 setPreferredSize(new Dimension(panelWidth, panelHeight));
 setMaximumSize(new Dimension(panelWidth, panelHeight));
+
+//create red and black fonts for use with display objects
+Hashtable<TextAttribute, Object> map =
+            new Hashtable<TextAttribute, Object>();
+blackFont = new Font("Dialog", Font.PLAIN, 12);
+map.put(TextAttribute.FOREGROUND, Color.RED);
+redFont = blackFont.deriveFont(map);
 
 panel = new JPanel();
 panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -118,6 +145,15 @@ panel.add(Encoder1CountLabel);
 Encoder2CountLabel = new JLabel(Encoder2CountText + " : ");
 panel.add(Encoder2CountLabel);
 
+inspectionStatusLabel = new JLabel("Last Inspection Control Command : ");
+panel.add(inspectionStatusLabel);
+
+rpmLabel = new JLabel("RPM : ");
+panel.add(rpmLabel);
+
+rpmVarianceLabel = new JLabel("RPM Variance : ");
+panel.add(rpmVarianceLabel);
+
 JButton zeroEncoderCounts = new JButton("Zero Encoder Counts");
 zeroEncoderCounts.setActionCommand("Zero Encoder Counts");
 zeroEncoderCounts.addActionListener(this);
@@ -132,8 +168,8 @@ panel.add(pulseOutput1);
 
 pack();
 
-}//end of Monitor::Monitor (constructor)
-//-----------------------------------------------------------------------------    
+}//end of Monitor::init
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // Monitor::actionPerformed
@@ -176,62 +212,103 @@ if (source.getToolTipText().equalsIgnoreCase("Pulse Output 1")){
 public void updateStatus(byte[] pMonitorBuffer)
 {
 
-chassisNumLabel.setText("Chassis Number : " + pMonitorBuffer[10]);
+int x = 0;
 
-boardNumLabel.setText("Board Number : " + pMonitorBuffer[11]);
-
-if (pMonitorBuffer[0] == 0) input1Label.setText(input1Text + " : Off");
+if (pMonitorBuffer[x++] == 0) input1Label.setText(input1Text + " : Off");
 else input1Label.setText(input1Text + " : On");
 
-if (pMonitorBuffer[1] == 0) input2Label.setText(input2Text + " : Off");
+if (pMonitorBuffer[x++] == 0) input2Label.setText(input2Text + " : Off");
 else input2Label.setText(input2Text + " : On");
 
-if (pMonitorBuffer[2] == 0) input3Label.setText(input3Text + " : Off");
+if (pMonitorBuffer[x++] == 0) input3Label.setText(input3Text + " : Off");
 else input3Label.setText(input3Text + " : On");
 
-if (pMonitorBuffer[3] == 0) input4Label.setText(input4Text + " : Off");
+if (pMonitorBuffer[x++] == 0) input4Label.setText(input4Text + " : Off");
 else input4Label.setText(input4Text + " : On");
 
-if (pMonitorBuffer[4] == 0) input5Label.setText(input5Text + " : Off");
+if (pMonitorBuffer[x++] == 0) input5Label.setText(input5Text + " : Off");
 else input5Label.setText(input5Text + " : On");
 
-if (pMonitorBuffer[5] == 0) input6Label.setText(input6Text + " : Off");
+if (pMonitorBuffer[x++] == 0) input6Label.setText(input6Text + " : Off");
 else input6Label.setText(input6Text + " : On");
 
-if (pMonitorBuffer[6] == 0) input7Label.setText(input7Text + " : Off");
+if (pMonitorBuffer[x++] == 0) input7Label.setText(input7Text + " : Off");
 else input7Label.setText(input7Text + " : On");
 
-if (pMonitorBuffer[7] == 0) input8Label.setText(input8Text + " : Off");
+if (pMonitorBuffer[x++] == 0) input8Label.setText(input8Text + " : Off");
 else input8Label.setText(input8Text + " : On");
 
-if (pMonitorBuffer[8] == 0) input9Label.setText(input9Text + " : Off");
-else input9Label.setText(input9Text + " : On");
+if (pMonitorBuffer[x++] == 0) setLabelOnOff(input9Label, input9Text, false);
+else setLabelOnOff(input9Label, input9Text, true);
 
-if (pMonitorBuffer[9] == 0) input10Label.setText(input10Text + " : Off");
+if (pMonitorBuffer[x++] == 0) input10Label.setText(input10Text + " : Off");
 else input10Label.setText(input10Text + " : On");
+
+chassisNumLabel.setText("Chassis Number : " + pMonitorBuffer[x++]);
+
+boardNumLabel.setText("Board Number : " + pMonitorBuffer[x++]);
+
+inspectionStatusLabel.setText(
+                   "Last Inspection Control Command : " + pMonitorBuffer[x++]);
+
+int rpm =
+   (int)((pMonitorBuffer[x++]<<8) & 0xff00) + (int)(pMonitorBuffer[x++] & 0xff);
+
+rpmLabel.setText("RPM : " +  rpm);
+
+int rpmVariation =  //cast to short to force sign extension
+   (short)((pMonitorBuffer[x++]<<8) & 0xff00) + (pMonitorBuffer[x++] & 0xff);
+
+rpmVarianceLabel.setText("RPM Variance : " + rpmVariation);
 
 // combine four bytes each to make the encoder counts
 
 int Encoder1Count = 0, Encoder2Count = 0;
 
 // create integer from four bytes in buffer
-Encoder1Count = ((pMonitorBuffer[12] << 24));
-Encoder1Count |= (pMonitorBuffer[13] << 16) & 0x00ff0000;
-Encoder1Count |= (pMonitorBuffer[14] << 8)  & 0x0000ff00;
-Encoder1Count |= (pMonitorBuffer[15])       & 0x000000ff;
+Encoder1Count = ((pMonitorBuffer[x++] << 24));
+Encoder1Count |= (pMonitorBuffer[x++] << 16) & 0x00ff0000;
+Encoder1Count |= (pMonitorBuffer[x++] << 8)  & 0x0000ff00;
+Encoder1Count |= (pMonitorBuffer[x++])       & 0x000000ff;
 
 Encoder1CountLabel.setText(Encoder1CountText + " : " + Encoder1Count);
 
 // create integer from four bytes in buffer
-Encoder2Count = ((pMonitorBuffer[16] << 24));
-Encoder2Count |= (pMonitorBuffer[17] << 16) & 0x00ff0000;
-Encoder2Count |= (pMonitorBuffer[18] << 8)  & 0x0000ff00;
-Encoder2Count |= (pMonitorBuffer[19])       & 0x000000ff;
+Encoder2Count = ((pMonitorBuffer[x++] << 24));
+Encoder2Count |= (pMonitorBuffer[x++] << 16) & 0x00ff0000;
+Encoder2Count |= (pMonitorBuffer[x++] << 8)  & 0x0000ff00;
+Encoder2Count |= (pMonitorBuffer[x++])       & 0x000000ff;
 
 Encoder2CountLabel.setText(Encoder2CountText + " : " + Encoder2Count);
 
 }//end of Monitor::updateStatus
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Monitor::setLabelOnOff
+//
+// If pOnOff is true, sets pLabel text to pDesc + " : On" and color to red.
+// If pOnOff is false, sets pLabel text to pDesc + " : Off" and color to black.
+//
+
+private void setLabelOnOff(JLabel pLabel, String pDesc, Boolean pOnOff)
+{
+
+    if (pOnOff){
+
+        pLabel.setFont(redFont);
+        pLabel.setText(pDesc + " : On");
+
+    }
+    else{
+
+        pLabel.setFont(blackFont);
+        pLabel.setText(pDesc + " : Off");
+
+    }
+
+}//end of Monitor::setLabelOnOff
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // Monitor::configure
@@ -258,9 +335,9 @@ input8Text = pConfigFile.readString("Monitor", "Input 8 Text", "Input 8");
 input9Text = pConfigFile.readString("Monitor", "Input 9 Text", "Input 9");
 input10Text = pConfigFile.readString("Monitor", "Input 10 Text", "Input 10");
 
-Encoder1CountText = 
+Encoder1CountText =
     pConfigFile.readString("Monitor", "Encoder 1 Counter Text", "Encoder 1");
-Encoder2CountText = 
+Encoder2CountText =
     pConfigFile.readString("Monitor", "Encoder 2 Counter Text", "Encoder 2");
 
 }//end of Monitor::configure
