@@ -164,8 +164,11 @@ public Gate(IniFile pConfigFile, int pChannelIndex, int pGateIndex,
     //processing options for a normal gate
     flawGateProcessList = new ArrayList<String>();
     flawGateProcessList.add("peak");
-    flawGateProcessList.add("integrate above gate");
-    flawGateProcessList.add("subsequent shot differential");
+    //option to integrate signal above the gate
+    flawGateProcessList.add("enhance above gate");
+    //option to integrate signal above the gate, subtract value of each shot
+    //from recent previous shot
+    flawGateProcessList.add("enhance above/trim baseline");
 
     //processing options for an interface gate
     iFaceProcessList = new ArrayList<String>();
@@ -502,20 +505,24 @@ public void setSignalProcessing(String pMode)
     signalProcessing = pMode;
 
     if (signalProcessing.equals("peak")){
+        //option to use unprocessed peak in the gate
         setFindPeak(true);
         setIntegrateAboveGate(false);
         setSubsequentShotDifferential(false);
         return;
     }
 
-    if (signalProcessing.equals("integrate above gate")){
+    if (signalProcessing.equals("enhance above gate")){
+        //option to integrate signal above the gate
         setIntegrateAboveGate(true);
         setFindPeak(false);
         setSubsequentShotDifferential(false);
         return;
     }
 
-    if (signalProcessing.equals("subsequent shot differential")){
+    if (signalProcessing.equals("enhance above/trim baseline")){
+        //option to integrate signal above the gate, subtract value of each shot
+        //from recent previous shot
         setSubsequentShotDifferential(true);
         setIntegrateAboveGate(true);
         setFindPeak(false);
