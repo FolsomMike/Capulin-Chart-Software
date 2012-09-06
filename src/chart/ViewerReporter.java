@@ -83,6 +83,8 @@ public class ViewerReporter implements ActionListener, TraceValueCalculator {
 
     double pixelsPerInch;
 
+    double decimalFeetPerPixel;
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 // class PrintRunnable
@@ -823,6 +825,8 @@ public void configure()
 
     pixelsPerInch = configFile.readDouble("Hardware", "Pixels per Inch", 1.0);
 
+    decimalFeetPerPixel = 1/(pixelsPerInch * 12);
+
 }//end of ViewerReporter::configure
 //-----------------------------------------------------------------------------
 
@@ -861,6 +865,21 @@ public double calculateComputedValue1(int pCursorY)
     return (hdwVs.nominalWall + offset);
 
 }//end of ViewerReporter::calculateComputedValue1
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ViewerReporter::getLinearDecimalFeetPerPixel
+//
+// Returns the decimal feet represented by each pixel in the linear axis.
+//
+
+@Override
+public double getLinearDecimalFeetPerPixel()
+{
+
+    return(decimalFeetPerPixel);
+
+}//end of ViewerReporter::getLinearDecimalFeetPerPixel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

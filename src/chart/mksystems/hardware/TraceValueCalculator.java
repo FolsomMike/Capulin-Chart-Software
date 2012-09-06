@@ -5,7 +5,7 @@
 *
 * Purpose:
 *
-* This file contains the interface definition for functions useful in 
+* This file contains the interface definition for functions useful in
 * converting the height of a trace to a real world value.
 *
 * Open Source Policy:
@@ -30,6 +30,8 @@ package chart.mksystems.hardware;
 public interface TraceValueCalculator {
 
 public double calculateComputedValue1(int pCursorY);
+
+public double getLinearDecimalFeetPerPixel();
 
 }//end of interface TraceValueCalculator
 //-----------------------------------------------------------------------------

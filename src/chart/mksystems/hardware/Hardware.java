@@ -54,6 +54,7 @@ int AwayDirection;
 double encoder1InchesPerCount;
 double encoder2InchesPerCount;
 public double pixelsPerInch;
+double decimalFeetPerPixel;
 
 int prevPixPosition;
 
@@ -79,6 +80,8 @@ HardwareLink digitalDriver;
 int numberOfAnalogChannels;
 JTextArea log;
 int scanRateCounter;
+
+int flaggingEnableDelay1, flaggingEnableDelay2 = 0;
 
 InspectControlVars inspectCtrlVars;
 
@@ -205,6 +208,8 @@ encoder2InchesPerCount =
     pConfigFile.readDouble("Hardware", "Encoder 2 Inches Per Count", 0.003);
 
 pixelsPerInch = pConfigFile.readDouble("Hardware", "Pixels per Inch", 1.0);
+
+decimalFeetPerPixel = 1/(pixelsPerInch * 12);
 
 manualInspectControl = pConfigFile.readBoolean(
         "Hardware", "Manual Inspection Start/Stop Control", false);
@@ -1395,6 +1400,7 @@ if (hdwVs.waitForOffPipe){
         hdwVs.waitForOffPipe = false;
         hdwVs.waitForOnPipe = true;
         //assume all heads up if off pipe and disable flagging
+        flaggingEnableDelay1 = 0; flaggingEnableDelay2 = 0;
         hdwVs.head1Down = false; enableHeadTraceFlagging(1, false);
         hdwVs.head2Down = false; enableHeadTraceFlagging(2, false);
         }
@@ -1412,6 +1418,11 @@ if (hdwVs.waitForOnPipe){
         //the direction of the linear encoder at the start of the inspection
         //sets the forward direction (increasing or decreasing encoder count)
         inspectCtrlVars.encoder2FwdDir = inspectCtrlVars.encoder2Dir;
+
+        //heads are up, flagging disabled upont start
+        flaggingEnableDelay1 = 0; flaggingEnableDelay2 = 0;
+        hdwVs.head1Down = false; enableHeadTraceFlagging(1, false);
+        hdwVs.head2Down = false; enableHeadTraceFlagging(2, false);
 
         //set the text description for the direction of inspection
         if (inspectCtrlVars.encoder2FwdDir == AwayDirection)
@@ -1433,13 +1444,15 @@ if (manualInspectControl){
 }
 
 //if head 1 is up and goes down, enable flagging for all traces on head 1
+//a small distance delay is used to prevent flagging of the initial transition
 if (!hdwVs.head1Down && inspectCtrlVars.head1Down){
-    hdwVs.head1Down = true; enableHeadTraceFlagging(1, true);
+    hdwVs.head1Down = true; flaggingEnableDelay1 = 2;
     }
 
 //if head 2 is up and goes down, enable flagging for all traces on head 2
+//a small distance delay is used to prevent flagging of the initial transition
 if (!hdwVs.head2Down && inspectCtrlVars.head2Down){
-    hdwVs.head2Down = true; enableHeadTraceFlagging(2, true);
+    hdwVs.head2Down = true; flaggingEnableDelay2 = 2;
     }
 
 //if head 1 is down and goes up, disable flagging for all traces on head 1
@@ -1541,6 +1554,14 @@ int pixelsMoved = pixPosition - prevPixPosition;
 if (pixelsMoved == 0) return;
 
 prevPixPosition = pixPosition;
+
+if (flaggingEnableDelay1 != 0 && --flaggingEnableDelay1 == 0){
+    enableHeadTraceFlagging(1, true);
+    }
+
+if (flaggingEnableDelay2 != 0 && --flaggingEnableDelay2 == 0){
+    enableHeadTraceFlagging(2, true);
+    }
 
 Trace tracePtr;
 
@@ -2164,6 +2185,21 @@ double offset = (hdwVs.nominalWallChartPosition - pCursorY)
 return (hdwVs.nominalWall + offset);
 
 }//end of Hardware::calculateComputedValue1
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::getLinearDecimalFeetPerPixel
+//
+// Returns the decimal feet represented by each pixel.
+//
+
+@Override
+public double getLinearDecimalFeetPerPixel()
+{
+
+    return(decimalFeetPerPixel);
+
+}//end of Hardware::getLinearDecimalFeetPerPixel
 //-----------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------
