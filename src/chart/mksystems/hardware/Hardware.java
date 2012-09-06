@@ -974,7 +974,8 @@ int newData = gatePtr.dataPeak;
 if (!pChannelActive
         || (trace.suppressTraceInEndMasks && !trace.flaggingEnabled )){
     if (gatePtr.peakDirection == 0) //0 means higher data more severe
-        newData = Integer.MIN_VALUE;
+        //newData = Integer.MIN_VALUE;
+        newData = 50; //debug mks
     else
         newData = Integer.MAX_VALUE-1; //can't use MAX_VALUE -- that is default
     }
@@ -1446,13 +1447,13 @@ if (manualInspectControl){
 //if head 1 is up and goes down, enable flagging for all traces on head 1
 //a small distance delay is used to prevent flagging of the initial transition
 if (!hdwVs.head1Down && inspectCtrlVars.head1Down){
-    hdwVs.head1Down = true; flaggingEnableDelay1 = 2;
+    hdwVs.head1Down = true; flaggingEnableDelay1 = 6;
     }
 
 //if head 2 is up and goes down, enable flagging for all traces on head 2
 //a small distance delay is used to prevent flagging of the initial transition
 if (!hdwVs.head2Down && inspectCtrlVars.head2Down){
-    hdwVs.head2Down = true; flaggingEnableDelay2 = 2;
+    hdwVs.head2Down = true; flaggingEnableDelay2 = 6;
     }
 
 //if head 1 is down and goes up, disable flagging for all traces on head 1
