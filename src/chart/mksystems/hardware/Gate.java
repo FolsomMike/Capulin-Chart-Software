@@ -237,12 +237,13 @@ public void storeNewData(int pDataPeak, int pDataMaxPeak, int pDataMinPeak,
 // only have one peak which is a double.
 //
 
-public void storeNewDataD(double pDataPeakD, int dPeakTrack)
+public void storeNewDataD(double pDataPeakD, int dPeakTrack, int pClockPos)
 {
 
     dataPeakD = pDataPeakD;
 
     peakTrack = dPeakTrack;
+    clockPos = pClockPos;
 
     newDataReady = true;
 
@@ -439,7 +440,8 @@ public void getNewData(HardwareVars hdwVs)
         //debug mks -- remove erroneous thick wall spikes
         //remove this later when better processing added to DSP code
 
-        //if (wallThickness > .220) wallThickness = .220;
+        //for 2-3/8 tube -- if (wallThickness > .220) wallThickness = .220;
+        if (wallThickness > .440) wallThickness = .440;
 
         //debug mks
 

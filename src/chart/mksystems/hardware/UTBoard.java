@@ -4004,16 +4004,19 @@ for (int h=0; h < pNumberOfChannels; h++){
         if (peakTrack > MAX_CLOCK_POSITION)
             peakTrack = peakTrack % (MAX_CLOCK_POSITION + 1);
 
-        bdChs[channel].gates[i].storeNewAScanPeak((int)(peak * ASCAN_SCALE),
-                                                                peakFlightTime);
-
-        peak *= SIGNAL_SCALE; //scale signal up or down
-
         //the peakTrack variable denotes the clock position, replace position
         //0 with 12 before saving
 
         int clockPos = peakTrack;
         if (clockPos == 0) clockPos = 12;
+
+        //NOTE: clockPos and peakTrack are the same now -- should really store
+        //the original peakTrack value along with the clockPos.
+
+        bdChs[channel].gates[i].storeNewAScanPeak((int)(peak * ASCAN_SCALE),
+                                                                peakFlightTime);
+
+        peak *= SIGNAL_SCALE; //scale signal up or down
 
         bdChs[channel].gates[i].storeNewData(peak, 0, 0, 0,
                 peakFlags, peakFlightTime, peakTrack, clockPos,
@@ -4069,9 +4072,17 @@ for (int h=0; h < pNumberOfChannels; h++){
         else
             prevMaxThickness = maxThickness;
 
+        //see notes above for peakTrack -- make this into a function some day
+        wallMaxTrack += CLOCK_OFFSET;
+        if (wallMaxTrack > MAX_CLOCK_POSITION)
+            wallMaxTrack = wallMaxTrack % (MAX_CLOCK_POSITION + 1);
+        int clockPos = wallMaxTrack;
+        if (clockPos == 0) clockPos = 12;
+
         //store the max peak - overwrites info saved for this gate above
         //debug mks - gates[1] should use the wallStartGate specified by user
-        bdChs[channel].gates[1].storeNewDataD(maxThickness, wallMaxTrack);
+        bdChs[channel].gates[1].storeNewDataD(
+                                        maxThickness, wallMaxTrack, clockPos);
 
         // Note that StartNum, StartDen, EndNum, and EndDen are no longer
         // used as the fractional math has been abandonded.
@@ -4117,9 +4128,17 @@ for (int h=0; h < pNumberOfChannels; h++){
             prevMinThickness = minThickness;
             }
 
+        //see notes above for peakTrack -- make this into a function some day
+        wallMinTrack += CLOCK_OFFSET;
+        if (wallMinTrack > MAX_CLOCK_POSITION)
+            wallMinTrack = wallMinTrack % (MAX_CLOCK_POSITION + 1);
+        clockPos = wallMinTrack;
+        if (clockPos == 0) clockPos = 12;
+
         //store the min peak - overwrites info saved for this gate above
         //debug mks - gates[2] should use the wallEndGate specified by user
-        bdChs[channel].gates[2].storeNewDataD(minThickness, wallMinTrack);
+        bdChs[channel].gates[2].storeNewDataD(
+                                        minThickness, wallMinTrack, clockPos);
 
         }// if (bdChs[channel].isWallChannel)
 
