@@ -23,6 +23,7 @@ package chart;
 import javax.swing.*;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.io.*;
 import java.text.DecimalFormat;
 import java.awt.event.ItemListener;
@@ -145,6 +146,51 @@ loadFirstOrLastAvailableSegment(LAST);
 //pack again to hide charts which are set hidden in the segment data file
 mainFrame.pack();
 
+//At this point, the main window will be sized large enough to view the graphs
+//vertically with only a horizontal scroll bar displayed automatically.
+//If the window is too large for the screen, then everything is shrunken to
+//fit with a vertical scroll bar then being displayed automatically.
+
+//get the actual screen size
+Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+double w = mainFrame.getWidth();
+double h = mainFrame.getHeight();
+
+double adjustedWAmount = 0;
+double adjustedHAmount = 0;
+
+if (w > screenSize.getWidth()){
+    adjustedWAmount = screenSize.getWidth() - w;
+    w = screenSize.getWidth();
+}
+
+if (h > screenSize.getHeight()){
+    adjustedHAmount = screenSize.getHeight() - h;
+    h = screenSize.getHeight();
+}
+
+//subtract a bit to clear the  task bar
+setSizes(mainFrame, (int)w, (int)h - 30);
+
+// tried using this code to avoid guessing at the height of the task bar, but
+// it didn't work -- windows might not support maximimizing in vertical
+// direction only
+// if (h > screenSize.getHeight())
+//    mainFrame.setExtendedState(JFrame.MAXIMIZED_VERT);
+
+//shrink the chart groups by the same amount as the main window was shrunken
+//shrink another 25 to account whether or not the scroll bar gets added
+//(this isn't perfect -- could result in wasted space if the scroll bar ends
+//up not being displayed
+
+setScrollPaneSizes(
+     (int)(chartGroups[0].viewerChartScrollPaneWidth),
+     (int)(chartGroups[0].viewerChartScrollPaneHeight + adjustedHAmount - 25));
+
+//pack again after resizing the main window
+mainFrame.pack();
+
 //let's have a look, shall we?
 mainFrame.setVisible(true);
 
@@ -187,9 +233,8 @@ public void configure()
     //now, only one group is currently expected, so the window uses the values
     //loaded for group 0.
 
-    setSizes(scrollPane,
-             chartGroups[0].viewerChartScrollPaneWidth,
-             chartGroups[0].viewerChartScrollPaneHeight);
+    setScrollPaneSizes(chartGroups[0].viewerChartScrollPaneWidth,
+                       chartGroups[0].viewerChartScrollPaneHeight);
 
     mainFrame.add(scrollPane);
 
@@ -1542,6 +1587,26 @@ return(controlPanel.calModeCheckBox.isSelected());
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Viewer::setScrollPaneSizes
+//
+// Sets the size of the scroll pane by adjusting the size of the content
+// pane it controls.
+//
+
+public void setScrollPaneSizes(int pWidth, int pHeight)
+{
+
+    chartGroups[0].viewerChartScrollPaneWidth = pWidth;
+    chartGroups[0].viewerChartScrollPaneHeight = pHeight;
+
+    setSizes(scrollPane,
+        (int)chartGroups[0].viewerChartScrollPaneWidth,
+        (int)chartGroups[0].viewerChartScrollPaneHeight);
+
+}//end of Viewer::setScrollPaneSizes
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Viewer::loadSegment
 //
 // Loads the data for a segment from the primary job folder.  The calibration
@@ -1585,7 +1650,7 @@ String loadSegment(boolean pQuietMode)
         if (!chartGroups[0].getStripChart(i).isChartVisible())
             adjustedPaneHeight -= chartGroups[0].getStripChart(i).chartHeight;
 
-    setSizes(scrollPane,
+    setScrollPaneSizes(
                 chartGroups[0].viewerChartScrollPaneWidth, adjustedPaneHeight);
 
     mainFrame.pack();

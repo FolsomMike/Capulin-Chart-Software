@@ -756,6 +756,22 @@ static public void setSizes(JComponent pComponent, int pX, int pY)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ViewerReporter::setSizes
+//
+// Sets the min, max, and preferred sizes of pJFrame to pX, pY.
+//
+
+static public void setSizes(JFrame pJFrame, int pX, int pY)
+{
+
+    pJFrame.setMinimumSize(new Dimension(pX, pY));
+    pJFrame.setPreferredSize(new Dimension(pX, pY));
+    pJFrame.setMaximumSize(new Dimension(pX, pY));
+
+}//end of ViewerReporter::setSizes
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ViewerReporter::displayErrorMessage
 //
 // Displays an error dialog with message pMessage.
