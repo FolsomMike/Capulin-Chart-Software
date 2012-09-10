@@ -43,7 +43,7 @@ import chart.mksystems.mswing.MFloatSpinner;
 // This class creates a panel for controls.
 //
 
-public class ControlPanel extends JPanel 
+public class ControlPanel extends JPanel
                        implements ActionListener, ChangeListener, ItemListener{
 
 
@@ -77,7 +77,7 @@ int nextPieceNumber, nextCalPieceNumber;
 // The parameter configFile is used to load configuration data.  The IniFile
 // should already be opened and ready to access.
 //
-  
+
 public ControlPanel(IniFile pConfigFile, String pCurrentJobPrimaryPath,
     String pCurrentJobBackupPath, Hardware pHardware, JFrame pFrame,
      ActionListener pParentActionListener, String pJobName, Globals pGlobals,
@@ -110,7 +110,7 @@ loadSettings();
 statusPanel.pieceNumberEditor.setValue((double)nextPieceNumber);
 
 }//end of ControlPanel::ControlPanel (constructor)
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // ControlPanel::refreshControls
@@ -161,7 +161,7 @@ add(scanSpeedPanel = new ScanSpeedPanel(globals, this, this));
 if (simulateMechanical) add(demoPanel = new DemoPanel(mechSimulator));
 if (demoPanel != null) demoPanel.init();
 add(Box.createHorizontalGlue()); //force manual control to the right side
-if (timerDrivenTracking){ 
+if (timerDrivenTracking){
     add(manualControlPanel = new ManualControlPanel(this, this, warningSymbol));
     manualControlPanel.init();
     }
@@ -177,24 +177,28 @@ if (timerDrivenTracking){
 
 @Override
 public void actionPerformed(ActionEvent e)
-{ 
+{
 
 //force garbage collection before beginning any time sensitive tasks
-System.gc();    
-    
+System.gc();
+
 if ("Scan".equals(e.getActionCommand())) {
+
+    modePanel.setTitle("Mode - Scan");
 
     modePanel.scanButton.setEnabled(false);
     modePanel.inspectButton.setEnabled(false);
-    
+
     //start the scan mode
     hardware.setMode(Hardware.SCAN);
 
     previousMode = -1;
-    
+
     }
 
 if ("Inspect".equals(e.getActionCommand())) {
+
+    modePanel.setTitle("Mode - Inspect");
 
     //reset everything to inspect the next piece - do this before entering
     //the inspect mode
@@ -202,7 +206,7 @@ if ("Inspect".equals(e.getActionCommand())) {
 
     modePanel.scanButton.setEnabled(false);
     modePanel.inspectButton.setEnabled(false);
-  
+
     //allow user to control inspection if manual tracking is enabled
     if (timerDrivenTracking) {
         manualControlPanel.pauseResumeButton.setEnabled(true);
@@ -211,7 +215,7 @@ if ("Inspect".equals(e.getActionCommand())) {
         //force the paused mode so the user can start inspection at will
         manualControlPanel.pauseResumeButton.setText("Resume");
         hardware.setMode(Hardware.PAUSED); //pause the traces
-        
+
         //set previousMode to desired inspection mode so when the user
         //uses the "Resume" button, inspection will be resumed
         previousMode = Hardware.INSPECT_WITH_TIMER_TRACKING;
@@ -226,6 +230,8 @@ if ("Inspect".equals(e.getActionCommand())) {
     }// if ("Inspect".equals(e.getActionCommand()))
 
 if ("Stop".equals(e.getActionCommand())) {
+
+    modePanel.setTitle("Mode - Stopped");
 
     previousMode = hardware.getMode(); //store the current mode
 
@@ -343,7 +349,7 @@ if (e.getItemSelectable() == statusPanel.calModeCheckBox){
         //visible if there is no manualControlPanel
 
         }//else of if (calMode)
-                
+
     }// if (e.getItemSelectable() == statusPanel.calModeCheckBox)
 
 }//end of ControlPanel::itemStateChanged
@@ -463,7 +469,7 @@ saveSettings(); //save the numbers after each change in case of crash
 // Adds a button to a JPanel with associated settings and values.
 //
 
-static public JButton addButtonToJPanel(JPanel pPanel, String pLabel, 
+static public JButton addButtonToJPanel(JPanel pPanel, String pLabel,
         String pActionCommand, ActionListener pActionListener, String pToolTip)
 {
 
@@ -472,8 +478,8 @@ button.setActionCommand(pActionCommand);
 button.addActionListener(pActionListener);
 button.setToolTipText(pToolTip);
 pPanel.add(button);
-    
-return (button);    
+
+return (button);
 
 }//end of ControlPanel::addButtonToJPanel (static)
 //-----------------------------------------------------------------------------
@@ -520,7 +526,7 @@ if (nextCalPieceNumber < 1) nextCalPieceNumber = 1;
 
 public void saveSettings()
 {
-        
+
 //copy the control value to the appropriate variable depending on the cal mode
 //setting - this makes sure the value gets saved in case it was changed
 //manually by the user
@@ -535,7 +541,7 @@ saveSettingsHelper(currentJobPrimaryPath, jobName,
 
 saveSettingsHelper(currentJobBackupPath, jobName,
                     nextPieceNumber, nextCalPieceNumber, globals.jobFileFormat);
-        
+
 }//end of ControlPanel::saveSettings
 //-----------------------------------------------------------------------------
 
@@ -558,8 +564,8 @@ static void saveSettingsHelper(String pJobPath, String pJobName,
 //the program root folder -- this occurs when the current job path specified in
 //the Main Settings.ini
 
-if (pJobPath.equals("")) return;    
-    
+if (pJobPath.equals("")) return;
+
 IniFile settingsFile = null;
 
 //if the ini file cannot be opened and loaded, exit without action
@@ -615,53 +621,69 @@ else {return null;}
 //-----------------------------------------------------------------------------
 // class ModePanel
 //
-// This class creates and controls a panel with buttons for the 
+// This class creates and controls a panel with buttons for the
 // Inspect/Scan/Stop functions.
 //
 
 class ModePanel extends JPanel{
 
-public TitledBorder titledBorder;    
+TitledBorder titledBorder;
 JButton inspectButton, scanButton, stopButton;
 ActionListener actionListener;
-    
+
 //-----------------------------------------------------------------------------
 // ModePanel::ModePanel (constructor)
 //
 //
-  
+
 public ModePanel(ActionListener pActionListener)
 {
 
 actionListener = pActionListener;
-        
+
 }//end of ModePanel::ModePanel (constructor)
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // ModePanel::init
 //
 // Initializes the object.
 //
-  
+
 public void init()
 {
 
-setBorder(titledBorder = BorderFactory.createTitledBorder("Mode"));    
+setBorder(titledBorder = BorderFactory.createTitledBorder("Mode - Stopped"));
 
 setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
-inspectButton = ControlPanel.addButtonToJPanel(this, "Inspect", 
+inspectButton = ControlPanel.addButtonToJPanel(this, "Inspect",
                             "Inspect", actionListener, "Prepares to inspect.");
 
-scanButton = ControlPanel.addButtonToJPanel(this, "Scan", 
+scanButton = ControlPanel.addButtonToJPanel(this, "Scan",
         "Scan", actionListener, "Begins scanning data - use for calibration.");
 
-stopButton = ControlPanel.addButtonToJPanel(this, "Stop", 
+stopButton = ControlPanel.addButtonToJPanel(this, "Stop",
                      "Stop", actionListener, "Places system in standby mode.");
-    
+
 }//end of ModePanel::init
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ModePanel::setTitle
+//
+// Sets the title of the titledBorder and performs a repaint.
+//
+
+public void setTitle(String pTitle)
+{
+
+    titledBorder.setTitle(pTitle);
+
+    repaint();
+
+}//end of ModePanel::setTitle
+//-----------------------------------------------------------------------------
 
 }//end of class ModePanel
 //-----------------------------------------------------------------------------
@@ -676,10 +698,10 @@ stopButton = ControlPanel.addButtonToJPanel(this, "Stop",
 
 class StatusPanel extends JPanel{
 
-ChangeListener changeListener;    
+ChangeListener changeListener;
 ItemListener itemListener;
 
-public TitledBorder titledBorder;    
+public TitledBorder titledBorder;
 
 MFloatSpinner pieceNumberEditor;
 JLabel speedLabel, speedValue;
@@ -691,13 +713,13 @@ JCheckBox calModeCheckBox;
 // StatusPanel::StatusPanel (constructor)
 //
 //
-  
+
 public StatusPanel(Globals pGlobals, ChangeListener pChangeListener,
                                                     ItemListener pItemListener)
 {
 
 changeListener = pChangeListener; itemListener = pItemListener;
-    
+
 setBorder(titledBorder = BorderFactory.createTitledBorder("Status"));
 setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
@@ -727,7 +749,7 @@ rpmValue = new JLabel("000");
 add(rpmValue);
 
 }//end of StatusPanel::StatusPanel (constructor)
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 }//end of class StatusPanel
 //-----------------------------------------------------------------------------
@@ -742,8 +764,8 @@ add(rpmValue);
 
 class InfoPanel extends JPanel{
 
-JPanel parent;    
-public TitledBorder titledBorder;    
+JPanel parent;
+public TitledBorder titledBorder;
 
 JLabel jobLabel, jobValue;
 
@@ -751,12 +773,12 @@ JLabel jobLabel, jobValue;
 // InfoPanel::InfoPanel (constructor)
 //
 //
-  
+
 public InfoPanel(JPanel pParent, String pCurrentWorkOrder)
 {
 
 parent = pParent;
-    
+
 setBorder(titledBorder = BorderFactory.createTitledBorder("Info"));
 setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
@@ -766,7 +788,7 @@ jobValue = new JLabel(pCurrentWorkOrder);
 add(jobValue);
 
 }//end of InfoPanel::InfoPanel (constructor)
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 }//end of class InfoPanel
 //-----------------------------------------------------------------------------
@@ -827,22 +849,22 @@ add(Box.createRigidArea(new Dimension(15,0))); //horizontal spacer
 
 class DemoPanel extends JPanel implements ActionListener{
 
-public TitledBorder titledBorder;    
+public TitledBorder titledBorder;
 JButton forwardButton, reverseButton, stopButton, resetButton;
 MessageLink mechSimulator;
-    
+
 //-----------------------------------------------------------------------------
 // DemoPanel::DemoPanel (constructor)
 //
 //
-  
+
 public DemoPanel(MessageLink pMechSimulator)
 {
 
 mechSimulator = pMechSimulator;
-    
+
 }//end of DemoPanel::DemoPanel (constructor)
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // DemoPanel::init
@@ -851,26 +873,26 @@ mechSimulator = pMechSimulator;
 //
 
 public void init()
-{ 
+{
 
 setBorder(titledBorder = BorderFactory.createTitledBorder("Demo Simulation"));
 
 setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
-forwardButton = ControlPanel.addButtonToJPanel(this, "Fwd", 
+forwardButton = ControlPanel.addButtonToJPanel(this, "Fwd",
      "Demo Forward", this, "Simulates a test piece moving forward.");
 
-stopButton = ControlPanel.addButtonToJPanel(this, "Stop", 
+stopButton = ControlPanel.addButtonToJPanel(this, "Stop",
                "Demo Stop", this, "Simulates a test piece stopped.");
 
 stopButton.setEnabled(false);
 
-reverseButton = ControlPanel.addButtonToJPanel(this, "Reverse", 
+reverseButton = ControlPanel.addButtonToJPanel(this, "Reverse",
   "Demo Reverse", this, "Simulates a test piece moving in reverse.");
 
-resetButton = ControlPanel.addButtonToJPanel(this, "Reset", 
+resetButton = ControlPanel.addButtonToJPanel(this, "Reset",
            "Demo Reset", this, "Resets to no test piece in system.");
-    
+
 }//end of DemoPanel::init
 //-----------------------------------------------------------------------------
 
@@ -882,7 +904,7 @@ resetButton = ControlPanel.addButtonToJPanel(this, "Reset",
 
 @Override
 public void actionPerformed(ActionEvent e)
-{ 
+{
 
 if ("Demo Forward".equals(e.getActionCommand())) {
     forwardButton.setEnabled(false);
@@ -905,11 +927,11 @@ if ("Demo Reverse".equals(e.getActionCommand())) {
     stopButton.setEnabled(true);
     forwardButton.setEnabled(true);
     //set the mode in the mechanical simulator object
-    mechSimulator.xmtMessage(MessageLink.SET_MODE, MessageLink.REVERSE);    
+    mechSimulator.xmtMessage(MessageLink.SET_MODE, MessageLink.REVERSE);
     }
 
 if ("Demo Reset".equals(e.getActionCommand())) {
-    
+
     //reset the mechanical simulator object
     mechSimulator.xmtMessage(MessageLink.SET_MODE, MessageLink.RESET);
 
@@ -961,7 +983,7 @@ warningSymbol = pWarningSymbol;
 //
 // Initializes the object.
 //
-  
+
 public void init()
 {
 
@@ -992,7 +1014,7 @@ pauseResumeButton = ControlPanel.addButtonToJPanel(
 pauseResumeButton.setEnabled(false);
 
 }//end of ManualControlPanel::init
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 
 }//end of class ManualControlPanel
