@@ -224,6 +224,7 @@ addMouseMotionListener(mouseMotionListener);
 
 setOpaque(true);
 
+//set the min, preferred, and max sizes
 setSizes(width, height);
 
 }//end of ChartCanvas::ChartCanvas (constructor)

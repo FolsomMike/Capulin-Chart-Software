@@ -695,7 +695,7 @@ static public boolean matchAndParseBoolean(String pString, String pKey,
 // own data.
 //
 
-private void loadCalFile()
+public void loadCalFile()
 {
 
     IniFile calFile = null;

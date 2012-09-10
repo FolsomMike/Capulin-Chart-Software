@@ -44,7 +44,7 @@ import chart.Xfer;
 
 public class ChartGroup extends JPanel implements MouseListener{
 
-Globals globals;    
+Globals globals;
 IniFile configFile;
 int chartGroupIndex;
 Hardware hardware;
@@ -59,8 +59,8 @@ Color jointLabelColor;
 boolean singleColumn;
 boolean chartSizeEqualsBufferSize;
 
-public int viewerChartScrollPaneWidth;
-public int viewerChartScrollPaneHeight;
+public int viewerWindowWidth;
+public int viewerWindowHeight;
 
 ActionListener actionListener;
 
@@ -70,14 +70,14 @@ ActionListener actionListener;
 // The parameter configFile is used to load configuration data.  The IniFile
 // should already be opened and ready to access.
 //
-  
+
 public ChartGroup(Globals pGlobals, IniFile pConfigFile, int pChartGroupIndex,
                         Hardware pHardware, ActionListener pActionListener,
                                         boolean pChartSizeEqualsBufferSize,
                                   TraceValueCalculator pTraceValueCalculator)
 {
 
-globals = pGlobals; configFile = pConfigFile; 
+globals = pGlobals; configFile = pConfigFile;
 chartGroupIndex = pChartGroupIndex;
 hardware = pHardware;
 actionListener = pActionListener;
@@ -117,7 +117,7 @@ private void configure(IniFile pConfigFile)
 
 String section = "Chart Group " + (chartGroupIndex + 1);
 
-numberOfStripCharts = 
+numberOfStripCharts =
          pConfigFile.readInt(section, "Number of Strip Charts", 1);
 
 pieceName = pConfigFile.readString(section, "Name Of Pieces", "Piece");
@@ -141,17 +141,17 @@ else
 //a convenient height can be set and a vertical scroll bar will automatically
 //be shown to allow scrolling to view all charts
 
-viewerChartScrollPaneWidth = pConfigFile.readInt(
-                            section, "Viewer Chart Scroll Pane Width", 1233);
-viewerChartScrollPaneHeight = pConfigFile.readInt(
-                            section, "Viewer Chart Scroll Pane Height", 308);
+viewerWindowWidth = pConfigFile.readInt(
+                            section, "Viewer Window Width", 1233);
+viewerWindowHeight = pConfigFile.readInt(
+                            section, "Viewer Window Height", -1);
 
 //create an array of strip charts per the config file setting
 if (numberOfStripCharts > 0){
-    
+
     //protect against too many groups
     if (numberOfStripCharts > 100) numberOfStripCharts = 100;
-    
+
     stripCharts = new StripChart[numberOfStripCharts];
 
     for (int i = 0; i < numberOfStripCharts; i++){
@@ -160,7 +160,7 @@ if (numberOfStripCharts > 0){
                         traceValueCalculator);
         add(stripCharts[i]);
         }
-    
+
     }//if (numberOfChartGroups > 0)
 
 }//end of ChartGroup::configure
@@ -254,7 +254,7 @@ public void resetChartGroup()
 {
 
 for (int i = 0; i < numberOfStripCharts; i++) stripCharts[i].resetChart();
-    
+
 }//end of ChartGroup::resetChartGroup
 //-----------------------------------------------------------------------------
 
@@ -458,7 +458,7 @@ return(line); //should be "[xxxx]" tag on success, unknown value if not
 public void handleSizeChanges()
 {
 
-for (int i = 0; i < numberOfStripCharts; i++) 
+for (int i = 0; i < numberOfStripCharts; i++)
                                              stripCharts[i].handleSizeChanges();
 
 }//end of ChartGroup::handleSizeChanges
@@ -474,7 +474,7 @@ public void plotData()
 {
 
 for (int i = 0; i < numberOfStripCharts; i++) stripCharts[i].plotData();
-    
+
 }//end of ChartGroup::plotData
 //-----------------------------------------------------------------------------
 
@@ -523,9 +523,9 @@ return stripCharts[0].getHeight();
 // should be moved from this section and formatted properly.
 //
 
-    
+
 @Override
-public void mouseClicked(MouseEvent e) {};    
+public void mouseClicked(MouseEvent e) {};
 @Override
 public void mousePressed(MouseEvent e) {};
 @Override
