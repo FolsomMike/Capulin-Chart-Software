@@ -261,9 +261,6 @@ public void handleSizeChanges()
     canvasXLimit = canvas.getWidth() - 1;
     canvasYLimit = canvas.getHeight() - 1;
 
-    //reset all data
-    resetTrace();
-
 }//end of Trace::handleSizeChanges
 //-----------------------------------------------------------------------------
 

@@ -127,13 +127,16 @@ BoxLayout boxLayout = new BoxLayout(
 //mainFrame.setLayout(new BoxLayout(mainFrame, BoxLayout.Y_AXIS));
 mainFrame.getContentPane().setLayout(boxLayout);
 
-configure(); //create the charts and other controls
+//create the charts and other controls -- this will display empty charts
+//which will be replaced with actual data by calling method
+//loadFirstOrLastAvailableSegment
+configure();
 
 //reset the charts
 resetChartGroups();
 
 //load the last file saved - this is the most likely to be viewed
-//debug mks loadFirstOrLastAvailableSegment(LAST);
+loadFirstOrLastAvailableSegment(LAST);
 
 //let's have a look, shall we?
 mainFrame.setVisible(true);
@@ -164,8 +167,7 @@ public void resetMainFrameAndSetUp()
 
     mainFrame.add(scrollPane);
 
-    mainFrame.add(controlPanel =
-                  new ViewerControlPanel(globals, currentJobName, this, this));
+    mainFrame.add(controlPanel);
 
     //pack the window the first time to establish the sizes before the call to
     //handleSizeChanges which creates buffers dependent on those sizes
@@ -189,10 +191,6 @@ public void resetMainFrameAndSetUp()
 
     setSizes(mainFrame, (int)w, (int)h);
     mainFrame.pack();
-
-    //allow all objects to update values dependent on display sizes
-    //must do this before loading data as this resets the buffers
-    handleSizeChanges();
 
     //At this point, the main window will be sized large enough to view the
     //graphs vertically with only a horizontal scroll bar displayed
@@ -232,12 +230,9 @@ public void resetMainFrameAndSetUp()
 
     mainFrame.pack();
 
-//debug mks
-Dimension min = mainFrame.getMinimumSize();
-Dimension pref = mainFrame.getPreferredSize();
-Dimension max = mainFrame.getMaximumSize();
-double dw = mainFrame.getWidth(); double dh = mainFrame.getHeight();
-//debug mks
+    //allow all objects to update values dependent on display sizes
+    //must do this before loading data as this resets the buffers
+    handleSizeChanges();
 
 }//end of Viewer::resetMainFrameAndSetUp
 //-----------------------------------------------------------------------------
@@ -255,6 +250,8 @@ public void configure()
 
     super.configure();
 
+    controlPanel = new ViewerControlPanel(globals, currentJobName, this, this);
+
     //put the chartGroupPanel in a scroll pane so the user can scroll to see
     //a chart wider than the screen - this is different from the program's main
     //window which does not allow scrolling
@@ -267,19 +264,6 @@ public void configure()
     scrollPane = new JScrollPane(chartGroupPanel,
                                 JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                                 JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-
-    //force the size of the scrollpane - the charts inside of it will usually be
-    //wider to hold the entire data segment - the size is set by values in the
-    //config file, if there are too many charts to fit vertically, a vertical
-    //scroll bar will be added automatically
-    //The concept is to have each Chart Group displayed in a separate window
-    //during inspection.  Thus each viewer window probably needs an index
-    //identifier passed to it so it knows which group it is displaying.  For
-    //now, only one group is currently expected, so the window uses the values
-    //loaded for group 0.
-
-//debug mks    setScrollPaneSizes(chartGroups[0].viewerChartScrollPaneWidth,
-//debug mks                       chartGroups[0].viewerChartScrollPaneHeight);
 
     //load the current cal file so the default display will reflect which
     //charts are hidden and any other settings -- these will be overridden
@@ -1689,18 +1673,6 @@ String loadSegment(boolean pQuietMode)
         }
 
     controlPanel.segmentEntry.setText(currentSegmentNumber + result);
-
-    //find the height needed to show charts without vertical scroll bar
-    int adjustedPaneHeight = 0;
-    for (int i = 0; i < chartGroups[0].getNumberOfStripCharts(); i++)
-            adjustedPaneHeight += chartGroups[0].getStripChart(i).getHeight();
-
-    //add height to account for the horizontal scroll bar which steals space
-    adjustedPaneHeight += 30;
-
-    //set to the config file supplied width and the height of the charts
-    setScrollPaneSizes(
-                        chartGroups[0].viewerWindowWidth, adjustedPaneHeight);
 
     //set up the main JFrame with its children components
     resetMainFrameAndSetUp();
