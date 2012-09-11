@@ -27,6 +27,7 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
+import java.text.DecimalFormat;
 
 import chart.mksystems.globals.Globals;
 import chart.mksystems.inifile.IniFile;
@@ -34,6 +35,7 @@ import chart.mksystems.hardware.Hardware;
 import chart.mksystems.hardware.TraceValueCalculator;
 import chart.Viewer;
 import chart.Xfer;
+import chart.mksystems.hardware.HardwareVars;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -513,6 +515,125 @@ public int getStripChartHeight()
 return stripCharts[0].getHeight();
 
 }//end of ChartGroup::getStripChartHeight
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Viewer::getWallMinOrMaxText
+//
+// Finds the min or max for the Wall trace and returns it formatted in a string.
+// If pFindMin is true, then the minimum is found else the maximum is found.
+//
+// If more than one min trace is used in the future such as a trace for each
+// wall transducer, then need to look for the min of all Wall Min traces and
+// the max of all Wall Max traces.
+//
+// Parameter pHdwVs contains various values need to calculate the wall value
+// from the raw data.
+//
+// The resulting string is returned.  The Double value for the in and max
+// wall are returned via the pHdwVs object.
+//
+// Returns empty string if no chart and trace can be found containing the
+// titles Wall and Min or Max as required.
+//
+
+public String getWallMinOrMaxText(boolean pFindMin, HardwareVars pHdwVs)
+{
+
+    String result = "";
+    StripChart stripChart = null;
+    pHdwVs.minWall = -1; pHdwVs.maxWall = -1;
+
+    String traceSearchPhrase = pFindMin ? "Min" : "Max";
+
+    //scan through all charts to find the one with the title containing "Wall"
+
+    for (int j = 0; j < getNumberOfStripCharts(); j++){
+        if(getStripChart(j).getTitle().contains("Wall")){
+            stripChart = getStripChart(j);
+            pHdwVs.chart = stripChart;
+            break;
+        }
+    }
+
+    //if no "Wall" chart found, exit with empty string
+    if (stripChart == null) return(result);
+
+    Trace trace = null;
+
+    //scan through all traces to find the one with the title containing "Max"
+    //and "Min", depending on the search phrase
+
+    for (int i = 0; i < stripChart.getNumberOfTraces(); i++){
+        if(stripChart.getTrace(i).getTitle().contains(traceSearchPhrase)){
+            trace = stripChart.getTrace(i);
+            pHdwVs.trace = trace;
+            break;
+        }
+    }
+
+    //if no matching chart found, exit with empty string
+    if (trace == null) return(result);
+
+    int wall = 0;
+
+    //calculate the buffer index of the positions of the leading and trailing
+    //end masks -- use the calculated length of the piece for determining the
+    //trailing end position rather than using the end of the data -- there is
+    //often extraneous data after the end of the segment
+
+    int lLeadMaskPos, lTrailMaskPos;
+    double length = pHdwVs.measuredLength * pHdwVs.pixelsPerInch * 12;
+    lLeadMaskPos = (int)(stripChart.leadMaskPos * pHdwVs.pixelsPerInch);
+    lTrailMaskPos =
+            (int)(length - (stripChart.trailMaskPos * pHdwVs.pixelsPerInch));
+
+    wall = stripChart.findMinOrMaxValueOfTrace(
+                                trace, pFindMin, lLeadMaskPos, lTrailMaskPos);
+
+    if (wall < 0) wall = 0;
+    if (wall > stripChart.chartHeight) wall = stripChart.chartHeight;
+
+    DecimalFormat decimalFormat = new DecimalFormat("0.000");
+
+    double processedValue = calculateInvertedComputedValue1(wall, pHdwVs);
+
+    //store the numeric value so it can be accessed by caller
+    if (pFindMin)
+        pHdwVs.minWall = processedValue;
+    else
+        pHdwVs.maxWall = processedValue;
+
+    result = decimalFormat.format(processedValue);
+
+    return(result);
+
+}//end of Viewer::getWallMinOrMaxText
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Viewer::calculateInvertedComputedValue1
+//
+// For this version, calculates the wall thickness based upon the cursor Y
+// position. It is similar to calculateComputedValue1 but expects
+// an inverted value directly from the trace data buffer.  The non-inverted
+// version expects data from cursor position which is inverted due to the
+// fact that Java uses the upper left corner for 0,0.
+//
+// Parameter pHdwVs contains various values need to calculate the wall value
+// from the raw data.
+//
+
+public double calculateInvertedComputedValue1(int pCursorY, HardwareVars pHdwVs)
+{
+
+    double offset = (pHdwVs.nominalWallChartPosition - pCursorY)
+                                                       * pHdwVs.wallChartScale;
+
+    //calculate wall at cursor y position relative to nominal wall value
+    return (pHdwVs.nominalWall - offset);
+
+}//end of Viewer::calculateInvertedComputedValue1
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

@@ -53,15 +53,12 @@ int AwayDirection;
 
 double encoder1InchesPerCount;
 double encoder2InchesPerCount;
-public double pixelsPerInch;
-double decimalFeetPerPixel;
 
 int prevPixPosition;
 
 boolean output1On = false;
 
 public boolean prepareForNewPiece;
-public double pieceLength;
 
 //these are the descriptions to be used for the direction the piece was
 //inspected -- towards home is towards the operator's compartment, away from
@@ -207,9 +204,10 @@ encoder1InchesPerCount =
 encoder2InchesPerCount =
     pConfigFile.readDouble("Hardware", "Encoder 2 Inches Per Count", 0.003);
 
-pixelsPerInch = pConfigFile.readDouble("Hardware", "Pixels per Inch", 1.0);
+hdwVs.pixelsPerInch =
+                    pConfigFile.readDouble("Hardware", "Pixels per Inch", 1.0);
 
-decimalFeetPerPixel = 1/(pixelsPerInch * 12);
+hdwVs.decimalFeetPerPixel = 1/(hdwVs.pixelsPerInch * 12);
 
 manualInspectControl = pConfigFile.readBoolean(
         "Hardware", "Manual Inspection Start/Stop Control", false);
@@ -1486,15 +1484,15 @@ if (hdwVs.watchForOffPipe){
                 inspectCtrlVars.encoder2 - inspectCtrlVars.encoder2Start;
 
         //convert to inches
-        pieceLength = pieceLengthEncoderCounts *encoder2InchesPerCount;
+        hdwVs.measuredLength = pieceLengthEncoderCounts *encoder2InchesPerCount;
 
         //subtract the distance between the perpendicular eyes -- tracking
         //starts when lead eye hits pipe but ends when trailing eye clears,
         //so the extra distance between the eyes must be accounted for
 
-        pieceLength -= photoEyeToPhotoEyeDistance;
+        hdwVs.measuredLength -= photoEyeToPhotoEyeDistance;
 
-        pieceLength /= 12; //convert to decimal feet
+        hdwVs.measuredLength /= 12; //convert to decimal feet
 
         hdwVs.watchForOffPipe = false;
 
@@ -1543,7 +1541,7 @@ double position = encoder2InchesPerCount *
 position = Math.abs(position);
 
 //calculate the number of pixels moved since the last check
-int pixPosition = (int)(position * pixelsPerInch);
+int pixPosition = (int)(position * hdwVs.pixelsPerInch);
 
 //debug mks -- check here for passing zero point -- means pipe has backed out of
 //the system so remove segment
@@ -2198,7 +2196,7 @@ return (hdwVs.nominalWall + offset);
 public double getLinearDecimalFeetPerPixel()
 {
 
-    return(decimalFeetPerPixel);
+    return(hdwVs.decimalFeetPerPixel);
 
 }//end of Hardware::getLinearDecimalFeetPerPixel
 //-----------------------------------------------------------------------------

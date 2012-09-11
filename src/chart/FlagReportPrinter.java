@@ -561,7 +561,7 @@ public void printFlagForTrace(PrintWriter pFile, StripChart pChart,
 
         //convert index to decimal feet, format, and pad to length
         linearPos = prePad(decimalFormats[1].format(pDataIndex /
-                hardware.pixelsPerInch / 12.0), 5);
+                                            hdwVs.pixelsPerInch / 12.0), 5);
 
         //convert and format the amplitude depending on chart type
         int amplitude = pTrace.dataBuffer1[pDataIndex];
@@ -684,7 +684,7 @@ public void printHeader(PrintWriter pFile, int pPiece)
     pFile.print("Nominal Wall: " +
                             truncate(decimalFormats[2].format(wall), 6) + "  ");
 
-    pFile.println("Length: " + decimalFormats[1].format(measuredLength));
+    pFile.println("Length: " + decimalFormats[1].format(hdwVs.measuredLength));
 
     String wallRejectPercentText =
               jobInfoFile.readString("Job Info", "Wall Reject Percentage", "");

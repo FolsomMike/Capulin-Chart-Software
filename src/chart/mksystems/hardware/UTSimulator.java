@@ -67,7 +67,7 @@ index = pIndex;
 
 // the FPGA register addresses for all channels for sample delay and sample
 // count are contiguous addresses, so use a bit of math to calculate each
-// address from the first one 
+// address from the first one
 
 sampleDelayReg0 = (byte) (pSampleDelayReg0 + (index * 4));
 sampleDelayReg1 = (byte) (pSampleDelayReg0 + 1 + (index * 4));
@@ -156,7 +156,7 @@ sampleCount = (int)(
 //allows for a signed integer
 
 if (sampleCount < 0) sampleCount = 0;
-if (sampleCount > UTBoard.MAX_SAMPLE_COUNT) 
+if (sampleCount > UTBoard.MAX_SAMPLE_COUNT)
     sampleCount = UTBoard.MAX_SAMPLE_COUNT;
 
 }//end of BoardChannel::setSampleCount
@@ -228,7 +228,7 @@ int peakPacketCount;
 //-----------------------------------------------------------------------------
 // UTSimulator::UTSimulator (constructor)
 //
-  
+
 public UTSimulator(InetAddress pIPAddress, int pPort, String pMainFileFormat)
                                                         throws SocketException
 {
@@ -248,7 +248,7 @@ status = UTBoard.FPGA_LOADED_FLAG;
 
 //create an array of channel variables
 boardChannels = new BoardChannel[MAX_BOARD_CHANNELS];
-for (int i=0; i<MAX_BOARD_CHANNELS; i++) boardChannels[i] = 
+for (int i=0; i<MAX_BOARD_CHANNELS; i++) boardChannels[i] =
    new BoardChannel(i, UTBoard.CH1_SAMPLE_DELAY_0, UTBoard.CH1_SAMPLE_COUNT_0);
 
 channelPeakSets = new ChannelPeakSet[NUMBER_OF_BOARD_CHANNELS];
@@ -463,7 +463,7 @@ return 12;
 //
 // Simulates setting the software gain applied by the DSP.
 //
-  
+
 void setDSPGain()
 {
 
@@ -480,7 +480,7 @@ boardChannels[inBuffer[0]].dspGain = inBuffer[1];
 //
 // Simulates writing to a register in the FPGA on a UT board.
 //
-  
+
 void writeFPGA()
 {
 
@@ -502,7 +502,7 @@ for (int i=0; i<4; i++){
 //
 // Simulates reading of a register in the FPGA on a UT board.
 //
-  
+
 void readFPGA()
 {
 
@@ -519,7 +519,7 @@ if (inBuffer[0] == UTBoard.CHASSIS_SLOT_ADDRESS) getChassisSlotAddress();
 //
 // Simulates returning of the status byte.
 //
-  
+
 void getStatus()
 {
 
@@ -560,7 +560,7 @@ sendBytes2((byte)0, (byte)0);
 //
 // Simulates loading of the FPGA configuration bitstream.
 //
-  
+
 void loadFPGA()
 {
 
@@ -576,7 +576,7 @@ void loadFPGA()
 //
 // Simulates writing to DSP RAM on a UT board.
 //
-  
+
 void writeDSP()
 {
 
@@ -591,7 +591,7 @@ catch(IOException e){}
 //
 // Simulates writing to the next DSP RAM location on a UT board.
 //
-  
+
 void writeNextDSP()
 {
 
@@ -693,37 +693,33 @@ for (int ch=0; ch<NUMBER_OF_BOARD_CHANNELS; ch++){
     sendByte((byte)channelPeakSets[ch].channel);
     //send number of gates
     sendByte((byte)channelPeakSets[ch].numberOfGates);
-    
+
     //send peak data back for each gate of the channel
     for (int gate=0; gate<channelPeakSets[ch].numberOfGates; gate++){
 
         //send peak flags - these need to be simulated in future code update
         sendShortInt((short)channelPeakSets[ch].peakFlags);
-        
-        channelPeakSets[ch].peak = 5;
-  
-        if (peakSpacing++ == 20){
-            channelPeakSets[ch].peak = 45;
-            peakSpacing = 0;
-            };
-        
-//        if(((int)(Math.random()*30)) == 1)
-//            channelPeakSets[ch].peak = 85;
-//            channelPeakSets[ch].peak = (int)(Math.random()*100);
-                
+
+        //baseline noise
+        channelPeakSets[ch].peak = (int)(Math.random()*5);
+
+        //occasional peak
+        if(((int)(Math.random()*200)) == 1)
+            channelPeakSets[ch].peak = (int)(Math.random()*100);
+
         sendShortInt((short)channelPeakSets[ch].peak);
-        
+
         //for debugging:
         //send the peak, offset by gate so traces will be separated
         //add in a little random value
         //sendShortInt((short)channelPeakSets[ch].peak + (gate * 6)
         //                                           + (int)(Math.random()*3));
 
-        
+
         //add next line in to generate a sawtooth wave form
         //if (channelPeakSets[ch].peak++ > 100) channelPeakSets[ch].peak = 0;
-        
-        
+
+
         //send the flight time for the peak
         sendShortInt((short)channelPeakSets[ch].flightTime);
         //send the position track for the peak
@@ -741,7 +737,11 @@ for (int ch=0; ch<NUMBER_OF_BOARD_CHANNELS; ch++){
 
         //maximum wall values
 
-        sendShortInt((short)105);  //wall max peak uS distance
+        short wall;
+
+        wall = (short)(120 + (Math.random()*10));
+
+        sendShortInt(wall);  //wall max peak uS distance
 
         sendShortInt((short)0);  //start fractional distance numerator
 
@@ -755,7 +755,12 @@ for (int ch=0; ch<NUMBER_OF_BOARD_CHANNELS; ch++){
 
         //minimum wall values
 
-        sendShortInt((short)108);  //wall min peak uS distance
+        wall = (short)(95 + (Math.random()*10));
+
+        //occasional peak
+        if(((int)(Math.random()*200)) == 1) wall -= (int)(Math.random()*30);
+
+        sendShortInt(wall);  //wall min peak uS distance
 
         sendShortInt((short)0);  //start fractional distance numerator
 
@@ -777,7 +782,7 @@ for (int ch=0; ch<NUMBER_OF_BOARD_CHANNELS; ch++){
 //-----------------------------------------------------------------------------
 // UTSimulator::getAScan()
 //
-  
+
 public void getAScan()
 {
 
@@ -887,7 +892,7 @@ int sampleCount = boardChannels[pChannel].sampleCount;
 int gain = boardChannels[pChannel].dspGain;
 
 mainBangSineAngle = 1;
-reflectionSineAngle = 1;    
+reflectionSineAngle = 1;
 
 int []aScan = aScanBuffer;
 
@@ -918,15 +923,15 @@ for (i=0; i<400; i++){
 /*
 
 while (i < (delayCount + sampleCount)){
-    
+
     //main bang for first 60 data points
-    if ((i) <= 60) simulateMainBang(aScan, j, gain); 
+    if ((i) <= 60) simulateMainBang(aScan, j, gain);
     else
     //reflection for 60 data points at 50uS
-    if ((i > 3055) && (i < 3300)) simulateReflection(aScan, j, gain); 
+    if ((i > 3055) && (i < 3300)) simulateReflection(aScan, j, gain);
     else
     aScan[j] = (int)(Math.random()*5); //small noise when no signal
-    
+
     i++; j++;
     }
 
@@ -951,13 +956,13 @@ void simulateMainBang(int[] pBuffer, int pIndex, double pGain)
 
 //use mainBangSineAngle to index the sine wave so it can be independent of the
 //array index - allows sine wave to start at any data point
-    
+
 //multiply by 10000 to give large main bang, divide by mainBangSineAngle to give
 // sin(x)/x decay function to show attenuation
-    
-pBuffer[pIndex] = 
+
+pBuffer[pIndex] =
    (int)((Math.sin(Math.toRadians(mainBangSineAngle++*18)) * 10000)
-                                                           / mainBangSineAngle);    
+                                                           / mainBangSineAngle);
 
 //if the signal is attenuated down to zero, add some noise
 if (pBuffer[pIndex] == 0) pBuffer[pIndex] = (int)(Math.random()*5);
@@ -998,7 +1003,7 @@ pBuffer[pIndex] += (int)(Math.random()*10);
 //-----------------------------------------------------------------------------
 // UTSimulator::simulateReflection
 //
-// Places a sine wave into the buffer to simulate the reflection from the 
+// Places a sine wave into the buffer to simulate the reflection from the
 // target.
 //
 //
@@ -1013,16 +1018,16 @@ void simulateReflection(int[] pBuffer, int pIndex, double pGain)
 
 //use reflectionSineAngle to index the sine wave so it can be independent of the
 //array index - allows sine wave to start at any data point
-    
+
 //reflectionSineAngle to give sin(x)/x decay function to show attenuation
-    
+
 int attenuation = (byte)(reflectionSineAngle/20.0);
 if (attenuation < 1) attenuation = 1;
 
 //multiplying the angle by 12 gives approx 2.25Mhz pulse when sampling period
 //is 15 ns
 
-pBuffer[pIndex] = 
+pBuffer[pIndex] =
      (int)(((Math.sin(Math.toRadians(reflectionSineAngle++*12)) * pGain)
                                                         * 2) / attenuation );
 

@@ -1012,11 +1012,10 @@ String footerString;
 footerString = formatPieceIDEntriesForPrinting();
 
 //add Wall max/min values to the footer string
-footerString += formatWallMaxMinForPrinting();
+footerString += formatAndLabelWallMinMaxForPrinting();
 
 //print the finished string
 g2.drawString(footerString, 0, (int)pPF.getImageableHeight());
-
 
 
 // *** see notes in the header above regarding Java resolution issues ***
@@ -1252,94 +1251,54 @@ return(result);
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Viewer::formatWallMaxMinForPrinting
+// Viewer::formatAndLabelWallMinMaxForPrinting
 //
-// Finds the max and min for the Wall trace and adds the values to a string
+// Finds the min and max for the Wall chart and creates a string with labels
 // which can be printed.
 //
 // The resulting string is returned.
 //
 
-public String formatWallMaxMinForPrinting()
+public String formatAndLabelWallMinMaxForPrinting()
 {
 
-String result = "", maxWall = "", minWall = "";
-StripChart stripChart = null;
+    String result = "", wallText;
 
-//scan through all charts to find the one with the title containing "Wall"
 
-for (int i = 0; i < numberOfChartGroups; i++){
-    for (int j = 0; j < chartGroups[i].getNumberOfStripCharts(); j++){
+    //check all chart groups for a Wall Max trace -- if there are more than one,
+    //the value from the first one found will be used
 
-        if(chartGroups[i].getStripChart(j).getTitle().contains("Wall")){
+    result = "Max Wall: ";
 
-            stripChart = chartGroups[i].getStripChart(j);
+    for (int i = 0; i < numberOfChartGroups; i++){
+        wallText = chartGroups[i].getWallMinOrMaxText(false, hdwVs);
+        if (!wallText.isEmpty()){
+            result = result + wallText;
             break;
-
-            }
-        }//for (int j = 0; j < numberOfStripCharts; i++){
+        }
     }//for (int i = 0; i < numberOfChartGroups; i++)
 
-//if no "Wall" chart found, exit with empty string
-if (stripChart == null) return(result);
+    //add space between max and min
+    result = result + "    Min Wall: ";
 
-int minTrace = -1, maxTrace = -1;
+    //check all chart groups for a Wall Max trace -- if there are more than one,
+    //the value from the last one found will be used
 
-//scan through all traces to find the ones with the titles containing "Max"
-//and "Min"
+    for (int i = 0; i < numberOfChartGroups; i++){
+        wallText = chartGroups[i].getWallMinOrMaxText(true, hdwVs);
+        if (!wallText.isEmpty()){
+            result = result + wallText;
+            break;
+        }
 
-for (int i = 0; i < stripChart.getNumberOfTraces(); i++){
+    }//for (int i = 0; i < numberOfChartGroups; i++)
 
-    if(stripChart.getTrace(i).getTitle().contains("Min"))
-        minTrace = i;
+    //following to display wall string in the piece ID info window:
+    //pieceIDInfo.items[2].textField.setText(result);
 
-    if(stripChart.getTrace(i).getTitle().contains("Max"))
-        maxTrace = i;
+    return(result);
 
-    }//for (int i = 0; i < stripChart.getNumberOfTraces(); i++){
-
-int min = 0, max = 0;
-
-if (minTrace != -1){
-
-    min = stripChart.findMinValueOfTrace(minTrace);
-
-    minWall = Integer.toString(min);
-
-    }
-
-if (maxTrace != -1){
-
-    max = stripChart.findMaxValueOfTrace(maxTrace);
-
-    maxWall = Integer.toString(max);
-
-    }
-
-DecimalFormat decimalFormat = new DecimalFormat("0.000");
-
-if (min < 0) min = 0;
-if (min > stripChart.chartHeight) min = stripChart.chartHeight;
-
-if (max < 0) max = 0;
-if (max > stripChart.chartHeight) max = stripChart.chartHeight;
-
-result = "Max Wall: " +
-            decimalFormat.format(calculateInvertedComputedValue1(max)) + "    ";
-
-result += "Min Wall: " +
-            decimalFormat.format(calculateInvertedComputedValue1(min)) + "    ";
-
-//debug mks
-//Use to display wall string in the piece ID info window
-
-//pieceIDInfo.items[2].textField.setText(result);
-
-//debug mks
-
-return(result);
-
-}//end of Viewer::formatWallMaxMinForPrinting
+}//end of Viewer::formatAndLabelWallMinMaxForPrinting
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1560,31 +1519,6 @@ public void componentResized(ComponentEvent e)
 mainFrame.pack();
 
 }//end of Viewer::componentResized
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Viewer::calculateInvertedComputedValue1
-//
-// For this version, calculates the wall thickness based upon the cursor Y
-// position. It is similar to calculateComputedValue1 but expects
-// an inverted value directly from the trace data buffer.  The non-inverted
-// version expects data from cursor position which is inverted due to the
-// fact that Java uses the upper left corner for 0,0.
-//
-// This function is duplicated in multiple objects.  Should make a separate
-// class which each of those objects creates to avoid duplication?
-//
-
-public double calculateInvertedComputedValue1(int pCursorY)
-{
-
-double offset = (hdwVs.nominalWallChartPosition - pCursorY)
-                                                        * hdwVs.wallChartScale;
-
-//calculate wall at cursor y position relative to nominal wall value
-return (hdwVs.nominalWall - offset);
-
-}//end of Viewer::calculateInvertedComputedValue1
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

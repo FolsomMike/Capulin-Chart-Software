@@ -48,7 +48,7 @@ class ValueDisplay extends Object {
 int labelXPos = 500, labelYPos = 23;
 int xPos = labelXPos + 100;
 int yPos = labelYPos;
-String label = "Wall Thickness:";
+String label = "";
 String decPlaces = "0.000";
 DecimalFormat decimalFormat;
 Color textColor, backgroundColor;
@@ -415,6 +415,8 @@ public int chartHeight;
 
 boolean displayPeakChannel;
 ValueDisplay peakChannel;
+boolean displayPrevMinWallValue;
+ValueDisplay prevMinWallValue;
 boolean displayRunningValue;
 ValueDisplay runningValue;
 boolean displayComputedAtCursor;
@@ -434,7 +436,7 @@ Color gridColor;
 int gridXSpacing;
 //why do we have mask boolean values?
 boolean leadMask, trailMask;
-int leadMaskPos, trailMaskPos;
+double leadMaskPos, trailMaskPos;
 Color maskColor;
 Color separatorColor;
 public int lastAScanChannel = 0;
@@ -485,6 +487,9 @@ configure(configFile);
 
 if (displayPeakChannel) peakChannel =  new ValueDisplay(250, 23, 350, 23,
     "Peak Channel:", "0.000", Color.BLACK, borderColor);
+
+if (displayPrevMinWallValue) prevMinWallValue =  new ValueDisplay(
+    250, 23, 355, 23, "Previous Wall Min:", "0.000", Color.BLACK, borderColor);
 
 if (displayRunningValue) runningValue =  new ValueDisplay(500, 23, 600, 23,
     "Wall Thickness:", "0.000", Color.BLACK, borderColor);
@@ -545,6 +550,9 @@ separatorColor =
 
 displayPeakChannel =
                 pConfigFile.readBoolean(section, "Display Peak Channel", false);
+
+displayPrevMinWallValue = pConfigFile.readBoolean(
+            section, "Display Minimum Wall From Last Finished Piece", false);
 
 displayRunningValue =
               pConfigFile.readBoolean(section, "Display Running Value", false);
@@ -769,6 +777,8 @@ super.paintComponent(g2); //paint background
 //add one to the peak channel to switch from 0 based counting
 if (displayPeakChannel) peakChannel.paint((Graphics2D) g2);
 
+if (displayPrevMinWallValue) prevMinWallValue.paint((Graphics2D) g2);
+
 if (displayRunningValue) runningValue.paint((Graphics2D) g2);
 
 if (displayComputedAtCursor) computedAtCursor.paint((Graphics2D) g2);
@@ -817,6 +827,22 @@ if (displayRunningValue) runningValue.updateDouble(
                        (Graphics2D) getGraphics(), canvas.runningValue, false);
 
 }//end of StripChart::plotData
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// StripChart::updatePreviousMinWallValue
+//
+// Updates the display which shows the minimum wall for the previous joint.
+// If that display is not enabled then does nothing.
+//
+
+public void updatePreviousMinWallValue(double pMinWall)
+{
+
+    if (displayPrevMinWallValue) prevMinWallValue.updateDouble(
+                           (Graphics2D) getGraphics(), pMinWall, false);
+
+}//end of StripChart::updatePreviousMinWallValue
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1244,8 +1270,10 @@ setChartVisible(pCalFile.readBoolean(section, "Chart is Visible", true));
 for (int i = 0; i < numberOfThresholds; i++)
                                           thresholds[i].loadCalFile(pCalFile);
 
-leadMaskPos = pCalFile.readInt(section, "Leading Mask Position", -1);
-trailMaskPos = pCalFile.readInt(section, "Trailing Mask Position", -1);
+leadMaskPos = pCalFile.readDouble(
+                              section, "Leading Mask Position (inches)", 24.0);
+trailMaskPos = pCalFile.readDouble(
+                             section, "Trailing Mask Position (inches)", 24.0);
 
 }//end of StripChart::loadCalFile
 //-----------------------------------------------------------------------------
@@ -1279,8 +1307,8 @@ pCalFile.writeBoolean(section, "Chart is Visible", isChartVisible());
 for (int i = 0; i < numberOfThresholds; i++)
     thresholds[i].saveCalFile(pCalFile);
 
-pCalFile.writeInt(section, "Leading Mask Position", leadMaskPos);
-pCalFile.writeInt(section, "Trailing Mask Position", trailMaskPos);
+pCalFile.writeDouble(section, "Leading Mask Position (inches)", leadMaskPos);
+pCalFile.writeDouble(section, "Trailing Mask Position (inches)", trailMaskPos);
 
 }//end of StripChart::saveCalFile
 //-----------------------------------------------------------------------------
@@ -1315,43 +1343,25 @@ return traces[pWhich];
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// StripChart::findMinValueOfTrace
+// StripChart::findMinOrMaxValueOfTrace
 //
-// Finds the minimum value in dataBuffer1 of trace specified by pwhich.
+// Finds the minimum or maximum value in dataBuffer1 of trace specified by
+// pTrace.  If pFindMin is true, then the minimum is found else the maximum
+// is found.
+//
+// Search begins at pStart position in the array and ends at pEnd.
 //
 
-public int findMinValueOfTrace(int pWhich)
+public int findMinOrMaxValueOfTrace(Trace pTrace, boolean pFindMin,
+                                                        int pStart, int pEnd)
 {
 
-//if the lead or trail mask has not been set, use software to detect where
-//the good inspection starts -- this currently only works well for a Wall
-//chart
-if (leadMaskPos == -1) leadMaskPos = createArtificialLeadMask();
-if (trailMaskPos == -1) trailMaskPos = createArtificialTrailMask();
+if(pFindMin)
+    return(pTrace.findMinValue(pStart, pEnd));
+else
+    return(pTrace.findMaxValue(pStart, pEnd));
 
-return(traces[pWhich].findMinValue(leadMaskPos, trailMaskPos));
-
-}//end of StripChart::findMinValueOfTrace
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// StripChart::findMaxValueOfTrace
-//
-// Finds the maximum value in dataBuffer1 of trace specified by pWhich.
-//
-
-public int findMaxValueOfTrace(int pWhich)
-{
-
-//if the lead or trail mask has not been set, use software to detect where
-//the good inspection starts -- this currently only works well for a Wall
-//chart
-if (leadMaskPos == -1) leadMaskPos = createArtificialLeadMask();
-if (trailMaskPos == -1) trailMaskPos = createArtificialTrailMask();
-
-return(traces[pWhich].findMaxValue(leadMaskPos, trailMaskPos));
-
-}//end of StripChart::findMaxValueOfTrace
+}//end of StripChart::findMinOrMaxValueOfTrace
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

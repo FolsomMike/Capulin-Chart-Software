@@ -57,9 +57,6 @@ public class ViewerReporter implements ActionListener, TraceValueCalculator {
     int loadSegmentError;
     String segmentDataVersion;
 
-    String measuredLengthText;
-    double measuredLength;
-
     String inspectionDirection;
 
     int numberOfChartGroups;
@@ -80,10 +77,6 @@ public class ViewerReporter implements ActionListener, TraceValueCalculator {
     PrintRunnable printRunnable;
 
     int startPiece = 0, endPiece = 0, pieceTrack = 0;
-
-    double pixelsPerInch;
-
-    double decimalFeetPerPixel;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -365,6 +358,11 @@ String loadSegment(boolean pQuietMode)
     segmentFilename = prefix +
                             decimalFormats[0].format(currentSegmentNumber);
 
+    //load the cal file first so its settings can be overridden by any
+    //settings in the data file which might have been different at the time
+    //the data file was saved
+    loadCalFile(); //load calibration settings needed for viewing
+
     //load the graph data
     String errorMsg = loadSegmentHelper(jobPrimaryPath + segmentFilename + ext);
 
@@ -375,8 +373,6 @@ String loadSegment(boolean pQuietMode)
 
     //load piece info
     loadInfoHelper(jobPrimaryPath + segmentFilename + infoExt);
-
-    loadCalFile(); //load calibration settings needed for viewing
 
     return(ext);
 
@@ -489,7 +485,10 @@ private String processHeader(BufferedReader pIn) throws IOException
 
     //scan the header section and parse its entries
 
-    segmentDataVersion = "0.0"; //default in case not found
+    //defaults in case not found
+    segmentDataVersion = "0.0";
+    hdwVs.measuredLengthText = "";
+    inspectionDirection = "Unknown";
 
     success = false;
     while ((line = pIn.readLine()) != null){
@@ -500,22 +499,25 @@ private String processHeader(BufferedReader pIn) throws IOException
             break;
             }
 
-        //read the "Segment Data Version" entry - if not found, default to "0.0"
-        matchAndParseString(line, "Segment Data Version", "0.0", matchSet);
-        segmentDataVersion = matchSet.rString1;
+        //this code is SUSPECT -- entries probably have to be in same order
+        //for this to work -- needs to only set variable if line matches
 
-        measuredLengthText = "";
+        //read the "Segment Data Version" entry
+        if (matchAndParseString(line, "Segment Data Version", "0.0", matchSet))
+            segmentDataVersion = matchSet.rString1;
 
-        //read the "Measured Length" entry - if not found, default to "0.0"
-        matchAndParseString(line, "Measured Length", "0.0", matchSet);
-        measuredLengthText = matchSet.rString1;
-
-        try{measuredLength = Double.valueOf(measuredLengthText);}
-        catch(NumberFormatException nfe){measuredLength = 0;}
+        //read the "Measured Length" entry
+        if (matchAndParseString(line, "Measured Length", "0.0", matchSet)){
+            hdwVs.measuredLengthText = matchSet.rString1;
+            try{hdwVs.measuredLength =
+                                    Double.valueOf(hdwVs.measuredLengthText);}
+            catch(NumberFormatException nfe){hdwVs.measuredLength = 0;}
+        }
 
         //read the "Inspection Direction" entry
-        matchAndParseString(line, "Inspection Direction", "Unknown", matchSet);
-        inspectionDirection = matchSet.rString1;
+        if (matchAndParseString(
+                           line, "Inspection Direction", "Unknown", matchSet))
+            inspectionDirection = matchSet.rString1;
 
     }//while ((line = pIn.readLine()) != null)
 
@@ -714,7 +716,7 @@ public void loadCalFile()
 
     //NOTE -- debug MKS
     // THESE VALUES NEED TO BE SAVED WITH THE JOINT DATA FILE
-    // AND READ FROM THERE INSTEAD OF THE CONFIG FILE
+    // AND READ FROM THERE INSTEAD OF THE CALIBRATION FILE
     // Each chart needs to store the variables in case there are multiple wall
     // charts.  If a chart doesn't use these values, then they can save random
     // values -- will be ignored when loaded for viewing/reporting.
@@ -729,8 +731,8 @@ public void loadCalFile()
 
 
     //don't load globals -- a pointer to the globals is passed to the Viewer
-    // and these values are shared with the main program and other viewers -- the
-    // globals are already loaded by the main program
+    // and these values are shared with the main program and other viewers --
+    // the globals are already loaded by the main program
 
     //load info for all charts
     for (int i=0; i < numberOfChartGroups; i++)
@@ -839,9 +841,10 @@ public void configure()
     // pixelsPerInch VALUES NEED TO BE SAVED WITH THE JOINT DATA FILE
     // AND READ FROM THERE INSTEAD OF THE CONFIG FILE
 
-    pixelsPerInch = configFile.readDouble("Hardware", "Pixels per Inch", 1.0);
+    hdwVs.pixelsPerInch =
+                    configFile.readDouble("Hardware", "Pixels per Inch", 1.0);
 
-    decimalFeetPerPixel = 1/(pixelsPerInch * 12);
+    hdwVs.decimalFeetPerPixel = 1/(hdwVs.pixelsPerInch * 12);
 
 }//end of ViewerReporter::configure
 //-----------------------------------------------------------------------------
@@ -893,7 +896,7 @@ public double calculateComputedValue1(int pCursorY)
 public double getLinearDecimalFeetPerPixel()
 {
 
-    return(decimalFeetPerPixel);
+    return(hdwVs.decimalFeetPerPixel);
 
 }//end of ViewerReporter::getLinearDecimalFeetPerPixel
 //-----------------------------------------------------------------------------

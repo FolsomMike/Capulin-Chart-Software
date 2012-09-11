@@ -968,7 +968,7 @@ try{
     out.newLine();
     out.write("Segment Data Version=" + Globals.SEGMENT_DATA_VERSION);
     out.newLine();
-    out.write("Measured Length=" + hardware.pieceLength);
+    out.write("Measured Length=" + hardware.hdwVs.measuredLength);
     out.newLine();
     out.write("Inspection Direction="
                                     + hardware.inspectionDirectionDescription);
@@ -1351,6 +1351,9 @@ if (segmentStarted()){
     //increment the next piece or next cal piece number
     controlPanel.incrementPieceNumber();
 
+    //display the min wall from the just finished piece
+    updatePrevMinWallDisplay();
+
     }
 
 }//end of MainWindow::processFinishedPiece
@@ -1397,6 +1400,46 @@ prepareForNextPiece();
 hardware.setMode(Hardware.INSPECT);
 
 }//end of MainWindow::handlePieceTransition
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Viewer::updatePrevMinWallDisplay
+//
+// Finds the minimum value for the Min Wall trace and updates the display.
+//
+// The chart group containing the trace is returned via hardware.hdwVs.
+// The chart containing the trace is returned via hardware.hdwVs.
+// The trace is returned via hardware.hdwVs.
+//
+
+public String updatePrevMinWallDisplay()
+{
+
+    String result = "", wallText;
+    hardware.hdwVs.chartGroup = null;
+    hardware.hdwVs.chart = null;
+    hardware.hdwVs.trace = null;
+
+    //check all chart groups for a Wall Max trace -- if there are more than one,
+    //the value from the first one found will be used
+
+    result = "";
+
+    for (int i = 0; i < numberOfChartGroups; i++){
+        wallText = chartGroups[i].getWallMinOrMaxText(true, hardware.hdwVs);
+        if (!wallText.isEmpty()){
+            hardware.hdwVs.chartGroup = chartGroups[i];
+            result = result + wallText;
+            break;
+        }
+    }//for (int i = 0; i < numberOfChartGroups; i++)
+
+    if(hardware.hdwVs.chart != null)
+        hardware.hdwVs.chart.updatePreviousMinWallValue(hardware.hdwVs.minWall);
+
+    return(result);
+
+}//end of MainWindow::updatePrevMinWallDisplay
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

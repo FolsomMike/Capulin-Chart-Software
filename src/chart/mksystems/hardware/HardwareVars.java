@@ -18,6 +18,9 @@
 
 package chart.mksystems.hardware;
 
+import chart.mksystems.stripchart.ChartGroup;
+import chart.mksystems.stripchart.StripChart;
+import chart.mksystems.stripchart.Trace;
 import chart.mksystems.stripchart.TraceHdwVars;
 import chart.mksystems.stripchart.Threshold;
 
@@ -39,7 +42,20 @@ double nSPerDataPoint, uSPerDataPoint;
 public double velocityUS, velocityNS, nominalWall, wallChartScale;
 public int nominalWallChartPosition, numberOfMultiples;
 
+public String measuredLengthText;
+public double measuredLength;
+
+public double pixelsPerInch;
+public double decimalFeetPerPixel;
+
 public double velocityShearUS, velocityShearNS;
+
+//the following are used to pass values between objects
+public double minWall;
+public double maxWall;
+public ChartGroup chartGroup;
+public StripChart chart;
+public Trace trace;
 
 boolean waitForOffPipe = false;
 boolean waitForOnPipe = false;
