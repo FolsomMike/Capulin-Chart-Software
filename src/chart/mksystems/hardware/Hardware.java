@@ -1481,10 +1481,11 @@ if (hdwVs.watchForOffPipe){
 
         //calculate number of counts recorded between start/stop eyes
         int pieceLengthEncoderCounts =
-                inspectCtrlVars.encoder2 - inspectCtrlVars.encoder2Start;
+             Math.abs(inspectCtrlVars.encoder2 - inspectCtrlVars.encoder2Start);
 
         //convert to inches
-        hdwVs.measuredLength = pieceLengthEncoderCounts *encoder2InchesPerCount;
+        hdwVs.measuredLength =
+                             pieceLengthEncoderCounts * encoder2InchesPerCount;
 
         //subtract the distance between the perpendicular eyes -- tracking
         //starts when lead eye hits pipe but ends when trailing eye clears,
