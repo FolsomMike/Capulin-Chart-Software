@@ -738,6 +738,11 @@ calModeCheckBox.setToolTipText(
                                             pGlobals.pieceDescriptionPluralLC);
 add(calModeCheckBox);
 
+/* these need to be options in the config file
+ *  not usually shown when a PLC is used in the system as the PLC can show
+ *  these values -- never good to have two different systems showing values
+ *  like these as it is very difficult to make them match
+
 speedLabel = new JLabel(" Speed: ");
 add(speedLabel);
 speedValue = new JLabel("000");
@@ -747,6 +752,9 @@ rpmLabel = new JLabel(" RPM: ");
 add(rpmLabel);
 rpmValue = new JLabel("000");
 add(rpmValue);
+
+ */
+
 
 }//end of StatusPanel::StatusPanel (constructor)
 //-----------------------------------------------------------------------------
