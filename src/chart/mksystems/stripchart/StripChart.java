@@ -59,8 +59,15 @@ int iPrevValue = -1;
 public double dValue = 0;
 double dPrevValue = -1;
 
-boolean valueIsInt = false;
-boolean valueIsDouble = false;
+public String sValue = "";
+String sPrevValue = "";
+
+static int UNDEFINED = 0;
+static int INTEGER = 1;
+static int DOUBLE = 2;
+static int STRING = 3;
+
+int valueType = UNDEFINED;
 
 //-----------------------------------------------------------------------------
 // ValueDisplay::ValueDisplay (constructor)
@@ -69,10 +76,12 @@ boolean valueIsDouble = false;
 // if it has changed.  The previous value is erased before drawing the new
 // value.
 //
-// Two update functions are provided, one for integers and one for doubles.
-// After either of these is called, a flag is set to specify which type of
+// Multiple update functions are provided, one for integers, one for doubles,
+// one for Strings, etc.
+//
+// After one of these is called, a flag is set to specify which type of
 // variable is being handled by this object.  This can be changed at any time
-// by calling the alternate update function.
+// by calling one of the other update function.
 //
 
 public ValueDisplay(int pLabelXPos, int pLabelYPos, int pXPos, int pYPos,
@@ -106,8 +115,9 @@ pG2.setColor(textColor);
 pG2.drawString(label, labelXPos, labelYPos);
 
 //draw the appropriate value
-if (valueIsInt) updateInt(pG2, iValue, true);
-if (valueIsDouble) updateDouble(pG2, dValue, true);
+if (valueType == INTEGER) updateInt(pG2, iValue, true);
+if (valueType == DOUBLE) updateDouble(pG2, dValue, true);
+if (valueType == STRING) updateString(pG2, sValue, true);
 
 }//end of ValueDisplay::paint
 //-----------------------------------------------------------------------------
@@ -123,8 +133,7 @@ if (valueIsDouble) updateDouble(pG2, dValue, true);
 void updateInt(Graphics2D pG2, int pNewValue, boolean pForceUpdate)
 {
 
-valueIsInt = true; //variable type for this object is now int
-valueIsDouble = false;
+valueType = INTEGER; //variable type for this object is now int
 
 iValue = pNewValue;
 
@@ -152,8 +161,7 @@ if ((iValue != iPrevValue) || pForceUpdate){
 void updateDouble(Graphics2D pG2, double pNewValue, boolean pForceUpdate)
 {
 
-valueIsDouble = true; //variable type for this object is now double
-valueIsInt = false;
+valueType = DOUBLE; //variable type for this object is now double
 
 dValue = pNewValue;
 
@@ -169,6 +177,35 @@ if ((dValue != dPrevValue) || pForceUpdate){
 
 }//end of ValueDisplay::updateDouble
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ValueDisplay::updateString
+//
+// Draws the string value if it has changed. The previous value is erased first.
+//
+// If pForceUPdate is true, the value will be drawn even if it has not changed.
+//
+
+void updateString(Graphics2D pG2, String pNewValue, boolean pForceUpdate)
+{
+
+valueType = STRING; //variable type for this object is now string
+
+sValue = pNewValue;
+
+if (!sValue.equals(sPrevValue) || pForceUpdate){
+    //erase the previous value
+    pG2.setColor(backgroundColor);
+    pG2.drawString(sPrevValue, xPos, yPos);
+    //draw the new value
+    pG2.setColor(textColor);
+    pG2.drawString(sValue, xPos, yPos);
+    sPrevValue = sValue;
+    }
+
+}//end of ValueDisplay::updateString
+//-----------------------------------------------------------------------------
+
 
 }//end of class ValueDisplay
 //-----------------------------------------------------------------------------
@@ -820,8 +857,9 @@ public void plotData()
 canvas.plotData();
 
 //if enabled, display the channel which is supplying the peak value
-if (displayPeakChannel) peakChannel.updateInt(
-                    (Graphics2D) getGraphics(), canvas.peakChannel + 1, false);
+if (displayPeakChannel) peakChannel.updateString((Graphics2D) getGraphics(),
+                    hardware.getChannels()[canvas.peakChannel].title, false);
+
 //if enabled, display the current value of the trace height
 if (displayRunningValue) runningValue.updateDouble(
                        (Graphics2D) getGraphics(), canvas.runningValue, false);
