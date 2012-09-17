@@ -451,17 +451,24 @@ TraceGlobals traceGlobals;
 public int chartHeight;
 
 boolean displayPeakChannel;
-ValueDisplay peakChannel;
-boolean displayPrevMinWallValue;
-ValueDisplay prevMinWallValue;
+ValueDisplay peakChannelDisplay;
+StringBuilder lastFlaggedText;
+boolean displayLastFlaggedChannel;
+ValueDisplay lastFlaggedChannelDisplay;
+public int lastFlaggedChannel = -1;
+int prevLastFlaggedChannel = -1;
+public int lastFlaggedClockPos = 0;
+int prevLastFlaggedClockPos = 0;
+boolean displayPrevMinWall;
+ValueDisplay prevMinWallDisplay;
 boolean displayRunningValue;
-ValueDisplay runningValue;
+ValueDisplay runningValueDisplay;
 boolean displayComputedAtCursor;
-ValueDisplay computedAtCursor;
+ValueDisplay computedAtCursorDisplay;
 boolean displayChartHeightAtCursor;
-ValueDisplay chartHeightAtCursor;
+ValueDisplay chartHeightAtCursorDisplay;
 boolean displayLinearPositionAtCursor;
-ValueDisplay linearPositionAtCursor;
+ValueDisplay linearPositionAtCursorDisplay;
 
 public String title, shortTitle;
 int numberOfTraces;
@@ -522,23 +529,33 @@ configure(configFile);
 // the positions, labels, and decimal formats could be loaded from the config
 // file in the future
 
-if (displayPeakChannel) peakChannel =  new ValueDisplay(250, 23, 350, 23,
+if (displayPeakChannel) peakChannelDisplay =  new ValueDisplay(250, 23, 350, 23,
     "Peak Channel:", "0.000", Color.BLACK, borderColor);
 
-if (displayPrevMinWallValue) prevMinWallValue =  new ValueDisplay(
+if (displayLastFlaggedChannel){
+    lastFlaggedChannelDisplay =  new ValueDisplay(
+        250, 23, 380, 23, "Last Flagged Channel:", "0.000",
+                                                    Color.BLACK, borderColor);
+    //a StringBuilder is used to avoid creating new strings during time
+    //critical code and thus creating excess garbage collection
+    lastFlaggedText = new StringBuilder(50);
+}
+
+if (displayPrevMinWall) prevMinWallDisplay =  new ValueDisplay(
     250, 23, 355, 23, "Previous Wall Min:", "0.000", Color.BLACK, borderColor);
 
-if (displayRunningValue) runningValue =  new ValueDisplay(500, 23, 600, 23,
-    "Wall Thickness:", "0.000", Color.BLACK, borderColor);
+if (displayRunningValue) runningValueDisplay =  new ValueDisplay(
+       500, 23, 600, 23, "Wall Thickness:", "0.000", Color.BLACK, borderColor);
 
-if (displayComputedAtCursor) computedAtCursor = new ValueDisplay(
+if (displayComputedAtCursor) computedAtCursorDisplay = new ValueDisplay(
       650, 23, 720, 23,  "At Cursor:", "0.000", Color.BLACK, borderColor);
 
-if (displayChartHeightAtCursor) chartHeightAtCursor  = new ValueDisplay(
+if (displayChartHeightAtCursor) chartHeightAtCursorDisplay  = new ValueDisplay(
       800, 23, 865, 23,  "Amplitude:", "0", Color.BLACK, borderColor);
 
-if (displayLinearPositionAtCursor) linearPositionAtCursor  = new ValueDisplay(
-    950, 23, 1050, 23,  "Linear Position:", "0.0", Color.BLACK, borderColor);
+if (displayLinearPositionAtCursor)
+    linearPositionAtCursorDisplay  = new ValueDisplay(
+      950, 23, 1050, 23,  "Linear Position:", "0.0", Color.BLACK, borderColor);
 
 }//end of StripChart::StripChart (constructor)
 //-----------------------------------------------------------------------------
@@ -588,7 +605,10 @@ separatorColor =
 displayPeakChannel =
                 pConfigFile.readBoolean(section, "Display Peak Channel", false);
 
-displayPrevMinWallValue = pConfigFile.readBoolean(
+displayLastFlaggedChannel =
+        pConfigFile.readBoolean(section, "Display Last Flagged Channel", false);
+
+displayPrevMinWall = pConfigFile.readBoolean(
             section, "Display Minimum Wall From Last Finished Piece", false);
 
 displayRunningValue =
@@ -667,8 +687,9 @@ if (numberOfTraces > 0){
     traces = new Trace[numberOfTraces];
 
     for (int i = 0; i < numberOfTraces; i++){ traces[i] =
-       new Trace(globals, configFile, chartGroup, chartIndex, i, traceGlobals,
-             backgroundColor, gridColor, gridXSpacing, thresholds, hardware);
+       new Trace(globals, configFile, chartGroup, this, chartIndex, i,
+             traceGlobals, backgroundColor, gridColor, gridXSpacing,
+                                                    thresholds, hardware);
        traces[i].init();
     }
 
@@ -812,17 +833,21 @@ super.paintComponent(g2); //paint background
 //the font
 
 //add one to the peak channel to switch from 0 based counting
-if (displayPeakChannel) peakChannel.paint((Graphics2D) g2);
+if (displayPeakChannel) peakChannelDisplay.paint((Graphics2D) g2);
 
-if (displayPrevMinWallValue) prevMinWallValue.paint((Graphics2D) g2);
+if (displayLastFlaggedChannel) lastFlaggedChannelDisplay.paint((Graphics2D) g2);
 
-if (displayRunningValue) runningValue.paint((Graphics2D) g2);
+if (displayPrevMinWall) prevMinWallDisplay.paint((Graphics2D) g2);
 
-if (displayComputedAtCursor) computedAtCursor.paint((Graphics2D) g2);
+if (displayRunningValue) runningValueDisplay.paint((Graphics2D) g2);
 
-if (displayChartHeightAtCursor) chartHeightAtCursor.paint((Graphics2D) g2);
+if (displayComputedAtCursor) computedAtCursorDisplay.paint((Graphics2D) g2);
 
-if (displayLinearPositionAtCursor) linearPositionAtCursor.paint((Graphics2D) g2);
+if (displayChartHeightAtCursor)
+    chartHeightAtCursorDisplay.paint((Graphics2D) g2);
+
+if (displayLinearPositionAtCursor)
+    linearPositionAtCursorDisplay.paint((Graphics2D) g2);
 
 //draw the keys for the different traces to show which trace is what - each
 //key is a label describing the trace and drawn in the color of the trace
@@ -857,11 +882,38 @@ public void plotData()
 canvas.plotData();
 
 //if enabled, display the channel which is supplying the peak value
-if (displayPeakChannel) peakChannel.updateString((Graphics2D) getGraphics(),
+if (displayPeakChannel)
+    peakChannelDisplay.updateString((Graphics2D) getGraphics(),
                     hardware.getChannels()[canvas.peakChannel].title, false);
 
+//if enabled and the channel or clock has changed, update the display for the
+//channel which was last flagged
+
+if (displayLastFlaggedChannel
+    && (lastFlaggedChannel != prevLastFlaggedChannel
+                || lastFlaggedClockPos != prevLastFlaggedClockPos)){
+
+    prevLastFlaggedChannel = lastFlaggedChannel;
+    prevLastFlaggedClockPos = lastFlaggedClockPos;
+
+    if (lastFlaggedChannel == -1)
+        lastFlaggedText.setLength(0); //display nothing if channel not set
+    else{
+        //use multiple appends rather than the + operator to combine the
+        //strings as it is faster
+        lastFlaggedText.setLength(0);
+        lastFlaggedText.append(
+              hardware.getChannels()[lastFlaggedChannel].title);
+        lastFlaggedText.append(" ~ ");
+        lastFlaggedText.append(lastFlaggedClockPos);
+    }
+
+    lastFlaggedChannelDisplay.updateString((Graphics2D) getGraphics(),
+                                            lastFlaggedText.toString(), false);
+}
+
 //if enabled, display the current value of the trace height
-if (displayRunningValue) runningValue.updateDouble(
+if (displayRunningValue) runningValueDisplay.updateDouble(
                        (Graphics2D) getGraphics(), canvas.runningValue, false);
 
 }//end of StripChart::plotData
@@ -877,7 +929,7 @@ if (displayRunningValue) runningValue.updateDouble(
 public void updatePreviousMinWallValue(double pMinWall)
 {
 
-    if (displayPrevMinWallValue) prevMinWallValue.updateDouble(
+    if (displayPrevMinWall) prevMinWallDisplay.updateDouble(
                            (Graphics2D) getGraphics(), pMinWall, false);
 
 }//end of StripChart::updatePreviousMinWallValue
@@ -1753,20 +1805,20 @@ public void mouseMoved(MouseEvent e)
 //calculated value for the cursor's y position
 
 if (displayChartHeightAtCursor)
-    chartHeightAtCursor.updateInt((Graphics2D)getGraphics(),
+    chartHeightAtCursorDisplay.updateInt((Graphics2D)getGraphics(),
                                                  chartHeight - e.getY(), false);
 
 //does extra calculation based on the Y position, such as computing wall
 //thickness
 if (displayComputedAtCursor)
-    computedAtCursor.updateDouble((Graphics2D)getGraphics(),
+    computedAtCursorDisplay.updateDouble((Graphics2D)getGraphics(),
                  traceValueCalculator.calculateComputedValue1(e.getY()), false);
 
 //convert linear x cursor position to really world feet & inches
 //wip mks -- need to determine scale from user cal settings rather than hard coding
 
 if (displayLinearPositionAtCursor)
-    linearPositionAtCursor.updateDouble((Graphics2D)getGraphics(),
+    linearPositionAtCursorDisplay.updateDouble((Graphics2D)getGraphics(),
       (e.getX() * traceValueCalculator.getLinearDecimalFeetPerPixel()), false);
 
 }//end of StripChart::mouseMoved

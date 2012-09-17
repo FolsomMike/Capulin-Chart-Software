@@ -47,6 +47,7 @@ public class Trace extends Object{
     TraceGlobals traceGlobals;
     int chartGroup;
     public int chartIndex;
+    public StripChart chart;
     int traceIndex;
     Hardware hardware;
     JPanel canvas;
@@ -102,6 +103,10 @@ public class Trace extends Object{
     int flagThreshold;
     //hardware channel of the last value to be stored as a peak
     public int peakChannel;
+    //hardware channel of the last flag
+    public int lastFlaggedChannel;
+    //clock position of the last flag
+    public int lastFlaggedClockPos;
     //wall thickness value - used by wall traces
     public double wallThickness;
 
@@ -122,6 +127,7 @@ public class Trace extends Object{
 //
 
 public Trace(Globals pGlobals, IniFile pConfigFile, int pChartGroup,
+            StripChart pChart,
             int pChartIndex, int pTraceIndex, TraceGlobals pTraceGlobals,
             Color pBackgroundColor, Color pGridColor, int pGridXSpacing,
                 Threshold[] pThresholds, Hardware pHardware)
@@ -129,6 +135,7 @@ public Trace(Globals pGlobals, IniFile pConfigFile, int pChartGroup,
 
     globals = pGlobals; configFile = pConfigFile;
     chartGroup = pChartGroup;
+    chart = pChart;
     chartIndex = pChartIndex; traceIndex = pTraceIndex; gridColor = pGridColor;
     traceGlobals = pTraceGlobals;
     gridXSpacing = pGridXSpacing ;
@@ -1265,6 +1272,25 @@ void getPixXY(PlotVars pVs)
 
 
 }//end of Trace::getPixXY
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Trace::setLastFlagged
+//
+// Stores the channel number and clock position which was last flagged.  Also
+// stores those values in the chart which owns this trace.
+//
+
+public void setLastFlagged(int pChannel, int pClock)
+{
+
+    lastFlaggedChannel = pChannel;
+    chart.lastFlaggedChannel = lastFlaggedChannel;
+
+    lastFlaggedClockPos = pClock;
+    chart.lastFlaggedClockPos = lastFlaggedClockPos;
+
+}//end of Trace::setLastFlagged
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

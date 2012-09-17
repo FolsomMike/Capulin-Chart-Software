@@ -1037,10 +1037,13 @@ if (dataStored && pChannelActive){
             //store the index of threshold violated in byte 1
             gatePtr.fBuffer[nextIndex] &= 0xffff01ff; //erase old
             gatePtr.fBuffer[nextIndex] += (j+2) << 9; //store new flag
+            //store this channel as the most recent being flagged for the trace
+            trace.setLastFlagged(gatePtr.channelIndex, clockPos);
             startMarker(gatePtr, j); //handle marking the violation
             break; //stop after first threshold violation found
             }
         else{
+            //no flagging, so reset marking system so it can mark again
             endMarker(gatePtr, j);
             }//if (chInfo[pCh].thresholds[j]...
 
