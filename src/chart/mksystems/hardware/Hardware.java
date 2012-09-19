@@ -969,6 +969,12 @@ int newData = gatePtr.dataPeak;
 //then traces are also suppressed -- assumed to be in the end mask area, this is
 //useful when end mask areas are not being marked by vertical separators
 
+//debug mks -- when code gets changed to use a flag to show valid data in array
+//next part only needed for when flagging not enabled to display the traces
+//in a conspicuous height so they can be seen moving -- no longer necessary
+//to set the value when not active to get traces to move -- need to set the
+//flag instead????
+
 if (!pChannelActive
         || (trace.suppressTraceInEndMasks && !trace.flaggingEnabled )){
     if (gatePtr.peakDirection == 0) //0 means higher data more severe
@@ -1034,6 +1040,7 @@ if (dataStored && pChannelActive){
     for (int j = 0; j < gatePtr.thresholds.length; j++)
         if (trace.flaggingEnabled &&
                             gatePtr.thresholds[j].checkViolation(newData)){
+
             //store the index of threshold violated in byte 1
             gatePtr.fBuffer[nextIndex] &= 0xffff01ff; //erase old
             gatePtr.fBuffer[nextIndex] += (j+2) << 9; //store new flag

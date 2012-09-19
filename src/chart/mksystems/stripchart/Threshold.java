@@ -36,7 +36,7 @@ import chart.Xfer;
 
 public class Threshold extends Object{
 
-Globals globals;    
+Globals globals;
 IniFile configFile;
 int chartGroup;
 int chartIndex;
@@ -44,6 +44,9 @@ int thresholdIndex;
 JPanel canvas;
 int canvasXLimit;
 int canvasYLimit;
+
+public static int flagWidth = 5;
+public static int flagHeight = 7;
 
 public boolean okToMark = true;
 
@@ -69,15 +72,15 @@ public Object levelAdjuster;
 // The parameter configFile is used to load configuration data.  The IniFile
 // should already be opened and ready to access.
 //
-  
+
 public Threshold(Globals pGlobals, IniFile pConfigFile, int pChartGroup,
                                         int pChartIndex, int pThresholdIndex)
 {
 
-globals = pGlobals; configFile = pConfigFile; 
+globals = pGlobals; configFile = pConfigFile;
 chartGroup = pChartGroup;
-chartIndex = pChartIndex; thresholdIndex = pThresholdIndex; 
-    
+chartIndex = pChartIndex; thresholdIndex = pThresholdIndex;
+
 //read the configuration file and create/setup the charting/control elements
 configure(configFile);
 
@@ -87,7 +90,7 @@ configure(configFile);
 //-----------------------------------------------------------------------------
 // Threshold::configure
 //
-// Loads configuration settings from the configuration.ini file.  
+// Loads configuration settings from the configuration.ini file.
 //
 
 private void configure(IniFile pConfigFile)
@@ -290,13 +293,17 @@ return(false); //no flag set
 // Draws a flag with the threshold color at location xPos,pSigHeight.
 //
 
-public void drawFlag(Graphics2D pG2, int xPos, int pSigHeight)
+public void drawFlag(Graphics2D pPG2, int pXPos, int pYPos)
 {
-   
-//add 1 to xPos so flag is drawn to the right of the peak
-   
-pG2.setColor(thresholdColor);
-pG2.fillRect(xPos+1, pSigHeight, 5, 7);
+
+    //if flag would be drawn above or below the screen, force on screen
+    if (pYPos < 0) pYPos = 0;
+    if (pYPos > canvasYLimit) pYPos = canvasYLimit - flagHeight;
+
+    //add 1 to xPos so flag is drawn to the right of the peak
+
+    pPG2.setColor(thresholdColor);
+    pPG2.fillRect(pXPos+1, pYPos, flagWidth, flagHeight);
 
 }//end of Threshold::drawFlag
 //-----------------------------------------------------------------------------
