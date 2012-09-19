@@ -49,7 +49,7 @@ ThreadSafeLogger logger;
 
 //debug mks -- needs to be loaded from config file -- specifies if carriage
 //moving away is increasing or decreasing encoder counts
-int AwayDirection;
+int AwayDirection = 0;
 
 double encoder1InchesPerCount;
 double encoder2InchesPerCount;
@@ -181,17 +181,17 @@ photoEye2DistanceFrontOfHead2 = pConfigFile.readDouble("Hardware",
 photoEyeToPhotoEyeDistance = pConfigFile.readDouble("Hardware",
                         "Distance Between Perpendicular Photo Eyes", 53.4375);
 
-towardsHome =
+awayFromHome =
     pConfigFile.readString(
         "Hardware",
         "Description for inspecting in the direction leading away from the"
         + " operator's compartment", "Away From Home");
 
-awayFromHome =
+towardsHome =
     pConfigFile.readString(
         "Hardware",
         "Description for inspecting in the direction leading toward the"
-        + " operator's compartment", "Towards Home");
+        + " operator's compartment", "Toward Home");
 
 //the control board sends packets every so many counts and is susceptible to
 //cumulative round off error, but the values below can be tweaked to give
