@@ -122,7 +122,37 @@ public void init()
     panel.setOpaque(true);
     dialog.add(panel);
 
-    panel.add(Box.createRigidArea(new Dimension(0,5))); //horizontal spacer
+    //if pieceToPrint is -1, then setup the GUI so user can enter print range
+    //otherwise, just print the report for pieceToPrint and display a message
+    if (pieceToPrint == -1)
+        setUpForUserEntry(panel);
+    else
+        setUpForNoUserEntry(panel);
+
+    dialog.pack();
+
+    dialog.setVisible(true);
+
+    //if the print range already specified without need for user input,
+    //print that range
+    if (pieceToPrint != -1) printReportForSinglePiece(pieceToPrint);
+
+}//end of FlagReportPrinter::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// FlagReportPrinter::setUpForUserEntry
+//
+// Sets up the GUI controls for user entry of range to be printed.
+//
+
+public void setUpForUserEntry(JPanel pPanel)
+{
+
+    //dialog stays on top and focused if user input required
+    dialog.setModal(true);
+
+    pPanel.add(Box.createRigidArea(new Dimension(0,5))); //horizontal spacer
 
     //panel to hold the "from" and "to" print range numbers
 
@@ -131,7 +161,7 @@ public void init()
     panel2.setAlignmentX(Component.LEFT_ALIGNMENT);
     panel2.setLayout(new BoxLayout(panel2, BoxLayout.LINE_AXIS));
     panel2.setOpaque(true);
-    panel.add(panel2);
+    pPanel.add(panel2);
 
     startPieceBox = new JTextField(6);
     panel2.add(startPieceBox);
@@ -142,7 +172,7 @@ public void init()
     endPieceBox = new JTextField(6);
     panel2.add(endPieceBox);
 
-    panel.add(Box.createRigidArea(new Dimension(0,5))); //horizontal spacer
+    pPanel.add(Box.createRigidArea(new Dimension(0,5))); //horizontal spacer
 
     //add the Cal piece selection box -- allows reports to be generated for
     //calibration pieces
@@ -153,7 +183,7 @@ public void init()
     calModeCheckBox.setToolTipText(
             "Check this box to print reports for calibration "
                                                     + pieceDescriptionPluralLC);
-    panel.add(calModeCheckBox);
+    pPanel.add(calModeCheckBox);
 
     //panel to hold the Print and Cancel buttons
 
@@ -162,8 +192,8 @@ public void init()
     panel3.setAlignmentX(Component.LEFT_ALIGNMENT);
     panel3.setLayout(new BoxLayout(panel3, BoxLayout.LINE_AXIS));
     panel3.setOpaque(true);
-    panel.add(panel3);
-    panel.add(panel3);
+    pPanel.add(panel3);
+    pPanel.add(panel3);
 
     JButton print;
     panel3.add(print = new JButton("Print"));
@@ -179,13 +209,48 @@ public void init()
     cancel.setActionCommand("Cancel");
     cancel.addActionListener(this);
 
-    panel.add(Box.createRigidArea(new Dimension(0,5))); //horizontal spacer
+    pPanel.add(Box.createRigidArea(new Dimension(0,5))); //horizontal spacer
 
-    dialog.pack();
+}//end of FlagReportPrinter::setUpForUserEntry
+//-----------------------------------------------------------------------------
 
-    dialog.setVisible(true);
+//-----------------------------------------------------------------------------
+// FlagReportPrinter::setUpForNoUserEntry
+//
+// Displays a message in the window telling user that a report is being
+// generated.
+//
 
-}//end of FlagReportPrinter::init
+public void setUpForNoUserEntry(JPanel pPanel)
+{
+
+    //dialog does not retain focus if only displaying a message -- this allows
+    //execution of other code to continue without blocking
+    dialog.setModal(false);
+
+    pPanel.add(Box.createRigidArea(new Dimension(0,5))); //horizontal spacer
+
+    pPanel.add(new JLabel("  Creating flag report for " + pieceToPrint
+                                    + (isCalPiece ? ".cal  " : ".dat  ")));
+
+    pPanel.add(Box.createRigidArea(new Dimension(0,5))); //horizontal spacer
+
+}//end of FlagReportPrinter::setUpForNoUserEntry
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// FlagReportPrinter::closeAndDispose
+//
+// Closes the dialog window and releases its resources.
+//
+
+public void closeAndDispose()
+{
+
+    dialog.setVisible(false);
+    dialog.dispose();
+
+}//end of FlagReportPrinter::closeAndDispose
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -200,7 +265,7 @@ public void actionPerformed(ActionEvent e)
 
     if ("Print".equals(e.getActionCommand())) {
         okToPrint = true;
-        printReport();
+        printReportForEnteredRange();
         dialog.dispose();
     }
 
@@ -233,14 +298,18 @@ public void configure()
 //-----------------------------------------------------------------------------
 // FlagReportPrinter::isCalSelected
 //
-// Gets the state of the Cal joint switch.
+// If the "Cal Mode" checkbox exists, return its state.  If not, return the
+// state of isCalPiece.
 //
 
 @Override
 public boolean isCalSelected()
 {
 
-    return(calModeCheckBox.isSelected());
+    if (calModeCheckBox != null)
+        return(calModeCheckBox.isSelected());
+    else
+        return(isCalPiece);
 
 }//end of FlagReportPrinter::isCalSelected
 //-----------------------------------------------------------------------------
@@ -262,12 +331,12 @@ JOptionPane.showMessageDialog(mainFrame, pMessage,
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// FlagReportPrinter::printReport
+// FlagReportPrinter::printReportForEnteredRange
 //
-// Prints a report for the selected pieces.
+// Prints a report for the user specified range.
 //
 
-public void printReport()
+public void printReportForEnteredRange()
 {
 
     try{
@@ -286,7 +355,24 @@ public void printReport()
         displayErrorMessage("Error in print range.");
         }
 
-}//end of FlagReportPrinter::printReport
+}//end of FlagReportPrinter::printReportForEnteredRange
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// FlagReportPrinter::printReportForSinglePiece
+//
+// Prints a report for pPiece.
+//
+
+public void printReportForSinglePiece(int pPiece)
+{
+
+    startPiece = pPiece;
+    endPiece = startPiece;
+    pieceTrack = startPiece;
+    startPrint();
+
+}//end of FlagReportPrinter::printReportForSinglePiece
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

@@ -181,6 +181,9 @@ UTCalibrator calWindow;
 Monitor monitorWindow;
 boolean monitorMode = false;
 
+FlagReportPrinter printFlagReportDialog = null;
+int closePrintFlagReportDialogTimer = 0;
+
 AScan aScan;
 
 int initialWidth, initialHeight;
@@ -901,7 +904,6 @@ private void saveSegment()
 
 String segmentFilename;
 
-lastPieceInspected = controlPanel.nextPieceNumber;
 isLastPieceInspectedACal = controlPanel.calMode;
 
 //inspected pieces are saved with the prefix 20 while calibration pieces are
@@ -909,12 +911,18 @@ isLastPieceInspectedACal = controlPanel.calMode;
 //controls the order in which the types are listed when the folder is viewed
 //in alphabetical order in an explorer window
 
-if (!controlPanel.calMode)
+if (!controlPanel.calMode){
     segmentFilename = "20 - " +
                decimalFormats[0].format(controlPanel.nextPieceNumber) + ".dat";
-else
+    //save number before it changes to the next -- used for reports and such
+    lastPieceInspected = controlPanel.nextPieceNumber;
+}
+else{
     segmentFilename =  "30 - " +
             decimalFormats[0].format(controlPanel.nextCalPieceNumber) + ".cal";
+    //save number before it changes to the next -- used for reports and such
+    lastPieceInspected = controlPanel.nextCalPieceNumber;
+}
 
 saveSegmentHelper(currentJobPrimaryPath + segmentFilename);
 saveSegmentHelper(currentJobBackupPath + segmentFilename);
@@ -1163,14 +1171,13 @@ if ("Open Viewer".equals(e.getActionCommand())) {
 
 //this part opens a window to print a flag report
 if ("Print Flag Report for Last Piece Inspected".equals(e.getActionCommand())) {
-    //pass -1 to force display of dialog so user can specify print range
+    //pass the number and type of the last joint inspected so it can be
+    //printed without the user having to
     printFlagReport(lastPieceInspected, isLastPieceInspectedACal);
 }
 
 //this part opens a window to print a flag report
 if ("Print Flag Report for User Selection".equals(e.getActionCommand())) {
-    //pass the number and type of the last joint inspected so it can be
-    //printed without the user having to
     printFlagReport(-1, false);
 }
 
@@ -1314,7 +1321,7 @@ if ("Timer".equals(e.getActionCommand())) processMainTimerEvent();
 public void printFlagReport(int pPieceToPrint, boolean pIsCalPiece)
 {
 
-    FlagReportPrinter printFlagReport = new FlagReportPrinter(
+    FlagReportPrinter lPrintFlagReportDialog = new FlagReportPrinter(
        mainFrame, globals, jobInfo,
        currentJobPrimaryPath, currentJobBackupPath, reportsPath, currentJobName,
        (int)mainFrame.getLocation().getX() + 80,
@@ -1322,7 +1329,17 @@ public void printFlagReport(int pPieceToPrint, boolean pIsCalPiece)
        globals.pieceDescriptionPlural, globals.pieceDescriptionPluralLC,
        hardware, pPieceToPrint, pIsCalPiece);
 
-    printFlagReport.init();
+    lPrintFlagReportDialog.init();
+
+
+    //if the piece to be printed was specified, the dialog displays a message
+    //but requires no user input -- in that case, set up so that timer can
+    //automatically close the dialog after a pause
+
+    if(pPieceToPrint != -1){
+        printFlagReportDialog = lPrintFlagReportDialog;
+        closePrintFlagReportDialogTimer = 100;
+    }
 
 }//end of MainWindow::printFlagReport
 //-----------------------------------------------------------------------------
@@ -1935,6 +1952,16 @@ if (calWindow.isVisible()){
         }
 
     }// if (calWindow.isVisible())
+
+
+    //hide the flag report dialog if need be
+    if (printFlagReportDialog != null
+            && closePrintFlagReportDialogTimer-- == 0){
+
+        printFlagReportDialog.closeAndDispose();
+        printFlagReportDialog = null;
+
+    }
 
 }//end of MainWindow::processMainTimerEvent
 //-----------------------------------------------------------------------------
