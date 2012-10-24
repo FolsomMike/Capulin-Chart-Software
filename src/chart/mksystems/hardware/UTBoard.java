@@ -40,6 +40,11 @@ boolean fpgaLoaded = false;
 String fpgaCodeFilename;
 String dspCodeFilename;
 double nSPerDataPoint, uSPerDataPoint;
+
+    //on startup, the UT boards each load a default rep rate from the
+    //configuration file, but that is often overriden by the owner class
+    //all boards must have the same rep rate
+
 int repRateInHertz, repRate;
 int triggerWidth;
 int syncWidth;
@@ -347,6 +352,7 @@ static byte GET_PEAK_DATA_CMD = 19;     //differs from DSP_GET_PEAK_DATA
 static byte GET_PEAK_DATA4_CMD = 20;	// four channel version
 static byte GET_DSP_RAM_BLOCK_CHECKSUM = 21;
 static byte LOAD_FIRMWARE_CMD = 22;     //loads new Rabbit software
+static byte SET_REP_RATE_CMD = 23;
 
 static byte ERROR = 125;
 static byte DEBUG_CMD = 126;
@@ -827,7 +833,7 @@ verifyDSPCode2(1, 3);
 verifyDSPCode2(2, 1);
 verifyDSPCode2(2, 3);
 
-//re-enable sampling on the UT boards so the DSP rams can be accessed
+//re-enable sampling on the UT boards so A/D data is processed
 setState(0, 1);
 
 }//end of UTBoard::verifyAllDSPCode2
@@ -1059,7 +1065,10 @@ public void initialize()
 configureExtended(configFile);
 
 //destroy the configFile object to release resources
-configFile = null;
+//debug -- mks -- this was removed because the warmStart needs to reload resources
+// probably doesn't need to reload them as the originals are probably still good?
+// on warmStart check if null and use old values
+//configFile = null;
 
 //place the FPGA internals into reset to prevent them from starting
 //in an unknown condition after changing the sampling registers
@@ -1072,7 +1081,7 @@ sendTransducer(1, (byte)0, (byte)1, (byte)1);
 sendTransducer(2, (byte)0, (byte)1, (byte)2);
 sendTransducer(3, (byte)0, (byte)1, (byte)3);
 
-sendRepRate(repRate);
+sendRepRate();
 
 sendTriggerWidth(triggerWidth);
 
@@ -1219,30 +1228,70 @@ if (chassisAddrL != -1 || slotAddrL != -1)
 // Sends the Pulser Rep Rate to the UT board.
 //
 
-void sendRepRate(int pValue)
+void sendRepRate()
 {
 
+//debug mks zzz
+
 //write the bytes of the integer to the appropriate registers
-writeFPGAReg(REP_RATE_0_REG, (byte) (pValue & 0xff));
-writeFPGAReg(REP_RATE_1_REG, (byte) ((pValue >> 8) & 0xff));
-writeFPGAReg(REP_RATE_2_REG, (byte) ((pValue >> 16) & 0xff));
-writeFPGAReg(REP_RATE_3_REG, (byte) ((pValue >> 24) & 0xff));
+writeFPGAReg(REP_RATE_0_REG, (byte) (repRate & 0xff));
+writeFPGAReg(REP_RATE_1_REG, (byte) ((repRate >> 8) & 0xff));
+writeFPGAReg(REP_RATE_2_REG, (byte) ((repRate >> 16) & 0xff));
+writeFPGAReg(REP_RATE_3_REG, (byte) ((repRate >> 24) & 0xff));
+
+//change this to send the value to the Rabbit and let it stuff into the
+//DSP so it can validate the value -- the current method is dangerous -- if
+//one of the writes above gets lost, the rep rate could get set very high and
+//blow the fuse and destroy the resistors
+// use sendSoftwareDelay as an example
 
 }//end of UTBoard::sendRepRate
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTBoard::getRepRate
+// UTBoard::setRepRateInHertz
+//
+// Accepts a rep rate value in Hertz, calculates related values, then stores
+// them.
+//
+// The value is the rep rate per channel, if value is 2000, then each channel
+// will be running at 2K rep rate -- it is not an overall rep rate divided by
+// the number of channels.
+//
+
+void setRepRateInHertz(int pValue)
+{
+
+//rep rate is per channel
+//multipy the rep rate by the number of banks and multiply by the clock period
+//to get the number of clock counts per pulse
+//to get counts: (2000 * number of banks) * 0.000000015
+// 0.000000015 = 15 ns
+// add one to numberOfBanks because it is zero based
+
+repRate = (int)(1/(repRateInHertz * (numberOfBanks+1) * 0.000000015));
+
+//limit to a safe value - if the rep rate is too high and the pulse width too
+//wide, the pulser circuitry will have an excessive duty cycle and burn up
+//4166 is twice 2Khz for 4 channels - a reasonable maximum
+// (a smaller value is a higher rep rate)
+if (repRate < 4166 || repRate > 65535 ) repRate = 33333;
+
+}//end of UTBoard::setRepRateInHertz
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::getRepRateInHertz
 //
 // Returns the UT board's pulser rep rate.
 //
 
-public int getRepRate()
+public int getRepRateInHertz()
 {
 
 return (repRateInHertz);
 
-}//end of UTBoard::getRepRate
+}//end of UTBoard::getRepRateInHertz
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1296,6 +1345,12 @@ writeFPGAReg(TRIG_WIDTH_3_REG, (byte) ((pValue >> 24) & 0xff));
 // Sends the Sync Width to the UT board.  This is used by the board which is
 // designated as the sync source.  The value is adjusted to make sure it is
 // wide enough to trigger the optoisolators.
+//
+// For the sync and sync reset pulses, the actual width is 100 uS when
+// pValue is 200, which is 200 cycles of the FPGA clock. The actual 100uS
+// equates to 6,666 counts of the FPGA CLK (15nS) -- the difference is due to
+// capacitance in the transistor driver circuit which widens the signal.
+// This was verified with two UT boards and a Control board in the system.
 //
 
 void sendSyncWidth(int pValue)
@@ -3223,20 +3278,8 @@ if (numberOfBanks < 0 || numberOfBanks > 3) numberOfBanks = 0;
 
 repRateInHertz = pConfigFile.readInt(section, "Pulse Rep Rate in Hertz", 2000);
 
-//rep rate is for each channel
-//multipy the rep rate by the number of banks and multiply by the clock period
-//to get the number of clock counts per pulse
-//to get counts: (2000 * number of banks) * 0.000000015
-// 0.000000015 = 15 ns
-// add one to numberOfBanks because it is zero based
-
-repRate = (int)(1/(repRateInHertz * (numberOfBanks+1) * 0.000000015));
-
-//limit to a safe value - if the rep rate is too high and the pulse width too
-//wide, the pulser circuitry will have an excessive duty cycle and burn up
-//4166 is twice 2Khz for 4 channels - a reasonable maximum
-// (a smaller value is a higher rep rate)
-if (repRate < 4166 || repRate > 65535 ) repRate = 33333;
+//store the value and calculate related values
+setRepRateInHertz(repRateInHertz);
 
 //each count is 15 ns
 triggerWidth = pConfigFile.readInt(section, "Pulse Width", 15);

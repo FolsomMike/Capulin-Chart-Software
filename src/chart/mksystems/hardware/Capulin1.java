@@ -28,6 +28,7 @@ import chart.mksystems.inifile.IniFile;
 import chart.mksystems.stripchart.Threshold;
 import chart.mksystems.stripchart.Trace;
 import chart.mksystems.threadsafe.SyncedVariableSet;
+import chart.mksystems.threadsafe.SyncedInteger;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -88,6 +89,13 @@ public class Capulin1 extends Object implements HardwareLink, MessageLink{
     int opMode = Hardware.STOPPED;
     boolean controlBoardInspectMode = false;
 
+    SyncedVariableSet syncedVarMgr;
+    //all boards (and thus all channels) must have the same rep rate
+    //on startup, the UT boards each load a default rep rate from the
+    //configuration file, but that can be overridden by the value in this
+    //class if options set to do that
+    SyncedInteger repRateInHertz;
+
 //-----------------------------------------------------------------------------
 // Capulin1::Capulin1 (constructor)
 //
@@ -107,6 +115,9 @@ Capulin1(IniFile pConfigFile, boolean pSimulationMode,
     log = pLog;
     jobFileFormat = pJobFileFormat;
     mainFileFormat = pMainFileFormat;
+
+    syncedVarMgr = new SyncedVariableSet();
+    repRateInHertz = new SyncedInteger(syncedVarMgr); repRateInHertz.init();
 
     logger = new ThreadSafeLogger(pLog);
 
@@ -565,6 +576,16 @@ public void initializeChannels()
 public void sendDataChangesToRemotes()
 {
 
+    //handle data changes in this class
+
+    if (!syncedVarMgr.getDataChangedMaster()){
+
+        if (repRateInHertz.getDataChangedFlag()) sendRepRate();
+
+    }//if (!syncedVarMgr.getDataChangedMaster())
+
+    //handle data changes in all the channels
+
     for (int i = 0; i < numberOfChannels; i++)
         channels[i].sendDataChangesToRemotes();
 
@@ -644,6 +665,9 @@ public void shutDown()
 public void loadCalFile(IniFile pCalFile)
 {
 
+    repRateInHertz.setValue(
+                pCalFile.readInt("Hardware", "Pulse Rep Rate in Hertz", 2000));
+
     // call each channel to load its data
     for (int i = 0; i < numberOfChannels; i++)
         channels[i].loadCalFile(pCalFile);
@@ -664,6 +688,9 @@ public void loadCalFile(IniFile pCalFile)
 @Override
 public void saveCalFile(IniFile pCalFile)
 {
+
+    pCalFile.writeInt(
+            "Hardware", "Pulse Rep Rate in Hertz", repRateInHertz.getValue());
 
     // call each channel to save its data
     for (int i = 0; i < numberOfChannels; i++)
@@ -1139,6 +1166,21 @@ public boolean prepareControlData()
     return atLeastOneEncoderPacketProcessed;
 
 }//end of Capulin1::prepareControlData
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::getRepRateInHertz
+//
+// Returns the rep rate in Hertz used for all boards/channels.
+//
+
+@Override
+public int getRepRateInHertz()
+{
+
+    return(repRateInHertz.getValue());
+
+}//end of Capulin1::getRepRateInHertz
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1876,6 +1918,33 @@ void sendByteUDP(DatagramSocket pSocket, DatagramPacket pOutPacket, byte pByte)
     try {pSocket.send(pOutPacket);} catch(IOException e){}
 
 }//end of Capulin1::sendByteUDP
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::sendRepRate
+//
+// Sends the rep rate to all UT boards.
+//
+// All UT boards (and thus all channels) must have the same rep rate. Initially,
+// each UT board loads its rep rate from the configuration file -- they should
+// all be set to the same value there.
+//
+// The value in this class, which can be modified by the user, overrides the
+// initial value used by each UT board.
+//
+
+void sendRepRate()
+{
+
+    //lock in the synced value since it is used multiple times here
+    int lRepRate = repRateInHertz.applyValue();
+
+    for (int i = 0; i < numberOfUTBoards; i++){
+        utBoards[i].setRepRateInHertz(lRepRate);
+//debug mks        utBoards[i].sendRepRate();
+    }
+
+}//end of Capulin1::sendRepRate
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

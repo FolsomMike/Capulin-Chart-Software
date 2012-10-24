@@ -430,6 +430,20 @@ analogDriver.saveCalFile(pCalFile);
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Hardware::getRepRateInHertz
+//
+// Returns the rep rate in Hertz used for all boards/channels.
+//
+
+public int getRepRateInHertz()
+{
+
+    return(analogDriver.getRepRateInHertz());
+
+}//end of Hardware::getRepRateInHertz
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Hardware::getUSPerDataPoint
 //
 // Returns the current setting for uS per data point for the hardware.

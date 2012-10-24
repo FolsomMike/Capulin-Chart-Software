@@ -186,7 +186,7 @@ public class UTControls extends JTabbedPane
 
     //components on Signal tab
 
-    SpinnerPanel delaySpin, rangeSpin, gainSpin;
+    SpinnerPanel delaySpin, rangeSpin, gainSpin, repRateSpin;
     SpinnerPanel hardwareGainSpin1, hardwareGainSpin2, rejectSpin;
     SpinnerPanel smoothingSpin, dcOffsetSpin;
     SpinnerPanel nomWallSpin, nomWallPosSpin, wallScaleSpin, velocitySpin;
@@ -679,9 +679,11 @@ void setupSignalTab()
                   0, 80, .1, "#0.0", 60, 23, "Gain ", " dB", "Gain", this));
     gainSpin.spinner.addChangeListener(this); //monitor changes to value
 
-    //display the rep rate
-    multiSpinnerPanel.add(new JLabel("Rep Rate: " +
-                                  currentChannel.utBoard.getRepRate() + " Hz"));
+    //add a panel for Rep Rate control
+    multiSpinnerPanel.add(repRateSpin =
+          new SpinnerPanel(hardware.getRepRateInHertz(),
+              0, 2000, 1, "#0", 60, 23, "Rep Rate ", " Hz", "Rep Rate", this));
+    repRateSpin.spinner.addChangeListener(this); //monitor changes to value
 
     //Display/Rectification selection panel and radio buttons
 
@@ -1996,7 +1998,7 @@ public void calculateDACGateTimeLocation()
     //get the current vertical offset for the scope display
     int vertOffset = ((OscopeCanvas)oscopeCanvas).getVertOffset();
 
-    //calculate the pixel locations for the DAC gates
+    //calculate the time locations for the DAC gates
     int numberOfDACGates = ch.getNumberOfDACGates();
     DACGate dacGate;
 

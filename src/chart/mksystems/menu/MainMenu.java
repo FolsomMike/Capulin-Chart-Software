@@ -249,7 +249,7 @@ reportLastMenuItem.addActionListener(globals);
 reportMenu.add(reportLastMenuItem);
 
 //Report/Any Joint
-reportAnyMenuItem = new JMenuItem("Flag report(s) for Selected " +
+reportAnyMenuItem = new JMenuItem("Flag Report(s) for Selected " +
                                                 globals.pieceDescriptionPlural);
 reportAnyMenuItem.setMnemonic(KeyEvent.VK_S);
 reportAnyMenuItem.setToolTipText("Print the flag report(s) for selected " +

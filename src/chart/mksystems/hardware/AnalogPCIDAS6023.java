@@ -53,7 +53,7 @@ public int dataMinPeak;  //used for channels with minand max peaks
 // should already be opened and ready to access.
 //
 // If pSimulationMode is true, signals will be simulated.
-  
+
 AnalogPCIDAS6023(IniFile pConfigFile, boolean pSimulationMode,
                               int pNumberOfAnalogChannels, HardwareVars pHdwVs)
 {
@@ -78,7 +78,7 @@ configure(configFile);
 //
 
 @Override
-public void connect()  
+public void connect()
 {
 
 
@@ -98,7 +98,7 @@ public void connect()
 @Override
 public void loadCalFile(IniFile pCalFile)
 {
-          
+
 }//end of AnalogPCIDAS6023::loadCalFile
 //-----------------------------------------------------------------------------
 
@@ -115,7 +115,7 @@ public void loadCalFile(IniFile pCalFile)
 @Override
 public void saveCalFile(IniFile pCalFile)
 {
-          
+
 }//end of AnalogPCIDAS6023::saveCalFile
 //-----------------------------------------------------------------------------
 
@@ -138,7 +138,7 @@ public void saveCalFile(IniFile pCalFile)
 public void setMode(int pOpMode)
 {
 
-    
+
 }//end of AnalogPCIDAS6023::setMode
 //-----------------------------------------------------------------------------
 
@@ -163,7 +163,7 @@ public void startMonitor()
 //
 
 @Override
-public void stopMonitor()  
+public void stopMonitor()
 {
 
 }//end of AnalogPCIDAS6023::stopMonitor
@@ -390,10 +390,10 @@ return 0;
 @Override
 public Channel[] getChannels()
 {
-        
+
 Channel[] channels = null;
 return channels;
-  
+
 }//end of AnalogPCIDAS6023::getChannels
 //-----------------------------------------------------------------------------
 
@@ -408,7 +408,7 @@ public Gate getGate(int pChannel, int pGate)
 {
 
 return null;
-  
+
 }//end of AnalogPCIDAS6023::getGate
 //-----------------------------------------------------------------------------
 
@@ -465,10 +465,10 @@ return true;
 @Override
 public int getChannelData(int pChannel, int pSimDataType)
 {
-    
+
 //if in simulation mode, return simulated data
 if(simulationMode) return(simulateChannelData(pChannel, pSimDataType));
-    
+
 return(50);
 
 }//end of AnalogPCIDAS6023::getChannelData
@@ -483,78 +483,78 @@ return(50);
 public int simulateChannelData(int pChannel, int pSimDataType)
 {
 
-int clockPos;    
-    
+int clockPos;
+
 //return a random signal with low noise baseline and intermittent spikes
- 
+
 if (pSimDataType == 0){
-        
-    double random = Math.random() * 5;    
-    
+
+    double random = Math.random() * 5;
+
     simData[pChannel] = 3 + (int)random; //baseline noise
 
     //add occasional spikes
-    if ( (int)(Math.random() * 80) == 1) 
+    if ( (int)(Math.random() * 80) == 1)
         simData[pChannel] += (int)(Math.random() * 100);
 
     //set a random clock position for this data point
     clockPos = (int)(Math.random() * 12) + 1; //1 to 12
-    
+
     dataPeak = simData[pChannel];
-    
-    return(clockPos);  
+
+    return(clockPos);
 
     }
 
 //return a sawtooth signal
- 
+
 if (pSimDataType == 1){
 
-    if (simData[pChannel] == 100) simData[pChannel] = -1;    
-    
+    if (simData[pChannel] == 100) simData[pChannel] = -1;
+
     //set a random clock position for this data point
     clockPos = (int)(Math.random() * 12) + 1; //1 to 12
-        
+
     //add in an offset calculated from channel number so multiple traces are
     //not overlayed on a chart
     dataPeak = ++simData[pChannel] + pChannel * 5;
-    
+
     return(clockPos);
-    
+
     }
 
 //return a gamma signal
- 
+
 if (pSimDataType == 2){
-       
+
     //simulate the minimum peak value of the signal
-    
-    double random = Math.random() * 5;    
-    
+
+    double random = Math.random() * 5;
+
     simData[pChannel] = 47 + (int)random; //baseline noise
 
     //add occasional downward spikes
-    if ( (int)(Math.random() * 80) == 1) 
+    if ( (int)(Math.random() * 80) == 1)
         simData[pChannel] -= (int)(Math.random() * 40);
 
     dataMinPeak = simData[pChannel];
-    
+
     //simulate the maximum peak value of the signal
-    
-    random = Math.random() * 5;    
-    
+
+    random = Math.random() * 5;
+
     simData[pChannel] = 53 + (int)random; //baseline noise
 
     //add occasional upward spikes
-    if ( (int)(Math.random() * 80) == 1) 
+    if ( (int)(Math.random() * 80) == 1)
         simData[pChannel] += (int)(Math.random() * 40);
 
     dataMaxPeak = simData[pChannel];
-        
+
     //set a random clock position for this data point
     clockPos = (int)(Math.random() * 12) + 1; //1 to 12
-    
-    return(clockPos);  
+
+    return(clockPos);
 
     }
 
@@ -570,11 +570,11 @@ return(0);
 //
 // Displays any messages received from the remote.
 //
-  
+
 @Override
 public void displayMessages()
 {
-    
+
 
 }//end of AnalogPCIDAS6023::displayMessages
 //-----------------------------------------------------------------------------
@@ -595,12 +595,12 @@ public void updateRabbitCode(int pWhichRabbits)
 //-----------------------------------------------------------------------------
 // AnalogPCIDAS6023:readRAM
 //
-  
+
 @Override
 public void readRAM(int pChassis, int pSlot, int pDSPChip, int pDSPCore,
            int pRAMType, int pPage, int pAddress, int pCount, byte[] dataBlock)
 {
-    
+
 
 }//end of AnalogPCIDAS6023::readRAM
 //-----------------------------------------------------------------------------
@@ -693,13 +693,13 @@ public synchronized void sendDataChangesToRemotes()
 // software, it is necessary to execute tasks in a segmented fashion if it
 // is necessary to display status messages along the way.
 //
-  
+
 @Override
 public void doTasks()
 {
 
 displayMessages();
-    
+
 }//end of AnalogPCIDAS6023:doTasks
 //-----------------------------------------------------------------------------
 
@@ -798,9 +798,24 @@ public void setNewInspectPacketReady(boolean pValue){}
 public int xmtMessage(int pMessage, int pValue)
 {
 
-return(0);    
-    
+return(0);
+
 }//end of AnalogPCIDAS6023::xmtMessage
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// AnalogPCIDAS6023::getRepRateInHertz
+//
+// Returns the rep rate in Hertz used for all boards/channels.
+//
+
+@Override
+public int getRepRateInHertz()
+{
+
+    return(0);
+
+}//end of AnalogPCIDAS6023::getRepRateInHertz
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -820,5 +835,4 @@ public void shutDown()
 
 }//end of class AnalogPCIDAS6023
 //-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------    
-    
+//-----------------------------------------------------------------------------

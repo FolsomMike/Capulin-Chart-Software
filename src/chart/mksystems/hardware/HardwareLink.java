@@ -131,6 +131,8 @@ public void setNewInspectPacketReady(boolean pValue);
 
 public int xmtMessage(int pMessage, int pValue);
 
+public int getRepRateInHertz();
+
 }//end of interface HardwareLink
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
