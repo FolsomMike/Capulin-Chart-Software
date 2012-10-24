@@ -132,6 +132,30 @@ public void setSoftwareGain(double pSoftwareGain, boolean pForceUpdate)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// BasicGate::calculateGateTimeLocation
+//
+// Calculates the time locations for a gate from its pixel location and
+// various related offsets.
+//
+// This function performs the opposite of calculateGatePixelLocation.
+//
+// Also calculates the gain value to send to the remotes.
+//
+
+@Override
+public void calculateGateTimeLocation(double pUSPerPixel, int pDelayPix,
+                                             int pCanvasHeight, int pVertOffset)
+{
+
+super.calculateGateTimeLocation(
+                        pUSPerPixel, pDelayPix, pCanvasHeight, pVertOffset);
+
+calculateDACGain(false);
+
+}//end of BasicGate::calculateGateTimeLocation
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // DACGate::setLevel
 //
 // Sets the gate level and calculates the gain for the DAC gate.
@@ -176,9 +200,9 @@ public void calculateDACGain(boolean pForceUpdate)
 
     //convert gateLevel from percentage of screen height to pixels
     //use applyValue on gateLevel here because the value's changed status
-    //will be transferred to gainForDSP, which is the value actually sent
+    //will be transferred to gainForRemote, which is the value actually sent
     //to the remotes, thus the gateLevel value's change is applied here while
-    //the gainForDSP's value change will be applied when it is transmitted
+    //the gainForRemote's value change will be applied when it is transmitted
 
     int pixLevel = (int)Math.round(gateLevel.applyValue() * scopeMax / 100);
     //calculate distance from the center
@@ -200,7 +224,7 @@ public void calculateDACGain(boolean pForceUpdate)
 
     gainForRemote.setValue(roundedGain);
 
-}//end of DACGate::setSoftwareGain
+}//end of DACGate::calculateDACGain
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -331,9 +355,9 @@ setFlags();
 public boolean isPositionChanged()
 {
 
-if (     gateStart.getDataChanged()
-      || gateWidth.getDataChanged()
-      || gainForRemote.getDataChanged())
+if (     gateStart.getDataChangedFlag()
+      || gateWidth.getDataChangedFlag()
+      || gainForRemote.getDataChangedFlag())
 
     return(true);
 else

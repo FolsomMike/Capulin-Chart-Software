@@ -552,8 +552,7 @@ public void setDACGatePixelValues(int pGate, int pStart, int pEnd,
 // the flag is false, the value(s) will be sent only if they have changed.
 //
 
-public void setDACPixStart(
-                                   int pGate, int pStart, boolean pForceUpdate)
+public void setDACPixStart(int pGate, int pStart, boolean pForceUpdate)
 {
 
     if (pStart != dacGates[pGate].gatePixStart) pForceUpdate = true;
@@ -572,8 +571,7 @@ public void setDACPixStart(
 // the flag is false, the value(s) will be sent only if they have changed.
 //
 
-public void setDACPixEnd(
-                                    int pGate, int pEnd, boolean pForceUpdate)
+public void setDACPixEnd(int pGate, int pEnd, boolean pForceUpdate)
 {
 
     if (pEnd != dacGates[pGate].gatePixEnd) pForceUpdate = true;
@@ -1682,7 +1680,7 @@ public void sendSoftwareGain()
 public double getSoftwareGain()
 {
 
-    return softwareGain.getValue();
+    return (softwareGain.getValue());
 
 }//end of Channel::getSoftwareGain
 //-----------------------------------------------------------------------------
@@ -2486,7 +2484,7 @@ private boolean isAnyGateSigProcThresholdChanged()
 {
 
     for (int i = 0; i < numberOfGates; i++)
-        if (gates[i].sigProcThreshold.getDataChanged()) return(true);
+        if (gates[i].sigProcThreshold.getDataChangedFlag()) return(true);
 
    return(false);
 
@@ -2554,8 +2552,8 @@ private boolean isAnyGateHitMissChanged()
 {
 
     for (int i = 0; i < numberOfGates; i++)
-        if (gates[i].gateHitCount.getDataChanged()
-            || gates[i].gateMissCount.getDataChanged()) return(true);
+        if (gates[i].gateHitCount.getDataChangedFlag()
+            || gates[i].gateMissCount.getDataChangedFlag()) return(true);
 
    return(false);
 
@@ -2601,7 +2599,7 @@ public void sendGateFlags()
     //unknown which gate(s) have changed data, so check them all
 
     for (int i = 0; i < numberOfGates; i++){
-        if (gates[i].getFlags().getDataChanged()){
+        if (gates[i].getFlags().getDataChangedFlag()){
 
             if (utBoard != null) utBoard.sendGateFlags(
                              boardChannel, i, gates[i].getFlags().applyValue());
@@ -2625,7 +2623,7 @@ public void sendGateSigProcThreshold()
 
     for (int i = 0; i < numberOfGates; i++){
 
-        if (gates[i].sigProcThreshold.getDataChanged()){
+        if (gates[i].sigProcThreshold.getDataChangedFlag()){
 
             int threshold = gates[i].sigProcThreshold.applyValue();
 
@@ -2650,8 +2648,8 @@ public void sendGateHitMiss()
 
     for (int i = 0; i < numberOfGates; i++){
 
-        if (gates[i].gateHitCount.getDataChanged()
-             || gates[i].gateMissCount.getDataChanged()){
+        if (gates[i].gateHitCount.getDataChangedFlag()
+             || gates[i].gateMissCount.getDataChangedFlag()){
 
             if (utBoard != null)
                 utBoard.sendHitMissCounts(boardChannel, i,
@@ -2743,7 +2741,7 @@ public void sendDACGateFlags()
     //unknown which gate(s) have changed data, so check them all
 
     for (int i = 0; i < numberOfDACGates; i++){
-        if (dacGates[i].gateFlags.getDataChanged()){
+        if (dacGates[i].gateFlags.getDataChangedFlag()){
 
             if (utBoard != null) utBoard.sendDACGateFlags(
                           boardChannel, i, dacGates[i].getFlags().applyValue());
@@ -2784,21 +2782,21 @@ public void sendDataChangesToRemotes()
     //do nothing if no data changed for any synced variables
     if (!syncedVarMgr.getDataChangedMaster()) return;
 
-    if (flags1SetMask.getDataChanged()) sendSetFlags1();
+    if (flags1SetMask.getDataChangedFlag()) sendSetFlags1();
 
-    if (flags1ClearMask.getDataChanged()) sendClearFlags1();
+    if (flags1ClearMask.getDataChangedFlag()) sendClearFlags1();
 
-    if (softwareGain.getDataChanged()) sendSoftwareGain();
+    if (softwareGain.getDataChangedFlag()) sendSoftwareGain();
 
-    if (hardwareGain1.getDataChanged()) sendHardwareGain();
+    if (hardwareGain1.getDataChangedFlag()) sendHardwareGain();
 
-    if (hardwareGain2.getDataChanged()) sendHardwareGain();
+    if (hardwareGain2.getDataChangedFlag()) sendHardwareGain();
 
-    if (aScanSmoothing.getDataChanged()) sendAScanSmoothing();
+    if (aScanSmoothing.getDataChangedFlag()) sendAScanSmoothing();
 
-    if (mode.getDataChanged()) sendMode();
+    if (mode.getDataChangedFlag()) sendMode();
 
-    if (hardwareRange.getDataChanged() || aScanScale.getDataChanged())
+    if (hardwareRange.getDataChangedFlag() || aScanScale.getDataChangedFlag())
         sendRange();
 
     if (isAnyGatePositionChanged()) sendGateParameters();
@@ -2809,7 +2807,9 @@ public void sendDataChangesToRemotes()
 
     if (isAnyGateSigProcThresholdChanged()) sendGateSigProcThreshold();
 
-    if (isAnyDACGatePositionChanged()) sendDACGateParameters();
+    if (isAnyDACGatePositionChanged())
+
+        sendDACGateParameters();
 
     if (isAnyDACGateFlagsChanged()) sendDACGateFlags();
 
@@ -2934,7 +2934,7 @@ public void loadCalFile(IniFile pCalFile)
 
     aScanDelay = pCalFile.readDouble(section, "Sample Delay", 0);
     aScanRange = pCalFile.readDouble(section, "Range", 53.0);
-    softwareGain.setValue(pCalFile.readDouble(section, "Software Gain", 0));
+    setSoftwareGain(pCalFile.readDouble(section, "Software Gain", 0), true);
     hardwareGain1.setValue(
                         pCalFile.readInt(section, "Hardware Gain Stage 1", 2));
     hardwareGain2.setValue(

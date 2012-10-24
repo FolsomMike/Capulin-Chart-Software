@@ -159,7 +159,7 @@ public synchronized void notifyDataUnchanged()
 
         debug++;
 
-        if ( sv.getDataChangedUnSynced()) {
+        if ( sv.getDataChangedFlagUnSynced()) {
             someDataChanged = true;
             break;
         }

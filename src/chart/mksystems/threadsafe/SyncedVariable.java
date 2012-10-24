@@ -98,34 +98,34 @@ public synchronized void setDataChangedFalse()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SyncedVariable::getDataChanged
+// SyncedVariable::getDataChangedFlag
 //
 // Returns the dataChanged flag.
 //
 
-public synchronized boolean getDataChanged()
+public synchronized boolean getDataChangedFlag()
 {
 
     return(dataChanged);
 
-}//end of SyncedVariable::getDataChanged
+}//end of SyncedVariable::getDataChangedFlag
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SyncedVariable::getDataChangedUnSynced
+// SyncedVariable::getDataChangedFlagUnSynced
 //
-// Returns the dataChanged flag.
+// Returns the dataChanged flag via an unsynchronized method.
 //
 // IMPORTANT: This unsynchronized version is meant for use only by a
 // SyncedVariableSet object to avoid thread blocking.
 //
 
-public boolean getDataChangedUnSynced()
+public boolean getDataChangedFlagUnSynced()
 {
 
     return(dataChanged);
 
-}//end of SyncedVariable::getDataChangedUnSynced
+}//end of SyncedVariable::getDataChangedFlagUnSynced
 //-----------------------------------------------------------------------------
 
 

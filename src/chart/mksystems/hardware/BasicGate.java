@@ -173,28 +173,21 @@ return(valueChanged);
 // Calculates the time locations for a gate from its pixel location and
 // various related offsets.
 //
-// Returns true if any value was changed.  This return value can then be used
-// to decide if the gate data needs to be sent to a remote.
-//
 // This function performs the opposite of calculateGatePixelLocation.
 //
 
-public boolean calculateGateTimeLocation(double pUSPerPixel, int pDelayPix,
+public void calculateGateTimeLocation(double pUSPerPixel, int pDelayPix,
                                              int pCanvasHeight, int pVertOffset)
 {
-
-boolean valueChanged = false;
 
 double nGateStart =  (gatePixStart + pDelayPix) * pUSPerPixel;
 if (gateStart.getValue() != nGateStart){
     gateStart.setValue(nGateStart);
-    valueChanged = true;
 }
 
 double nGateWidth = (gatePixEnd - gatePixStart) * pUSPerPixel;
 if (gateWidth.getValue() != nGateWidth){
     gateWidth.setValue(nGateWidth);
-    valueChanged = true;
 }
 
 int nPixLevel = gatePixLevel; //use a temp variable - don't modify original
@@ -212,10 +205,7 @@ int nGateLevel =
 
 if (gateLevel.getValue() != nGateLevel){
     gateLevel.setValue(nGateLevel);
-    valueChanged = true;
 }
-
-return(valueChanged);
 
 }//end of BasicGate::calculateGateTimeLocation
 //-----------------------------------------------------------------------------
@@ -282,9 +272,9 @@ gatePixMidPointAdjusted = gatePixMidPoint + pOffset;
 public boolean isPositionChanged()
 {
 
-if (     gateStart.getDataChanged()
-      || gateWidth.getDataChanged()
-      || gateLevel.getDataChanged())
+if (     gateStart.getDataChangedFlag()
+      || gateWidth.getDataChangedFlag()
+      || gateLevel.getDataChangedFlag())
 
     return(true);
 else
@@ -302,7 +292,7 @@ else
 public boolean isFlagsChanged()
 {
 
-if ( gateFlags.getDataChanged())
+if ( gateFlags.getDataChangedFlag())
     return(true);
 else
     return(false);
