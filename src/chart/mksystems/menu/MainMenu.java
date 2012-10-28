@@ -475,10 +475,10 @@ updateControlRabbitCodeMenuItem.addActionListener(globals);
 helpMenu.add(updateControlRabbitCodeMenuItem);
 
 //option to setup the system
-setupSystemMenuItem = new JMenuItem("Setup System");
+setupSystemMenuItem = new JMenuItem("Set Up System");
 setupSystemMenuItem.setMnemonic(KeyEvent.VK_S);
-setupSystemMenuItem.setToolTipText("Setup System");
-setupSystemMenuItem.setActionCommand("Setup System");
+setupSystemMenuItem.setToolTipText("Set Up System");
+setupSystemMenuItem.setActionCommand("Set Up System");
 setupSystemMenuItem.addActionListener(globals);
 helpMenu.add(setupSystemMenuItem);
 

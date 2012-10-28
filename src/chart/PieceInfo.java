@@ -34,7 +34,7 @@ import chart.mksystems.inifile.IniFile;
 //
 //
 
-public class PieceInfo extends JDialog implements ActionListener, 
+public class PieceInfo extends JDialog implements ActionListener,
                                                 WindowListener, FocusListener {
 
 JPanel panel;
@@ -49,66 +49,13 @@ JButton updateButton;
 String filename;
 String fileFormat;
 
-Item[] items;
+PieceInfoItem[] items;
 static int NUMBER_OF_ITEMS = 100;
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-// class Item
-//
-// Holds the info for one entry item which is an input box with a label.
-//
-
-class Item extends Object{
-
-public String labelText;
-public int width;
-public int height;
-public int numberCharacters;
-public boolean editable;
-public boolean clearedInNewJob;
-public JLabel label;
-public JTextField textField;
-public boolean printInFooter;
-public int printOrder;
-boolean printed;
-
-//-----------------------------------------------------------------------------
-// Item::createTextField
-//
-
-void createTextField(FocusListener focusListener)
-{
-
-textField = new JTextField(numberCharacters);
-
-//all text fields have the same name so they all trigger the focus listener in
-//the same way
-textField.setName("Value Text Field");
-textField.addFocusListener(focusListener);
-
-int dHeight = textField.getPreferredSize().height;
-
-//set the width to 1 pixel - Java will override this to make the field large
-//enough to hold the specified number of characters but prevents it from
-//enlarging the field to fill its container
-
-textField.setMinimumSize(new Dimension(1, dHeight));
-textField.setPreferredSize(new Dimension(1, dHeight));
-textField.setMaximumSize(new Dimension(1, dHeight));
-
-}//end of Item::createTextField
-//-----------------------------------------------------------------------------
-
-
-}//end of class Item
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // PieceInfo::PieceInfo (constructor)
 //
-  
+
 public PieceInfo(JFrame pFrame, String pPrimaryDataPath, String pBackupDataPath,
                       String pCurrentWorkOrder, ActionListener pActionListener,
                       boolean pDisplayUpdateButton, String pFileFormat)
@@ -122,12 +69,12 @@ displayUpdateButton = pDisplayUpdateButton;
 fileFormat = pFileFormat;
 
 }//end of PieceInfo::PieceInfo (constructor)
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // PieceInfo::init
 //
-  
+
 public void init()
 {
 
@@ -138,19 +85,32 @@ configFilename = primaryDataPath + "05 - " + currentWorkOrder
                                     + " Configuration - Piece Info Window.ini";
 
 //create and array to hold 100 items - each item is an data entry object
-items = new Item[NUMBER_OF_ITEMS];
+items = new PieceInfoItem[NUMBER_OF_ITEMS];
 
 //setup the window according to the configuration file
 configure(configFilename);
-    
+
 }//end of PieceInfo::init
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // PieceInfo::configure
 //
 // Loads configuration settings from the configuration.ini file and configures
 // the object.
+//
+// Notes regarding setting labels to focusable:
+//
+// When displayed, the Update button is disabled until the user clicks in any
+// text box. It disabled again when the user clicks it to save the data.
+// Upon window display, the first text box would normally gain focus as the
+// labels default to non-focusable. Thus, when the text box gained focus it
+// would automatically enable the Update button. Also, when the Update button
+// was disabled, focus would pass back to the first text box and that act
+// would immediately re-enable the Update button. By making the labels
+// focusable, the first label can take the focus without enabling the update
+// button. The user must explicitly click in the first text box to set the
+// focus there and cause the Update button to be enabled.
 //
 
 private void configure(String pConfigFilename)
@@ -184,16 +144,16 @@ for (int i=0; i < NUMBER_OF_ITEMS; i++){
     //if a label exists, create the item and load the other data for it
     if (!text.equalsIgnoreCase("blank")) {
 
-        items[i] = new Item();
+        items[i] = new PieceInfoItem();
         items[i].labelText = text;
-        items[i].numberCharacters = 
+        items[i].numberCharacters =
                         configFile.readInt(section, "Number of Characters", 20);
-        items[i].editable = 
+        items[i].editable =
                     configFile.readBoolean(section, "Editable", true);
-        items[i].clearedInNewJob =  
+        items[i].clearedInNewJob =
                 configFile.readBoolean(section, "Cleared in a New Job", true);
 
-        items[i].printInFooter = 
+        items[i].printInFooter =
                     configFile.readBoolean(section, "Print in Footer", true);
         items[i].printOrder = configFile.readInt(section, "Print Order", -1);
 
@@ -202,8 +162,9 @@ for (int i=0; i < NUMBER_OF_ITEMS; i++){
         //add each label/field pair to a panel
         itemPanel = new JPanel();
         itemPanel.setLayout(new BoxLayout(itemPanel, BoxLayout.X_AXIS));
-        items[i].createTextField(this);        
+        items[i].createTextField(this);
         items[i].label = new JLabel(items[i].labelText);
+        items[i].label.setFocusable(true); //see notes in method header
         //space at left edge
         itemPanel.add(Box.createRigidArea(new Dimension(5,0)));
         itemPanel.add(items[i].label);
@@ -218,9 +179,9 @@ for (int i=0; i < NUMBER_OF_ITEMS; i++){
         //store the maximum width of any label for use in setting all label
         //widths the same - Java seems to set Min/Preferred/Max to the same so
         //use the Preferred size for this purpose
-        if (items[i].label.getPreferredSize().width > maxLabelWidth) 
+        if (items[i].label.getPreferredSize().width > maxLabelWidth)
             maxLabelWidth = items[i].label.getPreferredSize().width;
-        
+
         }// if (text.equalsIgnoreCase("blank"))
 
     }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
@@ -236,12 +197,12 @@ for (int i=0; i < NUMBER_OF_ITEMS; i++){
 
         //get the default height of the label
         height = items[i].label.getPreferredSize().height;
-    
+
         //set all dimensions to match the widest label
         items[i].label.setMinimumSize(new Dimension(maxLabelWidth, height));
         items[i].label.setPreferredSize(new Dimension(maxLabelWidth, height));
         items[i].label.setMaximumSize(new Dimension(maxLabelWidth, height));
-        
+
         }
 
     }//for (int i=0; i < NUMBER_OF_ITEMS; i++)
@@ -251,7 +212,7 @@ for (int i=0; i < NUMBER_OF_ITEMS; i++){
 //made to the data
 
 if(displayUpdateButton){
-    
+
     itemPanel = new JPanel();
     itemPanel.setLayout(new BoxLayout(itemPanel, BoxLayout.X_AXIS));
 
@@ -262,7 +223,7 @@ if(displayUpdateButton){
     updateButton.addActionListener(this);
     itemPanel.add(updateButton);
     panel.add(itemPanel);
-    
+
     }//if(displayUpdateButton)
 
 pack();
@@ -360,11 +321,11 @@ return(""); //key not found, return empty string
 public boolean getFirstToPrint(KeyValue pKeyValue)
 {
 
-//preset values and flags to begin printing    
-    
-for (int i=0; i < NUMBER_OF_ITEMS; i++) 
+//preset values and flags to begin printing
+
+for (int i=0; i < NUMBER_OF_ITEMS; i++)
     if (items[i] != null) items[i].printed = false;
-    
+
 //make first call to getNextToPrint
 // subsequent calls should call that function directly instead of this one
 
@@ -405,7 +366,7 @@ return(getNextToPrint(pKeyValue));
 
 public boolean getNextToPrint(KeyValue pKeyValue)
 {
-    
+
 int order = 0;
 prevPrintedPosition = -1;
 prevOrderedLow = Integer.MAX_VALUE;
@@ -415,11 +376,11 @@ prevOrderedLow = Integer.MAX_VALUE;
 //item with the lowest print order
 
 for (int i=0; i < NUMBER_OF_ITEMS; i++){
-    
+
     if (items[i] != null && items[i].printInFooter && !items[i].printed){
-        
-        order = items[i].printOrder; 
-        
+
+        order = items[i].printOrder;
+
         //catch the lowest order number which is not -1, this is the first
         //to be printed -- items with -1 are not ordered
         if ((order > -1) && (order < prevOrderedLow)){
@@ -444,7 +405,7 @@ if (prevPrintedPosition != -1) {
 
 for (int i=0; i < NUMBER_OF_ITEMS; i++){
     if (items[i] != null && items[i].printInFooter){
-                
+
         //catch the first with print flag set true
         if (!items[i].printed){
             prevPrintedPosition = i; //store position
@@ -478,8 +439,8 @@ return(false);
 public void loadData(String pFilename)
 {
 
-filename = pFilename;    
-    
+filename = pFilename;
+
 IniFile jobInfoFile;
 
 //if the ini file cannot be opened and loaded, exit without action
@@ -500,7 +461,7 @@ for (int i=0; i < NUMBER_OF_ITEMS; i++)
         }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
 
 //disable the update button -- will be re-enabled when user clicks in a box
-updateButton.setEnabled(false);
+if (updateButton != null) updateButton.setEnabled(false);
 
 }//end of PieceInfo::loadData
 //-----------------------------------------------------------------------------
@@ -508,14 +469,14 @@ updateButton.setEnabled(false);
 //-----------------------------------------------------------------------------
 // PieceInfo::getItems
 //
-// 
+//
 //
 
-public Item[] getItems()
+public PieceInfoItem[] getItems()
 {
 
 return(items);
-    
+
 }//end of PieceInfo::getItems
 //-----------------------------------------------------------------------------
 
@@ -564,18 +525,18 @@ public void saveDataToStream(BufferedWriter pOut) throws IOException
 {
 
 //save section name
-    
-pOut.write("[Identifying Information]"); pOut.newLine();    
-pOut.newLine();    
-    
+
+pOut.write("[Identifying Information]"); pOut.newLine();
+pOut.newLine();
+
 //save all items which have been defined
 
 for (int i=0; i < NUMBER_OF_ITEMS; i++)
     if (items[i] != null){
- 
+
     pOut.write(items[i].labelText + "=" + items[i].textField.getText());
     pOut.newLine();
-      
+
     }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
 
 }//end of PieceInfo::saveDataToStream
@@ -592,30 +553,32 @@ for (int i=0; i < NUMBER_OF_ITEMS; i++)
 public void actionPerformed(ActionEvent e)
 {
 
-if ("Update Info".equals(e.getActionCommand())) {    
-    updateButton.setEnabled(false);
+if ("Update Info".equals(e.getActionCommand())) {
+    if (updateButton != null) updateButton.setEnabled(false);
     saveData(filename);
     }
-    
+
 }//end of PieceInfo::actionPerformed
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // PieceInfo::focusGained
 //
-// Catches when a compenent gets keyboard focus.
+// Catches when a component gets keyboard focus.
 //
 //
 
 @Override
 public void focusGained(FocusEvent e)
 {
-    
-//this doesn't work because the top field gets focus when the window is
-//displayed and immediately enables the button
-    
+
+//if the Update button is in place (such as when window is displayed from the
+//viewer), it gets enabled whenever the user clicks in any of the textfields so
+//the data can be saved -- the enabled button also serves as a visual clue that
+//data has been modified
+
 if (e.getComponent().getName().equals("Value Text Field"))
-    updateButton.setEnabled(true);
+    if (updateButton != null) updateButton.setEnabled(true);
 
 }//end of PieceInfo::focusGained
 //-----------------------------------------------------------------------------
@@ -645,7 +608,7 @@ public void focusLost(FocusEvent e)
 @Override
 public void windowClosing(WindowEvent e)
 {
-    
+
 }//end of PieceInfo::windowClosing
 //-----------------------------------------------------------------------------
 

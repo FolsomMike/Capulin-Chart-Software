@@ -62,7 +62,7 @@ public int utCalWindowLocationY = 0;
 
 //Constants
 
-public static String SOFTWARE_VERSION = "1.93";
+public static String SOFTWARE_VERSION = "1.94";
 
 //This is the version of the format used to save the data for a segment which
 //holds data for an inspected piece.
@@ -371,8 +371,8 @@ if (source.getActionCommand().equalsIgnoreCase("Update Control Rabbit Code")){
 
 
 //calls function in Main
-if (source.getActionCommand().equalsIgnoreCase("Setup System")){
-    actionListener.actionPerformed(new ActionEvent(this, 1, "Setup System"));
+if (source.getActionCommand().equalsIgnoreCase("Set Up System")){
+    actionListener.actionPerformed(new ActionEvent(this, 1, "Set Up System"));
     return;
     }
 

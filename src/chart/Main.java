@@ -1254,7 +1254,7 @@ if ("Update Control Rabbit Code".equals(e.getActionCommand())) {
     }
 
 //this part handles setting up the system
-if ("Setup System".equals(e.getActionCommand())) {setupSystem(); return;}
+if ("Set Up System".equals(e.getActionCommand())) {setupSystem(); return;}
 
 //this part handles renewing the license
 if ("Renew License".equals(e.getActionCommand())) {
@@ -1503,13 +1503,13 @@ public boolean isConfigGoodB()
 
 if (primaryDataPath.equals("")){
     displayErrorMessage("The root Primary or Backup Data Path is invalid."
-            + " Use Help/Setup System to repair this error.");
+            + " Use Help/Set Up System to repair this error.");
     return(false);
     }
 
 if (backupDataPath.equals("")){
     displayErrorMessage("The root Primary or Backup Data Path is invalid."
-            + " Use Help/Setup System to repair this error.");
+            + " Use Help/Set Up System to repair this error.");
     return(false);
     }
 
