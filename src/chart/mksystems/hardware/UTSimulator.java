@@ -30,6 +30,37 @@ import chart.mksystems.inifile.IniFile;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
+// class RamMemoryBlockChecksum
+//
+// This class holds a starting memory address, the number of bytes associated
+// with the memory block which starts at that address, and the checksum for
+// that block. Each block is also distinguished by its chip, core, and page.
+//
+// The host computer sends the DSP code to the remotes to be stored in memory.
+// Afterwards, it requests the checksum for each block of code which was
+// stored at a different memory location. For the simulation to return the
+// correct checksum, those checksums are computed and stored when the code
+// is received. There is no need to store the actual DSP code as the simulator
+// cannot run it -- only the checksums for each addressed block are needed so
+// the can be returned for the verification.
+//
+
+class RamMemoryBlockChecksum extends Object{
+
+public boolean empty = true;
+public byte chip;
+public byte core;
+public byte page;
+public int startAddress;
+public int numberBytes;
+public int checksum;
+
+}//end of class RamMemoryBlockChecksum
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // class BoardChannel
 //
 // This class encapsulates data for a single channel on a UT board.
@@ -225,6 +256,23 @@ ChannelPeakSet[] channelPeakSets;
 
 int peakPacketCount;
 
+int currentBlock;
+
+//this value is the number of DSP code blocks which can be handled by the
+//simulator -- each block is a contiguous block of code; a new block is
+//sent each time the starting address of a block is specified, resulting in a
+//new block in a non-contiguous location; usually, the entire DSP code is sent
+//as one block with the Interrupt Vectors sent as a second block, so not many
+//blocks are required to cover all data which is expected to be uploaded to
+//the 8 DSP cores and their memory pages
+static int NUMBER_OF_RAM_MEMORY_BLOCKS = 50;
+RamMemoryBlockChecksum[] ramMemoryBlockChecksums;
+
+public byte prevChip = -1;
+public byte prevCore = -1;
+public byte prevPage = -1;
+public int prevAddress = -2;
+
 //-----------------------------------------------------------------------------
 // UTSimulator::UTSimulator (constructor)
 //
@@ -252,13 +300,16 @@ for (int i=0; i<MAX_BOARD_CHANNELS; i++) boardChannels[i] =
    new BoardChannel(i, UTBoard.CH1_SAMPLE_DELAY_0, UTBoard.CH1_SAMPLE_COUNT_0);
 
 channelPeakSets = new ChannelPeakSet[NUMBER_OF_BOARD_CHANNELS];
-
 for (int i=0; i < NUMBER_OF_BOARD_CHANNELS; i++)
     channelPeakSets[i] = new ChannelPeakSet();
 
+ramMemoryBlockChecksums =
+                    new RamMemoryBlockChecksum[NUMBER_OF_RAM_MEMORY_BLOCKS];
+for (int i=0; i < NUMBER_OF_RAM_MEMORY_BLOCKS; i++)
+    ramMemoryBlockChecksums[i] = new RamMemoryBlockChecksum();
+
 //load configuration data from file
 configure();
-
 
 aScanBuffer = new int[ASCAN_BUFFER_SIZE]; //used to store simulated A/D data
 
@@ -536,6 +587,10 @@ sendBytes2(status, (byte)0);
 //
 // Simulates returning of the checksum of a DSP data block.
 //
+// The DSP data is not actually saved by the simulator -- checksums for each
+// contiguous block will have been saved in an array so those checksums can
+// be returned by this method.
+//
 
 void getDSPRamBlockChecksum()
 {
@@ -543,14 +598,39 @@ void getDSPRamBlockChecksum()
 try{byteIn.read(inBuffer, 0, 8);}
 catch(IOException e){}
 
+int checksum = 0;
+int x = 0;
+byte chip = inBuffer[x++];
+byte core = inBuffer[x++];
+byte page = inBuffer[x++];
+int address =
+        (int)((inBuffer[x++]<<8) & 0xff00) + ((inBuffer[x++]) & 0xff);
+// blockSize is not used in current version
+//int blockSize =
+//        (int)((inBuffer[x++]<<8) & 0xff00) + ((inBuffer[x++]) & 0xff);
+
+//look for the block entry which matches the chip, core, page and address
+
+for (int i = 0; i < ramMemoryBlockChecksums.length; i++){
+    if ((!ramMemoryBlockChecksums[i].empty) &&
+        (ramMemoryBlockChecksums[i].chip == chip) &&
+        (ramMemoryBlockChecksums[i].core == core) &&
+        (ramMemoryBlockChecksums[i].page == page) &&
+        (ramMemoryBlockChecksums[i].startAddress == address)){
+
+        checksum = ramMemoryBlockChecksums[i].checksum;
+
+        break;
+
+    }//if ((!ramMemoryBlockChecksums[i].empty) &&...
+}// for (int i = 0; i < ramMemoryBlockChecksums.length; i++)
+
+
 //send standard packet header
-sendPacketHeader(UTBoard.GET_DSP_RAM_BLOCK_CHECKSUM, (byte)0, (byte)0);
+sendPacketHeader(UTBoard.GET_DSP_RAM_BLOCK_CHECKSUM, chip, core);
 
-//send a bogus checksum - in the future can store all code sent by host
-//and compute a real checksum to send back (or just calculate checksum on
-//code as it is sent without actually storing it, save the checksum use here)
-
-sendBytes2((byte)0, (byte)0);
+//return the lower two bytes of the checksum
+sendBytes2((byte)((checksum >> 8) & 0xff),(byte)(checksum & 0xff));
 
 }//end of UTSimulator::getDSPRamBlockChecksum
 //-----------------------------------------------------------------------------
@@ -576,12 +656,90 @@ void loadFPGA()
 //
 // Simulates writing to DSP RAM on a UT board.
 //
+// For each block of data stored in contiguous memory locations, the data
+// are summed. If the address jumps to a non-contiguous location, info for that
+// block is stored separately as a new block. This sum is later used to return
+// the checksum for each block when requested for code verification.
+//
+// The data itself is not actually saved, just the sum of the data for each
+// contiguous block. This is a quick and dirty method to allow the checksum
+// to be returned when the host requests it for verification.
+//
+// This workaround does not catch cases where the host adds data more to an
+// existing section. Even though the block would be contiguous, this function
+// only considers a section to be contiguous if the data was all placed at
+// the same time -- without jumping to a different section in the midst. As
+// the host generally does not do this, this issue is usally moot.
+//
+// NOTE: This workaround assumes that the host is pretty much using writeDSPRam
+//  only to send DSP code. If the fillRAM function is used to write several
+//  non-contiguous blocks, then checksums for those blocks may not be stored
+//  as a limited number of blocks is accounted for. This is okay as long as the
+//  code load occurs first and uses the available blocks first -- those will
+//  not be destroyed by later blocks and they are the only checksums actually
+//  needed for verification.
+//
 
 void writeDSP()
 {
 
 try{byteIn.read(inBuffer, 0, 8);}
 catch(IOException e){}
+
+int x = 0;
+byte chip = inBuffer[x++];
+byte core = inBuffer[x++];
+byte page = inBuffer[x++];
+int address =
+        (int)((inBuffer[x++]<<8) & 0xff00) + ((inBuffer[x++]) & 0xff);
+int data =
+        (int)((inBuffer[x++]<<8) & 0xff00) + ((inBuffer[x++]) & 0xff);
+
+//if the code is updated in the future to actually store the data, this is
+// the place to do it -- it might also be necessary in the future to only
+// store bytes in certain sections if the host uses the writeDSP method to
+// install data such as FIR filter coefficents and those are to be simulated
+// -- note that it would be better if the host uses a specific command to do
+// such things rather than writing straight to the RAM using this writeDSP
+// method
+
+//every time the chip, core, or page are changed or the address is not
+//contiguous with the previous address, start recording info for a new
+//contiguous data block
+
+if (chip != prevChip || core!= prevCore || page != prevPage ||
+                                                address != (prevAddress + 1) ){
+
+    currentBlock = -1;
+    //reset these so they will never match again unless an empty block is found
+    prevChip = -1; prevCore = -1; prevPage = -1; prevAddress = -2;
+
+    //look for the next empty block in the array
+    for (int i = 0; i < ramMemoryBlockChecksums.length; i++){
+
+        //if empty block found, prepare for use
+        if (ramMemoryBlockChecksums[i].empty){
+            ramMemoryBlockChecksums[i].empty = false;
+            ramMemoryBlockChecksums[i].chip = chip;
+            ramMemoryBlockChecksums[i].core = core;
+            ramMemoryBlockChecksums[i].page = page;
+            ramMemoryBlockChecksums[i].startAddress = address;
+            ramMemoryBlockChecksums[i].numberBytes = 0;
+            ramMemoryBlockChecksums[i].checksum = 0;
+            currentBlock = i;
+            break;
+        }// if (ramMemoryBlockChecksums[i].empty)
+    }// for (int i = 0; i < ramMemoryBlockChecksums.length; i++)
+}// if (chip != prevChip ||..
+
+//if no empty block was found, don't store info to it -- this block cannot
+//be verified later by the host
+if (currentBlock == -1) return;
+
+prevChip = chip; prevCore = core; prevPage = page; prevAddress = address;
+
+ramMemoryBlockChecksums[currentBlock].numberBytes++;
+ramMemoryBlockChecksums[currentBlock].checksum += data;
 
 }//end of UTSimulator::writeDSP
 //-----------------------------------------------------------------------------
@@ -730,10 +888,7 @@ for (int ch=0; ch<NUMBER_OF_BOARD_CHANNELS; ch++){
     //if the channel is a wall type, return wall data
     if (channelPeakSets[ch].isWallChannel){
 
-
-        channelPeakSets[ch].flightTime = 1; //debug mks
-
-        //add wall code here
+        channelPeakSets[ch].flightTime = 1;
 
         //maximum wall values
 

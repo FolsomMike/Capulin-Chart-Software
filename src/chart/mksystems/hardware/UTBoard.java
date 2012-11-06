@@ -1764,6 +1764,7 @@ else {
     }
 
 //transfer the stored result and return to caller
+//this is not a signed value, so the sign will not be extended in the result
 return((int)((getDSPRamChecksumResult[0]<<8) & 0xff00)
                                 + (int)(getDSPRamChecksumResult[1] & 0xff));
 
@@ -2025,10 +2026,11 @@ try {
 
                 //compare the local and remote checksums
                 if (checksum != remoteChecksum){
-                    logger.logMessage("UT " + chassisSlotAddr + " DSP code error"
-                     + "\n" + "    Chip " + pDSPChip + " Cores " + core
-                     + "  Block: " + blockCount + "\n");
-                    success = false;
+                    logger.logMessage(
+                        "UT " + chassisSlotAddr + " DSP code error"
+                        + "\n" + "    Chip " + pDSPChip + " Cores " + core
+                        + "  Block: " + blockCount + "\n");
+                        success = false;
                     }
 
                 }// if (byteCount > 0)
@@ -2079,7 +2081,9 @@ try {
 
         }//while ((c =
 
-    //validate the last block
+    //validate the last block -- when the last byte is read from the code file,
+    //the above loop will exit with a possible partial block -- check that
+    //last block here
     //request the checksum for the current block as stored in the DSP
     //skip if the block size is 0
     if (byteCount > 0){
