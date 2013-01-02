@@ -33,12 +33,12 @@ import java.util.*;
 
 class RenamePreset extends JDialog implements ActionListener{
 
-JFrame frame;
-JComboBox presetSelect;
-ArrayList<String> presetList;
-JTextField newNameEntry;
-Xfer xfer;
-String primaryDataPath, backupDataPath;
+    JFrame frame;
+    JComboBox presetSelect;
+    ArrayList<String> presetList;
+    JTextField newNameEntry;
+    Xfer xfer;
+    String primaryDataPath, backupDataPath;
 
 //-----------------------------------------------------------------------------
 // RenamePreset::RenamePreset (constructor)
@@ -49,11 +49,11 @@ public RenamePreset(JFrame pFrame, String pPrimaryDataPath,
                                             String pBackupDataPath, Xfer pXfer)
 {
 
-super(pFrame, "Rename Preset");
+    super(pFrame, "Rename Preset");
 
-frame = pFrame;
-primaryDataPath = pPrimaryDataPath; backupDataPath = pBackupDataPath;
-xfer = pXfer;
+    frame = pFrame;
+    primaryDataPath = pPrimaryDataPath; backupDataPath = pBackupDataPath;
+    xfer = pXfer;
 
 }//end of RenamePreset::RenamePreset (constructor)
 //-----------------------------------------------------------------------------
@@ -65,65 +65,65 @@ xfer = pXfer;
 public void init()
 {
 
-setModal(true); //window always on top and has focus until closed
+    setModal(true); //window always on top and has focus until closed
 
-xfer.rBoolean1 = false; //action completed flag - set true if user completes
+    xfer.rBoolean1 = false; //action completed flag - set true if user completes
 
-loadPresetList(); //retrieve a list of available items
+    loadPresetList(); //retrieve a list of available items
 
-setLayout(new BoxLayout(getContentPane(), BoxLayout.PAGE_AXIS));
+    setLayout(new BoxLayout(getContentPane(), BoxLayout.PAGE_AXIS));
 
-JPanel tPanel;
+    JPanel tPanel;
 
-add(Box.createRigidArea(new Dimension(0,15)));
+    add(Box.createRigidArea(new Dimension(0,15)));
 
-//drop down selection list for jobs
-tPanel = new JPanel();
-tPanel.setLayout(new BoxLayout(tPanel, BoxLayout.LINE_AXIS));
-tPanel.add(Box.createRigidArea(new Dimension(5,0)));
-presetSelect = new JComboBox(presetList.toArray());
-tPanel.add(presetSelect);
-tPanel.add(Box.createRigidArea(new Dimension(5,0)));
-add(tPanel);
+    //drop down selection list for jobs
+    tPanel = new JPanel();
+    tPanel.setLayout(new BoxLayout(tPanel, BoxLayout.LINE_AXIS));
+    tPanel.add(Box.createRigidArea(new Dimension(5,0)));
+    presetSelect = new JComboBox(presetList.toArray());
+    tPanel.add(presetSelect);
+    tPanel.add(Box.createRigidArea(new Dimension(5,0)));
+    add(tPanel);
 
-add(Box.createRigidArea(new Dimension(0,5)));
+    add(Box.createRigidArea(new Dimension(0,5)));
 
-JPanel namePanel = new JPanel();
-namePanel.setLayout(new BoxLayout(namePanel, BoxLayout.LINE_AXIS));
-namePanel.add(Box.createRigidArea(new Dimension(5,0)));
-namePanel.add(new Label("New Name  "));
-namePanel.add(newNameEntry = new JTextField(30));
-namePanel.add(Box.createRigidArea(new Dimension(5,0)));
-add(namePanel);
+    JPanel namePanel = new JPanel();
+    namePanel.setLayout(new BoxLayout(namePanel, BoxLayout.LINE_AXIS));
+    namePanel.add(Box.createRigidArea(new Dimension(5,0)));
+    namePanel.add(new Label("New Name  "));
+    namePanel.add(newNameEntry = new JTextField(30));
+    namePanel.add(Box.createRigidArea(new Dimension(5,0)));
+    add(namePanel);
 
-add(Box.createRigidArea(new Dimension(0,15)));
+    add(Box.createRigidArea(new Dimension(0,15)));
 
-JButton button;
+    JButton button;
 
-JPanel buttonPanel = new JPanel();
-buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.LINE_AXIS));
+    JPanel buttonPanel = new JPanel();
+    buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.LINE_AXIS));
 
-buttonPanel.add(Box.createRigidArea(new Dimension(5,0)));
-buttonPanel.add(button = new JButton("Rename"));
-button.setToolTipText("Rename the selected preset.");
-button.setActionCommand("Rename");
-button.addActionListener(this);
+    buttonPanel.add(Box.createRigidArea(new Dimension(5,0)));
+    buttonPanel.add(button = new JButton("Rename"));
+    button.setToolTipText("Rename the selected preset.");
+    button.setActionCommand("Rename");
+    button.addActionListener(this);
 
-buttonPanel.add(Box.createHorizontalGlue()); //force space between buttons
+    buttonPanel.add(Box.createHorizontalGlue()); //force space between buttons
 
-buttonPanel.add(button = new JButton("Cancel"));
-button.setToolTipText("Cancel");
-button.setActionCommand("Cancel");
-button.addActionListener(this);
-buttonPanel.add(Box.createRigidArea(new Dimension(5,0)));
+    buttonPanel.add(button = new JButton("Cancel"));
+    button.setToolTipText("Cancel");
+    button.setActionCommand("Cancel");
+    button.addActionListener(this);
+    buttonPanel.add(Box.createRigidArea(new Dimension(5,0)));
 
-add(buttonPanel);
+    add(buttonPanel);
 
-add(Box.createRigidArea(new Dimension(0,15)));
+    add(Box.createRigidArea(new Dimension(0,15)));
 
-pack();
+    pack();
 
-setVisible(true);
+    setVisible(true);
 
 }//end of RenamePreset::init
 //-----------------------------------------------------------------------------
@@ -137,19 +137,19 @@ setVisible(true);
 void loadPresetList()
 {
 
-//directory containing the pertinent files
-File jobDir = new File("presets");
-//get a list of the files/folders in the directory
-String[] configs = jobDir.list();
+    //directory containing the pertinent files
+    File jobDir = new File("presets");
+    //get a list of the files/folders in the directory
+    String[] configs = jobDir.list();
 
-//create a list to hold the items
-presetList = new ArrayList<String>();
-presetList.addAll(Arrays.asList(configs));
-//sort the items alphabetically
-Collections.sort(presetList);
+    //create a list to hold the items
+    presetList = new ArrayList<String>();
+    presetList.addAll(Arrays.asList(configs));
+    //sort the items alphabetically
+    Collections.sort(presetList);
 
-//after sorting, add the instruction text at the top so it will be displayed
-presetList.add(0, "Select a Preset to Rename");
+    //after sorting, add the instruction text at the top so it will be displayed
+    presetList.add(0, "Select a Preset to Rename");
 
 }//end of RenamePreset::loadPresetList
 //-----------------------------------------------------------------------------
@@ -165,21 +165,21 @@ presetList.add(0, "Select a Preset to Rename");
 public void actionPerformed(ActionEvent e)
 {
 
-JButton source = (JButton)(e.getSource());
+    JButton source = (JButton)(e.getSource());
 
-if (source.getActionCommand().equalsIgnoreCase("Rename")){
-    boolean finished = renamePreset();
-    if (!finished) return;
-    setVisible(false);
-    dispose();  //destroy the dialog window
-    return;
-    }
+    if (source.getActionCommand().equalsIgnoreCase("Rename")){
+        boolean finished = renamePreset();
+        if (!finished) return;
+        setVisible(false);
+        dispose();  //destroy the dialog window
+        return;
+        }
 
-if (source.getActionCommand().equalsIgnoreCase("Cancel")){
-     setVisible(false);
-     dispose();  //destroy the dialog window
-    return;
-    }
+    if (source.getActionCommand().equalsIgnoreCase("Cancel")){
+         setVisible(false);
+         dispose();  //destroy the dialog window
+        return;
+        }
 
 }//end of Change::actionPerformed
 //-----------------------------------------------------------------------------
@@ -195,73 +195,73 @@ if (source.getActionCommand().equalsIgnoreCase("Cancel")){
 boolean renamePreset()
 {
 
-String selectedItemName = (String)presetSelect.getSelectedItem();
-String newName = newNameEntry.getText();
+    String selectedItemName = (String)presetSelect.getSelectedItem();
+    String newName = newNameEntry.getText();
 
-boolean presetSelected;
+    boolean presetSelected;
 
-//if the user has not selected a configuration, display an error message
-if (selectedItemName.equalsIgnoreCase("Select a Preset to Rename")){
-    JOptionPane.showMessageDialog(frame,
-    "You must select a Preset.",
-    "Error", JOptionPane.ERROR_MESSAGE);
-    return(false);
-    }
-else
-    presetSelected = true;
-
-//if the user has not entered a job name, display an error
-if (newName.equals("")){
-    JOptionPane.showMessageDialog(frame,
-    "The New Name entry cannot be blank.",
-    "Error", JOptionPane.ERROR_MESSAGE);
-    return(false);
-    }
-
-//if the user has entered an illegal character, display an error
-//illegal characters    <>/?:"\|*
-//these cannot be used to create filename or folders in Windows
-
-if (!validateFilename(newName)){
-    JOptionPane.showMessageDialog(frame,
-    "The Preset name cannot contain:  <>/?:\"\\|*",
-    "Error", JOptionPane.ERROR_MESSAGE);
-    return(false);
-    }
-
-int n = JOptionPane.showConfirmDialog(
-    frame,
-    "Are you sure you want to rename this preset?",
-    "Confirm",
-    JOptionPane.YES_NO_OPTION);
-
-if (n != JOptionPane.YES_OPTION) return(false);  //bail out if user cancels
-
-//if the name to be used for the preset does not end with ".preset" then add it
-//as a suffix to make the presets more identifiable
-if (!newName.toLowerCase().endsWith(".preset")) newName += ".preset";
-
-File presetFile = new File ("presets/" + selectedItemName);
-File newFile = new File ("presets/" + newName);
-
-//rename the selected preset to the "New Name" entry
-
-if (presetSelected && !presetFile.renameTo(newFile)){
-
+    //if the user has not selected a configuration, display an error message
+    if (selectedItemName.equalsIgnoreCase("Select a Preset to Rename")){
         JOptionPane.showMessageDialog(frame,
-        "The preset file could not be renamed.",
+        "You must select a Preset.",
         "Error", JOptionPane.ERROR_MESSAGE);
         return(false);
+        }
+    else
+        presetSelected = true;
 
-    }
+    //if the user has not entered a job name, display an error
+    if (newName.equals("")){
+        JOptionPane.showMessageDialog(frame,
+        "The New Name entry cannot be blank.",
+        "Error", JOptionPane.ERROR_MESSAGE);
+        return(false);
+        }
 
-//signal the class which invoked this window that user has acted and pass back
-//the name of the file/folder acted on
+    //if the user has entered an illegal character, display an error
+    //illegal characters    <>/?:"\|*
+    //these cannot be used to create filename or folders in Windows
 
-xfer.rBoolean1 = true; //set action completed flag true
-xfer.rString1 = selectedItemName; //pass back the target file/folder name
+    if (!validateFilename(newName)){
+        JOptionPane.showMessageDialog(frame,
+        "The Preset name cannot contain:  <>/?:\"\\|*",
+        "Error", JOptionPane.ERROR_MESSAGE);
+        return(false);
+        }
 
-return(true);
+    int n = JOptionPane.showConfirmDialog(
+        frame,
+        "Are you sure you want to rename this preset?",
+        "Confirm",
+        JOptionPane.YES_NO_OPTION);
+
+    if (n != JOptionPane.YES_OPTION) return(false);  //bail out if user cancels
+
+    //if the name to be used for the preset does not end with ".preset" then add it
+    //as a suffix to make the presets more identifiable
+    if (!newName.toLowerCase().endsWith(".preset")) newName += ".preset";
+
+    File presetFile = new File ("presets/" + selectedItemName);
+    File newFile = new File ("presets/" + newName);
+
+    //rename the selected preset to the "New Name" entry
+
+    if (presetSelected && !presetFile.renameTo(newFile)){
+
+            JOptionPane.showMessageDialog(frame,
+            "The preset file could not be renamed.",
+            "Error", JOptionPane.ERROR_MESSAGE);
+            return(false);
+
+        }
+
+    //signal the class which invoked this window that user has acted and pass back
+    //the name of the file/folder acted on
+
+    xfer.rBoolean1 = true; //set action completed flag true
+    xfer.rString1 = selectedItemName; //pass back the target file/folder name
+
+    return(true);
 
 }//end of RenamePreset::renamePreset
 //-----------------------------------------------------------------------------
@@ -277,23 +277,23 @@ return(true);
 boolean validateFilename(String pString)
 {
 
-//the matches function for the String class could not be used since it compares
-//the entire string - Internet search suggest using a Whitelist rather than a
-//Blacklist
+    //the matches function for the String class could not be used since it compares
+    //the entire string - Internet search suggest using a Whitelist rather than a
+    //Blacklist
 
-if (pString.contains("<")  ||
-    pString.contains(">")  ||
-    pString.contains("/")  ||
-    pString.contains("?")  ||
-    pString.contains(":")  ||
-    pString.contains("\"") ||
-    pString.contains("\\") ||
-    pString.contains("|")  ||
-    pString.contains("*") )
+    if (pString.contains("<")  ||
+        pString.contains(">")  ||
+        pString.contains("/")  ||
+        pString.contains("?")  ||
+        pString.contains(":")  ||
+        pString.contains("\"") ||
+        pString.contains("\\") ||
+        pString.contains("|")  ||
+        pString.contains("*") )
 
-    return false;
-else
-    return true;
+        return false;
+    else
+        return true;
 
 }//end of RenamePreset::validateFilename
 //-----------------------------------------------------------------------------
@@ -309,30 +309,30 @@ else
 boolean copyFile(String pSource, String pDest)
 {
 
-FileInputStream in = null;
-FileOutputStream out = null;
+    FileInputStream in = null;
+    FileOutputStream out = null;
 
-try {
+    try {
 
-    in = new FileInputStream(pSource);
-    out = new FileOutputStream(pDest);
+        in = new FileInputStream(pSource);
+        out = new FileOutputStream(pDest);
 
-    int c;
+        int c;
 
-    while ((c = in.read()) != -1) {
-        out.write(c); }
+        while ((c = in.read()) != -1) {
+            out.write(c); }
 
-    }
-catch(IOException e){return (false);}
-finally {
-    try{
-        if (in != null) in.close();
-        if (out != null) out.close();
         }
-    catch(IOException e){return(false);}
-    }
+    catch(IOException e){return (false);}
+    finally {
+        try{
+            if (in != null) in.close();
+            if (out != null) out.close();
+            }
+        catch(IOException e){return(false);}
+        }
 
-return(true);
+    return(true);
 
 }//end of RenamePreset::copyFile
 //-----------------------------------------------------------------------------
