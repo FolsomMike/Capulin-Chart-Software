@@ -148,13 +148,6 @@ Settings settings;
 String language;
 Xfer xfer;
 
-CalFileSaver fileSaver = null;
-
-String currentJobName;
-String currentJobPrimaryPath, currentJobBackupPath, reportsPath;
-String primaryDataPath;
-String backupDataPath;
-
 JFrame mainFrame;
 JDialog measureDialog;
 GridBagLayout gridBag;
@@ -164,9 +157,6 @@ MainMenu mainMenu;
 MainThread mainThread;
 
 Timer mainTimer;
-
-int numberOfChartGroups;
-ChartGroup[] chartGroups;
 
 int numberOfChannels;
 Channel[] calChannels;
@@ -225,6 +215,7 @@ xfer = new Xfer();
 
 //create the program's main window
 mainFrame = new JFrame("Java Chart");
+settings.mainFrame = mainFrame; //store for use by other objects
 //do not auto exit on close - shut down handled by the timer function
 mainFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 mainFrame.addComponentListener(this);
@@ -318,13 +309,13 @@ try {configFile = new IniFile("Main Static Settings.ini",
 //set the data folders to empty if values cannot be read from the ini file
 //all functions which write data should abort if the folder names are empty
 
-primaryDataPath = formatPath(configFile.readString(
+settings.primaryDataPath = formatPath(configFile.readString(
                                "Main Configuration", "Primary Data Path", ""));
 
-backupDataPath = formatPath(configFile.readString(
+settings.backupDataPath = formatPath(configFile.readString(
                                 "Main Configuration", "Backup Data Path", ""));
 
-reportsPath = formatPath(configFile.readString(
+settings.reportsPath = formatPath(configFile.readString(
                                     "Main Configuration", "Reports Path", ""));
 
 }//end of MainWindow::loadMainStaticSettings
@@ -369,10 +360,10 @@ try {configFile = new IniFile("Main Static Settings.ini",
         }
 
 configFile.writeString("Main Configuration", "Primary Data Path",
-                                                               primaryDataPath);
+                                                      settings.primaryDataPath);
 
 configFile.writeString("Main Configuration", "Backup Data Path",
-                                                                backupDataPath);
+                                                       settings.backupDataPath);
 
 //force save
 configFile.save();
@@ -449,31 +440,31 @@ IniFile configFile = null;
 try {configFile = new IniFile("Main Settings.ini", Settings.mainFileFormat);}
     catch(IOException e){return;}
 
-currentJobName = configFile.readString(
+settings.currentJobName = configFile.readString(
                          "Main Configuration", "Current Work Order", "");
 
-JobValidator jobValidator = new JobValidator(primaryDataPath, backupDataPath,
-                                                  currentJobName, false, xfer);
+JobValidator jobValidator = new JobValidator(settings.primaryDataPath,
+        settings.backupDataPath, settings.currentJobName, false, xfer);
 
 //if flag returns true, one or both of the root data paths is missing - set
 //both and the job name to empty so they won't be accessed
 if (xfer.rBoolean2){
-    primaryDataPath = ""; backupDataPath = "";
-    currentJobName = "";
+    settings.primaryDataPath = ""; settings.backupDataPath = "";
+    settings.currentJobName = "";
     }
 
 //if flag returns true, the root folders exist but the job name cannot be found
 //in either - assume that it no longer exists and set the name empty
-if (xfer.rBoolean3) currentJobName = "";
+if (xfer.rBoolean3) settings.currentJobName = "";
 
-currentJobPrimaryPath = ""; currentJobBackupPath = "";
+settings.currentJobPrimaryPath = ""; settings.currentJobBackupPath = "";
 
 //if the root paths and the job name are valid, create the full paths
-if(!currentJobName.equals("")){
-    if(!primaryDataPath.equals("")) currentJobPrimaryPath =
-                            primaryDataPath + currentJobName + File.separator;
-    if(!backupDataPath.equals("")) currentJobBackupPath =
-                             backupDataPath + currentJobName + File.separator;
+if(!settings.currentJobName.equals("")){
+    if(!settings.primaryDataPath.equals("")) settings.currentJobPrimaryPath =
+            settings.primaryDataPath + settings.currentJobName + File.separator;
+    if(!settings.backupDataPath.equals("")) settings.currentJobBackupPath =
+             settings.backupDataPath + settings.currentJobName + File.separator;
     }
 
 settings.mainWindowLocationX = configFile.readInt(
@@ -510,8 +501,8 @@ catch(IOException e){
     return;
     }
 
-configFile.writeString(
-                 "Main Configuration", "Current Work Order", currentJobName);
+configFile.writeString("Main Configuration", "Current Work Order",
+                                                    settings.currentJobName);
 
 //force save
 configFile.save();
@@ -534,8 +525,8 @@ configFile.save();
 private void configure()
 {
 
-String configFilename = currentJobPrimaryPath + "01 - " + currentJobName
-                                                        + " Configuration.ini";
+String configFilename = settings.currentJobPrimaryPath + "01 - " +
+                                settings.currentJobName + " Configuration.ini";
 
 if(IniFile.detectUTF16LEFormat(configFilename))
     settings.jobFileFormat = "UTF-16LE";
@@ -551,12 +542,14 @@ try {
 catch(IOException e){return;}
 
 //create an object to hold job info
-jobInfo = new JobInfo(mainFrame, currentJobPrimaryPath,
-           currentJobBackupPath, currentJobName, this, settings.jobFileFormat);
+jobInfo = new JobInfo(mainFrame, settings.currentJobPrimaryPath,
+           settings.currentJobBackupPath, settings.currentJobName, this,
+                                                       settings.jobFileFormat);
 
 //create an object to hold info about each piece
-pieceIDInfo = new PieceInfo(mainFrame, currentJobPrimaryPath,
-    currentJobBackupPath, currentJobName, this, false, settings.jobFileFormat);
+pieceIDInfo = new PieceInfo(mainFrame, settings.currentJobPrimaryPath,
+    settings.currentJobBackupPath, settings.currentJobName, this, false,
+                                                       settings.jobFileFormat);
 pieceIDInfo.init();
 
 //create a window for displaying messages
@@ -613,33 +606,33 @@ settings.copyToAllMode = configFile.readInt(
 settings.timerDrivenTracking = configFile.readBoolean(
                                 "Hardware", "Timer Driven Tracking", false);
 
-numberOfChartGroups =
+settings.numberOfChartGroups =
           configFile.readInt("Main Configuration", "Number of Chart Groups", 1);
 
 //create an array of chart groups per the config file setting
-if (numberOfChartGroups > 0){
+if (settings.numberOfChartGroups > 0){
 
     //protect against too many groups
-    if (numberOfChartGroups > 10) numberOfChartGroups = 10;
+    if (settings.numberOfChartGroups > 10) settings.numberOfChartGroups = 10;
 
-    chartGroups = new ChartGroup[numberOfChartGroups];
+    settings.chartGroups = new ChartGroup[settings.numberOfChartGroups];
 
-    for (int i = 0; i < numberOfChartGroups; i++){
-        chartGroups[i] = new ChartGroup(
+    for (int i = 0; i < settings.numberOfChartGroups; i++){
+        settings.chartGroups[i] = new ChartGroup(
                     settings, configFile, i, hardware, this, false, hardware);
-        mainFrame.add(chartGroups[i]);
+        mainFrame.add(settings.chartGroups[i]);
         }
 
     }//if (numberOfChartGroups > 0)
 
 //give hardware a connection to the charts
-hardware.chartGroups = chartGroups;
+hardware.chartGroups = settings.chartGroups;
 
 //create a panel to hold user controls and status displays
 mainFrame.add(controlPanel =
-    new ControlPanel(configFile, currentJobPrimaryPath,
-    currentJobBackupPath, hardware, mainFrame, this,
-    currentJobName, settings, hardware));
+    new ControlPanel(configFile, settings.currentJobPrimaryPath,
+    settings.currentJobBackupPath, hardware, mainFrame, this,
+    settings.currentJobName, settings, hardware));
 
 //load user adjustable settings
 loadCalFile();
@@ -670,8 +663,9 @@ IniFile calFile = null;
 
 //if the ini file cannot be opened and loaded, exit without action
 try {
-    calFile = new IniFile(currentJobPrimaryPath + "00 - "
-           + currentJobName + " Calibration File.ini", settings.jobFileFormat);
+    calFile = new IniFile(settings.currentJobPrimaryPath + "00 - "
+                        + settings.currentJobName + " Calibration File.ini",
+                                                       settings.jobFileFormat);
     }
     catch(IOException e){return;}
 
@@ -709,7 +703,8 @@ settings.userPrintMagnify = calFile.readString(
                                "General", "Graph Print Magnify", "Magnify 1.0");
 
 //load info for all charts
-for (int i=0; i < numberOfChartGroups; i++) chartGroups[i].loadCalFile(calFile);
+for (int i=0; i < settings.numberOfChartGroups; i++)
+    settings.chartGroups[i].loadCalFile(calFile);
 
 hardware.loadCalFile(calFile);
 
@@ -724,70 +719,10 @@ private void saveCalFile()
 
 //create a CalFileSaver thread object to save the data - this allows status
 //messages to be displayed and updated during the save
-fileSaver = new CalFileSaver(this);
-fileSaver.start();
+settings.fileSaver = new CalFileSaver(settings, hardware);
+settings.fileSaver.start();
 
 }//end of MainWindow::saveCalFile
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// MainWindow::saveCalFileHelper
-//
-// This saves the file used for storing calibration information pertinent to a
-// job, such as gains, offsets, thresholds, etc.
-//
-// Each object is passed a pointer to the file so that they may save their
-// own data.
-//
-
-protected void saveCalFileHelper(String pJobPath)
-{
-
-//if the job path has not been set, don't save anything or it will be saved in
-//the program root folder -- this occurs when the current job path specified in
-//the Main Settings.ini
-
-if (pJobPath.equals("")) return;
-
-IniFile calFile = null;
-
-//if the ini file cannot be opened and loaded, exit without action
-try {
-    calFile = new IniFile(pJobPath + "00 - "
-           + currentJobName + " Calibration File.ini", settings.jobFileFormat);
-    }
-    catch(IOException e){return;}
-
-//if true, traces will restart at left edge of chart for each new piece
-//if false, new piece will be added to end of traces while chart scrolls
-calFile.writeBoolean("General", "Restart Each New Piece at Left Edge of Chart",
-                                           settings.restartNewPieceAtLeftEdge);
-
-//settings which control peak hold display on the A Scan
-calFile.writeBoolean("General", "Show Red Peak Line at Gate Center",
-                                        settings.showRedPeakLineInGateCenter);
-calFile.writeBoolean("General", "Show Red Peak Line at Peak Location",
-                                       settings.showRedPeakLineAtPeakLocation);
-calFile.writeBoolean("General", "Show Peak Symbol at Peak Location",
-                                        settings.showPseudoPeakAtPeakLocation);
-
-calFile.writeInt(
-               "General", "Scanning and Inspecting Speed", settings.scanSpeed);
-
-calFile.writeString("General", "Graph Print Layout", settings.graphPrintLayout);
-
-calFile.writeString(
-                  "General", "Graph Print Magnify", settings.userPrintMagnify);
-
-//save info for all charts
-for (int i=0; i < numberOfChartGroups; i++) chartGroups[i].saveCalFile(calFile);
-
-hardware.saveCalFile(calFile);
-
-//force save
-calFile.save();
-
-}//end of MainWindow::saveCalFileHelper
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -822,7 +757,8 @@ saveCalFile();
 private void resetChartGroups()
 {
 
-for (int i = 0; i < numberOfChartGroups; i++) chartGroups[i].resetChartGroup();
+for (int i = 0; i < settings.numberOfChartGroups; i++)
+    settings.chartGroups[i].resetChartGroup();
 
 }//end of MainWindow::resetChartGroups
 //-----------------------------------------------------------------------------
@@ -842,8 +778,8 @@ for (int i = 0; i < numberOfChartGroups; i++) chartGroups[i].resetChartGroup();
 public void markSegmentStart()
 {
 
-for (int i = 0; i < numberOfChartGroups; i++)
-    chartGroups[i].markSegmentStart();
+for (int i = 0; i < settings.numberOfChartGroups; i++)
+    settings.chartGroups[i].markSegmentStart();
 
 }//end of MainWindow::markSegmentStart
 //-----------------------------------------------------------------------------
@@ -863,8 +799,8 @@ for (int i = 0; i < numberOfChartGroups; i++)
 public void markSegmentEnd()
 {
 
-for (int i = 0; i < numberOfChartGroups; i++)
-    chartGroups[i].markSegmentEnd();
+for (int i = 0; i < settings.numberOfChartGroups; i++)
+    settings.chartGroups[i].markSegmentEnd();
 
 }//end of MainWindow::markSegmentEnd
 //-----------------------------------------------------------------------------
@@ -879,8 +815,8 @@ for (int i = 0; i < numberOfChartGroups; i++)
 boolean segmentStarted()
 {
 
-for (int i = 0; i < numberOfChartGroups; i++)
-    if (chartGroups[i].segmentStarted()) return(true);
+for (int i = 0; i < settings.numberOfChartGroups; i++)
+    if (settings.chartGroups[i].segmentStarted()) return(true);
 
 return(false);
 
@@ -925,8 +861,8 @@ else{
     lastPieceInspected = controlPanel.nextCalPieceNumber;
 }
 
-saveSegmentHelper(currentJobPrimaryPath + segmentFilename);
-saveSegmentHelper(currentJobBackupPath + segmentFilename);
+saveSegmentHelper(settings.currentJobPrimaryPath + segmentFilename);
+saveSegmentHelper(settings.currentJobBackupPath + segmentFilename);
 
 
 //save the info file for each segment
@@ -939,8 +875,8 @@ else
     segmentFilename =  "30 - " +
         decimalFormats[0].format(controlPanel.nextCalPieceNumber) + ".cal info";
 
-saveSegmentInfoHelper(currentJobPrimaryPath + segmentFilename);
-saveSegmentInfoHelper(currentJobBackupPath + segmentFilename);
+saveSegmentInfoHelper(settings.currentJobPrimaryPath + segmentFilename);
+saveSegmentInfoHelper(settings.currentJobBackupPath + segmentFilename);
 
 }//end of MainWindow::saveSegment
 //-----------------------------------------------------------------------------
@@ -984,8 +920,8 @@ try{
     out.newLine();
     out.write("[Header End]"); out.newLine(); out.newLine();
 
-    for (int i = 0; i < numberOfChartGroups; i++)
-        chartGroups[i].saveSegment(out);
+    for (int i = 0; i < settings.numberOfChartGroups; i++)
+        settings.chartGroups[i].saveSegment(out);
     }
 catch(IOException e){}
 finally{
@@ -1080,8 +1016,8 @@ finally{
 public final void handleSizeChanges()
 {
 
-for (int i = 0; i < numberOfChartGroups; i++)
-                                            chartGroups[i].handleSizeChanges();
+for (int i = 0; i < settings.numberOfChartGroups; i++)
+    settings.chartGroups[i].handleSizeChanges();
 
 }//end of MainWindow::handleSizeChanges
 //-----------------------------------------------------------------------------
@@ -1122,8 +1058,9 @@ if ("Copy Preset From Job".equals(e.getActionCommand())) {
 
 //this part handles saving current settings to a preset
 if ("Save Preset".equals(e.getActionCommand())) {
-    new SavePreset(mainFrame, primaryDataPath, backupDataPath,
-                                                          xfer, currentJobName);
+    SavePreset savePreset = new SavePreset(mainFrame, settings.primaryDataPath,
+            settings.backupDataPath, xfer, settings.currentJobName);
+    savePreset.init();
     return;
     }
 
@@ -1135,13 +1072,17 @@ if ("Change Preset".equals(e.getActionCommand())) {
 
 //this part handles renaming a preset
 if ("Rename Preset".equals(e.getActionCommand())) {
-    new RenamePreset(mainFrame, primaryDataPath, backupDataPath, xfer);
+    RenamePreset renamePreset = new RenamePreset(mainFrame,
+            settings.primaryDataPath, settings.backupDataPath, xfer);
+    renamePreset.init();
     return;
     }
 
 //this part handles deleting a preset
 if ("Delete Preset".equals(e.getActionCommand())) {
-    new DeletePreset(mainFrame, primaryDataPath, backupDataPath, xfer);
+    DeletePreset deletePreset = new DeletePreset(mainFrame,
+            settings.primaryDataPath, settings.backupDataPath, xfer);
+    deletePreset.init();
     return;
     }
 
@@ -1163,8 +1104,8 @@ if ("Open Viewer".equals(e.getActionCommand())) {
 
     if(isConfigGoodA()) {
         Viewer viewer;
-        viewer = new Viewer(settings, jobInfo, currentJobPrimaryPath,
-                                        currentJobBackupPath, currentJobName);
+        viewer = new Viewer(settings, jobInfo, settings.currentJobPrimaryPath,
+                        settings.currentJobBackupPath, settings.currentJobName);
         viewer.init();
         }
     return;
@@ -1226,8 +1167,8 @@ if ("Repair Job".equals(e.getActionCommand())) {
     if(!isConfigGoodA()) return;
 
     //create with pRobust set true so paths will be recreated if necessary
-    JobValidator jobValidator = new JobValidator(currentJobPrimaryPath,
-                             currentJobBackupPath, currentJobName, true, xfer);
+    JobValidator jobValidator = new JobValidator(settings.currentJobPrimaryPath,
+            settings.currentJobBackupPath, settings.currentJobName, true, xfer);
 
     displayInfoMessage("The repair is complete.  Click OK to reload the job.");
 
@@ -1324,7 +1265,8 @@ public void printFlagReport(int pPieceToPrint, boolean pIsCalPiece)
 
     FlagReportPrinter lPrintFlagReportDialog = new FlagReportPrinter(
        mainFrame, settings, jobInfo,
-       currentJobPrimaryPath, currentJobBackupPath, reportsPath, currentJobName,
+       settings.currentJobPrimaryPath, settings.currentJobBackupPath,
+       settings.reportsPath, settings.currentJobName,
        (int)mainFrame.getLocation().getX() + 80,
        (int)mainFrame.getLocation().getY() + 30,
        settings.pieceDescriptionPlural, settings.pieceDescriptionPluralLC,
@@ -1443,10 +1385,11 @@ public String updatePrevMinWallDisplay()
 
     result = "";
 
-    for (int i = 0; i < numberOfChartGroups; i++){
-        wallText = chartGroups[i].getWallMinOrMaxText(true, hardware.hdwVs);
+    for (int i = 0; i < settings.numberOfChartGroups; i++){
+        wallText =
+              settings.chartGroups[i].getWallMinOrMaxText(true, hardware.hdwVs);
         if (!wallText.isEmpty()){
-            hardware.hdwVs.chartGroup = chartGroups[i];
+            hardware.hdwVs.chartGroup = settings.chartGroups[i];
             result = result + wallText;
             break;
         }
@@ -1477,7 +1420,7 @@ public boolean isConfigGoodA()
 if (!isConfigGoodB()) return(false);
 
 //verify the job name
-if (currentJobName.equals("")){
+if (settings.currentJobName.equals("")){
     displayErrorMessage("No job is selected."
             + " Use File/New Job or File/Change Job to correct this error.");
     return(false);
@@ -1502,13 +1445,13 @@ return(true);  //no configuration error
 public boolean isConfigGoodB()
 {
 
-if (primaryDataPath.equals("")){
+if (settings.primaryDataPath.equals("")){
     displayErrorMessage("The root Primary or Backup Data Path is invalid."
             + " Use Help/Set Up System to repair this error.");
     return(false);
     }
 
-if (backupDataPath.equals("")){
+if (settings.backupDataPath.equals("")){
     displayErrorMessage("The root Primary or Backup Data Path is invalid."
             + " Use Help/Set Up System to repair this error.");
     return(false);
@@ -1534,23 +1477,25 @@ public void createNewJob()
 
 saveEverything(); //save all data
 
-NewJob newJob = new NewJob(mainFrame, primaryDataPath, backupDataPath, xfer,
-                                                       settings.jobFileFormat);
+NewJob newJob = new NewJob(mainFrame, settings.primaryDataPath,
+                        settings.backupDataPath, xfer, settings.jobFileFormat);
 newJob.init();
 
 //if the NewJob window set rBoolean1 true, switch to the new job
 if (xfer.rBoolean1){
 
-    currentJobName = xfer.rString1; //use the new job name
+    settings.currentJobName = xfer.rString1; //use the new job name
     saveMainSettings(); //save the new current job name so it will be loaded
 
     //update the data paths
-    currentJobPrimaryPath = primaryDataPath + currentJobName + "/";
-    currentJobBackupPath = backupDataPath + currentJobName + "/";
+    settings.currentJobPrimaryPath =
+                    settings.primaryDataPath + settings.currentJobName + "/";
+    settings.currentJobBackupPath =
+                    settings.backupDataPath + settings.currentJobName + "/";
 
     //save a copy of the job info to the new work order
-    jobInfo.prepareForNewJob(currentJobPrimaryPath,
-                                currentJobBackupPath, currentJobName);
+    jobInfo.prepareForNewJob(settings.currentJobPrimaryPath,
+                       settings.currentJobBackupPath, settings.currentJobName);
 
     //exit the program, passing true to instantiate a new program which will
     //load the new job on startup - it is required to create a new
@@ -1579,8 +1524,8 @@ public void changeJob()
 
 saveEverything(); //save all data
 
-ChooseJob chooseJob =
-                new ChooseJob(mainFrame, primaryDataPath, backupDataPath, xfer);
+ChooseJob chooseJob = new ChooseJob(mainFrame, settings.primaryDataPath,
+                                               settings.backupDataPath, xfer);
 
  //does the actual choose job work -- info passed back via xfer object
 chooseJob.init();
@@ -1588,7 +1533,7 @@ chooseJob.init();
 //if the ChooseJob window set rBoolean1 true, switch to the new job
 if (xfer.rBoolean1){
 
-    currentJobName = xfer.rString1; //use the new job name
+    settings.currentJobName = xfer.rString1; //use the new job name
     saveMainSettings(); //save the new current job name so it will be loaded
 
     //exit the program, passing true to instantiate a new program which will
@@ -1621,8 +1566,8 @@ public void copyPreset()
 
 saveEverything(); //save all data
 
-CopyPreset copyPreset = new CopyPreset(
-            mainFrame, primaryDataPath, backupDataPath, xfer, currentJobName);
+CopyPreset copyPreset = new CopyPreset(mainFrame, settings.primaryDataPath,
+                       settings.backupDataPath, xfer, settings.currentJobName);
 
 copyPreset.init(); //initialize and to the actual work
 
@@ -1662,8 +1607,8 @@ public void changePreset()
 
 saveEverything(); //save all data
 
-LoadPreset loadPreset = new LoadPreset(
-            mainFrame, primaryDataPath, backupDataPath, xfer, currentJobName);
+LoadPreset loadPreset = new LoadPreset( mainFrame, settings.primaryDataPath,
+                       settings.backupDataPath, xfer, settings.currentJobName);
 
 loadPreset.init(); //initialize and to the actual work
 
@@ -1777,8 +1722,8 @@ if (!backupDir.exists() && !backupDir.mkdirs()){
 //were successfully created or already existed
 //toString will return paths with / or \ separators depending on the system the
 //software is installed on - apply a separator the to end as well
-primaryDataPath = primaryDir.toString() + File.separator;
-backupDataPath = backupDir.toString() + File.separator;
+settings.primaryDataPath = primaryDir.toString() + File.separator;
+settings.backupDataPath = backupDir.toString() + File.separator;
 
 saveMainStaticSettings();
 
@@ -1849,8 +1794,9 @@ for (int ch = 0; ch < numberOfChannels; ch++){
 numberOfChartChannels = i; //this is the number of matching channels found
 
 calWindow.setChannels(numberOfChartChannels, calChannels,
-        chartGroups[invokingChartGroupIndex].getStripChart(invokingChartIndex),
-        numberOfChannels, hardware.getChannels());
+        settings.chartGroups
+            [invokingChartGroupIndex].getStripChart(invokingChartIndex),
+            numberOfChannels, hardware.getChannels());
 
 calWindow.setVisible(true);
 
@@ -1883,7 +1829,7 @@ if (settings.beginExitProgram){
 
 if (settings.exitProgram) {
 
-    if (fileSaver != null) return; //wait until saving is done
+    if (settings.fileSaver != null) return; //wait until saving is done
 
     //stop calling this timer during shutdown
     mainTimer.stop();
@@ -1976,7 +1922,8 @@ if (calWindow.isVisible()){
 public void doScan()
 {
 
-for (int i = 0; i < numberOfChartGroups; i++) chartGroups[i].plotData();
+for (int i = 0; i < settings.numberOfChartGroups; i++)
+    settings.chartGroups[i].plotData();
 
 }//end of MainWindow::doScan
 //-----------------------------------------------------------------------------

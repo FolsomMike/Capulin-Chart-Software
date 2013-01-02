@@ -33,7 +33,9 @@ import java.io.*;
 import java.awt.Color;
 import java.util.*;
 
+import chart.CalFileSaver;
 import chart.mksystems.inifile.IniFile;
+import chart.mksystems.stripchart.ChartGroup;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -43,6 +45,8 @@ import chart.mksystems.inifile.IniFile;
 //
 
 public class Settings extends Object implements ActionListener, ItemListener {
+
+public JFrame mainFrame;
 
 public String language;
 
@@ -60,6 +64,11 @@ public int mainWindowLocationY = 0;
 public int utCalWindowLocationX = 0;
 public int utCalWindowLocationY = 0;
 
+public int numberOfChartGroups;
+public ChartGroup[] chartGroups;
+
+public CalFileSaver fileSaver = null;
+
 //Constants
 
 public static String SOFTWARE_VERSION = "1.95";
@@ -75,6 +84,11 @@ public static String SEGMENT_DATA_VERSION = "1.1";
 //automatically if they are found on program start up.
 
 public static String mainFileFormat = "UTF-8";
+
+public String currentJobName;
+public String currentJobPrimaryPath, currentJobBackupPath, reportsPath;
+public String primaryDataPath;
+public String backupDataPath;
 
 //this is the format used for files stored in the job folder
 //old jobs used UTF-16LE format, newer ones use UTF-8
