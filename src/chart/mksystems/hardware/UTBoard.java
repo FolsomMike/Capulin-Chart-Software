@@ -36,462 +36,465 @@ public class UTBoard extends Board{
 
     int debug = 0; //debug mks
 
-boolean fpgaLoaded = false;
-String fpgaCodeFilename;
-String dspCodeFilename;
-double nSPerDataPoint, uSPerDataPoint;
-
-    //on startup, the UT boards each load a default rep rate from the
-    //configuration file, but that is often overriden by the owner class
-    //all boards must have the same rep rate
-
-int repRateInHertz, repRate;
-int triggerWidth;
-int syncWidth;
-int pulseDelay;
-int numberOfBanks;
-int reSyncCount = 0, reSyncDSPChip, reSyncDSPCore, reSyncPktID, reSyncDSPMsgID;
-boolean syncSource;
-HardwareVars hdwVs;
-String jobFileFormat, mainFileFormat;
-
-//ASCAN_MAX_HEIGHT and SIGNAL_SCALE should be changed to variables
-//which can be initialized and or adjusted
-static int ASCAN_MAX_HEIGHT = 350;
-
-static int MAX_CLOCK_POSITION = 11; //0 to 11 positions
-//offset gets added to clock position to account for various sensor positions
-//and errors
-static int CLOCK_OFFSET = 6;
-
-//WARNING:  In general it is a bad idea to use any value other than 1 for
-//        SIGNAL_SCALE.  If greater than 1, the result will look choppy.  Less
-//        than 1 and the input device will require needless addition of gain to
-//        counterract the scale down.  Let the input device provide the scaling
-//        unless it absolutely cannot be done.
-//        To make the AScan signal levels match the chart, it may be necessary
-//        to scale the AScan up.  This is better than scaling the chart down
-//        which needlessly wastes gain.  In general, it is more important to
-//        have a good chart presentation than an AScale presentation as the
-//        chart is often the permanent record.
-
-static double SIGNAL_SCALE = 1;
-static double ASCAN_SCALE = 3.5;
-
-public static int ASCAN_SAMPLE_SIZE = 400;
-public static int ASCAN_BUFFER_SIZE = 400;
-
-AScan aScan, aScanBuffer;
-
-AScan [] aScanFIFO;
-static int ASCAN_FIFO_SIZE = 25; //fifo is used for smoothing - larger number
-                                //allows for more smoothing
-int aScanFIFOIndex = 0;
-
-boolean udpResponseFlag = false;
-
-int hardwareDelay;
-
-int aScanCoreID;
-int pktDSPChipID, pktDSPCoreID, pktID, dspMsgID;
-
-byte[] readDSPResult;
-boolean readDSPDone;
-
-byte[] getDSPRamChecksumResult;
-boolean getDSPRamChecksumDone;
-
-int aScanCoreSelector = 1;
-//set aScanRcvd flag true so first request for peakData packet will succeed
-boolean aScanRcvd = true;
-boolean aScanDataPacketProcessed = false;
-//set peakDataRcvd flag true so first request for peakData packet will succeed
-boolean peakDataRcvd = true;
-boolean peakDataPacketProcessed = false;
-
-boolean dspStatusMessageRcvd = false;
-
-int dbug = 0; //debug mks - remove this
-
-int timeOutRead = 0; //use this one in the read functions
-int timeOutWFP = 0; //used by processDataPackets
-
-int getAScanTimeOut = 0, GET_ASCAN_TIMEOUT = 50;
-int getPeakDataTimeOut = 0, GET_PEAK_DATA_TIMEOUT = 50;
-
-
-double prevMinThickness, prevMaxThickness;
-
-/*
-// 5Mhz center pass, 6 order, 31 tap 4Mhz & 6 Mhz cutoff
-int[] firCoef = {
-         7757,
-        12219,
-        14341,
-        13208,
-         8662,
-         1441,
-        -6914,
-        -14407,
-        -19073,
-        -19522,
-        -15352,
-        -7327,
-         2761,
-        12516,
-        19550,
-        22108,
-        19550,
-        12516,
-         2761,
-        -7327,
-        -15352,
-        -19522,
-        -19073,
-        -14407,
-        -6914,
-         1441,
-         8662,
-        13208,
-        14341,
-        12219,
-         7757
-    };
-
-*/
-/*
-//filter 2
-int[] firCoef = {
-         -333,
-         -486,
-        -1021,
-        -1939,
-        -3133,
-        -4372,
-        -5303,
-        -5496,
-        -4515,
-        -2024,
-         2093,
-         7617,
-        13912,
-        19932,
-        24352,
-        25991,
-        24352,
-        19932,
-        13912,
-         7617,
-         2093,
-        -2024,
-        -4515,
-        -5496,
-        -5303,
-        -4372,
-        -3133,
-        -1939,
-        -1021,
-         -486,
-         -333
-         };
- *
- */
-
-//filter 5
-int[] firCoef = {
-          374,
-          478,
-          540,
-          537,
-          451,
-          267,
-          -20,
-         -406,
-         -877,
-        -1406,
-        -1957,
-        -2491,
-        -2963,
-        -3335,
-        -3572,
-        29428,
-        -3572,
-        -3335,
-        -2963,
-        -2491,
-        -1957,
-        -1406,
-         -877,
-         -406,
-          -20,
-          267,
-          451,
-          537,
-          540,
-          478,
-          374
-         };
-
-int firBuf[];
-
-//this class holds information for a channel on the board
-class BoardChannel{
-
-byte dspChip;
-byte dspCore1;
-byte dspCore2;
-
-byte delayReg0, delayReg1, delayReg2, delayReg3;
-byte ducerSetupReg;
-byte countReg0, countReg1, countReg2;
-byte bufStart0, bufStart1, bufStart2;
-
-int numberOfGates = 0;
-Gate[] gates;
-
-int aScanSmoothing = 1;
-int rejectLevel;
-boolean isWallChannel=false;
-
-}
-
-BoardChannel bdChs[];
-static int NUMBER_OF_BOARD_CHANNELS = 4;
-
-static int FALSE = 0;
-static int TRUE = 1;
-
-//this is the memory location in the DSP where the FPGA stuff the raw A/D data
-static int AD_RAW_DATA_BUFFER_ADDRESS = 0x4000;
-
-static int RUNTIME_PACKET_SIZE = 2048;
-
-//the hardware uses a 4 byte unsigned integer for MAX_DELAY_COUNT - Java
-//doesn't do unsigned easily, so the max value is limited to the maximum
-//positive value Java allows for a signed integer just to make the Java side
-//easier
-
-static int MAX_DELAY_COUNT = Integer.MAX_VALUE - 10;
-static int MAX_SAMPLE_COUNT = 8 * 1024; //matches RAM sample buffer in FPGA
-
-//Message IDs for the setState function
-static byte ENABLE_SAMPLING = 0;
-static byte ENABLE_DSP_RUN = 1;
-static byte ENABLE_TEST_DATA = 2;
-static byte ENABLE_FPGA_INTERNALS = 3;
-
-int PEAK_DATA_BYTES_PER_GATE = 8;
-int PEAK_DATA_BYTES_FOR_WALL = 24;
-
-public static byte POSITIVE_HALF = 0;
-public static byte NEGATIVE_HALF = 1;
-public static byte FULL_WAVE = 2;
-public static byte RF_WAVE = 3;
-public static byte CHANNEL_OFF = 4;
-
-// bits for flag1 variable in DSP's
-//The TRANSMITTER_ACTIVE bit should usually not be modified by the host.
-//The GATES_ENABLED, DAC_ENABLED, and ASCAN_ENABLED flags can be cleared before
-//requesting a processing time calculation to use as a baseline as this results
-//in the least amount of processing.
-
-static byte TRANSMITTER_ACTIVE = 0x0001; //transmitter active flag (set by DSP)
-static byte GATES_ENABLED = 0x0002;      //gates enabled flag
-static byte DAC_ENABLED = 0x0004;        //DAC enabled flag
-static byte ASCAN_FAST_ENABLED = 0x0008; //fast AScan enabled flag
-static byte ASCAN_SLOW_ENABLED = 0x0010; //slow AScan enabled flag
-static byte ASCAN_FREE_RUN = 0X0020;    //AScan free run, not triggered by gate
-
-//Messages for DSPs
-//These should match the values in the code for those DSPs
-
-static byte DSP_NULL_MSG_CMD = 0;
-static byte DSP_GET_STATUS_CMD = 1;
-static byte DSP_SET_GAIN_CMD = 2;
-static byte DSP_GET_ASCAN_BLOCK_CMD = 3;
-static byte DSP_GET_ASCAN_NEXT_BLOCK_CMD = 4;
-static byte DSP_SET_AD_SAMPLE_SIZE_CMD = 5;
-static byte DSP_SET_DELAYS	= 6;
-static byte DSP_SET_ASCAN_SCALE	= 7;
-static byte DSP_SET_GATE = 8;
-static byte DSP_SET_GATE_FLAGS = 9;
-static byte DSP_SET_DAC	= 10;
-static byte DSP_SET_DAC_FLAGS = 11;
-static byte DSP_SET_HIT_MISS_COUNTS = 12;
-static byte DSP_GET_PEAK_DATA = 13;
-static byte DSP_SET_RECTIFICATION = 14;
-static byte DSP_SET_FLAGS1 = 15;
-static byte DSP_CLEAR_FLAGS1 = 16;
-static byte DSP_SET_GATE_SIG_PROC_THRESHOLD = 17;
-
-static byte DSP_ACKNOWLEDGE = 127;
-
-//Commands for UT boards
-//These should match the values in the code for those boards.
-
-static byte NO_ACTION = 0;
-static byte MONITOR_CMD = 1;
-static byte ZERO_ENCODERS_CMD = 2;
-static byte REFRESH_CMD = 3;
-static byte LOAD_FPGA_CMD = 4;
-static byte SEND_DATA_CMD = 5;
-static byte DATA_CMD = 6;
-static byte WRITE_FPGA_CMD = 7;
-static byte READ_FPGA_CMD = 8;
-static byte GET_STATUS_CMD = 9;
-static byte SET_HDW_GAIN_CMD = 10;
-static byte WRITE_DSP_CMD = 11;
-static byte WRITE_NEXT_DSP_CMD = 12;
-static byte READ_DSP_CMD = 13;
-static byte READ_NEXT_DSP_CMD = 14;
-static byte READ_DSP_BLOCK_CMD = 15;
-static byte ZERO_DSP_CMD = 16;
-static byte GET_ASCAN_CMD = 17;
-static byte MESSAGE_DSP_CMD = 18;
-static byte GET_PEAK_DATA_CMD = 19;     //differs from DSP_GET_PEAK_DATA
-static byte GET_PEAK_DATA4_CMD = 20;	// four channel version
-static byte GET_DSP_RAM_BLOCK_CHECKSUM = 21;
-static byte LOAD_FIRMWARE_CMD = 22;     //loads new Rabbit software
-static byte SET_REP_RATE_CMD = 23;
-
-static byte ERROR = 125;
-static byte DEBUG_CMD = 126;
-static byte EXIT_CMD = 127;
-
-//Status Codes for UT boards
-//These should match the values in the code for those boards.
-
-static byte NO_STATUS = 0;
-static byte FPGA_INITB_ERROR = 1;
-static byte FPGA_DONE_ERROR = 2;
-static byte FPGA_CONFIG_CRC_ERROR = 3;
-static byte FPGA_CONFIG_GOOD = 4;
-
-//FPGA Register Addresses for the UT Board
-
-static byte MASTER_CONTROL_REG = 0x00;
-static byte RESET_REG = 0x01;
-
-static byte REP_RATE_0_REG = 0x03;
-static byte REP_RATE_1_REG = 0x04;
-static byte REP_RATE_2_REG = 0x05;
-static byte REP_RATE_3_REG = 0x06;
-
-static byte CHASSIS_SLOT_ADDRESS = 0x08;
-
-static byte CH1_SAMPLE_DELAY_0 = 0x1b;
-static byte CH1_SAMPLE_DELAY_1 = 0x1c;
-static byte CH1_SAMPLE_DELAY_2 = 0x1d;
-static byte CH1_SAMPLE_DELAY_3 = 0x1e;
-
-static byte CH2_SAMPLE_DELAY_0 = 0x1f;
-static byte CH2_SAMPLE_DELAY_1 = 0x20;
-static byte CH2_SAMPLE_DELAY_2 = 0x21;
-static byte CH2_SAMPLE_DELAY_3 = 0x22;
-
-static byte CH3_SAMPLE_DELAY_0 = 0x23;
-static byte CH3_SAMPLE_DELAY_1 = 0x24;
-static byte CH3_SAMPLE_DELAY_2 = 0x25;
-static byte CH3_SAMPLE_DELAY_3 = 0x26;
-
-static byte CH4_SAMPLE_DELAY_0 = 0x27;
-static byte CH4_SAMPLE_DELAY_1 = 0x28;
-static byte CH4_SAMPLE_DELAY_2 = 0x29;
-static byte CH4_SAMPLE_DELAY_3 = 0x2a;
-
-static byte CH1_SAMPLE_COUNT_0 = 0x2b;
-static byte CH1_SAMPLE_COUNT_1 = 0x2c;
-static byte CH1_SAMPLE_COUNT_2 = 0x2d;
-
-static byte CH2_SAMPLE_COUNT_0 = 0x2e;
-static byte CH2_SAMPLE_COUNT_1 = 0x2f;
-static byte CH2_SAMPLE_COUNT_2 = 0x30;
-
-static byte CH3_SAMPLE_COUNT_0 = 0x31;
-static byte CH3_SAMPLE_COUNT_1 = 0x32;
-static byte CH3_SAMPLE_COUNT_2 = 0x33;
-
-static byte CH4_SAMPLE_COUNT_0 = 0x34;
-static byte CH4_SAMPLE_COUNT_1 = 0x35;
-static byte CH4_SAMPLE_COUNT_2 = 0x36;
-
-static byte CH1_SAMPLE_BUFSTART_0 = 0x37;
-static byte CH1_SAMPLE_BUFSTART_1 = 0x38;
-static byte CH1_SAMPLE_BUFSTART_2 = 0x39;
-
-static byte CH2_SAMPLE_BUFSTART_0 = 0x3a;
-static byte CH2_SAMPLE_BUFSTART_1 = 0x3b;
-static byte CH2_SAMPLE_BUFSTART_2 = 0x3c;
-
-static byte CH3_SAMPLE_BUFSTART_0 = 0x3d;
-static byte CH3_SAMPLE_BUFSTART_1 = 0x3e;
-static byte CH3_SAMPLE_BUFSTART_2 = 0x3f;
-
-static byte CH4_SAMPLE_BUFSTART_0 = 0x40;
-static byte CH4_SAMPLE_BUFSTART_1 = 0x41;
-static byte CH4_SAMPLE_BUFSTART_2 = 0x42;
-
-static byte DUCER_SETUP_1_REG = 0x43;
-static byte DUCER_SETUP_2_REG = 0x44;
-static byte DUCER_SETUP_3_REG = 0x45;
-static byte DUCER_SETUP_4_REG = 0x46;
-
-static byte NUMBER_BANKS_REG = 0x47;
-
-static byte TRIG_WIDTH_0_REG = 0x48;
-static byte TRIG_WIDTH_1_REG = 0x49;
-static byte TRIG_WIDTH_2_REG = 0x4a;
-static byte TRIG_WIDTH_3_REG = 0x4b;
-
-static byte PULSE_DELAY_0_REG = 0x50;
-static byte PULSE_DELAY_1_REG = 0x51;
-
-static byte SYNC_WIDTH_0_REG = 0x6e;
-static byte SYNC_WIDTH_1_REG = 0x6f;
-
-static byte PROGRAMMABLE_GAIN_CH1_CH2 = 0x4c;
-static byte PROGRAMMABLE_GAIN_CH3_CH4 = 0x4d;
-
-static byte STATUS1_REG = 0x19; //HPI1 ready, Pulse Sync, Pulse Sync Reset
-static byte STATUS2_REG = 0x1a; //HPI2 ready, Track Sync, Track Sync Reset
-
-//FPGA Master Control Register Bit Masks for the UT Board
-
-static byte SETUP_RUN_MODE = 0x01;
-static byte SYNC_SOURCE = 0x02;
-static byte SIM_DATA = 0x04;
-
-//FPGA Reset Register Bit Masks for the UT Board
-
-static byte FPGA_INTERNALS_RST = 0x01;
-static byte GLOBAL_DSP_RST = 0x02;
-static byte DSPA_RST = 0x04;
-static byte DSPB_RST = 0x08;
-static byte DSPC_RST = 0x10;
-static byte DSPD_RST = 0x20;
-
-//bit masks for gate peak data flag
-
-static byte HIT_COUNT_MET = 0x0001;
-static byte MISS_COUNT_MET = 0x0002;
-static byte GATE_EXCEEDED = 0x0004;
-
-//shadow registers for FPGA registers which do not already have an associated
-//variable
-
-public byte masterControlShadow;
-byte resetShadow;
-byte progGain12Shadow;
-byte progGain34Shadow;
-
-// UT Board status flag bit masks
-
-static byte FPGA_LOADED_FLAG = 0x01;
-
-//number of loops to wait for response before timeout
-static int FPGA_LOAD_TIMEOUT = 999999;
-
-boolean reSynced;
+    boolean fpgaLoaded = false;
+    String fpgaCodeFilename;
+    String dspCodeFilename;
+    double nSPerDataPoint, uSPerDataPoint;
+
+        //on startup, the UT boards each load a default rep rate from the
+        //configuration file, but that is often overriden by the owner class
+        //all boards must have the same rep rate
+
+    int repRateInHertz, repRate;
+    int triggerWidth;
+    int syncWidth;
+    int pulseDelay;
+    int numberOfBanks;
+    int reSyncCount = 0, reSyncDSPChip, reSyncDSPCore;
+    int reSyncPktID, reSyncDSPMsgID;
+    boolean syncSource;
+    HardwareVars hdwVs;
+    String jobFileFormat, mainFileFormat;
+
+    //ASCAN_MAX_HEIGHT and SIGNAL_SCALE should be changed to variables
+    //which can be initialized and or adjusted
+    static int ASCAN_MAX_HEIGHT = 350;
+
+    static int MAX_CLOCK_POSITION = 11; //0 to 11 positions
+    //offset gets added to clock position to account for various sensor positions
+    //and errors
+    static int CLOCK_OFFSET = 6;
+
+    //WARNING:  In general it is a bad idea to use any value other than 1 for
+    //        SIGNAL_SCALE.  If greater than 1, the result will look choppy.
+    //        Less than 1 and the input device will require needless addition
+    //        of gain to counterract the scale down.  Let the input device
+    //        provide the scaling unless it absolutely cannot be done.
+    //        To make the AScan signal levels match the chart, it may be
+    //        necessary to scale the AScan up.  This is better than scaling the
+    //        chart down which needlessly wastes gain.  In general, it is more
+    //        important to have a good chart presentation than an AScale
+    //        presentation as the chart is often the permanent record.
+
+    static double SIGNAL_SCALE = 1;
+    static double ASCAN_SCALE = 3.5;
+
+    public static int ASCAN_SAMPLE_SIZE = 400;
+    public static int ASCAN_BUFFER_SIZE = 400;
+
+    AScan aScan, aScanBuffer;
+
+    AScan [] aScanFIFO;
+    static int ASCAN_FIFO_SIZE = 25; //fifo is used for smoothing - larger
+                                     //number allows for more smoothing
+    int aScanFIFOIndex = 0;
+
+    boolean udpResponseFlag = false;
+
+    int hardwareDelay;
+
+    int aScanCoreID;
+    int pktDSPChipID, pktDSPCoreID, pktID, dspMsgID;
+
+    byte[] readDSPResult;
+    boolean readDSPDone;
+
+    byte[] getDSPRamChecksumResult;
+    boolean getDSPRamChecksumDone;
+
+    int aScanCoreSelector = 1;
+    //set aScanRcvd flag true so first request for peakData packet will succeed
+    boolean aScanRcvd = true;
+    boolean aScanDataPacketProcessed = false;
+    //set peakDataRcvd flag true so first request for peakData packet
+    //will succeed
+    boolean peakDataRcvd = true;
+    boolean peakDataPacketProcessed = false;
+
+    boolean dspStatusMessageRcvd = false;
+
+    int dbug = 0; //debug mks - remove this
+
+    int timeOutRead = 0; //use this one in the read functions
+    int timeOutWFP = 0; //used by processDataPackets
+
+    int getAScanTimeOut = 0, GET_ASCAN_TIMEOUT = 50;
+    int getPeakDataTimeOut = 0, GET_PEAK_DATA_TIMEOUT = 50;
+
+
+    double prevMinThickness, prevMaxThickness;
+
+    /*
+    // 5Mhz center pass, 6 order, 31 tap 4Mhz & 6 Mhz cutoff
+    int[] firCoef = {
+             7757,
+            12219,
+            14341,
+            13208,
+             8662,
+             1441,
+            -6914,
+            -14407,
+            -19073,
+            -19522,
+            -15352,
+            -7327,
+             2761,
+            12516,
+            19550,
+            22108,
+            19550,
+            12516,
+             2761,
+            -7327,
+            -15352,
+            -19522,
+            -19073,
+            -14407,
+            -6914,
+             1441,
+             8662,
+            13208,
+            14341,
+            12219,
+             7757
+        };
+
+    */
+    /*
+    //filter 2
+    int[] firCoef = {
+             -333,
+             -486,
+            -1021,
+            -1939,
+            -3133,
+            -4372,
+            -5303,
+            -5496,
+            -4515,
+            -2024,
+             2093,
+             7617,
+            13912,
+            19932,
+            24352,
+            25991,
+            24352,
+            19932,
+            13912,
+             7617,
+             2093,
+            -2024,
+            -4515,
+            -5496,
+            -5303,
+            -4372,
+            -3133,
+            -1939,
+            -1021,
+             -486,
+             -333
+             };
+     *
+     */
+
+    //filter 5
+    int[] firCoef = {
+              374,
+              478,
+              540,
+              537,
+              451,
+              267,
+              -20,
+             -406,
+             -877,
+            -1406,
+            -1957,
+            -2491,
+            -2963,
+            -3335,
+            -3572,
+            29428,
+            -3572,
+            -3335,
+            -2963,
+            -2491,
+            -1957,
+            -1406,
+             -877,
+             -406,
+              -20,
+              267,
+              451,
+              537,
+              540,
+              478,
+              374
+             };
+
+    int firBuf[];
+
+    //this class holds information for a channel on the board
+    class BoardChannel{
+
+        byte dspChip;
+        byte dspCore1;
+        byte dspCore2;
+
+        byte delayReg0, delayReg1, delayReg2, delayReg3;
+        byte ducerSetupReg;
+        byte countReg0, countReg1, countReg2;
+        byte bufStart0, bufStart1, bufStart2;
+
+        int numberOfGates = 0;
+        Gate[] gates;
+
+        int aScanSmoothing = 1;
+        int rejectLevel;
+        boolean isWallChannel=false;
+
+    }
+
+    BoardChannel bdChs[];
+    static int NUMBER_OF_BOARD_CHANNELS = 4;
+
+    static int FALSE = 0;
+    static int TRUE = 1;
+
+    //this is the memory location in the DSP where the FPGA stuffs the raw
+    //A/D data
+    static int AD_RAW_DATA_BUFFER_ADDRESS = 0x4000;
+
+    static int RUNTIME_PACKET_SIZE = 2048;
+
+    //the hardware uses a 4 byte unsigned integer for MAX_DELAY_COUNT - Java
+    //doesn't do unsigned easily, so the max value is limited to the maximum
+    //positive value Java allows for a signed integer just to make the Java side
+    //easier
+
+    static int MAX_DELAY_COUNT = Integer.MAX_VALUE - 10;
+    static int MAX_SAMPLE_COUNT = 8 * 1024; //matches RAM sample buffer in FPGA
+
+    //Message IDs for the setState function
+    static byte ENABLE_SAMPLING = 0;
+    static byte ENABLE_DSP_RUN = 1;
+    static byte ENABLE_TEST_DATA = 2;
+    static byte ENABLE_FPGA_INTERNALS = 3;
+
+    int PEAK_DATA_BYTES_PER_GATE = 8;
+    int PEAK_DATA_BYTES_FOR_WALL = 24;
+
+    public static byte POSITIVE_HALF = 0;
+    public static byte NEGATIVE_HALF = 1;
+    public static byte FULL_WAVE = 2;
+    public static byte RF_WAVE = 3;
+    public static byte CHANNEL_OFF = 4;
+
+    // bits for flag1 variable in DSP's
+    //The TRANSMITTER_ACTIVE bit should usually not be modified by the host.
+    //The GATES_ENABLED, DAC_ENABLED, and ASCAN_ENABLED flags can be cleared
+    //before requesting a processing time calculation to use as a baseline as
+    //this results in the least amount of processing.
+
+    static byte TRANSMITTER_ACTIVE = 0x0001; //transmitter active flag (set by DSP)
+    static byte GATES_ENABLED = 0x0002;      //gates enabled flag
+    static byte DAC_ENABLED = 0x0004;        //DAC enabled flag
+    static byte ASCAN_FAST_ENABLED = 0x0008; //fast AScan enabled flag
+    static byte ASCAN_SLOW_ENABLED = 0x0010; //slow AScan enabled flag
+    static byte ASCAN_FREE_RUN = 0X0020;    //AScan free run, not triggered by gate
+
+    //Messages for DSPs
+    //These should match the values in the code for those DSPs
+
+    static byte DSP_NULL_MSG_CMD = 0;
+    static byte DSP_GET_STATUS_CMD = 1;
+    static byte DSP_SET_GAIN_CMD = 2;
+    static byte DSP_GET_ASCAN_BLOCK_CMD = 3;
+    static byte DSP_GET_ASCAN_NEXT_BLOCK_CMD = 4;
+    static byte DSP_SET_AD_SAMPLE_SIZE_CMD = 5;
+    static byte DSP_SET_DELAYS	= 6;
+    static byte DSP_SET_ASCAN_SCALE	= 7;
+    static byte DSP_SET_GATE = 8;
+    static byte DSP_SET_GATE_FLAGS = 9;
+    static byte DSP_SET_DAC	= 10;
+    static byte DSP_SET_DAC_FLAGS = 11;
+    static byte DSP_SET_HIT_MISS_COUNTS = 12;
+    static byte DSP_GET_PEAK_DATA = 13;
+    static byte DSP_SET_RECTIFICATION = 14;
+    static byte DSP_SET_FLAGS1 = 15;
+    static byte DSP_CLEAR_FLAGS1 = 16;
+    static byte DSP_SET_GATE_SIG_PROC_THRESHOLD = 17;
+
+    static byte DSP_ACKNOWLEDGE = 127;
+
+    //Commands for UT boards
+    //These should match the values in the code for those boards.
+
+    static byte NO_ACTION = 0;
+    static byte MONITOR_CMD = 1;
+    static byte ZERO_ENCODERS_CMD = 2;
+    static byte REFRESH_CMD = 3;
+    static byte LOAD_FPGA_CMD = 4;
+    static byte SEND_DATA_CMD = 5;
+    static byte DATA_CMD = 6;
+    static byte WRITE_FPGA_CMD = 7;
+    static byte READ_FPGA_CMD = 8;
+    static byte GET_STATUS_CMD = 9;
+    static byte SET_HDW_GAIN_CMD = 10;
+    static byte WRITE_DSP_CMD = 11;
+    static byte WRITE_NEXT_DSP_CMD = 12;
+    static byte READ_DSP_CMD = 13;
+    static byte READ_NEXT_DSP_CMD = 14;
+    static byte READ_DSP_BLOCK_CMD = 15;
+    static byte ZERO_DSP_CMD = 16;
+    static byte GET_ASCAN_CMD = 17;
+    static byte MESSAGE_DSP_CMD = 18;
+    static byte GET_PEAK_DATA_CMD = 19;     //differs from DSP_GET_PEAK_DATA
+    static byte GET_PEAK_DATA4_CMD = 20;	// four channel version
+    static byte GET_DSP_RAM_BLOCK_CHECKSUM = 21;
+    static byte LOAD_FIRMWARE_CMD = 22;     //loads new Rabbit software
+    static byte SET_REP_RATE_CMD = 23;
+
+    static byte ERROR = 125;
+    static byte DEBUG_CMD = 126;
+    static byte EXIT_CMD = 127;
+
+    //Status Codes for UT boards
+    //These should match the values in the code for those boards.
+
+    static byte NO_STATUS = 0;
+    static byte FPGA_INITB_ERROR = 1;
+    static byte FPGA_DONE_ERROR = 2;
+    static byte FPGA_CONFIG_CRC_ERROR = 3;
+    static byte FPGA_CONFIG_GOOD = 4;
+
+    //FPGA Register Addresses for the UT Board
+
+    static byte MASTER_CONTROL_REG = 0x00;
+    static byte RESET_REG = 0x01;
+
+    static byte REP_RATE_0_REG = 0x03;
+    static byte REP_RATE_1_REG = 0x04;
+    static byte REP_RATE_2_REG = 0x05;
+    static byte REP_RATE_3_REG = 0x06;
+
+    static byte CHASSIS_SLOT_ADDRESS = 0x08;
+
+    static byte CH1_SAMPLE_DELAY_0 = 0x1b;
+    static byte CH1_SAMPLE_DELAY_1 = 0x1c;
+    static byte CH1_SAMPLE_DELAY_2 = 0x1d;
+    static byte CH1_SAMPLE_DELAY_3 = 0x1e;
+
+    static byte CH2_SAMPLE_DELAY_0 = 0x1f;
+    static byte CH2_SAMPLE_DELAY_1 = 0x20;
+    static byte CH2_SAMPLE_DELAY_2 = 0x21;
+    static byte CH2_SAMPLE_DELAY_3 = 0x22;
+
+    static byte CH3_SAMPLE_DELAY_0 = 0x23;
+    static byte CH3_SAMPLE_DELAY_1 = 0x24;
+    static byte CH3_SAMPLE_DELAY_2 = 0x25;
+    static byte CH3_SAMPLE_DELAY_3 = 0x26;
+
+    static byte CH4_SAMPLE_DELAY_0 = 0x27;
+    static byte CH4_SAMPLE_DELAY_1 = 0x28;
+    static byte CH4_SAMPLE_DELAY_2 = 0x29;
+    static byte CH4_SAMPLE_DELAY_3 = 0x2a;
+
+    static byte CH1_SAMPLE_COUNT_0 = 0x2b;
+    static byte CH1_SAMPLE_COUNT_1 = 0x2c;
+    static byte CH1_SAMPLE_COUNT_2 = 0x2d;
+
+    static byte CH2_SAMPLE_COUNT_0 = 0x2e;
+    static byte CH2_SAMPLE_COUNT_1 = 0x2f;
+    static byte CH2_SAMPLE_COUNT_2 = 0x30;
+
+    static byte CH3_SAMPLE_COUNT_0 = 0x31;
+    static byte CH3_SAMPLE_COUNT_1 = 0x32;
+    static byte CH3_SAMPLE_COUNT_2 = 0x33;
+
+    static byte CH4_SAMPLE_COUNT_0 = 0x34;
+    static byte CH4_SAMPLE_COUNT_1 = 0x35;
+    static byte CH4_SAMPLE_COUNT_2 = 0x36;
+
+    static byte CH1_SAMPLE_BUFSTART_0 = 0x37;
+    static byte CH1_SAMPLE_BUFSTART_1 = 0x38;
+    static byte CH1_SAMPLE_BUFSTART_2 = 0x39;
+
+    static byte CH2_SAMPLE_BUFSTART_0 = 0x3a;
+    static byte CH2_SAMPLE_BUFSTART_1 = 0x3b;
+    static byte CH2_SAMPLE_BUFSTART_2 = 0x3c;
+
+    static byte CH3_SAMPLE_BUFSTART_0 = 0x3d;
+    static byte CH3_SAMPLE_BUFSTART_1 = 0x3e;
+    static byte CH3_SAMPLE_BUFSTART_2 = 0x3f;
+
+    static byte CH4_SAMPLE_BUFSTART_0 = 0x40;
+    static byte CH4_SAMPLE_BUFSTART_1 = 0x41;
+    static byte CH4_SAMPLE_BUFSTART_2 = 0x42;
+
+    static byte DUCER_SETUP_1_REG = 0x43;
+    static byte DUCER_SETUP_2_REG = 0x44;
+    static byte DUCER_SETUP_3_REG = 0x45;
+    static byte DUCER_SETUP_4_REG = 0x46;
+
+    static byte NUMBER_BANKS_REG = 0x47;
+
+    static byte TRIG_WIDTH_0_REG = 0x48;
+    static byte TRIG_WIDTH_1_REG = 0x49;
+    static byte TRIG_WIDTH_2_REG = 0x4a;
+    static byte TRIG_WIDTH_3_REG = 0x4b;
+
+    static byte PULSE_DELAY_0_REG = 0x50;
+    static byte PULSE_DELAY_1_REG = 0x51;
+
+    static byte SYNC_WIDTH_0_REG = 0x6e;
+    static byte SYNC_WIDTH_1_REG = 0x6f;
+
+    static byte PROGRAMMABLE_GAIN_CH1_CH2 = 0x4c;
+    static byte PROGRAMMABLE_GAIN_CH3_CH4 = 0x4d;
+
+    static byte STATUS1_REG = 0x19; //HPI1 ready, Pulse Sync, Pulse Sync Reset
+    static byte STATUS2_REG = 0x1a; //HPI2 ready, Track Sync, Track Sync Reset
+
+    //FPGA Master Control Register Bit Masks for the UT Board
+
+    static byte SETUP_RUN_MODE = 0x01;
+    static byte SYNC_SOURCE = 0x02;
+    static byte SIM_DATA = 0x04;
+
+    //FPGA Reset Register Bit Masks for the UT Board
+
+    static byte FPGA_INTERNALS_RST = 0x01;
+    static byte GLOBAL_DSP_RST = 0x02;
+    static byte DSPA_RST = 0x04;
+    static byte DSPB_RST = 0x08;
+    static byte DSPC_RST = 0x10;
+    static byte DSPD_RST = 0x20;
+
+    //bit masks for gate peak data flag
+
+    static byte HIT_COUNT_MET = 0x0001;
+    static byte MISS_COUNT_MET = 0x0002;
+    static byte GATE_EXCEEDED = 0x0004;
+
+    //shadow registers for FPGA registers which do not already have an
+    // associated variable
+
+    public byte masterControlShadow;
+    byte resetShadow;
+    byte progGain12Shadow;
+    byte progGain34Shadow;
+
+    // UT Board status flag bit masks
+
+    static byte FPGA_LOADED_FLAG = 0x01;
+
+    //number of loops to wait for response before timeout
+    static int FPGA_LOAD_TIMEOUT = 999999;
+
+    boolean reSynced;
 
 //-----------------------------------------------------------------------------
 // UTBoard::UTBoard (constructor)
@@ -508,43 +511,43 @@ public UTBoard(String pConfigFilename, String pBoardName, int pBoardIndex,
      String pJobFileFormat, String pMainFileFormat)
 {
 
-super(pLog);
+    super(pLog);
 
-configFilename = pConfigFilename;
-hdwVs = pHdwVs;
-jobFileFormat = pJobFileFormat; mainFileFormat = pMainFileFormat;
+    configFilename = pConfigFilename;
+    hdwVs = pHdwVs;
+    jobFileFormat = pJobFileFormat; mainFileFormat = pMainFileFormat;
 
-//if the ini file cannot be opened and loaded, continue on - values will default
-try {configFile = new IniFile(configFilename, jobFileFormat);}
-    catch(IOException e){}
+    //if the ini file cannot be loaded, continue on - values will default
+    try {configFile = new IniFile(configFilename, jobFileFormat);}
+        catch(IOException e){}
 
-boardName = pBoardName;
-boardIndex = pBoardIndex;
-simulate = pSimulate;
+    boardName = pBoardName;
+    boardIndex = pBoardIndex;
+    simulate = pSimulate;
 
-//FIR filter buffer -- same length as number of filter taps
-firBuf = new int[firCoef.length];
+    //FIR filter buffer -- same length as number of filter taps
+    firBuf = new int[firCoef.length];
 
-//aScan holds an aScan data set for transfer to the display object
-aScan = new AScan(ASCAN_BUFFER_SIZE);
-//aScanBuffer holds data while it is being processed
-aScanBuffer = new AScan(ASCAN_BUFFER_SIZE);
+    //aScan holds an aScan data set for transfer to the display object
+    aScan = new AScan(ASCAN_BUFFER_SIZE);
+    //aScanBuffer holds data while it is being processed
+    aScanBuffer = new AScan(ASCAN_BUFFER_SIZE);
 
-//aScanFIFO holds multiple data sets which can then be averaged to create the
-//data for aScan - this allows for smoothing
-aScanFIFO = new AScan[ASCAN_FIFO_SIZE];
-for (int i = 0; i < ASCAN_FIFO_SIZE; i++)
-    aScanFIFO[i] = new AScan(ASCAN_BUFFER_SIZE);
+    //aScanFIFO holds multiple data sets which can then be averaged to create
+    //the data for aScan - this allows for smoothing
+    aScanFIFO = new AScan[ASCAN_FIFO_SIZE];
+    for (int i = 0; i < ASCAN_FIFO_SIZE; i++)
+        aScanFIFO[i] = new AScan(ASCAN_BUFFER_SIZE);
 
-readDSPResult = new byte[512];
+    readDSPResult = new byte[512];
 
-getDSPRamChecksumResult = new byte [2];
+    getDSPRamChecksumResult = new byte [2];
 
-//setup information for each channel on the board
-setupBoardChannels();
+    //setup information for each channel on the board
+    setupBoardChannels();
 
-//read the configuration file and create/setup the charting/control elements
-configure(configFile);
+    //read the configuration file and create/setup the charting/control elements
+    configure(configFile);
 
 }//end of UTBoard::UTBoard (constructor)
 //-----------------------------------------------------------------------------
@@ -558,72 +561,72 @@ configure(configFile);
 
 private void setupBoardChannels() {
 
-bdChs = new BoardChannel[NUMBER_OF_BOARD_CHANNELS];
+    bdChs = new BoardChannel[NUMBER_OF_BOARD_CHANNELS];
 
-for (int i=0; i<4; i++) bdChs[i] = new BoardChannel();
+    for (int i=0; i<4; i++) bdChs[i] = new BoardChannel();
 
-//Each channel is handled by two DSP cores.
-//select the proper dsp chip and cores for each channel as follows
-// channel 0 : chip 1, cores A & B
-// channel 1 : chip 1, cores C & D
-// channel 2 : chip 2, cores A & B
-// channel 3 : chip 2, cores C & D
+    //Each channel is handled by two DSP cores.
+    //select the proper dsp chip and cores for each channel as follows
+    // channel 0 : chip 1, cores A & B
+    // channel 1 : chip 1, cores C & D
+    // channel 2 : chip 2, cores A & B
+    // channel 3 : chip 2, cores C & D
 
-bdChs[0].dspChip = 1; bdChs[0].dspCore1 = 1; bdChs[0].dspCore2 = 2;
-bdChs[1].dspChip = 1; bdChs[1].dspCore1 = 3; bdChs[1].dspCore2 = 4;
-bdChs[2].dspChip = 2; bdChs[2].dspCore1 = 1; bdChs[2].dspCore2 = 2;
-bdChs[3].dspChip = 2; bdChs[3].dspCore1 = 3; bdChs[3].dspCore2 = 4;
+    bdChs[0].dspChip = 1; bdChs[0].dspCore1 = 1; bdChs[0].dspCore2 = 2;
+    bdChs[1].dspChip = 1; bdChs[1].dspCore1 = 3; bdChs[1].dspCore2 = 4;
+    bdChs[2].dspChip = 2; bdChs[2].dspCore1 = 1; bdChs[2].dspCore2 = 2;
+    bdChs[3].dspChip = 2; bdChs[3].dspCore1 = 3; bdChs[3].dspCore2 = 4;
 
-//assign the appropriate FPGA register addresses to each channel
+    //assign the appropriate FPGA register addresses to each channel
 
-bdChs[0].delayReg0 = CH1_SAMPLE_DELAY_0;
-bdChs[0].delayReg1 = CH1_SAMPLE_DELAY_1;
-bdChs[0].delayReg2 = CH1_SAMPLE_DELAY_2;
-bdChs[0].delayReg3 = CH1_SAMPLE_DELAY_3;
-bdChs[0].countReg0 = CH1_SAMPLE_COUNT_0;
-bdChs[0].countReg1 = CH1_SAMPLE_COUNT_1;
-bdChs[0].countReg2 = CH1_SAMPLE_COUNT_2;
-bdChs[0].bufStart0 = CH1_SAMPLE_BUFSTART_0;
-bdChs[0].bufStart1 = CH1_SAMPLE_BUFSTART_1;
-bdChs[0].bufStart2 = CH1_SAMPLE_BUFSTART_2;
+    bdChs[0].delayReg0 = CH1_SAMPLE_DELAY_0;
+    bdChs[0].delayReg1 = CH1_SAMPLE_DELAY_1;
+    bdChs[0].delayReg2 = CH1_SAMPLE_DELAY_2;
+    bdChs[0].delayReg3 = CH1_SAMPLE_DELAY_3;
+    bdChs[0].countReg0 = CH1_SAMPLE_COUNT_0;
+    bdChs[0].countReg1 = CH1_SAMPLE_COUNT_1;
+    bdChs[0].countReg2 = CH1_SAMPLE_COUNT_2;
+    bdChs[0].bufStart0 = CH1_SAMPLE_BUFSTART_0;
+    bdChs[0].bufStart1 = CH1_SAMPLE_BUFSTART_1;
+    bdChs[0].bufStart2 = CH1_SAMPLE_BUFSTART_2;
 
-bdChs[1].delayReg0 = CH2_SAMPLE_DELAY_0;
-bdChs[1].delayReg1 = CH2_SAMPLE_DELAY_1;
-bdChs[1].delayReg2 = CH2_SAMPLE_DELAY_2;
-bdChs[1].delayReg3 = CH2_SAMPLE_DELAY_3;
-bdChs[1].countReg0 = CH2_SAMPLE_COUNT_0;
-bdChs[1].countReg1 = CH2_SAMPLE_COUNT_1;
-bdChs[1].countReg2 = CH2_SAMPLE_COUNT_2;
-bdChs[1].bufStart0 = CH2_SAMPLE_BUFSTART_0;
-bdChs[1].bufStart1 = CH2_SAMPLE_BUFSTART_1;
-bdChs[1].bufStart2 = CH2_SAMPLE_BUFSTART_2;
+    bdChs[1].delayReg0 = CH2_SAMPLE_DELAY_0;
+    bdChs[1].delayReg1 = CH2_SAMPLE_DELAY_1;
+    bdChs[1].delayReg2 = CH2_SAMPLE_DELAY_2;
+    bdChs[1].delayReg3 = CH2_SAMPLE_DELAY_3;
+    bdChs[1].countReg0 = CH2_SAMPLE_COUNT_0;
+    bdChs[1].countReg1 = CH2_SAMPLE_COUNT_1;
+    bdChs[1].countReg2 = CH2_SAMPLE_COUNT_2;
+    bdChs[1].bufStart0 = CH2_SAMPLE_BUFSTART_0;
+    bdChs[1].bufStart1 = CH2_SAMPLE_BUFSTART_1;
+    bdChs[1].bufStart2 = CH2_SAMPLE_BUFSTART_2;
 
-bdChs[2].delayReg0 = CH3_SAMPLE_DELAY_0;
-bdChs[2].delayReg1 = CH3_SAMPLE_DELAY_1;
-bdChs[2].delayReg2 = CH3_SAMPLE_DELAY_2;
-bdChs[2].delayReg3 = CH3_SAMPLE_DELAY_3;
-bdChs[2].countReg0 = CH3_SAMPLE_COUNT_0;
-bdChs[2].countReg1 = CH3_SAMPLE_COUNT_1;
-bdChs[2].countReg2 = CH3_SAMPLE_COUNT_2;
-bdChs[2].bufStart0 = CH3_SAMPLE_BUFSTART_0;
-bdChs[2].bufStart1 = CH3_SAMPLE_BUFSTART_1;
-bdChs[2].bufStart2 = CH3_SAMPLE_BUFSTART_2;
+    bdChs[2].delayReg0 = CH3_SAMPLE_DELAY_0;
+    bdChs[2].delayReg1 = CH3_SAMPLE_DELAY_1;
+    bdChs[2].delayReg2 = CH3_SAMPLE_DELAY_2;
+    bdChs[2].delayReg3 = CH3_SAMPLE_DELAY_3;
+    bdChs[2].countReg0 = CH3_SAMPLE_COUNT_0;
+    bdChs[2].countReg1 = CH3_SAMPLE_COUNT_1;
+    bdChs[2].countReg2 = CH3_SAMPLE_COUNT_2;
+    bdChs[2].bufStart0 = CH3_SAMPLE_BUFSTART_0;
+    bdChs[2].bufStart1 = CH3_SAMPLE_BUFSTART_1;
+    bdChs[2].bufStart2 = CH3_SAMPLE_BUFSTART_2;
 
-bdChs[3].delayReg0 = CH4_SAMPLE_DELAY_0;
-bdChs[3].delayReg1 = CH4_SAMPLE_DELAY_1;
-bdChs[3].delayReg2 = CH4_SAMPLE_DELAY_2;
-bdChs[3].delayReg3 = CH4_SAMPLE_DELAY_3;
-bdChs[3].countReg0 = CH4_SAMPLE_COUNT_0;
-bdChs[3].countReg1 = CH4_SAMPLE_COUNT_1;
-bdChs[3].countReg2 = CH4_SAMPLE_COUNT_2;
-bdChs[3].bufStart0 = CH4_SAMPLE_BUFSTART_0;
-bdChs[3].bufStart1 = CH4_SAMPLE_BUFSTART_1;
-bdChs[3].bufStart2 = CH4_SAMPLE_BUFSTART_2;
+    bdChs[3].delayReg0 = CH4_SAMPLE_DELAY_0;
+    bdChs[3].delayReg1 = CH4_SAMPLE_DELAY_1;
+    bdChs[3].delayReg2 = CH4_SAMPLE_DELAY_2;
+    bdChs[3].delayReg3 = CH4_SAMPLE_DELAY_3;
+    bdChs[3].countReg0 = CH4_SAMPLE_COUNT_0;
+    bdChs[3].countReg1 = CH4_SAMPLE_COUNT_1;
+    bdChs[3].countReg2 = CH4_SAMPLE_COUNT_2;
+    bdChs[3].bufStart0 = CH4_SAMPLE_BUFSTART_0;
+    bdChs[3].bufStart1 = CH4_SAMPLE_BUFSTART_1;
+    bdChs[3].bufStart2 = CH4_SAMPLE_BUFSTART_2;
 
-bdChs[0].ducerSetupReg = DUCER_SETUP_1_REG;
-bdChs[1].ducerSetupReg = DUCER_SETUP_2_REG;
-bdChs[2].ducerSetupReg = DUCER_SETUP_3_REG;
-bdChs[3].ducerSetupReg = DUCER_SETUP_4_REG;
+    bdChs[0].ducerSetupReg = DUCER_SETUP_1_REG;
+    bdChs[1].ducerSetupReg = DUCER_SETUP_2_REG;
+    bdChs[2].ducerSetupReg = DUCER_SETUP_3_REG;
+    bdChs[3].ducerSetupReg = DUCER_SETUP_4_REG;
 
 }//end of UTBoard::setupBoardChannels
 //-----------------------------------------------------------------------------
@@ -638,18 +641,18 @@ bdChs[3].ducerSetupReg = DUCER_SETUP_4_REG;
 @Override
 public void run() {
 
-//link with all the remotes
-connect();
+    //link with all the remotes
+    connect();
 
-//Since the sockets and associated streams were created by this
-//thread, it cannot be closed without disrupting the connections. If
-//other threads try to read from the socket after the thread which
-//created the socket finishes, an exception will be thrown.  This
-//thread just waits() after performing the connect function.  The
-//alternative is to close the socket and allow another thread to
-//reopen it, but this results in a lot of overhead.
+    //Since the sockets and associated streams were created by this
+    //thread, it cannot be closed without disrupting the connections. If
+    //other threads try to read from the socket after the thread which
+    //created the socket finishes, an exception will be thrown.  This
+    //thread just waits() after performing the connect function.  The
+    //alternative is to close the socket and allow another thread to
+    //reopen it, but this results in a lot of overhead.
 
-waitForever();
+    waitForever();
 
 }//end of UTBoard::run
 //-----------------------------------------------------------------------------
@@ -663,9 +666,9 @@ waitForever();
 public synchronized void waitForever()
 {
 
-while (true){
-    try{wait();}
-    catch (InterruptedException e) { }
+    while (true){
+        try{wait();}
+        catch (InterruptedException e) { }
     }
 
 }//end of UTBoard::waitForever
@@ -680,133 +683,133 @@ while (true){
 public synchronized void connect()
 {
 
-//see notes above regarding IP Addresses
+    //see notes above regarding IP Addresses
 
-try {
+    try {
 
-    //displays message on bottom panel of IDE
-    logger.logMessage("Connecting to UT board " + ipAddrS + "...\n");
+        //displays message on bottom panel of IDE
+        logger.logMessage("Connecting to UT board " + ipAddrS + "...\n");
 
-    if (!simulate) socket = new Socket(ipAddr, 23);
-    else socket = new UTSimulator(ipAddr, 23, mainFileFormat);
+        if (!simulate) socket = new Socket(ipAddr, 23);
+        else socket = new UTSimulator(ipAddr, 23, mainFileFormat);
 
-    //set amount of time in milliseconds that a read from the socket will
-    //wait for data - this prevents program lock up when no data is ready
-    socket.setSoTimeout(250);
+        //set amount of time in milliseconds that a read from the socket will
+        //wait for data - this prevents program lock up when no data is ready
+        socket.setSoTimeout(250);
 
-    // the buffer size is not changed here as the default ends up being
-    // large enough - use this code if it needs to be increased
-    //socket.setReceiveBufferSize(10240 or as needed);
+        // the buffer size is not changed here as the default ends up being
+        // large enough - use this code if it needs to be increased
+        //socket.setReceiveBufferSize(10240 or as needed);
 
-    //allow verification that the hinted size is actually used
-    logger.logMessage("UT " + ipAddrS + " receive buffer size: " +
-                                    socket.getReceiveBufferSize() + "...\n");
+        //allow verification that the hinted size is actually used
+        logger.logMessage("UT " + ipAddrS + " receive buffer size: " +
+                                      socket.getReceiveBufferSize() + "...\n");
 
-    //allow verification that the hinted size is actually used
-    logger.logMessage("UT " + ipAddrS + " send buffer size: " +
-                                    socket.getSendBufferSize() + "...\n");
+        //allow verification that the hinted size is actually used
+        logger.logMessage("UT " + ipAddrS + " send buffer size: " +
+                                        socket.getSendBufferSize() + "...\n");
 
-    out = new PrintWriter(socket.getOutputStream(), true);
+        out = new PrintWriter(socket.getOutputStream(), true);
 
-    in = new BufferedReader(new InputStreamReader(
-                                        socket.getInputStream()));
+        in = new BufferedReader(new InputStreamReader(
+                                            socket.getInputStream()));
 
-    byteOut = new DataOutputStream(socket.getOutputStream());
-    byteIn = new DataInputStream(socket.getInputStream());
+        byteOut = new DataOutputStream(socket.getOutputStream());
+        byteIn = new DataInputStream(socket.getInputStream());
 
     }
-catch (UnknownHostException e) {
-    logger.logMessage("Unknown host: UT " + ipAddrS + ".\n");
-    return;
+    catch (UnknownHostException e) {
+        logger.logMessage("Unknown host: UT " + ipAddrS + ".\n");
+        return;
     }
-catch (IOException e) {
-    logger.logMessage("Couldn't get I/O for UT " + ipAddrS + "\n");
-    logger.logMessage("--" + e.getMessage() + "--\n");
-    return;
+    catch (IOException e) {
+        logger.logMessage("Couldn't get I/O for UT " + ipAddrS + "\n");
+        logger.logMessage("--" + e.getMessage() + "--\n");
+        return;
     }
 
-try {
-    //display the greeting message sent by the remote
-    logger.logMessage("UT " + ipAddrS + " says " + in.readLine() + "\n");
+    try {
+        //display the greeting message sent by the remote
+        logger.logMessage("UT " + ipAddrS + " says " + in.readLine() + "\n");
     }
-catch(IOException e){}
+    catch(IOException e){}
 
-loadFPGA(); //send configuration file for the board's FPGA
+    loadFPGA(); //send configuration file for the board's FPGA
 
-initFPGA(); //setup the registers in the UT board FPGA
+    initFPGA(); //setup the registers in the UT board FPGA
 
-//ask the board for its chassis and board address switch settngs
-getChassisSlotAddress();
+    //ask the board for its chassis and board address switch settngs
+    getChassisSlotAddress();
 
-//check for an address override entry and use that if it exists
-getChassisSlotAddressOverride();
+    //check for an address override entry and use that if it exists
+    getChassisSlotAddressOverride();
 
-//NOTE: now that the chassis and slot addresses are known, display messages
-// using those to identify the board instead of the IP address so it is easier
-// to discern which board is which.
+    //NOTE: now that the chassis and slot addresses are known, display messages
+    // using those to identify the board instead of the IP address so it is
+    // easier to discern which board is which.
 
-chassisSlotAddr = chassisAddr + ":" + slotAddr;
+    chassisSlotAddr = chassisAddr + ":" + slotAddr;
 
-loadDSPCode(1, 1); //send the code to DSP 1, Core A (this also loads Core B)
-verifyDSPCode(1, 1); //verify the checksum of the code in the DSP
-loadDSPCode(1, 3); //send the code to DSP 1, Core C (this also loads Core D)
-verifyDSPCode(1, 3); //verify the checksum of the code in the DSP
-loadDSPCode(2, 1); //send the code to DSP 2, Core A (this also loads Core B)
-verifyDSPCode(2, 1); //verify the checksum of the code in the DSP
-loadDSPCode(2, 3); //send the code to DSP 2, Core C (this also loads Core D)
-verifyDSPCode(2, 3); //verify the checksum of the code in the DSP
+    loadDSPCode(1, 1); //send the code to DSP 1, Core A (this also loads Core B)
+    verifyDSPCode(1, 1); //verify the checksum of the code in the DSP
+    loadDSPCode(1, 3); //send the code to DSP 1, Core C (this also loads Core D)
+    verifyDSPCode(1, 3); //verify the checksum of the code in the DSP
+    loadDSPCode(2, 1); //send the code to DSP 2, Core A (this also loads Core B)
+    verifyDSPCode(2, 1); //verify the checksum of the code in the DSP
+    loadDSPCode(2, 3); //send the code to DSP 2, Core C (this also loads Core D)
+    verifyDSPCode(2, 3); //verify the checksum of the code in the DSP
 
-//release FPGA internals from reset (low = no reset)
-//release DSP Global reset so HPI bus can be used (high = no reset)
-//release DSPs A,B,C,D resets (low = reset)
-resetShadow = writeFPGAReg(RESET_REG, (byte)0x3e);
+    //release FPGA internals from reset (low = no reset)
+    //release DSP Global reset so HPI bus can be used (high = no reset)
+    //release DSPs A,B,C,D resets (low = reset)
+    resetShadow = writeFPGAReg(RESET_REG, (byte)0x3e);
 
-//sleep for a bit to allow DSPs to start up
-waitSleep(1000);
+    //sleep for a bit to allow DSPs to start up
+    waitSleep(1000);
 
-logDSPStatus(1, 1, true); logDSPStatus(1, 2, true);
-logDSPStatus(1, 3, true); logDSPStatus(1, 4, true);
+    logDSPStatus(1, 1, true); logDSPStatus(1, 2, true);
+    logDSPStatus(1, 3, true); logDSPStatus(1, 4, true);
 
-logDSPStatus(2, 1, true); logDSPStatus(2, 2, true);
-logDSPStatus(2, 3, true); logDSPStatus(2, 4, true);
+    logDSPStatus(2, 1, true); logDSPStatus(2, 2, true);
+    logDSPStatus(2, 3, true); logDSPStatus(2, 4, true);
 
-//enable sampling - FPGA has control of the HPI bus to transfer A/D data
-setState(0, 1);
+    //enable sampling - FPGA has control of the HPI bus to transfer A/D data
+    setState(0, 1);
 
-//flag that board setup has been completed - whether it failed or not
-setupComplete = true;
+    //flag that board setup has been completed - whether it failed or not
+    setupComplete = true;
 
-//flag that setup was successful and board is ready for use
-ready = true;
+    //flag that setup was successful and board is ready for use
+    ready = true;
 
-logger.logMessage(
+    logger.logMessage(
               "UT " + chassisSlotAddr + " ~ " + ipAddrS + " is ready." + "\n");
 
-notifyAll(); //wake up all threads that are waiting for this to complete
+    notifyAll(); //wake up all threads that are waiting for this to complete
 
-/*
-//wip mks remove this - can be used in a monitor function?
-// monitors the Pulse Sync, Pulse Sync Reset, Track Sync, Track Sync Reset
+    /*
+    //wip mks remove this - can be used in a monitor function?
+    // monitors the Pulse Sync, Pulse Sync Reset, Track Sync, Track Sync Reset
 
-byte status1, status2;
-byte status1p = 0, status2p = 0;
+    byte status1, status2;
+    byte status1p = 0, status2p = 0;
 
 
-while (true){
+    while (true){
 
-    //read the status inputs
-    status1 = getRemoteAddressedData(READ_FPGA_CMD, STATUS1_REG);
-    status2 = getRemoteAddressedData(READ_FPGA_CMD, STATUS2_REG);
+        //read the status inputs
+        status1 = getRemoteAddressedData(READ_FPGA_CMD, STATUS1_REG);
+        status2 = getRemoteAddressedData(READ_FPGA_CMD, STATUS2_REG);
 
-    if (status1 != status1p || status2 != status2p)
-        logger.logMessage("Status 1: " + status1 + " Status 2: " + status2 + "\n");
+        if (status1 != status1p || status2 != status2p)
+            logger.logMessage("Status 1: " + status1 + " Status 2: " + status2 + "\n");
 
-    status1p = status1; status2p = status2;
+        status1p = status1; status2p = status2;
 
-    }
+        }
 
-//wip mks end remove this
-*/
+    //wip mks end remove this
+    */
 
 }//end of UTBoard::connect
 //-----------------------------------------------------------------------------
@@ -823,18 +826,18 @@ while (true){
 public void verifyAllDSPCode2()
 {
 
-//disable sampling on the UT boards so the DSP rams can be accessed
-setState(0, 0);
+    //disable sampling on the UT boards so the DSP rams can be accessed
+    setState(0, 0);
 
-//read the code back from each DSP and compare it to the file
+    //read the code back from each DSP and compare it to the file
 
-verifyDSPCode2(1, 1);
-verifyDSPCode2(1, 3);
-verifyDSPCode2(2, 1);
-verifyDSPCode2(2, 3);
+    verifyDSPCode2(1, 1);
+    verifyDSPCode2(1, 3);
+    verifyDSPCode2(2, 1);
+    verifyDSPCode2(2, 3);
 
-//re-enable sampling on the UT boards so A/D data is processed
-setState(0, 1);
+    //re-enable sampling on the UT boards so A/D data is processed
+    setState(0, 1);
 
 }//end of UTBoard::verifyAllDSPCode2
 //-----------------------------------------------------------------------------
@@ -882,120 +885,120 @@ setState(0, 1);
 public void loadFPGA()
 {
 
-// don't attempt to load the FPGA if no contact made with remote
-if (byteOut == null) return;
+    // don't attempt to load the FPGA if no contact made with remote
+    if (byteOut == null) return;
 
-// check to see if the FPGA has already been loaded
-if ((getRemoteData(GET_STATUS_CMD, true) & FPGA_LOADED_FLAG) != 0) {
-    logger.logMessage("UT " + ipAddrS + " FPGA already loaded..." + "\n");
+    // check to see if the FPGA has already been loaded
+    if ((getRemoteData(GET_STATUS_CMD, true) & FPGA_LOADED_FLAG) != 0) {
+        logger.logMessage("UT " + ipAddrS + " FPGA already loaded..." + "\n");
 
-    return;
+        return;
     }
 
-fpgaLoaded = true;
+    fpgaLoaded = true;
 
-int CODE_BUFFER_SIZE = 1025; //transfer command word and 1024 data bytes
-byte[] codeBuffer;
-codeBuffer = new byte[CODE_BUFFER_SIZE];
+    int CODE_BUFFER_SIZE = 1025; //transfer command word and 1024 data bytes
+    byte[] codeBuffer;
+    codeBuffer = new byte[CODE_BUFFER_SIZE];
 
-int bufPtr;
+    int bufPtr;
 
-boolean fileDone = false;
+    boolean fileDone = false;
 
-FileInputStream inFile = null;
+    FileInputStream inFile = null;
 
-try {
+    try {
 
-    sendByte(LOAD_FPGA_CMD); //send command to initiate loading
+        sendByte(LOAD_FPGA_CMD); //send command to initiate loading
 
-    logger.logMessage("UT " + ipAddrS + " loading FPGA..." + "\n");
+        logger.logMessage("UT " + ipAddrS + " loading FPGA..." + "\n");
 
-    timeOutRead = 0;
-    inFile = new FileInputStream("fpga\\" + fpgaCodeFilename);
-    int c, inCount;
+        timeOutRead = 0;
+        inFile = new FileInputStream("fpga\\" + fpgaCodeFilename);
+        int c, inCount;
 
-    while(timeOutRead < FPGA_LOAD_TIMEOUT){
+        while(timeOutRead < FPGA_LOAD_TIMEOUT){
 
 
-        inBuffer[0] = NO_ACTION; //clear request byte from host
-        inBuffer[1] = NO_STATUS; //clear status byte from host
+            inBuffer[0] = NO_ACTION; //clear request byte from host
+            inBuffer[1] = NO_STATUS; //clear status byte from host
 
-        //check for a request from the remote if connected
-        if (byteIn != null){
-            inCount = byteIn.available();
-            //0 = buffer offset, 2 = number of bytes to read
-            if (inCount >= 2) byteIn.read(inBuffer, 0, 2);
-             }
+            //check for a request from the remote if connected
+            if (byteIn != null){
+                inCount = byteIn.available();
+                //0 = buffer offset, 2 = number of bytes to read
+                if (inCount >= 2) byteIn.read(inBuffer, 0, 2);
+            }
 
-        //trap error and finished status messages, second byte in buffer
+            //trap error and finished status messages, second byte in buffer
 
-        if (inBuffer[1] == FPGA_INITB_ERROR){
-            logger.logMessage(
+            if (inBuffer[1] == FPGA_INITB_ERROR){
+                logger.logMessage(
                       "UT " + ipAddrS + " error loading FPGA - INIT_B" + "\n");
-            return;
+                return;
             }
 
-        if (inBuffer[1] == FPGA_DONE_ERROR){
-            logger.logMessage(
-                      "UT " + ipAddrS + " error loading FPGA - DONE" + "\n");
-            return;
+            if (inBuffer[1] == FPGA_DONE_ERROR){
+                logger.logMessage(
+                        "UT " + ipAddrS + " error loading FPGA - DONE" + "\n");
+                return;
             }
 
-        if (inBuffer[1] == FPGA_CONFIG_CRC_ERROR){
-            logger.logMessage(
-                        "UT " + ipAddrS + " error loading FPGA - CRC" + "\n");
-            return;
+            if (inBuffer[1] == FPGA_CONFIG_CRC_ERROR){
+                logger.logMessage(
+                         "UT " + ipAddrS + " error loading FPGA - CRC" + "\n");
+                return;
             }
 
-        if (inBuffer[1] == FPGA_CONFIG_GOOD){
-            logger.logMessage("UT " + ipAddrS + " FPGA Loaded." + "\n");
-            return;
+            if (inBuffer[1] == FPGA_CONFIG_GOOD){
+                logger.logMessage("UT " + ipAddrS + " FPGA Loaded." + "\n");
+                return;
             }
 
-        //send data packet when requested by remote
-        if (inBuffer[0] == SEND_DATA_CMD && !fileDone){
+            //send data packet when requested by remote
+            if (inBuffer[0] == SEND_DATA_CMD && !fileDone){
 
-            bufPtr = 0; c = 0;
-            codeBuffer[bufPtr++] = DATA_CMD; // command byte = data packet
+                bufPtr = 0; c = 0;
+                codeBuffer[bufPtr++] = DATA_CMD; // command byte = data packet
 
-            //be sure to check bufPtr on left side or a byte will get read
-            //and ignored every time bufPtr test fails
-            while (bufPtr < CODE_BUFFER_SIZE && (c = inFile.read()) != -1 ) {
+                //be sure to check bufPtr on left side or a byte will get read
+                //and ignored every time bufPtr test fails
+                while (bufPtr < CODE_BUFFER_SIZE && (c = inFile.read()) != -1 ){
 
-                //stuff the bytes into the buffer after the command byte
-                codeBuffer[bufPtr++] = (byte)c;
+                    //stuff the bytes into the buffer after the command byte
+                    codeBuffer[bufPtr++] = (byte)c;
 
-                //reset timer in this loop so it only gets reset when
-                //a request has been received AND not at end of file
-                timeOutRead = 0;
+                    //reset timer in this loop so it only gets reset when
+                    //a request has been received AND not at end of file
+                    timeOutRead = 0;
 
                 }
 
-            if (c == -1) fileDone = true; //send no more packets
+                if (c == -1) fileDone = true; //send no more packets
 
-            //send packet to remote
-            byteOut.write(codeBuffer, 0 /*offset*/, CODE_BUFFER_SIZE);
+                //send packet to remote
+                byteOut.write(codeBuffer, 0 /*offset*/, CODE_BUFFER_SIZE);
 
             }//if (inBuffer[0] == SEND_DATA)
 
-        //count loops - will exit when max reached
-        //this is reset whenever a packet request is received and the end of
-        //file not reached - when end of file reached, loop will wait until
-        //timeout reached again before exiting in order to catch success/error
-        //messages from the remote
+            //count loops - will exit when max reached
+            //this is reset whenever a packet request is received and the end of
+            //file not reached - when end of file reached, loop will wait until
+            //timeout reached again before exiting in order to catch
+            //success/error messages from the remote
 
-        timeOutRead++;
+            timeOutRead++;
 
         }// while(timeOutGet <...
 
-    //remote has not responded if this part reached
-    logger.logMessage(
-                "UT " + ipAddrS + " error loading FPGA - contact lost." + "\n");
+        //remote has not responded if this part reached
+        logger.logMessage(
+              "UT " + ipAddrS + " error loading FPGA - contact lost." + "\n");
 
     }//try
-catch(IOException e){}
-finally {
-    if (inFile != null) try {inFile.close();}catch(IOException e){}
+    catch(IOException e){}
+    finally {
+        if (inFile != null) try {inFile.close();}catch(IOException e){}
     }//finally
 
 }//end of UTBoard::loadFPGA
@@ -1012,9 +1015,9 @@ finally {
 public byte writeFPGAReg(byte pAddress, byte pByte)
 {
 
-sendBytes3(WRITE_FPGA_CMD, pAddress, pByte);
+    sendBytes3(WRITE_FPGA_CMD, pAddress, pByte);
 
-return pByte;
+    return pByte;
 
 }//end of UTBoard::writeFPGAReg
 //-----------------------------------------------------------------------------
@@ -1028,22 +1031,22 @@ return pByte;
 void initFPGA()
 {
 
-//place FPGA internals in reset (active high), DSPs in reset (active low)
-resetShadow = writeFPGAReg(RESET_REG, (byte)0x01);
+    //place FPGA internals in reset (active high), DSPs in reset (active low)
+    resetShadow = writeFPGAReg(RESET_REG, (byte)0x01);
 
-//place FPGA in setup mode - Rabbit controls HPI
-masterControlShadow = writeFPGAReg(MASTER_CONTROL_REG, (byte)0x00);
+    //place FPGA in setup mode - Rabbit controls HPI
+    masterControlShadow = writeFPGAReg(MASTER_CONTROL_REG, (byte)0x00);
 
-//tell the fpga where to store data samples in the DSPs
-sendSampleBufferStart(0, UTBoard.AD_RAW_DATA_BUFFER_ADDRESS);
-sendSampleBufferStart(1, UTBoard.AD_RAW_DATA_BUFFER_ADDRESS);
-sendSampleBufferStart(2, UTBoard.AD_RAW_DATA_BUFFER_ADDRESS);
-sendSampleBufferStart(3, UTBoard.AD_RAW_DATA_BUFFER_ADDRESS);
+    //tell the fpga where to store data samples in the DSPs
+    sendSampleBufferStart(0, UTBoard.AD_RAW_DATA_BUFFER_ADDRESS);
+    sendSampleBufferStart(1, UTBoard.AD_RAW_DATA_BUFFER_ADDRESS);
+    sendSampleBufferStart(2, UTBoard.AD_RAW_DATA_BUFFER_ADDRESS);
+    sendSampleBufferStart(3, UTBoard.AD_RAW_DATA_BUFFER_ADDRESS);
 
-//release FPGA internals from reset (low = no reset)
-//release DSP Global reset so HPI bus can be used (high = no reset)
-//DSPs A,B,C,D still in individual reset (low = reset)
-resetShadow = writeFPGAReg(RESET_REG, (byte)0x02);
+    //release FPGA internals from reset (low = no reset)
+    //release DSP Global reset so HPI bus can be used (high = no reset)
+    //DSPs A,B,C,D still in individual reset (low = reset)
+    resetShadow = writeFPGAReg(RESET_REG, (byte)0x02);
 
 }//end of UTBoard::initFPGA
 //-----------------------------------------------------------------------------
@@ -1059,53 +1062,53 @@ resetShadow = writeFPGAReg(RESET_REG, (byte)0x02);
 public void initialize()
 {
 
-// load values from the config file which can only be loaded after the board's
-// chassis and slot addresses are known
+    // load values from the config file which can only be loaded after the
+    // board's chassis and slot addresses are known
 
-configureExtended(configFile);
+    configureExtended(configFile);
 
-//destroy the configFile object to release resources
-//debug -- mks -- this was removed because the warmStart needs to reload resources
-// probably doesn't need to reload them as the originals are probably still good?
-// on warmStart check if null and use old values
-//configFile = null;
+    //destroy the configFile object to release resources
+    //debug -- mks -- this was removed because the warmStart needs to reload resources
+    // probably doesn't need to reload them as the originals are probably still good?
+    // on warmStart check if null and use old values
+    //configFile = null;
 
-//place the FPGA internals into reset to prevent them from starting
-//in an unknown condition after changing the sampling registers
+    //place the FPGA internals into reset to prevent them from starting
+    //in an unknown condition after changing the sampling registers
 
-resetShadow = writeFPGAReg(RESET_REG, (byte)(resetShadow | 0x01));
+    resetShadow = writeFPGAReg(RESET_REG, (byte)(resetShadow | 0x01));
 
-//turn off all tranducers
-sendTransducer(0, (byte)0, (byte)1, (byte)0);
-sendTransducer(1, (byte)0, (byte)1, (byte)1);
-sendTransducer(2, (byte)0, (byte)1, (byte)2);
-sendTransducer(3, (byte)0, (byte)1, (byte)3);
+    //turn off all tranducers
+    sendTransducer(0, (byte)0, (byte)1, (byte)0);
+    sendTransducer(1, (byte)0, (byte)1, (byte)1);
+    sendTransducer(2, (byte)0, (byte)1, (byte)2);
+    sendTransducer(3, (byte)0, (byte)1, (byte)3);
 
-sendRepRate();
+    sendRepRate();
 
-sendTriggerWidth(triggerWidth);
+    sendTriggerWidth(triggerWidth);
 
-sendSyncWidth(syncWidth);
-sendPulseDelay(pulseDelay);
+    sendSyncWidth(syncWidth);
+    sendPulseDelay(pulseDelay);
 
-//number of banks to fire (use desired value - 1, 0 = 1 bank)
-writeFPGAReg(NUMBER_BANKS_REG, (byte)numberOfBanks);
+    //number of banks to fire (use desired value - 1, 0 = 1 bank)
+    writeFPGAReg(NUMBER_BANKS_REG, (byte)numberOfBanks);
 
-//place FPGA in run mode using A/D test data sequence
-//use 0x07 for board to be the source of the pulser sync
-//use 0x05 for board to be a receiver of the pulser sync
+    //place FPGA in run mode using A/D test data sequence
+    //use 0x07 for board to be the source of the pulser sync
+    //use 0x05 for board to be a receiver of the pulser sync
 
-//set the board up as the pulse sync source if specified
-if (syncSource) masterControlShadow |= SYNC_SOURCE;
+    //set the board up as the pulse sync source if specified
+    if (syncSource) masterControlShadow |= SYNC_SOURCE;
 
-//set the board up to use real data instead of simulation data
-masterControlShadow &= (~SIM_DATA);
+    //set the board up to use real data instead of simulation data
+    masterControlShadow &= (~SIM_DATA);
 
-//apply the settings to the FPGA register
-writeFPGAReg(MASTER_CONTROL_REG, (byte)masterControlShadow);
+    //apply the settings to the FPGA register
+    writeFPGAReg(MASTER_CONTROL_REG, (byte)masterControlShadow);
 
-//release the FPGA internals from reset
-resetShadow = writeFPGAReg(RESET_REG, (byte)(resetShadow & (~0x01)));
+    //release the FPGA internals from reset
+    resetShadow = writeFPGAReg(RESET_REG, (byte)(resetShadow & (~0x01)));
 
 }//end of UTBoard::initialize
 //-----------------------------------------------------------------------------
@@ -1156,16 +1159,16 @@ public void warmReset()
 void getChassisSlotAddress()
 {
 
-//read the address from FPGA register connected to the switches
-byte address = getRemoteAddressedData(READ_FPGA_CMD, CHASSIS_SLOT_ADDRESS);
+    //read the address from FPGA register connected to the switches
+    byte address = getRemoteAddressedData(READ_FPGA_CMD, CHASSIS_SLOT_ADDRESS);
 
-//the address from the switches is inverted with the chassis address in the
-//upper nibble and the board address in the lower
+    //the address from the switches is inverted with the chassis address in the
+    //upper nibble and the board address in the lower
 
-chassisAddr =  (~address>>4 & 0xf);
-slotAddr = ~address & 0xf;
+    chassisAddr =  (~address>>4 & 0xf);
+    slotAddr = ~address & 0xf;
 
-logger.logMessage("UT " + ipAddrS + " chassis & slot address: "
+    logger.logMessage("UT " + ipAddrS + " chassis & slot address: "
                                         + chassisAddr + "-" + slotAddr + "\n");
 
 }//end of UTBoard::getChassisSlotAddress
@@ -1188,35 +1191,35 @@ logger.logMessage("UT " + ipAddrS + " chassis & slot address: "
 void getChassisSlotAddressOverride()
 {
 
-//use integers with zeroing of upper bits to represent the bytes as unsigned
-//values - without zeroing, sign extension during transfer to the int makes
-//values above 127 negative
+    //use integers with zeroing of upper bits to represent the bytes as unsigned
+    //values - without zeroing, sign extension during transfer to the int makes
+    //values above 127 negative
 
-int byte2 = (int)(ipAddr.getAddress()[2] & 0xff);
-int byte3 = (int)(ipAddr.getAddress()[3] & 0xff);
+    int byte2 = (int)(ipAddr.getAddress()[2] & 0xff);
+    int byte3 = (int)(ipAddr.getAddress()[3] & 0xff);
 
-IniFile configFileL;
+    IniFile configFileL;
 
-//if the ini file cannot be opened and loaded, exit without action
-try {configFileL = new IniFile("Board Slot Overrides.ini", mainFileFormat);}
-    catch(IOException e){
-    return;
+    //if the ini file cannot be opened and loaded, exit without action
+    try {configFileL = new IniFile("Board Slot Overrides.ini", mainFileFormat);}
+        catch(IOException e){
+        return;
     }
 
-String section = byte2 + "." + byte3;
+    String section = byte2 + "." + byte3;
 
-byte chassisAddrL = (byte)configFileL.readInt(section, "Chassis", -1);
+    byte chassisAddrL = (byte)configFileL.readInt(section, "Chassis", -1);
 
-byte slotAddrL = (byte)configFileL.readInt(section, "Slot", -1);
+    byte slotAddrL = (byte)configFileL.readInt(section, "Slot", -1);
 
-//if a chassis and board address were found for this board's IP address,
-//set the board's addresses to match
+    //if a chassis and board address were found for this board's IP address,
+    //set the board's addresses to match
 
-if (chassisAddrL != -1) chassisAddr = chassisAddrL;
-if (slotAddrL != -1) slotAddr = slotAddrL;
+    if (chassisAddrL != -1) chassisAddr = chassisAddrL;
+    if (slotAddrL != -1) slotAddr = slotAddrL;
 
-if (chassisAddrL != -1 || slotAddrL != -1)
-    logger.logMessage("UT " + ipAddrS + " chassis & slot override: "
+    if (chassisAddrL != -1 || slotAddrL != -1)
+        logger.logMessage("UT " + ipAddrS + " chassis & slot override: "
                                         + chassisAddr + "-" + slotAddr + "\n");
 
 }//end of UTBoard::getChassisSlotAddressOverride
@@ -1231,19 +1234,19 @@ if (chassisAddrL != -1 || slotAddrL != -1)
 void sendRepRate()
 {
 
-//debug mks zzz
+    //debug mks zzz
 
-//write the bytes of the integer to the appropriate registers
-writeFPGAReg(REP_RATE_0_REG, (byte) (repRate & 0xff));
-writeFPGAReg(REP_RATE_1_REG, (byte) ((repRate >> 8) & 0xff));
-writeFPGAReg(REP_RATE_2_REG, (byte) ((repRate >> 16) & 0xff));
-writeFPGAReg(REP_RATE_3_REG, (byte) ((repRate >> 24) & 0xff));
+    //write the bytes of the integer to the appropriate registers
+    writeFPGAReg(REP_RATE_0_REG, (byte) (repRate & 0xff));
+    writeFPGAReg(REP_RATE_1_REG, (byte) ((repRate >> 8) & 0xff));
+    writeFPGAReg(REP_RATE_2_REG, (byte) ((repRate >> 16) & 0xff));
+    writeFPGAReg(REP_RATE_3_REG, (byte) ((repRate >> 24) & 0xff));
 
-//change this to send the value to the Rabbit and let it stuff into the
-//DSP so it can validate the value -- the current method is dangerous -- if
-//one of the writes above gets lost, the rep rate could get set very high and
-//blow the fuse and destroy the resistors
-// use sendSoftwareDelay as an example
+    //change this to send the value to the Rabbit and let it stuff into the
+    //DSP so it can validate the value -- the current method is dangerous -- if
+    //one of the writes above gets lost, the rep rate could get set very high
+    //and blow the fuse and destroy the resistors
+    // use sendSoftwareDelay as an example
 
 }//end of UTBoard::sendRepRate
 //-----------------------------------------------------------------------------
@@ -1262,20 +1265,20 @@ writeFPGAReg(REP_RATE_3_REG, (byte) ((repRate >> 24) & 0xff));
 void setRepRateInHertz(int pValue)
 {
 
-//rep rate is per channel
-//multipy the rep rate by the number of banks and multiply by the clock period
-//to get the number of clock counts per pulse
-//to get counts: (2000 * number of banks) * 0.000000015
-// 0.000000015 = 15 ns
-// add one to numberOfBanks because it is zero based
+    //rep rate is per channel
+    //multipy the rep rate by the number of banks and multiply by the clock
+    //period to get the number of clock counts per pulse
+    //to get counts: (2000 * number of banks) * 0.000000015
+    // 0.000000015 = 15 ns
+    // add one to numberOfBanks because it is zero based
 
-repRate = (int)(1/(repRateInHertz * (numberOfBanks+1) * 0.000000015));
+    repRate = (int)(1/(repRateInHertz * (numberOfBanks+1) * 0.000000015));
 
-//limit to a safe value - if the rep rate is too high and the pulse width too
-//wide, the pulser circuitry will have an excessive duty cycle and burn up
-//4166 is twice 2Khz for 4 channels - a reasonable maximum
-// (a smaller value is a higher rep rate)
-if (repRate < 4166 || repRate > 65535 ) repRate = 33333;
+    //limit to a safe value - if the rep rate is too high and the pulse width
+    //too wide, the pulser circuitry will have an excessive duty cycle and burn
+    //up 4166 is twice 2Khz for 4 channels - a reasonable maximum
+    // (a smaller value is a higher rep rate)
+    if (repRate < 4166 || repRate > 65535 ) repRate = 33333;
 
 }//end of UTBoard::setRepRateInHertz
 //-----------------------------------------------------------------------------
@@ -1289,7 +1292,7 @@ if (repRate < 4166 || repRate > 65535 ) repRate = 33333;
 public int getRepRateInHertz()
 {
 
-return (repRateInHertz);
+    return (repRateInHertz);
 
 }//end of UTBoard::getRepRateInHertz
 //-----------------------------------------------------------------------------
@@ -1310,13 +1313,13 @@ void sendTransducer(int pChannel, byte pOnOff, byte pPulseBank,
                                                            byte pPulseChannel)
 {
 
-int setup = pOnOff + (pPulseBank << 1) + (pPulseChannel << 4);
+    int setup = pOnOff + (pPulseBank << 1) + (pPulseChannel << 4);
 
-//    *  Bit 0 : 0 = transducer is inactive, 1 = transducer is active
-//    * Bits 1:3 : time slot for the transducer see Number of Time Slots
-//    * Bits 4:7 :specifies channel of pulser to be fired for this transducer
+    //   *  Bit 0 : 0 = transducer is inactive, 1 = transducer is active
+    //   * Bits 1:3 : time slot for the transducer see Number of Time Slots
+    //   * Bits 4:7 :specifies channel of pulser to be fired for this transducer
 
-writeFPGAReg(bdChs[pChannel].ducerSetupReg, (byte)setup);
+    writeFPGAReg(bdChs[pChannel].ducerSetupReg, (byte)setup);
 
 }//end of UTBoard::sendTransducer
 //-----------------------------------------------------------------------------
@@ -1330,11 +1333,11 @@ writeFPGAReg(bdChs[pChannel].ducerSetupReg, (byte)setup);
 void sendTriggerWidth(int pValue)
 {
 
-//write the bytes of the integer to the appropriate registers
-writeFPGAReg(TRIG_WIDTH_0_REG, (byte) (pValue & 0xff));
-writeFPGAReg(TRIG_WIDTH_1_REG, (byte) ((pValue >> 8) & 0xff));
-writeFPGAReg(TRIG_WIDTH_2_REG, (byte) ((pValue >> 16) & 0xff));
-writeFPGAReg(TRIG_WIDTH_3_REG, (byte) ((pValue >> 24) & 0xff));
+    //write the bytes of the integer to the appropriate registers
+    writeFPGAReg(TRIG_WIDTH_0_REG, (byte) (pValue & 0xff));
+    writeFPGAReg(TRIG_WIDTH_1_REG, (byte) ((pValue >> 8) & 0xff));
+    writeFPGAReg(TRIG_WIDTH_2_REG, (byte) ((pValue >> 16) & 0xff));
+    writeFPGAReg(TRIG_WIDTH_3_REG, (byte) ((pValue >> 24) & 0xff));
 
 }//end of UTBoard::sendTriggerWidth
 //-----------------------------------------------------------------------------
@@ -1356,9 +1359,9 @@ writeFPGAReg(TRIG_WIDTH_3_REG, (byte) ((pValue >> 24) & 0xff));
 void sendSyncWidth(int pValue)
 {
 
-//write the bytes of the integer to the appropriate registers
-writeFPGAReg(SYNC_WIDTH_0_REG, (byte) (pValue & 0xff));
-writeFPGAReg(SYNC_WIDTH_1_REG, (byte) ((pValue >> 8) & 0xff));
+    //write the bytes of the integer to the appropriate registers
+    writeFPGAReg(SYNC_WIDTH_0_REG, (byte) (pValue & 0xff));
+    writeFPGAReg(SYNC_WIDTH_1_REG, (byte) ((pValue >> 8) & 0xff));
 
 }//end of UTBoard::sendSyncWidth
 //-----------------------------------------------------------------------------
@@ -1380,9 +1383,9 @@ writeFPGAReg(SYNC_WIDTH_1_REG, (byte) ((pValue >> 8) & 0xff));
 void sendPulseDelay(int pValue)
 {
 
-//write the bytes of the integer to the appropriate registers
-writeFPGAReg(PULSE_DELAY_0_REG, (byte) (pValue & 0xff));
-writeFPGAReg(PULSE_DELAY_1_REG, (byte) ((pValue >> 8) & 0xff));
+    //write the bytes of the integer to the appropriate registers
+    writeFPGAReg(PULSE_DELAY_0_REG, (byte) (pValue & 0xff));
+    writeFPGAReg(PULSE_DELAY_1_REG, (byte) ((pValue >> 8) & 0xff));
 
 }//end of UTBoard::sendPulseDelay
 //-----------------------------------------------------------------------------
@@ -1420,39 +1423,39 @@ writeFPGAReg(PULSE_DELAY_1_REG, (byte) ((pValue >> 8) & 0xff));
 void sendHardwareGain(int pChannel, int pGain1, int pGain2)
 {
 
-byte gain1 = 0, gain2 = 0;
+    byte gain1 = 0, gain2 = 0;
 
-// gain goes in lower nibble
-gain1 = (byte)((pGain1-1) & 0x0f); gain2 = (byte)((pGain2-1) & 0x0f);
+    // gain goes in lower nibble
+    gain1 = (byte)((pGain1-1) & 0x0f); gain2 = (byte)((pGain2-1) & 0x0f);
 
-//leave bits 4 & 5 as zero - Zero and Power Down functions inactive
+    //leave bits 4 & 5 as zero - Zero and Power Down functions inactive
 
-//determine the appropriate bandwidth compensation value for each gain per
-//the data sheet recommendations
+    //determine the appropriate bandwidth compensation value for each gain per
+    //the data sheet recommendations
 
-// gain 16 (value 15), use comp of 00b, 01b, 10b, or 11b
-// gain 11-15 (value 10-14), use comp of 00b, 01b, or 10b
-// gain 6-10 (value 5-9), use comp of 00b or 01b
-// gain 1-5 (values 0-4), use max comp of 00b
-// in each case, the highest comp is the lowest value (00 is highest comp)
-//   so choosing the highest value for each case gives the lowest comp and
-//   therefore the highest possible frequency response for that range
+    // gain 16 (value 15), use comp of 00b, 01b, 10b, or 11b
+    // gain 11-15 (value 10-14), use comp of 00b, 01b, or 10b
+    // gain 6-10 (value 5-9), use comp of 00b or 01b
+    // gain 1-5 (values 0-4), use max comp of 00b
+    // in each case, the highest comp is the lowest value (00 is highest comp)
+    //   so choosing the highest value for each case gives the lowest comp and
+    //   therefore the highest possible frequency response for that range
 
-if (gain1 == 15) gain1 |= 0xc0;
-else
-if (gain1 >= 10) gain1 |= 0x80;
-else
-if (gain1 >= 5)  gain1 |= 0x40;
-// gains less than 6 (value of 5) have 00b compensation
+    if (gain1 == 15) gain1 |= 0xc0;
+    else
+    if (gain1 >= 10) gain1 |= 0x80;
+    else
+    if (gain1 >= 5)  gain1 |= 0x40;
+    // gains less than 6 (value of 5) have 00b compensation
 
-if (gain2 == 15) gain2 |= 0xc0;
-else
-if (gain2 >= 10) gain2 |= 0x80;
-else
-if (gain2 >= 5)  gain2 |= 0x40;
-// gains less than 6 (value of 5) have 00b compensation
+    if (gain2 == 15) gain2 |= 0xc0;
+    else
+    if (gain2 >= 10) gain2 |= 0x80;
+    else
+    if (gain2 >= 5)  gain2 |= 0x40;
+    // gains less than 6 (value of 5) have 00b compensation
 
-sendBytes4((byte)SET_HDW_GAIN_CMD, (byte)pChannel, gain1, gain2);
+    sendBytes4((byte)SET_HDW_GAIN_CMD, (byte)pChannel, gain1, gain2);
 
 }//end of UTBoard::sendHardwareGain
 //-----------------------------------------------------------------------------
@@ -1468,10 +1471,10 @@ sendBytes4((byte)SET_HDW_GAIN_CMD, (byte)pChannel, gain1, gain2);
 void setAScanSmoothing(int pChannel, int pAScanSmoothing)
 {
 
-if (pAScanSmoothing < 1) pAScanSmoothing = 1;
-if (pAScanSmoothing > ASCAN_FIFO_SIZE) pAScanSmoothing = ASCAN_FIFO_SIZE;
+    if (pAScanSmoothing < 1) pAScanSmoothing = 1;
+    if (pAScanSmoothing > ASCAN_FIFO_SIZE) pAScanSmoothing = ASCAN_FIFO_SIZE;
 
-bdChs[pChannel].aScanSmoothing = pAScanSmoothing;
+    bdChs[pChannel].aScanSmoothing = pAScanSmoothing;
 
 }//end of UTBoard::setAScanSmoothing
 //-----------------------------------------------------------------------------
@@ -1488,8 +1491,8 @@ bdChs[pChannel].aScanSmoothing = pAScanSmoothing;
 void setRejectLevel(int pChannel, int pRejectLevel)
 {
 
-bdChs[pChannel].rejectLevel =
-        (int)((pRejectLevel * ASCAN_MAX_HEIGHT) / 100 / ASCAN_SCALE);
+    bdChs[pChannel].rejectLevel =
+            (int)((pRejectLevel * ASCAN_MAX_HEIGHT) / 100 / ASCAN_SCALE);
 
 }//end of UTBoard::setRejectLevel
 //-----------------------------------------------------------------------------
@@ -1522,24 +1525,24 @@ void writeDSPRam(int pDSPChip, int pDSPCore, int pRAMType,
                    int pPage, int pAddress, int pValue)
 {
 
-//transfer the values to the command packet
-// byte0 = command
-// byte1 = DSP chip number (1 or 2)
-// byte2 = DSP core number (1,2,3, or 4)
-// byte3 = address byte 2 (the page)
-// byte4 = address byte 1
-// byte5 = address byte 0
-// byte6 = high byte of value to be written
-// byte7 = low byte of value to be written
+    //transfer the values to the command packet
+    // byte0 = command
+    // byte1 = DSP chip number (1 or 2)
+    // byte2 = DSP core number (1,2,3, or 4)
+    // byte3 = address byte 2 (the page)
+    // byte4 = address byte 1
+    // byte5 = address byte 0
+    // byte6 = high byte of value to be written
+    // byte7 = low byte of value to be written
 
 
-//if shared memory is selected, set bit 20 of the HPIA register - this is
-//bit 4 of the upper address byte 2
+    //if shared memory is selected, set bit 20 of the HPIA register - this is
+    //bit 4 of the upper address byte 2
 
-sendBytes8(WRITE_DSP_CMD, (byte)pDSPChip, (byte)pDSPCore,
-            (byte)(pPage |= ((pRAMType == 1) ? 0x10 : 0x00)),
-            (byte)((pAddress >> 8) & 0xff),(byte)(pAddress & 0xff),
-            (byte)((pValue >> 8) & 0xff), (byte)(pValue & 0xff));
+    sendBytes8(WRITE_DSP_CMD, (byte)pDSPChip, (byte)pDSPCore,
+                (byte)(pPage |= ((pRAMType == 1) ? 0x10 : 0x00)),
+                (byte)((pAddress >> 8) & 0xff),(byte)(pAddress & 0xff),
+                (byte)((pValue >> 8) & 0xff), (byte)(pValue & 0xff));
 
 }//end of UTBoard::writeDSPRam
 //-----------------------------------------------------------------------------
@@ -1557,15 +1560,15 @@ sendBytes8(WRITE_DSP_CMD, (byte)pDSPChip, (byte)pDSPCore,
 void writeNextDSPRam(int pDSPChip, int pDSPCore, int pValue)
 {
 
-//transfer the values to the command packet
-// byte0 = command
-// byte1 = DSP chip number (1 or 2)
-// byte2 = DSP core number (1,2,3, or 4)
-// byte3 = high byte of value to be written
-// byte4 = low byte of value to be written
+    //transfer the values to the command packet
+    // byte0 = command
+    // byte1 = DSP chip number (1 or 2)
+    // byte2 = DSP core number (1,2,3, or 4)
+    // byte3 = high byte of value to be written
+    // byte4 = low byte of value to be written
 
-sendBytes5(WRITE_NEXT_DSP_CMD, (byte)pDSPChip, (byte)pDSPCore,
-            (byte)((pValue >> 8) & 0xff), (byte)(pValue & 0xff));
+    sendBytes5(WRITE_NEXT_DSP_CMD, (byte)pDSPChip, (byte)pDSPCore,
+                (byte)((pValue >> 8) & 0xff), (byte)(pValue & 0xff));
 
 }//end of UTBoard::writeNextDSPRam
 //-----------------------------------------------------------------------------
@@ -1580,16 +1583,16 @@ public void fillRAM(int pDSPChip, int pDSPCore,
            int pRAMType, int pPage, int pAddress, int pBlockSize, int pValue)
 {
 
-int i = 0;
+    int i = 0;
 
-while (i < pBlockSize){
+    while (i < pBlockSize){
 
-    //modifyRAMDSP sets up the address and modifies the first word
-    //subsequent words are modified with modifyNextRAMDSP
-    if (i++ == 0)
-        writeDSPRam(pDSPChip, pDSPCore, pRAMType, pPage, pAddress, pValue);
-    else
-        writeNextDSPRam(pDSPChip, pDSPCore, pValue);
+        //modifyRAMDSP sets up the address and modifies the first word
+        //subsequent words are modified with modifyNextRAMDSP
+        if (i++ == 0)
+            writeDSPRam(pDSPChip, pDSPCore, pRAMType, pPage, pAddress, pValue);
+        else
+            writeNextDSPRam(pDSPChip, pDSPCore, pValue);
 
     }//while (i < pBlockSize)
 
@@ -1611,44 +1614,44 @@ public void readRAM(int pDSPChip, int pDSPCore, int pRAMType,
                    int pPage, int pAddress, int pCount, byte[] dataBlock)
 {
 
-//limit number of words to 127 because the number of bytes is twice that
-//and the remote device must be able to specify the number of data bytes
-//returned in the single size byte which can express a maximum of 255
+    //limit number of words to 127 because the number of bytes is twice that
+    //and the remote device must be able to specify the number of data bytes
+    //returned in the single size byte which can express a maximum of 255
 
-if (pCount > 127) pCount = 127;
+    if (pCount > 127) pCount = 127;
 
-//limit bytes retrieved to size of array - pCount is in words so multiply by 2
-//for the number of bytes
-if ((pCount*2) > readDSPResult.length) pCount = readDSPResult.length / 2;
+    //limit bytes retrieved to size of array
+    //pCount is in words so multiply by 2 for the number of bytes
+    if ((pCount*2) > readDSPResult.length) pCount = readDSPResult.length / 2;
 
-//transfer the values to the command packet
-// byte0 = command
-// byte1 = DSP chip number (1 or 2)
-// byte2 = DSP core number (1,2,3, or 4)
-// byte3 = address byte 2 (the page number)
-// byte4 = address byte 1
-// byte5 = address byte 0
-// byte6 = size of data block to read (max is 255)
+    //transfer the values to the command packet
+    // byte0 = command
+    // byte1 = DSP chip number (1 or 2)
+    // byte2 = DSP core number (1,2,3, or 4)
+    // byte3 = address byte 2 (the page number)
+    // byte4 = address byte 1
+    // byte5 = address byte 0
+    // byte6 = size of data block to read (max is 255)
 
-//clear flag - will be set true when processDataPackets encounters the
-//return packet
-readDSPDone = false;
+    //clear flag - will be set true when processDataPackets encounters the
+    //return packet
+    readDSPDone = false;
 
-//if shared memory is selected, set bit 20 of the HPIA register - this is
-//bit 4 of the upper address byte 2
+    //if shared memory is selected, set bit 20 of the HPIA register - this is
+    //bit 4 of the upper address byte 2
 
-sendBytes7(READ_DSP_BLOCK_CMD, (byte)pDSPChip, (byte)pDSPCore,
-            (byte)(pPage |= ((pRAMType == 1) ? 0x10 : 0x00)),
-            (byte)((pAddress >> 8) & 0xff),(byte)(pAddress & 0xff),
-            (byte)(pCount & 0xff));
+    sendBytes7(READ_DSP_BLOCK_CMD, (byte)pDSPChip, (byte)pDSPCore,
+                (byte)(pPage |= ((pRAMType == 1) ? 0x10 : 0x00)),
+                (byte)((pAddress >> 8) & 0xff),(byte)(pAddress & 0xff),
+                (byte)(pCount & 0xff));
 
-// wait until processDSPPackets reaches the answer packet from the remote
-// and processes it
+    // wait until processDSPPackets reaches the answer packet from the remote
+    // and processes it
 
-timeOutRead = 0;
-while(!readDSPDone && timeOutRead++ < TIMEOUT ){waitSleep(10);}
+    timeOutRead = 0;
+    while(!readDSPDone && timeOutRead++ < TIMEOUT ){waitSleep(10);}
 
-System.arraycopy(readDSPResult, 0, dataBlock, 0, pCount * 2);
+    System.arraycopy(readDSPResult, 0, dataBlock, 0, pCount * 2);
 
 }//end of UTBoard::readRAM
 //-----------------------------------------------------------------------------
@@ -1672,38 +1675,38 @@ void readRAMDSP(int pDSPChip, int pDSPCore, int pRAMType,
                    boolean pForceProcessDataPackets)
 {
 
-//transfer the values to the command packet
-// byte0 = command
-// byte1 = DSP chip number (1 or 2)
-// byte2 = DSP core number (1,2,3, or 4)
-// byte3 = address byte 2 (the page number)
-// byte4 = address byte 1
-// byte5 = address byte 0
+    //transfer the values to the command packet
+    // byte0 = command
+    // byte1 = DSP chip number (1 or 2)
+    // byte2 = DSP core number (1,2,3, or 4)
+    // byte3 = address byte 2 (the page number)
+    // byte4 = address byte 1
+    // byte5 = address byte 0
 
-//clear flag - will be set true when processDataPackets encounters the
-//return packet
-readDSPDone = false;
+    //clear flag - will be set true when processDataPackets encounters the
+    //return packet
+    readDSPDone = false;
 
-//if shared memory is selected, set bit 20 of the HPIA register - this is
-//bit 4 of the upper address byte 2
+    //if shared memory is selected, set bit 20 of the HPIA register - this is
+    //bit 4 of the upper address byte 2
 
-sendBytes6(READ_DSP_CMD, (byte)pDSPChip, (byte)pDSPCore,
-            (byte)(pPage |= ((pRAMType == 1) ? 0x10 : 0x00)),
-            (byte)((pAddress >> 8) & 0xff),(byte)(pAddress & 0xff));
+    sendBytes6(READ_DSP_CMD, (byte)pDSPChip, (byte)pDSPCore,
+                (byte)(pPage |= ((pRAMType == 1) ? 0x10 : 0x00)),
+                (byte)((pAddress >> 8) & 0xff),(byte)(pAddress & 0xff));
 
-// wait until processDSPPackets reaches the answer packet from the remote
-// and processes it
+    // wait until processDSPPackets reaches the answer packet from the remote
+    // and processes it
 
-if (pForceProcessDataPackets)
-    //force waiting for and processing of receive packets
-    processDataPackets(true, TIMEOUT);
-else {
-    timeOutRead = 0;
-    while(!readDSPDone && timeOutRead++ < TIMEOUT){waitSleep(10);}
+    if (pForceProcessDataPackets)
+        //force waiting for and processing of receive packets
+        processDataPackets(true, TIMEOUT);
+    else {
+        timeOutRead = 0;
+        while(!readDSPDone && timeOutRead++ < TIMEOUT){waitSleep(10);}
     }
 
-//transfer the stored result and return to caller
-pRetBuffer[0] = readDSPResult[0]; pRetBuffer[1] = readDSPResult[1];
+    //transfer the stored result and return to caller
+    pRetBuffer[0] = readDSPResult[0]; pRetBuffer[1] = readDSPResult[1];
 
 }//end of UTBoard::readRAMDSP
 //-----------------------------------------------------------------------------
@@ -1727,46 +1730,46 @@ int getDSPRamChecksum(int pDSPChip, int pDSPCore, int pRAMType,
                                     boolean pForceProcessDataPackets)
 {
 
-//transfer the values to the command packet
-// byte0 = command
-// byte1 = DSP chip number (1 or 2)
-// byte2 = DSP core number (1,2,3, or 4)
-// byte3 = address byte 2 (the page number)
-// byte4 = address byte 1
-// byte5 = address byte 0
-// byte6 = block size byte 1
-// byte7 = block size byte 0
+    //transfer the values to the command packet
+    // byte0 = command
+    // byte1 = DSP chip number (1 or 2)
+    // byte2 = DSP core number (1,2,3, or 4)
+    // byte3 = address byte 2 (the page number)
+    // byte4 = address byte 1
+    // byte5 = address byte 0
+    // byte6 = block size byte 1
+    // byte7 = block size byte 0
 
-//clear flag - will be set true when processDataPackets encounters the
-//return packet
-getDSPRamChecksumDone = false;
+    //clear flag - will be set true when processDataPackets encounters the
+    //return packet
+    getDSPRamChecksumDone = false;
 
-//if shared memory is selected, set bit 20 of the HPIA register - this is
-//bit 4 of the upper address byte 2
+    //if shared memory is selected, set bit 20 of the HPIA register - this is
+    //bit 4 of the upper address byte 2
 
-sendBytes8(GET_DSP_RAM_BLOCK_CHECKSUM, (byte)pDSPChip, (byte)pDSPCore,
-            (byte)(pPage |= ((pRAMType == 1) ? 0x10 : 0x00)),
-            (byte)((pAddress >> 8) & 0xff),(byte)(pAddress & 0xff),
-            (byte)((pBlockSize >> 8) & 0xff),(byte)(pBlockSize & 0xff)
-            );
+    sendBytes8(GET_DSP_RAM_BLOCK_CHECKSUM, (byte)pDSPChip, (byte)pDSPCore,
+                (byte)(pPage |= ((pRAMType == 1) ? 0x10 : 0x00)),
+                (byte)((pAddress >> 8) & 0xff),(byte)(pAddress & 0xff),
+                (byte)((pBlockSize >> 8) & 0xff),(byte)(pBlockSize & 0xff)
+                );
 
-// wait until processDSPPackets reaches the answer packet from the remote
-// and processes it
+    // wait until processDSPPackets reaches the answer packet from the remote
+    // and processes it
 
-if (pForceProcessDataPackets)
-    //force waiting for and processing of receive packets
-    //use a time out number large enough to give the remote time to scan the
-    //block of DSP ram
-    processDataPackets(true, 500);
-else {
-    timeOutRead = 0;
-    while(!getDSPRamChecksumDone && timeOutRead++ < TIMEOUT){waitSleep(10);}
+    if (pForceProcessDataPackets)
+        //force waiting for and processing of receive packets
+        //use a time out number large enough to give the remote time to scan the
+        //block of DSP ram
+        processDataPackets(true, 500);
+    else {
+        timeOutRead = 0;
+        while(!getDSPRamChecksumDone && timeOutRead++ < TIMEOUT){waitSleep(10);}
     }
 
-//transfer the stored result and return to caller
-//this is not a signed value, so the sign will not be extended in the result
-return((int)((getDSPRamChecksumResult[0]<<8) & 0xff00)
-                                + (int)(getDSPRamChecksumResult[1] & 0xff));
+    //transfer the stored result and return to caller
+    //this is not a signed value, so the sign will not be extended in the result
+    return((int)((getDSPRamChecksumResult[0]<<8) & 0xff00)
+                                    + (int)(getDSPRamChecksumResult[1] & 0xff));
 
 }//end of UTBoard::getDSPRamChecksum
 //-----------------------------------------------------------------------------
@@ -1786,25 +1789,25 @@ return((int)((getDSPRamChecksumResult[0]<<8) & 0xff00)
 void readNextRAMDSP(int pDSPChip, int pDSPCore, byte[] pRetBuffer)
 {
 
-//transfer the values to the command packet
-// byte0 = command
-// byte1 = DSP chip number (1 or 2)
-// byte2 = DSP core number (1,2,3, or 4)
+    //transfer the values to the command packet
+    // byte0 = command
+    // byte1 = DSP chip number (1 or 2)
+    // byte2 = DSP core number (1,2,3, or 4)
 
-//clear flag - will be set true when processDataPackets encounters the
-//return packet
-readDSPDone = false;
+    //clear flag - will be set true when processDataPackets encounters the
+    //return packet
+    readDSPDone = false;
 
-sendBytes3(READ_NEXT_DSP_CMD, (byte)pDSPChip, (byte)pDSPCore);
+    sendBytes3(READ_NEXT_DSP_CMD, (byte)pDSPChip, (byte)pDSPCore);
 
-// wait until processDSPPackets reaches the answer packet from the remote
-// and processes it
+    // wait until processDSPPackets reaches the answer packet from the remote
+    // and processes it
 
-timeOutRead = 0;
-while(!readDSPDone && timeOutRead++ < TIMEOUT){waitSleep(10);}
+    timeOutRead = 0;
+    while(!readDSPDone && timeOutRead++ < TIMEOUT){waitSleep(10);}
 
-//transfer the stored result and return to caller
-pRetBuffer[0] = readDSPResult[0]; pRetBuffer[1] = readDSPResult[1];
+    //transfer the stored result and return to caller
+    pRetBuffer[0] = readDSPResult[0]; pRetBuffer[1] = readDSPResult[1];
 
 }//end of UTBoard::readNextRAMDSP
 //-----------------------------------------------------------------------------
@@ -1846,104 +1849,105 @@ pRetBuffer[0] = readDSPResult[0]; pRetBuffer[1] = readDSPResult[1];
 void loadDSPCode(int pDSPChip, int pDSPCore)
 {
 
-FileInputStream inputStream = null;
-int packetCnt = 0;
+    FileInputStream inputStream = null;
+    int packetCnt = 0;
 
-String core;
-if (pDSPCore == 1) core = "A & B";
-else
-if (pDSPCore == 3) core = "C & D";
-else core = "";
+    String core;
+    if (pDSPCore == 1) core = "A & B";
+    else
+    if (pDSPCore == 3) core = "C & D";
+    else core = "";
 
-logger.logMessage("UT " + chassisSlotAddr + " loading DSP code for" + "\n"
-        + "    Chip " + pDSPChip + " Cores " + core + "\n");
+    logger.logMessage("UT " + chassisSlotAddr + " loading DSP code for" + "\n"
+            + "    Chip " + pDSPChip + " Cores " + core + "\n");
 
-try {
-    inputStream = new FileInputStream("DSP\\" + dspCodeFilename);
+    try {
+        inputStream = new FileInputStream("DSP\\" + dspCodeFilename);
 
-    int c;
-    int n3, n2, n1, n0;
-    int address = 0, value = 0, place = 3;
+        int c;
+        int n3, n2, n1, n0;
+        int address = 0, value = 0, place = 3;
 
-    while ((c = inputStream.read()) != -1) {
+        while ((c = inputStream.read()) != -1) {
 
-        if (c == 2) continue; //catch the ctrl-B file start marker - skip it
+            if (c == 2) continue; //catch the ctrl-B file start marker - skip it
 
-        if (c == 3) break; //catch the ctrl-C file end marker - exit
+            if (c == 3) break; //catch the ctrl-C file end marker - exit
 
-        if (c == '\r' || c == '\n' || c == ',' || c == ' ') continue;
+            if (c == '\r' || c == '\n' || c == ',' || c == ' ') continue;
 
-        // catch new address flag
-        if (c == '$') {
+            // catch new address flag
+            if (c == '$') {
 
-            c = inputStream.read(); //read and ignore the 'A'
+                c = inputStream.read(); //read and ignore the 'A'
 
-            //read next four characters to create new address value
-            n3 = fromHex(inputStream.read());
-            n2 = fromHex(inputStream.read());
-            n1 = fromHex(inputStream.read());
-            n0 = fromHex(inputStream.read());
+                //read next four characters to create new address value
+                n3 = fromHex(inputStream.read());
+                n2 = fromHex(inputStream.read());
+                n1 = fromHex(inputStream.read());
+                n0 = fromHex(inputStream.read());
 
-           address =
-                (int)((n3<<12) & 0xf000) +
-                (int)((n2<<8) & 0xf00) +
-                (int)((n1<<4) & 0xf0) +
-                (int)(n0 & 0xf);
+               address =
+                    (int)((n3<<12) & 0xf000) +
+                    (int)((n2<<8) & 0xf00) +
+                    (int)((n1<<4) & 0xf0) +
+                    (int)(n0 & 0xf);
 
-            continue;
+                continue;
 
             }
-        else{
-
-            //if this part reached, must be a digit for a character so add
-            //it into value, using the place count to specify the shift
-
-            c = fromHex(c);
-
-            if (place == 3) value += (int)((c<<12) & 0xf000);
-            else
-            if (place == 2) value += (int)((c<<8)  & 0xf00);
-            else
-            if (place == 1) value += (int)((c<<4) & 0xf0);
             else{
 
-                //fourth character converted, add it in and write word
+                //if this part reached, must be a digit for a character so add
+                //it into value, using the place count to specify the shift
 
-                value += (int)(c & 0xf);
+                c = fromHex(c);
 
-                //write to shared program memory page 0
-                writeDSPRam(pDSPChip, pDSPCore, 1, 0, address++, value);
+                if (place == 3) value += (int)((c<<12) & 0xf000);
+                else
+                if (place == 2) value += (int)((c<<8)  & 0xf00);
+                else
+                if (place == 1) value += (int)((c<<4) & 0xf0);
+                else{
 
-                //request and wait for a status flag ever so often to make sure
-                //the remote's buffer is not overrun
-                if(packetCnt++ >= 100){
-                    getRemoteData(GET_STATUS_CMD, true);
-                    packetCnt = 0;
+                    //fourth character converted, add it in and write word
+
+                    value += (int)(c & 0xf);
+
+                    //write to shared program memory page 0
+                    writeDSPRam(pDSPChip, pDSPCore, 1, 0, address++, value);
+
+                    //request and wait for a status flag ever so often to make
+                    //sure the remote's buffer is not overrun
+                    if(packetCnt++ >= 100){
+                        getRemoteData(GET_STATUS_CMD, true);
+                        packetCnt = 0;
+                        }
+
+                    place = 3; value = 0; //start over for next word
+
+                    continue; //skip the decrement below
                     }
 
-                place = 3; value = 0; //start over for next word
+                //can't decrement in the if statements because they will do the
+                //dec even if the test fails
+                place--;
 
-                continue; //skip the decrement below
+                continue;
+
                 }
-
-            //can't decrement in the if statements because they will do the
-            //dec even if the test fails
-            place--;
-
-            continue;
-
-            }
 
         }//while ((c =
     }// try
-catch(IOException e){
+    catch(IOException e){
 
-    logger.logMessage("Error opening DSP code file " + dspCodeFilename + "\n");
+        logger.logMessage(
+                    "Error opening DSP code file " + dspCodeFilename + "\n");
 
     }
-finally {
-    if (inputStream != null) {
-        try{inputStream.close();}catch(IOException e){}
+    finally {
+        if (inputStream != null) {
+            try{inputStream.close();}catch(IOException e){}
         }
     }// finally
 
@@ -1966,157 +1970,155 @@ finally {
 boolean verifyDSPCode(int pDSPChip, int pDSPCore)
 {
 
-boolean success = true;
+    boolean success = true;
 
-FileInputStream inputStream = null;
-int packetCnt = 0;
+    FileInputStream inputStream = null;
+    int packetCnt = 0;
 
-int blockCount = 0; //count the number of contiguous code blocks
-int byteCount = 0; //count the number of bytes in the block
-int checksum = 0;
+    int blockCount = 0; //count the number of contiguous code blocks
+    int byteCount = 0; //count the number of bytes in the block
+    int checksum = 0;
 
-String core;
-if (pDSPCore == 1) core = "A & B";
-else
-if (pDSPCore == 3) core = "C & D";
-else core = "";
+    String core;
+    if (pDSPCore == 1) core = "A & B";
+    else
+    if (pDSPCore == 3) core = "C & D";
+    else core = "";
 
-logger.logMessage("UT " + chassisSlotAddr + " verifying DSP code for" + "\n"
-        + "    Chip " + pDSPChip + " Cores " + core + "\n");
+    logger.logMessage("UT " + chassisSlotAddr + " verifying DSP code for" + "\n"
+            + "    Chip " + pDSPChip + " Cores " + core + "\n");
 
-byte[] buffer = new byte[2];
+    byte[] buffer = new byte[2];
 
-try {
-    inputStream = new FileInputStream("DSP\\" + dspCodeFilename);
+    try {
+        inputStream = new FileInputStream("DSP\\" + dspCodeFilename);
 
-    int c;
-    int n3, n2, n1, n0;
-    int address = 0, value = 0, place = 3;
+        int c;
+        int n3, n2, n1, n0;
+        int address = 0, value = 0, place = 3;
 
-    while ((c = inputStream.read()) != -1) {
+        while ((c = inputStream.read()) != -1) {
 
-        if (c == 2) continue; //catch the ctrl-B file start marker - skip it
+            if (c == 2) continue; //catch the ctrl-B file start marker - skip it
 
-        if (c == 3) break; //catch the ctrl-C file end marker - exit
+            if (c == 3) break; //catch the ctrl-C file end marker - exit
 
-        if (c == '\r' || c == '\n' || c == ',' || c == ' ') continue;
+            if (c == '\r' || c == '\n' || c == ',' || c == ' ') continue;
 
-        // catch new address flag
-        if (c == '$') {
+            // catch new address flag
+            if (c == '$') {
 
-            c = inputStream.read(); //read and ignore the 'A'
+                c = inputStream.read(); //read and ignore the 'A'
 
-            //read next four characters to create new address value
-            n3 = fromHex(inputStream.read());
-            n2 = fromHex(inputStream.read());
-            n1 = fromHex(inputStream.read());
-            n0 = fromHex(inputStream.read());
+                //read next four characters to create new address value
+                n3 = fromHex(inputStream.read());
+                n2 = fromHex(inputStream.read());
+                n1 = fromHex(inputStream.read());
+                n0 = fromHex(inputStream.read());
 
-            //each time the address is changed, verify the checksum for the
-            //previous block by comparing with the checksum from the remote
+                //each time the address is changed, verify the checksum for the
+                //previous block by comparing with the checksum from the remote
 
-            //request the checksum for the current block as stored in the DSP
-            //skip if the block size is 0
-            if (byteCount > 0){
+                //request the checksum for the current block as stored in the
+                //DSP skip if the block size is 0
+                if (byteCount > 0){
 
-                checksum &= 0xffff; //only use lower word of checksum
+                    checksum &= 0xffff; //only use lower word of checksum
 
-                int remoteChecksum = getDSPRamChecksum(pDSPChip, pDSPCore, 1, 0,
-                                                      address, byteCount, true);
+                    int remoteChecksum = getDSPRamChecksum(pDSPChip, pDSPCore,
+                                                1, 0, address, byteCount, true);
 
-                //compare the local and remote checksums
-                if (checksum != remoteChecksum){
-                    logger.logMessage(
-                        "UT " + chassisSlotAddr + " DSP code error"
-                        + "\n" + "    Chip " + pDSPChip + " Cores " + core
-                        + "  Block: " + blockCount + "\n");
-                        success = false;
+                    //compare the local and remote checksums
+                    if (checksum != remoteChecksum){
+                        logger.logMessage(
+                            "UT " + chassisSlotAddr + " DSP code error"
+                            + "\n" + "    Chip " + pDSPChip + " Cores " + core
+                            + "  Block: " + blockCount + "\n");
+                            success = false;
                     }
-
                 }// if (byteCount > 0)
 
-            blockCount++; checksum = 0; byteCount = 0; //new block
+                blockCount++; checksum = 0; byteCount = 0; //new block
 
-            //point to new address
-            address =
-                (int)((n3<<12) & 0xf000) +
-                (int)((n2<<8) & 0xf00) +
-                (int)((n1<<4) & 0xf0) +
-                (int)(n0 & 0xf);
+                //point to new address
+                address =
+                    (int)((n3<<12) & 0xf000) +
+                    (int)((n2<<8) & 0xf00) +
+                    (int)((n1<<4) & 0xf0) +
+                    (int)(n0 & 0xf);
 
-            continue;
+                continue;
 
             }
-        else{
-
-            //if this part reached, must be a digit for a character so add
-            //it into value, using the place count to specify the shift
-
-            c = fromHex(c);
-
-            if (place == 3) value += (int)((c<<12) & 0xf000);
-            else
-            if (place == 2) value += (int)((c<<8)  & 0xf00);
-            else
-            if (place == 1) value += (int)((c<<4) & 0xf0);
             else{
 
-                //fourth character converted, add it in and write word
-                value += (int)(c & 0xf);
-                //track the number of bytes and the checksum
-                byteCount++; checksum += value;
+                //if this part reached, must be a digit for a character so add
+                //it into value, using the place count to specify the shift
 
-                place = 3; value = 0; //start over for next word
+                c = fromHex(c);
 
-                continue; //skip the decrement below
-                }
+                if (place == 3) value += (int)((c<<12) & 0xf000);
+                else
+                if (place == 2) value += (int)((c<<8)  & 0xf00);
+                else
+                if (place == 1) value += (int)((c<<4) & 0xf0);
+                else{
 
-            //can't decrement in the if statements because they will do the
-            //dec even if the test fails
-            place--;
+                    //fourth character converted, add it in and write word
+                    value += (int)(c & 0xf);
+                    //track the number of bytes and the checksum
+                    byteCount++; checksum += value;
 
-            continue;
+                    place = 3; value = 0; //start over for next word
 
-            }
-
-        }//while ((c =
-
-    //validate the last block -- when the last byte is read from the code file,
-    //the above loop will exit with a possible partial block -- check that
-    //last block here
-    //request the checksum for the current block as stored in the DSP
-    //skip if the block size is 0
-    if (byteCount > 0){
-
-        checksum &= 0xffff; //only use lower word of checksum
-
-        int remoteChecksum = getDSPRamChecksum(pDSPChip, pDSPCore, 1, 0,
-                                                      address, byteCount, true);
-
-        //compare the local and remote checksums
-        if (checksum != remoteChecksum){
-            logger.logMessage("UT " + chassisSlotAddr + " DSP code error"
-                     + "\n" + "    Chip " + pDSPChip + " Cores " + core
-                     + "  Block: " + blockCount + "\n");
-                    success = false;
+                    continue; //skip the decrement below
                     }
 
+                //can't decrement in the if statements because they will do the
+                //dec even if the test fails
+                place--;
+
+                continue;
+
+            }
+        }//while ((c =
+
+        //validate the last block -- when the last byte is read from the code
+        //file, the above loop will exit with a possible partial block -- check
+        //that last block here
+        //request the checksum for the current block as stored in the DSP
+        //skip if the block size is 0
+        if (byteCount > 0){
+
+            checksum &= 0xffff; //only use lower word of checksum
+
+            int remoteChecksum = getDSPRamChecksum(pDSPChip, pDSPCore, 1, 0,
+                                                     address, byteCount, true);
+
+            //compare the local and remote checksums
+            if (checksum != remoteChecksum){
+                logger.logMessage("UT " + chassisSlotAddr + " DSP code error"
+                         + "\n" + "    Chip " + pDSPChip + " Cores " + core
+                         + "  Block: " + blockCount + "\n");
+                        success = false;
+                        }
+
         }// if (byteCount > 0)
-
     }// try
-catch(IOException e){
+    catch(IOException e){
 
-    logger.logMessage("Error opening DSP code file " + dspCodeFilename + "\n");
-    success = false;
+        logger.logMessage(
+                    "Error opening DSP code file " + dspCodeFilename + "\n");
+        success = false;
 
     }
-finally {
-    if (inputStream != null) {
-        try{inputStream.close();}catch(IOException e){}
+    finally {
+        if (inputStream != null) {
+            try{inputStream.close();}catch(IOException e){}
         }
     }// finally
 
-return(success);
+    return(success);
 
 }//end of UTBoard::verifyDSPCode
 //-----------------------------------------------------------------------------
@@ -2134,116 +2136,117 @@ return(success);
 void verifyDSPCode2(int pDSPChip, int pDSPCore)
 {
 
-FileInputStream inputStream = null;
-int packetCnt = 0;
+    FileInputStream inputStream = null;
+    int packetCnt = 0;
 
-String core;
-if (pDSPCore == 1) core = "A & B";
-else
-if (pDSPCore == 3) core = "C & D";
-else core = "";
+    String core;
+    if (pDSPCore == 1) core = "A & B";
+    else
+    if (pDSPCore == 3) core = "C & D";
+    else core = "";
 
-logger.logMessage("UT " + chassisSlotAddr + " verifying DSP code for" + "\n"
-        + "    Chip " + pDSPChip + " Cores " + core + "\n");
+    logger.logMessage("UT " + chassisSlotAddr + " verifying DSP code for" + "\n"
+            + "    Chip " + pDSPChip + " Cores " + core + "\n");
 
-byte[] buffer = new byte[2];
+    byte[] buffer = new byte[2];
 
-try {
-    inputStream = new FileInputStream("DSP\\" + dspCodeFilename);
+    try {
+        inputStream = new FileInputStream("DSP\\" + dspCodeFilename);
 
-    int c;
-    int n3, n2, n1, n0;
-    int address = 0, value = 0, place = 3;
+        int c;
+        int n3, n2, n1, n0;
+        int address = 0, value = 0, place = 3;
 
-    while ((c = inputStream.read()) != -1) {
+        while ((c = inputStream.read()) != -1) {
 
-        if (c == 2) continue; //catch the ctrl-B file start marker - skip it
+            if (c == 2) continue; //catch the ctrl-B file start marker - skip it
 
-        if (c == 3) break; //catch the ctrl-C file end marker - exit
+            if (c == 3) break; //catch the ctrl-C file end marker - exit
 
-        if (c == '\r' || c == '\n' || c == ',' || c == ' ') continue;
+            if (c == '\r' || c == '\n' || c == ',' || c == ' ') continue;
 
-        // catch new address flag
-        if (c == '$') {
+            // catch new address flag
+            if (c == '$') {
 
-            c = inputStream.read(); //read and ignore the 'A'
+                c = inputStream.read(); //read and ignore the 'A'
 
-            //read next four characters to create new address value
-            n3 = fromHex(inputStream.read());
-            n2 = fromHex(inputStream.read());
-            n1 = fromHex(inputStream.read());
-            n0 = fromHex(inputStream.read());
+                //read next four characters to create new address value
+                n3 = fromHex(inputStream.read());
+                n2 = fromHex(inputStream.read());
+                n1 = fromHex(inputStream.read());
+                n0 = fromHex(inputStream.read());
 
-           address =
-                (int)((n3<<12) & 0xf000) +
-                (int)((n2<<8) & 0xf00) +
-                (int)((n1<<4) & 0xf0) +
-                (int)(n0 & 0xf);
+               address =
+                    (int)((n3<<12) & 0xf000) +
+                    (int)((n2<<8) & 0xf00) +
+                    (int)((n1<<4) & 0xf0) +
+                    (int)(n0 & 0xf);
 
-            continue;
+                continue;
 
             }
-        else{
-
-            //if this part reached, must be a digit for a character so add
-            //it into value, using the place count to specify the shift
-
-            c = fromHex(c);
-
-            if (place == 3) value += (int)((c<<12) & 0xf000);
-            else
-            if (place == 2) value += (int)((c<<8)  & 0xf00);
-            else
-            if (place == 1) value += (int)((c<<4) & 0xf0);
             else{
 
-                //fourth character converted, add it in and write word
+                //if this part reached, must be a digit for a character so add
+                //it into value, using the place count to specify the shift
 
-                value += (int)(c & 0xf);
+                c = fromHex(c);
 
-                //read from shared program memory page 0
-                readRAMDSP(pDSPChip, pDSPCore, 1, 0, address++, buffer, true);
+                if (place == 3) value += (int)((c<<12) & 0xf000);
+                else
+                if (place == 2) value += (int)((c<<8)  & 0xf00);
+                else
+                if (place == 1) value += (int)((c<<4) & 0xf0);
+                else{
 
-                int memValue = (int)((buffer[0]<<8) & 0xff00)
-                                                    + (int)(buffer[1] & 0xff);
+                    //fourth character converted, add it in and write word
 
-                //compare the value read from memory with the code from file
-                if (value != memValue)
-                    logger.logMessage(
-                     "UT " + chassisSlotAddr + " DSP code error"
-                     + "\n" + "    Chip " + pDSPChip + " Cores " + core
-                     + "  Address: " + (address-1) + "\n");
+                    value += (int)(c & 0xf);
 
-                //request and wait for a status flag ever so often to make sure
-                //the remote's buffer is not overrun
-                if(packetCnt++ >= 100){
-                    getRemoteData(GET_STATUS_CMD, true);
-                    packetCnt = 0;
+                    //read from shared program memory page 0
+                    readRAMDSP(
+                            pDSPChip, pDSPCore, 1, 0, address++, buffer, true);
+
+                    int memValue = (int)((buffer[0]<<8) & 0xff00)
+                                                     + (int)(buffer[1] & 0xff);
+
+                    //compare the value read from memory with the code from file
+                    if (value != memValue)
+                        logger.logMessage(
+                         "UT " + chassisSlotAddr + " DSP code error"
+                         + "\n" + "    Chip " + pDSPChip + " Cores " + core
+                         + "  Address: " + (address-1) + "\n");
+
+                    //request and wait for a status flag ever so often to make
+                    //sure the remote's buffer is not overrun
+                    if(packetCnt++ >= 100){
+                        getRemoteData(GET_STATUS_CMD, true);
+                        packetCnt = 0;
                     }
 
-                place = 3; value = 0; //start over for next word
+                    place = 3; value = 0; //start over for next word
 
-                continue; //skip the decrement below
+                    continue; //skip the decrement below
                 }
 
-            //can't decrement in the if statements because they will do the
-            //dec even if the test fails
-            place--;
+                //can't decrement in the if statements because they will do the
+                //dec even if the test fails
+                place--;
 
-            continue;
+                continue;
 
             }
-
         }//while ((c =
     }// try
-catch(IOException e){
+    catch(IOException e){
 
-    logger.logMessage("Error opening DSP code file " + dspCodeFilename + "\n");
+        logger.logMessage(
+                    "Error opening DSP code file " + dspCodeFilename + "\n");
 
     }
-finally {
-    if (inputStream != null) {
-        try{inputStream.close();}catch(IOException e){}
+    finally {
+        if (inputStream != null) {
+            try{inputStream.close();}catch(IOException e){}
         }
     }// finally
 
@@ -2259,39 +2262,39 @@ finally {
 int fromHex(int pChar)
 {
 
-if (pChar == '0') return 0;
-else
-if (pChar == '1') return 1;
-else
-if (pChar == '2') return 2;
-else
-if (pChar == '3') return 3;
-else
-if (pChar == '4') return 4;
-else
-if (pChar == '5') return 5;
-else
-if (pChar == '6') return 6;
-else
-if (pChar == '7') return 7;
-else
-if (pChar == '8') return 8;
-else
-if (pChar == '9') return 9;
-else
-if (pChar == 'a' || pChar == 'A') return 10;
-else
-if (pChar == 'b' || pChar == 'B') return 11;
-else
-if (pChar == 'c' || pChar == 'C') return 12;
-else
-if (pChar == 'd' || pChar == 'D') return 13;
-else
-if (pChar == 'e' || pChar == 'E') return 14;
-else
-if (pChar == 'f' || pChar == 'F') return 15;
-else
-return 0;
+    if (pChar == '0') return 0;
+    else
+    if (pChar == '1') return 1;
+    else
+    if (pChar == '2') return 2;
+    else
+    if (pChar == '3') return 3;
+    else
+    if (pChar == '4') return 4;
+    else
+    if (pChar == '5') return 5;
+    else
+    if (pChar == '6') return 6;
+    else
+    if (pChar == '7') return 7;
+    else
+    if (pChar == '8') return 8;
+    else
+    if (pChar == '9') return 9;
+    else
+    if (pChar == 'a' || pChar == 'A') return 10;
+    else
+    if (pChar == 'b' || pChar == 'B') return 11;
+    else
+    if (pChar == 'c' || pChar == 'C') return 12;
+    else
+    if (pChar == 'd' || pChar == 'D') return 13;
+    else
+    if (pChar == 'e' || pChar == 'E') return 14;
+    else
+    if (pChar == 'f' || pChar == 'F') return 15;
+    else
+    return 0;
 
 }//end of UTBoard::fromHex
 //-----------------------------------------------------------------------------
@@ -2306,10 +2309,10 @@ return 0;
 void sendHardwareDelay(int pChannel, int pDelay)
 {
 
-writeFPGAReg(bdChs[pChannel].delayReg0, (byte) (pDelay & 0xff));
-writeFPGAReg(bdChs[pChannel].delayReg1, (byte) ((pDelay >> 8) & 0xff));
-writeFPGAReg(bdChs[pChannel].delayReg2, (byte) ((pDelay >> 16) & 0xff));
-writeFPGAReg(bdChs[pChannel].delayReg3, (byte) ((pDelay >> 24) & 0xff));
+    writeFPGAReg(bdChs[pChannel].delayReg0, (byte) (pDelay & 0xff));
+    writeFPGAReg(bdChs[pChannel].delayReg1, (byte) ((pDelay >> 8) & 0xff));
+    writeFPGAReg(bdChs[pChannel].delayReg2, (byte) ((pDelay >> 16) & 0xff));
+    writeFPGAReg(bdChs[pChannel].delayReg3, (byte) ((pDelay >> 24) & 0xff));
 
 }//end of UTBoard::sendHardwareDelay
 //-----------------------------------------------------------------------------
@@ -2326,7 +2329,7 @@ writeFPGAReg(bdChs[pChannel].delayReg3, (byte) ((pDelay >> 24) & 0xff));
 void sendSoftwareDelay(int pChannel, int pSoftwareDelay, int pHardwareDelay)
 {
 
-sendChannelParam(pChannel, (byte) DSP_SET_DELAYS,
+    sendChannelParam(pChannel, (byte) DSP_SET_DELAYS,
                (byte)((pSoftwareDelay >> 8) & 0xff),
                (byte)(pSoftwareDelay & 0xff),
                (byte)((pHardwareDelay >> 24) & 0xff),
@@ -2348,9 +2351,9 @@ sendChannelParam(pChannel, (byte) DSP_SET_DELAYS,
 void sendSampleBufferStart(int pChannel, int pBufStart)
 {
 
-writeFPGAReg(bdChs[pChannel].bufStart0, (byte) (pBufStart & 0xff));
-writeFPGAReg(bdChs[pChannel].bufStart1, (byte) ((pBufStart >> 8) & 0xff));
-writeFPGAReg(bdChs[pChannel].bufStart2, (byte) ((pBufStart >> 16) & 0xff));
+    writeFPGAReg(bdChs[pChannel].bufStart0, (byte) (pBufStart & 0xff));
+    writeFPGAReg(bdChs[pChannel].bufStart1, (byte) ((pBufStart >> 8) & 0xff));
+    writeFPGAReg(bdChs[pChannel].bufStart2, (byte) ((pBufStart >> 16) & 0xff));
 
 }//end of UTBoard::sendSampleBufferStart
 //-----------------------------------------------------------------------------
@@ -2365,13 +2368,13 @@ writeFPGAReg(bdChs[pChannel].bufStart2, (byte) ((pBufStart >> 16) & 0xff));
 void sendHardwareRange(int pChannel, int pCount)
 {
 
-//force pCount to be even - FPGA transfers two samples at a time to the DSP
-//RAM via the HPI port - odd number will cause transfer lock up in FPGA
-if (pCount % 2 != 0) pCount++;
+    //force pCount to be even - FPGA transfers two samples at a time to the DSP
+    //RAM via the HPI port - odd number will cause transfer lock up in FPGA
+    if (pCount % 2 != 0) pCount++;
 
-writeFPGAReg(bdChs[pChannel].countReg0, (byte) (pCount & 0xff));
-writeFPGAReg(bdChs[pChannel].countReg1, (byte) ((pCount >> 8) & 0xff));
-writeFPGAReg(bdChs[pChannel].countReg2, (byte) ((pCount >> 16) & 0xff));
+    writeFPGAReg(bdChs[pChannel].countReg0, (byte) (pCount & 0xff));
+    writeFPGAReg(bdChs[pChannel].countReg1, (byte) ((pCount >> 8) & 0xff));
+    writeFPGAReg(bdChs[pChannel].countReg2, (byte) ((pCount >> 16) & 0xff));
 
 }//end of UTBoard::sendHardwareRange
 //-----------------------------------------------------------------------------
@@ -2410,24 +2413,24 @@ writeFPGAReg(bdChs[pChannel].countReg2, (byte) ((pCount >> 16) & 0xff));
 void sendAScanScale(int pChannel, int pScale)
 {
 
-//protect against divide by zero
-if (pScale < 1) pScale = 1;
+    //protect against divide by zero
+    if (pScale < 1) pScale = 1;
 
-// calculate number of output samples to process for a desired number of
-// input samples to be processed -- rounding off is fine
-// for example, if pScale is two then 25 output samples should be processed to
-// process 50 input samples -- then divide by two again because the DSP
-// processes twice as many input samples to accommodate the min and max peaks
-// recorded instead of just one peak
-// since the value is used as a loop counter, adjust down by subtracting 1
-int batchSize = (50 / pScale / 2) - 1;
+    // calculate number of output samples to process for a desired number of
+    // input samples to be processed -- rounding off is fine
+    // for example, if pScale is two then 25 output samples should be processed
+    // to process 50 input samples -- then divide by two again because the DSP
+    // processes twice as many input samples to accommodate the min and max
+    // peask recorded instead of just one peak
+    // since the value is used as a loop counter, adjust down by subtracting 1
+    int batchSize = (50 / pScale / 2) - 1;
 
-if (batchSize < 1) batchSize = 1;
+    if (batchSize < 1) batchSize = 1;
 
-sendChannelParam(pChannel, (byte) DSP_SET_ASCAN_SCALE,
-               (byte)((pScale >> 8) & 0xff), (byte)(pScale & 0xff),
-               (byte)((batchSize >> 8) & 0xff), (byte)(batchSize & 0xff),
-               (byte)0, (byte)0, (byte)0, (byte)0, (byte)0);
+    sendChannelParam(pChannel, (byte) DSP_SET_ASCAN_SCALE,
+                   (byte)((pScale >> 8) & 0xff), (byte)(pScale & 0xff),
+                   (byte)((batchSize >> 8) & 0xff), (byte)(batchSize & 0xff),
+                   (byte)0, (byte)0, (byte)0, (byte)0, (byte)0);
 
 }//end of UTBoard::sendAScanScale
 //-----------------------------------------------------------------------------
@@ -2449,11 +2452,11 @@ sendChannelParam(pChannel, (byte) DSP_SET_ASCAN_SCALE,
 void sendGate(int pChannel, int pGate, int pStart, int pWidth, int pLevel)
 {
 
-pWidth /= 3; // divide by three, see notes above
+    pWidth /= 3; // divide by three, see notes above
 
-pLevel = (int)((pLevel * ASCAN_MAX_HEIGHT) / 100 / ASCAN_SCALE);
+    pLevel = (int)((pLevel * ASCAN_MAX_HEIGHT) / 100 / ASCAN_SCALE);
 
-sendChannelParam(pChannel, (byte) DSP_SET_GATE,
+    sendChannelParam(pChannel, (byte) DSP_SET_GATE,
                 (byte)pGate,
                 (byte)((pStart >> 24) & 0xff), (byte)((pStart >> 16) & 0xff),
                 (byte)((pStart >> 8) & 0xff),  (byte)(pStart & 0xff),
@@ -2473,7 +2476,7 @@ sendChannelParam(pChannel, (byte) DSP_SET_GATE,
 public void sendGateFlags(int pChannel, int pGate, int pFlags)
 {
 
-sendChannelParam(pChannel, (byte) DSP_SET_GATE_FLAGS,
+    sendChannelParam(pChannel, (byte) DSP_SET_GATE_FLAGS,
                (byte)pGate,
                (byte)((pFlags >> 8) & 0xff),
                (byte)(pFlags & 0xff),
@@ -2491,7 +2494,7 @@ sendChannelParam(pChannel, (byte) DSP_SET_GATE_FLAGS,
 public void sendGateSigProcThreshold(int pChannel, int pGate, int pThreshold)
 {
 
-sendChannelParam(pChannel, (byte) DSP_SET_GATE_SIG_PROC_THRESHOLD,
+    sendChannelParam(pChannel, (byte) DSP_SET_GATE_SIG_PROC_THRESHOLD,
                (byte)pGate,
                (byte)((pThreshold >> 8) & 0xff),
                (byte)(pThreshold & 0xff),
@@ -2514,10 +2517,10 @@ sendChannelParam(pChannel, (byte) DSP_SET_GATE_SIG_PROC_THRESHOLD,
 void sendDAC(int pChannel, int pGate, int pStart, int pWidth, int pLevel)
 {
 
-//remotes will crash if gate width is less than 1
-if (pWidth < 1) pWidth = 1;
+    //remotes will crash if gate width is less than 1
+    if (pWidth < 1) pWidth = 1;
 
-sendChannelParam(pChannel, (byte) DSP_SET_DAC,
+    sendChannelParam(pChannel, (byte) DSP_SET_DAC,
                 (byte)pGate,
                 (byte)((pStart >> 24) & 0xff), (byte)((pStart >> 16) & 0xff),
                 (byte)((pStart >> 8) & 0xff),  (byte)(pStart & 0xff),
@@ -2537,7 +2540,7 @@ sendChannelParam(pChannel, (byte) DSP_SET_DAC,
 public void sendDACGateFlags(int pChannel, int pGate, int pFlags)
 {
 
-sendChannelParam(pChannel, (byte) DSP_SET_DAC_FLAGS,
+    sendChannelParam(pChannel, (byte) DSP_SET_DAC_FLAGS,
                (byte)pGate,
                (byte)((pFlags >> 8) & 0xff),
                (byte)(pFlags & 0xff),
@@ -2557,7 +2560,7 @@ sendChannelParam(pChannel, (byte) DSP_SET_DAC_FLAGS,
 public void sendWallChannelFlag(int pChannel, boolean pIsWallChannel)
 {
 
-bdChs[pChannel].isWallChannel = pIsWallChannel;
+    bdChs[pChannel].isWallChannel = pIsWallChannel;
 
 }//end of Channel::sendWallChannelFlag
 //-----------------------------------------------------------------------------
@@ -2574,7 +2577,7 @@ bdChs[pChannel].isWallChannel = pIsWallChannel;
 void sendHitMissCounts(int pChannel, int pGate, int pHitCount, int pMissCount)
 {
 
-sendChannelParam(pChannel, (byte) DSP_SET_HIT_MISS_COUNTS,
+    sendChannelParam(pChannel, (byte) DSP_SET_HIT_MISS_COUNTS,
                (byte)pGate,
                (byte)((pHitCount >> 8) & 0xff),
                (byte)(pHitCount & 0xff),
@@ -2594,9 +2597,9 @@ sendChannelParam(pChannel, (byte) DSP_SET_HIT_MISS_COUNTS,
 public void linkGates(int pChannel, Gate[] pGates, int pNumberOfGates)
 {
 
-bdChs[pChannel].numberOfGates = pNumberOfGates;
+    bdChs[pChannel].numberOfGates = pNumberOfGates;
 
-bdChs[pChannel].gates = pGates;
+    bdChs[pChannel].gates = pGates;
 
 }//end of Channel::linkGates
 //-----------------------------------------------------------------------------
@@ -2615,7 +2618,7 @@ bdChs[pChannel].gates = pGates;
 void sendMode(int pChannel, int pMode)
 {
 
-sendChannelParam(pChannel, (byte) DSP_SET_RECTIFICATION,
+    sendChannelParam(pChannel, (byte) DSP_SET_RECTIFICATION,
                 (byte)(pMode & 0xff),
                (byte)0, (byte)0, (byte)0, (byte)0, (byte)0,
                (byte)0, (byte)0, (byte)0);
@@ -2634,24 +2637,24 @@ sendChannelParam(pChannel, (byte) DSP_SET_RECTIFICATION,
 public int getState(int pWhich)
 {
 
-if (pWhich == 0){
+    if (pWhich == 0){
 
-    //return the state of the Sampling Enabled flag - this is a flag in the
-    //FPGA also called the Setup flag which chooses between Rabbit and host PC
-    //control of the HPI interfaces or FPGA control which enables samples
-    //to be stored in the DSP
+        //return the state of the Sampling Enabled flag - this is a flag in the
+        //FPGA also called the Setup flag which chooses between Rabbit and host
+        //PC control of the HPI interfaces or FPGA control which enables samples
+        //to be stored in the DSP
 
-    return(masterControlShadow & SETUP_RUN_MODE);
+        return(masterControlShadow & SETUP_RUN_MODE);
 
     }
 
-//return the DSP's enabled and running flag
-if (pWhich == 1) return(resetShadow & 0x3c);
+    //return the DSP's enabled and running flag
+    if (pWhich == 1) return(resetShadow & 0x3c);
 
-//return the test/actual data flag
-if (pWhich == 2) return(masterControlShadow & SIM_DATA);
+    //return the test/actual data flag
+    if (pWhich == 2) return(masterControlShadow & SIM_DATA);
 
-return 0;
+    return 0;
 
 }//end of UTBoard::getState
 //-----------------------------------------------------------------------------
@@ -2667,80 +2670,81 @@ return 0;
 public void setState(int pWhich, int pValue)
 {
 
-if (pWhich == ENABLE_SAMPLING){
+    if (pWhich == ENABLE_SAMPLING){
 
-    //set the state of the Sampling Enabled flag - this is a flag in the
-    //FPGA also called the Setup flag which chooses between Rabbit and host PC
-    //control of the HPI interfaces or FPGA control which enables samples
-    //to be stored in the DSP
+        //set the state of the Sampling Enabled flag - this is a flag in the
+        //FPGA also called the Setup flag which chooses between Rabbit and host
+        //PC control of the HPI interfaces or FPGA control which enables samples
+        //to be stored in the DSP
 
-    if (pValue == FALSE)
-        masterControlShadow &= (~SETUP_RUN_MODE); //clear the flag (setup mode)
-    else{
+        if (pValue == FALSE)
+            //clear the flag (setup mode)
+            masterControlShadow &= (~SETUP_RUN_MODE);
+        else{
 
-        //If entering run mode, always read a word from the DSP RAM page where
-        //the A/D values are to be stored by the FPGA.  The FPGA does not set
-        //the upper bits of the HPIA register - reading from the desired page
-        //here first will set the bits properly.  This must be done for each
-        //DSP core.
+            //If entering run mode, always read a word from the DSP RAM page
+            //where the A/D values are to be stored by the FPGA.  The FPGA does
+            //not set the upper bits of the HPIA register - reading from the
+            //desired page here first will set the bits properly.  This must be
+            //done for each DSP core.
 
-        byte[] buffer = new byte[2];
+            byte[] buffer = new byte[2];
 
-        //read from local data memory page 0 for all cores
+            //read from local data memory page 0 for all cores
 
-        readRAMDSP(1, 1, 0, 0, 0000, buffer, false); //DSP1, Core A
-        readRAMDSP(1, 2, 0, 0, 0000, buffer, false); //DSP1, Core B
-        readRAMDSP(1, 3, 0, 0, 0000, buffer, false); //DSP1, Core C
-        readRAMDSP(1, 4, 0, 0, 0000, buffer, false); //DSP1, Core D
+            readRAMDSP(1, 1, 0, 0, 0000, buffer, false); //DSP1, Core A
+            readRAMDSP(1, 2, 0, 0, 0000, buffer, false); //DSP1, Core B
+            readRAMDSP(1, 3, 0, 0, 0000, buffer, false); //DSP1, Core C
+            readRAMDSP(1, 4, 0, 0, 0000, buffer, false); //DSP1, Core D
 
-        readRAMDSP(2, 1, 0, 0, 0000, buffer, false); //DSP2, Core A
-        readRAMDSP(2, 2, 0, 0, 0000, buffer, false); //DSP2, Core B
-        readRAMDSP(2, 3, 0, 0, 0000, buffer, false); //DSP2, Core C
-        readRAMDSP(2, 4, 0, 0, 0000, buffer, false); //DSP2, Core D
+            readRAMDSP(2, 1, 0, 0, 0000, buffer, false); //DSP2, Core A
+            readRAMDSP(2, 2, 0, 0, 0000, buffer, false); //DSP2, Core B
+            readRAMDSP(2, 3, 0, 0, 0000, buffer, false); //DSP2, Core C
+            readRAMDSP(2, 4, 0, 0, 0000, buffer, false); //DSP2, Core D
 
-        masterControlShadow |= SETUP_RUN_MODE;    //set the flag (run mode)
+            masterControlShadow |= SETUP_RUN_MODE;    //set the flag (run mode)
         }
 
-    //place the FPGA internals into reset to prevent them from starting
-    //in an unknown condition after changing the sampling registers
+        //place the FPGA internals into reset to prevent them from starting
+        //in an unknown condition after changing the sampling registers
 
-    resetShadow = writeFPGAReg(RESET_REG, (byte)(resetShadow | 0x01));
-
-    writeFPGAReg(MASTER_CONTROL_REG, masterControlShadow);
-
-    //release the FPGA internals from reset
-    resetShadow = writeFPGAReg(RESET_REG, (byte)(resetShadow & (~0x01)));
-    }
-
-if (pWhich == ENABLE_DSP_RUN){
-    if (pValue == FALSE)
-        //false, DSP run not enabled, set all core resets low (in reset)
-        resetShadow = writeFPGAReg(RESET_REG, (byte)(resetShadow & (~0x3c)));
-    else
-        //true, DSP run enabled, set all core resets high (not in reset)
-        resetShadow = writeFPGAReg(RESET_REG, (byte)(resetShadow | 0x3c));
-    }
-
-if (pWhich == ENABLE_TEST_DATA){
-    if (pValue == FALSE)
-        //false, use A/D data instead of simulated data
-        masterControlShadow = writeFPGAReg(
-                MASTER_CONTROL_REG, (byte)(masterControlShadow & (~SIM_DATA)));
-    else
-        //true, use simulated data
-        masterControlShadow = writeFPGAReg(
-                   MASTER_CONTROL_REG, (byte)(masterControlShadow | SIM_DATA));
-    }
-
-if (pWhich == ENABLE_FPGA_INTERNALS){
-    if (pValue == FALSE)
-        //false, put all internal functions into reset
         resetShadow = writeFPGAReg(RESET_REG, (byte)(resetShadow | 0x01));
-    else
-        //true, enable all internal functions
+
+        writeFPGAReg(MASTER_CONTROL_REG, masterControlShadow);
+
+        //release the FPGA internals from reset
         resetShadow = writeFPGAReg(RESET_REG, (byte)(resetShadow & (~0x01)));
     }
 
+    if (pWhich == ENABLE_DSP_RUN){
+        if (pValue == FALSE)
+            //false, DSP run not enabled, set all core resets low (in reset)
+            resetShadow = writeFPGAReg(RESET_REG, (byte)(resetShadow & (~0x3c)));
+        else
+            //true, DSP run enabled, set all core resets high (not in reset)
+            resetShadow = writeFPGAReg(RESET_REG, (byte)(resetShadow | 0x3c));
+    }
+
+    if (pWhich == ENABLE_TEST_DATA){
+        if (pValue == FALSE)
+            //false, use A/D data instead of simulated data
+            masterControlShadow = writeFPGAReg(
+                MASTER_CONTROL_REG, (byte)(masterControlShadow & (~SIM_DATA)));
+        else
+            //true, use simulated data
+            masterControlShadow = writeFPGAReg(
+                   MASTER_CONTROL_REG, (byte)(masterControlShadow | SIM_DATA));
+    }
+
+    if (pWhich == ENABLE_FPGA_INTERNALS){
+        if (pValue == FALSE)
+            //false, put all internal functions into reset
+            resetShadow = writeFPGAReg(RESET_REG, (byte)(resetShadow | 0x01));
+        else
+            //true, enable all internal functions
+            resetShadow =
+                        writeFPGAReg(RESET_REG, (byte)(resetShadow & (~0x01)));
+    }
 
 }//end of UTBoard::setState
 //-----------------------------------------------------------------------------
@@ -2756,21 +2760,21 @@ if (pWhich == ENABLE_FPGA_INTERNALS){
 public void sendSoftwareGain(int pChannel, double pSoftwareGain)
 {
 
-//convert decibels to linear gain: dB = 20 * log10(gain)
-double gain = Math.pow(10, pSoftwareGain/20);
+    //convert decibels to linear gain: dB = 20 * log10(gain)
+    double gain = Math.pow(10, pSoftwareGain/20);
 
-// a gain of 4 in the DSP code is realized by a multiplier of 2048
-// this gain of 4 compares reasonably with other types of UT scopes at 50 dB
-// 50 dB = 316.227766 linear gain     2048 / 316.227766 = 6.476
-// thus the user set gain is multiplied by 6.476 so that 50db = gain of 4
-// 50 dB = 316.227766  becomes 2048 by multiplying by 6.476
-//
+    // a gain of 4 in the DSP code is realized by a multiplier of 2048
+    // this gain of 4 compares reasonably with other types of UT scopes at 50 dB
+    // 50 dB = 316.227766 linear gain     2048 / 316.227766 = 6.476
+    // thus the user set gain is multiplied by 6.476 so that 50db = gain of 4
+    // 50 dB = 316.227766  becomes 2048 by multiplying by 6.476
+    //
 
-gain *= 6.476;
+    gain *= 6.476;
 
-long roundedGain = Math.round(gain);
+    long roundedGain = Math.round(gain);
 
-sendChannelParam(pChannel, (byte) DSP_SET_GAIN_CMD,
+    sendChannelParam(pChannel, (byte) DSP_SET_GAIN_CMD,
                (byte)((roundedGain >> 8) & 0xff),
                (byte)(roundedGain & 0xff),
                (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0);
@@ -2789,7 +2793,7 @@ sendChannelParam(pChannel, (byte) DSP_SET_GAIN_CMD,
 public void sendSetFlags1(int pChannel, int pSetMask)
 {
 
-sendChannelParam(pChannel, (byte) DSP_SET_FLAGS1,
+    sendChannelParam(pChannel, (byte) DSP_SET_FLAGS1,
                (byte)((pSetMask >> 8) & 0xff),
                (byte)(pSetMask & 0xff),
                (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0);
@@ -2808,7 +2812,7 @@ sendChannelParam(pChannel, (byte) DSP_SET_FLAGS1,
 public void sendClearFlags1(int pChannel, int pClearMask)
 {
 
-sendChannelParam(pChannel, (byte) DSP_CLEAR_FLAGS1,
+    sendChannelParam(pChannel, (byte) DSP_CLEAR_FLAGS1,
                (byte)((pClearMask >> 8) & 0xff),
                (byte)(pClearMask & 0xff),
                (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0);
@@ -2827,12 +2831,15 @@ public void logDSPStatus(int pDSPChip, int pDSPCore,
                                               boolean pForceProcessDataPackets)
 {
 
-//request status - try three times
-if (logDSPStatusHelper(pDSPChip, pDSPCore, pForceProcessDataPackets)) return;
+    //request status - try three times
+    if (logDSPStatusHelper(pDSPChip, pDSPCore, pForceProcessDataPackets))
+        return;
 
-if (logDSPStatusHelper(pDSPChip, pDSPCore, pForceProcessDataPackets)) return;
+    if (logDSPStatusHelper(pDSPChip, pDSPCore, pForceProcessDataPackets))
+        return;
 
-if (logDSPStatusHelper(pDSPChip, pDSPCore, pForceProcessDataPackets)) return;
+    if (logDSPStatusHelper(pDSPChip, pDSPCore, pForceProcessDataPackets))
+        return;
 
 }//end of Channel::logDSPStatus
 //-----------------------------------------------------------------------------
@@ -2855,38 +2862,40 @@ public boolean logDSPStatusHelper(int pDSPChip, int pDSPCore,
                                               boolean pForceProcessDataPackets)
 {
 
-readDSPStatus(pDSPChip, pDSPCore);
+    readDSPStatus(pDSPChip, pDSPCore);
 
-int bytesRead = 0;
+    int bytesRead = 0;
 
-int wait = 0;
+    int wait = 0;
 
-//force waiting for and processing of receive packets
-//loop until a dsp status message received
-if (pForceProcessDataPackets){
-    dspStatusMessageRcvd = false;
-    while (!dspStatusMessageRcvd && wait++ < 10)
-        bytesRead = processDataPackets(true, TIMEOUT);
+    //force waiting for and processing of receive packets
+    //loop until a dsp status message received
+    if (pForceProcessDataPackets){
+        dspStatusMessageRcvd = false;
+        while (!dspStatusMessageRcvd && wait++ < 10)
+            bytesRead = processDataPackets(true, TIMEOUT);
     }
 
-//if bytesRead is > 0, a packet was processed and the data will be in inBuffer
-if (bytesRead > 0){
+    //if bytesRead is > 0, a packet was processed and data will be in inBuffer
+    if (bytesRead > 0){
 
-    int dspCoreFromPkt = (int)inBuffer[0];
+        int dspCoreFromPkt = (int)inBuffer[0];
 
-    int status = (int)((inBuffer[1]<<8) & 0xff00) + (int)(inBuffer[2] & 0xff);
+        int status =
+                  (int)((inBuffer[1]<<8) & 0xff00) + (int)(inBuffer[2] & 0xff);
 
-    //displays status code in log window
-    logger.logMessage("UT " + chassisSlotAddr + " Chip: " + pDSPChip + " Core: "
-              + pDSPCore + " Status: " + dspCoreFromPkt + "-" + status + "\n");
-    return(true);
+        //displays status code in log window
+        logger.logMessage("UT " + chassisSlotAddr + " Chip: " + pDSPChip
+          + " Core: " + pDSPCore + " Status: " + dspCoreFromPkt + "-"
+          + status + "\n");
+        return(true);
 
     }
-else{
+    else{
 
-    logger.logMessage("UT " + chassisSlotAddr + " Chip: " + pDSPChip + " Core: "
-            + pDSPCore + " Status Packet Error" + "\n");
-    return(false);
+        logger.logMessage("UT " + chassisSlotAddr + " Chip: " + pDSPChip
+                    + " Core: " + pDSPCore + " Status Packet Error" + "\n");
+        return(false);
 
     }
 
@@ -2903,7 +2912,7 @@ else{
 public void readDSPStatus(int pDSPChip, int pDSPCore)
 {
 
-sendBytes15(MESSAGE_DSP_CMD,
+    sendBytes15(MESSAGE_DSP_CMD,
            (byte)pDSPChip, (byte)pDSPCore,
            (byte) DSP_GET_STATUS_CMD, // DSP message type id
            (byte) 2, //return packet size expected
@@ -2938,7 +2947,8 @@ public void sendChannelParam(int pChannel, byte pMsgID,
 
 // 1st Core handling the channel
 
-sendBytes15(MESSAGE_DSP_CMD, bdChs[pChannel].dspChip, bdChs[pChannel].dspCore1,
+    sendBytes15(MESSAGE_DSP_CMD, bdChs[pChannel].dspChip,
+           bdChs[pChannel].dspCore1,
            pMsgID, // DSP message type id
            (byte) 1, //return packet size expected (expects an ACK packet)
            (byte) 9, //data packet size sent
@@ -2948,7 +2958,8 @@ sendBytes15(MESSAGE_DSP_CMD, bdChs[pChannel].dspChip, bdChs[pChannel].dspCore1,
 
 // 2nd Core handling the channel
 
-sendBytes15(MESSAGE_DSP_CMD, bdChs[pChannel].dspChip, bdChs[pChannel].dspCore2,
+sendBytes15(MESSAGE_DSP_CMD, bdChs[pChannel].dspChip,
+           bdChs[pChannel].dspCore2,
            pMsgID, // DSP message type id
            (byte) 1, //return packet size expected (expects an ACK packet)
            (byte) 9, //data packet size sent
@@ -2973,7 +2984,7 @@ sendBytes15(MESSAGE_DSP_CMD, bdChs[pChannel].dspChip, bdChs[pChannel].dspCore2,
 public void sendDSPSampleSize(int pChannel, int pSampleSize)
 {
 
-sendChannelParam(pChannel, (byte)DSP_SET_AD_SAMPLE_SIZE_CMD,
+    sendChannelParam(pChannel, (byte)DSP_SET_AD_SAMPLE_SIZE_CMD,
                (byte)((pSampleSize >> 8) & 0xff), (byte)(pSampleSize & 0xff),
                (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0);
 
@@ -3016,45 +3027,46 @@ sendChannelParam(pChannel, (byte)DSP_SET_AD_SAMPLE_SIZE_CMD,
 public void requestAScan(int pChannel, int pHardwareDelay)
 {
 
-//store the hardware delay so that processAScanPacket can use it later when
-//the return packet is processed
-hardwareDelay = pHardwareDelay;
+    //store the hardware delay so that processAScanPacket can use it later when
+    //the return packet is processed
+    hardwareDelay = pHardwareDelay;
 
-//debug mks
-//about every 15 seconds, an AScan request or return packet is lost - about
-//every 320 packets - the dbug variable is being used to track the number
-//of packets transmitted before failure and can be removed after fix
-//Update: on 10/10/09, this had improved greatly to one error for every
-//10-50 thousand packets
-// UPdate:  This may have been caused by accessing the com link by two
-// different threads.  Fixed now?
-//debug mks end
+    //debug mks
+    //about every 15 seconds, an AScan request or return packet is lost - about
+    //every 320 packets - the dbug variable is being used to track the number
+    //of packets transmitted before failure and can be removed after fix
+    //Update: on 10/10/09, this had improved greatly to one error for every
+    //10-50 thousand packets
+    // UPdate:  This may have been caused by accessing the com link by two
+    // different threads.  Fixed now?
+    //debug mks end
 
-//if a request is not still pending, send a request for a new aScan data packet
-if (aScanRcvd){
+    //if a request is not still pending, send request for new aScan data packet
+    if (aScanRcvd){
 
-    if (aScanCoreSelector == 1) aScanCoreSelector = 2;
-    else aScanCoreSelector = 1;
+        if (aScanCoreSelector == 1) aScanCoreSelector = 2;
+        else aScanCoreSelector = 1;
 
-    sendBytes4(GET_ASCAN_CMD, bdChs[pChannel].dspChip,
-    aScanCoreSelector == 1 ? bdChs[pChannel].dspCore1 : bdChs[pChannel].dspCore2,
-    (byte) pChannel);
+        sendBytes4(GET_ASCAN_CMD, bdChs[pChannel].dspChip,
+            aScanCoreSelector == 1
+                    ? bdChs[pChannel].dspCore1 : bdChs[pChannel].dspCore2,
+            (byte) pChannel);
 
-    // block further AScan requests until processDSPPackets processes the answer
-    // packet from the previous request
-    aScanRcvd = false;
+        // block further AScan requests until processDSPPackets processes the
+        // answer packet from the previous request
+        aScanRcvd = false;
 
-    getAScanTimeOut = 0; //restart timeout
+        getAScanTimeOut = 0; //restart timeout
 
-    dbug++; //debug mks - remove this
+        dbug++; //debug mks - remove this
     }
-else {
-    // if the packet does not get an answer, after about .25 seconds reset
-    // the flag to force a new call on the next time through
-    if (getAScanTimeOut++ == GET_ASCAN_TIMEOUT) {
-        getAScanTimeOut = 0; aScanRcvd = true;
-        dbug=0; //debug mks - remove this
-        return;
+    else {
+        // if the packet does not get an answer, after about .25 seconds reset
+        // the flag to force a new call on the next time through
+        if (getAScanTimeOut++ == GET_ASCAN_TIMEOUT) {
+            getAScanTimeOut = 0; aScanRcvd = true;
+            dbug=0; //debug mks - remove this
+            return;
         }
     }
 
@@ -3071,15 +3083,15 @@ else {
 public AScan getAScan()
 {
 
-//return a pointer to the array holding the last received aScan data
-//if new data has not been received, then return null
+    //return a pointer to the array holding the last received aScan data
+    //if new data has not been received, then return null
 
-if (aScanDataPacketProcessed){
-    aScanDataPacketProcessed = false;
-    return (aScan);
+    if (aScanDataPacketProcessed){
+        aScanDataPacketProcessed = false;
+        return (aScan);
     }
-else
-    return(null);
+    else
+        return(null);
 
 }//end of UTBoard::getAScan
 //-----------------------------------------------------------------------------
@@ -3099,30 +3111,30 @@ else
 public void requestPeakData(int pChannel)
 {
 
-//if a request is not still pending, send a request for a new peak data packet
-if (peakDataRcvd){
+    //if a request is not still pending, send request for new peak data packet
+    if (peakDataRcvd){
 
-    // if the channel is setup for wall data, last byte sent is set to 1
+        // if the channel is setup for wall data, last byte sent is set to 1
 
-    sendBytes4(GET_PEAK_DATA_CMD,
-            (byte)pChannel, (byte)bdChs[pChannel].numberOfGates,
-            (byte)(bdChs[pChannel].isWallChannel ? 1:0));
+        sendBytes4(GET_PEAK_DATA_CMD,
+                (byte)pChannel, (byte)bdChs[pChannel].numberOfGates,
+                (byte)(bdChs[pChannel].isWallChannel ? 1:0));
 
-    getPeakDataTimeOut = 0; //restart timeout
+        getPeakDataTimeOut = 0; //restart timeout
 
     }
-else {
-    // if the packet does not get an answer, after about .25 seconds reset
-    // the flag to force a new call on the next time through
-    if (getPeakDataTimeOut++ == GET_PEAK_DATA_TIMEOUT) {
-        getPeakDataTimeOut = 0; peakDataRcvd = true;
-        return;
+    else {
+        // if the packet does not get an answer, after about .25 seconds reset
+        // the flag to force a new call on the next time through
+        if (getPeakDataTimeOut++ == GET_PEAK_DATA_TIMEOUT) {
+            getPeakDataTimeOut = 0; peakDataRcvd = true;
+            return;
         }
     }
 
-// block further requests until processDSPPackets processes the answer
-//packet from the previous request
-peakDataRcvd = false;
+    // block further requests until processDSPPackets processes the answer
+    //packet from the previous request
+    peakDataRcvd = false;
 
 }//end of Channel::requestPeakData
 //-----------------------------------------------------------------------------
@@ -3143,42 +3155,42 @@ public void requestPeakData4(int pChannel0, int pChannel1, int pChannel2,
                                                                 int pChannel3)
 {
 
-//if a request is not still pending, send a request for a new peak data packet
-if (peakDataRcvd){
+    //if a request is not still pending, send request for new peak data packet
+    if (peakDataRcvd){
 
-    // for any channel setup for wall data, set corresponding bit to 1 - this
-    // byte is then sent with the request
+        // for any channel setup for wall data, set corresponding bit to 1
+        // this byte is then sent with the request
 
-    byte wallFlags = 0;
+        byte wallFlags = 0;
 
-    if(bdChs[pChannel0].isWallChannel) wallFlags |= 1;
-    if(bdChs[pChannel1].isWallChannel) wallFlags |= 2;
-    if(bdChs[pChannel2].isWallChannel) wallFlags |= 4;
-    if(bdChs[pChannel3].isWallChannel) wallFlags |= 8;
+        if(bdChs[pChannel0].isWallChannel) wallFlags |= 1;
+        if(bdChs[pChannel1].isWallChannel) wallFlags |= 2;
+        if(bdChs[pChannel2].isWallChannel) wallFlags |= 4;
+        if(bdChs[pChannel3].isWallChannel) wallFlags |= 8;
 
-    sendBytes10(GET_PEAK_DATA4_CMD,
-            (byte)pChannel0, (byte)bdChs[pChannel0].numberOfGates,
-            (byte)pChannel1, (byte)bdChs[pChannel1].numberOfGates,
-            (byte)pChannel2, (byte)bdChs[pChannel2].numberOfGates,
-            (byte)pChannel3, (byte)bdChs[pChannel3].numberOfGates,
-            wallFlags
-            );
+        sendBytes10(GET_PEAK_DATA4_CMD,
+                (byte)pChannel0, (byte)bdChs[pChannel0].numberOfGates,
+                (byte)pChannel1, (byte)bdChs[pChannel1].numberOfGates,
+                (byte)pChannel2, (byte)bdChs[pChannel2].numberOfGates,
+                (byte)pChannel3, (byte)bdChs[pChannel3].numberOfGates,
+                wallFlags
+                );
 
-    getPeakDataTimeOut = 0; //restart timeout
+        getPeakDataTimeOut = 0; //restart timeout
 
     }
-else {
-    // if the packet does not get an answer, after about .25 seconds reset
-    // the flag to force a new call on the next time through
-    if (getPeakDataTimeOut++ == GET_PEAK_DATA_TIMEOUT) {
-        getPeakDataTimeOut = 0; peakDataRcvd = true;
-        return;
+    else {
+        // if the packet does not get an answer, after about .25 seconds reset
+        // the flag to force a new call on the next time through
+        if (getPeakDataTimeOut++ == GET_PEAK_DATA_TIMEOUT) {
+            getPeakDataTimeOut = 0; peakDataRcvd = true;
+            return;
         }
     }
 
-// block further requests until processDSPPackets processes the answer
-//packet from the previous request
-peakDataRcvd = false;
+    // block further requests until processDSPPackets processes the answer
+    //packet from the previous request
+    peakDataRcvd = false;
 
 }//end of Channel::requestPeakData4
 //-----------------------------------------------------------------------------
@@ -3203,12 +3215,12 @@ peakDataRcvd = false;
 public void getPeakDataFromDSP(int pChannel)
 {
 
-//the number of data bytes expected in the return packet is determined by the
-//number of gates for the channel
-int numberReturnBytes =
+    //the number of data bytes expected in the return packet is determined by
+    //the number of gates for the channel
+    int numberReturnBytes =
         bdChs[pChannel].numberOfGates * PEAK_DATA_BYTES_PER_GATE;
 
-sendBytes15(MESSAGE_DSP_CMD,
+    sendBytes15(MESSAGE_DSP_CMD,
            (byte)bdChs[pChannel].dspChip,
            (byte)bdChs[pChannel].dspCore1,
            (byte) DSP_GET_PEAK_DATA, // DSP message type id
@@ -3231,7 +3243,8 @@ sendBytes15(MESSAGE_DSP_CMD,
 public void driveSimulation()
 {
 
-if (simulate && socket != null) ((UTSimulator)socket).processDataPackets(false);
+    if (simulate && socket != null)
+        ((UTSimulator)socket).processDataPackets(false);
 
 }//end of UTBoard::driveSimulation
 //-----------------------------------------------------------------------------
@@ -3246,14 +3259,14 @@ if (simulate && socket != null) ((UTSimulator)socket).processDataPackets(false);
 private void configure(IniFile pConfigFile)
 {
 
-inBuffer = new byte[RUNTIME_PACKET_SIZE];
-outBuffer = new byte[RUNTIME_PACKET_SIZE];
+    inBuffer = new byte[RUNTIME_PACKET_SIZE];
+    outBuffer = new byte[RUNTIME_PACKET_SIZE];
 
-fpgaCodeFilename =
-  pConfigFile.readString("Hardware", "UT FPGA Code Filename", "not specified");
+    fpgaCodeFilename = pConfigFile.readString(
+                        "Hardware", "UT FPGA Code Filename", "not specified");
 
-dspCodeFilename =
-  pConfigFile.readString("Hardware", "UT DSP Code Filename", "not specified");
+    dspCodeFilename = pConfigFile.readString(
+                        "Hardware", "UT DSP Code Filename", "not specified");
 
 }//end of UTBoard::configure
 //-----------------------------------------------------------------------------
@@ -3271,34 +3284,35 @@ dspCodeFilename =
 private void configureExtended(IniFile pConfigFile)
 {
 
-String section = "UT Board in Chassis " + chassisAddr + " Slot " + slotAddr;
+    String section = "UT Board in Chassis " + chassisAddr + " Slot " + slotAddr;
 
-nSPerDataPoint = pConfigFile.readDouble(section, "nS per Data Point", 15.0);
-uSPerDataPoint = nSPerDataPoint / 1000;
+    nSPerDataPoint = pConfigFile.readDouble(section, "nS per Data Point", 15.0);
+    uSPerDataPoint = nSPerDataPoint / 1000;
 
-numberOfBanks = pConfigFile.readInt(section, "Number Of Banks", 1) - 1;
-//check for validity - set to one bank (value of zero)
-if (numberOfBanks < 0 || numberOfBanks > 3) numberOfBanks = 0;
+    numberOfBanks = pConfigFile.readInt(section, "Number Of Banks", 1) - 1;
+    //check for validity - set to one bank (value of zero)
+    if (numberOfBanks < 0 || numberOfBanks > 3) numberOfBanks = 0;
 
-repRateInHertz = pConfigFile.readInt(section, "Pulse Rep Rate in Hertz", 2000);
+    repRateInHertz = pConfigFile.readInt(
+                                     section, "Pulse Rep Rate in Hertz", 2000);
 
-//store the value and calculate related values
-setRepRateInHertz(repRateInHertz);
+    //store the value and calculate related values
+    setRepRateInHertz(repRateInHertz);
 
-//each count is 15 ns
-triggerWidth = pConfigFile.readInt(section, "Pulse Width", 15);
+    //each count is 15 ns
+    triggerWidth = pConfigFile.readInt(section, "Pulse Width", 15);
 
-//limit to a safe value - see notes above for repRate
-if (triggerWidth < 0 || triggerWidth > 50) triggerWidth = 15;
+    //limit to a safe value - see notes above for repRate
+    if (triggerWidth < 0 || triggerWidth > 50) triggerWidth = 15;
 
-//each count is 15 ns
-syncWidth = pConfigFile.readInt(section, "Sync Width", 200);
+    //each count is 15 ns
+    syncWidth = pConfigFile.readInt(section, "Sync Width", 200);
 
-//each count is 15 ns
-pulseDelay = pConfigFile.readInt(section, "Pulse Delay", 2);
+    //each count is 15 ns
+    pulseDelay = pConfigFile.readInt(section, "Pulse Delay", 2);
 
-//only one board in the system can be the sync source
-syncSource = pConfigFile.readBoolean(
+    //only one board in the system can be the sync source
+    syncSource = pConfigFile.readBoolean(
                                 section, "Board is Pulse Sync Source", false);
 
 }//end of UTBoard::configureExtended
@@ -3332,87 +3346,91 @@ syncSource = pConfigFile.readBoolean(
 public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
 {
 
-if (byteIn == null) return -1;  //do nothing if the port is closed
+    if (byteIn == null) return -1;  //do nothing if the port is closed
 
-try{
+    try{
 
-    //wait a while for a packet if parameter is true
-    if (pWaitForPkt){
-        timeOutWFP = 0;
-        while(byteIn.available() < 7 && timeOutWFP++ < pTimeOut){waitSleep(10);}
+        //wait a while for a packet if parameter is true
+        if (pWaitForPkt){
+            timeOutWFP = 0;
+            while(byteIn.available() < 7 && timeOutWFP++ < pTimeOut){
+                waitSleep(10);
+            }
         }
 
-    //wait until 7 bytes are available - this should be the 4 header bytes, the
-    //packet identifier, the DSP chip identifier, and the DSP core identifier
-    if (byteIn.available() < 7) return -1;
+        //wait until 7 bytes are available - this should be the 4 header bytes,
+        //the packet identifier, the DSP chip identifier, and the DSP core
+        //identifier
+        if (byteIn.available() < 7) return -1;
 
-    //read the bytes in one at a time so that if an invalid byte is encountered
-    //it won't corrupt the next valid sequence in the case where it occurs
-    //within 3 bytes of the invalid byte
+        //read the bytes in one at a time so that if an invalid byte is
+        //encountered it won't corrupt the next valid sequence in the case
+        //where it occurs within 3 bytes of the invalid byte
 
-    //check each byte to see if the first four create a valid header
-    //if not, jump to resync which deletes bytes until a valid first header
-    //byte is reached
+        //check each byte to see if the first four create a valid header
+        //if not, jump to resync which deletes bytes until a valid first header
+        //byte is reached
 
-    //if the reSynced flag is true, the buffer has been resynced and an 0xaa
-    //byte has already been read from the buffer so it shouldn't be read again
+        //if the reSynced flag is true, the buffer has been resynced and an 0xaa
+        //byte has already been read from the buffer so it shouldn't be read
+        //again
 
-    //after a resync, the function exits without processing any packets
+        //after a resync, the function exits without processing any packets
 
-    if (!reSynced){
-        //look for the 0xaa byte unless buffer just resynced
+        if (!reSynced){
+            //look for the 0xaa byte unless buffer just resynced
+            byteIn.read(inBuffer, 0, 1);
+            if (inBuffer[0] != (byte)0xaa) {reSync(); return 0;}
+        }
+        else reSynced = false;
+
         byteIn.read(inBuffer, 0, 1);
-        if (inBuffer[0] != (byte)0xaa) {reSync(); return 0;}
-        }
-    else reSynced = false;
+        if (inBuffer[0] != (byte)0x55) {reSync(); return 0;}
+        byteIn.read(inBuffer, 0, 1);
+        if (inBuffer[0] != (byte)0xbb) {reSync(); return 0;}
+        byteIn.read(inBuffer, 0, 1);
+        if (inBuffer[0] != (byte)0x66) {reSync(); return 0;}
 
-    byteIn.read(inBuffer, 0, 1);
-    if (inBuffer[0] != (byte)0x55) {reSync(); return 0;}
-    byteIn.read(inBuffer, 0, 1);
-    if (inBuffer[0] != (byte)0xbb) {reSync(); return 0;}
-    byteIn.read(inBuffer, 0, 1);
-    if (inBuffer[0] != (byte)0x66) {reSync(); return 0;}
+        //read in the packet identifier and the dsp chip and core identifiers
+        byteIn.read(inBuffer, 0, 3);
 
-    //read in the packet identifier and the dsp chip and core identifiers
-    byteIn.read(inBuffer, 0, 3);
+        //store the ID of the packet (the packet type)
+        pktID = inBuffer[0];
 
-    //store the ID of the packet (the packet type)
-    pktID = inBuffer[0];
+        //store the ID of the chip associated with this packet
+        pktDSPChipID = inBuffer[1];
 
-    //store the ID of the chip associated with this packet
-    pktDSPChipID = inBuffer[1];
+        //store the ID of the core associated with this packet
+        pktDSPCoreID = inBuffer[2];
 
-    //store the ID of the core associated with this packet
-    pktDSPCoreID = inBuffer[2];
+        //reset the DSP message ID to null because it no longer is associated
+        //with the pktID which now matches this packet - dspMsgID is updated
+        //by the processDSPMessage function
 
-    //reset the DSP message ID to null because it no longer is associated
-    //with the pktID which now matches this packet - dspMsgID is updated
-    //by the processDSPMessage function
+        dspMsgID = DSP_NULL_MSG_CMD;
 
-    dspMsgID = DSP_NULL_MSG_CMD;
+        if ( pktID == GET_STATUS_CMD) return process2BytePacket();
 
-    if ( pktID == GET_STATUS_CMD) return process2BytePacket();
+        if ( pktID == GET_ASCAN_CMD) return processAScanPacket();
 
-    if ( pktID == GET_ASCAN_CMD) return processAScanPacket();
+        if ( pktID == READ_DSP_CMD || pktID == READ_NEXT_DSP_CMD)
+            return processReadDSPPacket();
 
-    if ( pktID == READ_DSP_CMD || pktID == READ_NEXT_DSP_CMD)
-        return processReadDSPPacket();
+        if ( pktID == READ_DSP_BLOCK_CMD) return processReadDSPBlockPacket();
 
-    if ( pktID == READ_DSP_BLOCK_CMD) return processReadDSPBlockPacket();
+        if ( pktID == MESSAGE_DSP_CMD) return processDSPMessage();
 
-    if ( pktID == MESSAGE_DSP_CMD) return processDSPMessage();
+        if ( pktID == GET_PEAK_DATA_CMD) return processPeakDataPacket(1);
 
-    if ( pktID == GET_PEAK_DATA_CMD) return processPeakDataPacket(1);
+        if ( pktID == GET_PEAK_DATA4_CMD) return processPeakDataPacket(4);
 
-    if ( pktID == GET_PEAK_DATA4_CMD) return processPeakDataPacket(4);
-
-    if ( pktID == GET_DSP_RAM_BLOCK_CHECKSUM)
-        return processGetDSPRamChecksumPacket();
+        if ( pktID == GET_DSP_RAM_BLOCK_CHECKSUM)
+            return processGetDSPRamChecksumPacket();
 
     }
-catch(IOException e){}
+    catch(IOException e){}
 
-return 0;
+    return 0;
 
 }//end of UTBoard::processOneDataPacket
 //-----------------------------------------------------------------------------
@@ -3431,20 +3449,20 @@ return 0;
 public int processDataPacketsUntilPeakPacket()
 {
 
-int x = 0;
+    int x = 0;
 
-//this flag will be set true if a Peak Data packet is processed
-peakDataPacketProcessed = false;
+    //this flag will be set true if a Peak Data packet is processed
+    peakDataPacketProcessed = false;
 
-//process packets until there is no more data available or until a Peak Data
-//packet has been processed
+    //process packets until there is no more data available or until a Peak Data
+    //packet has been processed
 
-while ((x = processOneDataPacket(false, TIMEOUT)) > 0
-                                          && peakDataPacketProcessed == false){}
+    while ((x = processOneDataPacket(false, TIMEOUT)) > 0
+                                         && peakDataPacketProcessed == false){}
 
 
-if (peakDataPacketProcessed == true) return 1;
-else return -1;
+    if (peakDataPacketProcessed == true) return 1;
+    else return -1;
 
 }//end of UTBoard::processDataPacketsUntilPeakPacket
 //-----------------------------------------------------------------------------
@@ -3464,24 +3482,24 @@ else return -1;
 private int processDSPMessage()
 {
 
-try{
-    timeOutProcess = 0;
-    while(timeOutProcess++ < TIMEOUT){
-        if (byteIn.available() >= 1) break;
-        waitSleep(10);
-        }
-    if (byteIn.available() < 1) return 0;
-    byteIn.read(inBuffer, 0, 1);
-    }// try
-catch(IOException e){}
+    try{
+        timeOutProcess = 0;
+        while(timeOutProcess++ < TIMEOUT){
+            if (byteIn.available() >= 1) break;
+            waitSleep(10);
+            }
+        if (byteIn.available() < 1) return 0;
+        byteIn.read(inBuffer, 0, 1);
+        }// try
+    catch(IOException e){}
 
-dspMsgID = inBuffer[0];
+    dspMsgID = inBuffer[0];
 
-if ( dspMsgID == DSP_GET_STATUS_CMD) return processDSPStatusMessage();
+    if ( dspMsgID == DSP_GET_STATUS_CMD) return processDSPStatusMessage();
 
-if ( dspMsgID == DSP_ACKNOWLEDGE) return processDSPAckMessage();
+    if ( dspMsgID == DSP_ACKNOWLEDGE) return processDSPAckMessage();
 
-return 0;
+    return 0;
 
 }//end of UTBoard::processDSPMessage
 //-----------------------------------------------------------------------------
@@ -3506,27 +3524,27 @@ return 0;
 public void reSync()
 {
 
-reSynced = false;
+    reSynced = false;
 
-//track the number of times this function is called, even if a resync is not
-//successful - this will track the number of sync errors
-reSyncCount++;
+    //track the number of times this function is called, even if a resync is not
+    //successful - this will track the number of sync errors
+    reSyncCount++;
 
-//store info pertaining to what preceded the reSync - these values will be
-//overwritten by the next reSync, so they only reflect the last error
-//NOTE: when a reSync occurs, these values are left over from the PREVIOUS good
-// packet, so they indicate what PRECEDED the sync error.
+    //store info pertaining to what preceded the reSync - these values will be
+    //overwritten by the next reSync, so they only reflect the last error
+    //NOTE: when a reSync occurs, these values are left over from the PREVIOUS
+    // good packet, so they indicate what PRECEDED the sync error.
 
-reSyncDSPChip = pktDSPChipID; reSyncDSPCore = pktDSPCoreID;
-reSyncPktID = pktID; reSyncDSPMsgID = dspMsgID;
+    reSyncDSPChip = pktDSPChipID; reSyncDSPCore = pktDSPCoreID;
+    reSyncPktID = pktID; reSyncDSPMsgID = dspMsgID;
 
-try{
-    while (byteIn.available() > 0) {
-        byteIn.read(inBuffer, 0, 1);
-        if (inBuffer[0] == (byte)0xaa) {reSynced = true; break;}
+    try{
+        while (byteIn.available() > 0) {
+            byteIn.read(inBuffer, 0, 1);
+            if (inBuffer[0] == (byte)0xaa) {reSynced = true; break;}
+            }
         }
-    }
-catch(IOException e){}
+    catch(IOException e){}
 
 }//end of UTBoard::reSync
 //-----------------------------------------------------------------------------
@@ -3544,24 +3562,24 @@ catch(IOException e){}
 private int processReadDSPPacket()
 {
 
-try{
-    timeOutProcess = 0;
-    while(timeOutProcess++ < TIMEOUT){
-        if (byteIn.available() >= 2) break;
-        waitSleep(10);
-        }
-    if (timeOutProcess < TIMEOUT && byteIn.available() >= 2){
-        int c = byteIn.read(readDSPResult, 0, 2);
-        readDSPDone = true; //must be set AFTER buffer read
-        return(c);
-        }
-    else {
-        readDSPResult[0] = 0; readDSPResult[1] = 0; readDSPDone = true;
-        }
-    }// try
-catch(IOException e){}
+    try{
+        timeOutProcess = 0;
+        while(timeOutProcess++ < TIMEOUT){
+            if (byteIn.available() >= 2) break;
+            waitSleep(10);
+            }
+        if (timeOutProcess < TIMEOUT && byteIn.available() >= 2){
+            int c = byteIn.read(readDSPResult, 0, 2);
+            readDSPDone = true; //must be set AFTER buffer read
+            return(c);
+            }
+        else {
+            readDSPResult[0] = 0; readDSPResult[1] = 0; readDSPDone = true;
+            }
+        }// try
+    catch(IOException e){}
 
-return 0;
+    return 0;
 
 }//end of UTBoard::processReadDSPPacket
 //-----------------------------------------------------------------------------
@@ -3582,58 +3600,58 @@ return 0;
 private int processReadDSPBlockPacket()
 {
 
-int c = 0;
+    int c = 0;
 
-try{
+    try{
 
-    //read the first byte which tells the number of data bytes to follow
+        //read the first byte which tells the number of data bytes to follow
 
-    timeOutProcess = 0;
+        timeOutProcess = 0;
 
-    while(timeOutProcess++ < TIMEOUT){
-        if (byteIn.available() >= 1) break;
-        waitSleep(10);
-        }
+        while(timeOutProcess++ < TIMEOUT){
+            if (byteIn.available() >= 1) break;
+            waitSleep(10);
+            }
 
-    if (timeOutProcess < TIMEOUT && byteIn.available() >= 1){
-        c = byteIn.read(readDSPResult, 0, 1);
-        }
-    else {
-        for (int i=0; i < readDSPResult.length; i++) readDSPResult[i] = 0;
-        readDSPDone = true;
-        return(c);
-        }
+        if (timeOutProcess < TIMEOUT && byteIn.available() >= 1){
+            c = byteIn.read(readDSPResult, 0, 1);
+            }
+        else {
+            for (int i=0; i < readDSPResult.length; i++) readDSPResult[i] = 0;
+            readDSPDone = true;
+            return(c);
+            }
 
-    // get the number of data bytes and validate - cast to  int and AND with
-    // 0xff to ignore two's complement and give 0-255
+        // get the number of data bytes and validate - cast to  int and AND with
+        // 0xff to ignore two's complement and give 0-255
 
-    int count;
-    count = (int)readDSPResult[0] & 0xff;
-    if (count > readDSPResult.length) count = readDSPResult.length;
+        int count;
+        count = (int)readDSPResult[0] & 0xff;
+        if (count > readDSPResult.length) count = readDSPResult.length;
 
-    // read in the data bytes
+        // read in the data bytes
 
-    timeOutProcess = 0;
-    while(timeOutProcess++ < TIMEOUT){
-        if (byteIn.available() >= count) break;
-        waitSleep(10);
-        }
+        timeOutProcess = 0;
+        while(timeOutProcess++ < TIMEOUT){
+            if (byteIn.available() >= count) break;
+            waitSleep(10);
+            }
 
-    if (timeOutProcess < TIMEOUT && byteIn.available() >= count){
-        c += byteIn.read(readDSPResult, 0, count);
-        readDSPDone = true;
-        return(c);
-        }
-    else {
-        for (int i=0; i < readDSPResult.length; i++) readDSPResult[i] = 0;
-        readDSPDone = true;
-        return(c);
-        }
+        if (timeOutProcess < TIMEOUT && byteIn.available() >= count){
+            c += byteIn.read(readDSPResult, 0, count);
+            readDSPDone = true;
+            return(c);
+            }
+        else {
+            for (int i=0; i < readDSPResult.length; i++) readDSPResult[i] = 0;
+            readDSPDone = true;
+            return(c);
+            }
 
-}// try
-catch(IOException e){}
+    }// try
+    catch(IOException e){}
 
-return(c);
+    return(c);
 
 }//end of UTBoard::processReadDSPBlockPacket
 //-----------------------------------------------------------------------------
@@ -3649,19 +3667,19 @@ return(c);
 private int processDSPStatusMessage()
 {
 
-try{
-    timeOutProcess = 0;
-    while(timeOutProcess++ < TIMEOUT){
-        if (byteIn.available() >= 3) break;
-        waitSleep(10);}
-    if (byteIn.available() >= 3){
-        dspStatusMessageRcvd = true;
-        return byteIn.read(inBuffer, 0, 3);
-        }
-    }// try
-catch(IOException e){}
+    try{
+        timeOutProcess = 0;
+        while(timeOutProcess++ < TIMEOUT){
+            if (byteIn.available() >= 3) break;
+            waitSleep(10);}
+        if (byteIn.available() >= 3){
+            dspStatusMessageRcvd = true;
+            return byteIn.read(inBuffer, 0, 3);
+            }
+        }// try
+    catch(IOException e){}
 
-return 0; // failure - no bytes read
+    return 0; // failure - no bytes read
 
 }//end of UTBoard::processDSPStatusMessage
 //-----------------------------------------------------------------------------
@@ -3679,26 +3697,26 @@ return 0; // failure - no bytes read
 private int processGetDSPRamChecksumPacket()
 {
 
-try{
-    timeOutProcess = 0;
-    while(timeOutProcess++ < TIMEOUT){
-        if (byteIn.available() >= 2) break;
-        waitSleep(10);
-        }
-    if (timeOutProcess < TIMEOUT && byteIn.available() >= 2){
-        int c = byteIn.read(getDSPRamChecksumResult, 0, 2);
-        getDSPRamChecksumDone = true; //must be set AFTER buffer read
-        return(c);
-        }
-    else {
-        getDSPRamChecksumResult[0] = 0;
-        getDSPRamChecksumResult[1] = 0;
-        getDSPRamChecksumDone = true;
-        }
-    }// try
-catch(IOException e){}
+    try{
+        timeOutProcess = 0;
+        while(timeOutProcess++ < TIMEOUT){
+            if (byteIn.available() >= 2) break;
+            waitSleep(10);
+            }
+        if (timeOutProcess < TIMEOUT && byteIn.available() >= 2){
+            int c = byteIn.read(getDSPRamChecksumResult, 0, 2);
+            getDSPRamChecksumDone = true; //must be set AFTER buffer read
+            return(c);
+            }
+        else {
+            getDSPRamChecksumResult[0] = 0;
+            getDSPRamChecksumResult[1] = 0;
+            getDSPRamChecksumDone = true;
+            }
+        }// try
+    catch(IOException e){}
 
-return 0;
+    return 0;
 
 }//end of UTBoard::processGetDSPRamChecksumPacket
 //-----------------------------------------------------------------------------
@@ -3726,21 +3744,21 @@ return 0;
 private int processDSPAckMessage()
 {
 
-// the ack packet has two data bytes
-// the DSP core returned by the core itself is the first byte
-// for the ack packet, the second byte is undefined
+    // the ack packet has two data bytes
+    // the DSP core returned by the core itself is the first byte
+    // for the ack packet, the second byte is undefined
 
-try{
-    timeOutProcess = 0;
-    while(timeOutProcess++ < TIMEOUT){
-        if (byteIn.available() >= 2) break;
-        waitSleep(10);
-        }
-    if (byteIn.available() >= 2) return byteIn.read(inBuffer, 0, 2);
-    }// try
-catch(IOException e){}
+    try{
+        timeOutProcess = 0;
+        while(timeOutProcess++ < TIMEOUT){
+            if (byteIn.available() >= 2) break;
+            waitSleep(10);
+            }
+        if (byteIn.available() >= 2) return byteIn.read(inBuffer, 0, 2);
+        }// try
+    catch(IOException e){}
 
-return 0; // failure - no bytes read
+    return 0; // failure - no bytes read
 
 }//end of UTBoard::processDSPAckMessage
 //-----------------------------------------------------------------------------
@@ -3757,142 +3775,142 @@ return 0; // failure - no bytes read
 public int processAScanPacket()
 {
 
-int x;
+    int x;
 
-//allow another request packet to be transmitted now that the return
-//packet for the previous request has been received
-aScanRcvd = true;
+    //allow another request packet to be transmitted now that the return
+    //packet for the previous request has been received
+    aScanRcvd = true;
 
-try{
-    timeOutProcess = 0;
-    while(timeOutProcess++ < TIMEOUT){
-        if (byteIn.available() >= 804) break;
-        waitSleep(10);
-        }
-    if ((x = byteIn.available()) >= 804) byteIn.read(inBuffer, 0, 804);
-    else
-        return 0;
-    }// try
-catch(IOException e){}
+    try{
+        timeOutProcess = 0;
+        while(timeOutProcess++ < TIMEOUT){
+            if (byteIn.available() >= 804) break;
+            waitSleep(10);
+            }
+        if ((x = byteIn.available()) >= 804) byteIn.read(inBuffer, 0, 804);
+        else
+            return 0;
+        }// try
+    catch(IOException e){}
 
-//get the board channel from the packet for the aScan data set
-int channel = inBuffer[0];
-if (channel < 0) channel = 0; if (channel > 3) channel = 3;
+    //get the board channel from the packet for the aScan data set
+    int channel = inBuffer[0];
+    if (channel < 0) channel = 0; if (channel > 3) channel = 3;
 
-int aScanSmoothing = bdChs[channel].aScanSmoothing;
+    int aScanSmoothing = bdChs[channel].aScanSmoothing;
 
-//move to the next position of the filtering FIFO each time
-aScanFIFOIndex++;
-if (aScanFIFOIndex >= aScanSmoothing) aScanFIFOIndex = 0;
+    //move to the next position of the filtering FIFO each time
+    aScanFIFOIndex++;
+    if (aScanFIFOIndex >= aScanSmoothing) aScanFIFOIndex = 0;
 
-//get the aScan range associated with this data set - this should be used for
-//the display because when the range is being changed, the value the host
-//currently has may not be what was used by the DSP due to pipeline latency
-//in the connection
+    //get the aScan range associated with this data set - this should be used
+    //for the display because when the range is being changed, the value the
+    //host currently has may not be what was used by the DSP due to pipeline
+    //latency in the connection
 
-aScanFIFO[aScanFIFOIndex].range = inBuffer[1];
+    aScanFIFO[aScanFIFOIndex].range = inBuffer[1];
 
-//get the location where the interface crossed the interface gate
+    //get the location where the interface crossed the interface gate
 
-aScanFIFO[aScanFIFOIndex].interfaceCrossingPosition =
-        (int)((inBuffer[2]<<8) & 0xff00) + (int)(inBuffer[3] & 0xff);
+    aScanFIFO[aScanFIFOIndex].interfaceCrossingPosition =
+            (int)((inBuffer[2]<<8) & 0xff00) + (int)(inBuffer[3] & 0xff);
 
-//the interface crossing position returned by the DSP is relative to the
-//start of the sample buffer stored by the FPGA - the FPGA delays by
-//hardwareDelay number of samples from the initial pulse before recording,
-//add this back in to make the crossing value relative to the initial pulse
-aScanFIFO[aScanFIFOIndex].interfaceCrossingPosition += hardwareDelay;
+    //the interface crossing position returned by the DSP is relative to the
+    //start of the sample buffer stored by the FPGA - the FPGA delays by
+    //hardwareDelay number of samples from the initial pulse before recording,
+    //add this back in to make the crossing value relative to the initial pulse
+    aScanFIFO[aScanFIFOIndex].interfaceCrossingPosition += hardwareDelay;
 
-for (int i = 0; i < firBuf.length; i++) firBuf[i] = 0;
+    for (int i = 0; i < firBuf.length; i++) firBuf[i] = 0;
 
-//transfer the bytes to the int array - allow for sign extension
-//400 words from 800 bytes, MSB first
-//the +4 shifts past the leading info bytes
-//the +5 points to the LSB (would be +1 without the shift)
+    //transfer the bytes to the int array - allow for sign extension
+    //400 words from 800 bytes, MSB first
+    //the +4 shifts past the leading info bytes
+    //the +5 points to the LSB (would be +1 without the shift)
 
-for (int i=0; i<ASCAN_SAMPLE_SIZE; i++){
+    for (int i=0; i<ASCAN_SAMPLE_SIZE; i++){
 
-    int raw = 0, filtered = 0;
+        int raw = 0, filtered = 0;
 
-     raw =
-       (int)((int)(inBuffer[i*2+4]<<8) + (inBuffer[(i*2)+5] & 0xff));
+         raw =
+           (int)((int)(inBuffer[i*2+4]<<8) + (inBuffer[(i*2)+5] & 0xff));
 
-    if (raw > 0 && raw < bdChs[channel].rejectLevel) raw = raw % 10;
-    else
-    if (raw < 0 && raw > -bdChs[channel].rejectLevel) raw = raw % 10;
+        if (raw > 0 && raw < bdChs[channel].rejectLevel) raw = raw % 10;
+        else
+        if (raw < 0 && raw > -bdChs[channel].rejectLevel) raw = raw % 10;
 
-    raw *= ASCAN_SCALE;
+        raw *= ASCAN_SCALE;
 
-    boolean filterActive = false;
+        boolean filterActive = false;
 
-    if (filterActive){
+        if (filterActive){
 
-        //apply FIR filtering
+            //apply FIR filtering
 
-        //shift the old samples and insert the newest
-        for(int n = firBuf.length-1; n>0; n--) firBuf[n] = firBuf[n-1];
-        firBuf[0] = raw;
+            //shift the old samples and insert the newest
+            for(int n = firBuf.length-1; n>0; n--) firBuf[n] = firBuf[n-1];
+            firBuf[0] = raw;
 
-        //calculate the new filtered output value
-        for(int n=0; n<firCoef.length; n++) filtered += firCoef[n] * firBuf[n];
+            //calculate the new filtered output value
+            for(int n=0; n<firCoef.length; n++)
+                filtered += firCoef[n] * firBuf[n];
 
-        filtered /= 290000;
+            filtered /= 290000;
 
-        }
-    else{
-        filtered = raw; //no filtering applied
-        }
+            }
+        else{
+            filtered = raw; //no filtering applied
+            }
 
-    aScanFIFO[aScanFIFOIndex].buffer[i] = filtered;
+        aScanFIFO[aScanFIFOIndex].buffer[i] = filtered;
 
-    }// for (int i=0; i<ASCAN_SAMPLE_SIZE; i++)
+        }// for (int i=0; i<ASCAN_SAMPLE_SIZE; i++)
 
+    // the display thread can be accessing the aScan buffer at any time, so
+    // prepare all the data in the aScanBuffer first - transferring from
+    // the aScanBuffer to aScan is not visible because the data is nearly
+    // identical each time when the transfer occurs
 
-// the display thread can be accessing the aScan buffer at any time, so
-// prepare all the data in the aScanBuffer first - transferring from
-// the aScanBuffer to aScan is not visible because the data is nearly identical
-// each time when the transfer occurs
+    //transfer the range to the aScan object as is
+    aScanBuffer.range = aScanFIFO[aScanFIFOIndex].range;
+    //the interfaceCrossingPosition gets averaged
+    aScanBuffer.interfaceCrossingPosition = 0;
+    //the data samples get averaged
+    for (int i=0; i<ASCAN_SAMPLE_SIZE; i++) aScanBuffer.buffer[i] = 0;
 
-//transfer the range to the aScan object as is
-aScanBuffer.range = aScanFIFO[aScanFIFOIndex].range;
-//the interfaceCrossingPosition gets averaged
-aScanBuffer.interfaceCrossingPosition = 0;
-//the data samples get averaged
-for (int i=0; i<ASCAN_SAMPLE_SIZE; i++) aScanBuffer.buffer[i] = 0;
+    for (int i=0; i<aScanSmoothing; i++){
 
-for (int i=0; i<aScanSmoothing; i++){
-
-    //sum the interface crossing position from each dataset
-    aScanBuffer.interfaceCrossingPosition +=
+        //sum the interface crossing position from each dataset
+        aScanBuffer.interfaceCrossingPosition +=
                                         aScanFIFO[i].interfaceCrossingPosition;
 
-    //sum all datasets in the fifo
-    for (int j=0; j<ASCAN_SAMPLE_SIZE; j++)
-        aScanBuffer.buffer[j] += aScanFIFO[i].buffer[j];
+        //sum all datasets in the fifo
+        for (int j=0; j<ASCAN_SAMPLE_SIZE; j++)
+            aScanBuffer.buffer[j] += aScanFIFO[i].buffer[j];
 
-    }//for (int i=1; i< aScanSmoothing; i++)
+        }//for (int i=1; i< aScanSmoothing; i++)
 
 
-// transfer from aScanBuffer to aScan now that most calculations are done
-//divide values by the number of samples summed from the FIFO to get average
+    // transfer from aScanBuffer to aScan now that most calculations are done
+    //divide values by the number of samples summed from the FIFO to get average
 
-//transfer the range to the aScan object as is
-aScan.range = aScanBuffer.range;
+    //transfer the range to the aScan object as is
+    aScan.range = aScanBuffer.range;
 
-int t;
+    int t;
 
-aScan.interfaceCrossingPosition =
-                    aScanBuffer.interfaceCrossingPosition / aScanSmoothing;
-for (int i=0; i<ASCAN_SAMPLE_SIZE; i++) {
-    t = aScanBuffer.buffer[i] / aScanSmoothing;
-    //t = aScanBuffer.buffer[i]; //debug mks see line above --  -- don't scale the average as DSP does not
-    aScan.buffer[i] = t;
-    }
+    aScan.interfaceCrossingPosition =
+                        aScanBuffer.interfaceCrossingPosition / aScanSmoothing;
+    for (int i=0; i<ASCAN_SAMPLE_SIZE; i++) {
+        t = aScanBuffer.buffer[i] / aScanSmoothing;
+        //t = aScanBuffer.buffer[i]; //debug mks see line above --  -- don't scale the average as DSP does not
+        aScan.buffer[i] = t;
+        }
 
-//signal that new aScan data is available
-aScanDataPacketProcessed = true;
+    //signal that new aScan data is available
+    aScanDataPacketProcessed = true;
 
-return(804); //number of bytes read from packet
+    return(804); //number of bytes read from packet
 
 }//end of UTBoard::processAScanPacket
 //-----------------------------------------------------------------------------
@@ -3913,285 +3931,288 @@ return(804); //number of bytes read from packet
 public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
 {
 
-int x = 0;
+    int x = 0;
 
-//process number of channels specified - each channel data section in the
-//packet has the number of gates for that channel
+    //process number of channels specified - each channel data section in the
+    //packet has the number of gates for that channel
 
-for (int h=0; h < pNumberOfChannels; h++){
+    for (int h=0; h < pNumberOfChannels; h++){
 
-    try{
-        timeOutProcess = 0;
-        while(timeOutProcess++ < TIMEOUT){
-            if (byteIn.available() >= 2) break;
-            waitSleep(10);
-            }
-        if ((byteIn.available()) >= 2)
-            byteIn.read(inBuffer, 0, 2);
-        else
-            return 0;
-        }// try
-    catch(IOException e){}
+        try{
+            timeOutProcess = 0;
+            while(timeOutProcess++ < TIMEOUT){
+                if (byteIn.available() >= 2) break;
+                waitSleep(10);
+                }
+            if ((byteIn.available()) >= 2)
+                byteIn.read(inBuffer, 0, 2);
+            else
+                return 0;
+            }// try
+        catch(IOException e){}
 
-     x = 0;
+         x = 0;
 
-    //retrieve the board channel 0-3
-    //this channel number refers to the analog channels on the board
-    int channel = inBuffer[x++];
+        //retrieve the board channel 0-3
+        //this channel number refers to the analog channels on the board
+        int channel = inBuffer[x++];
 
-    // if the channel number is illegal, bail out - the code will resync to
-    // toss the unused bytes still in the socket
+        // if the channel number is illegal, bail out - the code will resync to
+        // toss the unused bytes still in the socket
 
-    if (channel < 0 || channel > NUMBER_OF_BOARD_CHANNELS-1) return x;
+        if (channel < 0 || channel > NUMBER_OF_BOARD_CHANNELS-1) return x;
 
-    int numberOfGates = inBuffer[x++]; //number of gates for the channel
+        int numberOfGates = inBuffer[x++]; //number of gates for the channel
 
-    // if the gate count is illegal, bail out - the code will resync to
-    // toss the unused bytes still in the socket
+        // if the gate count is illegal, bail out - the code will resync to
+        // toss the unused bytes still in the socket
 
-    if (numberOfGates < 0 || numberOfGates > 9) return x;
+        if (numberOfGates < 0 || numberOfGates > 9) return x;
 
-    // calculate the number of data bytes
-    int numberDataBytes = numberOfGates * PEAK_DATA_BYTES_PER_GATE;
+        // calculate the number of data bytes
+        int numberDataBytes = numberOfGates * PEAK_DATA_BYTES_PER_GATE;
 
-    //add extra for wall data if the specified channel has such
-    if (bdChs[channel].isWallChannel)
-        numberDataBytes += PEAK_DATA_BYTES_FOR_WALL;
+        //add extra for wall data if the specified channel has such
+        if (bdChs[channel].isWallChannel)
+            numberDataBytes += PEAK_DATA_BYTES_FOR_WALL;
 
-    try{
-        timeOutProcess = 0;
-        while(timeOutProcess++ < TIMEOUT){
-            if (byteIn.available() >= numberDataBytes) break;
-            waitSleep(10);
-            }
-        if ((byteIn.available()) >= numberDataBytes)
-            byteIn.read(inBuffer, 0, numberDataBytes);
-        else
-            return 0;
-        }// try
-    catch(IOException e){}
+        try{
+            timeOutProcess = 0;
+            while(timeOutProcess++ < TIMEOUT){
+                if (byteIn.available() >= numberDataBytes) break;
+                waitSleep(10);
+                }
+            if ((byteIn.available()) >= numberDataBytes)
+                byteIn.read(inBuffer, 0, numberDataBytes);
+            else
+                return 0;
+            }// try
+        catch(IOException e){}
 
-    int peakFlags;
-    int peak;
-    int peakFlightTime;
-    int peakTrack;
+        int peakFlags;
+        int peak;
+        int peakFlightTime;
+        int peakTrack;
 
-    x = 0;
+        x = 0;
 
-    for (int i=0; i < numberOfGates; i++){
+        for (int i=0; i < numberOfGates; i++){
 
-        peakFlags =
-            (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
+            peakFlags =
+               (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
-        //did the gate receive the host specified number of consecutive hits?
-        boolean hitCountMet = true;
-        hitCountMet = (peakFlags & HIT_COUNT_MET) == 0 ? false : true;
+            //did gate receive the host specified number of consecutive hits?
+            boolean hitCountMet = true;
+            hitCountMet = (peakFlags & HIT_COUNT_MET) == 0 ? false : true;
 
-        //cast to short used to force sign extension for signed values
-        peak = (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
+            //cast to short used to force sign extension for signed values
+            peak =
+                 (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
 
-        //if the signal is below the reject level, squash it down to 10%
-        if (peak < bdChs[channel].rejectLevel) peak %= 10;
+            //if the signal is below the reject level, squash it down to 10%
+            if (peak < bdChs[channel].rejectLevel) peak %= 10;
 
-        //if the hit count for the gate is greater than zero and the signal did
-        //not exceed the gate the specified number of times, squash it down
-        //to 10%
-        //at first glance, it would seem that a hitCount of zero would always
-        //trigger the flag in the DSP, but if the signal never exceeds the
-        //gate, the hitCountMet flag never gets set even if the hitCount is
-        //zero, so have to catch that special case here
+            //if the hit count for the gate is greater than zero and the signal
+            //did not exceed the gate the specified number of times, squash it
+            //down to 10%
+            //at first glance, it would seem that a hitCount of zero would
+            //always trigger the flag in the DSP, but if the signal never
+            //exceeds the gate, the hitCountMet flag never gets set even if the
+            //hitCount is zero, so have to catch that special case here
 
-        if (bdChs[channel].gates[i].gateHitCount.getValue() > 0 && !hitCountMet)
-                                                                    peak %= 10;
+            if (bdChs[channel].gates[i].gateHitCount.getValue() > 0
+                                                               && !hitCountMet)
+                peak %= 10;
 
-        peakFlightTime =
-            (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
+            peakFlightTime =
+               (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
-        //the flight time value is the memory address of the peak in the DSP
-        //the data buffer starts at 0x8000 in memory, so subtracting 0x8000
-        //from the flight time value gives the time position in relation to the
-        //time the FPGA began recording data after the hardware delay
-        //NOTE: the FPGA should really subtract the 0x8000 instead of doing
-        //it here!
+            //the flight time value is the memory address of the peak in the DSP
+            //the data buffer starts at 0x8000 in memory, so subtracting 0x8000
+            //from the flight time value gives the time position in relation to
+            //the time the FPGA began recording data after the hardware delay
+            //NOTE: the FPGA should really subtract the 0x8000 instead of doing
+            //it here!
 
-        peakFlightTime -= 0x8000;
+            peakFlightTime -= 0x8000;
 
-        peakTrack =
-            (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
+            peakTrack =
+               (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
-        //debug mks
+            //debug mks
 
-        //debug code for testing tdc
-        //if reset pulse is missed, peakTrack will be greater than 11
+            //debug code for testing tdc
+            //if reset pulse is missed, peakTrack will be greater than 11
 
-        debug++;
+            debug++;
 
-        if (peakTrack > 14)
-            debug = 0;
+            if (peakTrack > 14)
+                debug = 0;
 
-        if (peakTrack > 22)
-            debug = 0;
+            if (peakTrack > 22)
+                debug = 0;
 
-        //catch a particular slot and board channel
-        if (slotAddr == 6 && channel == 1)
-            debug = 26;
+            //catch a particular slot and board channel
+            if (slotAddr == 6 && channel == 1)
+                debug = 26;
 
-        //end debug mks
+            //end debug mks
 
-        //Add in the clock position adjustment to account for offset sensor
-        //positions and timing errors.  Wraparound past the max clock position
-        //gets taken care of with modulo in the next bit of code.
-        peakTrack += CLOCK_OFFSET;
+            //Add in the clock position adjustment to account for offset sensor
+            //positions and timing errors.  Wraparound past the max clock
+            //position gets taken care of with modulo in the next bit of code.
+            peakTrack += CLOCK_OFFSET;
 
-        //If the TDC input is missed, the counter will not be reset and will
-        //continue counting past the maximum clock position.  It should still be
-        //accurate, so the actual clock position can be determined by computing
-        //the wrap around.
+            //If the TDC input is missed, the counter will not be reset and will
+            //continue counting past the maximum clock position.  It should
+            //still be accurate, so the actual clock position can be determined
+            //by computing the wrap around.
 
-        if (peakTrack > MAX_CLOCK_POSITION)
-            peakTrack = peakTrack % (MAX_CLOCK_POSITION + 1);
+            if (peakTrack > MAX_CLOCK_POSITION)
+                peakTrack = peakTrack % (MAX_CLOCK_POSITION + 1);
 
-        //the peakTrack variable denotes the clock position, replace position
-        //0 with 12 before saving
+            //the peakTrack variable denotes the clock position, replace
+            //position 0 with 12 before saving
 
-        int clockPos = peakTrack;
-        if (clockPos == 0) clockPos = 12;
+            int clockPos = peakTrack;
+            if (clockPos == 0) clockPos = 12;
 
-        //NOTE: clockPos and peakTrack are the same now -- should really store
-        //the original peakTrack value along with the clockPos.
+            //NOTE: clockPos and peakTrack are the same now -- should really
+            //store the original peakTrack value along with the clockPos.
 
-        bdChs[channel].gates[i].storeNewAScanPeak((int)(peak * ASCAN_SCALE),
+            bdChs[channel].gates[i].storeNewAScanPeak((int)(peak * ASCAN_SCALE),
                                                                 peakFlightTime);
 
-        peak *= SIGNAL_SCALE; //scale signal up or down
+            peak *= SIGNAL_SCALE; //scale signal up or down
 
-        bdChs[channel].gates[i].storeNewData(peak, 0, 0, 0,
-                peakFlags, peakFlightTime, peakTrack, clockPos,
-                pEncoder1, pEncoder2);
+            bdChs[channel].gates[i].storeNewData(peak, 0, 0, 0,
+                    peakFlags, peakFlightTime, peakTrack, clockPos,
+                    pEncoder1, pEncoder2);
 
-        //if the channel has been configured to modify the wall, then save
-        //the data so that it can be used to modify the wall elsewhere
-        if (bdChs[channel].gates[i].modifyWall){
-            //store the value if it is greater than the stored peak
-            if (peak > hdwVs.wallMinModifier)
-                hdwVs.wallMinModifier = peak;
-            }
-
-        }// for (int i=0; i < numberOfGates; i++)
-
-    if (bdChs[channel].isWallChannel){
-
-        //cast to short used to force sign extension for signed values
-        //some of these values may never be negative, but they are handled
-        //as signed for the sake of consistency
-
-        // Note that StartNum, StartDen, EndNum, and EndDen are no longer
-        // used as the fractional math has been abandonded.
-        // See Git commit tag VersionWithFractionalMathForThickness in the
-        // Java and DSP code archives for version which used fractional math.
-
-        int wallMaxPeak =
-                 (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
-
-        int wallMaxStartNum =
-                 (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
-
-        int wallMaxStartDen =
-                 (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
-
-        int wallMaxEndNum =
-                 (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
-
-        int wallMaxEndDen =
-                 (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
-
-        int wallMaxTrack =
-                 (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
-
-        double maxThickness = (double)wallMaxPeak;
-
-        //if the max value returns as minimum int, then the wall reading is
-        //invalid (missed interface or echo, etc.)  use the previous reading
-        //instead -- if value is good then save as the previous value
-
-        if (maxThickness == -32768)
-            maxThickness = prevMaxThickness;
-        else
-            prevMaxThickness = maxThickness;
-
-        //see notes above for peakTrack -- make this into a function some day
-        wallMaxTrack += CLOCK_OFFSET;
-        if (wallMaxTrack > MAX_CLOCK_POSITION)
-            wallMaxTrack = wallMaxTrack % (MAX_CLOCK_POSITION + 1);
-        int clockPos = wallMaxTrack;
-        if (clockPos == 0) clockPos = 12;
-
-        //store the max peak - overwrites info saved for this gate above
-        //debug mks - gates[1] should use the wallStartGate specified by user
-        bdChs[channel].gates[1].storeNewDataD(
-                                        maxThickness, wallMaxTrack, clockPos);
-
-        // Note that StartNum, StartDen, EndNum, and EndDen are no longer
-        // used as the fractional math has been abandonded.
-        // See Git commit tag VersionWithFractionalMathForThickness in the
-        // Java and DSP code archives for version which used fractional math.
-
-        int wallMinPeak =
-                 (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
-
-        int wallMinStartNum =
-                 (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
-
-        int wallMinStartDen =
-                 (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
-
-        int wallMinEndNum =
-                 (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
-
-        int wallMinEndDen =
-                 (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
-
-        int wallMinTrack =
-                 (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
-
-        double minThickness = (double)wallMinPeak;
-
-        //if the min value returns as max int, then the wall reading is
-        //invalid (missed interface or echo, etc.)  use the previous reading
-        //instead -- if value is good then save as the previous value
-
-        if (minThickness == 32767)
-            minThickness = prevMinThickness;
-        else {
-            //if the modifier value is over the threshold, then modify the
-            //wall trace with it
-            //NOTE: need to add the threshold to the config file so it is
-            // programmable.
-            if ((hdwVs.nearStartOfPiece || hdwVs.nearEndOfPiece)
-                                            && hdwVs.wallMinModifier > 30) {
-                minThickness -= hdwVs.wallMinModifier;
-                hdwVs.wallMinModifier = Integer.MIN_VALUE;
+            //if the channel has been configured to modify the wall, then save
+            //the data so that it can be used to modify the wall elsewhere
+            if (bdChs[channel].gates[i].modifyWall){
+                //store the value if it is greater than the stored peak
+                if (peak > hdwVs.wallMinModifier)
+                    hdwVs.wallMinModifier = peak;
                 }
-            prevMinThickness = minThickness;
-            }
 
-        //see notes above for peakTrack -- make this into a function some day
-        wallMinTrack += CLOCK_OFFSET;
-        if (wallMinTrack > MAX_CLOCK_POSITION)
-            wallMinTrack = wallMinTrack % (MAX_CLOCK_POSITION + 1);
-        clockPos = wallMinTrack;
-        if (clockPos == 0) clockPos = 12;
+            }// for (int i=0; i < numberOfGates; i++)
 
-        //store the min peak - overwrites info saved for this gate above
-        //debug mks - gates[2] should use the wallEndGate specified by user
-        bdChs[channel].gates[2].storeNewDataD(
-                                        minThickness, wallMinTrack, clockPos);
+        if (bdChs[channel].isWallChannel){
 
-        }// if (bdChs[channel].isWallChannel)
+            //cast to short used to force sign extension for signed values
+            //some of these values may never be negative, but they are handled
+            //as signed for the sake of consistency
 
-    }// for (int h=0; h < pNumberOfChannels; h++)
+            // Note that StartNum, StartDen, EndNum, and EndDen are no longer
+            // used as the fractional math has been abandonded.
+            // See Git commit tag VersionWithFractionalMathForThickness in the
+            // Java and DSP code archives for version which used fractional math.
 
-return 1;
+            int wallMaxPeak =
+                 (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
+
+            int wallMaxStartNum =
+                 (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
+
+            int wallMaxStartDen =
+                 (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
+
+            int wallMaxEndNum =
+                 (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
+
+            int wallMaxEndDen =
+                 (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
+
+            int wallMaxTrack =
+                 (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
+
+            double maxThickness = (double)wallMaxPeak;
+
+            //if the max value returns as minimum int, then the wall reading is
+            //invalid (missed interface or echo, etc.)  use the previous reading
+            //instead -- if value is good then save as the previous value
+
+            if (maxThickness == -32768)
+                maxThickness = prevMaxThickness;
+            else
+                prevMaxThickness = maxThickness;
+
+            //see notes above for peakTrack -- make this into a function?
+            wallMaxTrack += CLOCK_OFFSET;
+            if (wallMaxTrack > MAX_CLOCK_POSITION)
+                wallMaxTrack = wallMaxTrack % (MAX_CLOCK_POSITION + 1);
+            int clockPos = wallMaxTrack;
+            if (clockPos == 0) clockPos = 12;
+
+            //store the max peak - overwrites info saved for this gate above
+            //debug mks - gates[1] should use wallStartGate specified by user
+            bdChs[channel].gates[1].storeNewDataD(
+                                         maxThickness, wallMaxTrack, clockPos);
+
+            // Note that StartNum, StartDen, EndNum, and EndDen are no longer
+            // used as the fractional math has been abandonded.
+            // See Git commit tag VersionWithFractionalMathForThickness in the
+            // Java and DSP code archives for version which used fractional
+            // math.
+
+            int wallMinPeak =
+                 (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
+
+            int wallMinStartNum =
+                 (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
+
+            int wallMinStartDen =
+                 (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
+
+            int wallMinEndNum =
+                 (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
+
+            int wallMinEndDen =
+                 (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
+
+            int wallMinTrack =
+                 (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
+
+            double minThickness = (double)wallMinPeak;
+
+            //if the min value returns as max int, then the wall reading is
+            //invalid (missed interface or echo, etc.)  use the previous reading
+            //instead -- if value is good then save as the previous value
+
+            if (minThickness == 32767)
+                minThickness = prevMinThickness;
+            else {
+                //if the modifier value is over the threshold, then modify the
+                //wall trace with it
+                //NOTE: need to add the threshold to the config file so it is
+                // programmable.
+                if ((hdwVs.nearStartOfPiece || hdwVs.nearEndOfPiece)
+                                                && hdwVs.wallMinModifier > 30) {
+                    minThickness -= hdwVs.wallMinModifier;
+                    hdwVs.wallMinModifier = Integer.MIN_VALUE;
+                    }
+                prevMinThickness = minThickness;
+                }
+
+            //see notes above for peakTrack -- make this into a function?
+            wallMinTrack += CLOCK_OFFSET;
+            if (wallMinTrack > MAX_CLOCK_POSITION)
+                wallMinTrack = wallMinTrack % (MAX_CLOCK_POSITION + 1);
+            clockPos = wallMinTrack;
+            if (clockPos == 0) clockPos = 12;
+
+            //store the min peak - overwrites info saved for this gate above
+            //debug mks - gates[2] should use the wallEndGate specified by user
+            bdChs[channel].gates[2].storeNewDataD(
+                                         minThickness, wallMinTrack, clockPos);
+
+            }// if (bdChs[channel].isWallChannel)
+
+        }// for (int h=0; h < pNumberOfChannels; h++)
+
+    return 1;
 
 }//end of UTBoard::processPeakData
 //-----------------------------------------------------------------------------
@@ -4211,47 +4232,47 @@ return 1;
 public int processPeakDataPacket(int pNumberOfChannels)
 {
 
-//allow another request packet to be transmitted now that the return
-//packet for the previous request has been received
-peakDataRcvd = true;
+    //allow another request packet to be transmitted now that the return
+    //packet for the previous request has been received
+    peakDataRcvd = true;
 
-int x;
+    int x;
 
-try{
-    timeOutProcess = 0;
-    while(timeOutProcess++ < TIMEOUT){
-        if (byteIn.available() >= 8) break;
-        waitSleep(10);
-        }
-    if ((x = byteIn.available()) >= 8) byteIn.read(inBuffer, 0, 8);
-    else
-        return 0;
-    }// try
-catch(IOException e){}
+    try{
+        timeOutProcess = 0;
+        while(timeOutProcess++ < TIMEOUT){
+            if (byteIn.available() >= 8) break;
+            waitSleep(10);
+            }
+        if ((x = byteIn.available()) >= 8) byteIn.read(inBuffer, 0, 8);
+        else
+            return 0;
+        }// try
+    catch(IOException e){}
 
-x = 0;
+    x = 0;
 
-//get the position of encoder 1
-//this is the entry encoder or the carriage encoder depending on unit type
-int encoder1 =
-     ((inBuffer[x++]<<24) & 0xff000000) +  ((inBuffer[x++]<<16) & 0xff0000) +
-     ((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
+    //get the position of encoder 1
+    //this is the entry encoder or the carriage encoder depending on unit type
+    int encoder1 =
+         ((inBuffer[x++]<<24) & 0xff000000) +  ((inBuffer[x++]<<16) & 0xff0000)
+          + ((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
 
-//get the position of encoder 2
-//this is the entry encoder or the carriage encoder depending on unit type
-int encoder2 =
-      ((inBuffer[x++]<<24) & 0xff000000) + ((inBuffer[x++]<<16) & 0xff0000) +
-      ((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
+    //get the position of encoder 2
+    //this is the entry encoder or the carriage encoder depending on unit type
+    int encoder2 =
+          ((inBuffer[x++]<<24) & 0xff000000) + ((inBuffer[x++]<<16) & 0xff0000)
+           + ((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
 
-//extract the peak info for each gate of each channel
-x = processPeakData(pNumberOfChannels, encoder1, encoder2);
+    //extract the peak info for each gate of each channel
+    x = processPeakData(pNumberOfChannels, encoder1, encoder2);
 
-//flag that a Peak Data packet has been processed and the data is ready
-peakDataPacketProcessed = true;
+    //flag that a Peak Data packet has been processed and the data is ready
+    peakDataPacketProcessed = true;
 
-//return value greater than zero if bytes read from socket
+    //return value greater than zero if bytes read from socket
 
-return(x);
+    return(x);
 
 }//end of UTBoard::processPeakDataPacket
 //-----------------------------------------------------------------------------
@@ -4270,61 +4291,61 @@ return(x);
 public int processPeakDataPacketX()
 {
 
-int x;
+    int x;
 
-//the number of data bytes expected in the return packet is determined by the
-//number of gates for the channel
-int numberReturnBytes = bdChs[0].numberOfGates * PEAK_DATA_BYTES_PER_GATE;
+    //the number of data bytes expected in the return packet is determined by
+    //the number of gates for the channel
+    int numberReturnBytes = bdChs[0].numberOfGates * PEAK_DATA_BYTES_PER_GATE;
 
-//add one for the DSP core identifier at the beginning of the data packet
-numberReturnBytes++;
+    //add one for the DSP core identifier at the beginning of the data packet
+    numberReturnBytes++;
 
-//above uses channel 0 - need to match channel being returned
-//Rabbit will return all channels in one packet - need to compute packet size
-//using all channels when this is fixed.
+    //above uses channel 0 - need to match channel being returned
+    //Rabbit will return all channels in one packet - need to compute packet
+    //size using all channels when this is fixed.
 
-try{
-    timeOutProcess = 0;
-    while(timeOutProcess++ < TIMEOUT){
-        if (byteIn.available() >= numberReturnBytes) break;
-        waitSleep(10);
-        }
-    if ((x = byteIn.available()) >= numberReturnBytes)
-        byteIn.read(inBuffer, 0, numberReturnBytes);
-    else
-        return 0;
-    }// try
-catch(IOException e){}
+    try{
+        timeOutProcess = 0;
+        while(timeOutProcess++ < TIMEOUT){
+            if (byteIn.available() >= numberReturnBytes) break;
+            waitSleep(10);
+            }
+        if ((x = byteIn.available()) >= numberReturnBytes)
+            byteIn.read(inBuffer, 0, numberReturnBytes);
+        else
+            return 0;
+        }// try
+    catch(IOException e){}
 
-x = 0;
+    x = 0;
 
-int dspCoreFromPkt = (int)inBuffer[x++];
+    int dspCoreFromPkt = (int)inBuffer[x++];
 
-int flags1 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
+    int flags1 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
-int peak1 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
+    int peak1 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
-int peakLoc1 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
+    int peakLoc1 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
-int peakTrk1 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
+    int peakTrk1 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
-int flags2 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
+    int flags2 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
-int peak2 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
+    int peak2 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
-int peakLoc2 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
+    int peakLoc2 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
-int peakTrk2 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
+    int peakTrk2 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
-int flags3 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
+    int flags3 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
-int peak3 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
+    int peak3 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
-int peakLoc3 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
+    int peakLoc3 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
-int peakTrk3 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
+    int peakTrk3 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
-return(numberReturnBytes); //number of bytes read from the socket
+    return(numberReturnBytes); //number of bytes read from the socket
 
 }//end of UTBoard::processPeakDataPacketX
 //-----------------------------------------------------------------------------
@@ -4341,18 +4362,19 @@ return(numberReturnBytes); //number of bytes read from the socket
 public void installNewRabbitFirmware()
 {
 
-//create an object to hold codes specific to the UT board for use by the
-//firmware installer method
+    //create an object to hold codes specific to the UT board for use by the
+    //firmware installer method
 
-InstallFirmwareSettings settings = new InstallFirmwareSettings();
-settings.loadFirmwareCmd = LOAD_FIRMWARE_CMD;
-settings.noAction = NO_ACTION;
-settings.error = ERROR;
-settings.sendDataCmd = SEND_DATA_CMD;
-settings.dataCmd = DATA_CMD;
-settings.exitCmd = EXIT_CMD;
+    InstallFirmwareSettings settings = new InstallFirmwareSettings();
+    settings.loadFirmwareCmd = LOAD_FIRMWARE_CMD;
+    settings.noAction = NO_ACTION;
+    settings.error = ERROR;
+    settings.sendDataCmd = SEND_DATA_CMD;
+    settings.dataCmd = DATA_CMD;
+    settings.exitCmd = EXIT_CMD;
 
-super.installNewRabbitFirmware("UT", "Rabbit\\CAPULIN UT BOARD.bin", settings);
+    super.installNewRabbitFirmware(
+                               "UT", "Rabbit\\CAPULIN UT BOARD.bin", settings);
 
 }//end of Capulin1::installNewRabbitFirmware
 //-----------------------------------------------------------------------------
@@ -4367,18 +4389,18 @@ super.installNewRabbitFirmware("UT", "Rabbit\\CAPULIN UT BOARD.bin", settings);
 public void logStatus(JTextArea pTextArea)
 {
 
-// if there have been socket sync errors, display message and clear count
+    // if there have been socket sync errors, display message and clear count
 
-if (reSyncCount > 0){
-    log.append("----------------------------------------------\n");
-    log.append("Number of reSync errors since last report: " + reSyncCount
-      + "\nInfo for packet processed prior to sync error: \n"
-      + "DSP Chip: " + reSyncDSPChip + " DSP Core: " + reSyncDSPCore
-      + "\nPacket ID: " + reSyncPktID + " DSP Message ID: " + reSyncDSPMsgID);
-    log.append("\n----------------------------------------------\n");
-    }
+    if (reSyncCount > 0){
+        log.append("----------------------------------------------\n");
+        log.append("Number of reSync errors since last report: " + reSyncCount
+        + "\nInfo for packet processed prior to sync error: \n"
+        + "DSP Chip: " + reSyncDSPChip + " DSP Core: " + reSyncDSPCore
+        + "\nPacket ID: " + reSyncPktID + " DSP Message ID: " + reSyncDSPMsgID);
+        log.append("\n----------------------------------------------\n");
+        }
 
-reSyncCount = 0;
+    reSyncCount = 0;
 
 }//end of UTBoard::logStatus
 //-----------------------------------------------------------------------------
@@ -4394,20 +4416,20 @@ reSyncCount = 0;
 public void shutDown()
 {
 
-//shut down pulser operations by placing everything into reset
-//place FPGA internals in reset (active high), DSPs in reset (active low)
-resetShadow = writeFPGAReg(RESET_REG, (byte)0x01);
+    //shut down pulser operations by placing everything into reset
+    //place FPGA internals in reset (active high), DSPs in reset (active low)
+    resetShadow = writeFPGAReg(RESET_REG, (byte)0x01);
 
-//close everything - the order of closing may be important
+    //close everything - the order of closing may be important
 
-try{
-    if (byteOut != null) byteOut.close();
-    if (byteIn != null) byteIn.close();
-    if (out != null) out.close();
-    if (in != null) in.close();
-    if (socket != null) socket.close();
-    }
-catch(IOException e){}
+    try{
+        if (byteOut != null) byteOut.close();
+        if (byteIn != null) byteIn.close();
+        if (out != null) out.close();
+        if (in != null) in.close();
+        if (socket != null) socket.close();
+        }
+    catch(IOException e){}
 
 }//end of UTBoard::shutDown
 //-----------------------------------------------------------------------------

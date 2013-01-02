@@ -67,7 +67,7 @@ byte[]dataBlock;
 // Debugger::Debugger (constructor)
 //
 //
-  
+
 public Debugger(JFrame frame, Hardware pHardware)
 {
 
@@ -399,7 +399,7 @@ add(controlPanel);
 pack();
 
 }//end of Debugger::Debugger (constructor)
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // Debugger::actionPerformed
@@ -592,7 +592,7 @@ if (changed) refreshDisplayedStates();
 //-----------------------------------------------------------------------------
 // Debugger::toHexString
 //
-// Converts and integer to a 4 character hex string.
+// Converts an integer to a 4 character hex string.
 //
 
 String toHexString(int pValue)
@@ -612,7 +612,7 @@ else
 return s;
 
 }//end of Debugger::toHexString
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // Debugger::modifyData
@@ -627,7 +627,7 @@ hardware.writeRAM(chassisNum, slotNum, whichDSPChip, whichDSPCore, ramType,
                                                ramPage, modifyAddr, modifyVal);
 
 }//end of Debugger::modifyData
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // Debugger::fillData
@@ -642,7 +642,7 @@ hardware.fillRAM(chassisNum, slotNum, whichDSPChip, whichDSPCore, ramType,
                                        ramPage, modifyAddr, fillSz, modifyVal);
 
 }//end of Debugger::fillData
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // Debugger::displayData
@@ -668,11 +668,11 @@ for (int line = 0; line < 8; line++){
     textArea.append(" " + toHexString(displayAddr) + ":  ");
     displayAddr += 8;
 
-    for (int col = 0; col < 8; col++){    
+    for (int col = 0; col < 8; col++){
 
         textArea.append(
             toHexString(
-                (int)((dataBlock[dbIndex++]<<8) & 0xff00) + 
+                (int)((dataBlock[dbIndex++]<<8) & 0xff00) +
                 (int)(dataBlock[dbIndex++] & 0x00ff)
                 )
              + " ");
@@ -684,7 +684,7 @@ for (int line = 0; line < 8; line++){
     }// for (line = 0; line < 8; line++)
 
 }//end of Debugger::displayData
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // Debugger::refreshDisplayedStates

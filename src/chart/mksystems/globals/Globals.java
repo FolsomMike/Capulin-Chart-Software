@@ -62,7 +62,7 @@ public int utCalWindowLocationY = 0;
 
 //Constants
 
-public static String SOFTWARE_VERSION = "1.94";
+public static String SOFTWARE_VERSION = "1.95";
 
 //This is the version of the format used to save the data for a segment which
 //holds data for an inspected piece.
