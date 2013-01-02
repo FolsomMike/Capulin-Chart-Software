@@ -35,7 +35,7 @@ class DeletePreset extends JDialog implements ActionListener{
 
 JFrame frame;
 JComboBox presetSelect;
-Vector<String> presetList;
+ArrayList<String> presetList;
 Xfer xfer;
 String primaryDataPath, backupDataPath;
 
@@ -54,9 +54,19 @@ frame = pFrame;
 primaryDataPath = pPrimaryDataPath; backupDataPath = pBackupDataPath;
 xfer = pXfer;
 
-xfer.rBoolean1 = false; //action completed flag - set true if user completes
+}//end of DeletePreset::DeletePreset (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// DeletePreset::init
+//
+
+public void init()
+{
 
 setModal(true); //window always on top and has focus until closed
+
+xfer.rBoolean1 = false; //action completed flag - set true if user completes
 
 loadPresetList(); //retrieve a list of available items
 
@@ -70,7 +80,7 @@ add(Box.createRigidArea(new Dimension(0,15)));
 tPanel = new JPanel();
 tPanel.setLayout(new BoxLayout(tPanel, BoxLayout.LINE_AXIS));
 tPanel.add(Box.createRigidArea(new Dimension(5,0)));
-presetSelect = new JComboBox(presetList);
+presetSelect = new JComboBox(presetList.toArray());
 tPanel.add(presetSelect);
 tPanel.add(Box.createRigidArea(new Dimension(5,0)));
 add(tPanel);
@@ -104,7 +114,7 @@ pack();
 
 setVisible(true);
 
-}//end of DeletePreset::DeletePreset (constructor)
+}//end of DeletePreset::init
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -122,9 +132,8 @@ File jobDir = new File("presets");
 String[] configs = jobDir.list();
 
 //create a list to hold the items
-presetList = new Vector<String>();
-//put the array of items into the vector
-for (int i=0; i<configs.length; i++) presetList.add(configs[i]);
+presetList = new ArrayList<String>();
+presetList.addAll(Arrays.asList(configs));
 //sort the items alphabetically
 Collections.sort(presetList);
 

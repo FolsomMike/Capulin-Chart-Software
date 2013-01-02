@@ -35,7 +35,7 @@ class SavePreset extends JDialog implements ActionListener{
 
 JFrame frame;
 JComboBox presetSelect;
-Vector<String> presetList;
+ArrayList<String> presetList;
 Xfer xfer;
 String primaryDataPath, backupDataPath;
 String currentJobName;
@@ -56,9 +56,19 @@ primaryDataPath = pPrimaryDataPath; backupDataPath = pBackupDataPath;
 xfer = pXfer;
 currentJobName = pCurrentJobName;
 
-xfer.rBoolean1 = false; //action completed flag - set true if user completes
+}//end of SavePreset::SavePreset (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SavePreset::init
+//
+
+public void init()
+{
 
 setModal(true); //window always on top and has focus until closed
+
+xfer.rBoolean1 = false; //action completed flag - set true if user completes
 
 loadPresetList(); //retrieve a list of available items
 
@@ -72,7 +82,7 @@ add(Box.createRigidArea(new Dimension(0,15)));
 tPanel = new JPanel();
 tPanel.setLayout(new BoxLayout(tPanel, BoxLayout.LINE_AXIS));
 tPanel.add(Box.createRigidArea(new Dimension(5,0)));
-presetSelect = new JComboBox(presetList);
+presetSelect = new JComboBox(presetList.toArray());
 presetSelect.setEditable(true);
 tPanel.add(presetSelect);
 tPanel.add(Box.createRigidArea(new Dimension(5,0)));
@@ -107,7 +117,7 @@ pack();
 
 setVisible(true);
 
-}//end of SavePreset::SavePreset (constructor)
+}//end of SavePreset::init
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -125,9 +135,8 @@ File jobDir = new File("presets");
 String[] configs = jobDir.list();
 
 //create a list to hold the items
-presetList = new Vector<String>();
-//put the array of items into the vector
-for (int i=0; i<configs.length; i++) presetList.add(configs[i]);
+presetList = new ArrayList<String>();
+presetList.addAll(Arrays.asList(configs));
 //sort the items alphabetically
 Collections.sort(presetList);
 
@@ -232,7 +241,7 @@ File primaryFolder = new File (primaryDataPath + currentJobName);
 //explorer window when the files are alphabetized to make it easier to find
 
 if (presetSelected &&
-    (!copyFile(primaryFolder + "/00 - " 
+    (!copyFile(primaryFolder + "/00 - "
                       + currentJobName + " Calibration File.ini",
                                           "presets" + "/" + selectedItemName))){
 
