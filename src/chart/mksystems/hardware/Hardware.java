@@ -22,7 +22,7 @@ package chart.mksystems.hardware;
 import javax.swing.*;
 
 import chart.MessageLink;
-import chart.mksystems.globals.Globals;
+import chart.mksystems.settings.Settings;
 import chart.mksystems.inifile.IniFile;
 import chart.ThreadSafeLogger;
 import chart.mksystems.stripchart.Threshold;
@@ -67,7 +67,7 @@ public boolean prepareForNewPiece;
 String towardsHome, awayFromHome;
 public String inspectionDirectionDescription;
 
-Globals globals;
+Settings settings;
 public ChartGroup chartGroups[];
 
 public HardwareVars hdwVs;
@@ -124,11 +124,11 @@ double photoEyeToPhotoEyeDistance;
 // should already be opened and ready to access.
 //
 
-public Hardware(IniFile pConfigFile, Globals pGlobals, JTextArea pLog)
+public Hardware(IniFile pConfigFile, Settings pSettings, JTextArea pLog)
 {
 
 hdwVs = new HardwareVars(); configFile = pConfigFile; log = pLog;
-globals = pGlobals;
+settings = pSettings;
 
 logger = new ThreadSafeLogger(pLog);
 
@@ -235,7 +235,7 @@ if (pDriverName.equalsIgnoreCase("PCI-DAS6023")) analogDriver =
 
 if (pDriverName.equalsIgnoreCase("Capulin 1")) analogDriver =
     new Capulin1(configFile, true, numberOfAnalogChannels, hdwVs, log,
-                                 globals.jobFileFormat, Globals.mainFileFormat);
+                              settings.jobFileFormat, Settings.mainFileFormat);
 
 }//end of Hardware::createAnalogDriver
 //-----------------------------------------------------------------------------
@@ -791,7 +791,7 @@ analogDriver.requestPeakDataForAllBoards();
 //be overwritten by new peaks
 
 if (scanRateCounter-- == 0){
-    scanRateCounter = 10 - globals.scanSpeed;
+    scanRateCounter = 10 - settings.scanSpeed;
     }
 else return;
 

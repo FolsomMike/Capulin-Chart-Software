@@ -22,7 +22,7 @@ import java.io.*;
 import javax.swing.*;
 import java.awt.*;
 
-import chart.mksystems.globals.Globals;
+import chart.mksystems.settings.Settings;
 import chart.mksystems.inifile.IniFile;
 import chart.Viewer;
 import chart.Xfer;
@@ -36,7 +36,7 @@ import chart.Xfer;
 
 public class Threshold extends Object{
 
-Globals globals;
+Settings settings;
 IniFile configFile;
 int chartGroup;
 int chartIndex;
@@ -73,11 +73,11 @@ public Object levelAdjuster;
 // should already be opened and ready to access.
 //
 
-public Threshold(Globals pGlobals, IniFile pConfigFile, int pChartGroup,
+public Threshold(Settings pSettings, IniFile pConfigFile, int pChartGroup,
                                         int pChartIndex, int pThresholdIndex)
 {
 
-globals = pGlobals; configFile = pConfigFile;
+settings = pSettings; configFile = pConfigFile;
 chartGroup = pChartGroup;
 chartIndex = pChartIndex; thresholdIndex = pThresholdIndex;
 

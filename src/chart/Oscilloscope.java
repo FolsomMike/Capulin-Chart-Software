@@ -26,7 +26,7 @@ import java.awt.image.BufferedImage;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
-import chart.mksystems.globals.Globals;
+import chart.mksystems.settings.Settings;
 import chart.mksystems.hardware.Channel;
 
 //-----------------------------------------------------------------------------
@@ -41,7 +41,7 @@ import chart.mksystems.hardware.Channel;
 
 class OscopeCanvas extends JPanel {
 
-Globals globals;
+Settings settings;
 public BufferedImage imageBuffer;
 Channel channel;
 double uSPerDataPoint;
@@ -60,16 +60,16 @@ int vertOffset = 0; //vertical offset for the trace and gates
 //
 
 public OscopeCanvas(double pUSPerDataPoint, MouseListener pMouseListener,
-                     MouseMotionListener pMouseMotionListener, Globals pGlobals)
+                  MouseMotionListener pMouseMotionListener, Settings pSettings)
 {
-    
-uSPerDataPoint = pUSPerDataPoint; globals = pGlobals;
+
+uSPerDataPoint = pUSPerDataPoint; settings = pSettings;
 
 maxY = 350;
 
 aScanPeakInfo = new Xfer();
 
-//we will handle drawing the background    
+//we will handle drawing the background
 setOpaque(false);
 
 setMinimumSize(new Dimension(350,maxY));
@@ -187,7 +187,7 @@ int height = getHeight(); if (height == 0) height = 1;
 //create an image to store the plot on so it can be copied to the screen
 //during repaint
 imageBuffer = (gc.createCompatibleImage(width, height, Transparency.OPAQUE));
-    
+
 }//end of OscopeCanvas::createImageBuffer
 //-----------------------------------------------------------------------------
 
@@ -200,8 +200,8 @@ public void paintComponent(Graphics g)
 
 {
 
-Graphics2D g2 = (Graphics2D) g;        
-    
+Graphics2D g2 = (Graphics2D) g;
+
 super.paintComponent(g2); //paint background
 
 g2.drawImage(imageBuffer, 0, 0, null);
@@ -219,12 +219,12 @@ public void displayData(int pRange, int pInterfaceCrossingPosition,
                                                 int[]pData, Channel pChannel)
 
 {
-    
+
 //draw on the image buffer
-Graphics2D g2 = (Graphics2D) imageBuffer.getGraphics();    
+Graphics2D g2 = (Graphics2D) imageBuffer.getGraphics();
 
 g2.setColor(new Color(153, 204, 0));
-g2.fillRect(0, 0, getWidth(), getWidth());       
+g2.fillRect(0, 0, getWidth(), getWidth());
 
 //draw the grid lines on the screen before anything else
 drawGrid(g2);
@@ -238,7 +238,7 @@ for(int i = 0; i < pData.length; i++){
 
      //apply the offset before inverting
      yPos = pData[i] + vertOffset;
-    
+
     //limit y before inverse to prevent problems
      if (yPos < 0) yPos = 0;
      else
@@ -271,7 +271,7 @@ for(int i = 0; i < pData.length; i++){
     g2.drawLine(lastX, lastY, scaledI, yInv);
 
     lastX = scaledI; lastY = yInv;
-    
+
     }//for(int i = 0; i
 
 //draw the gates on the scope, use g2 graphics object as it is for buffered
@@ -282,7 +282,7 @@ drawGates(channel, g2, pInterfaceCrossingPosition);
 //image
 if (dacEnabled) drawDACGates(channel, g2, pInterfaceCrossingPosition);
 
-//display the image buffer on the screen 
+//display the image buffer on the screen
 //NOTE - need to get a graphics object for the canvas - don't use g2 from
 //this function as that is for the buffered image
 paintComponent(getGraphics());
@@ -316,7 +316,7 @@ for (int i = 0; i < pChannel.numberOfGates; i++){
 //if peak capture display is on, draw the peak recorded for that gate since
 //the last draw
 
-        
+
     pChannel.gates[i].getAndClearAScanPeak(aScanPeakInfo);
 
     int peak = aScanPeakInfo.rInt1;
@@ -326,15 +326,15 @@ for (int i = 0; i < pChannel.numberOfGates; i++){
 
     if (peak < 0) peak = 0; if (peak > maxY) peak = maxY;
     peak = maxY - peak;
-    
+
     flightTime -= pChannel.getSoftwareDelay();
-    int peakPixelLoc = 
+    int peakPixelLoc =
         (int) ((flightTime * pChannel.nSPerDataPoint) / pChannel.nSPerPixel);
 
     //display a red line in the center of the gate which shows the height of
     //the peak
-    
-    if(globals.showRedPeakLineInGateCenter){
+
+    if(settings.showRedPeakLineInGateCenter){
         pG2.setColor(Color.RED);
         pG2.drawLine(
                 pChannel.gates[i].gatePixMidPointAdjusted, maxY,
@@ -344,20 +344,20 @@ for (int i = 0; i < pChannel.numberOfGates; i++){
 
     //display a red line at the peak's location in the gate which shows the
     //height of the peak
-    
-    if(globals.showRedPeakLineAtPeakLocation){
+
+    if(settings.showRedPeakLineAtPeakLocation){
         pG2.setColor(Color.RED);
-        pG2.drawLine(peakPixelLoc, maxY, peakPixelLoc, peak);                
+        pG2.drawLine(peakPixelLoc, maxY, peakPixelLoc, peak);
     }
-        
+
     //draw a pseudo signal peak where it would have been displayed had
     //it been caught in the aScan sample set -- draw a triangle to mimic
     //an actual peak (somewhat)
-    
-    if(globals.showPseudoPeakAtPeakLocation){
+
+    if(settings.showPseudoPeakAtPeakLocation){
         pG2.setColor(Color.BLACK);
-        pG2.drawLine(peakPixelLoc - 5, maxY, peakPixelLoc, peak);                
-        pG2.drawLine(peakPixelLoc + 5, maxY, peakPixelLoc, peak);                
+        pG2.drawLine(peakPixelLoc - 5, maxY, peakPixelLoc, peak);
+        pG2.drawLine(peakPixelLoc + 5, maxY, peakPixelLoc, peak);
     }
 
 }// for (int i = 0; i < pChannel.numberOfGates; i++)
@@ -423,7 +423,7 @@ for (int i = 0; i < pChannel.numberOfDACGates; i++){
                 pChannel.dacGates[i+1].gatePixStartAdjusted,
                 pChannel.dacGates[i+1].gatePixLevel
                 );
-        }        
+        }
     }// for (int i = 0; i < pChannel.numberOfDACGates; i++)
 
 }//end of OscopeCanvas::drawDACGates
@@ -436,24 +436,24 @@ for (int i = 0; i < pChannel.numberOfDACGates; i++){
 //
 
 public void drawGrid(Graphics2D pG2)
-                                                        
+
 {
-    
-pG2.setColor(Color.LIGHT_GRAY);    
-    
+
+pG2.setColor(Color.LIGHT_GRAY);
+
 int width = getWidth(), height = getHeight();
-int interval = width / 10;    
+int interval = width / 10;
 
 for (int i = interval; i < width; i+=interval){
     //draw the vertical lines
-    pG2.drawLine(i, 0, i, height  );   
+    pG2.drawLine(i, 0, i, height  );
     }
 
 interval = height / 10;
 
 for (int i = interval; i < height; i+=interval){
     //draw the horizontal lines
-    pG2.drawLine(0, i, width, i);   
+    pG2.drawLine(0, i, width, i);
     }
 
 }//end of OscopeCanvas::drawGrid
@@ -476,7 +476,7 @@ public class Oscilloscope extends JPanel {
 
 Channel channel;
 OscopeCanvas canvas;
-Globals globals;
+Settings settings;
 
 //-----------------------------------------------------------------------------
 // Oscilloscope::Oscilloscope (constructor)
@@ -487,11 +487,11 @@ Globals globals;
 
 public Oscilloscope(String pTitle, double pUSPerDataPoint,
         MouseListener pMouseListener, MouseMotionListener pMouseMotionListener,
-        Globals pGlobals)
+        Settings pSettings)
 {
-    
-globals = pGlobals;    
-    
+
+settings = pSettings;
+
 //set up the main panel - this panel does nothing more than provide a title
 //border and a spacing border
 setOpaque(true);
@@ -505,7 +505,7 @@ setBorder(BorderFactory.createTitledBorder(pTitle));
 //provides a panel and methods for drawing data - all the work is actually
 //done by the Canvas object
 canvas = new OscopeCanvas(pUSPerDataPoint, pMouseListener,
-                                                pMouseMotionListener, globals);
+                                               pMouseMotionListener, settings);
 
 add(canvas);
 
@@ -544,10 +544,10 @@ public JPanel getOscopeCanvas()
 {
 
 return canvas;
-    
+
 }//end of Oscilloscope::getOscopeCanvas
 //-----------------------------------------------------------------------------
-        
+
 //-----------------------------------------------------------------------------
 // Oscilloscope::setTitle
 //
@@ -574,7 +574,7 @@ public void displayData(int pRange, int pInterfaceCrossingPosition, int[]pData)
 {
 
 canvas.displayData(pRange, pInterfaceCrossingPosition, pData, channel);
-        
+
 }//end of Oscilloscope::displayData
 //-----------------------------------------------------------------------------
 
@@ -588,7 +588,7 @@ public void createImageBuffer()
 {
 
 canvas.createImageBuffer();
-    
+
 }//end of Oscilloscope::createImageBuffer
 //-----------------------------------------------------------------------------
 
@@ -601,10 +601,10 @@ canvas.createImageBuffer();
 public void clearPlot()
 {
 
-Graphics gb = canvas.imageBuffer.getGraphics();    
-    
+Graphics gb = canvas.imageBuffer.getGraphics();
+
 gb.setColor(new Color(153, 204, 0));
-gb.fillRect(0, 0, canvas.getWidth(), canvas.getWidth());       
+gb.fillRect(0, 0, canvas.getWidth(), canvas.getWidth());
 
 canvas.paintComponent(canvas.getGraphics());
 

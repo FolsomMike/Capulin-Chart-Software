@@ -31,7 +31,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.ImageIcon;
 
-import chart.mksystems.globals.Globals;
+import chart.mksystems.settings.Settings;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.hardware.Hardware;
 import chart.mksystems.mswing.MFloatSpinner;
@@ -47,7 +47,7 @@ public class ControlPanel extends JPanel
                        implements ActionListener, ChangeListener, ItemListener{
 
 
-Globals globals;
+Settings settings;
 IniFile configFile;
 Hardware hardware;
 JFrame mainFrame;
@@ -80,7 +80,7 @@ int nextPieceNumber, nextCalPieceNumber;
 
 public ControlPanel(IniFile pConfigFile, String pCurrentJobPrimaryPath,
     String pCurrentJobBackupPath, Hardware pHardware, JFrame pFrame,
-     ActionListener pParentActionListener, String pJobName, Globals pGlobals,
+     ActionListener pParentActionListener, String pJobName, Settings pSettings,
                                                     MessageLink pMechSimulator)
 {
 
@@ -89,10 +89,10 @@ parentActionListener = pParentActionListener;
 currentJobPrimaryPath = pCurrentJobPrimaryPath;
 currentJobBackupPath = pCurrentJobBackupPath;
 jobName = pJobName;
-globals = pGlobals;
+settings = pSettings;
 mechSimulator = pMechSimulator;
-simulateMechanical = globals.simulateMechanical;
-timerDrivenTracking = globals.timerDrivenTracking;
+simulateMechanical = settings.simulateMechanical;
+timerDrivenTracking = settings.timerDrivenTracking;
 
 //set up the main panel - this panel does nothing more than provide a title
 //border and a spacing border
@@ -124,7 +124,7 @@ public void refreshControls()
 //set the scan speed editor to the value loaded from disk
 //cast to a double or the float spinner will switch its internal value to an
 //integer which will cause problems later when using getIntValue()
-scanSpeedPanel.scanSpeedEditor.setValue((double)globals.scanSpeed);
+scanSpeedPanel.scanSpeedEditor.setValue((double)settings.scanSpeed);
 
 }//end of ControlPanel::refreshControls
 //-----------------------------------------------------------------------------
@@ -155,9 +155,9 @@ setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
 add(modePanel = new ModePanel(this));
 modePanel.init();
-add(statusPanel = new StatusPanel(globals, this, this));
+add(statusPanel = new StatusPanel(settings, this, this));
 add(infoPanel = new InfoPanel(this, jobName));
-add(scanSpeedPanel = new ScanSpeedPanel(globals, this, this));
+add(scanSpeedPanel = new ScanSpeedPanel(settings, this, this));
 if (simulateMechanical) add(demoPanel = new DemoPanel(mechSimulator));
 if (demoPanel != null) demoPanel.init();
 add(Box.createHorizontalGlue()); //force manual control to the right side
@@ -386,7 +386,7 @@ if (e.getSource() == statusPanel.pieceNumberEditor){
 
 if (e.getSource() == scanSpeedPanel.scanSpeedEditor){
 
-    globals.scanSpeed = scanSpeedPanel.scanSpeedEditor.getIntValue();
+    settings.scanSpeed = scanSpeedPanel.scanSpeedEditor.getIntValue();
 
     }// if (e.getSource() == scanSpeedPanel.scanSpeedEditor)
 
@@ -499,7 +499,7 @@ IniFile settingsFile = null;
 //if the ini file cannot be opened and loaded, exit without action
 try {
     settingsFile = new IniFile(currentJobPrimaryPath + "02 - "
-                   + jobName + " Piece Number File.ini", globals.jobFileFormat);
+                 + jobName + " Piece Number File.ini", settings.jobFileFormat);
     }
     catch(IOException e){return;}
 
@@ -537,10 +537,10 @@ else
     nextPieceNumber = statusPanel.pieceNumberEditor.getIntValue();
 
 saveSettingsHelper(currentJobPrimaryPath, jobName,
-                    nextPieceNumber, nextCalPieceNumber, globals.jobFileFormat);
+                  nextPieceNumber, nextCalPieceNumber, settings.jobFileFormat);
 
 saveSettingsHelper(currentJobBackupPath, jobName,
-                    nextPieceNumber, nextCalPieceNumber, globals.jobFileFormat);
+                  nextPieceNumber, nextCalPieceNumber, settings.jobFileFormat);
 
 }//end of ControlPanel::saveSettings
 //-----------------------------------------------------------------------------
@@ -714,7 +714,7 @@ JCheckBox calModeCheckBox;
 //
 //
 
-public StatusPanel(Globals pGlobals, ChangeListener pChangeListener,
+public StatusPanel(Settings pSettings, ChangeListener pChangeListener,
                                                     ItemListener pItemListener)
 {
 
@@ -726,7 +726,7 @@ setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 pieceNumberEditor = new MFloatSpinner(1, 1, 100000, 1, "##0", 60, -1);
 pieceNumberEditor.addChangeListener(changeListener);
 pieceNumberEditor.setToolTipText("The next "
-                            + pGlobals.pieceDescriptionLC + " number.");
+                            + pSettings.pieceDescriptionLC + " number.");
 add(pieceNumberEditor);
 
 calModeCheckBox = new JCheckBox("Cal Mode");
@@ -735,7 +735,7 @@ calModeCheckBox.setActionCommand("Calibration Mode");
 calModeCheckBox.addItemListener(itemListener);
 calModeCheckBox.setToolTipText(
             "Check this box to run and save calibration " +
-                                            pGlobals.pieceDescriptionPluralLC);
+                                          pSettings.pieceDescriptionPluralLC);
 add(calModeCheckBox);
 
 /* these need to be options in the config file
@@ -820,7 +820,7 @@ MFloatSpinner scanSpeedEditor;
 // ScanSpeedPanel::ScanSpeedPanel (constructor)
 //
 
-public ScanSpeedPanel(Globals pGlobals, JPanel pParent,
+public ScanSpeedPanel(Settings pSettings, JPanel pParent,
                                                 ChangeListener pChangeListener)
 {
 

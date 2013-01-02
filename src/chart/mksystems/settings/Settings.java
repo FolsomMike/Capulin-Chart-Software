@@ -1,5 +1,5 @@
 /******************************************************************************
-* Title: Globals.java
+* Title: Settings.java
 * Author: Mike Schoonover
 * Date: 11/23/03
 *
@@ -25,7 +25,7 @@
 
 //-----------------------------------------------------------------------------
 
-package chart.mksystems.globals;
+package chart.mksystems.settings;
 
 import javax.swing.*;
 import java.awt.event.*;
@@ -37,12 +37,12 @@ import chart.mksystems.inifile.IniFile;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-// class Globals
+// class Settings
 //
 // See header at top of the page for info.
 //
 
-public class Globals extends Object implements ActionListener, ItemListener {
+public class Settings extends Object implements ActionListener, ItemListener {
 
 public String language;
 
@@ -189,14 +189,14 @@ public boolean printMode = false;
 public ArrayList<String> configInfo;
 
 //-----------------------------------------------------------------------------
-// Globals::Globals (constructor)
+// Settings::Settings (constructor)
 //
 // Parameter pMainWindow provides a connection back to the MainWindow which
-// implements interface Link.  This allows the Globals objects to call functions
+// implements interface Link.  This allows the Settings objects to call functions
 // in MainWindow objects.
 //
 
-public Globals(Link pMainWindow, ActionListener pActionListener)
+public Settings(Link pMainWindow, ActionListener pActionListener)
 {
 
 //store parameters in persistent variables
@@ -214,14 +214,14 @@ loadOptions(); //read option settings from ini file
 //load the appropriate language text
 //loadLanguage();
 
-}//end of Globals::Globals (constructor)
+}//end of Settings::Settings (constructor)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Globals::setOptionsModifiedFlag
+// Settings::setOptionsModifiedFlag
 //
 // Allows optionsModified flag to be set so values will be saved to file
-// when the Globals object is destroyed.
+// when the Settings object is destroyed.
 //
 
 public void setOptionsModifiedFlag(boolean pModified)
@@ -229,11 +229,11 @@ public void setOptionsModifiedFlag(boolean pModified)
 
 optionsModified = pModified;
 
-}//end of Globals::setOptionsModifiedFlag
+}//end of Settings::setOptionsModifiedFlag
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Globals::setUTSettingsModifiedFlag
+// Settings::setUTSettingsModifiedFlag
 //
 // Allows outside objects to set the setUTSettingsModifiedFlag to true or false
 // so that other objects can know that the values have been modified and any
@@ -256,11 +256,11 @@ utSettingsModified = pModified;
 
 optionsModified = true;
 
-}//end of Globals::setUTSettingsModifiedFlag
+}//end of Settings::setUTSettingsModifiedFlag
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Globals::actionPerformed
+// Settings::actionPerformed
 //
 // Catches action events from menu.
 //
@@ -419,7 +419,7 @@ if (source.getActionCommand().startsWith("Display Configuration Info")){
     return;
     }
 
-//sets a variable in Globals
+//sets a variable in Settings
 if (source.getActionCommand().equalsIgnoreCase(
                             "Restart Each New Piece at Left Edge of Chart")){
     restartNewPieceAtLeftEdge =
@@ -427,7 +427,7 @@ if (source.getActionCommand().equalsIgnoreCase(
     return;
     }
 
-//sets a variable in Globals
+//sets a variable in Settings
 if (source.getActionCommand().equalsIgnoreCase(
                                         "Show Red Peak Line at Gate Center")){
     showRedPeakLineInGateCenter =
@@ -435,7 +435,7 @@ if (source.getActionCommand().equalsIgnoreCase(
     return;
     }
 
-//sets a variable in Globals
+//sets a variable in Settings
 if (source.getActionCommand().equalsIgnoreCase(
                                         "Show Red Peak Line at Peak Location")){
     showRedPeakLineAtPeakLocation =
@@ -443,7 +443,7 @@ if (source.getActionCommand().equalsIgnoreCase(
     return;
     }
 
-//sets a variable in Globals
+//sets a variable in Settings
 if (source.getActionCommand().equalsIgnoreCase(
                                         "Show Peak Symbol at Peak Location")){
     showPseudoPeakAtPeakLocation =
@@ -476,11 +476,11 @@ if (source.getToolTipText().equalsIgnoreCase("Exit")){
     return;
     }
 
-}//end of Globals::actionPerformed
+}//end of Settings::actionPerformed
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Globals::itemStateChanged
+// Settings::itemStateChanged
 //
 // Catches item events from menu.
 //
@@ -503,11 +503,11 @@ String s = "Item event detected."
 
 System.out.println(s); //debug mks
 
-}//end of Globals::itemStateChanged
+}//end of Settings::itemStateChanged
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Globals::setLanguage
+// Settings::setLanguage
 //
 // Sets the language variable to pLanguage and sets the class variable
 // "optionsModified" to true so the options will be saved.
@@ -523,11 +523,11 @@ language = pLanguage; optionsModified = true;
 
 mainWindow.changeLanguage(pLanguage);
 
-}//end of Globals::setLanguage
+}//end of Settings::setLanguage
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Globals::loadOptions
+// Settings::loadOptions
 //
 // Loads option settings from the options.ini file.  These are global settings
 // for the program.
@@ -537,11 +537,11 @@ private void loadOptions()
 {
 
 
-}//end of Globals::loadOptions
+}//end of Settings::loadOptions
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Globals::saveOptions
+// Settings::saveOptions
 //
 // Saves option settings to the options.ini file.  These are global settings
 // for the program.
@@ -553,11 +553,11 @@ public void saveOptions()
 {
 
 
-}//end of Globals::saveOptions
+}//end of Settings::saveOptions
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Globals::loadDBColors
+// Settings::loadDBColors
 //
 // Loads the color scheme for the decibel drop.
 //
@@ -566,11 +566,11 @@ public void loadDBColors(IniFile pIni)
 {
 
 
-}//end of Globals::loadDBColors
+}//end of Settings::loadDBColors
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Globals::saveDBColors
+// Settings::saveDBColors
 //
 // Saves the color scheme for the decibel drop.
 //
@@ -579,11 +579,11 @@ public void saveDBColors(IniFile pIni)
 {
 
 
-}//end of Globals::saveDBColors
+}//end of Settings::saveDBColors
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Globals::dBColorsToText
+// Settings::dBColorsToText
 //
 // Returns a text color name for pColor.
 //
@@ -598,11 +598,11 @@ for(int i = 0; i < colorArray.length; i++ )
 //if color not found, return "Undefined"
 return("Undefined");
 
-}//end of Globals::dBColorsToText
+}//end of Settings::dBColorsToText
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Globals::textToDBColors
+// Settings::textToDBColors
 //
 // Returns a color matching pColor.
 //
@@ -621,11 +621,11 @@ for(int i = 0; i < colorNamesArray.length; i++ )
 
 return Color.BLACK; //not used in this program yet
 
-}//end of Globals::textToDBColors
+}//end of Settings::textToDBColors
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Globals::configure
+// Settings::configure
 //
 // Loads configuration settings from the configuration.ini file.
 // The various child objects are then created as specified by the config data.
@@ -662,11 +662,11 @@ for (int i = 0; i < lineCount; i++){
 
 section = "Main Configuration";
 
-}//end of Globals::configure
+}//end of Settings::configure
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Globals::displayConfigInfo
+// Settings::displayConfigInfo
 //
 // Appends the lines of the configuration info to pTextArea.
 //
@@ -689,11 +689,11 @@ for (i = configInfo.listIterator(); i.hasNext(); ){
 pTextArea.append(
             "------------------------------------------------------------\n");
 
-}//end of Globals::displayConfigInfo
+}//end of Settings::displayConfigInfo
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Globals::loadLanguage
+// Settings::loadLanguage
 //
 // Sets the text displayed by various controls according to the selected
 // language.
@@ -709,11 +709,11 @@ try {ini = new IniFile("language\\Globals - Capulin UT.language",
                                                             mainFileFormat);}
 catch(IOException e){return;}
 
-}//end of Globals::loadLanguage
+}//end of Settings::loadLanguage
 //-----------------------------------------------------------------------------
 
 //debug mks System.out.println(String.valueOf(value)); //debug mks
 
-}//end of class Globals
+}//end of class Settings
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

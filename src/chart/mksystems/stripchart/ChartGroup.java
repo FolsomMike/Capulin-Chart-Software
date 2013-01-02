@@ -29,7 +29,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
 import java.text.DecimalFormat;
 
-import chart.mksystems.globals.Globals;
+import chart.mksystems.settings.Settings;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.hardware.Hardware;
 import chart.mksystems.hardware.TraceValueCalculator;
@@ -46,7 +46,7 @@ import chart.mksystems.hardware.HardwareVars;
 
 public class ChartGroup extends JPanel implements MouseListener{
 
-Globals globals;
+Settings settings;
 IniFile configFile;
 int chartGroupIndex;
 Hardware hardware;
@@ -73,13 +73,13 @@ ActionListener actionListener;
 // should already be opened and ready to access.
 //
 
-public ChartGroup(Globals pGlobals, IniFile pConfigFile, int pChartGroupIndex,
+public ChartGroup(Settings pSettings, IniFile pConfigFile, int pChartGroupIndex,
                         Hardware pHardware, ActionListener pActionListener,
                                         boolean pChartSizeEqualsBufferSize,
                                   TraceValueCalculator pTraceValueCalculator)
 {
 
-globals = pGlobals; configFile = pConfigFile;
+settings = pSettings; configFile = pConfigFile;
 chartGroupIndex = pChartGroupIndex;
 hardware = pHardware;
 actionListener = pActionListener;
@@ -157,7 +157,7 @@ if (numberOfStripCharts > 0){
     stripCharts = new StripChart[numberOfStripCharts];
 
     for (int i = 0; i < numberOfStripCharts; i++){
-       stripCharts[i] = new StripChart(globals, configFile, chartGroupIndex, i,
+       stripCharts[i] = new StripChart(settings, configFile, chartGroupIndex, i,
                         hardware, actionListener, chartSizeEqualsBufferSize,
                         traceValueCalculator);
         add(stripCharts[i]);

@@ -30,7 +30,7 @@ import java.awt.event.ActionEvent;
 import chart.mksystems.hardware.TraceValueCalculator;
 
 import chart.mksystems.inifile.IniFile;
-import chart.mksystems.globals.Globals;
+import chart.mksystems.settings.Settings;
 import chart.mksystems.stripchart.ChartGroup;
 import chart.mksystems.hardware.HardwareVars;
 
@@ -43,7 +43,7 @@ import chart.mksystems.hardware.HardwareVars;
 
 public class ViewerReporter implements ActionListener, TraceValueCalculator {
 
-    Globals globals;
+    Settings settings;
     JobInfo jobInfo;
     public HardwareVars hdwVs;
     String jobPrimaryPath, jobBackupPath, currentJobName;
@@ -266,13 +266,13 @@ public synchronized void enablePrintButtonsThreadSafe()
 // ViewerReporter::ViewerReporter (constructor)
 //
 
-public ViewerReporter(Globals pGlobals, JobInfo pJobInfo,
+public ViewerReporter(Settings pSettings, JobInfo pJobInfo,
         String pJobPrimaryPath, String pJobBackupPath, String pCurrentJobName)
 {
 
     hdwVs = new HardwareVars();
 
-    globals = pGlobals; jobInfo = pJobInfo;
+    settings = pSettings; jobInfo = pJobInfo;
     jobPrimaryPath = pJobPrimaryPath; jobBackupPath = pJobBackupPath;
     currentJobName = pCurrentJobName;
 
@@ -295,7 +295,7 @@ public void init()
 
     //create an object to hold info about each piece
     pieceIDInfo = new PieceInfo(mainFrame, jobPrimaryPath, jobBackupPath,
-                            currentJobName, this, true, globals.jobFileFormat);
+                           currentJobName, this, true, settings.jobFileFormat);
     pieceIDInfo.init();
 
 }//end of ViewerReporter::init
@@ -402,7 +402,7 @@ private String loadSegmentHelper(String pFilename)
 
         fileInputStream = new FileInputStream(pFilename);
         inputStreamReader = new InputStreamReader(fileInputStream,
-                                                        globals.jobFileFormat);
+                                                       settings.jobFileFormat);
         in = new BufferedReader(inputStreamReader);
 
         in = new BufferedReader(inputStreamReader);
@@ -706,7 +706,7 @@ public void loadCalFile()
     try {
 
         calFile = new IniFile(jobPrimaryPath + "00 - "
-            + currentJobName + " Calibration File.ini", globals.jobFileFormat);
+            + currentJobName + " Calibration File.ini", settings.jobFileFormat);
         }
         catch(IOException e){return;}
 
@@ -730,9 +730,9 @@ public void loadCalFile()
                      calFile.readDouble("Hardware", "Wall Chart Scale", 0.002);
 
 
-    //don't load globals -- a pointer to the globals is passed to the Viewer
+    //don't load settings -- a pointer to the settings is passed to the Viewer
     // and these values are shared with the main program and other viewers --
-    // the globals are already loaded by the main program
+    // the settings are already loaded by the main program
 
     //load info for all charts
     for (int i=0; i < numberOfChartGroups; i++)
@@ -806,7 +806,7 @@ public void configure()
     //if the ini file cannot be opened and loaded, exit without action
     try {
         configFile = new IniFile(jobPrimaryPath + "01 - " + currentJobName
-                                + " Configuration.ini", globals.jobFileFormat);
+                                + " Configuration.ini", settings.jobFileFormat);
         }
         catch(IOException e){return;}
 
@@ -831,7 +831,7 @@ public void configure()
 
         for (int i = 0; i < numberOfChartGroups; i++){
             chartGroups[i] = new ChartGroup(
-                  globals, configFile, i, null /*hardware*/, this, true, this);
+                 settings, configFile, i, null /*hardware*/, this, true, this);
             chartGroupPanel.add(chartGroups[i]);
             }
 

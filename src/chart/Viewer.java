@@ -48,7 +48,7 @@ import javax.print.attribute.standard.MediaPrintableArea;
 import javax.print.attribute.standard.PageRanges;
 import java.awt.geom.AffineTransform;
 
-import chart.mksystems.globals.Globals;
+import chart.mksystems.settings.Settings;
 import chart.mksystems.stripchart.ChartGroup;
 import chart.mksystems.stripchart.StripChart;
 
@@ -79,11 +79,11 @@ PrintRange printRange, printCalsRange;
 // Viewer::Viewer (constructor)
 //
 
-public Viewer(Globals pGlobals, JobInfo pJobInfo, String pJobPrimaryPath,
+public Viewer(Settings pSettings, JobInfo pJobInfo, String pJobPrimaryPath,
                             String pJobBackupPath, String pCurrentJobName)
 {
 
-super(pGlobals, pJobInfo, pJobPrimaryPath, pJobBackupPath, pCurrentJobName);
+super(pSettings, pJobInfo, pJobPrimaryPath, pJobBackupPath, pCurrentJobName);
 
 }//end of Viewer::Viewer (constructor)
 //-----------------------------------------------------------------------------
@@ -250,7 +250,7 @@ public void configure()
 
     super.configure();
 
-    controlPanel = new ViewerControlPanel(globals, currentJobName, this, this);
+    controlPanel = new ViewerControlPanel(settings, currentJobName, this, this);
 
     //put the chartGroupPanel in a scroll pane so the user can scroll to see
     //a chart wider than the screen - this is different from the program's main
@@ -615,28 +615,28 @@ aset.clear();
 
 //some attributes are added by instantiating
 PrinterResolution pR = new PrinterResolution(
-     globals.printResolutionX, globals.printResolutionY, PrinterResolution.DPI);
+   settings.printResolutionX, settings.printResolutionY, PrinterResolution.DPI);
 aset.add(pR);
 
 //some attributes cannot be instantiated as their constructors are protected
 //or abstract - these are used by adding their static member variables
 
-if(globals.printQuality.contains("Draft")) aset.add(PrintQuality.DRAFT);
-if(globals.printQuality.contains("Normal")) aset.add(PrintQuality.NORMAL);
-if(globals.printQuality.contains("High")) aset.add(PrintQuality.HIGH);
+if(settings.printQuality.contains("Draft")) aset.add(PrintQuality.DRAFT);
+if(settings.printQuality.contains("Normal")) aset.add(PrintQuality.NORMAL);
+if(settings.printQuality.contains("High")) aset.add(PrintQuality.HIGH);
 
 aset.add(OrientationRequested.LANDSCAPE);
 
 //select the paper size according to what the user has selected
-if (globals.graphPrintLayout.contains("8-1/2 x 11")){
+if (settings.graphPrintLayout.contains("8-1/2 x 11")){
     aset.add(MediaSizeName.NA_LETTER);
     }
 else
-if (globals.graphPrintLayout.contains("8-1/2 x 14")){
+if (settings.graphPrintLayout.contains("8-1/2 x 14")){
     aset.add(MediaSizeName.NA_LEGAL);
     }
 else
-if (globals.graphPrintLayout.contains("A4")){
+if (settings.graphPrintLayout.contains("A4")){
     aset.add(MediaSizeName.ISO_A4);
     }
 
@@ -1104,11 +1104,11 @@ double paperY =
 //calculate the scale so that either width or length fits the paper per the
 //user's setting
 
-if (globals.graphPrintLayout.contains("Fit Width")){
+if (settings.graphPrintLayout.contains("Fit Width")){
 
     //if the user does not choose "Fit to Data" for the magnification, then
     //calculate the scale to fit the entire chart width on the paper
-    if (!globals.userPrintMagnify.contains("Fit to Data")){
+    if (!settings.userPrintMagnify.contains("Fit to Data")){
         scaleX = paperX / groupWidth;
         scaleY = scaleX; //fix this - scaleY reflect possibly different DPI?
         }
@@ -1138,9 +1138,9 @@ if (globals.graphPrintLayout.contains("Fit Width")){
         scaleY = scaleX; //fix this - scaleY reflect possibly different DPI?
 
         }
-    }//if (globals.graphPrintLayout.contains("Fit Width"))
+    }//if (settings.graphPrintLayout.contains("Fit Width"))
 
-if (globals.graphPrintLayout.contains("Fit Height")){
+if (settings.graphPrintLayout.contains("Fit Height")){
     scaleY = paperY / groupHeight;
     scaleX = scaleY;  //fix this - scaleY should reflect possibly different DPI
     }
@@ -1148,10 +1148,10 @@ if (globals.graphPrintLayout.contains("Fit Height")){
 //apply the user's scale modification if user has not selected "Fit to Data",
 // the magnification for that case is already applied above
 
-if (!globals.userPrintMagnify.contains("Fit to Data")){
+if (!settings.userPrintMagnify.contains("Fit to Data")){
 
     //get the numeric portion of the magnify string (skip the label)
-    Double magnify = Double.valueOf(globals.userPrintMagnify.substring(8));
+    Double magnify = Double.valueOf(settings.userPrintMagnify.substring(8));
 
     scaleX *= magnify;
     scaleY *= magnify;
@@ -1162,9 +1162,9 @@ g2.scale(scaleX, scaleY);
 
 //disable double buffering to improve scaling and print speed
 disableDoubleBuffering(pChartGroup);
-globals.printMode = true;
+settings.printMode = true;
 pChartGroup.print(g2);
-globals.printMode = false;
+settings.printMode = false;
 enableDoubleBuffering(pChartGroup);
 
 printRunnable.unPauseThread(); //release the print thread if it is waiting
@@ -1681,7 +1681,7 @@ public void windowDeactivated(WindowEvent e){}
 class ViewerControlPanel extends JPanel implements ActionListener
 {
 
-Globals globals;
+Settings settings;
 ItemListener itemListener;
 ActionListener actionListener;
 JLabel jobValue;
@@ -1700,11 +1700,11 @@ JButton load, list;
 // ViewerControlPanel::ViewerControlPanel (constructor)
 //
 
-public ViewerControlPanel(Globals pGlobals, String pCurrentJobName,
+public ViewerControlPanel(Settings pSettings, String pCurrentJobName,
                     ItemListener pItemListener, ActionListener pActionListener)
 {
 
-globals = pGlobals; currentJobName = pCurrentJobName;
+settings = pSettings; currentJobName = pCurrentJobName;
 
 itemListener = pItemListener;
 actionListener = pActionListener;
@@ -1777,7 +1777,7 @@ fileNavigator.setLayout(new BoxLayout(fileNavigator, BoxLayout.X_AXIS));
 fileNavigator.setBorder(BorderFactory.createTitledBorder("Navigate"));
 fileNavigator.setToolTipText("Select another file to view.");
 
-//"Select " + globals.pieceDescription)
+//"Select " + settings.pieceDescription)
 
 fileNavigator.add(first = new JButton(firstIcon));
 first.setRolloverIcon(firstIconHighlighted);
@@ -1849,7 +1849,7 @@ panel1.add(layoutSelector);
 //figure out which string index matches, use first one (0) if no match
 int selected = 0;
 for (int i = 0; i < layouts.length; i++)
-    if (globals.graphPrintLayout.equalsIgnoreCase(layouts[i])) selected = i;
+    if (settings.graphPrintLayout.equalsIgnoreCase(layouts[i])) selected = i;
 layoutSelector.setSelectedIndex(selected);
 layoutSelector.setActionCommand("Select Graph Print Layout");
 layoutSelector.addActionListener(this);
@@ -1864,7 +1864,7 @@ layoutSelector.setToolTipText("Select magnification.");
 panel1.add(userMagnifySelector);
 selected = 0;
 for (int i = 0; i < magnifyValues.length; i++)
-    if (globals.userPrintMagnify.equalsIgnoreCase(magnifyValues[i]))
+    if (settings.userPrintMagnify.equalsIgnoreCase(magnifyValues[i]))
         selected = i;
 userMagnifySelector.setSelectedIndex(selected);
 userMagnifySelector.setActionCommand("Select Magnification");
@@ -1878,19 +1878,19 @@ add(printControls);
 
 JPanel gotoPanel = new JPanel();
 gotoPanel.setBorder(BorderFactory.createTitledBorder(
-                                "Choose " + globals.pieceDescription));
+                                "Choose " + settings.pieceDescription));
 gotoPanel.setLayout(new BoxLayout(gotoPanel, BoxLayout.X_AXIS));
 
-calModeCheckBox = new JCheckBox("View Cal " + globals.pieceDescriptionPlural);
+calModeCheckBox = new JCheckBox("View Cal " + settings.pieceDescriptionPlural);
 calModeCheckBox.setSelected(false);
 calModeCheckBox.addItemListener(itemListener);
 calModeCheckBox.setToolTipText(
             "Check this box to view calibration " +
-                                              globals.pieceDescriptionPluralLC);
+                                            settings.pieceDescriptionPluralLC);
 gotoPanel.add(calModeCheckBox);
 
 segmentEntry = new JTextField("");
-segmentEntry.setToolTipText("Enter the " + globals.pieceDescriptionLC +
+segmentEntry.setToolTipText("Enter the " + settings.pieceDescriptionLC +
                                                       " number to be loaded.");
 Viewer.setSizes(segmentEntry, 70, 22);
 gotoPanel.add(segmentEntry);
@@ -1898,14 +1898,14 @@ gotoPanel.add(segmentEntry);
 load = new JButton("Load");
 load.setActionCommand("Load");
 load.addActionListener(actionListener);
-load.setToolTipText("Load the " + globals.pieceDescriptionLC +
+load.setToolTipText("Load the " + settings.pieceDescriptionLC +
                                                 " number entered in the box.");
 gotoPanel.add(load);
 
 list = new JButton("List");
 list.setActionCommand("List");
 list.addActionListener(actionListener);
-list.setToolTipText("List all " + globals.pieceDescriptionPluralLC + ".");
+list.setToolTipText("List all " + settings.pieceDescriptionPluralLC + ".");
 gotoPanel.add(list);
 
 add(gotoPanel);
@@ -1984,12 +1984,12 @@ public void actionPerformed(ActionEvent e)
 
 if ("Select Graph Print Layout".equals(e.getActionCommand())) {
     JComboBox cb = (JComboBox)e.getSource();
-    globals.graphPrintLayout = (String)cb.getSelectedItem();
+    settings.graphPrintLayout = (String)cb.getSelectedItem();
     }
 
 if ("Select Magnification".equals(e.getActionCommand())) {
     JComboBox cb = (JComboBox)e.getSource();
-    globals.userPrintMagnify = (String)cb.getSelectedItem();
+    settings.userPrintMagnify = (String)cb.getSelectedItem();
     }
 
 }//end of ViewerControlPanel::actionPerformed

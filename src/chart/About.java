@@ -21,7 +21,7 @@ package chart;
 import javax.swing.*;
 import java.awt.*;
 
-import chart.mksystems.globals.Globals;
+import chart.mksystems.settings.Settings;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -55,7 +55,7 @@ textArea = new JTextArea();
 
 add(textArea);
 
-textArea.append("Software Version: " + Globals.SOFTWARE_VERSION + "\n");
+textArea.append("Software Version: " + Settings.SOFTWARE_VERSION + "\n");
 
 textArea.append("\n");
 textArea.append("Author: Mike Schoonover" + "\n");

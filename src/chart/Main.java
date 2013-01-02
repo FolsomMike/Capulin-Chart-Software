@@ -37,8 +37,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.JOptionPane;
 import javax.swing.JDialog;
 
-import chart.mksystems.globals.Link;
-import chart.mksystems.globals.Globals;
+import chart.mksystems.settings.Link;
+import chart.mksystems.settings.Settings;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.menu.MainMenu;
 import chart.mksystems.stripchart.ChartGroup;
@@ -61,17 +61,17 @@ class MainThread implements Runnable {
 int i = 0;
 
 public Hardware hardware;
-Globals globals;
+Settings settings;
 UTCalibrator calWindow;
 
 //-----------------------------------------------------------------------------
 // MainThread::MainThread (constructor)
 //
 
-public MainThread(UTCalibrator pCalWindow, Globals pGlobals)
+public MainThread(UTCalibrator pCalWindow, Settings pSettings)
 {
 
-calWindow = pCalWindow; globals = pGlobals;
+calWindow = pCalWindow; settings = pSettings;
 
 }//end of MainThread::MainThread (constructor)
 //-----------------------------------------------------------------------------
@@ -144,11 +144,11 @@ catch (InterruptedException e) {
 class MainWindow implements WindowListener, ActionListener, ChangeListener,
                                 ComponentListener, DocumentListener, Link {
 
-Globals globals;
+Settings settings;
 String language;
 Xfer xfer;
 
-FileSaver fileSaver = null;
+CalFileSaver fileSaver = null;
 
 String currentJobName;
 String currentJobPrimaryPath, currentJobBackupPath, reportsPath;
@@ -219,7 +219,7 @@ decimalFormats[0] = new  DecimalFormat("0000000");
 UTF16LEToUTF8Converter converter = new UTF16LEToUTF8Converter();
 converter.init();
 
-globals = new Globals(this, this);
+settings = new Settings(this, this);
 
 xfer = new Xfer();
 
@@ -236,11 +236,11 @@ BoxLayout boxLayout =
 //mainFrame.setLayout(new BoxLayout(mainFrame, BoxLayout.Y_AXIS));
 mainFrame.getContentPane().setLayout(boxLayout);
 
-loadLanguage(globals.language); //set text on main form
+loadLanguage(settings.language); //set text on main form
 
-//create a main menu, passing globals as the object to be installed as
+//create a main menu, passing settings as the object to be installed as
 //the action and item listener for the menu
-mainFrame.setJMenuBar(mainMenu = new MainMenu(globals));
+mainFrame.setJMenuBar(mainMenu = new MainMenu(settings));
 
 //loads configurations settings for the program
 loadGeneralConfiguration();
@@ -255,7 +255,8 @@ loadMainSettings();
 //loads the job file
 configure();
 
-mainFrame.setLocation(globals.mainWindowLocationX, globals.mainWindowLocationY);
+mainFrame.setLocation(
+                    settings.mainWindowLocationX, settings.mainWindowLocationY);
 
 mainFrame.pack();
 mainFrame.setVisible(true);
@@ -273,7 +274,7 @@ calWindow.scope1.createImageBuffer();
 calWindow.scope1.clearPlot();
 
 //create and start a thread to collect data from the hardware
-mainThread = new MainThread(calWindow, globals);
+mainThread = new MainThread(calWindow, settings);
 Thread thread = new Thread(mainThread, "Main Thread");
 mainThread.hardware = hardware;
 thread.start();
@@ -311,7 +312,7 @@ IniFile configFile = null;
 
 //if the ini file cannot be opened and loaded, exit without action
 try {configFile = new IniFile("Main Static Settings.ini",
-                                                    Globals.mainFileFormat);}
+                                                    Settings.mainFileFormat);}
     catch(IOException e){return;}
 
 //set the data folders to empty if values cannot be read from the ini file
@@ -361,7 +362,7 @@ IniFile configFile = null;
 
 //if the ini file cannot be opened and loaded, exit without action
 try {configFile = new IniFile("Main Static Settings.ini",
-                                                       Globals.mainFileFormat);}
+                                                       Settings.mainFileFormat);}
     catch(IOException e){
         System.err.println("Error opening: " + "Main Static Settings.ini");
         return;
@@ -392,14 +393,14 @@ IniFile configFile = null;
 
 //if the ini file cannot be opened and loaded, exit without action
 try {configFile = new IniFile(
-                       "Configuration - General.ini", Globals.mainFileFormat);}
+                       "Configuration - General.ini", Settings.mainFileFormat);}
     catch(IOException e){return;}
 
-globals.primaryFolderName = configFile.readString(
+settings.primaryFolderName = configFile.readString(
                         "Main Configuration", "Primary Data Folder Name",
                                             "IR Scan Data Files -  Primary");
 
-globals.backupFolderName = configFile.readString(
+settings.backupFolderName = configFile.readString(
                             "Main Configuration", "Backup Data Folder Name",
                         "Backup Data Folder Name=IR Scan Data Files - Backup");
 
@@ -407,28 +408,26 @@ globals.backupFolderName = configFile.readString(
 //for the system the program is running on
 
 String sep = File.separator;
-globals.primaryFolderName = globals.primaryFolderName.replace("/", sep);
-globals.primaryFolderName = globals.primaryFolderName.replace("\\", sep);
-globals.backupFolderName = globals.backupFolderName.replace("/", sep);
-globals.backupFolderName = globals.backupFolderName.replace("\\", sep);
+settings.primaryFolderName = settings.primaryFolderName.replace("/", sep);
+settings.primaryFolderName = settings.primaryFolderName.replace("\\", sep);
+settings.backupFolderName = settings.backupFolderName.replace("/", sep);
+settings.backupFolderName = settings.backupFolderName.replace("\\", sep);
 
 //if there is a separator at the end, remove it for consistency with later code
-String t = globals.primaryFolderName;
-if (t.endsWith(sep))
-    globals.primaryFolderName = t.substring(0, t.length()-1);
+String t = settings.primaryFolderName;
+if (t.endsWith(sep)) settings.primaryFolderName = t.substring(0, t.length()-1);
 
-t = globals.backupFolderName;
-if (t.endsWith(sep))
-    globals.backupFolderName = t.substring(0, t.length()-1);
+t = settings.backupFolderName;
+if (t.endsWith(sep)) settings.backupFolderName = t.substring(0, t.length()-1);
 
 
-globals.printResolutionX = configFile.readInt(
+settings.printResolutionX = configFile.readInt(
                                  "Printer", "Printer Resolution X in DPI", 300);
 
-globals.printResolutionY = configFile.readInt(
+settings.printResolutionY = configFile.readInt(
                                  "Printer", "Printer Resolution Y in DPI", 300);
 
-globals.printQuality  = configFile.readString(
+settings.printQuality  = configFile.readString(
                     "Printer", "Print Quality (Draft, Normal, High)", "Normal");
 
 }//end of MainWindow::loadGeneralConfiguration
@@ -447,7 +446,7 @@ private void loadMainSettings()
 IniFile configFile = null;
 
 //if the ini file cannot be opened and loaded, exit without action
-try {configFile = new IniFile("Main Settings.ini", Globals.mainFileFormat);}
+try {configFile = new IniFile("Main Settings.ini", Settings.mainFileFormat);}
     catch(IOException e){return;}
 
 currentJobName = configFile.readString(
@@ -477,16 +476,16 @@ if(!currentJobName.equals("")){
                              backupDataPath + currentJobName + File.separator;
     }
 
-globals.mainWindowLocationX = configFile.readInt(
+settings.mainWindowLocationX = configFile.readInt(
                         "Main Configuration", "Main Window Location X", 0);
 
-globals.mainWindowLocationY = configFile.readInt(
+settings.mainWindowLocationY = configFile.readInt(
                         "Main Configuration", "Main Window Location Y", 0);
 
-globals.utCalWindowLocationX = configFile.readInt(
+settings.utCalWindowLocationX = configFile.readInt(
                    "Main Configuration", "UT Calibrator Window Location X", 0);
 
-globals.utCalWindowLocationY = configFile.readInt(
+settings.utCalWindowLocationY = configFile.readInt(
                    "Main Configuration", "UT Calibrator Window Location Y", 0);
 
 }//end of MainWindow::loadMainSettings
@@ -505,7 +504,7 @@ private void saveMainSettings()
 IniFile configFile = null;
 
 //if the ini file cannot be opened and loaded, exit without action
-try {configFile = new IniFile("Main Settings.ini", Globals.mainFileFormat);}
+try {configFile = new IniFile("Main Settings.ini", Settings.mainFileFormat);}
 catch(IOException e){
     System.err.println("Error opening: " + "Main Settings.ini");
     return;
@@ -539,25 +538,25 @@ String configFilename = currentJobPrimaryPath + "01 - " + currentJobName
                                                         + " Configuration.ini";
 
 if(IniFile.detectUTF16LEFormat(configFilename))
-    globals.jobFileFormat = "UTF-16LE";
+    settings.jobFileFormat = "UTF-16LE";
 else
-    globals.jobFileFormat = "UTF-8";
+    settings.jobFileFormat = "UTF-8";
 
 IniFile configFile = null;
 
 //if the ini file cannot be opened and loaded, exit without action
 try {
-    configFile = new IniFile(configFilename, globals.jobFileFormat);
+    configFile = new IniFile(configFilename, settings.jobFileFormat);
     }
 catch(IOException e){return;}
 
 //create an object to hold job info
 jobInfo = new JobInfo(mainFrame, currentJobPrimaryPath,
-             currentJobBackupPath, currentJobName, this, globals.jobFileFormat);
+           currentJobBackupPath, currentJobName, this, settings.jobFileFormat);
 
 //create an object to hold info about each piece
 pieceIDInfo = new PieceInfo(mainFrame, currentJobPrimaryPath,
-      currentJobBackupPath, currentJobName, this, false, globals.jobFileFormat);
+    currentJobBackupPath, currentJobName, this, false, settings.jobFileFormat);
 pieceIDInfo.init();
 
 //create a window for displaying messages
@@ -568,7 +567,7 @@ monitorWindow = new Monitor(mainFrame, configFile, this);
 monitorWindow.init();
 
 //create the hardware interface first so the traces can link to it
-hardware = new Hardware(configFile, globals, logWindow.textArea);
+hardware = new Hardware(configFile, settings, logWindow.textArea);
 
 //create a debugger window with a link to the hardware object
 debugger = new Debugger(mainFrame, hardware);
@@ -585,10 +584,10 @@ numberOfChannels = hardware.getNumberOfChannels();
 calChannels = new Channel[numberOfChannels];
 
 //create after hardware object created
-calWindow = new UTCalibrator(mainFrame, hardware, globals);
+calWindow = new UTCalibrator(mainFrame, hardware, settings);
 calWindow.init();
 
-globals.configure(configFile);
+settings.configure(configFile);
 
 //don't use these - let contents set size of window
 //mainFrame.setMinimumSize(new Dimension(1100,1000));
@@ -600,18 +599,18 @@ String title = configFile.readString(
 
 mainFrame.setTitle(title);
 
-globals.simulationMode = configFile.readBoolean(
+settings.simulationMode = configFile.readBoolean(
                             "Main Configuration", "Simulation Mode", false);
 
-globals.simulateMechanical = configFile.readBoolean(
+settings.simulateMechanical = configFile.readBoolean(
                                 "Hardware", "Simulate Mechanical", false);
 
-globals.copyToAllMode = configFile.readInt(
+settings.copyToAllMode = configFile.readInt(
                                 "Main Configuration", "Copy to All Mode", 0);
 
 //if true, the traces will be driven by software timer rather than by
 //encoder inputs - used for weldline crabs and systems without encoders
-globals.timerDrivenTracking = configFile.readBoolean(
+settings.timerDrivenTracking = configFile.readBoolean(
                                 "Hardware", "Timer Driven Tracking", false);
 
 numberOfChartGroups =
@@ -627,7 +626,7 @@ if (numberOfChartGroups > 0){
 
     for (int i = 0; i < numberOfChartGroups; i++){
         chartGroups[i] = new ChartGroup(
-                    globals, configFile, i, hardware, this, false, hardware);
+                    settings, configFile, i, hardware, this, false, hardware);
         mainFrame.add(chartGroups[i]);
         }
 
@@ -640,7 +639,7 @@ hardware.chartGroups = chartGroups;
 mainFrame.add(controlPanel =
     new ControlPanel(configFile, currentJobPrimaryPath,
     currentJobBackupPath, hardware, mainFrame, this,
-    currentJobName, globals, hardware));
+    currentJobName, settings, hardware));
 
 //load user adjustable settings
 loadCalFile();
@@ -672,41 +671,41 @@ IniFile calFile = null;
 //if the ini file cannot be opened and loaded, exit without action
 try {
     calFile = new IniFile(currentJobPrimaryPath + "00 - "
-             + currentJobName + " Calibration File.ini", globals.jobFileFormat);
+           + currentJobName + " Calibration File.ini", settings.jobFileFormat);
     }
     catch(IOException e){return;}
 
 //if true, traces will restart at left edge of chart for each new piece
 //if false, new piece will be added to end of traces while chart scrolls
-globals.restartNewPieceAtLeftEdge = calFile.readBoolean("General",
+settings.restartNewPieceAtLeftEdge = calFile.readBoolean("General",
                           "Restart Each New Piece at Left Edge of Chart", true);
 
 //settings which control peak hold display on the A Scan
-globals.showRedPeakLineInGateCenter = calFile.readBoolean("General",
+settings.showRedPeakLineInGateCenter = calFile.readBoolean("General",
                                     "Show Red Peak Line at Gate Center", false);
-globals.showRedPeakLineAtPeakLocation = calFile.readBoolean("General",
+settings.showRedPeakLineAtPeakLocation = calFile.readBoolean("General",
                                   "Show Red Peak Line at Peak Location", false);
-globals.showPseudoPeakAtPeakLocation = calFile.readBoolean("General",
+settings.showPseudoPeakAtPeakLocation = calFile.readBoolean("General",
                                   "Show Peak Symbol at Peak Location", true);
 
-globals.scanSpeed =
+settings.scanSpeed =
                 calFile.readInt("General", "Scanning and Inspecting Speed", 10);
 
-if (globals.scanSpeed < 0 || globals.scanSpeed > 10) globals.scanSpeed = 10;
+if (settings.scanSpeed < 0 || settings.scanSpeed > 10) settings.scanSpeed = 10;
 
-globals.graphPrintLayout =
+settings.graphPrintLayout =
  calFile.readString("General", "Graph Print Layout", "8-1/2 x 11 : Fit Height");
 
 //make sure print layout is one of the valid values
-if (!globals.graphPrintLayout.equalsIgnoreCase("8-1/2 x 11 : Fit Height")
-    && !globals.graphPrintLayout.equalsIgnoreCase("8-1/2 x 11 : Fit Width")
-    && !globals.graphPrintLayout.equalsIgnoreCase("8-1/2 x 14 : Fit Height")
-    && !globals.graphPrintLayout.equalsIgnoreCase("8-1/2 x 14 : Fit Width")
-    && !globals.graphPrintLayout.equalsIgnoreCase("A4 : Fit Height")
-    && !globals.graphPrintLayout.equalsIgnoreCase("A4 : Fit Width"))
-    globals.graphPrintLayout = "8-1/2 x 11 : Fit Height";
+if (!settings.graphPrintLayout.equalsIgnoreCase("8-1/2 x 11 : Fit Height")
+    && !settings.graphPrintLayout.equalsIgnoreCase("8-1/2 x 11 : Fit Width")
+    && !settings.graphPrintLayout.equalsIgnoreCase("8-1/2 x 14 : Fit Height")
+    && !settings.graphPrintLayout.equalsIgnoreCase("8-1/2 x 14 : Fit Width")
+    && !settings.graphPrintLayout.equalsIgnoreCase("A4 : Fit Height")
+    && !settings.graphPrintLayout.equalsIgnoreCase("A4 : Fit Width"))
+    settings.graphPrintLayout = "8-1/2 x 11 : Fit Height";
 
-globals.userPrintMagnify = calFile.readString(
+settings.userPrintMagnify = calFile.readString(
                                "General", "Graph Print Magnify", "Magnify 1.0");
 
 //load info for all charts
@@ -723,9 +722,9 @@ hardware.loadCalFile(calFile);
 private void saveCalFile()
 {
 
-//create a FileSaver thread object to save the data - this allows status
+//create a CalFileSaver thread object to save the data - this allows status
 //messages to be displayed and updated during the save
-fileSaver = new FileSaver(this);
+fileSaver = new CalFileSaver(this);
 fileSaver.start();
 
 }//end of MainWindow::saveCalFile
@@ -755,28 +754,30 @@ IniFile calFile = null;
 //if the ini file cannot be opened and loaded, exit without action
 try {
     calFile = new IniFile(pJobPath + "00 - "
-             + currentJobName + " Calibration File.ini", globals.jobFileFormat);
+           + currentJobName + " Calibration File.ini", settings.jobFileFormat);
     }
     catch(IOException e){return;}
 
 //if true, traces will restart at left edge of chart for each new piece
 //if false, new piece will be added to end of traces while chart scrolls
 calFile.writeBoolean("General", "Restart Each New Piece at Left Edge of Chart",
-                                             globals.restartNewPieceAtLeftEdge);
+                                           settings.restartNewPieceAtLeftEdge);
 
 //settings which control peak hold display on the A Scan
 calFile.writeBoolean("General", "Show Red Peak Line at Gate Center",
-                                        globals.showRedPeakLineInGateCenter);
+                                        settings.showRedPeakLineInGateCenter);
 calFile.writeBoolean("General", "Show Red Peak Line at Peak Location",
-                                        globals.showRedPeakLineAtPeakLocation);
+                                       settings.showRedPeakLineAtPeakLocation);
 calFile.writeBoolean("General", "Show Peak Symbol at Peak Location",
-                                        globals.showPseudoPeakAtPeakLocation);
+                                        settings.showPseudoPeakAtPeakLocation);
 
-calFile.writeInt("General", "Scanning and Inspecting Speed", globals.scanSpeed);
+calFile.writeInt(
+               "General", "Scanning and Inspecting Speed", settings.scanSpeed);
 
-calFile.writeString("General", "Graph Print Layout", globals.graphPrintLayout);
+calFile.writeString("General", "Graph Print Layout", settings.graphPrintLayout);
 
-calFile.writeString("General", "Graph Print Magnify", globals.userPrintMagnify);
+calFile.writeString(
+                  "General", "Graph Print Magnify", settings.userPrintMagnify);
 
 //save info for all charts
 for (int i=0; i < numberOfChartGroups; i++) chartGroups[i].saveCalFile(calFile);
@@ -964,7 +965,7 @@ try{
 
     fileOutputStream = new FileOutputStream(pFilename);
     outputStreamWriter = new OutputStreamWriter(fileOutputStream,
-                                                         globals.jobFileFormat);
+                                                       settings.jobFileFormat);
     out = new BufferedWriter(outputStreamWriter);
 
     //write the header information - this portion can be read by the iniFile
@@ -974,7 +975,7 @@ try{
 
     out.write("[Header Start]"); out.newLine();
     out.newLine();
-    out.write("Segment Data Version=" + Globals.SEGMENT_DATA_VERSION);
+    out.write("Segment Data Version=" + Settings.SEGMENT_DATA_VERSION);
     out.newLine();
     out.write("Measured Length=" + hardware.hdwVs.measuredLength);
     out.newLine();
@@ -1028,7 +1029,7 @@ try{
 
     fileOutputStream = new FileOutputStream(pFilename);
     outputStreamWriter = new OutputStreamWriter(fileOutputStream,
-                                                         globals.jobFileFormat);
+                                                       settings.jobFileFormat);
     out = new BufferedWriter(outputStreamWriter);
 
     //write a warning note at the top of the file
@@ -1045,7 +1046,7 @@ try{
 
     out.write("[MetaData]"); out.newLine();
     out.newLine();
-    out.write("Segment Data Version=" + Globals.SEGMENT_DATA_VERSION);
+    out.write("Segment Data Version=" + Settings.SEGMENT_DATA_VERSION);
     out.newLine();
     out.newLine();
     out.write("[MetaData End]"); out.newLine(); out.newLine();
@@ -1162,7 +1163,7 @@ if ("Open Viewer".equals(e.getActionCommand())) {
 
     if(isConfigGoodA()) {
         Viewer viewer;
-        viewer = new Viewer(globals, jobInfo, currentJobPrimaryPath,
+        viewer = new Viewer(settings, jobInfo, currentJobPrimaryPath,
                                         currentJobBackupPath, currentJobName);
         viewer.init();
         }
@@ -1298,7 +1299,7 @@ if ("About".equals(e.getActionCommand())) {
     }
 
 if ("Display Configuration Info".equals(e.getActionCommand())){
-    globals.displayConfigInfo(logWindow.textArea);
+    settings.displayConfigInfo(logWindow.textArea);
     logWindow.setVisible(true);
     }
 
@@ -1322,11 +1323,11 @@ public void printFlagReport(int pPieceToPrint, boolean pIsCalPiece)
 {
 
     FlagReportPrinter lPrintFlagReportDialog = new FlagReportPrinter(
-       mainFrame, globals, jobInfo,
+       mainFrame, settings, jobInfo,
        currentJobPrimaryPath, currentJobBackupPath, reportsPath, currentJobName,
        (int)mainFrame.getLocation().getX() + 80,
        (int)mainFrame.getLocation().getY() + 30,
-       globals.pieceDescriptionPlural, globals.pieceDescriptionPluralLC,
+       settings.pieceDescriptionPlural, settings.pieceDescriptionPluralLC,
        hardware, pPieceToPrint, pIsCalPiece);
 
     lPrintFlagReportDialog.init();
@@ -1389,7 +1390,7 @@ public void prepareForNextPiece()
 // otherwise new piece will be appended to right end of traces and the chart
 // will scroll to display new data
 
-if (globals.restartNewPieceAtLeftEdge) resetChartGroups();
+if (settings.restartNewPieceAtLeftEdge) resetChartGroups();
 
 //mark the starting point of a new piece in the data buffers
 markSegmentStart();
@@ -1534,7 +1535,7 @@ public void createNewJob()
 saveEverything(); //save all data
 
 NewJob newJob = new NewJob(mainFrame, primaryDataPath, backupDataPath, xfer,
-                                                         globals.jobFileFormat);
+                                                       settings.jobFileFormat);
 newJob.init();
 
 //if the NewJob window set rBoolean1 true, switch to the new job
@@ -1741,12 +1742,12 @@ String targetDir = fc.getSelectedFile().toString();
 
 int p = -1;
 
-if ((p = targetDir.indexOf(globals.primaryFolderName)) != -1){
+if ((p = targetDir.indexOf(settings.primaryFolderName)) != -1){
     //chop off all after the offending directory
     targetDir = targetDir.substring(0, p);
     }
 
-if ((p = targetDir.indexOf(globals.backupFolderName)) != -1){
+if ((p = targetDir.indexOf(settings.backupFolderName)) != -1){
     //chop off all after the offending directory
     targetDir = targetDir.substring(0, p);
     }
@@ -1757,7 +1758,7 @@ if (!targetDir.endsWith(File.separator)) targetDir += File.separator;
 //create the primary data directory
 //note the extra space before "Primary" in the path name - this forces the
 //primary to be listed first alphabetically when viewed in a file navigator
-File primaryDir = new File (targetDir + globals.primaryFolderName);
+File primaryDir = new File (targetDir + settings.primaryFolderName);
 if (!primaryDir.exists() && !primaryDir.mkdirs()){
     displayErrorMessage("Could not create the primary data directory -"
             + " no directories created.");
@@ -1765,7 +1766,7 @@ if (!primaryDir.exists() && !primaryDir.mkdirs()){
     }
 
 //create the backup data directory
-File backupDir = new File (targetDir + globals.backupFolderName);
+File backupDir = new File (targetDir + settings.backupFolderName);
 if (!backupDir.exists() && !backupDir.mkdirs()){
     displayErrorMessage("Could not create the backup data directory -"
             + " only the primary directory was created.");
@@ -1866,11 +1867,11 @@ calWindow.setVisible(true);
 public void processMainTimerEvent()
 {
 
-if (globals.beginExitProgram){
+if (settings.beginExitProgram){
     //shut down hardware, clean up, save data
     //will also set beginExitProgram false and exitProgram true so this
     //will only get called once
-    prepareToExitProgram(globals.saveOnExit);
+    prepareToExitProgram(settings.saveOnExit);
     return;
     }
 
@@ -1880,7 +1881,7 @@ if (globals.beginExitProgram){
 //Must stop the timer or it will call again during the destruction of objects
 //it accesses.
 
-if (globals.exitProgram) {
+if (settings.exitProgram) {
 
     if (fileSaver != null) return; //wait until saving is done
 
@@ -1899,7 +1900,7 @@ if (globals.exitProgram) {
     MainWindow mainWindow;
 
     //if a restart was requested, make a new main frame and start over
-    if (globals.restartProgram)
+    if (settings.restartProgram)
         mainWindow = new MainWindow();
     else
         System.exit(0);
@@ -2062,7 +2063,7 @@ updateAllSettings();
 // MainWindow::updateAllSettings
 //
 // Copies the values and states of all display controls to the corresponding
-// variables in the Globals object.
+// variables in the Settings object.
 //
 // This function should be called when ANY control is modified so that the new
 // states and values will be copied to the variable set.
@@ -2071,11 +2072,11 @@ updateAllSettings();
 public void updateAllSettings()
 {
 
-//globals.scanXDistance = scanXDistance.getDoubleValue();
-//globals.transducerInfo.serialNumber = transducerSN.getText();
+//settings.scanXDistance = scanXDistance.getDoubleValue();
+//settings.transducerInfo.serialNumber = transducerSN.getText();
 
 //flag that settings have been modified
-globals.setOptionsModifiedFlag(true);
+settings.setOptionsModifiedFlag(true);
 
 }//end of MainWindow::updateAllSettings
 //-----------------------------------------------------------------------------
@@ -2124,7 +2125,7 @@ IniFile ini = null;
 
 //if the ini file cannot be opened and loaded, exit without action
 try {ini = new IniFile(
-        "language\\Main Window - Capulin UT.language", Globals.mainFileFormat);}
+        "language\\Main Window - Capulin UT.language", Settings.mainFileFormat);}
 catch(IOException e){return;}
 
 }//end of MainWindow::loadLanguage
@@ -2148,9 +2149,9 @@ public void prepareToExitProgram(boolean pSave)
 {
 
 //stop the timer from calling this program repeatedly until close
-globals.beginExitProgram = false;
+settings.beginExitProgram = false;
 //signal timer to watch for time to exit
-globals.exitProgram = true;
+settings.exitProgram = true;
 
 //turn off all hardware functions
 hardware.shutDown();
@@ -2180,11 +2181,11 @@ public void exitProgram(boolean pSave, boolean pRestart)
 {
 
 //signal timer to begin shut down process
-globals.beginExitProgram = true;
+settings.beginExitProgram = true;
 //signal timer to save data or not
-globals.saveOnExit = pSave;
+settings.saveOnExit = pSave;
 //signal timer to restart the program or not
-globals.restartProgram = pRestart;
+settings.restartProgram = pRestart;
 
 }//end of MainWindow::exitProgram
 //-----------------------------------------------------------------------------

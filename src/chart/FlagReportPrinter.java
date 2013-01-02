@@ -25,7 +25,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.io.*;
 
-import chart.mksystems.globals.Globals;
+import chart.mksystems.settings.Settings;
 import chart.mksystems.stripchart.ChartGroup;
 import chart.mksystems.stripchart.StripChart;
 import chart.mksystems.stripchart.Trace;
@@ -63,7 +63,7 @@ public class FlagReportPrinter extends ViewerReporter
 // FlagReportPrinter::FlagReportPrinter (constructor)
 //
 
-public FlagReportPrinter(JFrame pFrame, Globals pGlobals, JobInfo pJobInfo,
+public FlagReportPrinter(JFrame pFrame, Settings pSettings, JobInfo pJobInfo,
         String pJobPrimaryPath, String pJobBackupPath, String pReportsPath,
         String pCurrentJobName, int pLocationX, int pLocationY,
         String pPieceDescriptionPlural, String pPieceDescriptionPluralLC,
@@ -71,7 +71,8 @@ public FlagReportPrinter(JFrame pFrame, Globals pGlobals, JobInfo pJobInfo,
 
 {
 
-    super(pGlobals, pJobInfo, pJobPrimaryPath, pJobBackupPath, pCurrentJobName);
+    super(pSettings, pJobInfo, pJobPrimaryPath, pJobBackupPath,
+                                                              pCurrentJobName);
 
     hardware = pHardware; reportsPath = pReportsPath;
 
@@ -739,7 +740,7 @@ public void printHeader(PrintWriter pFile, int pPiece)
 
     pFile.println("");
     pFile.println(
-            "\t\t\tFlag Report for " + globals.pieceDescription + " " + pPiece);
+          "\t\t\tFlag Report for " + settings.pieceDescription + " " + pPiece);
     pFile.println("");
 
     //job info
@@ -932,7 +933,7 @@ public void loadJobInfo()
     try {
         jobInfoFile = new IniFile(
             jobPrimaryPath + "03 - " + currentJobName
-            + " Job Info.ini", globals.jobFileFormat);
+            + " Job Info.ini", settings.jobFileFormat);
     }
     catch(IOException e){return;}
 

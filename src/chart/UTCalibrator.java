@@ -24,7 +24,7 @@ import java.awt.event.*;
 import java.util.*;
 import java.awt.font.TextAttribute;
 
-import chart.mksystems.globals.Globals;
+import chart.mksystems.settings.Settings;
 import chart.mksystems.stripchart.StripChart;
 import chart.mksystems.hardware.Hardware;
 import chart.mksystems.hardware.Channel;
@@ -45,7 +45,7 @@ JFrame frame;
 public Oscilloscope scope1;
 JPanel channelSelector, copyPanel;
 JButton minMax, viewIP;
-Globals globals;
+Settings settings;
 
 CopyItemSelector copyItemSelector;
 public int currentChannelIndex=0;
@@ -72,12 +72,12 @@ Font blackFont, redFont;
 //
 //
 
-public UTCalibrator(JFrame pFrame, Hardware pHardware, Globals pGlobals)
+public UTCalibrator(JFrame pFrame, Hardware pHardware, Settings pSettings)
 {
 
 super(pFrame, "Calibration");
 
-frame = pFrame; hardware = pHardware; globals = pGlobals;
+frame = pFrame; hardware = pHardware; settings = pSettings;
 
 }//end of UTCalibrator::UTCalibrator (constructor)
 //-----------------------------------------------------------------------------
@@ -122,7 +122,7 @@ scopeAndAlarms.setLayout(new BoxLayout(scopeAndAlarms, BoxLayout.X_AXIS));
 
 //create the oscilloscope
 scope1 = new Oscilloscope("Scope", hardware.getUSPerDataPoint(), this, this,
-                                                                      globals);
+                                                                     settings);
 scope1.setAlignmentY(Component.TOP_ALIGNMENT);
 scopeAndAlarms.add(scope1);
 
@@ -165,7 +165,7 @@ panel.add(utControls);
 
 contentPane.add(panel);
 
-setLocation(globals.utCalWindowLocationX, globals.utCalWindowLocationY);
+setLocation(settings.utCalWindowLocationX, settings.utCalWindowLocationY);
 
 pack();
 
@@ -952,9 +952,9 @@ if (e.getActionCommand().equals("Copy to All")){
     JOptionPane.YES_NO_OPTION);
     if (n != JOptionPane.YES_OPTION) return;  //bail out if user cancels
 
-    if (globals.copyToAllMode == 0) copyToAllChannelsForCurrentChart();
+    if (settings.copyToAllMode == 0) copyToAllChannelsForCurrentChart();
     else
-    if (globals.copyToAllMode == 1) copyToAllChannelsForAllCharts();
+    if (settings.copyToAllMode == 1) copyToAllChannelsForAllCharts();
 
     return;
     }

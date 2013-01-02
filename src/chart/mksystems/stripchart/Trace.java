@@ -27,7 +27,7 @@ import java.awt.font.TextLayout;
 import java.awt.geom.Rectangle2D;
 import java.awt.font.FontRenderContext;
 
-import chart.mksystems.globals.Globals;
+import chart.mksystems.settings.Settings;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.hardware.Hardware;
 import chart.Viewer;
@@ -42,7 +42,7 @@ import chart.Xfer;
 
 public class Trace extends Object{
 
-    Globals globals;
+    Settings settings;
     IniFile configFile;
     TraceGlobals traceGlobals;
     int chartGroup;
@@ -126,14 +126,14 @@ public class Trace extends Object{
 // should already be opened and ready to access.
 //
 
-public Trace(Globals pGlobals, IniFile pConfigFile, int pChartGroup,
+public Trace(Settings pSettings, IniFile pConfigFile, int pChartGroup,
             StripChart pChart,
             int pChartIndex, int pTraceIndex, TraceGlobals pTraceGlobals,
             Color pBackgroundColor, Color pGridColor, int pGridXSpacing,
                 Threshold[] pThresholds, Hardware pHardware)
 {
 
-    globals = pGlobals; configFile = pConfigFile;
+    settings = pSettings; configFile = pConfigFile;
     chartGroup = pChartGroup;
     chart = pChart;
     chartIndex = pChartIndex; traceIndex = pTraceIndex; gridColor = pGridColor;
@@ -1193,7 +1193,7 @@ void drawGrid(Graphics2D pG2, int pXPos, int pCanvasYLimit)
 
     //for screen display, zero width/height for grid pixels looks best
     //when rendering for printing, must set width to 1 or pixels disappear
-    int width = globals.printMode ?  1 : 0;
+    int width = settings.printMode ?  1 : 0;
 
     pG2.setColor(gridColor);
 

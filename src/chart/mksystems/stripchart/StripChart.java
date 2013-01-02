@@ -30,7 +30,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
 import java.text.DecimalFormat;
 
-import chart.mksystems.globals.Globals;
+import chart.mksystems.settings.Settings;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.hardware.Hardware;
 import chart.mksystems.hardware.TraceValueCalculator;
@@ -221,7 +221,7 @@ if (!sValue.equals(sPrevValue) || pForceUpdate){
 
 class ChartCanvas extends JPanel {
 
-Globals globals;
+Settings settings;
 Color backgroundColor;
 Color gridColor;
 int width, height;
@@ -243,14 +243,14 @@ double runningValue;
 // ChartCanvas::ChartCanvas (constructor)
 //
 
-public ChartCanvas(Globals pGlobals, int pWidth, int pHeight,
+public ChartCanvas(Settings pSettings, int pWidth, int pHeight,
                                Color pBackgroundColor, Color pGridColor,
                                int pNumberOfTraces, Trace[] pTraces,
                                int pNumberOfThresholds, Threshold[] pThresholds,
                                MouseMotionListener pMouseMotionListener)
 {
 
-globals = pGlobals;
+settings = pSettings;
 width = pWidth; height = pHeight;
 
 backgroundColor = pBackgroundColor; gridColor = pGridColor;
@@ -440,7 +440,7 @@ public class StripChart extends JPanel implements MouseListener,
 
 ChartCanvas canvas;
 public TitledBorder titledBorder;
-Globals globals;
+Settings settings;
 IniFile configFile;
 int chartGroup;
 int chartIndex;
@@ -500,13 +500,13 @@ ActionListener actionListener;
 // same buffer size.
 //
 
-public StripChart(Globals pGlobals, IniFile pConfigFile, int pChartGroup,
+public StripChart(Settings pSettings, IniFile pConfigFile, int pChartGroup,
        int pChartIndex, Hardware pHardware, ActionListener pActionListener,
        boolean pChartSizeEqualsBufferSize,
         TraceValueCalculator pTraceValueCalculator)
 {
 
-globals = pGlobals; configFile = pConfigFile; chartIndex = pChartIndex;
+settings = pSettings; configFile = pConfigFile; chartIndex = pChartIndex;
 chartGroup = pChartGroup;
 hardware = pHardware; actionListener = pActionListener;
 traceValueCalculator = pTraceValueCalculator;
@@ -647,7 +647,7 @@ if (chartSizeEqualsBufferSize) chartWidth = traces[0].sizeOfDataBuffer;
 //create a Canvas object to be placed on the main panel - the Canvas object
 //provides a panel and methods for drawing data - all the work is actually
 //done by the Canvas object
-canvas = new ChartCanvas(globals, chartWidth, chartHeight,
+canvas = new ChartCanvas(settings, chartWidth, chartHeight,
                  backgroundColor, gridColor, numberOfTraces, traces,
                  numberOfThresholds, thresholds, this);
 
@@ -687,7 +687,7 @@ if (numberOfTraces > 0){
     traces = new Trace[numberOfTraces];
 
     for (int i = 0; i < numberOfTraces; i++){ traces[i] =
-       new Trace(globals, configFile, chartGroup, this, chartIndex, i,
+       new Trace(settings, configFile, chartGroup, this, chartIndex, i,
              traceGlobals, backgroundColor, gridColor, gridXSpacing,
                                                     thresholds, hardware);
        traces[i].init();
@@ -721,7 +721,7 @@ if (numberOfThresholds > 0){
     thresholds = new Threshold[numberOfThresholds];
 
     for (int i = 0; i < numberOfThresholds; i++)
-        thresholds[i] = new Threshold(globals, configFile, chartGroup,
+        thresholds[i] = new Threshold(settings, configFile, chartGroup,
                                                                 chartIndex, i);
 
     }//if (numberOf...
