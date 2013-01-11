@@ -39,14 +39,14 @@ import chart.mksystems.inifile.IniFile;
 
 class Item extends Object{
 
-public String labelText;
-public int width;
-public int height;
-public int numberCharacters;
-public boolean editable;
-public boolean clearedInNewJob;
-public JLabel label;
-public JTextField textField;
+    public String labelText;
+    public int width;
+    public int height;
+    public int numberCharacters;
+    public boolean editable;
+    public boolean clearedInNewJob;
+    public JLabel label;
+    public JTextField textField;
 
 //-----------------------------------------------------------------------------
 // Item::createTextField
@@ -55,17 +55,17 @@ public JTextField textField;
 void createTextField()
 {
 
-textField = new JTextField(numberCharacters);
+    textField = new JTextField(numberCharacters);
 
-int dHeight = textField.getPreferredSize().height;
+    int dHeight = textField.getPreferredSize().height;
 
-//set the width to 1 pixel - Java will override this to make the field large
-//enough to hold the specified number of characters but prevents it from
-//enlarging the field to fill its container
+    //set the width to 1 pixel - Java will override this to make the field large
+    //enough to hold the specified number of characters but prevents it from
+    //enlarging the field to fill its container
 
-textField.setMinimumSize(new Dimension(1, dHeight));
-textField.setPreferredSize(new Dimension(1, dHeight));
-textField.setMaximumSize(new Dimension(1, dHeight));
+    textField.setMinimumSize(new Dimension(1, dHeight));
+    textField.setPreferredSize(new Dimension(1, dHeight));
+    textField.setMaximumSize(new Dimension(1, dHeight));
 
 }//end of Item::createTextField
 //-----------------------------------------------------------------------------
@@ -83,48 +83,60 @@ textField.setMaximumSize(new Dimension(1, dHeight));
 
 public class JobInfo extends JDialog implements ActionListener, WindowListener {
 
-JPanel panel;
-String configFilename;
-String primaryDataPath, backupDataPath;
-String currentWorkOrder;
-ActionListener actionListener;
-String fileFormat;
+    JPanel panel;
+    String configFilename;
+    String primaryDataPath, backupDataPath;
+    String currentWorkOrder;
+    ActionListener actionListener;
+    String fileFormat;
 
-Item[] items;
-static int NUMBER_OF_ITEMS = 100;
+    Item[] items;
+    static int NUMBER_OF_ITEMS = 100;
 
 //-----------------------------------------------------------------------------
 // JobInfo::JobInfo (constructor)
 //
-  
+
 public JobInfo(JFrame pFrame, String pPrimaryDataPath, String pBackupDataPath,
                       String pCurrentWorkOrder, ActionListener pActionListener,
                       String pFileFormat)
 {
 
-super(pFrame, "Job Info");
+    super(pFrame, "Job Info");
 
-primaryDataPath = pPrimaryDataPath; backupDataPath = pBackupDataPath;
-currentWorkOrder = pCurrentWorkOrder; actionListener = pActionListener;
-
-fileFormat = pFileFormat;
-
-addWindowListener(this);
-
-//load the configuration from the primary data folder
-configFilename = primaryDataPath + "04 - " + currentWorkOrder
-                                    + " Configuration - Job Info Window.ini";
-
-//create and array to hold 100 items - each item is an data entry object
-items = new Item[NUMBER_OF_ITEMS];
-
-//setup the window according to the configuration file
-configure(configFilename);
-//load the data
-loadData();
+    primaryDataPath = pPrimaryDataPath; backupDataPath = pBackupDataPath;
+    currentWorkOrder = pCurrentWorkOrder; actionListener = pActionListener;
+    fileFormat = pFileFormat;
 
 }//end of JobInfo::JobInfo (constructor)
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// JobInfo::init
+//
+// Initializes new objects. Should be called immediately after instantiation.
+//
+//
+
+public void init()
+{
+
+    addWindowListener(this);
+
+    //load the configuration from the primary data folder
+    configFilename = primaryDataPath + "04 - " + currentWorkOrder
+                                      + " Configuration - Job Info Window.ini";
+
+    //create and array to hold 100 items - each item is an data entry object
+    items = new Item[NUMBER_OF_ITEMS];
+
+    //setup the window according to the configuration file
+    configure(configFilename);
+    //load the data
+    loadData();
+
+}//end of JobInfo::init
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // JobInfo::actionPerformed
@@ -150,94 +162,95 @@ public void actionPerformed(ActionEvent e)
 private void configure(String pConfigFilename)
 {
 
-//create a panel to hold the labels and data entry boxes
-panel = new JPanel();
-panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-panel.setOpaque(true);
-add(panel);
+    //create a panel to hold the labels and data entry boxes
+    panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    panel.setOpaque(true);
+    add(panel);
 
-JPanel itemPanel; //panels to hold label and text field
-int maxLabelWidth = 0;
+    JPanel itemPanel; //panels to hold label and text field
+    int maxLabelWidth = 0;
 
-IniFile configFile;
-String section, text;
+    IniFile configFile;
+    String section, text;
 
-//if the ini file cannot be opened and loaded, exit without action
-try {configFile = new IniFile(pConfigFilename, fileFormat);}
-    catch(IOException e){return;}
+    //if the ini file cannot be opened and loaded, exit without action
+    try {configFile = new IniFile(pConfigFilename, fileFormat);}
+        catch(IOException e){return;}
 
-//scan through the array checking to see if an item exists in the configuration
-//file for each index positon
-for (int i=0; i < NUMBER_OF_ITEMS; i++){
+    //scan through the array checking to see if an item exists in the
+    //configuration file for each index positon
+    for (int i=0; i < NUMBER_OF_ITEMS; i++){
 
-    section = "Item " + (i+1);
+        section = "Item " + (i+1);
 
-    //see if a label exists for the index
-    text = configFile.readString(section, "Label", "blank");
+        //see if a label exists for the index
+        text = configFile.readString(section, "Label", "blank");
 
-    //if a label exists, create the item and load the other data for it
-    if (!text.equalsIgnoreCase("blank")) {
+        //if a label exists, create the item and load the other data for it
+        if (!text.equalsIgnoreCase("blank")) {
 
-        items[i] = new Item();
-        items[i].labelText = text;
-        items[i].numberCharacters = 
+            items[i] = new Item();
+            items[i].labelText = text;
+            items[i].numberCharacters =
                         configFile.readInt(section, "Number of Characters", 20);
-        items[i].editable = 
-                    configFile.readBoolean(section, "Editable", true);
-        items[i].clearedInNewJob =  
-                configFile.readBoolean(section, "Cleared in a New Job", true);
+            items[i].editable =
+                        configFile.readBoolean(section, "Editable", true);
+            items[i].clearedInNewJob =
+                  configFile.readBoolean(section, "Cleared in a New Job", true);
 
-        if (items[i].width < 1) items[i].width = 1; //range check
+            if (items[i].width < 1) items[i].width = 1; //range check
 
-        //add each label/field pair to a panel
-        itemPanel = new JPanel();
-        itemPanel.setLayout(new BoxLayout(itemPanel, BoxLayout.X_AXIS));
-        items[i].createTextField();        
-        items[i].label = new JLabel(items[i].labelText);
-        //space at left edge
-        itemPanel.add(Box.createRigidArea(new Dimension(5,0)));
-        itemPanel.add(items[i].label);
-        //space between label and field
-        itemPanel.add(Box.createRigidArea(new Dimension(5,0)));
-        itemPanel.add(items[i].textField);
-        itemPanel.add(Box.createHorizontalGlue()); //push components to the left
+            //add each label/field pair to a panel
+            itemPanel = new JPanel();
+            itemPanel.setLayout(new BoxLayout(itemPanel, BoxLayout.X_AXIS));
+            items[i].createTextField();
+            items[i].label = new JLabel(items[i].labelText);
+            //space at left edge
+            itemPanel.add(Box.createRigidArea(new Dimension(5,0)));
+            itemPanel.add(items[i].label);
+            //space between label and field
+            itemPanel.add(Box.createRigidArea(new Dimension(5,0)));
+            itemPanel.add(items[i].textField);
+            //push components to the left
+            itemPanel.add(Box.createHorizontalGlue());
 
-        //add each panel to the main panel
-        panel.add(itemPanel);
+            //add each panel to the main panel
+            panel.add(itemPanel);
 
-        //store the maximum width of any label for use in setting all label
-        //widths the same - Java seems to set Min/Preferred/Max to the same so
-        //use the Preferred size for this purpose
-        if (items[i].label.getPreferredSize().width > maxLabelWidth) 
-            maxLabelWidth = items[i].label.getPreferredSize().width;
-        
-        }// if (text.equalsIgnoreCase("blank"))
+            //store the maximum width of any label for use in setting all label
+            //widths the same - Java seems to set Min/Preferred/Max to the same
+            //so use the Preferred size for this purpose
+            if (items[i].label.getPreferredSize().width > maxLabelWidth)
+                maxLabelWidth = items[i].label.getPreferredSize().width;
 
-    }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
+            }// if (text.equalsIgnoreCase("blank"))
 
-
-int height;
+        }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
 
 
-//set all label widths to that of the widest label to align the fields
-for (int i=0; i < NUMBER_OF_ITEMS; i++){
-
-    if (items[i] != null){
-
-        //get the default height of the label
-        height = items[i].label.getPreferredSize().height;
-    
-        //set all dimensions to match the widest label
-        items[i].label.setMinimumSize(new Dimension(maxLabelWidth, height));
-        items[i].label.setPreferredSize(new Dimension(maxLabelWidth, height));
-        items[i].label.setMaximumSize(new Dimension(maxLabelWidth, height));
-        
-        }
-
-    }//for (int i=0; i < NUMBER_OF_ITEMS; i++)
+    int height;
 
 
-pack();
+    //set all label widths to that of the widest label to align the fields
+    for (int i=0; i < NUMBER_OF_ITEMS; i++){
+
+        if (items[i] != null){
+
+            //get the default height of the label
+            height = items[i].label.getPreferredSize().height;
+
+            //set all dimensions to match the widest label
+            items[i].label.setMinimumSize(new Dimension(maxLabelWidth, height));
+            items[i].label.setPreferredSize(
+                                         new Dimension(maxLabelWidth, height));
+            items[i].label.setMaximumSize(new Dimension(maxLabelWidth, height));
+
+            }
+
+        }//for (int i=0; i < NUMBER_OF_ITEMS; i++)
+
+    pack();
 
 }//end of JobInfo::configure
 //-----------------------------------------------------------------------------
@@ -256,22 +269,22 @@ public void prepareForNewJob(String pPrimaryDataPath, String pBackupDataPath,
                                                       String pCurrentWorkOrder)
 {
 
-primaryDataPath = pPrimaryDataPath; backupDataPath = pBackupDataPath;
-currentWorkOrder = pCurrentWorkOrder;
+    primaryDataPath = pPrimaryDataPath; backupDataPath = pBackupDataPath;
+    currentWorkOrder = pCurrentWorkOrder;
 
-//clear all items which have been defined and specified for clearing for a new
-//job
+    //clear all items which have been defined and specified for clearing for a
+    //new job
 
-for (int i=0; i < NUMBER_OF_ITEMS; i++)
-    if (items[i] != null && items[i].clearedInNewJob){
+    for (int i=0; i < NUMBER_OF_ITEMS; i++)
+        if (items[i] != null && items[i].clearedInNewJob){
 
-        items[i].textField.setText("");
+            items[i].textField.setText("");
 
-        }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
+            }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
 
-//save the file to both data folders
-saveData(primaryDataPath);
-saveData(backupDataPath);
+    //save the file to both data folders
+    saveData(primaryDataPath);
+    saveData(backupDataPath);
 
 }//end of JobInfo::prepareForNewJob
 //-----------------------------------------------------------------------------
@@ -289,16 +302,16 @@ saveData(backupDataPath);
 public String getValue(String pKey)
 {
 
-for (int i=0; i < NUMBER_OF_ITEMS; i++)
-    if (items[i] != null){
+    for (int i=0; i < NUMBER_OF_ITEMS; i++)
+        if (items[i] != null){
 
-        //look in each Item.label for the matching key, return the value
-        if (pKey.equals(items[i].labelText))
-            return (items[i].textField.getText());
+            //look in each Item.label for the matching key, return the value
+            if (pKey.equals(items[i].labelText))
+                return (items[i].textField.getText());
 
-        }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
+            }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
 
-return(""); //key not found, return empty string
+    return(""); //key not found, return empty string
 
 }//end of JobInfo::getValue
 //-----------------------------------------------------------------------------
@@ -312,27 +325,27 @@ return(""); //key not found, return empty string
 public void loadData()
 {
 
-String jobInfoFilename = primaryDataPath + "03 - " + currentWorkOrder
+    String jobInfoFilename = primaryDataPath + "03 - " + currentWorkOrder
                                                              + " Job Info.ini";
 
-IniFile jobInfoFile;
+    IniFile jobInfoFile;
 
-//if the ini file cannot be opened and loaded, exit without action
-try {jobInfoFile = new IniFile(jobInfoFilename, fileFormat);}
-    catch(IOException e){return;}
+    //if the ini file cannot be opened and loaded, exit without action
+    try {jobInfoFile = new IniFile(jobInfoFilename, fileFormat);}
+        catch(IOException e){return;}
 
-String section = "Job Info";
+    String section = "Job Info";
 
-//load all items which have been defined
+    //load all items which have been defined
 
-for (int i=0; i < NUMBER_OF_ITEMS; i++)
-    if (items[i] != null){
+    for (int i=0; i < NUMBER_OF_ITEMS; i++)
+        if (items[i] != null){
 
-        //use the label text as the key, the value is the text in the box
-        items[i].textField.setText(
-                       jobInfoFile.readString(section, items[i].labelText, ""));
+            //use the label text as the key, the value is the text in the box
+            items[i].textField.setText(
+                      jobInfoFile.readString(section, items[i].labelText, ""));
 
-        }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
+            }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
 
 }//end of JobInfo::loadData
 //-----------------------------------------------------------------------------
@@ -346,29 +359,29 @@ for (int i=0; i < NUMBER_OF_ITEMS; i++)
 public void saveData(String pDataPath)
 {
 
-String jobInfoFilename = pDataPath + "03 - " + currentWorkOrder
-                                                             + " Job Info.ini";
+    String jobInfoFilename = pDataPath + "03 - " + currentWorkOrder
+                                                              + " Job Info.ini";
 
-IniFile jobInfoFile;
+    IniFile jobInfoFile;
 
-//if the ini file cannot be opened and loaded, exit without action
-try {jobInfoFile = new IniFile(jobInfoFilename, fileFormat);}
-    catch(IOException e){return;}
+    //if the ini file cannot be opened and loaded, exit without action
+    try {jobInfoFile = new IniFile(jobInfoFilename, fileFormat);}
+        catch(IOException e){return;}
 
-String section = "Job Info";
+    String section = "Job Info";
 
-//save all items which have been defined
+    //save all items which have been defined
 
-for (int i=0; i < NUMBER_OF_ITEMS; i++)
-    if (items[i] != null){
+    for (int i=0; i < NUMBER_OF_ITEMS; i++)
+        if (items[i] != null){
 
-        //use the label text as the key, the value is the text in the box
-        jobInfoFile.writeString(section, items[i].labelText,
-                                                items[i].textField.getText());
+            //use the label text as the key, the value is the text in the box
+            jobInfoFile.writeString(section, items[i].labelText,
+                                                  items[i].textField.getText());
 
-        }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
+            }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
 
-jobInfoFile.save();  //save to disk
+    jobInfoFile.save();  //save to disk
 
 }//end of JobInfo::saveData
 //-----------------------------------------------------------------------------
@@ -385,9 +398,9 @@ jobInfoFile.save();  //save to disk
 public void windowClosing(WindowEvent e)
 {
 
-//save the file to both data folders
-saveData(primaryDataPath);
-saveData(backupDataPath);
+    //save the file to both data folders
+    saveData(primaryDataPath);
+    saveData(backupDataPath);
 
 }//end of JobInfo::windowClosing
 //-----------------------------------------------------------------------------
