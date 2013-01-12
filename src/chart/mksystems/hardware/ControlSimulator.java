@@ -263,7 +263,7 @@ int setEncodersDeltaTrigger(byte pPktID)
     encoder1DeltaTrigger =
                    (int)((inBuffer[0]<<8) & 0xff00) + (int)(inBuffer[1] & 0xff);
 
-    encoder1DeltaTrigger =
+    encoder2DeltaTrigger =
                    (int)((inBuffer[2]<<8) & 0xff00) + (int)(inBuffer[3] & 0xff);
 
     return(bytesRead);
