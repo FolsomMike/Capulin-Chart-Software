@@ -17,6 +17,7 @@
 //-----------------------------------------------------------------------------
 
 package chart.mksystems.hardware;
+import java.text.DecimalFormat;
 
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.threadsafe.*;
@@ -32,6 +33,8 @@ import chart.mksystems.threadsafe.*;
 public class BasicGate extends Object{
 
 IniFile configFile;
+
+DecimalFormat[] decimalFormats;
 
 SyncedVariableSet syncedVarMgr;
 
@@ -111,7 +114,14 @@ public BasicGate(SyncedVariableSet pSyncedVarMgr)
 
     gateFlags = new SyncedInteger(syncedVarMgr); gateFlags.init();
 
-}//end of BasicGate::BasicGate
+    //create various decimal formats
+    decimalFormats = new DecimalFormat[4];
+    decimalFormats[0] = new  DecimalFormat("0000000");
+    decimalFormats[1] = new  DecimalFormat("0.0");
+    decimalFormats[2] = new  DecimalFormat("0.00");
+    decimalFormats[3] = new  DecimalFormat("0.000");
+
+}//end of BasicGate::BasicGate (constructor)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

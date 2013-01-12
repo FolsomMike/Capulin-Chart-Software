@@ -211,11 +211,40 @@ String section = "Chart Group " + (chartGroupIndex + 1);
 pCalFile.writeInt(section, "Window X Position", windowXPos);
 pCalFile.writeInt(section, "Window Y Position", windowYPos);
 
-// call each chart to load its data
+// call each chart to save its data
 for (int i = 0; i < numberOfStripCharts; i++)
                                           stripCharts[i].saveCalFile(pCalFile);
 
 }//end of ChartGroup::saveCalFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ChartGroup::saveCalFileHumanReadable
+//
+// This saves a subset of the calibration data, the values of which affect
+// the inspection process.
+//
+// The data is saved in a human readable format.
+//
+// Each object is passed a pointer to the file so that they may save their
+// own data.
+//
+
+public void saveCalFileHumanReadable(BufferedWriter pOut) throws IOException
+{
+
+    pOut.write("Chart Name  /  Threshold Settings  /  End Masks (inches)");
+    pOut.newLine(); pOut.newLine();
+
+    // call each chart to save its data
+    for (int i = 0; i < numberOfStripCharts; i++){
+        stripCharts[i].saveCalFileHumanReadable(pOut);
+        pOut.newLine();
+    }
+
+    pOut.newLine();
+
+}//end of ChartGroup::saveCalFileHumanReadable
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

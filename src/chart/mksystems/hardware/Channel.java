@@ -18,7 +18,12 @@
 
 package chart.mksystems.hardware;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.text.DecimalFormat;
+
 import chart.mksystems.inifile.IniFile;
+import chart.mksystems.settings.Settings;
 import chart.mksystems.stripchart.Threshold;
 import chart.mksystems.stripchart.Trace;
 import chart.mksystems.threadsafe.*;
@@ -33,6 +38,7 @@ import chart.mksystems.threadsafe.*;
 public class Channel extends Object{
 
     IniFile configFile;
+    Settings settings;
 
     SyncedVariableSet syncedVarMgr;
 
@@ -41,6 +47,8 @@ public class Channel extends Object{
     SyncedInteger flags1SetMask, flags1ClearMask;
 
     int chassisAddr, slotAddr, boardChannel;
+
+    DecimalFormat[] decimalFormats;
 
     public UTBoard utBoard;
 
@@ -100,11 +108,12 @@ public class Channel extends Object{
 // remotes so that they will be managed in a threadsafe manner.
 //
 
-public Channel(IniFile pConfigFile, int pChannelIndex,
+public Channel(IniFile pConfigFile, Settings pSettings, int pChannelIndex,
                                               SyncedVariableSet pSyncedVarMgr)
 {
 
-    configFile = pConfigFile; channelIndex = pChannelIndex;
+    configFile = pConfigFile; settings = pSettings;
+    channelIndex = pChannelIndex;
 
     //if a SyncedVariableSet manager is provided use it, if not then create one
 
@@ -138,6 +147,13 @@ public Channel(IniFile pConfigFile, int pChannelIndex,
 
 public void initialize()
 {
+
+    //create various decimal formats
+    decimalFormats = new DecimalFormat[4];
+    decimalFormats[0] = new  DecimalFormat("0000000");
+    decimalFormats[1] = new  DecimalFormat("0.0");
+    decimalFormats[2] = new  DecimalFormat("0.00");
+    decimalFormats[3] = new  DecimalFormat("0.000");
 
     //give the utBoard a link to the gates array
     if (utBoard != null) utBoard.linkGates(boardChannel, gates, numberOfGates);
@@ -3003,6 +3019,73 @@ public void saveCalFile(IniFile pCalFile)
        dacGates[i].saveCalFile(pCalFile);
 
 }//end of Channel::saveCalFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::saveCalFileHumanReadable
+//
+// This saves a subset of the calibration data, the values of which affect
+// the inspection process.
+//
+// The data is saved in a human readable format.
+//
+// Each object is passed a pointer to the file so that they may save their
+// own data.
+//
+
+public void saveCalFileHumanReadable(BufferedWriter pOut) throws IOException
+{
+
+    pOut.write("Channel | Main Gain | Hdw Gain 1 | Hdw Gain 2 | DC Offset |");
+    pOut.write(" Delay | Range | Mode | Reject");
+    pOut.newLine();
+
+    pOut.write(Settings.postPad(" " + (channelIndex + 1), 7));
+
+    pOut.write(
+        Settings.prePad(decimalFormats[2].format(softwareGain.getValue()), 12));
+
+    pOut.write(Settings.prePad("" + hardwareGain1.getValue(), 13));
+
+    pOut.write(Settings.prePad("" + hardwareGain2.getValue(), 13));
+
+    pOut.write(Settings.prePad("" + 0, 12)); //wip - need to read actual value
+
+    pOut.write(Settings.prePad(decimalFormats[3].format(aScanDelay), 8));
+
+    pOut.write(Settings.prePad(decimalFormats[3].format(aScanRange), 8));
+
+    pOut.write(Settings.prePad("" + mode.getValue(), 7)); //wip - print name rather than number
+
+    pOut.write(Settings.prePad("" + rejectLevel, 9));
+
+    pOut.newLine();
+
+    //gate data header
+    pOut.write("   Gate         | Start | Width | Level | Hits | Misses |");
+    pOut.write(" Process                        | Threshold");
+    pOut.newLine();
+
+    // call each gate to save its data
+    for (int i = 0; i < numberOfGates; i++)
+        gates[i].saveCalFileHumanReadable(pOut);
+
+
+    if(dacEnabled){
+        //DAC gate data header
+        pOut.write("   DAC Gate     | Start | Width | Level");
+        pOut.newLine();
+
+        // call each gate to save its data
+        for (int i = 0; i < numberOfDACGates; i++)
+            dacGates[i].saveCalFileHumanReadable(pOut);
+    }
+    else{
+        pOut.write("   DAC not enabled.");
+        pOut.newLine();
+    }
+
+}//end of Channel::saveCalFileHumanReadable
 //-----------------------------------------------------------------------------
 
 }//end of class Channel

@@ -545,6 +545,7 @@ catch(IOException e){return;}
 jobInfo = new JobInfo(mainFrame, settings.currentJobPrimaryPath,
            settings.currentJobBackupPath, settings.currentJobName, this,
                                                        settings.jobFileFormat);
+jobInfo.init();
 
 //create an object to hold info about each piece
 pieceIDInfo = new PieceInfo(mainFrame, settings.currentJobPrimaryPath,
@@ -561,6 +562,8 @@ monitorWindow.init();
 
 //create the hardware interface first so the traces can link to it
 hardware = new Hardware(configFile, settings, logWindow.textArea);
+//store a pointer in settings for use by other objects
+settings.hardware = hardware;
 
 //create a debugger window with a link to the hardware object
 debugger = new Debugger(mainFrame, hardware);
@@ -719,7 +722,8 @@ private void saveCalFile()
 
 //create a CalFileSaver thread object to save the data - this allows status
 //messages to be displayed and updated during the save
-settings.fileSaver = new CalFileSaver(settings, hardware);
+settings.fileSaver = new CalFileSaver(settings, hardware, false);
+settings.fileSaver.init();
 settings.fileSaver.start();
 
 }//end of MainWindow::saveCalFile
@@ -1123,6 +1127,16 @@ if ("Print Flag Report for User Selection".equals(e.getActionCommand())) {
     printFlagReport(-1, false);
 }
 
+//this part displays a list of calibration files which can be viewed/printed
+if ("View Calibration Records".equals(e.getActionCommand())) {
+
+    //create a CalFileSaver thread object to save the data - this allows status
+    //messages to be displayed and updated during the save
+    settings.fileSaver = new CalFileSaver(settings, hardware, true);
+    settings.fileSaver.init();
+    settings.fileSaver.start();
+
+}
 
 //this part handles starting the status monitor
 if ("Monitor".equals(e.getActionCommand())) {

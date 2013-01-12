@@ -20,6 +20,8 @@
 package chart.mksystems.hardware;
 
 import javax.swing.*;
+import java.io.BufferedWriter;
+import java.io.IOException;
 
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.stripchart.Threshold;
@@ -117,6 +119,25 @@ public void saveCalFile(IniFile pCalFile)
 {
 
 }//end of AnalogPCIDAS6023::saveCalFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// AnalogPCIDAS6023::saveCalFileHumanReadable
+//
+// This saves a subset of the calibration data, the values of which affect
+// the inspection process.
+//
+// The data is saved in a human readable format.
+//
+// Each object is passed a pointer to the file so that they may save their
+// own data.
+//
+
+@Override
+public void saveCalFileHumanReadable(BufferedWriter pOut) throws IOException
+{
+
+}//end of AnalogPCIDAS6023::saveCalFileHumanReadable
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

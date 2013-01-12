@@ -42,6 +42,8 @@ double nSPerDataPoint, uSPerDataPoint;
 public double velocityUS, velocityNS, nominalWall, wallChartScale;
 public int nominalWallChartPosition, numberOfMultiples;
 
+public int repRate = 2000;
+
 public String measuredLengthText;
 public double measuredLength;
 

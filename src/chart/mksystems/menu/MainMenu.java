@@ -5,7 +5,7 @@
 *
 * Purpose:
 *
-* This class creates the main menu and submenus for the main form.
+* This class creates the main menu and sub-menus for the main form.
 *
 *
 * Open Source Policy:
@@ -62,6 +62,8 @@ JMenuItem reportAnyMenuItem;
 JCheckBoxMenuItem autoReportMenuCheck;
 JMenuItem reportTallyMenuItem;
 JMenuItem reportFinalMenuItem;
+JMenuItem calibrationRecords;
+
 
 JMenu viewMenu;
 JMenuItem viewSegmentMenuItem, viewIDInfoMenuItem;
@@ -288,6 +290,16 @@ reportFinalMenuItem.setToolTipText(
                             "Prepare and print the final inspection report.");
 reportFinalMenuItem.addActionListener(settings);
 //reportMenu.add(reportFinalMenuItem);  DISABLED UNTIL FUNCTIONAL
+
+reportMenu.addSeparator();
+
+//Report/Calibration Records
+calibrationRecords = new JMenuItem("Calibration Records");
+calibrationRecords.setMnemonic(KeyEvent.VK_C);
+calibrationRecords.setToolTipText("View calibrations used during the job.");
+calibrationRecords.setActionCommand("View Calibration Records");
+calibrationRecords.addActionListener(settings);
+reportMenu.add(calibrationRecords);
 
 //View menu
 viewMenu = new JMenu("View");

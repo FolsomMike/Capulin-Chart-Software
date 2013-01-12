@@ -5,6 +5,11 @@
 *
 * Purpose:
 *
+* Saves all user calibration data using a background thread. A more human
+* readable version can also be saved. Note that the standard format is also
+* in text format and can be viewed in any text editor, but it is not organized
+* or titled for clarity of viewing.
+*
 * This class implements Runnable so it can execute as a thread.  It is used to
 * solve a problem frequently encountered in Java - displaying update messages
 * while performing a lengthy task.
@@ -37,10 +42,13 @@
 package chart;
 
 import javax.swing.JFrame;
-import java.io.IOException;
+import java.util.Date;
+import java.io.*;
+import java.text.DecimalFormat;
 
 import chart.mksystems.settings.Settings;
 import chart.mksystems.hardware.Hardware;
+import chart.mksystems.hardware.HardwareVars;
 import chart.mksystems.inifile.IniFile;
 
 //-----------------------------------------------------------------------------
@@ -54,24 +62,51 @@ public class CalFileSaver extends Thread{
 
 Settings settings;
 Hardware hardware;
+HardwareVars hdwVs;
+boolean humanReadable;
 
 static JFrame mainFrame;
 static MessageWindow messageWindow;
+
+DecimalFormat[] decimalFormats;
 
 //-----------------------------------------------------------------------------
 // CalFileSaver::CalFileSaver (constructor)
 //
 
-public CalFileSaver(Settings pSettings, Hardware pHardware)
+public CalFileSaver(Settings pSettings, Hardware pHardware,
+                                                        boolean pHumanReadable)
 {
 
 settings = pSettings;
 hardware = pHardware;
+hdwVs = hardware.hdwVs;
+humanReadable = pHumanReadable;
 
 //store in a static variable so it can be used from static methods
 mainFrame = settings.mainFrame;
 
 }//end of CalFileSaver::CalFileSaver (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// CalFileSaver::init
+//
+// Initializes new objects. Should be called immediately after instantiation.
+//
+//
+
+public void init()
+{
+
+    //create various decimal formats
+    decimalFormats = new DecimalFormat[4];
+    decimalFormats[0] = new  DecimalFormat("0000000");
+    decimalFormats[1] = new  DecimalFormat("0.0");
+    decimalFormats[2] = new  DecimalFormat("0.00");
+    decimalFormats[3] = new  DecimalFormat("0.000");
+
+}//end of CalFileSaver::init
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -92,7 +127,10 @@ javax.swing.SwingUtilities.invokeLater(
         createMessageWindow("Saving data to primary folder...");}});
 
 //begin saving the data to the primary path
-saveFile(settings.currentJobPrimaryPath);
+if (!humanReadable)
+    saveFile(settings.currentJobPrimaryPath);
+else
+    saveFileHumanReadable(settings.currentJobPrimaryPath);
 
 //tell the GUI to update the status message
 javax.swing.SwingUtilities.invokeLater(
@@ -102,7 +140,10 @@ javax.swing.SwingUtilities.invokeLater(
         messageWindow.message.setText("Saving data to backup folder...");}});
 
 //begin saving the data to the backup path
-saveFile(settings.currentJobBackupPath);
+if (!humanReadable)
+    saveFile(settings.currentJobBackupPath);
+else
+    saveFileHumanReadable(settings.currentJobBackupPath);
 
 //tell the GUI to dispose of the message window
 javax.swing.SwingUtilities.invokeLater(
@@ -122,6 +163,9 @@ settings.fileSaver = null;
 // This saves the file used for storing calibration information pertinent to a
 // job, such as gains, offsets, thresholds, etc.
 //
+// The format of this file is text, but it is not formatted or titled for
+// clarity.
+//
 // Each object is passed a pointer to the file so that they may save their
 // own data.
 //
@@ -131,7 +175,7 @@ protected void saveFile(String pJobPath)
 
 //if the job path has not been set, don't save anything or it will be saved in
 //the program root folder -- this occurs when the current job path specified in
-//the Main Settings.ini
+//the Main Settings.ini is blank
 
 if (pJobPath.equals("")) return;
 
@@ -171,10 +215,134 @@ for (int i=0; i < settings.numberOfChartGroups; i++)
 
 hardware.saveCalFile(calFile);
 
-//force save
+//force save buffer to disk
 calFile.save();
 
 }//end of MainWindow::saveFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// CalFileSaver::saveFileHumanReadable
+//
+// This saves the file used for storing calibration information pertinent to a
+// job, such as gains, offsets, thresholds, etc.
+//
+// The format of this file is text and is formatted specifically to be easier
+// to read by humans.
+//
+// Each object is passed a pointer to the file so that they may save their
+// own data.
+//
+
+protected void saveFileHumanReadable(String pJobPath)
+{
+
+//if the job path has not been set, don't save anything or it will be saved in
+//the program root folder -- this occurs when the current job path specified in
+//the Main Settings.ini is blank
+
+if (pJobPath.equals("")) return;
+
+String date = new Date().toString();
+
+String filename = pJobPath + "00 - " + settings.currentJobName
+       + " Calibration File ~ " + date.replace(":", "-") + ".txt";
+
+//create a buffered writer stream
+FileOutputStream fileOutputStream = null;
+OutputStreamWriter outputStreamWriter = null;
+BufferedWriter out = null;
+
+try{
+
+    fileOutputStream = new FileOutputStream(filename);
+    outputStreamWriter =
+            new OutputStreamWriter(fileOutputStream, settings.jobFileFormat);
+    out = new BufferedWriter(outputStreamWriter);
+
+    //write data to the file
+    saveFileHumanReadableHelper(out);
+
+    //Note! You MUST flush to make sure everything is written.
+    out.flush();
+
+    }
+catch(IOException e){}
+finally{
+
+    try{if (out != null) out.close();}
+    catch(IOException e){}
+    try{if (outputStreamWriter != null) outputStreamWriter.close();}
+    catch(IOException e){}
+    try{if (fileOutputStream != null) fileOutputStream.close();}
+    catch(IOException e){}
+    }
+
+    //calculate a security hash code and append it to the file
+    Settings.appendSecurityHash(filename);
+
+}//end of MainWindow::saveFileHumanReadable
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// CalFileSaver::saveFileHumanReadableHelper
+//
+// Saves data to the open file pOut.
+//
+
+protected void saveFileHumanReadableHelper(BufferedWriter pOut)
+                                                            throws IOException
+{
+
+    pOut.newLine();
+    pOut.write("Calibration Record");
+    pOut.newLine();
+    pOut.write("Time & Date: " + new Date().toString());
+    pOut.newLine(); pOut.newLine();
+    pOut.write("----- General Settings -----");
+    pOut.newLine(); pOut.newLine();
+    pOut.write("Job Name : " + settings.currentJobName); pOut.newLine();
+    pOut.write("Calibration settings used for joint(s) : 23 to 46");
+    pOut.newLine();
+    pOut.write("Rotational Speed (RPM) : 179.4");
+    pOut.newLine();
+    pOut.write("Surface Speed (inches/second) : 40");
+    pOut.newLine();
+    pOut.write("Helix (inches/revolution) : .048");
+    pOut.newLine();
+    pOut.write("Nominal Wall Thickness : " +
+                                decimalFormats[3].format(hdwVs.nominalWall));
+    pOut.newLine();
+    pOut.write("Nominal Wall Chart Position : " +
+                                            hdwVs.nominalWallChartPosition);
+    pOut.newLine();
+    pOut.write("Wall Chart Scale inches/100th : " +
+                            decimalFormats[3].format(hdwVs.wallChartScale));
+    pOut.newLine();
+    pOut.write("Sound Velocity inches/us (compression) : " +
+                                decimalFormats[3].format(hdwVs.velocityUS));
+    pOut.newLine();
+    pOut.write("Sound Velocity inches/us (shear) : " +
+                              decimalFormats[3].format(hdwVs.velocityShearUS));
+    pOut.newLine();
+    pOut.write("Number of Multiples between Wall Echoes : " +
+                                                      hdwVs.numberOfMultiples);
+    pOut.newLine();
+    pOut.write("Ultrasonic Repetition Rate in Hertz : " + hdwVs.repRate);
+    pOut.newLine();
+
+    pOut.newLine();
+    pOut.write("----- Chart Settings -----");
+    pOut.newLine(); pOut.newLine();
+
+    //save info for all charts
+    for (int i=0; i < settings.numberOfChartGroups; i++)
+        settings.chartGroups[i].saveCalFileHumanReadable(pOut);
+
+    //save all channel settings
+    hardware.saveCalFileHumanReadable(pOut);
+
+}//end of MainWindow::saveFileHumanReadableHelper
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

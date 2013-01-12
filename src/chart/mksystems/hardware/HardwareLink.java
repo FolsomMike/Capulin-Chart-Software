@@ -20,6 +20,8 @@
 package chart.mksystems.hardware;
 
 import javax.swing.*;
+import java.io.BufferedWriter;
+import java.io.IOException;
 
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.stripchart.Threshold;
@@ -55,6 +57,8 @@ void connect();
 void loadCalFile(IniFile pCalFile);
 
 void saveCalFile(IniFile pCalFile);
+
+public void saveCalFileHumanReadable(BufferedWriter pOut) throws IOException;
 
 public void setMode(int pOpMode);
 

@@ -20,6 +20,8 @@
 package chart.mksystems.hardware;
 
 import javax.swing.*;
+import java.io.BufferedWriter;
+import java.io.IOException;
 
 import chart.MessageLink;
 import chart.mksystems.settings.Settings;
@@ -234,7 +236,7 @@ if (pDriverName.equalsIgnoreCase("PCI-DAS6023")) analogDriver =
           new AnalogPCIDAS6023(configFile, true, numberOfAnalogChannels, hdwVs);
 
 if (pDriverName.equalsIgnoreCase("Capulin 1")) analogDriver =
-    new Capulin1(configFile, true, numberOfAnalogChannels, hdwVs, log,
+    new Capulin1(configFile, settings, true, numberOfAnalogChannels, hdwVs, log,
                               settings.jobFileFormat, Settings.mainFileFormat);
 
 }//end of Hardware::createAnalogDriver
@@ -427,6 +429,26 @@ pCalFile.writeInt("Hardware",
 analogDriver.saveCalFile(pCalFile);
 
 }//end of Hardware::saveCalFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::saveCalFileHumanReadable
+//
+// This saves a subset of the calibration data, the values of which affect
+// the inspection process.
+//
+// The data is saved in a human readable format.
+//
+// Each object is passed a pointer to the file so that they may save their
+// own data.
+//
+
+public void saveCalFileHumanReadable(BufferedWriter pOut) throws IOException
+{
+
+    analogDriver.saveCalFileHumanReadable(pOut);
+
+}//end of Hardware::saveCalFileHumanReadable
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

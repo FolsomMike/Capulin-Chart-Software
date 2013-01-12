@@ -17,7 +17,10 @@
 //-----------------------------------------------------------------------------
 
 package chart.mksystems.hardware;
+import java.io.BufferedWriter;
+import java.io.IOException;
 
+import chart.mksystems.settings.Settings;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.threadsafe.*;
 
@@ -445,6 +448,43 @@ pCalFile.writeDouble(section, "Gate Width", gateWidth.getValue());
 pCalFile.writeInt(section, "Gate Level", gateLevel.getValue());
 
 }//end of DACGate::saveCalFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// DACGate::saveCalFileHumanReadable
+//
+// This saves a subset of the calibration data, the values of which affect
+// the inspection process.
+//
+// The data is saved in a human readable format.
+//
+// Each object is passed a pointer to the file so that they may save their
+// own data.
+//
+
+public void saveCalFileHumanReadable(BufferedWriter pOut) throws IOException
+{
+
+    pOut.write("    " + Settings.postPad("" + (gateIndex+1), 11));
+
+    //if the gate is active, then display it's values
+
+    if(gateActive){
+
+        pOut.write(Settings.prePad(
+                        decimalFormats[3].format(gateStart.getValue()), 8));
+        pOut.write(Settings.prePad(
+                        decimalFormats[3].format(gateWidth.getValue()), 8));
+        pOut.write(Settings.prePad("" + gateLevel.getValue(), 8));
+
+    }
+    else{
+        pOut.write("   inactive");
+    }
+
+    pOut.newLine();
+
+}//end of DACGate::saveCalFileHumanReadable
 //-----------------------------------------------------------------------------
 
 }//end of class DACGate

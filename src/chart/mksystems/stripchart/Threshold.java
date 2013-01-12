@@ -160,6 +160,27 @@ pCalFile.writeInt(section, "Threshold Level", thresholdLevel);
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Threshold::saveCalFileHumanReadable
+//
+// This saves a subset of the calibration data, the values of which affect
+// the inspection process.
+//
+// The data is saved in a human readable format.
+//
+// Each object is passed a pointer to the file so that they may save their
+// own data.
+//
+
+public void saveCalFileHumanReadable(BufferedWriter pOut) throws IOException
+{
+
+pOut.write(Settings.postPad(title, 10));
+pOut.write(Settings.prePad(" " + thresholdLevel, 4) + ", ");
+
+}//end of Threshold::saveCalFileHumanReadable
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Threshold::setCanvas
 //
 // Stores a pointer to the canvas on which the traces are drawn.

@@ -1404,6 +1404,33 @@ pCalFile.writeDouble(section, "Trailing Mask Position (inches)", trailMaskPos);
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// StripChart::saveCalFileHumanReadable
+//
+// This saves a subset of the calibration data, the values of which affect
+// the inspection process.
+//
+// The data is saved in a human readable format.
+//
+// Each object is passed a pointer to the file so that they may save their
+// own data.
+//
+
+public void saveCalFileHumanReadable(BufferedWriter pOut) throws IOException
+{
+
+pOut.write(Settings.postPad(getTitle(), 15));
+
+//call each threshold to save its data
+for (int i = 0; i < numberOfThresholds; i++)
+    thresholds[i].saveCalFileHumanReadable(pOut);
+
+pOut.write( " Lead Mask  " + leadMaskPos);
+pOut.write( " Trail Mask " + trailMaskPos);
+
+}//end of StripChart::saveCalFileHumanReadable
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // StripChart::convertToYAbsLocation
 //
 // Calculates the absolute vertical value in inches or mm depending on the

@@ -32,10 +32,12 @@ import java.awt.event.*;
 import java.io.*;
 import java.awt.Color;
 import java.util.*;
+import java.io.FileInputStream;
 
 import chart.CalFileSaver;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.stripchart.ChartGroup;
+import chart.mksystems.hardware.Hardware;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -47,6 +49,8 @@ import chart.mksystems.stripchart.ChartGroup;
 public class Settings extends Object implements ActionListener, ItemListener {
 
 public JFrame mainFrame;
+
+public Hardware hardware;
 
 public String language;
 
@@ -481,6 +485,14 @@ if (source.getActionCommand().
     return;
     }
 
+//calls function in Main
+if (source.getActionCommand().
+                    startsWith("View Calibration Records")){
+    actionListener.actionPerformed(
+                    new ActionEvent(this, 1, "View Calibration Records"));
+    return;
+    }
+
 if (source.getToolTipText().equalsIgnoreCase("Exit")){
     //set a flag that lets the mainTimer event close the program - this allows
     //the timer to make sure everything is ok to close - disposing of the
@@ -704,6 +716,129 @@ pTextArea.append(
             "------------------------------------------------------------\n");
 
 }//end of Settings::displayConfigInfo
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Settings::prePad
+//
+// Adds spaces to the beginning of pSource until it is length pLength.
+// Returns the new string.
+//
+
+public static String prePad(String pSource, int pLength)
+{
+
+   while(pSource.length() < pLength)
+       pSource = " " + pSource;
+
+   return(pSource);
+
+}//end of Settings::prePad
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Settings::postPad
+//
+// Adds spaces to the end of pSource until it is length pLength.
+// Returns the new string.
+//
+
+public static String postPad(String pSource, int pLength)
+{
+
+   while(pSource.length() < pLength)
+       pSource = pSource + " ";
+
+   return(pSource);
+
+}//end of Settings::postPad
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Settings::truncate
+//
+// Truncates pSource to pLength.  The truncated string is returned.
+//
+
+public static String truncate(String pSource, int pLength)
+{
+
+    if(pSource.length() > pLength)
+       return (pSource.substring(0, pLength));
+    else
+       return(pSource);
+
+}//end of Settings::truncate
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Settings::appendSecurityHash
+//
+// Appends a security hash code to the end of file pFilename. Unauthorized
+// changes to the file can be detected as the hash code will no longer match
+// the data.
+//
+// The data in the file is summed, the resulting value is scrambled and then
+// saved at the end of the file in ASCII hexadecimal format.
+//
+
+public static void appendSecurityHash(String pFilename)
+{
+
+    long sum = calculateSumOfFileData(pFilename);
+
+    //bail out if there was an error calculating the sum
+    if (sum < 0) return;
+
+    //wip mks -- need to add the hashcode to the file here
+
+
+}//end of Settings::appendSecurityHash
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Settings::calculateSumOfFileData
+//
+// The data in the file is summed, the resulting value is scrambled and then
+// saved at the end of the file in ASCII hexadecimal format.
+//
+// If not errors encountered, the sum of the data is returned. On error, -1
+// is returned.
+//
+// Note: the sum may experience overflow if the data is too large. This is
+// not necessarily an error -- the resulting value can still be used for
+// checksums, hashcodes, etc. , so long as the result is the same each time.
+//
+
+public static long calculateSumOfFileData(String pFilename)
+{
+
+    FileInputStream in = null;
+
+    long sum = 0;
+
+    try {
+
+        in = new FileInputStream(pFilename);
+
+        int c;
+
+        while ((c = in.read()) != -1) {
+
+            //sum all data bytes in the file
+            sum += c;
+
+        }
+    }
+    catch(IOException e){sum = -1;}
+    finally{
+        try{if (in != null) in.close();}
+        catch(IOException e){}
+
+        return(sum);
+    }
+
+}//end of Settings::calculateSumOfFileData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

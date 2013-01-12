@@ -21,7 +21,9 @@ package chart.mksystems.hardware;
 import java.io.*;
 import java.net.*;
 import javax.swing.*;
+import java.io.IOException;
 
+import chart.mksystems.settings.Settings;
 import chart.MessageLink;
 import chart.ThreadSafeLogger;
 import chart.mksystems.inifile.IniFile;
@@ -38,6 +40,8 @@ import chart.mksystems.threadsafe.SyncedInteger;
 //
 
 public class Capulin1 extends Object implements HardwareLink, MessageLink{
+
+    Settings settings;
 
     //debug mks - this is only for demo - delete later
     static int MONITOR_PACKET_SIZE = 20;
@@ -103,13 +107,14 @@ public class Capulin1 extends Object implements HardwareLink, MessageLink{
 // should already be opened and ready to access.
 //
 
-Capulin1(IniFile pConfigFile, boolean pSimulationMode,
+Capulin1(IniFile pConfigFile, Settings pSettings, boolean pSimulationMode,
                int pNumberOfAnalogChannels, HardwareVars pHdwVs, JTextArea pLog,
                String pJobFileFormat, String pMainFileFormat)
 
 {
 
-    configFile = pConfigFile; simulationMode = pSimulationMode;
+    configFile = pConfigFile; settings = pSettings;
+    simulationMode = pSimulationMode;
     numberOfAnalogChannels = pNumberOfAnalogChannels;
     hdwVs = pHdwVs;
     log = pLog;
@@ -697,6 +702,34 @@ public void saveCalFile(IniFile pCalFile)
         channels[i].saveCalFile(pCalFile);
 
 }//end of Capulin1::saveCalFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::saveCalFileHumanReadable
+//
+// This saves a subset of the calibration data, the values of which affect
+// the inspection process.
+//
+// The data is saved in a human readable format.
+//
+// Each object is passed a pointer to the file so that they may save their
+// own data.
+//
+
+@Override
+public void saveCalFileHumanReadable(BufferedWriter pOut) throws IOException
+{
+
+    //print a header
+
+    pOut.write("----- Channel Settings -----");
+    pOut.newLine(); pOut.newLine();
+
+    // call each channel to save its data
+    for (int i = 0; i < numberOfChannels; i++)
+        channels[i].saveCalFileHumanReadable(pOut);
+
+}//end of Capulin1::saveCalFileHumanReadable
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1418,7 +1451,7 @@ private void configureChannels()
         channels = new Channel[numberOfChannels];
 
         for (int i = 0; i < numberOfChannels; i++)
-           channels[i] = new Channel(configFile, i, null);
+           channels[i] = new Channel(configFile, settings, i, null);
 
     }//if (numberOfChannels > 0)
 
