@@ -58,7 +58,7 @@ boolean head2Down = false;
 boolean inspectMode = false;
 int simulationMode = MessageLink.STOP;
 int encoder1 = 0, encoder2 = 0;
-int encoder1DeltaTrigger, encoder2DeltaTrigger;
+int encoder1DeltaTrigger = 1000, encoder2DeltaTrigger = 1000;
 int inspectPacketCount = 0;
 
 byte controlFlags = 0, portE = 0;
@@ -66,7 +66,7 @@ byte controlFlags = 0, portE = 0;
 int positionTrack; // this is the number of packets sent, not the encoder
                    // value
 
-public static int DELAY_BETWEEN_INSPECT_PACKETS = 1;
+public static int DELAY_BETWEEN_INSPECT_PACKETS = 10;
 int delayBetweenPackets = DELAY_BETWEEN_INSPECT_PACKETS;
 
 //This mimics the 7-5/8 IRNDT test joint used at Tubo Belle Chasse
@@ -92,7 +92,6 @@ public static int LENGTH_OF_JOINT_IN_PACKETS = 1298 + START_DELAY_IN_PACKETS;
 //
 
 public ControlSimulator(InetAddress pIPAddress, int pPort,
-      int pEncoder1DeltaTrigger, int pEncoder2DeltaTrigger,
                                 String pMainFileFormat) throws SocketException
 {
 
@@ -107,10 +106,6 @@ mainFileFormat = pMainFileFormat;
 //as that number is distributed across all sub classes -- UT boards,
 //Control boards, etc.
 controlBoardNumber = controlBoardCounter++;
-
-//how many counts the encoder moves between each packet send
-encoder1DeltaTrigger = pEncoder1DeltaTrigger;
-encoder2DeltaTrigger = pEncoder2DeltaTrigger;
 
 //load configuration data from file
 configure();
@@ -209,6 +204,9 @@ try{
 
     if (pktID == ControlBoard.GET_STATUS_CMD) getStatus();
     else
+    if (pktID == ControlBoard.SET_ENCODERS_DELTA_TRIGGER_CMD)
+        setEncodersDeltaTrigger(pktID);
+    else
     if (pktID == ControlBoard.START_INSPECT_CMD) startInspect(pktID);
     else
     if (pktID == ControlBoard.STOP_INSPECT_CMD) stopInspect(pktID);
@@ -241,6 +239,80 @@ sendPacketHeader(ControlBoard.GET_STATUS_CMD);
 sendBytes2(status, (byte)0);
 
 }//end of ControlSimulator::getStatus
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlSimulator::setEncodersDeltaTrigger
+//
+// Tells the Control board how many encoder counts to wait before sending
+// an encoder value update.  The trigger value for each encoder is sent.
+//
+// Normally, this value will be set to something reasonable like .25 to 1.0
+// inch of travel of the piece being inspected. Should be no larger than the
+// distance represented by a single pixel.
+//
+
+int setEncodersDeltaTrigger(byte pPktID)
+{
+
+    //read the databytes and checksum
+    int bytesRead = readBlockAndVerify(5, pPktID);
+
+    if (bytesRead < 0) return(bytesRead); //bail out if error
+
+    encoder1DeltaTrigger =
+                   (int)((inBuffer[0]<<8) & 0xff00) + (int)(inBuffer[1] & 0xff);
+
+    encoder1DeltaTrigger =
+                   (int)((inBuffer[2]<<8) & 0xff00) + (int)(inBuffer[3] & 0xff);
+
+    return(bytesRead);
+
+}//end of ControlSimulator::setEncodersDeltaTrigger
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlSimulator::readBlockAndVerify
+//
+// Reads pNumberOfBytes from byteIn into inBuffer. The bytes (including the last
+// one which is the checksum) are summed with pPktID and then compared with
+// 0x00.
+//
+// The value pNumberOfBytes should be equal to the number of data bytes
+// remaining in the packet plus one for the checksum.
+//
+// Returns the number of bytes read if specified number of bytes were read and
+// the checksum verified. Returns -1 otherwise.
+//
+
+int readBlockAndVerify(int pNumberOfBytes, byte pPktID)
+{
+
+    int bytesRead = 0;
+
+    try{
+        bytesRead = byteIn.read(inBuffer, 0, pNumberOfBytes);
+    }
+    catch(IOException e){
+        return(-1);
+    }
+
+    if (bytesRead == pNumberOfBytes){
+
+        byte sum = 0;
+        for(int i = 0; i < pNumberOfBytes; i++) sum += inBuffer[i];
+
+        //calculate checksum to check validity of the packet
+        if ( (pPktID + sum & (byte)0xff) != 0) return(-1);
+    }
+    else{
+        //error -- not enough bytes could be read
+        return(-1);
+    }
+
+    return(bytesRead);
+
+}//end of ControlSimulator::readBlockAndVerify
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -421,7 +493,7 @@ void simulateInspection()
     if (head2Down)
         controlFlags = (byte)(controlFlags | ControlBoard.HEAD2_DOWN_CTRL);
 
-    //move the encoders the forward or backward theamount expected by the host
+    //move the encoders the forward or backward the amount expected by the host
     if (simulationMode == MessageLink.FORWARD){
         encoder1 += encoder1DeltaTrigger;
         encoder2 += encoder2DeltaTrigger;

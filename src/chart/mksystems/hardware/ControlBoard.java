@@ -215,8 +215,7 @@ try {
     if (!simulate) socket = new Socket(ipAddr, 23);
     else {
 
-        socket = new ControlSimulator(ipAddr, 23,
-                       encoder1DeltaTrigger, encoder2DeltaTrigger, fileFormat);
+        socket = new ControlSimulator(ipAddr, 23, fileFormat);
         //when simulating, the socket is a ControlSimulator class object which
         //is also a MessageLink implementor, so cast it for use as such so that
         //messages can be sent to the object
@@ -588,8 +587,9 @@ sendBytes2(TURN_OFF_OUTPUT_CMD, (byte) 0);
 // Tells the Control board how many encoder counts to wait before sending
 // an encoder value update.  The trigger value for each encoder is sent.
 //
-// Normally, this value will be set to something reasonable like 1 inch of
-// travel of the piece being inspected.
+// Normally, this value will be set to something reasonable like .25 to 1.0
+// inch of travel of the piece being inspected. Should be no larger than the
+// distance represented by a single pixel.
 //
 
 public void setEncodersDeltaTrigger()
