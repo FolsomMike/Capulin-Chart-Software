@@ -66,7 +66,7 @@ byte controlFlags = 0, portE = 0;
 int positionTrack; // this is the number of packets sent, not the encoder
                    // value
 
-public static int DELAY_BETWEEN_INSPECT_PACKETS = 10;
+public static int DELAY_BETWEEN_INSPECT_PACKETS = 1;
 int delayBetweenPackets = DELAY_BETWEEN_INSPECT_PACKETS;
 
 //This mimics the 7-5/8 IRNDT test joint used at Tubo Belle Chasse
