@@ -172,6 +172,8 @@ public boolean showRedPeakLineInGateCenter = false;
 public boolean showRedPeakLineAtPeakLocation = false;
 public boolean showPseudoPeakAtPeakLocation = true;
 
+public boolean reportAllFlags = false;
+
 public int scanSpeed;
 
 public String graphPrintLayout;
@@ -466,6 +468,12 @@ if (source.getActionCommand().equalsIgnoreCase(
                                         "Show Peak Symbol at Peak Location")){
     showPseudoPeakAtPeakLocation =
                             ((JCheckBoxMenuItem)(e.getSource())).isSelected();
+    return;
+    }
+
+//sets a variable in Settings
+if (source.getActionCommand().equalsIgnoreCase("Report All Flags")){
+    reportAllFlags = ((JCheckBoxMenuItem)(e.getSource())).isSelected();
     return;
     }
 

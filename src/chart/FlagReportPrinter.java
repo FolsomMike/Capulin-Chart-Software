@@ -666,10 +666,11 @@ public void printFlagForTrace(PrintWriter pFile, StripChart pChart,
         //extract the clock position from the flag
         clockPos = pTrace.flagBuffer[pDataIndex] & 0x1ff;
 
+        //if the Report All Flags option is off, don't print duplicate flags:
         //if the flag is in the same linear and clock position as the
         //previous flag printed for this trace and has the same amplitude, then
         //the flag is not printed (see notes in function header)
-        if (linearPos.equals(pTrace.prevLinearPos)
+        if (!settings.reportAllFlags && linearPos.equals(pTrace.prevLinearPos)
                 && amplitudeText.equals(pTrace.prevAmplitudeText)
                                     && clockPos == pTrace.prevClockPos){
             return;

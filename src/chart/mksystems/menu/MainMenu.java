@@ -68,11 +68,12 @@ JMenuItem calibrationRecords;
 JMenu viewMenu;
 JMenuItem viewSegmentMenuItem, viewIDInfoMenuItem;
 
-JMenu optionsMenu, chartMenu, aScanMenu;
+JMenu optionsMenu, chartMenu, aScanMenu, reportOptionsMenu;
 JCheckBoxMenuItem restartNewPieceAtLeftEdgeMenuCheck;
 JCheckBoxMenuItem showRedPeakLineInGateCenter;
 JCheckBoxMenuItem showRedPeakLineAtPeakLocation;
 JCheckBoxMenuItem showPseudoPeakAtPeakLocation;
+JCheckBoxMenuItem reportAllFlags;
 
 //JMenuItem languageMenu;
 //ButtonGroup languageGroup;
@@ -408,6 +409,19 @@ showPseudoPeakAtPeakLocation.setToolTipText(
 showPseudoPeakAtPeakLocation.addActionListener(settings);
 aScanMenu.add(showPseudoPeakAtPeakLocation);
 
+//Options/Report Options Menu
+reportOptionsMenu = new JMenu("Report Options");
+reportOptionsMenu.setMnemonic(KeyEvent.VK_R);
+aScanMenu.setToolTipText("Options used for printing reports.");
+optionsMenu.add(reportOptionsMenu);
+
+//Options/Report Options/Report All Flags
+reportAllFlags = new JCheckBoxMenuItem("Report All Flags");
+reportAllFlags.setToolTipText(
+        "Report all flags -- do not skip duplicates at the same location.");
+reportAllFlags.addActionListener(settings);
+reportOptionsMenu.add(reportAllFlags);
+
 //Help menu
 helpMenu = new JMenu("Help");
 helpMenu.setMnemonic(KeyEvent.VK_H);
@@ -526,6 +540,8 @@ showRedPeakLineInGateCenter.setSelected(
 showRedPeakLineAtPeakLocation.setSelected(
                                         settings.showRedPeakLineAtPeakLocation);
 showPseudoPeakAtPeakLocation.setSelected(settings.showPseudoPeakAtPeakLocation);
+
+reportAllFlags.setSelected(settings.reportAllFlags);
 
 }//end of MainMenu::refreshMenuSettings
 //-----------------------------------------------------------------------------

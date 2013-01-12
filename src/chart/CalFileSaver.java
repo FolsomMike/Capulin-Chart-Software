@@ -200,6 +200,9 @@ calFile.writeBoolean("General", "Show Red Peak Line at Peak Location",
                                        settings.showRedPeakLineAtPeakLocation);
 calFile.writeBoolean("General", "Show Peak Symbol at Peak Location",
                                         settings.showPseudoPeakAtPeakLocation);
+calFile.writeBoolean("General",
+        "Report all flags (do not skip duplicates at the same location)",
+                                                       settings.reportAllFlags);
 
 calFile.writeInt(
                "General", "Scanning and Inspecting Speed", settings.scanSpeed);
