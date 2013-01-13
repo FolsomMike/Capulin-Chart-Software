@@ -1098,12 +1098,8 @@ if ("Log".equals(e.getActionCommand())) {
     return;
     }
 
-//this part writes various status messages to the log window
-if ("Status".equals(e.getActionCommand())) {
-    logWindow.setVisible(true);
-    logStatus();
-    return;
-    }
+//this part writes various status and error messages to the log window
+if ("Status".equals(e.getActionCommand())) logStatus();
 
 //this part opens a viewer window for viewing saved segments
 if ("Open Viewer".equals(e.getActionCommand())) {
@@ -1379,6 +1375,31 @@ hardware.setMode(Hardware.INSPECT);
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainWindow::logStatus
+//
+// This method displays various status and error messages in the log window.
+// The log window is displayed.
+//
+// This method can be used to see the number and types of errors which have
+// occurred since the last time it was called.
+//
+
+public void logStatus()
+{
+
+    logWindow.setVisible(true);
+
+    logWindow.section(); logWindow.appendLine("System Status");
+    logWindow.appendLine("");
+
+    hardware.logStatus(logWindow);
+
+    logWindow.separate();
+
+}//end of MainWindow::logStatus
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Viewer::updatePrevMinWallDisplay
 //
 // Finds the minimum value for the Min Wall trace and updates the display.
@@ -1644,20 +1665,6 @@ if (xfer.rBoolean1){
     }
 
 }//end of MainWindow::changePreset
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// MainWindow::logStatus
-//
-// Writes various status messages to the log window.
-//
-
-public void logStatus()
-{
-
-hardware.logStatus(logWindow.textArea);
-
-}//end of MainWindow::logStatus
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

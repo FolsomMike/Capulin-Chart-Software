@@ -31,6 +31,7 @@ import chart.mksystems.stripchart.Threshold;
 import chart.mksystems.stripchart.Trace;
 import chart.mksystems.threadsafe.SyncedVariableSet;
 import chart.mksystems.threadsafe.SyncedInteger;
+import chart.Log;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -622,15 +623,15 @@ public void driveSimulation()
 //-----------------------------------------------------------------------------
 // Capulin1::logStatus
 //
-// Writes various status messages to the log window.
+// Writes various status and error messages to the log window.
 //
 
 @Override
-public void logStatus(JTextArea pTextArea)
+public void logStatus(Log pLogWindow)
 {
 
     for (int i = 0; i < numberOfUTBoards; i++)
-        if (utBoards[i]!= null) utBoards[i].logStatus(pTextArea);
+        if (utBoards[i]!= null) utBoards[i].logStatus(pLogWindow);
 
 }//end of Capulin1::logStatus
 //-----------------------------------------------------------------------------

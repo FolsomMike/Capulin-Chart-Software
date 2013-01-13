@@ -26,6 +26,7 @@ import java.io.IOException;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.stripchart.Threshold;
 import chart.mksystems.stripchart.Trace;
+import chart.Log;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -761,7 +762,7 @@ return (false);
 //
 
 @Override
-public void logStatus(JTextArea pTextArea)
+public void logStatus(Log pLogWindow)
 {
 
 }//end of AnalogPCIDAS6023::logStatus

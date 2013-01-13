@@ -20,6 +20,7 @@ package chart;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Date;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -28,7 +29,7 @@ import java.awt.*;
 // This class displays a text area in a window.
 //
 
-class Log extends JDialog{
+public class Log extends JDialog{
 
 public JTextArea textArea;
 
@@ -59,6 +60,79 @@ add(areaScrollPane);
 
 
 }//end of Log::Log (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Log::append
+//
+// Appends a text string to the text window.
+//
+
+public void append(String pText)
+{
+
+    textArea.append(pText);
+
+}//end of Log::append
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Log::appendLine
+//
+// Appends a text string to the text window and moves to the next line
+//
+
+public void appendLine(String pText)
+{
+
+    textArea.append(pText + "\n");
+
+}//end of Log::appendLine
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Log::separate
+//
+// Write a separator (such as a line of dashes) to the file.
+//
+
+public void separate()
+{
+
+    appendLine(
+     "---------------------------------------------------------------------");
+
+}//end of Log::separator
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Log::date
+//
+// Write the date to the file.
+//
+
+public void date()
+{
+
+    appendLine(new Date().toString());
+
+}//end of Log::date
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Log::section
+//
+// Writes a blank line, a separator, the date, a blank line.
+//
+
+public void section()
+{
+
+    appendLine("");
+    separate(); date();
+    appendLine("");
+
+}//end of Log::section
 //-----------------------------------------------------------------------------
 
 }//end of class Log

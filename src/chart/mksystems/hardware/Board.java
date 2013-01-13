@@ -25,6 +25,7 @@ import javax.swing.*;
 
 import chart.ThreadSafeLogger;
 import chart.mksystems.inifile.IniFile;
+import chart.Log;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -769,10 +770,10 @@ while(!setupComplete){
 //-----------------------------------------------------------------------------
 // Board::logStatus
 //
-// Writes various status messages to the log window.
+// Writes various status and error messages to the log window.
 //
 
-public void logStatus(JTextArea pTextArea)
+public void logStatus(Log pLogWindow)
 {
 
 }//end of Board::logStatus

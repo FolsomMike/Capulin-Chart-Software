@@ -2156,7 +2156,7 @@ public void driveSimulation()
 //-----------------------------------------------------------------------------
 // Hardware::logStatus
 //
-// Writes various status messages to the log window.
+// Writes various status and error messages to the log window.
 //
 
 public void logStatus(Log pLogWindow)

@@ -24,6 +24,7 @@ import javax.swing.*;
 import java.lang.Math.*;
 
 import chart.mksystems.inifile.IniFile;
+import chart.Log;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -495,6 +496,13 @@ public class UTBoard extends Board{
     static int FPGA_LOAD_TIMEOUT = 999999;
 
     boolean reSynced;
+
+    //Error Counters ----------------------
+
+    //track number of "No Response to Peak Data Request" occurrances
+    int noResponseToPeakDataRequestCount = 0;
+    //track number of "No Response Time Out for Peak Data Request" occurrances
+    int noResponseToPeakDataRequestTimeOutCount = 0;
 
 //-----------------------------------------------------------------------------
 // UTBoard::UTBoard (constructor)
@@ -3124,10 +3132,12 @@ public void requestPeakData(int pChannel)
 
     }
     else {
-        // if the packet does not get an answer, after about .25 seconds reset
-        // the flag to force a new call on the next time through
+        noResponseToPeakDataRequestCount++; //track non-response count
+        // if the packet does not get an answer, after repeated calls to this
+        // method set the flag to allow a new call on the next time through
         if (getPeakDataTimeOut++ == GET_PEAK_DATA_TIMEOUT) {
             getPeakDataTimeOut = 0; peakDataRcvd = true;
+            noResponseToPeakDataRequestTimeOutCount++; //track timeouts
             return;
         }
     }
@@ -3180,10 +3190,12 @@ public void requestPeakData4(int pChannel0, int pChannel1, int pChannel2,
 
     }
     else {
-        // if the packet does not get an answer, after about .25 seconds reset
-        // the flag to force a new call on the next time through
+        noResponseToPeakDataRequestCount++; //track non-response count
+        // if the packet does not get an answer, after repeated calls to this
+        // method set the flag to allow a new call on the next time through
         if (getPeakDataTimeOut++ == GET_PEAK_DATA_TIMEOUT) {
             getPeakDataTimeOut = 0; peakDataRcvd = true;
+            noResponseToPeakDataRequestTimeOutCount++; //track timeouts
             return;
         }
     }
@@ -4382,12 +4394,16 @@ public void installNewRabbitFirmware()
 //-----------------------------------------------------------------------------
 // UTBoard::logStatus
 //
-// Writes various status messages to the log window.
+// Writes various status and error messages to the log window.
 //
 
 @Override
-public void logStatus(JTextArea pTextArea)
+public void logStatus(Log pLogWindow)
 {
+
+    Log log = pLogWindow; //use shorter name
+
+    //------------------------------------------------
 
     // if there have been socket sync errors, display message and clear count
 
@@ -4398,9 +4414,34 @@ public void logStatus(JTextArea pTextArea)
         + "DSP Chip: " + reSyncDSPChip + " DSP Core: " + reSyncDSPCore
         + "\nPacket ID: " + reSyncPktID + " DSP Message ID: " + reSyncDSPMsgID);
         log.append("\n----------------------------------------------\n");
-        }
+    }
 
     reSyncCount = 0;
+
+    //display a header to identify the board
+
+    log.appendLine("Chassis #: " + chassisAddr + "   Slot #: " + slotAddr);
+
+    //------------------------------------------------
+
+    //display number of peak data requests which had no response
+    if (noResponseToPeakDataRequestCount > 0){
+        log.append("Number of Peak Data Packet Requests with no response:");
+        log.appendLine(" " + noResponseToPeakDataRequestCount);
+        noResponseToPeakDataRequestCount = 0;
+    }
+
+    //------------------------------------------------
+
+    //display number of peak data requests which time out before response
+    if (noResponseToPeakDataRequestTimeOutCount > 0){
+        log.append("Number of Peak Data Packet Requests which timed out:");
+        log.appendLine(" " + noResponseToPeakDataRequestTimeOutCount);
+        noResponseToPeakDataRequestTimeOutCount = 0;
+    }
+
+
+
 
 }//end of UTBoard::logStatus
 //-----------------------------------------------------------------------------
