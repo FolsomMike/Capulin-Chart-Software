@@ -45,6 +45,7 @@ JFrame frame;
 public Oscilloscope scope1;
 JPanel channelSelector, copyPanel;
 JButton minMax, viewIP;
+JToggleButton persist;
 Settings settings;
 
 CopyItemSelector copyItemSelector;
@@ -142,6 +143,15 @@ alarms.add(minMax);
 
 //add invisible filler to spread buttons
 alarms.add(Box.createVerticalGlue());
+
+persist = new JToggleButton("Persist");
+persist.setAlignmentX(Component.CENTER_ALIGNMENT);
+persist.addActionListener(this);
+persist.setActionCommand("Persist");
+persist.setToolTipText("Turn persistence mode on/off for the scope.");
+alarms.add(persist);
+
+alarms.add(Box.createRigidArea(new Dimension(0,3))); //vertical spacer
 
 viewIP = new JButton("View IP");
 viewIP.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -959,8 +969,9 @@ if (e.getActionCommand().equals("Copy to All")){
     return;
     }
 
-//trap "All" radio button -- does this exist????
-if (e.getActionCommand().equals("All")){
+//trap "Persist" toggle button and apply setting to the scope display
+if (e.getActionCommand().equals("Persist")){
+    scope1.setPersistMode(persist.isSelected());
     return;
     }
 

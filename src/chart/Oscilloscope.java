@@ -44,11 +44,13 @@ class OscopeCanvas extends JPanel {
 Settings settings;
 public BufferedImage imageBuffer;
 Channel channel;
+boolean persistMode = false;
 double uSPerDataPoint;
 boolean dacEnabled = false;
 boolean dacLocked = true;
 int maxY;
 Xfer aScanPeakInfo;
+Color bgColor;
 
 int vertOffset = 0; //vertical offset for the trace and gates
 
@@ -67,6 +69,8 @@ uSPerDataPoint = pUSPerDataPoint; settings = pSettings;
 
 maxY = 350;
 
+bgColor = new Color(153, 204, 0);
+
 aScanPeakInfo = new Xfer();
 
 //we will handle drawing the background
@@ -76,7 +80,7 @@ setMinimumSize(new Dimension(350,maxY));
 setPreferredSize(new Dimension(350,maxY));
 setMaximumSize(new Dimension(350,maxY));
 
-setBackground(new Color(153, 204, 0));
+setBackground(bgColor);
 
 setName("Oscope Canvas"); //used by the mouse listener
 addMouseListener(pMouseListener);
@@ -98,6 +102,22 @@ public void setChannel(Channel pChannel)
 channel = pChannel;
 
 }//end of OscopeCanvas::setChannel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// OscopeCanvas::setPersistMode
+//
+// Sets the persistence mode -- if false, the scope display is erased
+// constantly. If true, the display is not erased between refresh cycles so
+// old data is left in place to show the signal history.
+//
+
+public void setPersistMode(boolean pState)
+{
+
+persistMode = pState;
+
+}//end of OscopeCanvas::setPersistMode
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -223,8 +243,12 @@ public void displayData(int pRange, int pInterfaceCrossingPosition,
 //draw on the image buffer
 Graphics2D g2 = (Graphics2D) imageBuffer.getGraphics();
 
-g2.setColor(new Color(153, 204, 0));
-g2.fillRect(0, 0, getWidth(), getWidth());
+//if not in Persistence Mode, erase the old data before drawing the new, else
+//leave old data in place to show signal history
+if(!persistMode){
+    g2.setColor(bgColor);
+    g2.fillRect(0, 0, getWidth(), getWidth());
+}
 
 //draw the grid lines on the screen before anything else
 drawGrid(g2);
@@ -477,6 +501,7 @@ public class Oscilloscope extends JPanel {
 Channel channel;
 OscopeCanvas canvas;
 Settings settings;
+Color bgColor;
 
 //-----------------------------------------------------------------------------
 // Oscilloscope::Oscilloscope (constructor)
@@ -491,6 +516,8 @@ public Oscilloscope(String pTitle, double pUSPerDataPoint,
 {
 
 settings = pSettings;
+
+bgColor = new Color(153, 204, 0);
 
 //set up the main panel - this panel does nothing more than provide a title
 //border and a spacing border
@@ -549,6 +576,22 @@ return canvas;
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Oscilloscope::setPersistMode
+//
+// Sets the persistence mode -- if false, the scope display is erased
+// constantly. If true, the display is not erased between refresh cycles so
+// old data is left in place to show the signal history.
+//
+
+public void setPersistMode(boolean pState)
+{
+
+canvas.setPersistMode(pState);
+
+}//end of Oscilloscope::setPersistMode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Oscilloscope::setTitle
 //
 // Sets the title of the scope.
@@ -603,7 +646,7 @@ public void clearPlot()
 
 Graphics gb = canvas.imageBuffer.getGraphics();
 
-gb.setColor(new Color(153, 204, 0));
+gb.setColor(bgColor);
 gb.fillRect(0, 0, canvas.getWidth(), canvas.getWidth());
 
 canvas.paintComponent(canvas.getGraphics());
