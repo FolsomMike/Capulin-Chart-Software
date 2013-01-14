@@ -36,6 +36,8 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.JOptionPane;
 import javax.swing.JDialog;
+import java.io.FileNotFoundException;
+import java.util.Date;
 
 import chart.mksystems.settings.Link;
 import chart.mksystems.settings.Settings;
@@ -192,6 +194,16 @@ public MainWindow()
 
 //turn off default bold for Metal look and feel
 UIManager.put("swing.boldMetal", Boolean.FALSE);
+
+//redirect the standard error output to a file
+try{
+    FileOutputStream f = new FileOutputStream("Error Messages.txt", true);
+    System.setErr(new PrintStream(f));
+    System.err.print("Program Started: " + (new Date().toString()));
+    System.err.println(" -----------------------------");
+}
+catch(FileNotFoundException e){
+}
 
 //force "look and feel" to Java style
 try {
