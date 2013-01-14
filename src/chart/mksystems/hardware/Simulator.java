@@ -108,14 +108,18 @@ outStream = new PipedOutputStream();
 //create an input stream (localInStream) attached to outStream to read the
 //data sent by the external object
 try{localInStream = new PipedInputStream(outStream, PIPE_SIZE);}
-catch(IOException e){}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 112");
+}
 
 //this end goes to the external object
 inStream = new PipedInputStream(PIPE_SIZE);
 //create an output stream (localOutStream) attached to inStream to read the
 //data sent by the external object
 try{localOutStream = new PipedOutputStream(inStream);}
-catch(IOException e){}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 121");
+}
 
 inBuffer = new byte[IN_BUFFER_SIZE]; //used by various functions
 outBuffer = new byte[OUT_BUFFER_SIZE]; //used by various functions
@@ -161,7 +165,9 @@ try{
         if (inBuffer[0] == (byte)0xaa) {reSynced = true; break;}
         }
     }
-catch(IOException e){}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 169");
+}
 
 }//end of Simulator::reSync
 //-----------------------------------------------------------------------------
@@ -202,7 +208,7 @@ if (byteOut != null)
         byteOut.flush();
         }
     catch (IOException e) {
-        System.out.println(e.getMessage());
+        System.err.println(getClass().getName() + " - Error: 211");
         }
 
 }//end of Simulator::sendByte
@@ -226,7 +232,7 @@ if (byteOut != null)
         byteOut.flush();
         }
     catch (IOException e) {
-        System.out.println(e.getMessage());
+        System.err.println(getClass().getName() + " - Error: 235");
         }
 
 }//end of Simulator::sendBytes2
@@ -250,7 +256,7 @@ if (byteOut != null)
         byteOut.flush();
         }
     catch (IOException e) {
-        System.out.println(e.getMessage());
+        System.err.println(getClass().getName() + " - Error: 259");
         }
 
 }//end of Simulator::sendBytes3
@@ -275,7 +281,7 @@ if (byteOut != null)
         byteOut.flush();
         }
     catch (IOException e) {
-        System.out.println(e.getMessage());
+        System.err.println(getClass().getName() + " - Error: 284");
         }
 
 }//end of Simulator::sendBytes4
@@ -338,7 +344,7 @@ if (byteOut != null)
         byteOut.flush();
         }
     catch (IOException e) {
-        System.out.println(e.getMessage());
+        System.err.println(getClass().getName() + " - Error: 347");
         }
 
 }//end of Simulator::sendDataBlock
@@ -420,7 +426,9 @@ public int getByteFromSocket()
 {
 
 try{byteIn.read(inBuffer, 0, 1);}
-catch(IOException e){}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 430");
+}
 
 return (int)(inBuffer[0] & 0xff);
 
@@ -438,7 +446,9 @@ public int getIntFromSocket()
 {
 
 try{byteIn.read(inBuffer, 0, 2);}
-catch(IOException e){}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 450");
+}
 
 return (int)((inBuffer[0]<<8) & 0xff00) + (inBuffer[1] & 0xff);
 

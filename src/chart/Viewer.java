@@ -108,7 +108,9 @@ try {
     UIManager.setLookAndFeel(
         UIManager.getCrossPlatformLookAndFeelClassName());
     }
-catch (Exception e) {}
+catch (Exception e) {
+    System.err.println(getClass().getName() + " - Error: 112");
+}
 
 mainFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 

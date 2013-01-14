@@ -49,7 +49,7 @@ IniFile configFile;
 //-----------------------------------------------------------------------------
 // UDPSimulator::UDPSimulator (constructor)
 //
-  
+
 public UDPSimulator(int pPort, String pAnnouncement) throws SocketException
 {
 
@@ -66,7 +66,7 @@ announcement = pAnnouncement;
 // UDPSimulator::send
 //
 //
-  
+
 @Override
 public void send(DatagramPacket p)
 {
@@ -78,7 +78,7 @@ public void send(DatagramPacket p)
 // UDPSimulator::receive
 //
 //
-  
+
 @Override
 public void receive(DatagramPacket p)
 {
@@ -92,7 +92,9 @@ p.setData(announcement.getBytes());
 String ip = "169.254.1." + (++responseCount);
 
 try{p.setAddress(InetAddress.getByName(ip));}
-catch(UnknownHostException e){}
+catch(UnknownHostException e){
+    System.err.println(getClass().getName() + " - Error: 96");
+}
 
 }//end of UDPSimulator::receive
 //-----------------------------------------------------------------------------

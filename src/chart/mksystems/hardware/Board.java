@@ -139,7 +139,9 @@ if (byteOut != null)
         byteOut.write(outBuffer, 0 /*offset*/, 2);
         byteOut.flush();
         }
-    catch (IOException e) {}
+catch (IOException e){
+    System.err.println(getClass().getName() + " - Error: 143");
+}
 
 }//end of Board::sendByte
 //-----------------------------------------------------------------------------
@@ -166,8 +168,10 @@ if (byteOut != null)
     try{
         byteOut.write(outBuffer, 0 /*offset*/, 3);
         byteOut.flush();
-        }
-    catch (IOException e) {}
+    }
+    catch (IOException e){
+        System.err.println(getClass().getName() + " - Error: 173");
+    }
 
 }//end of Board::sendBytes2
 //-----------------------------------------------------------------------------
@@ -197,7 +201,9 @@ if (byteOut != null)
         byteOut.write(outBuffer, 0 /*offset*/, 4);
         byteOut.flush();
         }
-    catch (IOException e) {}
+    catch (IOException e){
+        System.err.println(getClass().getName() + " - Error: 205");
+    }
 
 }//end of Board::sendBytes3
 //-----------------------------------------------------------------------------
@@ -228,7 +234,9 @@ if (byteOut != null)
         byteOut.write(outBuffer, 0 /*offset*/, 5);
         byteOut.flush();
         }
-    catch (IOException e) {}
+    catch (IOException e){
+        System.err.println(getClass().getName() + " - Error: 238");
+    }
 
 }//end of Board::sendBytes4
 //-----------------------------------------------------------------------------
@@ -261,7 +269,9 @@ if (byteOut != null)
         byteOut.write(outBuffer, 0 /*offset*/, 6);
         byteOut.flush();
         }
-    catch (IOException e) {}
+    catch (IOException e){
+        System.err.println(getClass().getName() + " - Error: 273");
+    }
 
 }//end of Board::sendBytes5
 //-----------------------------------------------------------------------------
@@ -295,7 +305,9 @@ if (byteOut != null)
         byteOut.write(outBuffer, 0 /*offset*/, 7);
         byteOut.flush();
         }
-    catch (IOException e) {}
+    catch (IOException e){
+        System.err.println(getClass().getName() + " - Error: 309");
+    }
 
 }//end of Board::sendBytes6
 //-----------------------------------------------------------------------------
@@ -330,7 +342,9 @@ if (byteOut != null)
         byteOut.write(outBuffer, 0 /*offset*/, 8);
         byteOut.flush();
         }
-    catch (IOException e) {}
+    catch (IOException e){
+        System.err.println(getClass().getName() + " - Error: 346");
+    }
 
 }//end of Board::sendBytes7
 //-----------------------------------------------------------------------------
@@ -365,7 +379,9 @@ if (byteOut != null)
         byteOut.write(outBuffer, 0 /*offset*/, 9);
         byteOut.flush();
         }
-    catch (IOException e) {}
+    catch (IOException e){
+        System.err.println(getClass().getName() + " - Error: 383");
+    }
 
 }//end of Board::sendBytes8
 //-----------------------------------------------------------------------------
@@ -402,7 +418,9 @@ if (byteOut != null)
         byteOut.write(outBuffer, 0 /*offset*/, 10);
         byteOut.flush();
         }
-    catch (IOException e) {}
+    catch (IOException e) {
+        System.err.println(getClass().getName() + " - Error: 422");
+    }
 
 }//end of Board::sendBytes9
 //-----------------------------------------------------------------------------
@@ -439,7 +457,9 @@ if (byteOut != null)
         byteOut.write(outBuffer, 0 /*offset*/, 11);
         byteOut.flush();
         }
-    catch (IOException e) {}
+    catch (IOException e){
+        System.err.println(getClass().getName() + " - Error: 461");
+    }
 
 }//end of Board::sendBytes10
 //-----------------------------------------------------------------------------
@@ -478,7 +498,9 @@ if (byteOut != null)
         byteOut.write(outBuffer, 0 /*offset*/, 12);
         byteOut.flush();
         }
-    catch (IOException e) {}
+    catch (IOException e){
+        System.err.println(getClass().getName() + " - Error: 502");
+    }
 
 }//end of Board::sendBytes11
 //-----------------------------------------------------------------------------
@@ -521,7 +543,9 @@ if (byteOut != null)
         byteOut.write(outBuffer, 0 /*offset*/, 16);
         byteOut.flush();
         }
-    catch (IOException e) {}
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 547");
+    }
 
 }//end of Board::sendBytes15
 //-----------------------------------------------------------------------------
@@ -541,7 +565,9 @@ outBuffer[2] = (byte)0xbb; outBuffer[3] = (byte)0x66;
 //send packet to remote
 if (byteOut != null)
     try{byteOut.write(outBuffer, 0 /*offset*/, 4);}
-    catch (IOException e) {}
+    catch (IOException e){
+        System.err.println(getClass().getName() + " - Error: 569");
+    }
 
 }//end of Board::sendHeader
 //-----------------------------------------------------------------------------
@@ -565,7 +591,9 @@ try{
         }
     if (byteIn.available() >= 2) return byteIn.read(inBuffer, 0, 2);
     }// try
-catch(IOException e){}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 595");
+}
 
 return 0;
 
@@ -636,7 +664,9 @@ try{
             }// if
         }// while...
     }// try
-catch(IOException e){}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 668");
+}
 
 return inBuf[0];
 
@@ -914,6 +944,7 @@ try {
 
     }//try
 catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 947");
     logger.logMessage(
             pBoardType + " " + ipAddrS + " error loading firmware!" + "\n");
 }

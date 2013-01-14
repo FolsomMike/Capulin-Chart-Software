@@ -235,6 +235,7 @@ try {
 
     }//try
     catch (IOException e) {
+        System.err.println(getClass().getName() + " - Error: 238");
         logger.logMessage("Couldn't get I/O for " + ipAddrS + "\n");
         return;
         }
@@ -243,7 +244,9 @@ try {
     //display the greeting message sent by the remote
     logger.logMessage(ipAddrS + " says " + in.readLine() + "\n");
     }
-catch(IOException e){}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 248");
+}
 
 //flag that board setup has been completed - whether it failed or not
 setupComplete = true;
@@ -388,7 +391,9 @@ try{
         return   byteIn.read(monitorBuffer, 0, MONITOR_PACKET_SIZE);
 
     }// try
-catch(IOException e){}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 395");
+}
 
 return 0;
 
@@ -509,7 +514,9 @@ try{
     return(cnt);
 
     }// try
-catch(IOException e){}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 518");
+}
 
 return(0);
 
@@ -661,7 +668,10 @@ if (byteIn != null)
 
         }
     catch(EOFException eof){log.append("End of stream.\n"); return false;}
-    catch(IOException e){return false;}
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 672");
+        return false;
+    }
 
 return true;
 
@@ -785,7 +795,9 @@ try{
     if ( pktID == GET_MONITOR_PACKET_CMD) return processMonitorPacket();
 
     }
-catch(IOException e){}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 799");
+}
 
 return 0;
 
@@ -831,7 +843,9 @@ try{
         if (inBuffer[0] == (byte)0xaa) {reSynced = true; break;}
         }
     }
-catch(IOException e){}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 847");
+}
 
 }//end of ControlBoard::reSync
 //-----------------------------------------------------------------------------
@@ -991,7 +1005,9 @@ try{
     if (socket != null) socket.close();
 
     }
-catch(IOException e){}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 1009");
+}
 
 }//end of ControlBoard::shutDown
 //-----------------------------------------------------------------------------

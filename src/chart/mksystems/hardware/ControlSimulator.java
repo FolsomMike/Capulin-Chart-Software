@@ -217,7 +217,9 @@ try{
     return 0;
 
     }//try
-catch(IOException e){}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 221");
+}
 
 return 0;
 
@@ -294,6 +296,7 @@ int readBlockAndVerify(int pNumberOfBytes, byte pPktID)
         bytesRead = byteIn.read(inBuffer, 0, pNumberOfBytes);
     }
     catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 299");
         return(-1);
     }
 
@@ -351,7 +354,9 @@ int bytesRead = 0;
 try{
     bytesRead = byteIn.read(inBuffer, 0, 2);
     }
-catch(IOException e){}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 358");
+}
 
 if (bytesRead == 2){
 
@@ -406,7 +411,9 @@ int bytesRead = 0;
 try{
     bytesRead = byteIn.read(inBuffer, 0, 2);
     }
-catch(IOException e){}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 415");
+}
 
 if (bytesRead == 2){
 
@@ -536,8 +543,7 @@ void simulateInspection()
             byteOut.write(outBuffer, 0 /*offset*/, pktSize);
         }
         catch (IOException e) {
-            System.out.println(
-                         "Control Board simulateInspection: " + e.getMessage());
+            System.err.println(getClass().getName() + " - Error: 546");
         }
 
 }//end of ControlSimulator::simulateInspection
@@ -564,7 +570,7 @@ if (byteOut != null)
         byteOut.write(outBuffer, 0 /*offset*/, 5);
         }
     catch (IOException e) {
-        System.out.println("Control Board sendPacketHeader" + e.getMessage());
+        System.err.println(getClass().getName() + " - Error: 573");
         }
 
 }//end of ControlSimulator::sendPacketHeader
@@ -613,6 +619,7 @@ IniFile configFile;
 //if the ini file cannot be opened and loaded, exit without action
 try {configFile = new IniFile("Simulation.ini", mainFileFormat);}
     catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 622");
     return;
     }
 

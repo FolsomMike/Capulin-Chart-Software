@@ -201,8 +201,9 @@ public void connectControlBoard()
 
     }
     catch (IOException e) {
-            logger.logMessage("Couldn't create Control broadcast socket.\n");
-            return;
+        System.err.println(getClass().getName() + " - Error: 204");
+        logger.logMessage("Couldn't create Control broadcast socket.\n");
+        return;
     }
 
     int loopCount = 0;
@@ -219,19 +220,32 @@ public void connectControlBoard()
     try{
         group = InetAddress.getByName("230.0.0.1");
     }
-    catch (UnknownHostException e) {socket.close(); return;}
+    catch (UnknownHostException e){
+        System.err.println(getClass().getName() + " - Error: 224");
+        socket.close();
+        return;
+    }
 
     outPacket = new DatagramPacket(outBuf, outBuf.length, group, 4446);
 
     //force socket.receive to return if no packet available within 1 millisec
-    try{socket.setSoTimeout(1000);} catch(SocketException e){}
+    try{
+        socket.setSoTimeout(1000);
+    }
+    catch(SocketException e){
+        System.err.println(getClass().getName() + " - Error: 236");
+    }
 
     //broadcast the roll call greeting several times - bail out when expected
     //number of different Control boards have responded
     while(loopCount++ < 10 && responseCount < numberOfControlBoards){
 
         try {socket.send(outPacket);}
-        catch(IOException e) {socket.close(); return;}
+        catch(IOException e) {
+            System.err.println(getClass().getName() + " - Error: 245");
+            socket.close();
+            return;
+        }
 
         waitSleep(3000); //sleep to delay between broadcasts
 
@@ -264,7 +278,10 @@ public void connectControlBoard()
 
             }//while(true)
         }//try
-        catch(IOException e){} //this reached if receive times out
+        catch(IOException e){
+            //this reached if receive times out
+            System.err.println(getClass().getName() + " - Error: 283");
+        }
     }// while(loopCount...
 
     socket.close();
@@ -331,6 +348,7 @@ public synchronized void connectUTBoards()
             socket = new UDPSimulator(4445, "UT board present, FPGA loaded...");
     }
     catch (IOException e) {
+        System.err.println(getClass().getName() + " - Error: 351");
         logger.logMessage("Couldn't create UT broadcast socket.\n");
         return;
     }
@@ -351,19 +369,32 @@ public synchronized void connectUTBoards()
     try{
         group = InetAddress.getByName("230.0.0.1");
     }
-    catch (UnknownHostException e) {socket.close(); return;}
+    catch (UnknownHostException e) {
+        System.err.println(getClass().getName() + " - Error: 373");
+        socket.close();
+        return;
+    }
 
     outPacket = new DatagramPacket(outBuf, outBuf.length, group, 4446);
 
     //force socket.receive to return if no packet available quickly
-    try{socket.setSoTimeout(6000);} catch(SocketException e){}
+    try{
+        socket.setSoTimeout(6000);
+    }
+    catch(SocketException e){
+        System.err.println(getClass().getName() + " - Error: 385");
+    }
 
     //broadcast the roll call greeting repeatedly - bail out when the expected
     //number of different UT boards have responded
     while(loopCount++ < 20 && responseCount < numberOfUTBoards){
 
         try {socket.send(outPacket);}
-        catch(IOException e) {socket.close(); return;}
+        catch(IOException e) {
+            System.err.println(getClass().getName() + " - Error: 394");
+            socket.close();
+            return;
+        }
 
         waitSleep(3000); //sleep to delay between broadcasts
 
@@ -416,7 +447,10 @@ public synchronized void connectUTBoards()
 
             }//while(true)
         }//try
-        catch(IOException e){} //this reached if receive times out
+        catch(IOException e){
+            //this reached if receive times out
+            System.err.println(getClass().getName() + " - Error: 452");
+        }
     }// while(loopCount...
 
     //if not all boards reported that their FPGAs were already loaded, load them
@@ -1712,7 +1746,10 @@ public void loadFPGAViaUDP(DatagramSocket pSocket)
     try{
         group = InetAddress.getByName("230.0.0.1");
     }
-    catch (UnknownHostException e) {return;}
+    catch (UnknownHostException e) {
+        System.err.println(getClass().getName() + " - Error: 1750");
+        return;
+    }
 
     inPacket = new DatagramPacket(inBuffer, inBuffer.length);
     outPacket = new DatagramPacket(outBuffer, outBuffer.length, group, 4446);
@@ -1775,7 +1812,9 @@ public void loadFPGAViaUDP(DatagramSocket pSocket)
         }//while(dataRequested != -1)
 
     }//try
-    catch(IOException e){}
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 1816");
+    }
     finally {
 
     }//finally
@@ -1949,7 +1988,12 @@ void sendByteUDP(DatagramSocket pSocket, DatagramPacket pOutPacket, byte pByte)
 
     pOutPacket.setLength(1); //send one byte
 
-    try {pSocket.send(pOutPacket);} catch(IOException e){}
+    try {
+        pSocket.send(pOutPacket);
+    }
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 1995");
+    }
 
 }//end of Capulin1::sendByteUDP
 //-----------------------------------------------------------------------------

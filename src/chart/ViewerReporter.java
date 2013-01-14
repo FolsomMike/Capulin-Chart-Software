@@ -171,12 +171,12 @@ public synchronized void waitForPrintTrigger() throws InterruptedException {
     while (!startPrint) {
         try {
             wait();
-            }
+        }
         catch (InterruptedException e) {
             throw new InterruptedException();
-            }
+        }
 
-        }//while (!printTrigger)
+    }//while (!printTrigger)
 
 }//end of PrintRunnable::waitForPrintTrigger
 //-----------------------------------------------------------------------------
@@ -218,11 +218,11 @@ public synchronized void pauseThread() throws InterruptedException {
     while (pauseThreadFlag) {
         try {
             wait();
-            }
+        }
         catch (InterruptedException e) {
             throw new InterruptedException();
-            }
-        }//while (pausePrintThread)
+        }
+    }//while (pausePrintThread)
 
 }//end of PrintRunnable::pauseThread
 //-----------------------------------------------------------------------------
@@ -708,7 +708,10 @@ public void loadCalFile()
         calFile = new IniFile(jobPrimaryPath + "00 - "
             + currentJobName + " Calibration File.ini", settings.jobFileFormat);
         }
-        catch(IOException e){return;}
+        catch(IOException e){
+            System.err.println(getClass().getName() + " - Error: 712");
+            return;
+        }
 
     //since the Viewer does not create a Hardware object, load in any values
     //which are needed for viewing which would normally be loaded by the
@@ -808,7 +811,10 @@ public void configure()
         configFile = new IniFile(jobPrimaryPath + "01 - " + currentJobName
                                 + " Configuration.ini", settings.jobFileFormat);
         }
-        catch(IOException e){return;}
+        catch(IOException e){
+            System.err.println(getClass().getName() + " - Error: 815");
+            return;
+        }
 
     numberOfChartGroups =
          configFile.readInt("Main Configuration", "Number of Chart Groups", 1);

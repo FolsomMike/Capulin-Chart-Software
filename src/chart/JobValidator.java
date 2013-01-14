@@ -210,10 +210,11 @@ try{
 
     }
 catch(IOException e){
-    }
+    System.err.println(getClass().getName() + " - Error: 213");
+}
 finally{
     if (logFile != null) logFile.close();
-    }
+}
 
 }//end of JobValidator::JobValidator (constructor)
 //-----------------------------------------------------------------------------
@@ -540,14 +541,20 @@ try {
     while ((c = in.read()) != -1) {out.write(c); }
 
     }
-catch(IOException e){return (false);}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 545");
+    return (false);
+}
 finally {
     try{
         if (in != null) in.close();
         if (out != null) out.close();
         }
-    catch(IOException e){return(false);}
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 554");
+        return(false);
     }
+}
 
 return(true);
 

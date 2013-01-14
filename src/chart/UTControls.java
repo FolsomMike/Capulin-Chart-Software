@@ -1494,6 +1494,7 @@ public void itemStateChanged(ItemEvent e)
         name = ((Component)e.getSource()).getName();
     }
     catch (ClassCastException ce){
+        //this is an expected exception -- do not print warning to err file
         name = "";
     }
 
@@ -1646,9 +1647,7 @@ public void stateChanged(ChangeEvent e)
             }
         }
     catch (ClassCastException ce){
-        //if the action component cannot be cast as specified, do nothing
-        System.err.println(
-                        "Component type which called stateChanged is unknown.");
+        //this is an expected exception -- do not print warning to err file
         }
 
     //all other components which fire stateChanged events call to copy their

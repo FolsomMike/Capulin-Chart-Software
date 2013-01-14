@@ -123,6 +123,7 @@ try{
     }//try
 
 catch (InterruptedException e) {
+    System.err.println(getClass().getName() + " - Error: 126");
     }
 
 }//end of MainThread::run
@@ -203,6 +204,7 @@ try{
     System.err.println(" -----------------------------");
 }
 catch(FileNotFoundException e){
+    //no error message saved as the error file open failed
 }
 
 //force "look and feel" to Java style
@@ -210,7 +212,9 @@ try {
     UIManager.setLookAndFeel(
         UIManager.getCrossPlatformLookAndFeelClassName());
     }
-catch (Exception e) {}
+catch (Exception e) {
+    System.err.println(getClass().getName() + " - Error: 216");
+}
 
 //create various decimal formats
 decimalFormats = new DecimalFormat[1];
@@ -315,8 +319,12 @@ IniFile configFile = null;
 
 //if the ini file cannot be opened and loaded, exit without action
 try {configFile = new IniFile("Main Static Settings.ini",
-                                                    Settings.mainFileFormat);}
-    catch(IOException e){return;}
+                                                    Settings.mainFileFormat);
+}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 325");
+    return;
+}
 
 //set the data folders to empty if values cannot be read from the ini file
 //all functions which write data should abort if the folder names are empty
@@ -366,10 +374,10 @@ IniFile configFile = null;
 //if the ini file cannot be opened and loaded, exit without action
 try {configFile = new IniFile("Main Static Settings.ini",
                                                        Settings.mainFileFormat);}
-    catch(IOException e){
-        System.err.println("Error opening: " + "Main Static Settings.ini");
-        return;
-        }
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 378");
+    return;
+}
 
 configFile.writeString("Main Configuration", "Primary Data Path",
                                                       settings.primaryDataPath);
@@ -396,8 +404,12 @@ IniFile configFile = null;
 
 //if the ini file cannot be opened and loaded, exit without action
 try {configFile = new IniFile(
-                       "Configuration - General.ini", Settings.mainFileFormat);}
-    catch(IOException e){return;}
+                       "Configuration - General.ini", Settings.mainFileFormat);
+}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 410");
+    return;
+}
 
 settings.primaryFolderName = configFile.readString(
                         "Main Configuration", "Primary Data Folder Name",
@@ -449,8 +461,12 @@ private void loadMainSettings()
 IniFile configFile = null;
 
 //if the ini file cannot be opened and loaded, exit without action
-try {configFile = new IniFile("Main Settings.ini", Settings.mainFileFormat);}
-    catch(IOException e){return;}
+try {configFile = new IniFile("Main Settings.ini", Settings.mainFileFormat);
+}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 467");
+    return;
+}
 
 settings.currentJobName = configFile.readString(
                          "Main Configuration", "Current Work Order", "");
@@ -509,7 +525,7 @@ IniFile configFile = null;
 //if the ini file cannot be opened and loaded, exit without action
 try {configFile = new IniFile("Main Settings.ini", Settings.mainFileFormat);}
 catch(IOException e){
-    System.err.println("Error opening: " + "Main Settings.ini");
+    System.err.println(getClass().getName() + " - Error: 528");
     return;
     }
 
@@ -550,8 +566,11 @@ IniFile configFile = null;
 //if the ini file cannot be opened and loaded, exit without action
 try {
     configFile = new IniFile(configFilename, settings.jobFileFormat);
-    }
-catch(IOException e){return;}
+}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 571");
+    return;
+}
 
 //create an object to hold job info
 jobInfo = new JobInfo(mainFrame, settings.currentJobPrimaryPath,
@@ -681,8 +700,11 @@ try {
     calFile = new IniFile(settings.currentJobPrimaryPath + "00 - "
                         + settings.currentJobName + " Calibration File.ini",
                                                        settings.jobFileFormat);
-    }
-    catch(IOException e){return;}
+}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 705");
+    return;
+}
 
 //if true, traces will restart at left edge of chart for each new piece
 //if false, new piece will be added to end of traces while chart scrolls
@@ -941,7 +963,9 @@ try{
     for (int i = 0; i < settings.numberOfChartGroups; i++)
         settings.chartGroups[i].saveSegment(out);
     }
-catch(IOException e){}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 967");
+}
 finally{
     try{if (out != null) out.close();}
     catch(IOException e){}
@@ -1011,7 +1035,9 @@ try{
     pieceIDInfo.saveDataToStream(out);
 
     }
-catch(IOException e){}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 1039");
+}
 finally{
     try{if (out != null) out.close();}
     catch(IOException e){}
@@ -2108,7 +2134,10 @@ IniFile ini = null;
 //if the ini file cannot be opened and loaded, exit without action
 try {ini = new IniFile(
         "language\\Main Window - Capulin UT.language", Settings.mainFileFormat);}
-catch(IOException e){return;}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 2138");
+    return;
+}
 
 }//end of MainWindow::loadLanguage
 //-----------------------------------------------------------------------------

@@ -262,13 +262,19 @@ try {
         out.write(c); }
 
     }
-catch(IOException e){return (false);}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 266");
+    return (false);
+}
 finally {
     try{
         if (in != null) in.close();
         if (out != null) out.close();
         }
-    catch(IOException e){return(false);}
+    catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 275");
+        return(false);
+    }
     }
 
 return(true);

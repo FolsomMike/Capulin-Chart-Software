@@ -186,7 +186,10 @@ try {
     calFile = new IniFile(pJobPath + "00 - " + settings.currentJobName +
                             " Calibration File.ini", settings.jobFileFormat);
     }
-    catch(IOException e){return;}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 190");
+    return;
+}
 
 //if true, traces will restart at left edge of chart for each new piece
 //if false, new piece will be added to end of traces while chart scrolls
@@ -270,7 +273,9 @@ try{
     out.flush();
 
     }
-catch(IOException e){}
+catch(IOException e){
+System.err.println(getClass().getName() + " - Error: 277");
+}
 finally{
 
     try{if (out != null) out.close();}

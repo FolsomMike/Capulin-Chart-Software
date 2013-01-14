@@ -590,7 +590,10 @@ IniFile ini = null;
 //if the ini file cannot be opened and loaded, exit without action
 try {ini = new IniFile("language\\Main Menu - Capulin UT.language",
                                                       settings.jobFileFormat);}
-catch(IOException e){return;}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 594");
+    return;
+}
 
 
 //set the titles for the tab panels

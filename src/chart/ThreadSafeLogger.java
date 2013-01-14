@@ -42,8 +42,8 @@ import java.io.*;
 //
 
 public class ThreadSafeLogger {
-    
-JTextArea log;    
+
+JTextArea log;
 
 String filenameSuffix;
 
@@ -60,13 +60,13 @@ static int NUMBER_THREADSAFE_MESSAGES = 100;
 
 public ThreadSafeLogger(JTextArea pLog)
 {
-    
-log = pLog;   
+
+log = pLog;
 
 messages = new String[NUMBER_THREADSAFE_MESSAGES];
 
 }//end of ThreadSafeLogger::ThreadSafeLogger (constructor)
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // ThreadSafeLogger::logMessage
@@ -74,7 +74,7 @@ messages = new String[NUMBER_THREADSAFE_MESSAGES];
 // This function allows a thread to add a log entry to the log window.  The
 // actual call is passed to the invokeLater function so it will be safely
 // executed by the main Java thread.
-// 
+//
 // Messages are stored in a circular buffer so that the calling thead does
 // not overwrite the previous message before the main thread can process it.
 //
@@ -83,16 +83,16 @@ public void logMessage(String pMessage)
 {
 
 //store the message in a buffer where the helper can find it
-        
+
 messages[messagePtr++] = pMessage;
 if (messagePtr == NUMBER_THREADSAFE_MESSAGES) messagePtr = 0;
 
 //schedule a job for the event-dispatching thread to add the message to the log
-    
+
 javax.swing.SwingUtilities.invokeLater(
         new Runnable() {
             @Override
-            public void run() { logMessageThreadSafe(); } }); 
+            public void run() { logMessageThreadSafe(); } });
 
 }//end of ThreadSafeLogger::logMessage
 //-----------------------------------------------------------------------------
@@ -103,7 +103,7 @@ javax.swing.SwingUtilities.invokeLater(
 // This function is passed to invokeLater by threadSafeLog so that it will be
 // run by the main Java thread and display the stored message on the log
 // window.
-// 
+//
 //
 
 public void logMessageThreadSafe()
@@ -127,7 +127,7 @@ if (mainThreadMessagePtr == NUMBER_THREADSAFE_MESSAGES)
 // ThreadSafeLogger::separate
 //
 // Write a separator (such as a line of dashes) to the file.
-//    
+//
 
 public void separate()
 {
@@ -142,7 +142,7 @@ public void separate()
 // ThreadSafeLogger::date
 //
 // Write the date to the file.
-//    
+//
 
 public void date()
 {
@@ -156,11 +156,11 @@ public void date()
 // ThreadSafeLogger::section
 //
 // Writes a blank line, a separator, the date, a blank line.
-//    
+//
 
 public void section()
 {
-    
+
     logMessage("\n");
     separate();
     date();
@@ -185,15 +185,15 @@ public void saveToFile(String pFilenameSuffix)
 {
 
 //store the suffix in a buffer where the helper can find it
-    
-filenameSuffix = pFilenameSuffix;    
-    
+
+filenameSuffix = pFilenameSuffix;
+
 //Schedule a job for the event-dispatching thread to do actual saving
-    
+
 javax.swing.SwingUtilities.invokeLater(
         new Runnable() {
             @Override
-            public void run() { saveToFileThreadSafe(); } }); 
+            public void run() { saveToFileThreadSafe(); } });
 
 }//end of ThreadSafeLogger::saveToFile
 //-----------------------------------------------------------------------------
@@ -214,30 +214,24 @@ public void saveToFileThreadSafe()
 {
 
     String lineSeparator = System.getProperty("line.separator");
-    
-    String filename = 
+
+    String filename =
         "Log Files" + File.separator + new Date().toString().replace(":", ".")
          + " ~ " + filenameSuffix + ".txt";
-         
+
     PrintWriter file = null;
-        
+
     try{
         file = new PrintWriter(new FileWriter(filename, true));
-        
+
         file.println(log.getText().replace("\n", lineSeparator));
-        
+
         if (file != null) file.close();
-        
+
     }
     catch(IOException e){
-        
-        //if the log file cannot be opened, just display an error message
-        //no messages will be written to the file -- this is not a super
-        //critical error and should happen rarely
-        
-        displayErrorMessage("Could not open log file: " + filename);
+        System.err.println(getClass().getName() + " - Error: 233");
         if (file != null) file.close();
-        
     }
 
 }//end of ThreadSafeLogger::saveToFileThreadSafe

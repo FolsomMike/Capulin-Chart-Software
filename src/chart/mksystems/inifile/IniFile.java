@@ -271,8 +271,8 @@ return(pColor.getRed() + "," + pColor.getGreen() + "," + pColor.getBlue());
 
 public class IniFile extends Object{
 
-String fileFormat;    
-    
+String fileFormat;
+
 private ArrayList<String> buffer;
 public String filename;
 private boolean modified;
@@ -286,8 +286,8 @@ DecimalFormat[] DecimalFormats;
 public IniFile(String pFilename, String pFileFormat) throws IOException
 {
 
-fileFormat = pFileFormat;    
-    
+fileFormat = pFileFormat;
+
 //create a vector to hold the lines of text read from the file
 buffer = new ArrayList<String>(1000);
 
@@ -342,7 +342,10 @@ catch (FileNotFoundException e){
     buffer.add("");
 
     }
-catch(IOException e){throw new IOException();}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 346");
+    throw new IOException();
+}
 finally{
     if (in != null) in.close();
     if (inputStreamReader != null) inputStreamReader.close();
@@ -387,7 +390,9 @@ try{
     out.flush();
 
     }
-catch(IOException e){}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 394");
+}
 finally{
 
     try{if (out != null) out.close();}
@@ -912,7 +917,7 @@ writeValue(pSection, pKey, newEntry);
 
 static public boolean detectUTF16LEFormat(String pFilename)
 {
-    
+
 FileInputStream fileInputStream = null;
 InputStreamReader inputStreamReader = null;
 BufferedReader in = null;
@@ -926,29 +931,29 @@ try{
     in = new BufferedReader(inputStreamReader);
 
     int i = 0;
- 
+
     String line;
-    
+
     //read until header line found, max lines read, or end of file reached
 
     while ((line = in.readLine()) != null){
-        
+
         //return true if the header line used in UTF-16LE files is found
         if (line.startsWith(";Do not erase")) return(true);
         //return false if header line not found near beginning
         if (i++ >= 5) return(false);
-                                
+
     }//while...
-    
+
     //return false if header line not found before EOF reached
     return(false);
-    
+
 }//try
 catch (FileNotFoundException e){
     return(false);
 }//catch
-//catch(IOException e){throw new IOException();}
 catch(IOException e){
+    System.err.println(IniFile.class.getName() + " - Error: 956");
     return(false);
 }//catch
 finally{

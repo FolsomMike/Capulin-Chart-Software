@@ -84,7 +84,7 @@ public void validateLicense()
 {
 
     getMACAddress(); //debug mks -- just displays for testing
-    
+
     File license = new File(licenseFilename);
 
     //if the license file does not exist then, request renewal code
@@ -211,6 +211,7 @@ try{
 
     }
 catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 214");
     return(false); //invalid file if error reading
     }
 finally{
@@ -264,12 +265,14 @@ try{
     if (pBogus) bogusModifier = 249872349;
 
     //save the renewal date followed by the same value encoded
-    
+
     out.write("" + renewalDate); out.newLine();
     out.write("" + encodeDecode(renewalDate + bogusModifier)); out.newLine();
 
     }
-catch(IOException e){}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 274");
+}
 finally{
 
     try{if (out != null) out.close();}
@@ -499,28 +502,28 @@ JOptionPane.showMessageDialog(mainFrame, pMessage,
 //
 // Retrieves the MAC address for the computer.
 //
- 
+
 public void getMACAddress() {
-    
+
     try {
-        
+
         //get the IP address of the local host
         //(What if there are two network cards?)
         //(What if network connection switches between the two?)
         //(What if network is not connected?
-        
+
         //(getHardwareAddress call seems to fail if network is not connected.)
-        
+
         InetAddress address = InetAddress.getLocalHost();
         //InetAddress address = InetAddress.getByName("192.168.46.53");
 
         NetworkInterface ni = NetworkInterface.getByInetAddress(address);
-        
+
         if (ni != null) {
-            
+
             //get the MAC address -- returned in an array
             byte[] mac = ni.getHardwareAddress();
-            
+
             if (mac != null) {
 
                  // extract each piece of mac address and convert it
@@ -540,9 +543,9 @@ public void getMACAddress() {
                     "address is not found.");
         }
     } catch (UnknownHostException e) {
-        System.out.println(e.getMessage());
+        System.err.println(e.getMessage());
     } catch (SocketException e) {
-        System.out.println(e.getMessage());
+        System.err.println(e.getMessage());
     }
 
 }//end of LicenseValidator::getMACAddress

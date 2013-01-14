@@ -176,7 +176,10 @@ private void configure(String pConfigFilename)
 
     //if the ini file cannot be opened and loaded, exit without action
     try {configFile = new IniFile(pConfigFilename, fileFormat);}
-        catch(IOException e){return;}
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 180");
+        return;
+    }
 
     //scan through the array checking to see if an item exists in the
     //configuration file for each index positon
@@ -332,7 +335,10 @@ public void loadData()
 
     //if the ini file cannot be opened and loaded, exit without action
     try {jobInfoFile = new IniFile(jobInfoFilename, fileFormat);}
-        catch(IOException e){return;}
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 339");
+        return;
+    }
 
     String section = "Job Info";
 
@@ -366,7 +372,10 @@ public void saveData(String pDataPath)
 
     //if the ini file cannot be opened and loaded, exit without action
     try {jobInfoFile = new IniFile(jobInfoFilename, fileFormat);}
-        catch(IOException e){return;}
+        catch(IOException e){
+            System.err.println(getClass().getName() + " - Error: 376");
+            return;
+        }
 
     String section = "Job Info";
 

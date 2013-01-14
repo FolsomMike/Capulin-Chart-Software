@@ -501,7 +501,10 @@ try {
     settingsFile = new IniFile(currentJobPrimaryPath + "02 - "
                  + jobName + " Piece Number File.ini", settings.jobFileFormat);
     }
-    catch(IOException e){return;}
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 505");
+        return;
+    }
 
 nextPieceNumber = settingsFile.readInt(
                                 "General", "Next Inspection Piece Number", 1);
@@ -573,7 +576,10 @@ try {
     settingsFile = new IniFile(pJobPath + "02 - "
                      + pJobName + " Piece Number File.ini", pFileFormat);
     }
-    catch(IOException e){return;}
+catch(IOException e){
+    System.err.println(ControlPanel.class.getName() + " - Error: 580");
+    return;
+    }
 
 settingsFile.writeInt(
                    "General", "Next Inspection Piece Number", pNextPieceNumber);

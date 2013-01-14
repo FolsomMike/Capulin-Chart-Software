@@ -36,11 +36,11 @@ public class LogFile extends Object {
 
 PrintWriter file = null;
 String filename;
-    
+
 //-----------------------------------------------------------------------------
 // LogFile::LogFile (constructor)
 //
-//    
+//
 
 public LogFile()
 {
@@ -52,27 +52,21 @@ public LogFile()
 // LogFile::init
 //
 // Creates or opens for appending the file pFilename.
-//    
+//
 
 public void init(String pFilename)
 {
 
     filename = pFilename;
-    
+
     try{
         file = new PrintWriter(new FileWriter(pFilename, true));
     }
     catch(IOException e){
-        
-        //if the log file cannot be opened, just display an error message
-        //no messages will be written to the file -- this is not a super
-        //critical error and should happen rarely
-        
-        displayErrorMessage("Could not open log file: " + pFilename);
+        System.err.println(getClass().getName() + " - Error: 66");
         if (file != null) file.close();
-        
     }
-    
+
 }//end of LogFile::init
 //-----------------------------------------------------------------------------
 
@@ -80,7 +74,7 @@ public void init(String pFilename)
 // LogFile::close
 //
 // Closes the file.
-//    
+//
 
 public void close()
 {
@@ -94,7 +88,7 @@ public void close()
 // LogFile::log
 //
 // Writes pLine to the file.
-//    
+//
 
 public void log(String pLine)
 {
@@ -108,7 +102,7 @@ public void log(String pLine)
 // LogFile::separate
 //
 // Write a separator (such as a line of dashes) to the file.
-//    
+//
 
 public void separate()
 {
@@ -123,7 +117,7 @@ public void separate()
 // LogFile::date
 //
 // Write the date to the file.
-//    
+//
 
 public void date()
 {
@@ -137,11 +131,11 @@ public void date()
 // LogFile::section
 //
 // Writes a blank line, a separator, the date, a blank line.
-//    
+//
 
 public void section()
 {
-    
+
     if (file != null){
         file.println("");
         separate(); date();

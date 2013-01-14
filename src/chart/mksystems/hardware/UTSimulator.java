@@ -426,7 +426,9 @@ try{
     return 0;
 
     }//try
-catch(IOException e){}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 430");
+}
 
 return 0;
 
@@ -446,7 +448,9 @@ try{
     while(byteIn.available() < 3){}
     byteIn.read(inBuffer, 0, 3);
     }// try
-catch(IOException e){}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 452");
+}
 
 int dspChip = inBuffer[0];
 int dspCore = inBuffer[1];
@@ -477,7 +481,9 @@ try{
     while(byteIn.available() < 12){}
     byteIn.read(inBuffer, 0, 12);
     }// try
-catch(IOException e){}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 485");
+}
 
 }//end of UTBoard::tossDSPMessageRemainder
 //-----------------------------------------------------------------------------
@@ -495,7 +501,9 @@ try{
     while(byteIn.available() < 12){}
     byteIn.read(inBuffer, 0, 12);
     }// try
-catch(IOException e){}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 505");
+}
 
 //send standard packet header
 sendPacketHeader(UTBoard.MESSAGE_DSP_CMD, (byte)0, (byte)0);
@@ -519,7 +527,9 @@ void setDSPGain()
 {
 
 try{byteIn.read(inBuffer, 0, 3);}
-catch(IOException e){}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 531");
+}
 
 boardChannels[inBuffer[0]].dspGain = inBuffer[1];
 
@@ -536,7 +546,9 @@ void writeFPGA()
 {
 
 try{byteIn.read(inBuffer, 0, 2);}
-catch(IOException e){}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 550");
+}
 
 //set delay count and sample count registers if applicable
 
@@ -558,7 +570,9 @@ void readFPGA()
 {
 
 try{byteIn.read(inBuffer, 0, 1);}
-catch(IOException e){}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 574");
+}
 
 if (inBuffer[0] == UTBoard.CHASSIS_SLOT_ADDRESS) getChassisSlotAddress();
 
@@ -596,7 +610,9 @@ void getDSPRamBlockChecksum()
 {
 
 try{byteIn.read(inBuffer, 0, 8);}
-catch(IOException e){}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 614");
+}
 
 int checksum = 0;
 int x = 0;
@@ -684,7 +700,9 @@ void writeDSP()
 {
 
 try{byteIn.read(inBuffer, 0, 8);}
-catch(IOException e){}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 704");
+}
 
 int x = 0;
 byte chip = inBuffer[x++];
@@ -754,7 +772,9 @@ void writeNextDSP()
 {
 
 try{byteIn.read(inBuffer, 0, 4);}
-catch(IOException e){}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 776");
+}
 
 }//end of UTSimulator::writeNextDSP
 //-----------------------------------------------------------------------------
@@ -769,7 +789,9 @@ void readDSP()
 {
 
 try{byteIn.read(inBuffer, 0, 6);}
-catch(IOException e){}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 793");
+}
 
 //send standard packet header
 sendPacketHeader(UTBoard.READ_DSP_CMD, (byte)0, (byte)0);
@@ -805,7 +827,7 @@ if (byteOut != null)
         byteOut.write(outBuffer, 0 /*offset*/, 7);
         }
     catch (IOException e) {
-        System.out.println(e.getMessage());
+        System.err.println(getClass().getName() + " - Error: 830");
         }
 
 }//end of UTSimulator::sendPacketHeader
@@ -1211,6 +1233,7 @@ IniFile configFile;
 //if the ini file cannot be opened and loaded, exit without action
 try {configFile = new IniFile("Simulation.ini", mainFileFormat);}
     catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 1236");
     return;
     }
 

@@ -130,7 +130,10 @@ String section, text;
 
 //if the ini file cannot be opened and loaded, exit without action
 try {configFile = new IniFile(pConfigFilename, fileFormat);}
-    catch(IOException e){return;}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 134");
+    return;
+}
 
 //scan through the array checking to see if an item exists in the configuration
 //file for each index positon
@@ -445,7 +448,10 @@ IniFile jobInfoFile;
 
 //if the ini file cannot be opened and loaded, exit without action
 try {jobInfoFile = new IniFile(pFilename, fileFormat);}
-    catch(IOException e){return;}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 452");
+    return;
+}
 
 String section = "Identifying Information";
 
@@ -494,7 +500,10 @@ IniFile jobInfoFile;
 
 //if the ini file cannot be opened and loaded, exit without action
 try {jobInfoFile = new IniFile(pFilename, fileFormat);}
-    catch(IOException e){return;}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 504");
+    return;
+}
 
 String section = "Identifying Information";
 

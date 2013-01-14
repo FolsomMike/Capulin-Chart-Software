@@ -52,7 +52,7 @@ import chart.mksystems.inifile.IniFile;
 public class UTF16LEToUTF8Converter extends FileConverter{
 
 static int NUMBER_OF_FILE_PATH_EXTENSION_COMBINATIONS = 3;
-    
+
 //-----------------------------------------------------------------------------
 // UTF16LEToUTF8Converter::UTF16LEToUTF8Converter (constructor)
 //
@@ -95,19 +95,19 @@ public void init()
 
     pathList = new String[NUMBER_OF_FILE_PATH_EXTENSION_COMBINATIONS];
     extList = new String[NUMBER_OF_FILE_PATH_EXTENSION_COMBINATIONS];
-    
+
     //add each path/extension combination to the lists
     //a path is listed repeatedly if multiple extensions targeted in that path
     //an extension is listed repeatedly if it is found in multiple paths
-    
+
     //convert ini files in program root folder
     pathList[0] = "."; extList[0] = "ini";
     pathList[1] = "presets"; extList[1] = "preset";
     pathList[2] = "configurations"; extList[2] = "config";
-    
+
     //call the parent class to perform the conversion
     super.init();
-    
+
 }//end of UTF16LEToUTF8Converter::init
 //-----------------------------------------------------------------------------
 
@@ -126,17 +126,17 @@ public void init()
 @Override
 protected boolean convertFile(String pOldFile, String pTempFile)
 {
-    
+
     boolean convertGood = true;
-    
+
     File oldFile = new File(pOldFile), tempFile = new File(pTempFile);
-    
+
     //if the file is not a UTF-16LE file saved by this program, skip it
     //this is not an error, so return true
     if(!IniFile.detectUTF16LEFormat(pOldFile)) return(convertGood);
-    
+
     boolean addFormatTypeEntry = false;
-    
+
     //for config files, add a line specifying the new format of UTF-8 when
     //the proper section is reached
     if (pOldFile.contains("configurations") && pOldFile.endsWith("config"))
@@ -149,9 +149,9 @@ protected boolean convertFile(String pOldFile, String pTempFile)
     FileOutputStream fileOutputStream = null;
     OutputStreamWriter outputStreamWriter = null;
     BufferedWriter out = null;
-        
+
     boolean firstNonBlankLineReached = false;
-    
+
     try{
 
         //open the old UTF-16LE format file for reading
@@ -168,21 +168,21 @@ protected boolean convertFile(String pOldFile, String pTempFile)
         String line;
 
         //read lines from the old UTF-16LE file until end reached
-        
+
         while ((line = in.readLine()) != null){
-            
+
             //set flag when first non-blank line reached (the first blank line
             //actually contains a code byte left over from the UTF-16LE format
             //so look for a line with length > 1)
             if(line.length() > 1) firstNonBlankLineReached = true;
-            
+
             //toss all blank lines and the explanation lines at the beginning
             //the old UTF-16LE files had an explanation header -- not needed now
-        
-            if (!firstNonBlankLineReached) continue;        
+
+            if (!firstNonBlankLineReached) continue;
             if (line.startsWith(";Do not erase")) continue;
-            if (line.startsWith(";To make a new")) continue;        
-                    
+            if (line.startsWith(";To make a new")) continue;
+
             //write each line to the new UTF-8 file
             out.write(line); out.newLine();
 
@@ -191,44 +191,46 @@ protected boolean convertFile(String pOldFile, String pTempFile)
                 out.write("Job File Format=UTF-8");
                 out.newLine();
             }
-                        
-            
+
+
         }//while...
-        
+
     }//try
     catch (FileNotFoundException e){
+        System.err.println(getClass().getName() + " - Error: 200");
         logFile.log("Conversion fail - old or new file not found.");
         convertGood = false;
     }//catch...
     catch(IOException e){
-        logFile.log("Conversion fail - IO error for old or new file.");        
+        System.err.println(getClass().getName() + " - Error: 205");
+        logFile.log("Conversion fail - IO error for old or new file.");
         convertGood = false;
     }//catch...
     finally{
-        
+
         try{if (in != null) in.close();}
             catch(IOException e){convertGood = false;}
         try{if (inputStreamReader != null) inputStreamReader.close();}
             catch(IOException e){convertGood = false;}
         try{if (fileInputStream != null) fileInputStream.close();}
             catch(IOException e){convertGood = false;}
-        
+
         try{if (out != null) out.close();}
             catch(IOException e){convertGood = false;}
         try{if (outputStreamWriter != null) outputStreamWriter.close();}
             catch(IOException e){convertGood = false;}
         try{if (fileOutputStream != null) fileOutputStream.close();}
-            catch(IOException e){convertGood = false;}        
-    
+            catch(IOException e){convertGood = false;}
+
         if(convertGood)
             logFile.log("File converted: " + oldFile);
         else
             logFile.log("Error during conversion: " + oldFile);
-        
+
         return(convertGood);
-        
+
     }//finally
-        
+
 }//end of UTF16LEToUTF8Converter::convertFile
 //-----------------------------------------------------------------------------
 
@@ -242,7 +244,7 @@ protected boolean convertFile(String pOldFile, String pTempFile)
 // the new file is in format UTF-8 without the header info.
 //
 // The files are compared line for line, ignoring header lines in the old file.
-// The old file must have the header lines and the new file cannot have extra 
+// The old file must have the header lines and the new file cannot have extra
 // lines.
 //
 // If the two contain identical information and there are no errors, the
@@ -262,34 +264,34 @@ protected boolean compareFile(String pOldFile, String pTempFile)
 
     //if the old file is not present, then exit without error -- the temp
     //file may be orphaned so return without error so it will be renamed
-    
+
     if (!oldFile.exists()){
         logFile.log("Compare ignored -- there is no old file: " + oldFile);
-        return(compareGood);        
+        return(compareGood);
     }
-        
+
     //if a new temp file is not present, then exit without error -- the temp
     //file was probably already renamed for this set on a previous conversion
     //attempt
-    
+
     if (!tempFile.exists()){
         logFile.log("Compare ignored -- there is no temp file: " + tempFile);
-        return(compareGood);        
+        return(compareGood);
     }
-    
-    
+
+
     //make sure old file is a normal file
     if (!oldFile.isFile()){
         logFile.log("Compare fail - old file is not a normal file.");
         compareGood = false; return(compareGood);
     }
-    
+
     //make sure temp file is a normal file
     if (!tempFile.isFile()){
         logFile.log("Compare fail - temp file is not a normal file.");
         compareGood = false; return(compareGood);
     }
-  
+
     //if the old file is not of the old style format, fail compare
     if(!IniFile.detectUTF16LEFormat(pOldFile)){
         logFile.log("Compare fail - old file is not in UTF-16LE format.");
@@ -297,12 +299,12 @@ protected boolean compareFile(String pOldFile, String pTempFile)
     }
 
     boolean ignoreFormatTypeEntry = false;
-    
+
     //for config files, add a line specifying the new format of UTF-8 when
     //the proper section is reached
     if (pOldFile.contains("configurations") && pOldFile.endsWith("config"))
         ignoreFormatTypeEntry = true;
-        
+
     FileInputStream oldInputStream = null;
     InputStreamReader oldInputStreamReader = null;
     BufferedReader oldIn = null;
@@ -310,9 +312,9 @@ protected boolean compareFile(String pOldFile, String pTempFile)
     FileInputStream newInputStream = null;
     InputStreamReader newInputStreamReader = null;
     BufferedReader newIn = null;
-        
+
     boolean firstNonBlankLineReached = false;
- 
+
     try{
 
         //open the old UTF-16LE format file for reading
@@ -328,44 +330,44 @@ protected boolean compareFile(String pOldFile, String pTempFile)
         String oldLine, newLine;
 
         //read lines from the old UTF-16LE file until end reached
-        
+
         while ((oldLine = oldIn.readLine()) != null){
-            
+
             //set flag when first non-blank line reached (the first blank line
             //actually contains a code byte left over from the UTF-16LE format
             //so look for a line with length > 1)
             if(oldLine.length() > 1) firstNonBlankLineReached = true;
-            
+
             //toss all blank lines and the explanation lines at the beginning
             //the old UTF-16LE files had an explanation header -- these will
             //not be present in the new UTF-8 file
-        
-            if (!firstNonBlankLineReached) continue;        
+
+            if (!firstNonBlankLineReached) continue;
             if (oldLine.startsWith(";Do not erase")) continue;
-            if (oldLine.startsWith(";To make a new")) continue;        
-        
+            if (oldLine.startsWith(";To make a new")) continue;
+
             //read line from the new version to compare
             newLine = newIn.readLine();
 
             //for applicable files, ignore the format entry which was added
             //to the new file by the convertFile method
-            if (ignoreFormatTypeEntry && 
+            if (ignoreFormatTypeEntry &&
                             newLine.startsWith("Job File Format=UTF-8")){
                 newLine = newIn.readLine();
             }
-                        
+
             //if end of new file reached too soon, fail compare
             if (newLine == null){
                 logFile.log("Compare fail - temp file is shorter.");
                 compareGood = false; return(compareGood);
             }
-            
+
             //if lines don't match, then exit with error
             if (!oldLine.equals(newLine)){
                 logFile.log("Compare fail - lines don't match.");
                 compareGood = false; return(compareGood);
             }
-            
+
         }//while...
 
         //try to read one more line from new file -- this should fail unless
@@ -377,44 +379,46 @@ protected boolean compareFile(String pOldFile, String pTempFile)
             logFile.log("Compare fail - temp file is longer.");
             compareGood = false;
         }
-        
+
     }//try
     catch (FileNotFoundException e){
+        System.err.println(getClass().getName() + " - Error: 385");
         logFile.log("Compare fail - old or temp file not found.");
         compareGood = false;
     }//catch...
     catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 390");
         logFile.log("Compare fail - IO error for old or temp file.");
         compareGood = false;
     }//catch...
     finally{
-        
+
         try{if (newIn != null) newIn.close();}
             catch(IOException e){compareGood = false;}
         try{if (newInputStreamReader != null) newInputStreamReader.close();}
             catch(IOException e){compareGood = false;}
         try{if (newInputStream != null) newInputStream.close();}
             catch(IOException e){compareGood = false;}
-        
+
         try{if (oldIn != null) oldIn.close();}
             catch(IOException e){compareGood = false;}
         try{if (oldInputStreamReader != null) oldInputStreamReader.close();}
             catch(IOException e){compareGood = false;}
         try{if (oldInputStream != null) oldInputStream.close();}
             catch(IOException e){compareGood = false;}
-    
+
         //if there was any error closing either file, fail the compare to be
         //on the safe side
-        
+
         if(compareGood)
             logFile.log("Files are identical: " + oldFile);
         else
             logFile.log("Compare fail: " + oldFile);
-        
+
         return(compareGood);
-        
+
     }//finally
-        
+
 }//end of UTF16LEToUTF8Converter::compareFile
 //-----------------------------------------------------------------------------
 

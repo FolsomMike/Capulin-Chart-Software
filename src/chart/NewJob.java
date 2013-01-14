@@ -457,14 +457,20 @@ boolean copyFile(String pSource, String pDest)
         while ((c = in.read()) != -1) {out.write(c); }
 
         }
-    catch(IOException e){return (false);}
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 461");
+        return (false);
+    }
     finally {
         try{
             if (in != null) in.close();
             if (out != null) out.close();
             }
-        catch(IOException e){return(false);}
+        catch(IOException e){
+            System.err.println(getClass().getName() + " - Error: 470");
+            return(false);
         }
+    }
 
     return(true);
 
