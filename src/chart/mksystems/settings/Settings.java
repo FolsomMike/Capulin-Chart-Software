@@ -789,19 +789,123 @@ public static String truncate(String pSource, int pLength)
 // The data in the file is summed, the resulting value is scrambled and then
 // saved at the end of the file in ASCII hexadecimal format.
 //
+// The hash code is prepended with the phrase "Time Stamp :" to futher hide
+// its purpose.
+//
 
 public static void appendSecurityHash(String pFilename)
+{
+
+    //calculate the security hash code for the file
+    String hash = calculateSecurityHash(pFilename);
+
+    //bail out if error during hash calculation
+    if(hash.length() <= 0) return;
+
+    //append the hash code to the file
+
+    PrintWriter file = null;
+
+    try{
+        file = new PrintWriter(new FileWriter(pFilename, true));
+
+        file.println("");
+        file.print("Time Stamp: "); file.println(hash);
+    }
+    catch(IOException e){
+        System.err.println(Settings.class.getName() + " - Error: 816");
+    }
+    finally{
+        if (file != null) file.close();
+    }
+
+}//end of Settings::appendSecurityHash
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Settings::calculateSecurityHash
+//
+// The data in the file pFilename is summed, the resulting value is scrambled.
+// The value is returned as a string.
+// On error, returns an empty string.
+//
+
+public static String calculateSecurityHash(String pFilename)
 {
 
     long sum = calculateSumOfFileData(pFilename);
 
     //bail out if there was an error calculating the sum
-    if (sum < 0) return;
+    if (sum < 0) return("");
 
-    //wip mks -- need to add the hashcode to the file here
+    //get an encrypted string from the number
+    String hash = encrypt(sum);
 
+    return(hash);
 
-}//end of Settings::appendSecurityHash
+}//end of Settings::calculateSecurityHash
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Settings::encrypt
+//
+
+static String encrypt(long pSum)
+{
+
+    //add in a weird value as part of encryption
+    pSum = Math.abs(pSum + 0x95274978);
+
+    //convert to a hex string for further manipulation
+    String hash = Long.toString(pSum, 16);
+
+    String flipped = "";
+
+    //next code flips nibbles in weird ways and makes a longer string
+
+    for (int x=0; x<hash.length()-1; x++){
+
+        char a = hash.charAt(x);
+        char b = hash.charAt(x+1);
+
+        //add pair to new string in reverse order
+        flipped = flipped + b;
+        flipped = flipped + a;
+
+    }
+
+    //if the original string was one or zero characters, flipped will be
+    //empty -- return a default value in that case
+
+    flipped = "b6ca4c549529f4";
+
+    //prepend 7 random hex digits
+    for (int i=0; i<7; i++){
+
+        int seed = (int)(Math.random() * 16);
+        seed += 48; //shift to ASCII code for zero
+        //if value is above the numerical characters, shift up to the lower
+        //case alphabet
+        if (seed > 57) seed += 39;
+        flipped = (char)seed + flipped;
+
+    }
+
+    //append 9 random hex digits
+    for (int i=0; i<9; i++){
+
+        int seed = (int)(Math.random() * 16);
+        seed += 48; //shift to ASCII code for zero
+        //if value is above the numerical characters, shift up to the lower
+        //case alphabet
+        if (seed > 57) seed += 39;
+        flipped = flipped + (char)seed;
+
+    }
+
+    return(flipped);
+
+}//end of Settings::encrypt
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -838,7 +942,10 @@ public static long calculateSumOfFileData(String pFilename)
 
         }
     }
-    catch(IOException e){sum = -1;}
+    catch(IOException e){
+        System.err.println(Settings.class.getName() + " - Error: 947");
+        sum = -1;
+    }
     finally{
         try{if (in != null) in.close();}
         catch(IOException e){}
@@ -864,7 +971,10 @@ IniFile ini = null;
 //if the ini file cannot be opened and loaded, exit without action
 try {ini = new IniFile("language\\Globals - Capulin UT.language",
                                                             mainFileFormat);}
-catch(IOException e){return;}
+catch(IOException e){
+    System.err.println(getClass().getName() + " - Error: 975");
+    return;
+}
 
 }//end of Settings::loadLanguage
 //-----------------------------------------------------------------------------
