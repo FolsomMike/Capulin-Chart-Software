@@ -34,8 +34,8 @@ import javax.swing.JOptionPane;
 
 public class LogFile extends Object {
 
-PrintWriter file = null;
-String filename;
+    PrintWriter file = null;
+    String filename;
 
 //-----------------------------------------------------------------------------
 // LogFile::LogFile (constructor)

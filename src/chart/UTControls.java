@@ -334,13 +334,13 @@ public void setChannel(StripChart pChart, Channel pChannel)
         timeDistDecimalPlaces = "##0.0"; //one decimal place for time values
         timeDistIncrement = .1;
         timeDistMax = 112.8;
-        }
+    }
     else {
         timeDistMult = hardware.hdwVs.velocityShearUS;
         timeDistDecimalPlaces = "#0.000"; //three decimal places for distances
         timeDistIncrement = .01;
         timeDistMax = 15.0;
-        }
+    }
 
     //The grid for the gates and the grid for the threshold cannot use set sizes
     //because both need to grow depending on the number of gates or thresholds.
@@ -1183,9 +1183,9 @@ void setupProcessTab()
             thresholdPanel.add(sp);
             //save a pointer to this adjuster in the gate object
             gate.thresholdAdjuster = sp.spinner;
-            }
+        }
         else{thresholdPanel.add(new JLabel(""));}
-        }// for (int i=0; i < gridYCount; i++){
+    }// for (int i=0; i < gridYCount; i++){
 
     processTab.add(thresholdPanel);
 
@@ -1523,6 +1523,7 @@ public void itemStateChanged(ItemEvent e)
             //the delete single gets enabled if a gate is selected
             deleteAllDACGates.setEnabled(true);
         }
+
         //set the scope's variable to match
         ((OscopeCanvas)oscopeCanvas).setDACLocked(dacLocked.isSelected());
         return;
@@ -1644,11 +1645,11 @@ public void stateChanged(ChangeEvent e)
                 && sp.getName().startsWith("Threshold Spinner")){
             updateChartSettings();
             return;
-            }
         }
+    }
     catch (ClassCastException ce){
         //this is an expected exception -- do not print warning to err file
-        }
+    }
 
     //all other components which fire stateChanged events call to copy their
     //values to the appropriate variables
@@ -1761,7 +1762,8 @@ public void updateAllSettings(boolean pForceUpdate)
         if (((JCheckBox)gate.aScanTriggerCheckBox) != null)
             ch.setAScanTrigger(i,
              ((JCheckBox)gate.aScanTriggerCheckBox).isSelected(), pForceUpdate);
-        }
+
+    }//for (int i=0; i < numberOfGates; i++)
 
     ch.setDelay(delaySpin.spinner.getDoubleValue() / timeDistMult, pForceUpdate);
 
@@ -2106,7 +2108,7 @@ public void handleRightClickForDAC(MouseEvent e)
     //the interface crossing being the reference point
     if (ch.getInterfaceTracking()){
         x -= ch.gates[0].interfaceCrossingPixAdjusted;
-        }
+    }
 
     //clear the selected flag for the currently selected gate
     //will do nothing if no gate is selected

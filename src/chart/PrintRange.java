@@ -32,85 +32,85 @@ import java.awt.event.ActionEvent;
 
 public class PrintRange extends JDialog implements ActionListener {
 
-public JTextField startPiece, endPiece;
+    public JTextField startPiece, endPiece;
 
-public boolean okToPrint = false;
+    public boolean okToPrint = false;
 
 //-----------------------------------------------------------------------------
 // PrintRange::PrintRange (constructor)
 //
-  
+
 public PrintRange(JFrame pFrame)
 {
 
-super(pFrame, true); //setup as modal window
-        
-setTitle("Print Range");
+    super(pFrame, true); //setup as modal window
+
+    setTitle("Print Range");
 
 }//end of PrintRange::PrintRange (constructor)
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // PrintRange::init
 //
-  
+
 public void init()
 {
 
-//create a panel to hold the labels and data entry boxes
+    //create a panel to hold the labels and data entry boxes
 
-JPanel panel;
-panel = new JPanel();
-panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
-panel.setOpaque(true);
-add(panel);
- 
-panel.add(Box.createRigidArea(new Dimension(0,5))); //horizontal spacer
+    JPanel panel;
+    panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
+    panel.setOpaque(true);
+    add(panel);
 
-JPanel panel2;
-panel2 = new JPanel();
-panel2.setLayout(new BoxLayout(panel2, BoxLayout.LINE_AXIS));
-panel2.setOpaque(true);
-panel.add(panel2);
+    panel.add(Box.createRigidArea(new Dimension(0,5))); //horizontal spacer
 
-startPiece = new JTextField(6);
-panel2.add(startPiece);
-panel2.add(Box.createRigidArea(new Dimension(3,0))); //horizontal spacer
-JLabel label = new JLabel("to");
-panel2.add(label);
-panel2.add(Box.createRigidArea(new Dimension(3,0))); //horizontal spacer
-endPiece = new JTextField(6);
-panel2.add(endPiece);
+    JPanel panel2;
+    panel2 = new JPanel();
+    panel2.setLayout(new BoxLayout(panel2, BoxLayout.LINE_AXIS));
+    panel2.setOpaque(true);
+    panel.add(panel2);
 
-panel.add(Box.createRigidArea(new Dimension(0,5))); //horizontal spacer
+    startPiece = new JTextField(6);
+    panel2.add(startPiece);
+    panel2.add(Box.createRigidArea(new Dimension(3,0))); //horizontal spacer
+    JLabel label = new JLabel("to");
+    panel2.add(label);
+    panel2.add(Box.createRigidArea(new Dimension(3,0))); //horizontal spacer
+    endPiece = new JTextField(6);
+    panel2.add(endPiece);
 
-JPanel panel3;
-panel3 = new JPanel();
-panel3.setLayout(new BoxLayout(panel3, BoxLayout.LINE_AXIS));
-panel3.setOpaque(true);
-panel.add(panel3);
-panel.add(panel3);
+    panel.add(Box.createRigidArea(new Dimension(0,5))); //horizontal spacer
 
-JButton print;
-panel3.add(print = new JButton("Print"));
-print.setToolTipText("Print the selected range of pieces.");
-print.setActionCommand("Print");
-print.addActionListener(this);
+    JPanel panel3;
+    panel3 = new JPanel();
+    panel3.setLayout(new BoxLayout(panel3, BoxLayout.LINE_AXIS));
+    panel3.setOpaque(true);
+    panel.add(panel3);
+    panel.add(panel3);
 
-panel3.add(Box.createRigidArea(new Dimension(10,0))); //horizontal spacer
+    JButton print;
+    panel3.add(print = new JButton("Print"));
+    print.setToolTipText("Print the selected range of pieces.");
+    print.setActionCommand("Print");
+    print.addActionListener(this);
 
-JButton cancel;
-panel3.add(cancel = new JButton("Cancel"));
-cancel.setToolTipText("Cancel");
-cancel.setActionCommand("Cancel");
-cancel.addActionListener(this);
+    panel3.add(Box.createRigidArea(new Dimension(10,0))); //horizontal spacer
 
-panel.add(Box.createRigidArea(new Dimension(0,5))); //horizontal spacer
+    JButton cancel;
+    panel3.add(cancel = new JButton("Cancel"));
+    cancel.setToolTipText("Cancel");
+    cancel.setActionCommand("Cancel");
+    cancel.addActionListener(this);
 
-pack();
+    panel.add(Box.createRigidArea(new Dimension(0,5))); //horizontal spacer
+
+    pack();
 
 }//end of PrintRange::init
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // PrintRange::actionPerformed
@@ -122,19 +122,19 @@ pack();
 public void actionPerformed(ActionEvent e)
 {
 
-if ("Print".equals(e.getActionCommand())) {
+    if ("Print".equals(e.getActionCommand())) {
 
-    okToPrint = true;
-    setVisible(false);
-    
-    }
+        okToPrint = true;
+        setVisible(false);
 
-if ("Cancel".equals(e.getActionCommand())) {
+        }
 
-    okToPrint = false;
-    setVisible(false);
-    
-    }
+    if ("Cancel".equals(e.getActionCommand())) {
+
+        okToPrint = false;
+        setVisible(false);
+
+        }
 
 }//end of PrintRange::actionPerformed
 //-----------------------------------------------------------------------------

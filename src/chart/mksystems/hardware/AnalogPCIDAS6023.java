@@ -37,17 +37,17 @@ import chart.Log;
 
 public class AnalogPCIDAS6023 extends Object implements HardwareLink{
 
-String boardName = "CBIncPCIBoard";
-IniFile configFile;
-int numberOfAnalogChannels;
+    String boardName = "CBIncPCIBoard";
+    IniFile configFile;
+    int numberOfAnalogChannels;
 
-boolean simulationMode = false;
-int[] simData;
-HardwareVars hdwVs;
+    boolean simulationMode = false;
+    int[] simData;
+    HardwareVars hdwVs;
 
-public int dataPeak; //used for channels without min and max peaks
-public int dataMaxPeak;  //used for channels with min and max peaks
-public int dataMinPeak;  //used for channels with minand max peaks
+    public int dataPeak; //used for channels without min and max peaks
+    public int dataMaxPeak;  //used for channels with min and max peaks
+    public int dataMinPeak;  //used for channels with minand max peaks
 
 //-----------------------------------------------------------------------------
 // AnalogPCIDAS6023::AnalogPCIDAS6023 (constructor)
@@ -61,15 +61,15 @@ AnalogPCIDAS6023(IniFile pConfigFile, boolean pSimulationMode,
                               int pNumberOfAnalogChannels, HardwareVars pHdwVs)
 {
 
-configFile = pConfigFile; simulationMode = pSimulationMode;
-numberOfAnalogChannels = pNumberOfAnalogChannels;
-hdwVs = pHdwVs;
+    configFile = pConfigFile; simulationMode = pSimulationMode;
+    numberOfAnalogChannels = pNumberOfAnalogChannels;
+    hdwVs = pHdwVs;
 
-simData = new int[numberOfAnalogChannels];
-for(int i=0; i<simData.length; i++) simData[i] = -1;
+    simData = new int[numberOfAnalogChannels];
+    for(int i=0; i<simData.length; i++) simData[i] = -1;
 
-//load configuration settings
-configure(configFile);
+    //load configuration settings
+    configure(configFile);
 
 }//end of AnalogPCIDAS6023::AnalogPCIDAS6023 (constructor)
 //-----------------------------------------------------------------------------
@@ -367,8 +367,8 @@ public void linkTraces(int pChartGroup, int pChart, int pTrace, int[] pDBuffer,
    Trace pTracePtr)
 {
 
-Trace tracePtr; //wip mks - remove this - only need something to return
-tracePtr = pTracePtr; //wip mks - remove this - only needed for getTrace function
+    Trace tracePtr; //wip mks - remove this - only need something to return
+    tracePtr = pTracePtr; //wip mks - remove this - only needed for getTrace function
 
 }//end of AnalogPCIDAS6023::linkTraces
 //-----------------------------------------------------------------------------
@@ -398,7 +398,7 @@ private void configure(IniFile pConfigFile)
 public int getNumberOfChannels()
 {
 
-return 0;
+    return 0;
 
 }//end of AnalogPCIDAS6023::getNumberOfChannels
 //-----------------------------------------------------------------------------
@@ -413,8 +413,8 @@ return 0;
 public Channel[] getChannels()
 {
 
-Channel[] channels = null;
-return channels;
+    Channel[] channels = null;
+    return channels;
 
 }//end of AnalogPCIDAS6023::getChannels
 //-----------------------------------------------------------------------------
@@ -443,7 +443,7 @@ return null;
 public int getNumberOfGates(int pChannel)
 {
 
-return 0;
+    return 0;
 
 }//end of AnalogPCIDAS6023::getNumberOfGates
 //-----------------------------------------------------------------------------
@@ -459,7 +459,7 @@ return 0;
 public Trace getTrace(int pChannel, int pGate)
 {
 
-return null;
+    return null;
 
 }//end of AnalogPCIDAS6023::getTrace
 //-----------------------------------------------------------------------------
@@ -472,7 +472,7 @@ return null;
 public boolean getNewData(int ch, int g, HardwareVars hdwVs)
 {
 
-return true;
+    return true;
 
 }//end of AnalogPCIDAS6023::getNewData
 //-----------------------------------------------------------------------------
@@ -488,10 +488,10 @@ return true;
 public int getChannelData(int pChannel, int pSimDataType)
 {
 
-//if in simulation mode, return simulated data
-if(simulationMode) return(simulateChannelData(pChannel, pSimDataType));
+    //if in simulation mode, return simulated data
+    if(simulationMode) return(simulateChannelData(pChannel, pSimDataType));
 
-return(50);
+    return(50);
 
 }//end of AnalogPCIDAS6023::getChannelData
 //-----------------------------------------------------------------------------
@@ -505,84 +505,83 @@ return(50);
 public int simulateChannelData(int pChannel, int pSimDataType)
 {
 
-int clockPos;
+    int clockPos;
 
-//return a random signal with low noise baseline and intermittent spikes
+    //return a random signal with low noise baseline and intermittent spikes
 
-if (pSimDataType == 0){
+    if (pSimDataType == 0){
 
-    double random = Math.random() * 5;
+        double random = Math.random() * 5;
 
-    simData[pChannel] = 3 + (int)random; //baseline noise
+        simData[pChannel] = 3 + (int)random; //baseline noise
 
-    //add occasional spikes
-    if ( (int)(Math.random() * 80) == 1)
-        simData[pChannel] += (int)(Math.random() * 100);
+        //add occasional spikes
+        if ( (int)(Math.random() * 80) == 1)
+            simData[pChannel] += (int)(Math.random() * 100);
 
-    //set a random clock position for this data point
-    clockPos = (int)(Math.random() * 12) + 1; //1 to 12
+        //set a random clock position for this data point
+        clockPos = (int)(Math.random() * 12) + 1; //1 to 12
 
-    dataPeak = simData[pChannel];
+        dataPeak = simData[pChannel];
 
-    return(clockPos);
-
-    }
-
-//return a sawtooth signal
-
-if (pSimDataType == 1){
-
-    if (simData[pChannel] == 100) simData[pChannel] = -1;
-
-    //set a random clock position for this data point
-    clockPos = (int)(Math.random() * 12) + 1; //1 to 12
-
-    //add in an offset calculated from channel number so multiple traces are
-    //not overlayed on a chart
-    dataPeak = ++simData[pChannel] + pChannel * 5;
-
-    return(clockPos);
+        return(clockPos);
 
     }
 
-//return a gamma signal
+    //return a sawtooth signal
 
-if (pSimDataType == 2){
+    if (pSimDataType == 1){
 
-    //simulate the minimum peak value of the signal
+        if (simData[pChannel] == 100) simData[pChannel] = -1;
 
-    double random = Math.random() * 5;
+        //set a random clock position for this data point
+        clockPos = (int)(Math.random() * 12) + 1; //1 to 12
 
-    simData[pChannel] = 47 + (int)random; //baseline noise
+        //add in an offset calculated from channel number so multiple traces are
+        //not overlayed on a chart
+        dataPeak = ++simData[pChannel] + pChannel * 5;
 
-    //add occasional downward spikes
-    if ( (int)(Math.random() * 80) == 1)
-        simData[pChannel] -= (int)(Math.random() * 40);
-
-    dataMinPeak = simData[pChannel];
-
-    //simulate the maximum peak value of the signal
-
-    random = Math.random() * 5;
-
-    simData[pChannel] = 53 + (int)random; //baseline noise
-
-    //add occasional upward spikes
-    if ( (int)(Math.random() * 80) == 1)
-        simData[pChannel] += (int)(Math.random() * 40);
-
-    dataMaxPeak = simData[pChannel];
-
-    //set a random clock position for this data point
-    clockPos = (int)(Math.random() * 12) + 1; //1 to 12
-
-    return(clockPos);
+        return(clockPos);
 
     }
 
+    //return a gamma signal
 
-//if simulation data type not found, return default
-return(0);
+    if (pSimDataType == 2){
+
+        //simulate the minimum peak value of the signal
+
+        double random = Math.random() * 5;
+
+        simData[pChannel] = 47 + (int)random; //baseline noise
+
+        //add occasional downward spikes
+        if ( (int)(Math.random() * 80) == 1)
+            simData[pChannel] -= (int)(Math.random() * 40);
+
+        dataMinPeak = simData[pChannel];
+
+        //simulate the maximum peak value of the signal
+
+        random = Math.random() * 5;
+
+        simData[pChannel] = 53 + (int)random; //baseline noise
+
+        //add occasional upward spikes
+        if ( (int)(Math.random() * 80) == 1)
+            simData[pChannel] += (int)(Math.random() * 40);
+
+        dataMaxPeak = simData[pChannel];
+
+        //set a random clock position for this data point
+        clockPos = (int)(Math.random() * 12) + 1; //1 to 12
+
+        return(clockPos);
+
+    }
+
+    //if simulation data type not found, return default
+    return(0);
 
 }//end of AnalogPCIDAS6023::simulateChannelData
 //-----------------------------------------------------------------------------
@@ -670,7 +669,7 @@ public void fillRAM(int pChassis, int pSlot, int pDSPChip, int pDSPCore,
 public int getState(int pChassis, int pSlot, int pWhich)
 {
 
-return 0;
+    return 0;
 
 }//end of AnalogPCIDAS6023::getState
 //-----------------------------------------------------------------------------
@@ -720,7 +719,7 @@ public synchronized void sendDataChangesToRemotes()
 public void doTasks()
 {
 
-displayMessages();
+    displayMessages();
 
 }//end of AnalogPCIDAS6023:doTasks
 //-----------------------------------------------------------------------------
@@ -750,7 +749,7 @@ public void driveSimulation()
 public boolean getSimulate()
 {
 
-return (false);
+    return (false);
 
 }//end of AnalogPCIDAS6023::getSimulate
 //-----------------------------------------------------------------------------
@@ -820,7 +819,7 @@ public void setNewInspectPacketReady(boolean pValue){}
 public int xmtMessage(int pMessage, int pValue)
 {
 
-return(0);
+    return(0);
 
 }//end of AnalogPCIDAS6023::xmtMessage
 //-----------------------------------------------------------------------------

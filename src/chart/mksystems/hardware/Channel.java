@@ -177,7 +177,7 @@ public void initialize()
         if (gates[i].getInterfaceGate()) interfaceGatePresent = true;
         if (gates[i].isWallStartGate) wallStartGateSet = true;
         if (gates[i].isWallEndGate) wallEndGateSet = true;
-        }
+    }
 
     //if both wall start and end gates, set channel for wall data and
     //that data will be appended to peak data packets from the DSPs
@@ -186,7 +186,7 @@ public void initialize()
         isWallChannel = true;
         if (utBoard != null)
             utBoard.sendWallChannelFlag(boardChannel, isWallChannel);
-        }
+    }
 
     //force interface tracking to false if no interface gate was set up
     //if no interface gate is present, the interface tracking checkbox will not
@@ -396,7 +396,7 @@ public void insertDACGate(int pStart, int pLevel)
     if (getActiveDACGateCount() == 0){
         setDACGatePixelValues(0, pStart, pStart+35, pLevel, true, false);
         return;
-        }
+    }
 
     //if the new gate is located before the first gate, then insert at the
     //beginning
@@ -405,7 +405,7 @@ public void insertDACGate(int pStart, int pLevel)
         shiftDACGatesUp(0); //shift gates to make room
         setDACGatePixelValues(0, pStart, pEnd, pLevel, true, false);
         return;
-        }
+    }
 
     //if the new gate is located past the last gate, then insert at the end
     if (pStart > dacGates[lastGate].gatePixEnd){
@@ -413,7 +413,7 @@ public void insertDACGate(int pStart, int pLevel)
         setDACGatePixelValues(
                         lastGate+1, pStart, pStart+35, pLevel, true, false);
         return;
-        }
+    }
 
     //if the new gate's location is encompassed by an existing gate, shift
     //all later gates down and insert the new gate, adjusting the width of the
@@ -896,7 +896,7 @@ public void setAScanFastEnabled(boolean pEnable,
         else{
             flags1ClearMask.setValue((int)~UTBoard.ASCAN_FAST_ENABLED);
         }
-    }
+    }//if (pForceUpdate)
 
 }//end of Channel::setAScanFastEnabled
 //-----------------------------------------------------------------------------
@@ -950,10 +950,10 @@ public void setAScanSlowEnabled(boolean pEnable,
 
     aScanSlowEnabled = pEnable;
 
-        if (aScanSlowEnabled)
-            flags1SetMask.setValue((int)UTBoard.ASCAN_SLOW_ENABLED);
-        else
-            flags1ClearMask.setValue((int)~UTBoard.ASCAN_SLOW_ENABLED);
+    if (aScanSlowEnabled)
+        flags1SetMask.setValue((int)UTBoard.ASCAN_SLOW_ENABLED);
+    else
+        flags1ClearMask.setValue((int)~UTBoard.ASCAN_SLOW_ENABLED);
 
 }//end of Channel::setAScanSlowEnabled
 //-----------------------------------------------------------------------------
@@ -1097,7 +1097,7 @@ void calculateGateSpan()
             firstGateEdgePos = interfaceGateLead;
             lastGateEdgePos = interfaceGateTrail;
             return;
-            }
+        }
 
         //find the earliest gate, not including the interface gate
         //the interface gate always uses absolute positioning whereas the other
@@ -2620,8 +2620,8 @@ public void sendGateFlags()
             if (utBoard != null) utBoard.sendGateFlags(
                              boardChannel, i, gates[i].getFlags().applyValue());
 
-            }//if (gates[i].getFlags().getDataChanged() == true)
-        }// for (int i = 0; i < numberOfGates; i++)
+        }//if (gates[i].getFlags().getDataChanged() == true)
+    }// for (int i = 0; i < numberOfGates; i++)
 
 }//end of Channel::sendGateFlags
 //-----------------------------------------------------------------------------

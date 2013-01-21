@@ -33,8 +33,8 @@ import java.awt.Color;
 
 class Parameters{
 
-int keyIndex;
-int sectionIndex;
+    int keyIndex;
+    int sectionIndex;
 
 //-----------------------------------------------------------------------------
 // Parameters::Parameters (constructor)
@@ -43,7 +43,7 @@ int sectionIndex;
 public Parameters()
 {
 
-keyIndex = 0;
+    keyIndex = 0;
 
 }//end of Parameters::Parameters
 //-----------------------------------------------------------------------------
@@ -67,7 +67,7 @@ class MColor extends Color{
 MColor(int pR, int pG, int pB)
 {
 
-super(pR,pG,pB);
+    super(pR,pG,pB);
 
 }//end of MColor::MColor
 //-----------------------------------------------------------------------------
@@ -80,7 +80,7 @@ super(pR,pG,pB);
 MColor(Color pColor)
 {
 
-super(pColor.getRed(), pColor.getGreen(), pColor.getBlue());
+    super(pColor.getRed(), pColor.getGreen(), pColor.getBlue());
 
 }//end of MColor::MColor
 //-----------------------------------------------------------------------------
@@ -94,7 +94,7 @@ super(pColor.getRed(), pColor.getGreen(), pColor.getBlue());
 static public MColor fromString(String pString)
 {
 
-return MColor.fromString(pString, Color.WHITE);
+    return MColor.fromString(pString, Color.WHITE);
 
 }//end of MColor::fromString (static)
 //-----------------------------------------------------------------------------
@@ -114,80 +114,80 @@ return MColor.fromString(pString, Color.WHITE);
 static public MColor fromString(String pString, Color pDefault)
 {
 
-Color match = pDefault;
-boolean exit = false;
+    Color match = pDefault;
+    boolean exit = false;
 
-pString = pString.toUpperCase();
+    pString = pString.toUpperCase();
 
-//if the color name matches a standard color, use that color
+    //if the color name matches a standard color, use that color
 
-if (pString.equals("BLACK")) {match = Color.BLACK; exit = true;}
-else
-if (pString.equals("BLUE")) {match = Color.BLUE; exit = true;}
-else
-if (pString.equals("CYAN")) {match = Color.CYAN; exit = true;}
-else
-if (pString.equals("DARK_GRAY")){match = Color.DARK_GRAY;exit = true;}
-else
-if (pString.equals("GRAY")) {match = Color.GRAY; exit = true;}
-else
-if (pString.equals("GREEN")) {match = Color.GREEN; exit = true;}
-else
-if (pString.equals("LIGHT GRAY")){match = Color.LIGHT_GRAY;exit=true;}
-else
-if (pString.equals("MAGENTA")) {match = Color.MAGENTA; exit = true;}
-else
-if (pString.equals("ORANGE")) {match = Color.ORANGE; exit = true;}
-else
-if (pString.equals("PINK")) {match = Color.PINK; exit = true;}
-else
-if (pString.equals("RED")) {match = Color.RED; exit = true;}
-else
-if (pString.equals("WHITE")) {match = Color.WHITE; exit = true;}
-else
-if (pString.equals("YELLOW")) {match = Color.YELLOW; exit = true;}
+    if (pString.equals("BLACK")) {match = Color.BLACK; exit = true;}
+    else
+    if (pString.equals("BLUE")) {match = Color.BLUE; exit = true;}
+    else
+    if (pString.equals("CYAN")) {match = Color.CYAN; exit = true;}
+    else
+    if (pString.equals("DARK_GRAY")){match = Color.DARK_GRAY;exit = true;}
+    else
+    if (pString.equals("GRAY")) {match = Color.GRAY; exit = true;}
+    else
+    if (pString.equals("GREEN")) {match = Color.GREEN; exit = true;}
+    else
+    if (pString.equals("LIGHT GRAY")){match = Color.LIGHT_GRAY;exit=true;}
+    else
+    if (pString.equals("MAGENTA")) {match = Color.MAGENTA; exit = true;}
+    else
+    if (pString.equals("ORANGE")) {match = Color.ORANGE; exit = true;}
+    else
+    if (pString.equals("PINK")) {match = Color.PINK; exit = true;}
+    else
+    if (pString.equals("RED")) {match = Color.RED; exit = true;}
+    else
+    if (pString.equals("WHITE")) {match = Color.WHITE; exit = true;}
+    else
+    if (pString.equals("YELLOW")) {match = Color.YELLOW; exit = true;}
 
-//if color found, exit with that color
-if (exit) return(new MColor(match));
+    //if color found, exit with that color
+    if (exit) return(new MColor(match));
 
-//string does not name a standard color so assume it is rrr,ggg,bbb format
-//if a format error occurs, return the default color
+    //string does not name a standard color so assume it is rrr,ggg,bbb format
+    //if a format error occurs, return the default color
 
-String rgb; int lRed; int lGreen; int lBlue;
+    String rgb; int lRed; int lGreen; int lBlue;
 
-int comma, prevComma;
+    int comma, prevComma;
 
-try{
-    //extract red value and convert to integer
-    comma = pString.indexOf(',');
-    if (comma == -1) return(new MColor(pDefault));
-    rgb = pString.substring(0, comma).trim();
-    lRed = Integer.valueOf(rgb);
+    try{
+        //extract red value and convert to integer
+        comma = pString.indexOf(',');
+        if (comma == -1) return(new MColor(pDefault));
+        rgb = pString.substring(0, comma).trim();
+        lRed = Integer.valueOf(rgb);
 
-    //extract green value and convert to integer
-    prevComma = comma; comma = pString.indexOf(',', prevComma+1);
-    if (comma == -1) return(new MColor(pDefault));
-    rgb = pString.substring(prevComma+1, comma).trim();
-    lGreen = Integer.valueOf(rgb);
+        //extract green value and convert to integer
+        prevComma = comma; comma = pString.indexOf(',', prevComma+1);
+        if (comma == -1) return(new MColor(pDefault));
+        rgb = pString.substring(prevComma+1, comma).trim();
+        lGreen = Integer.valueOf(rgb);
 
-    //extract blue value and convert to integer
-    prevComma = comma;
-    rgb = pString.substring(prevComma+1).trim();
-    lBlue = Integer.valueOf(rgb);
+        //extract blue value and convert to integer
+        prevComma = comma;
+        rgb = pString.substring(prevComma+1).trim();
+        lBlue = Integer.valueOf(rgb);
 
     }
-catch(NumberFormatException e){
-    //format error so return default color
-    return(new MColor(pDefault));
+    catch(NumberFormatException e){
+        //format error so return default color
+        return(new MColor(pDefault));
     }
 
-//correct illegal values
-if (lRed < 0) lRed = 0; if (lRed > 255) lRed = 255;
-if (lGreen < 0) lGreen = 0; if (lGreen > 255) lGreen = 255;
-if (lBlue < 0) lBlue = 0; if (lBlue > 255) lBlue = 255;
+    //correct illegal values
+    if (lRed < 0) lRed = 0; if (lRed > 255) lRed = 255;
+    if (lGreen < 0) lGreen = 0; if (lGreen > 255) lGreen = 255;
+    if (lBlue < 0) lBlue = 0; if (lBlue > 255) lBlue = 255;
 
-//create a new MColor from the rgb values
-return(new MColor(lRed, lGreen, lBlue));
+    //create a new MColor from the rgb values
+    return(new MColor(lRed, lGreen, lBlue));
 
 }//end of MColor::fromString (static)
 //-----------------------------------------------------------------------------
@@ -205,7 +205,7 @@ return(new MColor(lRed, lGreen, lBlue));
 public String toString()
 {
 
-return (toString(this));
+    return (toString(this));
 
 }//end of MColor::toString
 //-----------------------------------------------------------------------------
@@ -222,24 +222,24 @@ return (toString(this));
 static public String toString(Color pColor)
 {
 
-//if the color matches a standard color, return that name
+    //if the color matches a standard color, return that name
 
-if (pColor.equals(Color.BLACK)) return("BLACK");
-if (pColor.equals(Color.BLUE)) return("BLUE");
-if (pColor.equals(Color.CYAN)) return("CYAN");
-if (pColor.equals(Color.DARK_GRAY)) return("DARK_GRAY");
-if (pColor.equals(Color.GRAY)) return("GRAY");
-if (pColor.equals(Color.GREEN)) return("GREEN");
-if (pColor.equals(Color.LIGHT_GRAY)) return("LIGHT_GRAY");
-if (pColor.equals(Color.MAGENTA)) return("MAGENTA");
-if (pColor.equals(Color.ORANGE)) return("ORANGE");
-if (pColor.equals(Color.PINK)) return("PINK");
-if (pColor.equals(Color.RED)) return("RED");
-if (pColor.equals(Color.WHITE)) return("WHITE");
-if (pColor.equals(Color.YELLOW)) return("YELLOW");
+    if (pColor.equals(Color.BLACK)) return("BLACK");
+    if (pColor.equals(Color.BLUE)) return("BLUE");
+    if (pColor.equals(Color.CYAN)) return("CYAN");
+    if (pColor.equals(Color.DARK_GRAY)) return("DARK_GRAY");
+    if (pColor.equals(Color.GRAY)) return("GRAY");
+    if (pColor.equals(Color.GREEN)) return("GREEN");
+    if (pColor.equals(Color.LIGHT_GRAY)) return("LIGHT_GRAY");
+    if (pColor.equals(Color.MAGENTA)) return("MAGENTA");
+    if (pColor.equals(Color.ORANGE)) return("ORANGE");
+    if (pColor.equals(Color.PINK)) return("PINK");
+    if (pColor.equals(Color.RED)) return("RED");
+    if (pColor.equals(Color.WHITE)) return("WHITE");
+    if (pColor.equals(Color.YELLOW)) return("YELLOW");
 
-//if not a standard color, return as rrr,ggg,bbb
-return(pColor.getRed() + "," + pColor.getGreen() + "," + pColor.getBlue());
+    //if not a standard color, return as rrr,ggg,bbb
+    return(pColor.getRed() + "," + pColor.getGreen() + "," + pColor.getBlue());
 
 }//end of MColor::toString
 //-----------------------------------------------------------------------------
@@ -271,13 +271,13 @@ return(pColor.getRed() + "," + pColor.getGreen() + "," + pColor.getBlue());
 
 public class IniFile extends Object{
 
-String fileFormat;
+    String fileFormat;
 
-private ArrayList<String> buffer;
-public String filename;
-private boolean modified;
+    private ArrayList<String> buffer;
+    public String filename;
+    private boolean modified;
 
-DecimalFormat[] DecimalFormats;
+    DecimalFormat[] DecimalFormats;
 
 //-----------------------------------------------------------------------------
 // IniFile::IniFile (constructor)
@@ -286,70 +286,70 @@ DecimalFormat[] DecimalFormats;
 public IniFile(String pFilename, String pFileFormat) throws IOException
 {
 
-fileFormat = pFileFormat;
+    fileFormat = pFileFormat;
 
-//create a vector to hold the lines of text read from the file
-buffer = new ArrayList<String>(1000);
+    //create a vector to hold the lines of text read from the file
+    buffer = new ArrayList<String>(1000);
 
-filename = pFilename;
-modified = false; //no data has yet been modified or added
+    filename = pFilename;
+    modified = false; //no data has yet been modified or added
 
-//create various decimal formats
-DecimalFormats = new DecimalFormat[11];
-DecimalFormats[0] = new  DecimalFormat("#");
-DecimalFormats[1] = new  DecimalFormat("#.#");
-DecimalFormats[2] = new  DecimalFormat("#.##");
-DecimalFormats[3] = new  DecimalFormat("#.###");
-DecimalFormats[4] = new  DecimalFormat("#.####");
-DecimalFormats[5] = new  DecimalFormat("#.#####");
-DecimalFormats[6] = new  DecimalFormat("#.######");
-DecimalFormats[7] = new  DecimalFormat("#.#######");
-DecimalFormats[8] = new  DecimalFormat("#.########");
-DecimalFormats[9] = new  DecimalFormat("#.#########");
-DecimalFormats[10] = new DecimalFormat("#.##########");
+    //create various decimal formats
+    DecimalFormats = new DecimalFormat[11];
+    DecimalFormats[0] = new  DecimalFormat("#");
+    DecimalFormats[1] = new  DecimalFormat("#.#");
+    DecimalFormats[2] = new  DecimalFormat("#.##");
+    DecimalFormats[3] = new  DecimalFormat("#.###");
+    DecimalFormats[4] = new  DecimalFormat("#.####");
+    DecimalFormats[5] = new  DecimalFormat("#.#####");
+    DecimalFormats[6] = new  DecimalFormat("#.######");
+    DecimalFormats[7] = new  DecimalFormat("#.#######");
+    DecimalFormats[8] = new  DecimalFormat("#.########");
+    DecimalFormats[9] = new  DecimalFormat("#.#########");
+    DecimalFormats[10] = new DecimalFormat("#.##########");
 
-//create a buffered reader stream to the language file
+    //create a buffered reader stream to the language file
 
-FileInputStream fileInputStream = null;
-InputStreamReader inputStreamReader = null;
-BufferedReader in = null;
+    FileInputStream fileInputStream = null;
+    InputStreamReader inputStreamReader = null;
+    BufferedReader in = null;
 
-try{
+    try{
 
-    fileInputStream = new FileInputStream(filename);
+        fileInputStream = new FileInputStream(filename);
 
-    inputStreamReader = new InputStreamReader(fileInputStream, fileFormat);
+        inputStreamReader = new InputStreamReader(fileInputStream, fileFormat);
 
-    in = new BufferedReader(inputStreamReader);
+        in = new BufferedReader(inputStreamReader);
 
-    String line;
+        String line;
 
-    //read until end of file reached or "[end of header]" tag reached
+        //read until end of file reached or "[end of header]" tag reached
 
-    while ((line = in.readLine()) != null){
-        buffer.add(line);
-        if (line.equals("[Header End]")) break;
+        while ((line = in.readLine()) != null){
+            buffer.add(line);
+            if (line.equals("[Header End]")) break;
         }
     }
-catch (FileNotFoundException e){
-    //if an existing file was not found, add some header info to the buffer so
-    //it will be saved when the file is created
-    buffer.add("");
-    buffer.add(";Do not erase blank line above -"
-               + " has hidden code needed by UTF-16 files.");
-    buffer.add(";To make a new file, copy an existing ini file and change"
-               + " only data below this line.");
-    buffer.add("");
+    catch (FileNotFoundException e){
+        //if an existing file was not found, add some header info to the buffer
+        //so it will be saved when the file is created
+        buffer.add("");
+        buffer.add(";Do not erase blank line above -"
+                   + " has hidden code needed by UTF-16 files.");
+        buffer.add(";To make a new file, copy an existing ini file and change"
+                   + " only data below this line.");
+        buffer.add("");
 
     }
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 346");
-    throw new IOException();
-}
-finally{
-    if (in != null) in.close();
-    if (inputStreamReader != null) inputStreamReader.close();
-    if (fileInputStream != null) fileInputStream.close();
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 346");
+        throw new IOException();
+    }
+    finally{
+        if (in != null) in.close();
+        if (inputStreamReader != null) inputStreamReader.close();
+        if (fileInputStream != null) fileInputStream.close();
     }
 
 }//end of IniFile::IniFile (constructor)
@@ -364,43 +364,43 @@ finally{
 public void save()
 {
 
-//create a buffered writer stream
+    //create a buffered writer stream
 
-FileOutputStream fileOutputStream = null;
-OutputStreamWriter outputStreamWriter = null;
-BufferedWriter out = null;
+    FileOutputStream fileOutputStream = null;
+    OutputStreamWriter outputStreamWriter = null;
+    BufferedWriter out = null;
 
-try{
+    try{
 
-    fileOutputStream = new FileOutputStream(filename);
-    outputStreamWriter = new OutputStreamWriter(fileOutputStream, fileFormat);
-    out = new BufferedWriter(outputStreamWriter);
+        fileOutputStream = new FileOutputStream(filename);
+        outputStreamWriter =
+                        new OutputStreamWriter(fileOutputStream, fileFormat);
+        out = new BufferedWriter(outputStreamWriter);
 
-    ListIterator i;
+        ListIterator i;
 
-    //write each line in the buffer to the file
+        //write each line in the buffer to the file
 
-    for (i = buffer.listIterator(); i.hasNext(); ){
-        out.write((String)i.next());
-        out.newLine();
-        }
+        for (i = buffer.listIterator(); i.hasNext(); ){
+            out.write((String)i.next());
+            out.newLine();
+            }
 
-    //Note! You MUST flush to make sure everything is written.
+        //Note! You MUST flush to make sure everything is written.
 
-    out.flush();
+        out.flush();
 
     }
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 394");
-}
-finally{
-
-    try{if (out != null) out.close();}
-    catch(IOException e){}
-    try{if (outputStreamWriter != null) outputStreamWriter.close();}
-    catch(IOException e){}
-    try{if (fileOutputStream != null) fileOutputStream.close();}
-    catch(IOException e){}
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 394");
+    }
+    finally{
+        try{if (out != null) out.close();}
+        catch(IOException e){}
+        try{if (outputStreamWriter != null) outputStreamWriter.close();}
+        catch(IOException e){}
+        try{if (fileOutputStream != null) fileOutputStream.close();}
+        catch(IOException e){}
     }
 
 }//end of IniFile::save
@@ -429,93 +429,93 @@ finally{
 String getValue(String pSection, String pKey, Parameters pParams)
 {
 
-//default to -1 in case function returns without finding Section/Key
-pParams.keyIndex = -1; pParams.sectionIndex = -1;
+    //default to -1 in case function returns without finding Section/Key
+    pParams.keyIndex = -1; pParams.sectionIndex = -1;
 
-//create the section by concatenating brackets around the parameter
-String section = "[" + pSection + "]";
+    //create the section by concatenating brackets around the parameter
+    String section = "[" + pSection + "]";
 
-ListIterator i;
+    ListIterator i;
 
-//search the buffer for the section name
+    //search the buffer for the section name
 
-//NOTE: searching each line using startsWith and not worrying about case
-// sped the search for section up tremendously.  This does mean that the section
-// name is case-sensitive and there can be no whitespace at the beginning of
-// a section name.  A 4000 line file was taking more than 10 seconds to process
-// and now takes a second or less.
+    //NOTE: searching each line using startsWith and not worrying about case
+    // sped the search for section up tremendously.  This does mean that the section
+    // name is case-sensitive and there can be no whitespace at the beginning of
+    // a section name.  A 4000 line file was taking more than 10 seconds to process
+    // and now takes a second or less.
 
-for (i = buffer.listIterator(); i.hasNext(); ) {
+    for (i = buffer.listIterator(); i.hasNext(); ) {
 
-    //stop if line found containing the section name
-    if ( (((String)i.next()).startsWith(section))) {
+        //stop if line found containing the section name
+        if ( (((String)i.next()).startsWith(section))) {
 
-        //set the index of the line containing the section name
-        pParams.sectionIndex = i.previousIndex();
+            //set the index of the line containing the section name
+            pParams.sectionIndex = i.previousIndex();
 
         break;
         }
     }
 
-//if match not found, section not found so return empty string - both
-//pParams.keyIndex and pParams.sectionIndex will be -1
-if (pParams.sectionIndex == -1) return("");
+    //if match not found, section not found so return empty string - both
+    //pParams.keyIndex and pParams.sectionIndex will be -1
+    if (pParams.sectionIndex == -1) return("");
 
-//search the section for the key - if another section is found before finding
-//the key, then return empty string and the index of the section entry
-//add '=' to the search phrase to make sure a partial match will fail
+    //search the section for the key - if another section is found before finding
+    //the key, then return empty string and the index of the section entry
+    //add '=' to the search phrase to make sure a partial match will fail
 
-String key = pKey.toLowerCase() + "=";
-StringBuilder line = new StringBuilder(200);
+    String key = pKey.toLowerCase() + "=";
+    StringBuilder line = new StringBuilder(200);
 
-int matchIndex = -1;
+    int matchIndex = -1;
 
-while(i.hasNext()) {
+    while(i.hasNext()) {
 
-    line.setLength(0);
+        line.setLength(0);
 
-    line.append(((String)i.next()).toLowerCase());
+        line.append(((String)i.next()).toLowerCase());
 
-    //if a new section name is found before the key is found, the key is not
-    //in the section being searched so return empty string
-    try {
-        if (line.charAt(0) == '['){
-            //return the index of the line containing the next section name
-            pParams.sectionIndex = i.previousIndex();
-            return("");
+        //if a new section name is found before the key is found, the key is not
+        //in the section being searched so return empty string
+        try {
+            if (line.charAt(0) == '['){
+                //return the index of the line containing the next section name
+                pParams.sectionIndex = i.previousIndex();
+                return("");
             }
         }
-    catch(IndexOutOfBoundsException e){} //ignore this error
+        catch(IndexOutOfBoundsException e){} //ignore this error
 
-    //stop when line found containing the key name - index of key must be 0 to
-    //insure that a partial match is not made
-    if ((matchIndex = line.indexOf(key)) == 0) break;
-
-    }
-
-//if match not found, key not found so return empty string
-if (matchIndex != 0){
-    //return index at the end of the buffer
-    pParams.sectionIndex = buffer.size();
-    return("");
-    }
-
-int indexOfEqual;
-
-//look for '=' symbol, if not found then return empty string
-if ( (indexOfEqual = line.indexOf("=")) == -1) return("");
-
-//return the part of the line after the '=' sign - on error return empty string
-try{
-    //set return parameters to reflect the line found to contain the key
-    pParams.keyIndex = i.previousIndex();
-
-    return(((String)buffer.get(pParams.keyIndex)).substring(indexOfEqual + 1));
+        //stop when line found containing the key name - index of key must be 0 to
+        //insure that a partial match is not made
+        if ((matchIndex = line.indexOf(key)) == 0) break;
 
     }
-catch(StringIndexOutOfBoundsException e){
-    pParams.keyIndex = -1;
-    return("");
+
+    //if match not found, key not found so return empty string
+    if (matchIndex != 0){
+        //return index at the end of the buffer
+        pParams.sectionIndex = buffer.size();
+        return("");
+    }
+
+    int indexOfEqual;
+
+    //look for '=' symbol, if not found then return empty string
+    if ( (indexOfEqual = line.indexOf("=")) == -1) return("");
+
+    //return the part of the line after the '=' sign - on error return empty string
+    try{
+        //set return parameters to reflect the line found to contain the key
+        pParams.keyIndex = i.previousIndex();
+
+        return(((String)buffer.get(pParams.keyIndex)).substring(indexOfEqual + 1));
+
+    }
+    catch(StringIndexOutOfBoundsException e){
+        pParams.keyIndex = -1;
+        return("");
     }
 
 }//end of IniFile::getValue
@@ -531,28 +531,28 @@ catch(StringIndexOutOfBoundsException e){
 public int readInt(String pSection, String pKey, int pDefault)
 {
 
-//if the ini file was never loaded from memory, return the default
-if (buffer == null) return pDefault;
+    //if the ini file was never loaded from memory, return the default
+    if (buffer == null) return pDefault;
 
-Parameters params = new Parameters();
+    Parameters params = new Parameters();
 
-//get the value associated with pSection and PKey
-String valueText = getValue(pSection, pKey, params);
+    //get the value associated with pSection and PKey
+    String valueText = getValue(pSection, pKey, params);
 
-//if Section/Key not found, return the default
-if (valueText.equals("")) return(pDefault);
+    //if Section/Key not found, return the default
+    if (valueText.equals("")) return(pDefault);
 
-int value;
+    int value;
 
-//try to convert the remainder of the string after the '=' symbol to an integer
-//if an error occurs, return the default value
+    //try to convert the remainder of the string after the '=' symbol to an
+    //integer if an error occurs, return the default value
 
-try{
-    value = Integer.parseInt(valueText);
+    try{
+        value = Integer.parseInt(valueText);
     }
-catch(NumberFormatException e){return(pDefault);}
+    catch(NumberFormatException e){return(pDefault);}
 
-return(value);
+    return(value);
 
 }//end of IniFile::readInt
 //-----------------------------------------------------------------------------
@@ -567,28 +567,28 @@ return(value);
 public double readDouble(String pSection, String pKey, double pDefault)
 {
 
-//if the ini file was never loaded from memory, return the default
-if (buffer == null) return pDefault;
+    //if the ini file was never loaded from memory, return the default
+    if (buffer == null) return pDefault;
 
-Parameters params = new Parameters();
+    Parameters params = new Parameters();
 
-//get the value associated with pSection and PKey
-String valueText = getValue(pSection, pKey, params);
+    //get the value associated with pSection and PKey
+    String valueText = getValue(pSection, pKey, params);
 
-//if Section/Key not found, return the default
-if (valueText.equals("")) return(pDefault);
+    //if Section/Key not found, return the default
+    if (valueText.equals("")) return(pDefault);
 
-double value;
+    double value;
 
-//try to convert the remainder of the string after the '=' symbol to a double
-//if an error occurs, return the default value
+    //try to convert the remainder of the string after the '=' symbol to a double
+    //if an error occurs, return the default value
 
-try{
-    value = Double.parseDouble(valueText);
+    try{
+        value = Double.parseDouble(valueText);
     }
-catch(NumberFormatException e){return(pDefault);}
+    catch(NumberFormatException e){return(pDefault);}
 
-return(value);
+    return(value);
 
 }//end of IniFile::readDouble
 //-----------------------------------------------------------------------------
@@ -603,18 +603,18 @@ return(value);
 public Color readColor(String pSection, String pKey, Color pDefault)
 {
 
-//if the ini file was never loaded from memory, return the default
-if (buffer == null) return pDefault;
+    //if the ini file was never loaded from memory, return the default
+    if (buffer == null) return pDefault;
 
-Parameters params = new Parameters();
+    Parameters params = new Parameters();
 
-//get the value associated with pSection and PKey
-String valueText = getValue(pSection, pKey, params);
+    //get the value associated with pSection and PKey
+    String valueText = getValue(pSection, pKey, params);
 
-//if Section/Key not found, return the default
-if (valueText.equals("")) return(pDefault);
+    //if Section/Key not found, return the default
+    if (valueText.equals("")) return(pDefault);
 
-return(MColor.fromString(valueText, pDefault));
+    return(MColor.fromString(valueText, pDefault));
 
 }//end of IniFile::readColor
 //-----------------------------------------------------------------------------
@@ -629,19 +629,19 @@ return(MColor.fromString(valueText, pDefault));
 public String readString(String pSection, String pKey, String pDefault)
 {
 
-//if the ini file was never loaded from memory, return the default
-if (buffer == null) return pDefault;
+    //if the ini file was never loaded from memory, return the default
+    if (buffer == null) return pDefault;
 
-Parameters params = new Parameters();
+    Parameters params = new Parameters();
 
-//get the value associated with pSection and PKey
-String valueText = getValue(pSection, pKey, params);
+    //get the value associated with pSection and PKey
+    String valueText = getValue(pSection, pKey, params);
 
-//if Section/Key not found, return the default
-if (valueText.equals(""))
-    return(pDefault);
-else
-    return(valueText);
+    //if Section/Key not found, return the default
+    if (valueText.equals(""))
+        return(pDefault);
+    else
+        return(valueText);
 
 }//end of IniFile::readString
 //-----------------------------------------------------------------------------
@@ -657,21 +657,21 @@ else
 public boolean readBoolean(String pSection, String pKey, boolean pDefault)
 {
 
-//if the ini file was never loaded from memory, return the default
-if (buffer == null) return pDefault;
+    //if the ini file was never loaded from memory, return the default
+    if (buffer == null) return pDefault;
 
-Parameters params = new Parameters();
+    Parameters params = new Parameters();
 
-//get the value associated with pSection and PKey
-String valueText = getValue(pSection, pKey, params);
+    //get the value associated with pSection and PKey
+    String valueText = getValue(pSection, pKey, params);
 
-//if Section/Key not found, return the default
-if (valueText.equals(""))return(pDefault);
+    //if Section/Key not found, return the default
+    if (valueText.equals(""))return(pDefault);
 
-//return true if value is "true", false if it is "false", default if neither
-if (valueText.equalsIgnoreCase("true")) return true;
-if (valueText.equalsIgnoreCase("false")) return false;
-return(pDefault);
+    //return true if value is "true", false if it is "false", default if neither
+    if (valueText.equalsIgnoreCase("true")) return true;
+    if (valueText.equalsIgnoreCase("false")) return false;
+    return(pDefault);
 
 }//end of IniFile::readString
 //-----------------------------------------------------------------------------
@@ -696,32 +696,32 @@ return(pDefault);
 private void writeValue(String pSection, String pKey, String pNewEntry)
 {
 
-modified = true; //force data to be saved when this object is discarded
+    modified = true; //force data to be saved when this object is discarded
 
-Parameters params = new Parameters();
+    Parameters params = new Parameters();
 
-//use the getValue function to search for the section and key and retrieve the
-//index positions in the buffer of the section and key via params
-getValue(pSection, pKey, params);
+    //use the getValue function to search for the section and key and retrieve
+    //the index positions in the buffer of the section and key via params
+    getValue(pSection, pKey, params);
 
-if (params.keyIndex != -1){
+    if (params.keyIndex != -1){
 
-    //if the section/key was found, replace the line with the new key=value line
-    buffer.set(params.keyIndex, pNewEntry);
-
-    }
-else
-if (params.sectionIndex != -1){
-
-    //if section found but not key, add new key=value line to end of section
-    buffer.add(params.sectionIndex, pNewEntry);
+        //if the section/key was found, replace the line with the new key=value line
+        buffer.set(params.keyIndex, pNewEntry);
 
     }
-else{
+    else
+    if (params.sectionIndex != -1){
 
-    //if section not found, add section and newkey=value line to end of file
-    buffer.add("[" + pSection + "]");
-    buffer.add(pNewEntry);
+        //if section found but not key, add new key=value line to end of section
+        buffer.add(params.sectionIndex, pNewEntry);
+
+    }
+    else{
+
+        //if section not found, add section and newkey=value line to end of file
+        buffer.add("[" + pSection + "]");
+        buffer.add(pNewEntry);
 
     }
 
@@ -744,11 +744,11 @@ else{
 public void writeInt(String pSection, String pKey, int pValue)
 {
 
-//create the new key=value string to store in the buffer
-String newEntry = pKey + "=" + Integer.toString(pValue);
+    //create the new key=value string to store in the buffer
+    String newEntry = pKey + "=" + Integer.toString(pValue);
 
-//update the value in the buffer
-writeValue(pSection, pKey, newEntry);
+    //update the value in the buffer
+    writeValue(pSection, pKey, newEntry);
 
 }//end of IniFile::writeInt
 //-----------------------------------------------------------------------------
@@ -769,11 +769,11 @@ writeValue(pSection, pKey, newEntry);
 public void writeDouble(String pSection, String pKey, double pValue)
 {
 
-//create the new key=value string to store in the buffer
-String newEntry = pKey + "=" + Double.toString(pValue);
+    //create the new key=value string to store in the buffer
+    String newEntry = pKey + "=" + Double.toString(pValue);
 
-//update the value in the buffer
-writeValue(pSection, pKey, newEntry);
+    //update the value in the buffer
+    writeValue(pSection, pKey, newEntry);
 
 }//end of IniFile::writeDouble
 //-----------------------------------------------------------------------------
@@ -794,11 +794,11 @@ writeValue(pSection, pKey, newEntry);
 public void writeColor(String pSection, String pKey, Color pColor)
 {
 
-//create the new key=value string to store in the buffer
-String newEntry = pKey + "=" + MColor.toString(pColor);
+    //create the new key=value string to store in the buffer
+    String newEntry = pKey + "=" + MColor.toString(pColor);
 
-//update the value in the buffer
-writeValue(pSection, pKey, newEntry);
+    //update the value in the buffer
+    writeValue(pSection, pKey, newEntry);
 
 }//end of IniFile::writeColor
 //-----------------------------------------------------------------------------
@@ -813,12 +813,12 @@ writeValue(pSection, pKey, newEntry);
 DecimalFormat getDecimalFormat(int pPrecision)
 {
 
-//if illegal value, use precision of 2
-if ((pPrecision < 0) || (pPrecision >= DecimalFormats.length)){
-    pPrecision = 2;
-    }
+    //if illegal value, use precision of 2
+    if ((pPrecision < 0) || (pPrecision >= DecimalFormats.length)){
+        pPrecision = 2;
+        }
 
-return DecimalFormats[pPrecision];
+    return DecimalFormats[pPrecision];
 
 }//end of IniFile::getDecimalFormat
 //-----------------------------------------------------------------------------
@@ -844,11 +844,11 @@ public void writeDoubleFormatted(String pSection, String pKey, double pValue,
                                                                  int pPrecision)
 {
 
-//create the new key=value string to store in the buffer
-String newEntry = pKey + "=" + getDecimalFormat(pPrecision).format(pValue);
+    //create the new key=value string to store in the buffer
+    String newEntry = pKey + "=" + getDecimalFormat(pPrecision).format(pValue);
 
-//update the value in the buffer
-writeValue(pSection, pKey, newEntry);
+    //update the value in the buffer
+    writeValue(pSection, pKey, newEntry);
 
 }//end of IniFile::writeDoubleFormatted
 //-----------------------------------------------------------------------------
@@ -869,11 +869,11 @@ writeValue(pSection, pKey, newEntry);
 public void writeBoolean(String pSection, String pKey, boolean pValue)
 {
 
-//create the new key=value string to store in the buffer
-String newEntry = pKey + "=" + Boolean.toString(pValue);
+    //create the new key=value string to store in the buffer
+    String newEntry = pKey + "=" + Boolean.toString(pValue);
 
-//update the value in the buffer
-writeValue(pSection, pKey, newEntry);
+    //update the value in the buffer
+    writeValue(pSection, pKey, newEntry);
 
 }//end of IniFile::writeBoolean
 //-----------------------------------------------------------------------------
@@ -894,11 +894,11 @@ writeValue(pSection, pKey, newEntry);
 public void writeString(String pSection, String pKey, String pValue)
 {
 
-//create the new key=value string to store in the buffer
-String newEntry = pKey + "=" + pValue;
+    //create the new key=value string to store in the buffer
+    String newEntry = pKey + "=" + pValue;
 
-//update the value in the buffer
-writeValue(pSection, pKey, newEntry);
+    //update the value in the buffer
+    writeValue(pSection, pKey, newEntry);
 
 }//end of IniFile::writeString
 //-----------------------------------------------------------------------------
@@ -918,52 +918,52 @@ writeValue(pSection, pKey, newEntry);
 static public boolean detectUTF16LEFormat(String pFilename)
 {
 
-FileInputStream fileInputStream = null;
-InputStreamReader inputStreamReader = null;
-BufferedReader in = null;
+    FileInputStream fileInputStream = null;
+    InputStreamReader inputStreamReader = null;
+    BufferedReader in = null;
 
-try{
+    try{
 
-    fileInputStream = new FileInputStream(pFilename);
+        fileInputStream = new FileInputStream(pFilename);
 
-    inputStreamReader = new InputStreamReader(fileInputStream, "UTF-16LE");
+        inputStreamReader = new InputStreamReader(fileInputStream, "UTF-16LE");
 
-    in = new BufferedReader(inputStreamReader);
+        in = new BufferedReader(inputStreamReader);
 
-    int i = 0;
+        int i = 0;
 
-    String line;
+        String line;
 
-    //read until header line found, max lines read, or end of file reached
+        //read until header line found, max lines read, or end of file reached
 
-    while ((line = in.readLine()) != null){
+        while ((line = in.readLine()) != null){
 
-        //return true if the header line used in UTF-16LE files is found
-        if (line.startsWith(";Do not erase")) return(true);
-        //return false if header line not found near beginning
-        if (i++ >= 5) return(false);
+            //return true if the header line used in UTF-16LE files is found
+            if (line.startsWith(";Do not erase")) return(true);
+            //return false if header line not found near beginning
+            if (i++ >= 5) return(false);
 
-    }//while...
+        }//while...
 
-    //return false if header line not found before EOF reached
-    return(false);
+        //return false if header line not found before EOF reached
+        return(false);
 
-}//try
-catch (FileNotFoundException e){
-    return(false);
-}//catch
-catch(IOException e){
-    System.err.println(IniFile.class.getName() + " - Error: 956");
-    return(false);
-}//catch
-finally{
-    try{if (in != null) in.close();}
-        catch(IOException e){}
-    try{if (inputStreamReader != null) inputStreamReader.close();}
-        catch(IOException e){}
-    try{if (fileInputStream != null) fileInputStream.close();}
-        catch(IOException e){}
-}//finally
+    }//try
+    catch (FileNotFoundException e){
+        return(false);
+    }//catch
+    catch(IOException e){
+        System.err.println(IniFile.class.getName() + " - Error: 956");
+        return(false);
+    }//catch
+    finally{
+        try{if (in != null) in.close();}
+            catch(IOException e){}
+        try{if (inputStreamReader != null) inputStreamReader.close();}
+            catch(IOException e){}
+        try{if (fileInputStream != null) fileInputStream.close();}
+            catch(IOException e){}
+    }//finally
 
 }//end of IniFile::detectUTF16LEFormat
 //-----------------------------------------------------------------------------

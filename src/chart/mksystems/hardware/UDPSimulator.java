@@ -38,13 +38,13 @@ public class UDPSimulator extends DatagramSocket{
 
 public UDPSimulator() throws SocketException{}; //default constructor - not used
 
-int port;
+    int port;
 
-int responseCount = 0;
+    int responseCount = 0;
 
-String announcement;
+    String announcement;
 
-IniFile configFile;
+    IniFile configFile;
 
 //-----------------------------------------------------------------------------
 // UDPSimulator::UDPSimulator (constructor)
@@ -53,11 +53,11 @@ IniFile configFile;
 public UDPSimulator(int pPort, String pAnnouncement) throws SocketException
 {
 
-super(pPort);
+    super(pPort);
 
-port = pPort;
+    port = pPort;
 
-announcement = pAnnouncement;
+    announcement = pAnnouncement;
 
 }//end of UDPSimulator::UDPSimulator (constructor)
 //-----------------------------------------------------------------------------
@@ -83,18 +83,18 @@ public void send(DatagramPacket p)
 public void receive(DatagramPacket p)
 {
 
-p.setData(announcement.getBytes());
+    p.setData(announcement.getBytes());
 
-//each simulated UT board sends a response packet which will have its IP
-//address - for each instance of this class created, use the next sequential
-//IP address
+    //each simulated UT board sends a response packet which will have its IP
+    //address - for each instance of this class created, use the next sequential
+    //IP address
 
-String ip = "169.254.1." + (++responseCount);
+    String ip = "169.254.1." + (++responseCount);
 
-try{p.setAddress(InetAddress.getByName(ip));}
-catch(UnknownHostException e){
-    System.err.println(getClass().getName() + " - Error: 96");
-}
+    try{p.setAddress(InetAddress.getByName(ip));}
+    catch(UnknownHostException e){
+        System.err.println(getClass().getName() + " - Error: 96");
+    }
 
 }//end of UDPSimulator::receive
 //-----------------------------------------------------------------------------

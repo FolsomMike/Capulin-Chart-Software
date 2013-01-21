@@ -60,11 +60,11 @@ import chart.mksystems.hardware.AScan;
 
 class MainThread implements Runnable {
 
-int i = 0;
+    int i = 0;
 
-public Hardware hardware;
-Settings settings;
-UTCalibrator calWindow;
+    public Hardware hardware;
+    Settings settings;
+    UTCalibrator calWindow;
 
 //-----------------------------------------------------------------------------
 // MainThread::MainThread (constructor)
@@ -73,7 +73,7 @@ UTCalibrator calWindow;
 public MainThread(UTCalibrator pCalWindow, Settings pSettings)
 {
 
-calWindow = pCalWindow; settings = pSettings;
+    calWindow = pCalWindow; settings = pSettings;
 
 }//end of MainThread::MainThread (constructor)
 //-----------------------------------------------------------------------------
@@ -85,45 +85,45 @@ calWindow = pCalWindow; settings = pSettings;
 @Override
 public void run() {
 
-try{
-    while (true){
+    try{
+        while (true){
 
-        //if connection has not been made to the remotes, do so
-        if (!hardware.connected) hardware.connect();
+            //if connection has not been made to the remotes, do so
+            if (!hardware.connected) hardware.connect();
 
-        //the hardware.connect function will not return until all boards
-        //are setup, so the setup can access sockets without worry of collision
-        //with the hardware.collectData function which also accesses those
-        //same sockets - after the connect call returns, then collectData
-        //will repeatedly be called from this timer and other functions should
-        //not read from the sockets to avoid collision with collectData
+            //the hardware.connect function will not return until all boards
+            //are setup, so the setup can access sockets without worry of
+            //collision with the hardware.collectData function which also
+            //accesses those same sockets - after the connect call returns,
+            //then collectData will repeatedly be called from this timer and
+            //other functions should not read from the sockets to avoid
+            //collision with collectData
 
-        //trigger data collection from remote devices
-        //this does not display the data - that is handled by a timer
+            //trigger data collection from remote devices
+            //this does not display the data - that is handled by a timer
 
-        hardware.collectData();
+            hardware.collectData();
 
-        //if the calibration window is active, request aScan packets
-        //thus, if the user clicks off the window, the AScan will freeze
-        if (calWindow.isActive()){
+            //if the calibration window is active, request aScan packets
+            //thus, if the user clicks off the window, the AScan will freeze
+            if (calWindow.isActive()){
 
-            if (calWindow.channels[calWindow.currentChannelIndex] != null){
-                hardware.requestAScan(
-                calWindow.channels[calWindow.currentChannelIndex].channelIndex);
+                if (calWindow.channels[calWindow.currentChannelIndex] != null){
+                    hardware.requestAScan(calWindow.
+                         channels[calWindow.currentChannelIndex].channelIndex);
                 }
 
             }// if (calWindow.isActive())
 
-        hardware.sendDataChangesToRemotes();
+            hardware.sendDataChangesToRemotes();
 
-        Thread.sleep(10);
+            Thread.sleep(10);
 
         }//while
-
     }//try
 
-catch (InterruptedException e) {
-    System.err.println(getClass().getName() + " - Error: 126");
+    catch (InterruptedException e) {
+        System.err.println(getClass().getName() + " - Error: 126");
     }
 
 }//end of MainThread::run
@@ -147,44 +147,44 @@ catch (InterruptedException e) {
 class MainWindow implements WindowListener, ActionListener, ChangeListener,
                                 ComponentListener, DocumentListener, Link {
 
-Settings settings;
-String language;
-Xfer xfer;
+    Settings settings;
+    String language;
+    Xfer xfer;
 
-JFrame mainFrame;
-JDialog measureDialog;
-GridBagLayout gridBag;
-ControlPanel controlPanel;
+    JFrame mainFrame;
+    JDialog measureDialog;
+    GridBagLayout gridBag;
+    ControlPanel controlPanel;
 
-MainMenu mainMenu;
-MainThread mainThread;
+    MainMenu mainMenu;
+    MainThread mainThread;
 
-Timer mainTimer;
+    Timer mainTimer;
 
-int numberOfChannels;
-Channel[] calChannels;
+    int numberOfChannels;
+    Channel[] calChannels;
 
-Hardware hardware;
+    Hardware hardware;
 
-Log logWindow;
-JobInfo jobInfo;
-PieceInfo pieceIDInfo;
-Debugger debugger;
-UTCalibrator calWindow;
-Monitor monitorWindow;
-boolean monitorMode = false;
+    Log logWindow;
+    JobInfo jobInfo;
+    PieceInfo pieceIDInfo;
+    Debugger debugger;
+    UTCalibrator calWindow;
+    Monitor monitorWindow;
+    boolean monitorMode = false;
 
-FlagReportPrinter printFlagReportDialog = null;
-int closePrintFlagReportDialogTimer = 0;
+    FlagReportPrinter printFlagReportDialog = null;
+    int closePrintFlagReportDialogTimer = 0;
 
-AScan aScan;
+    AScan aScan;
 
-int initialWidth, initialHeight;
+    int initialWidth, initialHeight;
 
-DecimalFormat[] decimalFormats;
+    DecimalFormat[] decimalFormats;
 
-int lastPieceInspected = -1;
-boolean isLastPieceInspectedACal = false;
+    int lastPieceInspected = -1;
+    boolean isLastPieceInspectedACal = false;
 
 //-----------------------------------------------------------------------------
 // MainWindow::MainWindow (constructor)
@@ -193,113 +193,113 @@ boolean isLastPieceInspectedACal = false;
 public MainWindow()
 {
 
-//turn off default bold for Metal look and feel
-UIManager.put("swing.boldMetal", Boolean.FALSE);
+    //turn off default bold for Metal look and feel
+    UIManager.put("swing.boldMetal", Boolean.FALSE);
 
-//redirect the standard error output to a file
-try{
-    FileOutputStream f = new FileOutputStream("Error Messages.txt", true);
-    System.setErr(new PrintStream(f));
-    System.err.print("Program Started: " + (new Date().toString()));
-    System.err.println(" -----------------------------");
-}
-catch(FileNotFoundException e){
-    //no error message saved as the error file open failed
-}
-
-//force "look and feel" to Java style
-try {
-    UIManager.setLookAndFeel(
-        UIManager.getCrossPlatformLookAndFeelClassName());
+    //redirect the standard error output to a file
+    try{
+        FileOutputStream f = new FileOutputStream("Error Messages.txt", true);
+        System.setErr(new PrintStream(f));
+        System.err.print("Program Started: " + (new Date().toString()));
+        System.err.println(" -----------------------------");
     }
-catch (Exception e) {
-    System.err.println(getClass().getName() + " - Error: 216");
-}
+    catch(FileNotFoundException e){
+        //no error message saved as the error file open failed
+    }
 
-//create various decimal formats
-decimalFormats = new DecimalFormat[1];
-decimalFormats[0] = new  DecimalFormat("0000000");
+    //force "look and feel" to Java style
+    try {
+        UIManager.setLookAndFeel(
+            UIManager.getCrossPlatformLookAndFeelClassName());
+    }
+    catch (Exception e) {
+        System.err.println(getClass().getName() + " - Error: 216");
+    }
 
-//convert all config files from UTF-16LE to UTF-8 format
-//(this does not convert files already in use in the job folders)
-UTF16LEToUTF8Converter converter = new UTF16LEToUTF8Converter();
-converter.init();
+    //create various decimal formats
+    decimalFormats = new DecimalFormat[1];
+    decimalFormats[0] = new  DecimalFormat("0000000");
 
-settings = new Settings(this, this);
+    //convert all config files from UTF-16LE to UTF-8 format
+    //(this does not convert files already in use in the job folders)
+    UTF16LEToUTF8Converter converter = new UTF16LEToUTF8Converter();
+    converter.init();
 
-xfer = new Xfer();
+    settings = new Settings(this, this);
 
-//create the program's main window
-mainFrame = new JFrame("Java Chart");
-settings.mainFrame = mainFrame; //store for use by other objects
-//do not auto exit on close - shut down handled by the timer function
-mainFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-mainFrame.addComponentListener(this);
-mainFrame.addWindowListener(this);
+    xfer = new Xfer();
 
-//change the layout manager
-BoxLayout boxLayout =
-                    new BoxLayout(mainFrame.getContentPane(), BoxLayout.Y_AXIS);
-//mainFrame.setLayout(new BoxLayout(mainFrame, BoxLayout.Y_AXIS));
-mainFrame.getContentPane().setLayout(boxLayout);
+    //create the program's main window
+    mainFrame = new JFrame("Java Chart");
+    settings.mainFrame = mainFrame; //store for use by other objects
+    //do not auto exit on close - shut down handled by the timer function
+    mainFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+    mainFrame.addComponentListener(this);
+    mainFrame.addWindowListener(this);
 
-loadLanguage(settings.language); //set text on main form
+    //change the layout manager
+    BoxLayout boxLayout =
+                   new BoxLayout(mainFrame.getContentPane(), BoxLayout.Y_AXIS);
+    //mainFrame.setLayout(new BoxLayout(mainFrame, BoxLayout.Y_AXIS));
+    mainFrame.getContentPane().setLayout(boxLayout);
 
-//create a main menu, passing settings as the object to be installed as
-//the action and item listener for the menu
-mainFrame.setJMenuBar(mainMenu = new MainMenu(settings));
+    loadLanguage(settings.language); //set text on main form
 
-//loads configurations settings for the program
-loadGeneralConfiguration();
+    //create a main menu, passing settings as the object to be installed as
+    //the action and item listener for the menu
+    mainFrame.setJMenuBar(mainMenu = new MainMenu(settings));
 
-//loads settings such as the data paths and other values which rarely change
-loadMainStaticSettings();
+    //loads configurations settings for the program
+    loadGeneralConfiguration();
 
-//loads settings such as current job name, etc.
-loadMainSettings();
+    //loads settings such as the data paths and other values which rarely change
+    loadMainStaticSettings();
 
-//read the configuration file and create/setup the charting/control elements
-//loads the job file
-configure();
+    //loads settings such as current job name, etc.
+    loadMainSettings();
 
-mainFrame.setLocation(
+    //read the configuration file and create/setup the charting/control elements
+    //loads the job file
+    configure();
+
+    mainFrame.setLocation(
                     settings.mainWindowLocationX, settings.mainWindowLocationY);
 
-mainFrame.pack();
-mainFrame.setVisible(true);
+    mainFrame.pack();
+    mainFrame.setVisible(true);
 
-//store the height and width of the main window after it has been set up so
-//it can be restored to this size if an attempt is made to resize it
-initialWidth = mainFrame.getWidth();
-initialHeight = mainFrame.getHeight();
+    //store the height and width of the main window after it has been set up so
+    //it can be restored to this size if an attempt is made to resize it
+    initialWidth = mainFrame.getWidth();
+    initialHeight = mainFrame.getHeight();
 
-//reset the charts
-resetChartGroups();
+    //reset the charts
+    resetChartGroups();
 
-//tell cal window to create an image
-calWindow.scope1.createImageBuffer();
-calWindow.scope1.clearPlot();
+    //tell cal window to create an image
+    calWindow.scope1.createImageBuffer();
+    calWindow.scope1.clearPlot();
 
-//create and start a thread to collect data from the hardware
-mainThread = new MainThread(calWindow, settings);
-Thread thread = new Thread(mainThread, "Main Thread");
-mainThread.hardware = hardware;
-thread.start();
+    //create and start a thread to collect data from the hardware
+    mainThread = new MainThread(calWindow, settings);
+    Thread thread = new Thread(mainThread, "Main Thread");
+    mainThread.hardware = hardware;
+    thread.start();
 
-//Create and start a timer which will handle updating the displays.
-mainTimer = new Timer(10, this);
-mainTimer.setActionCommand("Timer");
-mainTimer.start();
+    //Create and start a timer which will handle updating the displays.
+    mainTimer = new Timer(10, this);
+    mainTimer.setActionCommand("Timer");
+    mainTimer.start();
 
-//allow all objects to update values dependent on display sizes
-handleSizeChanges();
+    //allow all objects to update values dependent on display sizes
+    handleSizeChanges();
 
-//force garbage collection before beginning any time sensitive tasks
-System.gc();
+    //force garbage collection before beginning any time sensitive tasks
+    System.gc();
 
-//check to see if license has expired
-LicenseValidator  lv = new LicenseValidator(mainFrame, "Graphics.ini");
-lv.validateLicense();
+    //check to see if license has expired
+    LicenseValidator  lv = new LicenseValidator(mainFrame, "Graphics.ini");
+    lv.validateLicense();
 
 }//end of MainWindow::MainWindow (constructor)
 //-----------------------------------------------------------------------------
@@ -315,27 +315,27 @@ lv.validateLicense();
 private void loadMainStaticSettings()
 {
 
-IniFile configFile = null;
+    IniFile configFile = null;
 
-//if the ini file cannot be opened and loaded, exit without action
-try {configFile = new IniFile("Main Static Settings.ini",
-                                                    Settings.mainFileFormat);
-}
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 325");
-    return;
-}
+    //if the ini file cannot be opened and loaded, exit without action
+    try {configFile = new IniFile("Main Static Settings.ini",
+                                                      Settings.mainFileFormat);
+    }
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 325");
+        return;
+    }
 
-//set the data folders to empty if values cannot be read from the ini file
-//all functions which write data should abort if the folder names are empty
+    //set the data folders to empty if values cannot be read from the ini file
+    //all functions which write data should abort if the folder names are empty
 
-settings.primaryDataPath = formatPath(configFile.readString(
+    settings.primaryDataPath = formatPath(configFile.readString(
                                "Main Configuration", "Primary Data Path", ""));
 
-settings.backupDataPath = formatPath(configFile.readString(
+    settings.backupDataPath = formatPath(configFile.readString(
                                 "Main Configuration", "Backup Data Path", ""));
 
-settings.reportsPath = formatPath(configFile.readString(
+    settings.reportsPath = formatPath(configFile.readString(
                                     "Main Configuration", "Reports Path", ""));
 
 }//end of MainWindow::loadMainStaticSettings
@@ -369,24 +369,24 @@ private String formatPath (String pPath){
 private void saveMainStaticSettings()
 {
 
-IniFile configFile = null;
+    IniFile configFile = null;
 
-//if the ini file cannot be opened and loaded, exit without action
-try {configFile = new IniFile("Main Static Settings.ini",
-                                                       Settings.mainFileFormat);}
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 378");
-    return;
-}
+    //if the ini file cannot be opened and loaded, exit without action
+    try {configFile = new IniFile("Main Static Settings.ini",
+                                                     Settings.mainFileFormat);}
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 378");
+        return;
+    }
 
-configFile.writeString("Main Configuration", "Primary Data Path",
-                                                      settings.primaryDataPath);
+    configFile.writeString("Main Configuration", "Primary Data Path",
+                                                     settings.primaryDataPath);
 
-configFile.writeString("Main Configuration", "Backup Data Path",
-                                                       settings.backupDataPath);
+    configFile.writeString("Main Configuration", "Backup Data Path",
+                                                      settings.backupDataPath);
 
-//force save
-configFile.save();
+    //force save
+    configFile.save();
 
 }//end of MainWindow::saveMainStaticSettings
 //-----------------------------------------------------------------------------
@@ -400,50 +400,52 @@ configFile.save();
 private void loadGeneralConfiguration()
 {
 
-IniFile configFile = null;
+    IniFile configFile = null;
 
-//if the ini file cannot be opened and loaded, exit without action
-try {configFile = new IniFile(
+    //if the ini file cannot be opened and loaded, exit without action
+    try {configFile = new IniFile(
                        "Configuration - General.ini", Settings.mainFileFormat);
-}
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 410");
-    return;
-}
+    }
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 410");
+        return;
+    }
 
-settings.primaryFolderName = configFile.readString(
-                        "Main Configuration", "Primary Data Folder Name",
-                                            "IR Scan Data Files -  Primary");
+    settings.primaryFolderName = configFile.readString(
+                          "Main Configuration", "Primary Data Folder Name",
+                                              "IR Scan Data Files -  Primary");
 
-settings.backupFolderName = configFile.readString(
-                            "Main Configuration", "Backup Data Folder Name",
+    settings.backupFolderName = configFile.readString(
+                        "Main Configuration", "Backup Data Folder Name",
                         "Backup Data Folder Name=IR Scan Data Files - Backup");
 
-//replace any forward/back slashes with the filename separator appropriate
-//for the system the program is running on
+    //replace any forward/back slashes with the filename separator appropriate
+    //for the system the program is running on
 
-String sep = File.separator;
-settings.primaryFolderName = settings.primaryFolderName.replace("/", sep);
-settings.primaryFolderName = settings.primaryFolderName.replace("\\", sep);
-settings.backupFolderName = settings.backupFolderName.replace("/", sep);
-settings.backupFolderName = settings.backupFolderName.replace("\\", sep);
+    String sep = File.separator;
+    settings.primaryFolderName = settings.primaryFolderName.replace("/", sep);
+    settings.primaryFolderName = settings.primaryFolderName.replace("\\", sep);
+    settings.backupFolderName = settings.backupFolderName.replace("/", sep);
+    settings.backupFolderName = settings.backupFolderName.replace("\\", sep);
 
-//if there is a separator at the end, remove it for consistency with later code
-String t = settings.primaryFolderName;
-if (t.endsWith(sep)) settings.primaryFolderName = t.substring(0, t.length()-1);
+    //if there is a separator at the end, remove for consistency with later code
+    String t = settings.primaryFolderName;
+    if (t.endsWith(sep))
+        settings.primaryFolderName = t.substring(0, t.length()-1);
 
-t = settings.backupFolderName;
-if (t.endsWith(sep)) settings.backupFolderName = t.substring(0, t.length()-1);
+    t = settings.backupFolderName;
+    if (t.endsWith(sep))
+        settings.backupFolderName = t.substring(0, t.length()-1);
 
 
-settings.printResolutionX = configFile.readInt(
-                                 "Printer", "Printer Resolution X in DPI", 300);
+    settings.printResolutionX = configFile.readInt(
+                                "Printer", "Printer Resolution X in DPI", 300);
 
-settings.printResolutionY = configFile.readInt(
-                                 "Printer", "Printer Resolution Y in DPI", 300);
+    settings.printResolutionY = configFile.readInt(
+                                "Printer", "Printer Resolution Y in DPI", 300);
 
-settings.printQuality  = configFile.readString(
-                    "Printer", "Print Quality (Draft, Normal, High)", "Normal");
+    settings.printQuality  = configFile.readString(
+                   "Printer", "Print Quality (Draft, Normal, High)", "Normal");
 
 }//end of MainWindow::loadGeneralConfiguration
 //-----------------------------------------------------------------------------
@@ -458,53 +460,55 @@ settings.printQuality  = configFile.readString(
 private void loadMainSettings()
 {
 
-IniFile configFile = null;
+    IniFile configFile = null;
 
-//if the ini file cannot be opened and loaded, exit without action
-try {configFile = new IniFile("Main Settings.ini", Settings.mainFileFormat);
-}
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 467");
-    return;
-}
-
-settings.currentJobName = configFile.readString(
-                         "Main Configuration", "Current Work Order", "");
-
-JobValidator jobValidator = new JobValidator(settings.primaryDataPath,
-        settings.backupDataPath, settings.currentJobName, false, xfer);
-
-//if flag returns true, one or both of the root data paths is missing - set
-//both and the job name to empty so they won't be accessed
-if (xfer.rBoolean2){
-    settings.primaryDataPath = ""; settings.backupDataPath = "";
-    settings.currentJobName = "";
+    //if the ini file cannot be opened and loaded, exit without action
+    try {configFile = new IniFile("Main Settings.ini", Settings.mainFileFormat);
+    }
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 467");
+        return;
     }
 
-//if flag returns true, the root folders exist but the job name cannot be found
-//in either - assume that it no longer exists and set the name empty
-if (xfer.rBoolean3) settings.currentJobName = "";
+    settings.currentJobName = configFile.readString(
+                             "Main Configuration", "Current Work Order", "");
 
-settings.currentJobPrimaryPath = ""; settings.currentJobBackupPath = "";
+    JobValidator jobValidator = new JobValidator(settings.primaryDataPath,
+            settings.backupDataPath, settings.currentJobName, false, xfer);
 
-//if the root paths and the job name are valid, create the full paths
-if(!settings.currentJobName.equals("")){
-    if(!settings.primaryDataPath.equals("")) settings.currentJobPrimaryPath =
-            settings.primaryDataPath + settings.currentJobName + File.separator;
-    if(!settings.backupDataPath.equals("")) settings.currentJobBackupPath =
-             settings.backupDataPath + settings.currentJobName + File.separator;
-    }
+    //if flag returns true, one or both of the root data paths is missing - set
+    //both and the job name to empty so they won't be accessed
+    if (xfer.rBoolean2){
+        settings.primaryDataPath = ""; settings.backupDataPath = "";
+        settings.currentJobName = "";
+        }
 
-settings.mainWindowLocationX = configFile.readInt(
-                        "Main Configuration", "Main Window Location X", 0);
+    //if flag returns true, the root folders exist but the job name cannot be
+    //found in either - assume that it no longer exists and set the name empty
+    if (xfer.rBoolean3) settings.currentJobName = "";
 
-settings.mainWindowLocationY = configFile.readInt(
-                        "Main Configuration", "Main Window Location Y", 0);
+    settings.currentJobPrimaryPath = ""; settings.currentJobBackupPath = "";
 
-settings.utCalWindowLocationX = configFile.readInt(
+    //if the root paths and the job name are valid, create the full paths
+    if(!settings.currentJobName.equals("")){
+        if(!settings.primaryDataPath.equals(""))
+            settings.currentJobPrimaryPath = settings.primaryDataPath +
+                                    settings.currentJobName + File.separator;
+        if(!settings.backupDataPath.equals(""))
+            settings.currentJobBackupPath = settings.backupDataPath +
+                                    settings.currentJobName + File.separator;
+        }
+
+    settings.mainWindowLocationX = configFile.readInt(
+                            "Main Configuration", "Main Window Location X", 0);
+
+    settings.mainWindowLocationY = configFile.readInt(
+                            "Main Configuration", "Main Window Location Y", 0);
+
+    settings.utCalWindowLocationX = configFile.readInt(
                    "Main Configuration", "UT Calibrator Window Location X", 0);
 
-settings.utCalWindowLocationY = configFile.readInt(
+    settings.utCalWindowLocationY = configFile.readInt(
                    "Main Configuration", "UT Calibrator Window Location Y", 0);
 
 }//end of MainWindow::loadMainSettings
@@ -520,20 +524,22 @@ settings.utCalWindowLocationY = configFile.readInt(
 private void saveMainSettings()
 {
 
-IniFile configFile = null;
+    IniFile configFile = null;
 
-//if the ini file cannot be opened and loaded, exit without action
-try {configFile = new IniFile("Main Settings.ini", Settings.mainFileFormat);}
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 528");
-    return;
+    //if the ini file cannot be opened and loaded, exit without action
+    try {
+        configFile = new IniFile("Main Settings.ini", Settings.mainFileFormat);
+    }
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 528");
+        return;
     }
 
-configFile.writeString("Main Configuration", "Current Work Order",
-                                                    settings.currentJobName);
+    configFile.writeString("Main Configuration", "Current Work Order",
+                                                      settings.currentJobName);
 
-//force save
-configFile.save();
+    //force save
+    configFile.save();
 
 }//end of MainWindow::saveMainSettings
 //-----------------------------------------------------------------------------
@@ -553,129 +559,131 @@ configFile.save();
 private void configure()
 {
 
-String configFilename = settings.currentJobPrimaryPath + "01 - " +
+    String configFilename = settings.currentJobPrimaryPath + "01 - " +
                                 settings.currentJobName + " Configuration.ini";
 
-if(IniFile.detectUTF16LEFormat(configFilename))
-    settings.jobFileFormat = "UTF-16LE";
-else
-    settings.jobFileFormat = "UTF-8";
+    if(IniFile.detectUTF16LEFormat(configFilename))
+        settings.jobFileFormat = "UTF-16LE";
+    else
+        settings.jobFileFormat = "UTF-8";
 
-IniFile configFile = null;
+    IniFile configFile = null;
 
-//if the ini file cannot be opened and loaded, exit without action
-try {
-    configFile = new IniFile(configFilename, settings.jobFileFormat);
-}
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 571");
-    return;
-}
+    //if the ini file cannot be opened and loaded, exit without action
+    try {
+        configFile = new IniFile(configFilename, settings.jobFileFormat);
+    }
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 571");
+        return;
+    }
 
-//create an object to hold job info
-jobInfo = new JobInfo(mainFrame, settings.currentJobPrimaryPath,
-           settings.currentJobBackupPath, settings.currentJobName, this,
+    //create an object to hold job info
+    jobInfo = new JobInfo(mainFrame, settings.currentJobPrimaryPath,
+               settings.currentJobBackupPath, settings.currentJobName, this,
                                                        settings.jobFileFormat);
-jobInfo.init();
+    jobInfo.init();
 
-//create an object to hold info about each piece
-pieceIDInfo = new PieceInfo(mainFrame, settings.currentJobPrimaryPath,
-    settings.currentJobBackupPath, settings.currentJobName, this, false,
+    //create an object to hold info about each piece
+    pieceIDInfo = new PieceInfo(mainFrame, settings.currentJobPrimaryPath,
+        settings.currentJobBackupPath, settings.currentJobName, this, false,
                                                        settings.jobFileFormat);
-pieceIDInfo.init();
+    pieceIDInfo.init();
 
-//create a window for displaying messages
-logWindow = new Log(mainFrame); logWindow.setVisible(true);
+    //create a window for displaying messages
+    logWindow = new Log(mainFrame); logWindow.setVisible(true);
 
-//create a window for monitoring status and inputs
-monitorWindow = new Monitor(mainFrame, configFile, this);
-monitorWindow.init();
+    //create a window for monitoring status and inputs
+    monitorWindow = new Monitor(mainFrame, configFile, this);
+    monitorWindow.init();
 
-//create the hardware interface first so the traces can link to it
-hardware = new Hardware(configFile, settings, logWindow.textArea);
-//store a pointer in settings for use by other objects
-settings.hardware = hardware;
+    //create the hardware interface first so the traces can link to it
+    hardware = new Hardware(configFile, settings, logWindow.textArea);
+    //store a pointer in settings for use by other objects
+    settings.hardware = hardware;
 
-//create a debugger window with a link to the hardware object
-debugger = new Debugger(mainFrame, hardware);
+    //create a debugger window with a link to the hardware object
+    debugger = new Debugger(mainFrame, hardware);
 
-//create an array to hold references to each channel for the strip chart
-//which invoked the opening of the cal window
-//the array is made big enough to hold all possible channels even though they
-//may be split amongst charts and would not require a full array for each
-//calibration window which only handles the number of channels assigned to the
-//chart which invoked the window - it is possible that ALL channels could be
-//assigned to one chart, so it is easier to make the array overly large
+    //create an array to hold references to each channel for the strip chart
+    //which invoked the opening of the cal window
+    //the array is made big enough to hold all possible channels even though
+    //they may be split amongst charts and would not require a full array for
+    //each calibration window which only handles the number of channels assigned
+    //to the chart which invoked the window - it is possible that ALL channels
+    //could be assigned to one chart, so it is easier to make the array overly
+    //large
 
-numberOfChannels = hardware.getNumberOfChannels();
-calChannels = new Channel[numberOfChannels];
+    numberOfChannels = hardware.getNumberOfChannels();
+    calChannels = new Channel[numberOfChannels];
 
-//create after hardware object created
-calWindow = new UTCalibrator(mainFrame, hardware, settings);
-calWindow.init();
+    //create after hardware object created
+    calWindow = new UTCalibrator(mainFrame, hardware, settings);
+    calWindow.init();
 
-settings.configure(configFile);
+    settings.configure(configFile);
 
-//don't use these - let contents set size of window
-//mainFrame.setMinimumSize(new Dimension(1100,1000));
-//mainFrame.setPreferredSize(new Dimension(1100,1000));
-//mainFrame.setMaximumSize(new Dimension(1100,1000));
+    //don't use these - let contents set size of window
+    //mainFrame.setMinimumSize(new Dimension(1100,1000));
+    //mainFrame.setPreferredSize(new Dimension(1100,1000));
+    //mainFrame.setMaximumSize(new Dimension(1100,1000));
 
-String title = configFile.readString(
-                    "Main Configuration", "Main Window Title", "Java Chart");
+    String title = configFile.readString(
+                      "Main Configuration", "Main Window Title", "Java Chart");
 
-mainFrame.setTitle(title);
+    mainFrame.setTitle(title);
 
-settings.simulationMode = configFile.readBoolean(
-                            "Main Configuration", "Simulation Mode", false);
+    settings.simulationMode = configFile.readBoolean(
+                                "Main Configuration", "Simulation Mode", false);
 
-settings.simulateMechanical = configFile.readBoolean(
-                                "Hardware", "Simulate Mechanical", false);
+    settings.simulateMechanical = configFile.readBoolean(
+                                    "Hardware", "Simulate Mechanical", false);
 
-settings.copyToAllMode = configFile.readInt(
-                                "Main Configuration", "Copy to All Mode", 0);
+    settings.copyToAllMode = configFile.readInt(
+                                  "Main Configuration", "Copy to All Mode", 0);
 
-//if true, the traces will be driven by software timer rather than by
-//encoder inputs - used for weldline crabs and systems without encoders
-settings.timerDrivenTracking = configFile.readBoolean(
-                                "Hardware", "Timer Driven Tracking", false);
+    //if true, the traces will be driven by software timer rather than by
+    //encoder inputs - used for weldline crabs and systems without encoders
+    settings.timerDrivenTracking = configFile.readBoolean(
+                                    "Hardware", "Timer Driven Tracking", false);
 
-settings.numberOfChartGroups =
-          configFile.readInt("Main Configuration", "Number of Chart Groups", 1);
+    settings.numberOfChartGroups = configFile.readInt(
+                            "Main Configuration", "Number of Chart Groups", 1);
 
-//create an array of chart groups per the config file setting
-if (settings.numberOfChartGroups > 0){
+    //create an array of chart groups per the config file setting
+    if (settings.numberOfChartGroups > 0){
 
-    //protect against too many groups
-    if (settings.numberOfChartGroups > 10) settings.numberOfChartGroups = 10;
+        //protect against too many groups
+        if (settings.numberOfChartGroups > 10)
+            settings.numberOfChartGroups = 10;
 
-    settings.chartGroups = new ChartGroup[settings.numberOfChartGroups];
+        settings.chartGroups = new ChartGroup[settings.numberOfChartGroups];
 
-    for (int i = 0; i < settings.numberOfChartGroups; i++){
-        settings.chartGroups[i] = new ChartGroup(
-                    settings, configFile, i, hardware, this, false, hardware);
-        mainFrame.add(settings.chartGroups[i]);
-        }
+        for (int i = 0; i < settings.numberOfChartGroups; i++){
+            settings.chartGroups[i] = new ChartGroup(
+                      settings, configFile, i, hardware, this, false, hardware);
+            mainFrame.add(settings.chartGroups[i]);
+            }
 
-    }//if (numberOfChartGroups > 0)
+        }//if (numberOfChartGroups > 0)
 
-//give hardware a connection to the charts
-hardware.chartGroups = settings.chartGroups;
+    //give hardware a connection to the charts
+    hardware.chartGroups = settings.chartGroups;
 
-//create a panel to hold user controls and status displays
-mainFrame.add(controlPanel =
-    new ControlPanel(configFile, settings.currentJobPrimaryPath,
-    settings.currentJobBackupPath, hardware, mainFrame, this,
-    settings.currentJobName, settings, hardware));
+    //create a panel to hold user controls and status displays
+    mainFrame.add(controlPanel =
+        new ControlPanel(configFile, settings.currentJobPrimaryPath,
+        settings.currentJobBackupPath, hardware, mainFrame, this,
+        settings.currentJobName, settings, hardware));
 
-//load user adjustable settings
-loadCalFile();
+    //load user adjustable settings
+    loadCalFile();
 
-//force menu settings to match any variables loaded from disk
-mainMenu.refreshMenuSettings();
+    //force menu settings to match any variables loaded from disk
+    mainMenu.refreshMenuSettings();
 
-//force screen control values to match any variables loaded from disk
-controlPanel.refreshControls();
+    //force screen control values to match any variables loaded from disk
+    controlPanel.refreshControls();
 
 }//end of MainWindow::configure
 //-----------------------------------------------------------------------------
@@ -693,59 +701,60 @@ controlPanel.refreshControls();
 private void loadCalFile()
 {
 
-IniFile calFile = null;
+    IniFile calFile = null;
 
-//if the ini file cannot be opened and loaded, exit without action
-try {
-    calFile = new IniFile(settings.currentJobPrimaryPath + "00 - "
-                        + settings.currentJobName + " Calibration File.ini",
-                                                       settings.jobFileFormat);
-}
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 705");
-    return;
-}
+    //if the ini file cannot be opened and loaded, exit without action
+    try {
+        calFile = new IniFile(settings.currentJobPrimaryPath + "00 - "
+                            + settings.currentJobName + " Calibration File.ini",
+                                                        settings.jobFileFormat);
+    }
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 705");
+        return;
+    }
 
-//if true, traces will restart at left edge of chart for each new piece
-//if false, new piece will be added to end of traces while chart scrolls
-settings.restartNewPieceAtLeftEdge = calFile.readBoolean("General",
+    //if true, traces will restart at left edge of chart for each new piece
+    //if false, new piece will be added to end of traces while chart scrolls
+    settings.restartNewPieceAtLeftEdge = calFile.readBoolean("General",
                           "Restart Each New Piece at Left Edge of Chart", true);
 
-//settings which control peak hold display on the A Scan
-settings.showRedPeakLineInGateCenter = calFile.readBoolean("General",
+    //settings which control peak hold display on the A Scan
+    settings.showRedPeakLineInGateCenter = calFile.readBoolean("General",
                                     "Show Red Peak Line at Gate Center", false);
-settings.showRedPeakLineAtPeakLocation = calFile.readBoolean("General",
+    settings.showRedPeakLineAtPeakLocation = calFile.readBoolean("General",
                                   "Show Red Peak Line at Peak Location", false);
-settings.showPseudoPeakAtPeakLocation = calFile.readBoolean("General",
-                                  "Show Peak Symbol at Peak Location", true);
-settings.reportAllFlags = calFile.readBoolean("General",
-     "Report all flags (do not skip duplicates at the same location)", false);
+    settings.showPseudoPeakAtPeakLocation = calFile.readBoolean("General",
+                                     "Show Peak Symbol at Peak Location", true);
+    settings.reportAllFlags = calFile.readBoolean("General",
+       "Report all flags (do not skip duplicates at the same location)", false);
 
-settings.scanSpeed =
+    settings.scanSpeed =
                 calFile.readInt("General", "Scanning and Inspecting Speed", 10);
 
-if (settings.scanSpeed < 0 || settings.scanSpeed > 10) settings.scanSpeed = 10;
+    if (settings.scanSpeed < 0 || settings.scanSpeed > 10)
+        settings.scanSpeed = 10;
 
-settings.graphPrintLayout =
- calFile.readString("General", "Graph Print Layout", "8-1/2 x 11 : Fit Height");
+    settings.graphPrintLayout = calFile.readString(
+                    "General", "Graph Print Layout", "8-1/2 x 11 : Fit Height");
 
-//make sure print layout is one of the valid values
-if (!settings.graphPrintLayout.equalsIgnoreCase("8-1/2 x 11 : Fit Height")
-    && !settings.graphPrintLayout.equalsIgnoreCase("8-1/2 x 11 : Fit Width")
-    && !settings.graphPrintLayout.equalsIgnoreCase("8-1/2 x 14 : Fit Height")
-    && !settings.graphPrintLayout.equalsIgnoreCase("8-1/2 x 14 : Fit Width")
-    && !settings.graphPrintLayout.equalsIgnoreCase("A4 : Fit Height")
-    && !settings.graphPrintLayout.equalsIgnoreCase("A4 : Fit Width"))
-    settings.graphPrintLayout = "8-1/2 x 11 : Fit Height";
+    //make sure print layout is one of the valid values
+    if (!settings.graphPrintLayout.equalsIgnoreCase("8-1/2 x 11 : Fit Height")
+       && !settings.graphPrintLayout.equalsIgnoreCase("8-1/2 x 11 : Fit Width")
+       && !settings.graphPrintLayout.equalsIgnoreCase("8-1/2 x 14 : Fit Height")
+       && !settings.graphPrintLayout.equalsIgnoreCase("8-1/2 x 14 : Fit Width")
+       && !settings.graphPrintLayout.equalsIgnoreCase("A4 : Fit Height")
+       && !settings.graphPrintLayout.equalsIgnoreCase("A4 : Fit Width"))
+        settings.graphPrintLayout = "8-1/2 x 11 : Fit Height";
 
-settings.userPrintMagnify = calFile.readString(
-                               "General", "Graph Print Magnify", "Magnify 1.0");
+    settings.userPrintMagnify = calFile.readString(
+                              "General", "Graph Print Magnify", "Magnify 1.0");
 
-//load info for all charts
-for (int i=0; i < settings.numberOfChartGroups; i++)
-    settings.chartGroups[i].loadCalFile(calFile);
+    //load info for all charts
+    for (int i=0; i < settings.numberOfChartGroups; i++)
+        settings.chartGroups[i].loadCalFile(calFile);
 
-hardware.loadCalFile(calFile);
+    hardware.loadCalFile(calFile);
 
 }//end of MainWindow::loadCalFile
 //-----------------------------------------------------------------------------
@@ -756,11 +765,11 @@ hardware.loadCalFile(calFile);
 private void saveCalFile()
 {
 
-//create a CalFileSaver thread object to save the data - this allows status
-//messages to be displayed and updated during the save
-settings.fileSaver = new CalFileSaver(settings, hardware, false);
-settings.fileSaver.init();
-settings.fileSaver.start();
+    //create a CalFileSaver thread object to save the data - this allows status
+    //messages to be displayed and updated during the save
+    settings.fileSaver = new CalFileSaver(settings, hardware, false);
+    settings.fileSaver.init();
+    settings.fileSaver.start();
 
 }//end of MainWindow::saveCalFile
 //-----------------------------------------------------------------------------
@@ -775,15 +784,15 @@ settings.fileSaver.start();
 private void saveEverything()
 {
 
-//save cal file last - the program won't exit while cal files are being saved
-//so that means all files will be finished saving
+    //save cal file last - the program won't exit while cal files are being
+    //saved so that means all files will be finished saving
 
-//save miscellaneous settings
-saveMainSettings();
-//save next piece and cal piece numbers
-controlPanel.saveSettings();
-//save all user calibration settings
-saveCalFile();
+    //save miscellaneous settings
+    saveMainSettings();
+    //save next piece and cal piece numbers
+    controlPanel.saveSettings();
+    //save all user calibration settings
+    saveCalFile();
 
 }//end of MainWindow::saveEverything
 //-----------------------------------------------------------------------------
@@ -797,8 +806,8 @@ saveCalFile();
 private void resetChartGroups()
 {
 
-for (int i = 0; i < settings.numberOfChartGroups; i++)
-    settings.chartGroups[i].resetChartGroup();
+    for (int i = 0; i < settings.numberOfChartGroups; i++)
+        settings.chartGroups[i].resetChartGroup();
 
 }//end of MainWindow::resetChartGroups
 //-----------------------------------------------------------------------------
@@ -818,8 +827,8 @@ for (int i = 0; i < settings.numberOfChartGroups; i++)
 public void markSegmentStart()
 {
 
-for (int i = 0; i < settings.numberOfChartGroups; i++)
-    settings.chartGroups[i].markSegmentStart();
+    for (int i = 0; i < settings.numberOfChartGroups; i++)
+        settings.chartGroups[i].markSegmentStart();
 
 }//end of MainWindow::markSegmentStart
 //-----------------------------------------------------------------------------
@@ -839,8 +848,8 @@ for (int i = 0; i < settings.numberOfChartGroups; i++)
 public void markSegmentEnd()
 {
 
-for (int i = 0; i < settings.numberOfChartGroups; i++)
-    settings.chartGroups[i].markSegmentEnd();
+    for (int i = 0; i < settings.numberOfChartGroups; i++)
+        settings.chartGroups[i].markSegmentEnd();
 
 }//end of MainWindow::markSegmentEnd
 //-----------------------------------------------------------------------------
@@ -855,10 +864,10 @@ for (int i = 0; i < settings.numberOfChartGroups; i++)
 boolean segmentStarted()
 {
 
-for (int i = 0; i < settings.numberOfChartGroups; i++)
-    if (settings.chartGroups[i].segmentStarted()) return(true);
+    for (int i = 0; i < settings.numberOfChartGroups; i++)
+        if (settings.chartGroups[i].segmentStarted()) return(true);
 
-return(false);
+    return(false);
 
 }//end of MainWindow::segmentStarted
 //-----------------------------------------------------------------------------
@@ -879,44 +888,44 @@ return(false);
 private void saveSegment()
 {
 
-String segmentFilename;
+    String segmentFilename;
 
-isLastPieceInspectedACal = controlPanel.calMode;
+    isLastPieceInspectedACal = controlPanel.calMode;
 
-//inspected pieces are saved with the prefix 20 while calibration pieces are
-//saved with the prefix 30 - this forces them to be grouped together and
-//controls the order in which the types are listed when the folder is viewed
-//in alphabetical order in an explorer window
+    //inspected pieces are saved with the prefix 20 while calibration pieces are
+    //saved with the prefix 30 - this forces them to be grouped together and
+    //controls the order in which the types are listed when the folder is viewed
+    //in alphabetical order in an explorer window
 
-if (!controlPanel.calMode){
-    segmentFilename = "20 - " +
+    if (!controlPanel.calMode){
+        segmentFilename = "20 - " +
                decimalFormats[0].format(controlPanel.nextPieceNumber) + ".dat";
-    //save number before it changes to the next -- used for reports and such
-    lastPieceInspected = controlPanel.nextPieceNumber;
-}
-else{
-    segmentFilename =  "30 - " +
+        //save number before it changes to the next -- used for reports and such
+        lastPieceInspected = controlPanel.nextPieceNumber;
+    }
+    else{
+        segmentFilename =  "30 - " +
             decimalFormats[0].format(controlPanel.nextCalPieceNumber) + ".cal";
-    //save number before it changes to the next -- used for reports and such
-    lastPieceInspected = controlPanel.nextCalPieceNumber;
-}
+        //save number before it changes to the next -- used for reports and such
+        lastPieceInspected = controlPanel.nextCalPieceNumber;
+    }
 
-saveSegmentHelper(settings.currentJobPrimaryPath + segmentFilename);
-saveSegmentHelper(settings.currentJobBackupPath + segmentFilename);
+    saveSegmentHelper(settings.currentJobPrimaryPath + segmentFilename);
+    saveSegmentHelper(settings.currentJobBackupPath + segmentFilename);
 
 
-//save the info file for each segment
-//this is info which can be modified later such as heat, lot, id number, etc.
+    //save the info file for each segment
+    //info which can be modified later such as heat, lot, id number, etc.
 
-if (!controlPanel.calMode)
-    segmentFilename = "20 - " +
-               decimalFormats[0].format(controlPanel.nextPieceNumber) + ".info";
-else
-    segmentFilename =  "30 - " +
+    if (!controlPanel.calMode)
+        segmentFilename = "20 - " +
+              decimalFormats[0].format(controlPanel.nextPieceNumber) + ".info";
+    else
+        segmentFilename =  "30 - " +
         decimalFormats[0].format(controlPanel.nextCalPieceNumber) + ".cal info";
 
-saveSegmentInfoHelper(settings.currentJobPrimaryPath + segmentFilename);
-saveSegmentInfoHelper(settings.currentJobBackupPath + segmentFilename);
+    saveSegmentInfoHelper(settings.currentJobPrimaryPath + segmentFilename);
+    saveSegmentInfoHelper(settings.currentJobBackupPath + segmentFilename);
 
 }//end of MainWindow::saveSegment
 //-----------------------------------------------------------------------------
@@ -931,48 +940,48 @@ saveSegmentInfoHelper(settings.currentJobBackupPath + segmentFilename);
 private void saveSegmentHelper(String pFilename)
 {
 
-//create a buffered writer stream
+    //create a buffered writer stream
 
-FileOutputStream fileOutputStream = null;
-OutputStreamWriter outputStreamWriter = null;
-BufferedWriter out = null;
+    FileOutputStream fileOutputStream = null;
+    OutputStreamWriter outputStreamWriter = null;
+    BufferedWriter out = null;
 
-try{
+    try{
 
-    fileOutputStream = new FileOutputStream(pFilename);
-    outputStreamWriter = new OutputStreamWriter(fileOutputStream,
+        fileOutputStream = new FileOutputStream(pFilename);
+        outputStreamWriter = new OutputStreamWriter(fileOutputStream,
                                                        settings.jobFileFormat);
-    out = new BufferedWriter(outputStreamWriter);
+        out = new BufferedWriter(outputStreamWriter);
 
-    //write the header information - this portion can be read by the iniFile
-    //class which will only read up to the "[Header End]" tag - this allows
-    //simple parsing of the header information while ignoring the data stream
-    //which  follows the header
+        //write the header information - this portion can be read by the iniFile
+        //class which will only read up to the "[Header End]" tag - this allows
+        //simple parsing of the header information while ignoring the data
+        //stream which  follows the header
 
-    out.write("[Header Start]"); out.newLine();
-    out.newLine();
-    out.write("Segment Data Version=" + Settings.SEGMENT_DATA_VERSION);
-    out.newLine();
-    out.write("Measured Length=" + hardware.hdwVs.measuredLength);
-    out.newLine();
-    out.write("Inspection Direction="
-                                    + hardware.inspectionDirectionDescription);
-    out.newLine();
-    out.write("[Header End]"); out.newLine(); out.newLine();
+        out.write("[Header Start]"); out.newLine();
+        out.newLine();
+        out.write("Segment Data Version=" + Settings.SEGMENT_DATA_VERSION);
+        out.newLine();
+        out.write("Measured Length=" + hardware.hdwVs.measuredLength);
+        out.newLine();
+        out.write("Inspection Direction="
+                                     + hardware.inspectionDirectionDescription);
+        out.newLine();
+        out.write("[Header End]"); out.newLine(); out.newLine();
 
-    for (int i = 0; i < settings.numberOfChartGroups; i++)
-        settings.chartGroups[i].saveSegment(out);
+        for (int i = 0; i < settings.numberOfChartGroups; i++)
+            settings.chartGroups[i].saveSegment(out);
+        }
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 967");
     }
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 967");
-}
-finally{
-    try{if (out != null) out.close();}
-    catch(IOException e){}
-    try{if (outputStreamWriter != null) outputStreamWriter.close();}
-    catch(IOException e){}
-    try{if (fileOutputStream != null) fileOutputStream.close();}
-    catch(IOException e){}
+    finally{
+        try{if (out != null) out.close();}
+        catch(IOException e){}
+        try{if (outputStreamWriter != null) outputStreamWriter.close();}
+        catch(IOException e){}
+        try{if (fileOutputStream != null) fileOutputStream.close();}
+        catch(IOException e){}
     }
 
 }//end of MainWindow::saveSegmentHelper
@@ -997,54 +1006,54 @@ finally{
 private void saveSegmentInfoHelper(String pFilename)
 {
 
-//create a buffered writer stream
+    //create a buffered writer stream
 
-FileOutputStream fileOutputStream = null;
-OutputStreamWriter outputStreamWriter = null;
-BufferedWriter out = null;
+    FileOutputStream fileOutputStream = null;
+    OutputStreamWriter outputStreamWriter = null;
+    BufferedWriter out = null;
 
-try{
+    try{
 
-    fileOutputStream = new FileOutputStream(pFilename);
-    outputStreamWriter = new OutputStreamWriter(fileOutputStream,
+        fileOutputStream = new FileOutputStream(pFilename);
+        outputStreamWriter = new OutputStreamWriter(fileOutputStream,
                                                        settings.jobFileFormat);
-    out = new BufferedWriter(outputStreamWriter);
+        out = new BufferedWriter(outputStreamWriter);
 
-    //write a warning note at the top of the file
+        //write a warning note at the top of the file
 
-    out.newLine();
-    out.write(";Do not erase blank line above -"
-               + " has hidden code needed by UTF-16 files.");
-    out.newLine(); out.newLine();
+        out.newLine();
+        out.write(";Do not erase blank line above -"
+                   + " has hidden code needed by UTF-16 files.");
+        out.newLine(); out.newLine();
 
-    //write the header information - this portion can be read by the iniFile
-    //class which will only read up to the "[Header End]" tag - this allows
-    //simple parsing of the header information while ignoring the data stream
-    //which  follows the header
+        //write the header information - this portion can be read by the iniFile
+        //class which will only read up to the "[Header End]" tag - this allows
+        //simple parsing of the header information while ignoring the data
+        //stream which  follows the header
 
-    out.write("[MetaData]"); out.newLine();
-    out.newLine();
-    out.write("Segment Data Version=" + Settings.SEGMENT_DATA_VERSION);
-    out.newLine();
-    out.newLine();
-    out.write("[MetaData End]"); out.newLine(); out.newLine();
+        out.write("[MetaData]"); out.newLine();
+        out.newLine();
+        out.write("Segment Data Version=" + Settings.SEGMENT_DATA_VERSION);
+        out.newLine();
+        out.newLine();
+        out.write("[MetaData End]"); out.newLine(); out.newLine();
 
-    out.newLine();
+        out.newLine();
 
-    //allow the pieceInfo object to save its data to the file
-    pieceIDInfo.saveDataToStream(out);
+        //allow the pieceInfo object to save its data to the file
+        pieceIDInfo.saveDataToStream(out);
 
     }
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 1039");
-}
-finally{
-    try{if (out != null) out.close();}
-    catch(IOException e){}
-    try{if (outputStreamWriter != null) outputStreamWriter.close();}
-    catch(IOException e){}
-    try{if (fileOutputStream != null) fileOutputStream.close();}
-    catch(IOException e){}
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 1039");
+    }
+    finally{
+        try{if (out != null) out.close();}
+        catch(IOException e){}
+        try{if (outputStreamWriter != null) outputStreamWriter.close();}
+        catch(IOException e){}
+        try{if (fileOutputStream != null) fileOutputStream.close();}
+        catch(IOException e){}
     }
 
 }//end of MainWindow::saveSegmentInfoHelper
@@ -1060,8 +1069,8 @@ finally{
 public final void handleSizeChanges()
 {
 
-for (int i = 0; i < settings.numberOfChartGroups; i++)
-    settings.chartGroups[i].handleSizeChanges();
+    for (int i = 0; i < settings.numberOfChartGroups; i++)
+        settings.chartGroups[i].handleSizeChanges();
 
 }//end of MainWindow::handleSizeChanges
 //-----------------------------------------------------------------------------
@@ -1076,226 +1085,231 @@ for (int i = 0; i < settings.numberOfChartGroups; i++)
 public void actionPerformed(ActionEvent e)
 {
 
-//this part handles saving all data
-if ("Save".equals(e.getActionCommand())) {
-    if(isConfigGoodA()) saveEverything();
-    return;
+    //this part handles saving all data
+    if ("Save".equals(e.getActionCommand())) {
+        if(isConfigGoodA()) saveEverything();
+        return;
     }
 
-//this part handles creating a new job
-if ("New Job".equals(e.getActionCommand())) {
-    if(isConfigGoodB()) createNewJob();
-    return;
+    //this part handles creating a new job
+    if ("New Job".equals(e.getActionCommand())) {
+        if(isConfigGoodB()) createNewJob();
+        return;
     }
 
-//this part handles switching to a different job
-if ("Change Job".equals(e.getActionCommand())) {
-    if(isConfigGoodB()) changeJob();
-    return;
+    //this part handles switching to a different job
+    if ("Change Job".equals(e.getActionCommand())) {
+        if(isConfigGoodB()) changeJob();
+        return;
     }
 
-//this part handles saving current settings to a preset
-if ("Copy Preset From Job".equals(e.getActionCommand())) {
-    if(isConfigGoodA()) copyPreset();
-    return;
+    //this part handles saving current settings to a preset
+    if ("Copy Preset From Job".equals(e.getActionCommand())) {
+        if(isConfigGoodA()) copyPreset();
+        return;
     }
 
-//this part handles saving current settings to a preset
-if ("Save Preset".equals(e.getActionCommand())) {
-    SavePreset savePreset = new SavePreset(mainFrame, settings.primaryDataPath,
-            settings.backupDataPath, xfer, settings.currentJobName);
-    savePreset.init();
-    return;
+    //this part handles saving current settings to a preset
+    if ("Save Preset".equals(e.getActionCommand())) {
+        SavePreset savePreset = new SavePreset(mainFrame,
+                settings.primaryDataPath, settings.backupDataPath, xfer,
+                settings.currentJobName);
+        savePreset.init();
+        return;
     }
 
-//this part handles switching to a different preset
-if ("Change Preset".equals(e.getActionCommand())) {
-    if(isConfigGoodA()) changePreset();
-    return;
+    //this part handles switching to a different preset
+    if ("Change Preset".equals(e.getActionCommand())) {
+        if(isConfigGoodA()) changePreset();
+        return;
     }
 
-//this part handles renaming a preset
-if ("Rename Preset".equals(e.getActionCommand())) {
-    RenamePreset renamePreset = new RenamePreset(mainFrame,
-            settings.primaryDataPath, settings.backupDataPath, xfer);
-    renamePreset.init();
-    return;
+    //this part handles renaming a preset
+    if ("Rename Preset".equals(e.getActionCommand())) {
+        RenamePreset renamePreset = new RenamePreset(mainFrame,
+                settings.primaryDataPath, settings.backupDataPath, xfer);
+        renamePreset.init();
+        return;
     }
 
-//this part handles deleting a preset
-if ("Delete Preset".equals(e.getActionCommand())) {
-    DeletePreset deletePreset = new DeletePreset(mainFrame,
-            settings.primaryDataPath, settings.backupDataPath, xfer);
-    deletePreset.init();
-    return;
+    //this part handles deleting a preset
+    if ("Delete Preset".equals(e.getActionCommand())) {
+        DeletePreset deletePreset = new DeletePreset(mainFrame,
+                settings.primaryDataPath, settings.backupDataPath, xfer);
+        deletePreset.init();
+        return;
     }
 
-//this part displays the log window
-if ("Log".equals(e.getActionCommand())) {
-    logWindow.setVisible(true);
-    return;
+    //this part displays the log window
+    if ("Log".equals(e.getActionCommand())) {
+        logWindow.setVisible(true);
+        return;
     }
 
-//this part writes various status and error messages to the log window
-if ("Status".equals(e.getActionCommand())) logStatus();
+    //this part writes various status and error messages to the log window
+    if ("Status".equals(e.getActionCommand())) logStatus();
 
-//this part opens a viewer window for viewing saved segments
-if ("Open Viewer".equals(e.getActionCommand())) {
+    //this part opens a viewer window for viewing saved segments
+    if ("Open Viewer".equals(e.getActionCommand())) {
 
-    if(isConfigGoodA()) {
-        Viewer viewer;
-        viewer = new Viewer(settings, jobInfo, settings.currentJobPrimaryPath,
-                        settings.currentJobBackupPath, settings.currentJobName);
-        viewer.init();
+        if(isConfigGoodA()) {
+            Viewer viewer;
+            viewer = new Viewer(settings, jobInfo,
+                 settings.currentJobPrimaryPath, settings.currentJobBackupPath,
+                 settings.currentJobName);
+            viewer.init();
         }
-    return;
+        return;
     }
 
-//this part opens a window to print a flag report
-if ("Print Flag Report for Last Piece Inspected".equals(e.getActionCommand())) {
-    //pass the number and type of the last joint inspected so it can be
-    //printed without the user having to
-    printFlagReport(lastPieceInspected, isLastPieceInspectedACal);
-}
-
-//this part opens a window to print a flag report
-if ("Print Flag Report for User Selection".equals(e.getActionCommand())) {
-    printFlagReport(-1, false);
-}
-
-//this part displays a list of calibration files which can be viewed/printed
-if ("View Calibration Records".equals(e.getActionCommand())) {
-
-    //create a CalFileSaver thread object to save the data - this allows status
-    //messages to be displayed and updated during the save
-    settings.fileSaver = new CalFileSaver(settings, hardware, true);
-    settings.fileSaver.init();
-    settings.fileSaver.start();
-
-}
-
-//this part handles starting the status monitor
-if ("Monitor".equals(e.getActionCommand())) {
-    monitorWindow.setVisible(true);
-    hardware.startMonitor();
-    return;
+    //this part opens a window to print a flag report
+    if ("Print Flag Report for Last Piece Inspected".equals(
+                                                        e.getActionCommand())) {
+        //pass the number and type of the last joint inspected so it can be
+        //printed without the user having to
+        printFlagReport(lastPieceInspected, isLastPieceInspectedACal);
     }
 
-//this part handles opening the debugger window
-if ("Debugger".equals(e.getActionCommand())) {
-    debugger.setVisible(true);
-    return;
+    //this part opens a window to print a flag report
+    if ("Print Flag Report for User Selection".equals(e.getActionCommand())) {
+        printFlagReport(-1, false);
     }
 
-//this part handles opening the Job Info window
-if ("Job Info".equals(e.getActionCommand())) {
-    if(isConfigGoodA()) jobInfo.setVisible(true);
-    return;
+    //this part displays a list of calibration files which can be viewed/printed
+    if ("View Calibration Records".equals(e.getActionCommand())) {
+
+        //create a CalFileSaver thread object to save the data - this allows
+        //status messages to be displayed and updated during the save
+        settings.fileSaver = new CalFileSaver(settings, hardware, true);
+        settings.fileSaver.init();
+        settings.fileSaver.start();
+
     }
 
-//this part handles opening the piece Identifier Info window
-if ("Show ID Info Window".equals(e.getActionCommand())) {
-    if(isConfigGoodA()) pieceIDInfo.setVisible(true);
-    return;
+    //this part handles starting the status monitor
+    if ("Monitor".equals(e.getActionCommand())) {
+        monitorWindow.setVisible(true);
+        hardware.startMonitor();
+        return;
     }
 
-//this part handles zeroing the encoder counts
-if ("Zero Encoder Counts".equals(e.getActionCommand())) {
-    hardware.zeroEncoderCounts();
-    return;
+    //this part handles opening the debugger window
+    if ("Debugger".equals(e.getActionCommand())) {
+        debugger.setVisible(true);
+        return;
     }
 
-//this part handles pulsing Output 1
-if ("Pulse Output 1".equals(e.getActionCommand())) {
-    hardware.pulseOutput1();
-    return;
+    //this part handles opening the Job Info window
+    if ("Job Info".equals(e.getActionCommand())) {
+        if(isConfigGoodA()) jobInfo.setVisible(true);
+        return;
     }
 
-//this part handles repairing a job
-if ("Repair Job".equals(e.getActionCommand())) {
-
-    if(!isConfigGoodA()) return;
-
-    //create with pRobust set true so paths will be recreated if necessary
-    JobValidator jobValidator = new JobValidator(settings.currentJobPrimaryPath,
-            settings.currentJobBackupPath, settings.currentJobName, true, xfer);
-
-    displayInfoMessage("The repair is complete.  Click OK to reload the job.");
-
-    //reload the job to refresh any changes from the repair
-    //exit the program, passing true to instantiate a new program which will
-    //reload the job on startup - it is required to create a new
-    //program and kill the old one so that all of the configuration data for
-    //the job will be loaded properly
-
-    exitProgram(false, true);
-
-    return;
+    //this part handles opening the piece Identifier Info window
+    if ("Show ID Info Window".equals(e.getActionCommand())) {
+        if(isConfigGoodA()) pieceIDInfo.setVisible(true);
+        return;
     }
 
-//this part handles updating the Rabbit code
-if ("Update UT Rabbit Code".equals(e.getActionCommand())) {
-    hardware.updateRabbitCode(Hardware.UT_RABBITS);
-    return;
+    //this part handles zeroing the encoder counts
+    if ("Zero Encoder Counts".equals(e.getActionCommand())) {
+        hardware.zeroEncoderCounts();
+        return;
     }
 
-//this part handles updating the Rabbit code
-if ("Update Control Rabbit Code".equals(e.getActionCommand())) {
-    hardware.updateRabbitCode(Hardware.CONTROL_RABBITS);
-    return;
+    //this part handles pulsing Output 1
+    if ("Pulse Output 1".equals(e.getActionCommand())) {
+        hardware.pulseOutput1();
+        return;
     }
 
-//this part handles setting up the system
-if ("Set Up System".equals(e.getActionCommand())) {setupSystem(); return;}
+    //this part handles repairing a job
+    if ("Repair Job".equals(e.getActionCommand())) {
 
-//this part handles renewing the license
-if ("Renew License".equals(e.getActionCommand())) {
-    //asks user to enter a new license renewal code
-    //(the window doesn't refer to it being a license renewal code but rather
-    // asks for a response code so the user isn't alerted to the fact that
-    // an expiration date is in use)
-    LicenseValidator  lv = new LicenseValidator(mainFrame, "Graphics.ini");
-    //NOTE: the old license file will not be altered unless the user enters
-    // a new valid code.  This way a working system won't be broken by an
-    // attempt to update the license before the expiration.  The new license
-    // will not take effect until the next resart.
-    lv.requestLicenseRenewal(false);
-    return;
+        if(!isConfigGoodA()) return;
+
+        //create with pRobust set true so paths will be recreated if necessary
+        JobValidator jobValidator = new JobValidator(
+                settings.currentJobPrimaryPath, settings.currentJobBackupPath,
+                settings.currentJobName, true, xfer);
+
+        displayInfoMessage(
+                        "The repair is complete.  Click OK to reload the job.");
+
+        //reload the job to refresh any changes from the repair
+        //exit the program, passing true to instantiate a new program which will
+        //reload the job on startup - it is required to create a new
+        //program and kill the old one so that all of the configuration data for
+        //the job will be loaded properly
+
+        exitProgram(false, true);
+
+        return;
     }
 
-//this part handles requests by ChartGroup objects to open the cal window
-//the chart index number is appended to the command string, so use startsWith
-if (e.getActionCommand().startsWith("Open Calibration Window")) {
-    displayCalWindow(e.getActionCommand());
-    return;
+    //this part handles updating the Rabbit code
+    if ("Update UT Rabbit Code".equals(e.getActionCommand())) {
+        hardware.updateRabbitCode(Hardware.UT_RABBITS);
+        return;
     }
 
-//prepare for the next piece to be inspected
-if ("Prepare for Next Piece".equals(e.getActionCommand())) {
-    prepareForNextPiece();
-    return;
+    //this part handles updating the Rabbit code
+    if ("Update Control Rabbit Code".equals(e.getActionCommand())) {
+        hardware.updateRabbitCode(Hardware.CONTROL_RABBITS);
+        return;
     }
 
-//this part processes a finished piece by saving data, adjusting next piece
-//number, etc.
-if ("Process finished Piece".equals(e.getActionCommand())) {
-    processFinishedPiece();
-    return;
+    //this part handles setting up the system
+    if ("Set Up System".equals(e.getActionCommand())) {setupSystem(); return;}
+
+    //this part handles renewing the license
+    if ("Renew License".equals(e.getActionCommand())) {
+        //asks user to enter a new license renewal code
+        //(the window doesn't refer to it being a license renewal code but
+        // rather asks for a response code so the user isn't alerted to the fact
+        // that an expiration date is in use)
+        LicenseValidator  lv = new LicenseValidator(mainFrame, "Graphics.ini");
+        //NOTE: the old license file will not be altered unless the user enters
+        // a new valid code.  This way a working system won't be broken by an
+        // attempt to update the license before the expiration.  The new license
+        // will not take effect until the next resart.
+        lv.requestLicenseRenewal(false);
+        return;
+    }
+
+    //this part handles requests by ChartGroup objects to open the cal window
+    //the chart index number is appended to command string, so use startsWith
+    if (e.getActionCommand().startsWith("Open Calibration Window")) {
+        displayCalWindow(e.getActionCommand());
+        return;
+    }
+
+    //prepare for the next piece to be inspected
+    if ("Prepare for Next Piece".equals(e.getActionCommand())) {
+        prepareForNextPiece();
+        return;
+    }
+
+    //this part processes a finished piece by saving data, adjusting next piece
+    //number, etc.
+    if ("Process finished Piece".equals(e.getActionCommand())) {
+        processFinishedPiece();
+        return;
     }// if ("Process finished Piece".equals(e.getActionCommand()))
 
-//this part handles displaying the "About" window
-if ("About".equals(e.getActionCommand())) {
-    About about = new About(mainFrame);
-    return;
+    //this part handles displaying the "About" window
+    if ("About".equals(e.getActionCommand())) {
+        About about = new About(mainFrame);
+        return;
     }
 
-if ("Display Configuration Info".equals(e.getActionCommand())){
-    settings.displayConfigInfo(logWindow.textArea);
-    logWindow.setVisible(true);
+    if ("Display Configuration Info".equals(e.getActionCommand())){
+        settings.displayConfigInfo(logWindow.textArea);
+        logWindow.setVisible(true);
     }
 
-//handle timer calls
-if ("Timer".equals(e.getActionCommand())) processMainTimerEvent();
+    //handle timer calls
+    if ("Timer".equals(e.getActionCommand())) processMainTimerEvent();
 
 }//end of MainWindow::actionPerformed
 //-----------------------------------------------------------------------------
@@ -1346,25 +1360,25 @@ public void printFlagReport(int pPieceToPrint, boolean pIsCalPiece)
 public void processFinishedPiece()
 {
 
-//if an inspection was started, save the data and increment to the next
-//piece number - if an inspection was not started, ignore so that the
-//piece number is not incremented needlessly when the user clicks "Stop"
-//or "Next Run" without having inspected a piece
+    //if an inspection was started, save the data and increment to the next
+    //piece number - if an inspection was not started, ignore so that the
+    //piece number is not incremented needlessly when the user clicks "Stop"
+    //or "Next Run" without having inspected a piece
 
-if (segmentStarted()){
+    if (segmentStarted()){
 
-    markSegmentEnd();  //mark the buffer location of the end of the segment
+        markSegmentEnd();  //mark the buffer location of the end of the segment
 
-    //if data paths are good, save the data for the segment
-    if(isConfigGoodA()) saveSegment();
+        //if data paths are good, save the data for the segment
+        if(isConfigGoodA()) saveSegment();
 
-    //increment the next piece or next cal piece number
-    controlPanel.incrementPieceNumber();
+        //increment the next piece or next cal piece number
+        controlPanel.incrementPieceNumber();
 
-    //display the min wall from the just finished piece
-    updatePrevMinWallDisplay();
+        //display the min wall from the just finished piece
+        updatePrevMinWallDisplay();
 
-    }
+        }
 
 }//end of MainWindow::processFinishedPiece
 //-----------------------------------------------------------------------------
@@ -1378,14 +1392,14 @@ if (segmentStarted()){
 public void prepareForNextPiece()
 {
 
-//if so configured, reset all traces to begin at the left edge of the chart,
-// otherwise new piece will be appended to right end of traces and the chart
-// will scroll to display new data
+    //if so configured, reset all traces to begin at the left edge of the chart,
+    // otherwise new piece will be appended to right end of traces and the chart
+    // will scroll to display new data
 
-if (settings.restartNewPieceAtLeftEdge) resetChartGroups();
+    if (settings.restartNewPieceAtLeftEdge) resetChartGroups();
 
-//mark the starting point of a new piece in the data buffers
-markSegmentStart();
+    //mark the starting point of a new piece in the data buffers
+    markSegmentStart();
 
 }//end of MainWindow::prepareForNextPiece
 //-----------------------------------------------------------------------------
@@ -1400,14 +1414,14 @@ markSegmentStart();
 public void handlePieceTransition()
 {
 
-//save the piece just finished
-processFinishedPiece();
+    //save the piece just finished
+    processFinishedPiece();
 
-//prepare buffers for next piece
-prepareForNextPiece();
+    //prepare buffers for next piece
+    prepareForNextPiece();
 
-//prepare hardware interface for new piece
-hardware.setMode(Hardware.INSPECT);
+    //prepare hardware interface for new piece
+    hardware.setMode(Hardware.INSPECT);
 
 }//end of MainWindow::handlePieceTransition
 //-----------------------------------------------------------------------------
@@ -1491,17 +1505,17 @@ public String updatePrevMinWallDisplay()
 public boolean isConfigGoodA()
 {
 
-//verify the data folder paths
-if (!isConfigGoodB()) return(false);
+    //verify the data folder paths
+    if (!isConfigGoodB()) return(false);
 
-//verify the job name
-if (settings.currentJobName.equals("")){
-    displayErrorMessage("No job is selected."
-            + " Use File/New Job or File/Change Job to correct this error.");
-    return(false);
-    }
+    //verify the job name
+    if (settings.currentJobName.equals("")){
+        displayErrorMessage("No job is selected."
+              + " Use File/New Job or File/Change Job to correct this error.");
+        return(false);
+        }
 
-return(true);  //no configuration error
+    return(true);  //no configuration error
 
 }//end of MainWindow::isConfigGoodA
 //-----------------------------------------------------------------------------
@@ -1520,19 +1534,19 @@ return(true);  //no configuration error
 public boolean isConfigGoodB()
 {
 
-if (settings.primaryDataPath.equals("")){
-    displayErrorMessage("The root Primary or Backup Data Path is invalid."
-            + " Use Help/Set Up System to repair this error.");
-    return(false);
+    if (settings.primaryDataPath.equals("")){
+        displayErrorMessage("The root Primary or Backup Data Path is invalid."
+                + " Use Help/Set Up System to repair this error.");
+        return(false);
     }
 
-if (settings.backupDataPath.equals("")){
-    displayErrorMessage("The root Primary or Backup Data Path is invalid."
-            + " Use Help/Set Up System to repair this error.");
-    return(false);
+    if (settings.backupDataPath.equals("")){
+        displayErrorMessage("The root Primary or Backup Data Path is invalid."
+                + " Use Help/Set Up System to repair this error.");
+        return(false);
     }
 
-return(true);  //no configuration error
+    return(true);  //no configuration error
 
 }//end of MainWindow::isConfigGoodB
 //-----------------------------------------------------------------------------
@@ -1546,40 +1560,40 @@ return(true);  //no configuration error
 public void createNewJob()
 {
 
-//NOTE: save must be done BEFORE calling the dialog window else new changes
-//may be overwritten or written to the wrong directory as the dialog window
-//may save files or switch directories
+    //NOTE: save must be done BEFORE calling the dialog window else new changes
+    //may be overwritten or written to the wrong directory as the dialog window
+    //may save files or switch directories
 
-saveEverything(); //save all data
+    saveEverything(); //save all data
 
-NewJob newJob = new NewJob(mainFrame, settings.primaryDataPath,
+    NewJob newJob = new NewJob(mainFrame, settings.primaryDataPath,
                         settings.backupDataPath, xfer, settings.jobFileFormat);
-newJob.init();
+    newJob.init();
 
-//if the NewJob window set rBoolean1 true, switch to the new job
-if (xfer.rBoolean1){
+    //if the NewJob window set rBoolean1 true, switch to the new job
+    if (xfer.rBoolean1){
 
-    settings.currentJobName = xfer.rString1; //use the new job name
-    saveMainSettings(); //save the new current job name so it will be loaded
+        settings.currentJobName = xfer.rString1; //use the new job name
+        saveMainSettings(); //save the new current job name so it will be loaded
 
-    //update the data paths
-    settings.currentJobPrimaryPath =
-                    settings.primaryDataPath + settings.currentJobName + "/";
-    settings.currentJobBackupPath =
-                    settings.backupDataPath + settings.currentJobName + "/";
+        //update the data paths
+        settings.currentJobPrimaryPath =
+                     settings.primaryDataPath + settings.currentJobName + "/";
+        settings.currentJobBackupPath =
+                     settings.backupDataPath + settings.currentJobName + "/";
 
-    //save a copy of the job info to the new work order
-    jobInfo.prepareForNewJob(settings.currentJobPrimaryPath,
+        //save a copy of the job info to the new work order
+        jobInfo.prepareForNewJob(settings.currentJobPrimaryPath,
                        settings.currentJobBackupPath, settings.currentJobName);
 
-    //exit the program, passing true to instantiate a new program which will
-    //load the new job on startup - it is required to create a new
-    //program and kill the old one so that all of the configuration data for
-    //the job will be loaded properly
+        //exit the program, passing true to instantiate a new program which will
+        //load the new job on startup - it is required to create a new
+        //program and kill the old one so that all of the configuration data for
+        //the job will be loaded properly
 
-    exitProgram(false, true);
+        exitProgram(false, true);
 
-    }
+    }// if (xfer.rBoolean1)
 
 }//end of MainWindow::createNewJob
 //-----------------------------------------------------------------------------
@@ -1593,32 +1607,32 @@ if (xfer.rBoolean1){
 public void changeJob()
 {
 
-//NOTE: save must be done BEFORE calling the dialog window else new changes
-//may be overwritten or written to the wrong directory as the dialog window
-//may save files or switch directories
+    //NOTE: save must be done BEFORE calling the dialog window else new changes
+    //may be overwritten or written to the wrong directory as the dialog window
+    //may save files or switch directories
 
-saveEverything(); //save all data
+    saveEverything(); //save all data
 
-ChooseJob chooseJob = new ChooseJob(mainFrame, settings.primaryDataPath,
-                                               settings.backupDataPath, xfer);
+    ChooseJob chooseJob = new ChooseJob(mainFrame, settings.primaryDataPath,
+                                                 settings.backupDataPath, xfer);
 
- //does the actual choose job work -- info passed back via xfer object
-chooseJob.init();
+     //does the actual choose job work -- info passed back via xfer object
+    chooseJob.init();
 
-//if the ChooseJob window set rBoolean1 true, switch to the new job
-if (xfer.rBoolean1){
+    //if the ChooseJob window set rBoolean1 true, switch to the new job
+    if (xfer.rBoolean1){
 
-    settings.currentJobName = xfer.rString1; //use the new job name
-    saveMainSettings(); //save the new current job name so it will be loaded
+        settings.currentJobName = xfer.rString1; //use the new job name
+        saveMainSettings(); //save the new current job name so it will be loaded
 
-    //exit the program, passing true to instantiate a new program which will
-    //load the new work order on startup - it is required to create a new
-    //program and kill the old one so that all of the configuration data for
-    //the job will be loaded properly
+        //exit the program, passing true to instantiate a new program which will
+        //load the new work order on startup - it is required to create a new
+        //program and kill the old one so that all of the configuration data for
+        //the job will be loaded properly
 
-    exitProgram(false, true);
+        exitProgram(false, true);
 
-    }
+        }
 
 }//end of MainWindow::changeJob
 //-----------------------------------------------------------------------------
@@ -1635,29 +1649,29 @@ if (xfer.rBoolean1){
 public void copyPreset()
 {
 
-//NOTE: save must be done BEFORE calling the dialog window else new changes
-//may be overwritten or written to the wrong directory as the dialog window
-//may save files or switch directories
+    //NOTE: save must be done BEFORE calling the dialog window else new changes
+    //may be overwritten or written to the wrong directory as the dialog window
+    //may save files or switch directories
 
-saveEverything(); //save all data
+    saveEverything(); //save all data
 
-CopyPreset copyPreset = new CopyPreset(mainFrame, settings.primaryDataPath,
-                       settings.backupDataPath, xfer, settings.currentJobName);
+    CopyPreset copyPreset = new CopyPreset(mainFrame, settings.primaryDataPath,
+                        settings.backupDataPath, xfer, settings.currentJobName);
 
-copyPreset.init(); //initialize and to the actual work
+    copyPreset.init(); //initialize and to the actual work
 
-//if the ChooseJob window set rBoolean1 true, switch to the new preset
-if (xfer.rBoolean1){
+    //if the ChooseJob window set rBoolean1 true, switch to the new preset
+    if (xfer.rBoolean1){
 
-    //no need to save main settings - the selected preset will have been
-    //copied to the job folder so it will be loaded on restart
+        //no need to save main settings - the selected preset will have been
+        //copied to the job folder so it will be loaded on restart
 
-    //exit the program, passing true to instantiate a new program which will
-    //load the new work order on startup - it is required to create a new
-    //program and kill the old one so that all of the configuration data for
-    //the job will be loaded properly
+        //exit the program, passing true to instantiate a new program which will
+        //load the new work order on startup - it is required to create a new
+        //program and kill the old one so that all of the configuration data for
+        //the job will be loaded properly
 
-    exitProgram(false, true);
+        exitProgram(false, true);
 
     }
 
@@ -1676,31 +1690,31 @@ if (xfer.rBoolean1){
 public void changePreset()
 {
 
-//NOTE: save must be done BEFORE calling the dialog window else new changes
-//may be overwritten or written to the wrong directory as the dialog window
-//may save files or switch directories
+    //NOTE: save must be done BEFORE calling the dialog window else new changes
+    //may be overwritten or written to the wrong directory as the dialog window
+    //may save files or switch directories
 
-saveEverything(); //save all data
+    saveEverything(); //save all data
 
-LoadPreset loadPreset = new LoadPreset( mainFrame, settings.primaryDataPath,
-                       settings.backupDataPath, xfer, settings.currentJobName);
+    LoadPreset loadPreset = new LoadPreset( mainFrame, settings.primaryDataPath,
+                        settings.backupDataPath, xfer, settings.currentJobName);
 
-loadPreset.init(); //initialize and to the actual work
+    loadPreset.init(); //initialize and to the actual work
 
-//if the ChooseJob window set rBoolean1 true, switch to the new preset
-if (xfer.rBoolean1){
+    //if the ChooseJob window set rBoolean1 true, switch to the new preset
+    if (xfer.rBoolean1){
 
-    //no need to save main settings - the selected preset will have been
-    //copied to the job folder so it will be loaded on restart
+        //no need to save main settings - the selected preset will have been
+        //copied to the job folder so it will be loaded on restart
 
-    //exit the program, passing true to instantiate a new program which will
-    //load the new work order on startup - it is required to create a new
-    //program and kill the old one so that all of the configuration data for
-    //the job will be loaded properly
+        //exit the program, passing true to instantiate a new program which will
+        //load the new work order on startup - it is required to create a new
+        //program and kill the old one so that all of the configuration data for
+        //the job will be loaded properly
 
-    exitProgram(false, true);
+        exitProgram(false, true);
 
-    }
+        }
 
 }//end of MainWindow::changePreset
 //-----------------------------------------------------------------------------
@@ -1718,75 +1732,76 @@ if (xfer.rBoolean1){
 public void setupSystem()
 {
 
-int n = JOptionPane.showConfirmDialog( mainFrame,
-    "This feature should only be used by a technician -"
-      + " do you want to continue?",
-    "Warning", JOptionPane.YES_NO_OPTION);
+    int n = JOptionPane.showConfirmDialog( mainFrame,
+        "This feature should only be used by a technician -"
+          + " do you want to continue?",
+        "Warning", JOptionPane.YES_NO_OPTION);
 
-if (n != JOptionPane.YES_OPTION) return; //bail out if user does not click yes
+    //bail out if user does not click yes
+    if (n != JOptionPane.YES_OPTION) return;
 
-//create and display a file chooser
-final JFileChooser fc = new JFileChooser();
-fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-int returnVal = fc.showOpenDialog(mainFrame);
+    //create and display a file chooser
+    final JFileChooser fc = new JFileChooser();
+    fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+    int returnVal = fc.showOpenDialog(mainFrame);
 
-if (returnVal != JFileChooser.APPROVE_OPTION){
-    displayWarningMessage("Setup cancelled - nothing done.");
-    return;
+    if (returnVal != JFileChooser.APPROVE_OPTION){
+        displayWarningMessage("Setup cancelled - nothing done.");
+        return;
     }
 
-//selected file will actually be the selected directory because mode is
-//JFileChooser.DIRECTORIES_ONLY
-String targetDir = fc.getSelectedFile().toString();
+    //selected file will actually be the selected directory because mode is
+    //JFileChooser.DIRECTORIES_ONLY
+    String targetDir = fc.getSelectedFile().toString();
 
-//Users often get confused and try to create the data folders when they already
-//exist - they often click on one of the existing folders in the browser
-//window which would cause a new set of folders to be installed in the
-//existing folder, which makes things confusing.  To avoid this, check to see
-//if one of the folder names is part of the selected folder and truncate the
-//selected folder so that the parent folder is used instead.
+    //Users often get confused and try to create the data folders when they already
+    //exist - they often click on one of the existing folders in the browser
+    //window which would cause a new set of folders to be installed in the
+    //existing folder, which makes things confusing.  To avoid this, check to see
+    //if one of the folder names is part of the selected folder and truncate the
+    //selected folder so that the parent folder is used instead.
 
-int p = -1;
+    int p = -1;
 
-if ((p = targetDir.indexOf(settings.primaryFolderName)) != -1){
-    //chop off all after the offending directory
-    targetDir = targetDir.substring(0, p);
+    if ((p = targetDir.indexOf(settings.primaryFolderName)) != -1){
+        //chop off all after the offending directory
+        targetDir = targetDir.substring(0, p);
     }
 
-if ((p = targetDir.indexOf(settings.backupFolderName)) != -1){
-    //chop off all after the offending directory
-    targetDir = targetDir.substring(0, p);
+    if ((p = targetDir.indexOf(settings.backupFolderName)) != -1){
+        //chop off all after the offending directory
+        targetDir = targetDir.substring(0, p);
     }
 
-//add a separator if not one already at the end
-if (!targetDir.endsWith(File.separator)) targetDir += File.separator;
+    //add a separator if not one already at the end
+    if (!targetDir.endsWith(File.separator)) targetDir += File.separator;
 
-//create the primary data directory
-//note the extra space before "Primary" in the path name - this forces the
-//primary to be listed first alphabetically when viewed in a file navigator
-File primaryDir = new File (targetDir + settings.primaryFolderName);
-if (!primaryDir.exists() && !primaryDir.mkdirs()){
-    displayErrorMessage("Could not create the primary data directory -"
-            + " no directories created.");
-    return;
+    //create the primary data directory
+    //note the extra space before "Primary" in the path name - this forces the
+    //primary to be listed first alphabetically when viewed in a file navigator
+    File primaryDir = new File (targetDir + settings.primaryFolderName);
+    if (!primaryDir.exists() && !primaryDir.mkdirs()){
+        displayErrorMessage("Could not create the primary data directory -"
+                + " no directories created.");
+        return;
     }
 
-//create the backup data directory
-File backupDir = new File (targetDir + settings.backupFolderName);
-if (!backupDir.exists() && !backupDir.mkdirs()){
-    displayErrorMessage("Could not create the backup data directory -"
-            + " only the primary directory was created.");
-    return;
+    //create the backup data directory
+    File backupDir = new File (targetDir + settings.backupFolderName);
+    if (!backupDir.exists() && !backupDir.mkdirs()){
+        displayErrorMessage("Could not create the backup data directory -"
+                + " only the primary directory was created.");
+        return;
     }
 
-//only save the new paths to the Main Static Settings.ini file if both folders
-//were successfully created or already existed
-//toString will return paths with / or \ separators depending on the system the
-//software is installed on - apply a separator the to end as well
-settings.primaryDataPath = primaryDir.toString() + File.separator;
-settings.backupDataPath = backupDir.toString() + File.separator;
+    //only save the new paths to the Main Static Settings.ini file if both
+    //folders were successfully created or already existed
+    //toString will return paths with / or \ separators depending on the system
+    //the software is installed on - apply a separator the to end as well
+    settings.primaryDataPath = primaryDir.toString() + File.separator;
+    settings.backupDataPath = backupDir.toString() + File.separator;
 
-saveMainStaticSettings();
+    saveMainStaticSettings();
 
 }//end of MainWindow::setupSystem
 //-----------------------------------------------------------------------------
@@ -1800,66 +1815,66 @@ saveMainStaticSettings();
 public void displayCalWindow(String pActionCommand)
 {
 
-// the index number of the chart group and the chart which initiated the cal
-// window display is appended to the action command - parse them to integers
+    // the index number of the chart group and the chart which initiated the cal
+    // window display is appended to the action command - parse them to integers
 
-int invokingChartGroupIndex =
-   Integer.valueOf( pActionCommand.substring(pActionCommand.indexOf('~')+1,
-                                              pActionCommand.lastIndexOf('~')));
+    int invokingChartGroupIndex =
+       Integer.valueOf( pActionCommand.substring(pActionCommand.indexOf('~')+1,
+                                             pActionCommand.lastIndexOf('~')));
 
-int invokingChartIndex =
-   Integer.valueOf(pActionCommand.substring(pActionCommand.lastIndexOf('~')+1));
+    int invokingChartIndex = Integer.valueOf(
+                 pActionCommand.substring(pActionCommand.lastIndexOf('~')+1));
 
-//clear out the list of channels assigned to the chart
-for (int i = 0; i < numberOfChannels; i++) calChannels[i] = null;
+    //clear out the list of channels assigned to the chart
+    for (int i = 0; i < numberOfChannels; i++) calChannels[i] = null;
 
-//For UT, clicking either trace labeled ID or OD brings up all channels
-//for the chart regardless of trace - this is because ID/OD is tied to all
-//traces.  In the future, perhaps add switch for other types of systems so
-//that clicking on one trace only brings up the channels tied to that trace.
+    //For UT, clicking either trace labeled ID or OD brings up all channels
+    //for the chart regardless of trace - this is because ID/OD is tied to all
+    //traces.  In the future, perhaps add switch for other types of systems so
+    //that clicking on one trace only brings up the channels tied to that trace.
 
-//used to calculate number of channels tied to the invoking chart
-int i = 0, numberOfChartChannels = 0;
+    //used to calculate number of channels tied to the invoking chart
+    int i = 0, numberOfChartChannels = 0;
 
-//scan through all channels and their gates, processing data from any that
-//match the current graph and trace number - see note above for future mods
-//to match the trace number also for non-UT systems
+    //scan through all channels and their gates, processing data from any that
+    //match the current graph and trace number - see note above for future mods
+    //to match the trace number also for non-UT systems
 
-int numberOfGates;
+    int numberOfGates;
 
-for (int ch = 0; ch < numberOfChannels; ch++){
+    for (int ch = 0; ch < numberOfChannels; ch++){
 
-    //each channel gets a assigned a screen control by the UTCalibrator
-    //object -- clear any previous settings out
-    hardware.getChannels()[ch].calRadioButton = null;
+        //each channel gets a assigned a screen control by the UTCalibrator
+        //object -- clear any previous settings out
+        hardware.getChannels()[ch].calRadioButton = null;
 
-    //get the number of gates for the currently selected channel
-    numberOfGates = hardware.getNumberOfGates(ch);
+        //get the number of gates for the currently selected channel
+        numberOfGates = hardware.getNumberOfGates(ch);
 
-    for (int g = 0; g < numberOfGates; g++){
+        for (int g = 0; g < numberOfGates; g++){
 
-        //store a reference to each channel with a gate which is tied to the
-        //invoking chart group and chart and count the number of matches
-        //multiple gates for a single channel may be tied to the same trace,
-        //so break to the next channel when the first gate matches so the
-        //channel is not added more than once
+            //store a reference to each channel with a gate which is tied to the
+            //invoking chart group and chart and count the number of matches
+            //multiple gates for a single channel may be tied to the same trace,
+            //so break to the next channel when the first gate matches so the
+            //channel is not added more than once
 
-        if (hardware.getGate(ch, g).chartGroup == invokingChartGroupIndex &&
-                    hardware.getGate(ch, g).chart == invokingChartIndex){
-            calChannels[i++] = hardware.getChannels()[ch];
-            break;
+            if (hardware.getGate(ch, g).chartGroup == invokingChartGroupIndex &&
+                        hardware.getGate(ch, g).chart == invokingChartIndex){
+                calChannels[i++] = hardware.getChannels()[ch];
+                break;
             }
         }//for (int g = 0;...
     }//for (int ch = 0;...
 
-numberOfChartChannels = i; //this is the number of matching channels found
+    numberOfChartChannels = i; //this is the number of matching channels found
 
-calWindow.setChannels(numberOfChartChannels, calChannels,
-        settings.chartGroups
-            [invokingChartGroupIndex].getStripChart(invokingChartIndex),
-            numberOfChannels, hardware.getChannels());
+    calWindow.setChannels(numberOfChartChannels, calChannels,
+            settings.chartGroups
+                [invokingChartGroupIndex].getStripChart(invokingChartIndex),
+                numberOfChannels, hardware.getChannels());
 
-calWindow.setVisible(true);
+    calWindow.setVisible(true);
 
 }//end of MainWindow::displayCalWindow
 //-----------------------------------------------------------------------------
@@ -1874,93 +1889,90 @@ calWindow.setVisible(true);
 public void processMainTimerEvent()
 {
 
-if (settings.beginExitProgram){
-    //shut down hardware, clean up, save data
-    //will also set beginExitProgram false and exitProgram true so this
-    //will only get called once
-    prepareToExitProgram(settings.saveOnExit);
-    return;
+    if (settings.beginExitProgram){
+        //shut down hardware, clean up, save data
+        //will also set beginExitProgram false and exitProgram true so this
+        //will only get called once
+        prepareToExitProgram(settings.saveOnExit);
+        return;
     }
 
-//After the beginExitProgram has been called, exitProgram will be true.  Monitor
-//the pointer fileSaver - if it is not null then data is still being saved.
-//When it goes null, saving is finished and the program can be shut down.
-//Must stop the timer or it will call again during the destruction of objects
-//it accesses.
+    //After the beginExitProgram has been called, exitProgram will be true.  Monitor
+    //the pointer fileSaver - if it is not null then data is still being saved.
+    //When it goes null, saving is finished and the program can be shut down.
+    //Must stop the timer or it will call again during the destruction of objects
+    //it accesses.
 
-if (settings.exitProgram) {
+    if (settings.exitProgram) {
 
-    if (settings.fileSaver != null) return; //wait until saving is done
+        if (settings.fileSaver != null) return; //wait until saving is done
 
-    //stop calling this timer during shutdown
-    mainTimer.stop();
+        //stop calling this timer during shutdown
+        mainTimer.stop();
 
-    //disposing of the frame will exit the program
-    mainFrame.setVisible(false);
-    mainFrame.dispose();
+        //disposing of the frame will exit the program
+        mainFrame.setVisible(false);
+        mainFrame.dispose();
 
-    //to get the program to cleanly exit while debugging in the IDE, must
-    //use System.exit(0) - this may cause an exception if the program is
-    //used as an Applet, so may want to test if program is an Applet and
-    //skip this step in that case
+        //to get the program to cleanly exit while debugging in the IDE, must
+        //use System.exit(0) - this may cause an exception if the program is
+        //used as an Applet, so may want to test if program is an Applet and
+        //skip this step in that case
 
-    MainWindow mainWindow;
+        MainWindow mainWindow;
 
-    //if a restart was requested, make a new main frame and start over
-    if (settings.restartProgram)
-        mainWindow = new MainWindow();
+        //if a restart was requested, make a new main frame and start over
+        if (settings.restartProgram)
+            mainWindow = new MainWindow();
+        else
+            System.exit(0);
+
+    }
+
+    //if the hardware interface has received an end of piece signal, save the
+    //finished piece and prepare for the next one
+    if (hardware.prepareForNewPiece){
+        hardware.prepareForNewPiece = false;
+        handlePieceTransition();
+    }
+
+    //plot data on the graphs - if no data is being collected by the hardware
+    //because it is not in scan or inspect mode, then nothing will be plotted
+    doScan();
+
+    //allow the Capulin1 interface to handle necessary tasks
+    hardware.doTasks();
+
+    //if in monitor mode, retrieve I/O status info from Capulin1
+    if (monitorWindow.isVisible()) {
+            monitorMode = true;
+            byte[] monitorBuffer = hardware.getMonitorPacket(true);
+            monitorWindow.updateStatus(monitorBuffer);
+    }
     else
-        System.exit(0);
-
-    }
-
-//if the hardware interface has received an end of piece signal, save the
-//finished piece and prepare for the next one
-if (hardware.prepareForNewPiece){
-    hardware.prepareForNewPiece = false;
-    handlePieceTransition();
-    }
-
-//plot data on the graphs - if no data is being collected by the hardware
-//because it is not in scan or inspect mode, then nothing will be plotted
-doScan();
-
-//allow the Capulin1 interface to handle necessary tasks
-hardware.doTasks();
-
-//if in monitor mode, retrieve I/O status info from Capulin1
-if (monitorWindow.isVisible()) {
-        monitorMode = true;
-        byte[] monitorBuffer = hardware.getMonitorPacket(true);
-        monitorWindow.updateStatus(monitorBuffer);
-}
-else
     if (monitorMode){ //if in monitor mode and window closes, exit the mode
         monitorMode = false;
         hardware.stopMonitor();
-}
+    }
 
+    //if the cal window is opened, allow it to update it's display with the latest
+    //A-Scan from the currently selected channel
+    if (calWindow.isVisible()){
+        //the channel index in the UTCalibrator object only relates to the list of
+        //channels currently being handled by the UTCalibrator - use the channel's
+        //actual channelIndex number stored in the channel object itself for
+        //retrieving data
 
-//if the cal window is opened, allow it to update it's display with the latest
-//A-Scan from the currently selected channel
-if (calWindow.isVisible()){
-    //the channel index in the UTCalibrator object only relates to the list of
-    //channels currently being handled by the UTCalibrator - use the channel's
-    //actual channelIndex number stored in the channel object itself for
-    //retrieving data
+        if (calWindow.channels[calWindow.currentChannelIndex] != null){
 
-    if (calWindow.channels[calWindow.currentChannelIndex] != null){
+            aScan = hardware.getAScan(
+                calWindow.channels[calWindow.currentChannelIndex].channelIndex);
 
-        aScan = hardware.getAScan(
-            calWindow.channels[calWindow.currentChannelIndex].channelIndex);
-
-        if (aScan != null)
-            calWindow.displayData(aScan.range, aScan.interfaceCrossingPosition,
-                                                                aScan.buffer);
+            if (aScan != null)
+                calWindow.displayData(aScan.range,
+                        aScan.interfaceCrossingPosition, aScan.buffer);
         }
-
     }// if (calWindow.isVisible())
-
 
     //hide the flag report dialog if need be
     if (printFlagReportDialog != null
@@ -1983,8 +1995,8 @@ if (calWindow.isVisible()){
 public void doScan()
 {
 
-for (int i = 0; i < settings.numberOfChartGroups; i++)
-    settings.chartGroups[i].plotData();
+    for (int i = 0; i < settings.numberOfChartGroups; i++)
+        settings.chartGroups[i].plotData();
 
 }//end of MainWindow::doScan
 //-----------------------------------------------------------------------------
@@ -2006,8 +2018,8 @@ for (int i = 0; i < settings.numberOfChartGroups; i++)
 public void stateChanged(ChangeEvent e)
 {
 
-//copy values and states of all display controls to the Global variable set
-updateAllSettings();
+    //copy values and states of all display controls to the Global variable set
+    updateAllSettings();
 
 }//end of MainWindow::stateChanged
 //-----------------------------------------------------------------------------
@@ -2025,8 +2037,8 @@ updateAllSettings();
 public void insertUpdate(DocumentEvent ev)
 {
 
-//copy values and states of all display controls to the Global variable set
-updateAllSettings();
+    //copy values and states of all display controls to the Global variable set
+    updateAllSettings();
 
 }//end of MainWindow::insertUpdate
 //-----------------------------------------------------------------------------
@@ -2044,8 +2056,8 @@ updateAllSettings();
 public void removeUpdate(DocumentEvent ev)
 {
 
-//copy values and states of all display controls to the Global variable set
-updateAllSettings();
+    //copy values and states of all display controls to the Global variable set
+    updateAllSettings();
 
 }//end of MainWindow::removeUpdate
 //-----------------------------------------------------------------------------
@@ -2061,8 +2073,8 @@ updateAllSettings();
 public void changedUpdate(DocumentEvent ev)
 {
 
-//copy values and states of all display controls to the Global variable set
-updateAllSettings();
+    //copy values and states of all display controls to the Global variable set
+    updateAllSettings();
 
 }//end of MainWindow::changedUpdate
 //-----------------------------------------------------------------------------
@@ -2080,11 +2092,11 @@ updateAllSettings();
 public void updateAllSettings()
 {
 
-//settings.scanXDistance = scanXDistance.getDoubleValue();
-//settings.transducerInfo.serialNumber = transducerSN.getText();
+    //settings.scanXDistance = scanXDistance.getDoubleValue();
+    //settings.transducerInfo.serialNumber = transducerSN.getText();
 
-//flag that settings have been modified
-settings.setOptionsModifiedFlag(true);
+    //flag that settings have been modified
+    settings.setOptionsModifiedFlag(true);
 
 }//end of MainWindow::updateAllSettings
 //-----------------------------------------------------------------------------
@@ -2100,15 +2112,15 @@ settings.setOptionsModifiedFlag(true);
 public void changeLanguage(String pLanguage)
 {
 
-//update text directly controlled by this object
-loadLanguage(pLanguage);
+    //update text directly controlled by this object
+    loadLanguage(pLanguage);
 
-//force all other objects to update their text displays
+    //force all other objects to update their text displays
 
-mainMenu.loadLanguage(pLanguage);
+    mainMenu.loadLanguage(pLanguage);
 
-//force all components to repaint to make sure the text is updated
-mainFrame.getContentPane().repaint();
+    //force all components to repaint to make sure the text is updated
+    mainFrame.getContentPane().repaint();
 
 }//end of MainWindow::changeLanguage
 //-----------------------------------------------------------------------------
@@ -2127,17 +2139,19 @@ mainFrame.getContentPane().repaint();
 private void loadLanguage(String pLanguage)
 {
 
-language = pLanguage;
+    language = pLanguage;
 
-IniFile ini = null;
+    IniFile ini = null;
 
-//if the ini file cannot be opened and loaded, exit without action
-try {ini = new IniFile(
-        "language\\Main Window - Capulin UT.language", Settings.mainFileFormat);}
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 2138");
-    return;
-}
+    //if the ini file cannot be opened and loaded, exit without action
+    try {
+        ini = new IniFile(
+       "language\\Main Window - Capulin UT.language", Settings.mainFileFormat);
+    }
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 2138");
+        return;
+    }
 
 }//end of MainWindow::loadLanguage
 //-----------------------------------------------------------------------------
@@ -2159,18 +2173,18 @@ catch(IOException e){
 public void prepareToExitProgram(boolean pSave)
 {
 
-//stop the timer from calling this program repeatedly until close
-settings.beginExitProgram = false;
-//signal timer to watch for time to exit
-settings.exitProgram = true;
+    //stop the timer from calling this program repeatedly until close
+    settings.beginExitProgram = false;
+    //signal timer to watch for time to exit
+    settings.exitProgram = true;
 
-//turn off all hardware functions
-hardware.shutDown();
+    //turn off all hardware functions
+    hardware.shutDown();
 
-//if flag is true, save all data
-//the timer function should monitor conditions to make sure save is completed
-//before exiting since the save is handled by a separate thread
-if (pSave) saveEverything();
+    //if flag is true, save all data
+    //the timer function should monitor conditions to make sure save is
+    //completed before exiting since the save is handled by a separate thread
+    if (pSave) saveEverything();
 
 }//end of MainWindow::prepareToExitProgram
 //-----------------------------------------------------------------------------
@@ -2191,12 +2205,12 @@ if (pSave) saveEverything();
 public void exitProgram(boolean pSave, boolean pRestart)
 {
 
-//signal timer to begin shut down process
-settings.beginExitProgram = true;
-//signal timer to save data or not
-settings.saveOnExit = pSave;
-//signal timer to restart the program or not
-settings.restartProgram = pRestart;
+    //signal timer to begin shut down process
+    settings.beginExitProgram = true;
+    //signal timer to save data or not
+    settings.saveOnExit = pSave;
+    //signal timer to restart the program or not
+    settings.restartProgram = pRestart;
 
 }//end of MainWindow::exitProgram
 //-----------------------------------------------------------------------------
@@ -2221,7 +2235,7 @@ settings.restartProgram = pRestart;
 public void windowClosing(WindowEvent e)
 {
 
-exitProgram(true, false);
+    exitProgram(true, false);
 
 }//end of MainWindow::windowClosing
 //-----------------------------------------------------------------------------
@@ -2276,10 +2290,10 @@ public void windowDeactivated(WindowEvent e){}
 public void componentResized(ComponentEvent e)
 {
 
-//pack the window back to its smallest size again, effectively preventing
-//the resize attempt
+    //pack the window back to its smallest size again, effectively preventing
+    //the resize attempt
 
-mainFrame.pack();
+    mainFrame.pack();
 
 }//end of MainWindow::componentResized
 //-----------------------------------------------------------------------------
@@ -2293,7 +2307,7 @@ mainFrame.pack();
 private void displayErrorMessage(String pMessage)
 {
 
-JOptionPane.showMessageDialog(mainFrame, pMessage,
+    JOptionPane.showMessageDialog(mainFrame, pMessage,
                                             "Error", JOptionPane.ERROR_MESSAGE);
 
 }//end of MainWindow::displayErrorMessage
@@ -2308,7 +2322,7 @@ JOptionPane.showMessageDialog(mainFrame, pMessage,
 private void displayInfoMessage(String pMessage)
 {
 
-JOptionPane.showMessageDialog(mainFrame, pMessage,
+    JOptionPane.showMessageDialog(mainFrame, pMessage,
                                        "Info", JOptionPane.INFORMATION_MESSAGE);
 
 }//end of MainWindow::displayInfoMessage
@@ -2323,7 +2337,7 @@ JOptionPane.showMessageDialog(mainFrame, pMessage,
 private void displayWarningMessage(String pMessage)
 {
 
-JOptionPane.showMessageDialog(mainFrame, pMessage,
+    JOptionPane.showMessageDialog(mainFrame, pMessage,
                                        "Warning", JOptionPane.WARNING_MESSAGE);
 
 }//end of MainWindow::displayWarningMessage
@@ -2373,8 +2387,8 @@ public class Main{
 private static void createAndShowGUI()
 {
 
-//instantiate an object to create and handle the main window JFrame
-MainWindow mainWindow = new MainWindow();
+    //instantiate an object to create and handle the main window JFrame
+    MainWindow mainWindow = new MainWindow();
 
 }//end of Main::createAndShowGUI
 //-----------------------------------------------------------------------------
@@ -2386,13 +2400,13 @@ MainWindow mainWindow = new MainWindow();
 public static void main(String[] args)
 {
 
-//Schedule a job for the event-dispatching thread:
-//creating and showing this application's GUI.
+    //Schedule a job for the event-dispatching thread:
+    //creating and showing this application's GUI.
 
-javax.swing.SwingUtilities.invokeLater(
-        new Runnable() {
-            @Override
-            public void run() { createAndShowGUI(); } });
+    javax.swing.SwingUtilities.invokeLater(
+            new Runnable() {
+                @Override
+                public void run() { createAndShowGUI(); } });
 
 }//end of Main::main
 //-----------------------------------------------------------------------------

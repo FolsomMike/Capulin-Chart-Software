@@ -32,7 +32,7 @@ import chart.mksystems.settings.Settings;
 
 class About extends JDialog{
 
-public JTextArea textArea;
+    public JTextArea textArea;
 
 //-----------------------------------------------------------------------------
 // About::About (constructor)
@@ -42,25 +42,25 @@ public JTextArea textArea;
 public About(JFrame frame)
 {
 
-super(frame, "About");
+    super(frame, "About");
 
-int panelWidth = 300;
-int panelHeight = 500;
+    int panelWidth = 300;
+    int panelHeight = 500;
 
-setMinimumSize(new Dimension(panelWidth, panelHeight));
-setPreferredSize(new Dimension(panelWidth, panelHeight));
-setMaximumSize(new Dimension(panelWidth, panelHeight));
+    setMinimumSize(new Dimension(panelWidth, panelHeight));
+    setPreferredSize(new Dimension(panelWidth, panelHeight));
+    setMaximumSize(new Dimension(panelWidth, panelHeight));
 
-textArea = new JTextArea();
+    textArea = new JTextArea();
 
-add(textArea);
+    add(textArea);
 
-textArea.append("Software Version: " + Settings.SOFTWARE_VERSION + "\n");
+    textArea.append("Software Version: " + Settings.SOFTWARE_VERSION + "\n");
 
-textArea.append("\n");
-textArea.append("Author: Mike Schoonover" + "\n");
+    textArea.append("\n");
+    textArea.append("Author: Mike Schoonover" + "\n");
 
-setVisible(true);
+    setVisible(true);
 
 }//end of About::About (constructor)
 //-----------------------------------------------------------------------------

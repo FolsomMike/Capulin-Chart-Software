@@ -48,191 +48,191 @@ import chart.mksystems.hardware.Hardware;
 
 public class Settings extends Object implements ActionListener, ItemListener {
 
-public JFrame mainFrame;
+    public JFrame mainFrame;
 
-public Hardware hardware;
+    public Hardware hardware;
 
-public String language;
+    public String language;
 
-ActionListener actionListener;
+    ActionListener actionListener;
 
-private boolean optionsModified, utSettingsModified;
+    private boolean optionsModified, utSettingsModified;
 
-public boolean scanDataModified = false;
+    public boolean scanDataModified = false;
 
-Link mainWindow;
+    Link mainWindow;
 
-public int mainWindowLocationX = 0;
-public int mainWindowLocationY = 0;
+    public int mainWindowLocationX = 0;
+    public int mainWindowLocationY = 0;
 
-public int utCalWindowLocationX = 0;
-public int utCalWindowLocationY = 0;
+    public int utCalWindowLocationX = 0;
+    public int utCalWindowLocationY = 0;
 
-public int numberOfChartGroups;
-public ChartGroup[] chartGroups;
+    public int numberOfChartGroups;
+    public ChartGroup[] chartGroups;
 
-public CalFileSaver fileSaver = null;
+    public CalFileSaver fileSaver = null;
 
-//Constants
+    //Constants
 
-public static String SOFTWARE_VERSION = "1.95";
+    public static String SOFTWARE_VERSION = "1.95";
 
-//This is the version of the format used to save the data for a segment which
-//holds data for an inspected piece.
-//version 1.0 saved with the "Threshold" tag misspelled as "Theshold"
-public static String SEGMENT_DATA_VERSION = "1.1";
+    //This is the version of the format used to save the data for a segment which
+    //holds data for an inspected piece.
+    //version 1.0 saved with the "Threshold" tag misspelled as "Theshold"
+    public static String SEGMENT_DATA_VERSION = "1.1";
 
-//This is the format used for non-job files such as those in the root
-//program folder, presets, config files, etc. -- older files were in UTF-16LE
-//format, new ones in UTF-8.  The UTF-16LE files are now converted to UTF-8
-//automatically if they are found on program start up.
+    //This is the format used for non-job files such as those in the root
+    //program folder, presets, config files, etc. -- older files were in UTF-16LE
+    //format, new ones in UTF-8.  The UTF-16LE files are now converted to UTF-8
+    //automatically if they are found on program start up.
 
-public static String mainFileFormat = "UTF-8";
+    public static String mainFileFormat = "UTF-8";
 
-public String currentJobName;
-public String currentJobPrimaryPath, currentJobBackupPath, reportsPath;
-public String primaryDataPath;
-public String backupDataPath;
+    public String currentJobName;
+    public String currentJobPrimaryPath, currentJobBackupPath, reportsPath;
+    public String primaryDataPath;
+    public String backupDataPath;
 
-//this is the format used for files stored in the job folder
-//old jobs used UTF-16LE format, newer ones use UTF-8
-//the format used is specified in the newer files, defaults to UTF-16LE for
-//older jobs
+    //this is the format used for files stored in the job folder
+    //old jobs used UTF-16LE format, newer ones use UTF-8
+    //the format used is specified in the newer files, defaults to UTF-16LE for
+    //older jobs
 
-public String jobFileFormat = "UTF-16LE";
+    public String jobFileFormat = "UTF-16LE";
 
-//set this to equal the number of UT channels - each channel's values will be
-//saved with an identifying number
-public static int NUMBER_OF_UT_CHANNELS = 100; //debug mks - read this value from config file?
+    //set this to equal the number of UT channels - each channel's values will be
+    //saved with an identifying number
+    public static int NUMBER_OF_UT_CHANNELS = 100; //debug mks - read this value from config file?
 
-public static int INCHES = 0, MM = 1;
+    public static int INCHES = 0, MM = 1;
 
-public static int LECOEUR = 0, ULTRATEK = 1, SOFRATEST = 2;
+    public static int LECOEUR = 0, ULTRATEK = 1, SOFRATEST = 2;
 
-//wip mks - these phrases need to be loaded from config file
-//the phrase used to describe the thing being inspected, i.e.
-// "joint", "tube", "plate", "bar", "billet", etc.
-public String pieceDescription = "Joint";
-//lower case of the above
-public String pieceDescriptionLC = "joint";
-//lower case of the above
-public String pieceDescriptionPlural = "Joints";
-//lower case of the above
-public String pieceDescriptionPluralLC = "joints";
+    //wip mks - these phrases need to be loaded from config file
+    //the phrase used to describe the thing being inspected, i.e.
+    // "joint", "tube", "plate", "bar", "billet", etc.
+    public String pieceDescription = "Joint";
+    //lower case of the above
+    public String pieceDescriptionLC = "joint";
+    //lower case of the above
+    public String pieceDescriptionPlural = "Joints";
+    //lower case of the above
+    public String pieceDescriptionPluralLC = "joints";
 
-String[] colorNamesArray = {
-    "WHITE",
-    "LIGHT_GRAY",
-    "GRAY",
-    "DARK_GRAY",
-    "BLACK",
-    "RED",
-    "PINK",
-    "ORANGE",
-    "YELLOW",
-    "GREEN",
-    "MAGENTA",
-    "CYAN",
-    "BLUE"
-    };
+    String[] colorNamesArray = {
+        "WHITE",
+        "LIGHT_GRAY",
+        "GRAY",
+        "DARK_GRAY",
+        "BLACK",
+        "RED",
+        "PINK",
+        "ORANGE",
+        "YELLOW",
+        "GREEN",
+        "MAGENTA",
+        "CYAN",
+        "BLUE"
+        };
 
-Color[] colorArray = {
-    Color.WHITE,
-    Color.LIGHT_GRAY,
-    Color.GRAY,
-    Color.DARK_GRAY,
-    Color.BLACK,
-    Color.RED,
-    Color.PINK,
-    Color.ORANGE,
-    Color.YELLOW,
-    Color.GREEN,
-    Color.MAGENTA,
-    Color.CYAN,
-    Color.BLUE
-    };
+    Color[] colorArray = {
+        Color.WHITE,
+        Color.LIGHT_GRAY,
+        Color.GRAY,
+        Color.DARK_GRAY,
+        Color.BLACK,
+        Color.RED,
+        Color.PINK,
+        Color.ORANGE,
+        Color.YELLOW,
+        Color.GREEN,
+        Color.MAGENTA,
+        Color.CYAN,
+        Color.BLUE
+        };
 
-//end of Constants
+    //end of Constants
 
-//miscellaneous variables
+    //miscellaneous variables
 
-public boolean beginExitProgram = false;
-public boolean exitProgram = false;
-public boolean restartProgram = false;
-public boolean saveOnExit = false;
+    public boolean beginExitProgram = false;
+    public boolean exitProgram = false;
+    public boolean restartProgram = false;
+    public boolean saveOnExit = false;
 
-//if true, program will simulate data for debugging, training and demo
-//replaced by simulateMechanical, simulateUT, etc?
-public boolean simulationMode = false;
-public boolean simulateMechanical = false;
-public boolean timerDrivenTracking = false;
+    //if true, program will simulate data for debugging, training and demo
+    //replaced by simulateMechanical, simulateUT, etc?
+    public boolean simulationMode = false;
+    public boolean simulateMechanical = false;
+    public boolean timerDrivenTracking = false;
 
-public boolean restartNewPieceAtLeftEdge = true;
-public boolean showRedPeakLineInGateCenter = false;
-public boolean showRedPeakLineAtPeakLocation = false;
-public boolean showPseudoPeakAtPeakLocation = true;
+    public boolean restartNewPieceAtLeftEdge = true;
+    public boolean showRedPeakLineInGateCenter = false;
+    public boolean showRedPeakLineAtPeakLocation = false;
+    public boolean showPseudoPeakAtPeakLocation = true;
 
-public boolean reportAllFlags = false;
+    public boolean reportAllFlags = false;
 
-public int scanSpeed;
+    public int scanSpeed;
 
-public String graphPrintLayout;
-public String userPrintMagnify;
+    public String graphPrintLayout;
+    public String userPrintMagnify;
 
-public int printResolutionX, printResolutionY;
-public String printQuality;
+    public int printResolutionX, printResolutionY;
+    public String printQuality;
 
-public boolean inMeasureMode = false;
+    public boolean inMeasureMode = false;
 
-public double scanXDistance;
-public double scanYDistance;
+    public double scanXDistance;
+    public double scanYDistance;
 
-//maximum size allowed for profile scan - this is determined by the size of
-//the plot window, the step size, and allowable scaling.
-public double maxXScan, maxYScan;
+    //maximum size allowed for profile scan - this is determined by the size of
+    //the plot window, the step size, and allowable scaling.
+    public double maxXScan, maxYScan;
 
-//set true if currently performing a scan
-public boolean isScanning = false;
+    //set true if currently performing a scan
+    public boolean isScanning = false;
 
-//these variables are used to find or create the root data folders
-public String primaryFolderName = "";
-public String backupFolderName =  "";
+    //these variables are used to find or create the root data folders
+    public String primaryFolderName = "";
+    public String backupFolderName =  "";
 
-//function of the "Copy to All" button on the A-Scan calibration windows
-// 0: copies currently selected channel to all other channels for the currently
-//      selected chart
-// 1: copies currently selected channel to all other channels for all charts
-public int copyToAllMode;
+    //function of the "Copy to All" button on the A-Scan calibration windows
+    // 0: copies currently selected channel to all other channels for the currently
+    //      selected chart
+    // 1: copies currently selected channel to all other channels for all charts
+    public int copyToAllMode;
 
-public boolean printMode = false;
+    public boolean printMode = false;
 
-public ArrayList<String> configInfo;
+    public ArrayList<String> configInfo;
 
 //-----------------------------------------------------------------------------
 // Settings::Settings (constructor)
 //
 // Parameter pMainWindow provides a connection back to the MainWindow which
-// implements interface Link.  This allows the Settings objects to call functions
-// in MainWindow objects.
+// implements interface Link.  This allows the Settings objects to call
+// functions in MainWindow objects.
 //
 
 public Settings(Link pMainWindow, ActionListener pActionListener)
 {
 
-//store parameters in persistent variables
+    //store parameters in persistent variables
 
-mainWindow = pMainWindow; actionListener = pActionListener;
+    mainWindow = pMainWindow; actionListener = pActionListener;
 
-optionsModified = false; //no options modified yet
-utSettingsModified = false; //no settings modified yet
+    optionsModified = false; //no options modified yet
+    utSettingsModified = false; //no settings modified yet
 
-//language defaults to English if options.ini file cannot be found
-language = "English";
+    //language defaults to English if options.ini file cannot be found
+    language = "English";
 
-loadOptions(); //read option settings from ini file
+    loadOptions(); //read option settings from ini file
 
-//load the appropriate language text
-//loadLanguage();
+    //load the appropriate language text
+    //loadLanguage();
 
 }//end of Settings::Settings (constructor)
 //-----------------------------------------------------------------------------
@@ -247,7 +247,7 @@ loadOptions(); //read option settings from ini file
 public void setOptionsModifiedFlag(boolean pModified)
 {
 
-optionsModified = pModified;
+    optionsModified = pModified;
 
 }//end of Settings::setOptionsModifiedFlag
 //-----------------------------------------------------------------------------
@@ -272,9 +272,9 @@ optionsModified = pModified;
 public void setUTSettingsModifiedFlag(boolean pModified)
 {
 
-utSettingsModified = pModified;
+    utSettingsModified = pModified;
 
-optionsModified = true;
+    optionsModified = true;
 
 }//end of Settings::setUTSettingsModifiedFlag
 //-----------------------------------------------------------------------------
@@ -293,221 +293,231 @@ optionsModified = true;
 public void actionPerformed(ActionEvent e)
 {
 
-JMenuItem source = (JMenuItem)(e.getSource());
+    JMenuItem source = (JMenuItem)(e.getSource());
 
-if (source.getToolTipText().equalsIgnoreCase("English")) setLanguage("English");
-if (source.getToolTipText().equalsIgnoreCase("Chinese")) setLanguage("Chinese");
-if (source.getToolTipText().equalsIgnoreCase("Spanish")) setLanguage("Spanish");
+    if (source.getToolTipText().equalsIgnoreCase("English"))
+        setLanguage("English");
+    if (source.getToolTipText().equalsIgnoreCase("Chinese"))
+        setLanguage("Chinese");
+    if (source.getToolTipText().equalsIgnoreCase("Spanish"))
+        setLanguage("Spanish");
 
-//calls function in Main
-if (source.getToolTipText().equalsIgnoreCase("Job Info")){
-    actionListener.actionPerformed(new ActionEvent(this, 1, "Job Info"));
-    return;
+    //calls function in Main
+    if (source.getToolTipText().equalsIgnoreCase("Job Info")){
+        actionListener.actionPerformed(new ActionEvent(this, 1, "Job Info"));
+        return;
     }
 
-//calls function in Main
-if (source.getToolTipText().equalsIgnoreCase("Save")){
-    actionListener.actionPerformed(new ActionEvent(this, 1, "Save"));
-    return;
+    //calls function in Main
+    if (source.getToolTipText().equalsIgnoreCase("Save")){
+        actionListener.actionPerformed(new ActionEvent(this, 1, "Save"));
+        return;
     }
 
-//calls function in Main
-if (source.getToolTipText().equalsIgnoreCase("New Job")){
-    actionListener.actionPerformed(new ActionEvent(this, 1, "New Job"));
-    return;
+    //calls function in Main
+    if (source.getToolTipText().equalsIgnoreCase("New Job")){
+        actionListener.actionPerformed(new ActionEvent(this, 1, "New Job"));
+        return;
     }
 
-//calls function in Main
-if (source.getToolTipText().equalsIgnoreCase("Change to a different job.")){
-    actionListener.actionPerformed(new ActionEvent(this, 1, "Change Job"));
-    return;
+    //calls function in Main
+    if (source.getToolTipText().equalsIgnoreCase("Change to a different job.")){
+        actionListener.actionPerformed(new ActionEvent(this, 1, "Change Job"));
+        return;
     }
 
-//calls function in Main
-if (source.getToolTipText().equalsIgnoreCase(
+    //calls function in Main
+    if (source.getToolTipText().equalsIgnoreCase(
                                        "Copy settings from a different job.")){
-    actionListener.actionPerformed(new ActionEvent(
+        actionListener.actionPerformed(new ActionEvent(
                                              this, 1, "Copy Preset From Job"));
-    return;
+        return;
     }
 
-//calls function in Main
-if (source.getToolTipText().equalsIgnoreCase(
-                                       "Save current settings as a preset.")){
-    actionListener.actionPerformed(new ActionEvent(this, 1, "Save Preset"));
-    return;
+    //calls function in Main
+    if (source.getToolTipText().equalsIgnoreCase(
+                                        "Save current settings as a preset.")){
+        actionListener.actionPerformed(new ActionEvent(this, 1, "Save Preset"));
+        return;
     }
 
-//calls function in Main
-if (source.getToolTipText().equalsIgnoreCase(
-                                        "Load new settings from a preset.")){
-    actionListener.actionPerformed(new ActionEvent(this, 1, "Change Preset"));
-    return;
+    //calls function in Main
+    if (source.getToolTipText().equalsIgnoreCase(
+                                         "Load new settings from a preset.")){
+        actionListener.actionPerformed(
+                                new ActionEvent(this, 1, "Change Preset"));
+        return;
     }
 
-//calls function in Main
-if (source.getToolTipText().equalsIgnoreCase("Rename the selected preset.")){
-    actionListener.actionPerformed(new ActionEvent(this, 1, "Rename Preset"));
-    return;
+    //calls function in Main
+    if (source.getToolTipText().equalsIgnoreCase(
+                                              "Rename the selected preset.")){
+        actionListener.actionPerformed(
+                                new ActionEvent(this, 1, "Rename Preset"));
+        return;
     }
 
-//calls function in Main
-if (source.getToolTipText().equalsIgnoreCase("Delete a preset.")){
-    actionListener.actionPerformed(new ActionEvent(this, 1, "Delete Preset"));
-    return;
+    //calls function in Main
+    if (source.getToolTipText().equalsIgnoreCase("Delete a preset.")){
+        actionListener.actionPerformed(
+                                new ActionEvent(this, 1, "Delete Preset"));
+        return;
     }
 
-//calls function in Main
-if (source.getToolTipText().equalsIgnoreCase("Monitor")){
-    actionListener.actionPerformed(new ActionEvent(this, 1, "Monitor"));
-    return;
+    //calls function in Main
+    if (source.getToolTipText().equalsIgnoreCase("Monitor")){
+        actionListener.actionPerformed(new ActionEvent(this, 1, "Monitor"));
+        return;
     }
 
-//calls function in Main
-if (source.getActionCommand().equalsIgnoreCase("Debugger")){
-    actionListener.actionPerformed(new ActionEvent(this, 1, "Debugger"));
-    return;
+    //calls function in Main
+    if (source.getActionCommand().equalsIgnoreCase("Debugger")){
+        actionListener.actionPerformed(new ActionEvent(this, 1, "Debugger"));
+        return;
     }
 
-//calls function in Main
-if (source.getActionCommand().equalsIgnoreCase("Repair Job")){
-    actionListener.actionPerformed(new ActionEvent(this, 1, "Repair Job"));
-    return;
+    //calls function in Main
+    if (source.getActionCommand().equalsIgnoreCase("Repair Job")){
+        actionListener.actionPerformed(new ActionEvent(this, 1, "Repair Job"));
+        return;
     }
 
-//calls function in Main
-if (source.getActionCommand().equalsIgnoreCase("Update UT Rabbit Code")){
-    actionListener.actionPerformed(
+    //calls function in Main
+    if (source.getActionCommand().equalsIgnoreCase("Update UT Rabbit Code")){
+        actionListener.actionPerformed(
+                          new ActionEvent(this, 1, source.getActionCommand()));
+        return;
+    }
+
+    //calls function in Main
+    if (source.getActionCommand().equalsIgnoreCase(
+                                        "Update Control Rabbit Code")){
+        actionListener.actionPerformed(
                            new ActionEvent(this, 1, source.getActionCommand()));
-    return;
+        return;
     }
 
-//calls function in Main
-if (source.getActionCommand().equalsIgnoreCase("Update Control Rabbit Code")){
-    actionListener.actionPerformed(
-                           new ActionEvent(this, 1, source.getActionCommand()));
-    return;
+    //calls function in Main
+    if (source.getActionCommand().equalsIgnoreCase("Set Up System")){
+        actionListener.actionPerformed(
+                                new ActionEvent(this, 1, "Set Up System"));
+        return;
     }
 
-
-//calls function in Main
-if (source.getActionCommand().equalsIgnoreCase("Set Up System")){
-    actionListener.actionPerformed(new ActionEvent(this, 1, "Set Up System"));
-    return;
+    //calls function in Main
+    if (source.getActionCommand().equalsIgnoreCase("Renew License")){
+        actionListener.actionPerformed(
+                                    new ActionEvent(this, 1, "Renew License"));
+        return;
     }
 
-//calls function in Main
-if (source.getActionCommand().equalsIgnoreCase("Renew License")){
-    actionListener.actionPerformed(new ActionEvent(this, 1, "Renew License"));
-    return;
+    //calls function in Main
+    if (source.getActionCommand().equalsIgnoreCase("Log")){
+        actionListener.actionPerformed(new ActionEvent(this, 1, "Log"));
+        return;
     }
 
-//calls function in Main
-if (source.getActionCommand().equalsIgnoreCase("Log")){
-    actionListener.actionPerformed(new ActionEvent(this, 1, "Log"));
-    return;
+    //calls function in Main
+    if (source.getActionCommand().equalsIgnoreCase("Status")){
+        actionListener.actionPerformed(new ActionEvent(this, 1, "Status"));
+        return;
     }
 
-//calls function in Main
-if (source.getActionCommand().equalsIgnoreCase("Status")){
-    actionListener.actionPerformed(new ActionEvent(this, 1, "Status"));
-    return;
+    //calls function in Main
+    if (source.getActionCommand().startsWith("View Chart of a Completed")){
+        actionListener.actionPerformed(new ActionEvent(this, 1, "Open Viewer"));
+        return;
     }
 
-//calls function in Main
-if (source.getActionCommand().startsWith("View Chart of a Completed")){
-    actionListener.actionPerformed(new ActionEvent(this, 1, "Open Viewer"));
-    return;
+    //calls function in Main
+    if (source.getActionCommand().startsWith("View / Edit Identifier Info")){
+        actionListener.actionPerformed(new ActionEvent(
+                                              this, 1, "Show ID Info Window"));
+        return;
     }
 
-//calls function in Main
-if (source.getActionCommand().startsWith("View / Edit Identifier Info")){
-    actionListener.actionPerformed(new ActionEvent(
-                                               this, 1, "Show ID Info Window"));
-    return;
+    //calls function in Main
+    if (source.getActionCommand().startsWith("About")){
+        actionListener.actionPerformed(new ActionEvent(this, 1, "About"));
+        return;
     }
 
-//calls function in Main
-if (source.getActionCommand().startsWith("About")){
-    actionListener.actionPerformed(new ActionEvent(this, 1, "About"));
-    return;
+    if (source.getActionCommand().startsWith("Display Configuration Info")){
+        actionListener.actionPerformed(new ActionEvent(
+                                        this, 1, "Display Configuration Info"));
+        return;
     }
 
-if (source.getActionCommand().startsWith("Display Configuration Info")){
-    actionListener.actionPerformed(
-                        new ActionEvent(this, 1, "Display Configuration Info"));
-    return;
+    //sets a variable in Settings
+    if (source.getActionCommand().equalsIgnoreCase(
+                             "Restart Each New Piece at Left Edge of Chart")){
+        restartNewPieceAtLeftEdge =
+                             ((JCheckBoxMenuItem)(e.getSource())).isSelected();
+        return;
     }
 
-//sets a variable in Settings
-if (source.getActionCommand().equalsIgnoreCase(
-                            "Restart Each New Piece at Left Edge of Chart")){
-    restartNewPieceAtLeftEdge =
-                            ((JCheckBoxMenuItem)(e.getSource())).isSelected();
-    return;
+    //sets a variable in Settings
+    if (source.getActionCommand().equalsIgnoreCase(
+                                         "Show Red Peak Line at Gate Center")){
+        showRedPeakLineInGateCenter =
+                             ((JCheckBoxMenuItem)(e.getSource())).isSelected();
+        return;
     }
 
-//sets a variable in Settings
-if (source.getActionCommand().equalsIgnoreCase(
-                                        "Show Red Peak Line at Gate Center")){
-    showRedPeakLineInGateCenter =
-                            ((JCheckBoxMenuItem)(e.getSource())).isSelected();
-    return;
+    //sets a variable in Settings
+    if (source.getActionCommand().equalsIgnoreCase(
+                                       "Show Red Peak Line at Peak Location")){
+        showRedPeakLineAtPeakLocation =
+                             ((JCheckBoxMenuItem)(e.getSource())).isSelected();
+        return;
     }
 
-//sets a variable in Settings
-if (source.getActionCommand().equalsIgnoreCase(
-                                        "Show Red Peak Line at Peak Location")){
-    showRedPeakLineAtPeakLocation =
-                            ((JCheckBoxMenuItem)(e.getSource())).isSelected();
-    return;
+    //sets a variable in Settings
+    if (source.getActionCommand().equalsIgnoreCase(
+                                         "Show Peak Symbol at Peak Location")){
+        showPseudoPeakAtPeakLocation =
+                             ((JCheckBoxMenuItem)(e.getSource())).isSelected();
+        return;
     }
 
-//sets a variable in Settings
-if (source.getActionCommand().equalsIgnoreCase(
-                                        "Show Peak Symbol at Peak Location")){
-    showPseudoPeakAtPeakLocation =
-                            ((JCheckBoxMenuItem)(e.getSource())).isSelected();
-    return;
+    //sets a variable in Settings
+    if (source.getActionCommand().equalsIgnoreCase("Report All Flags")){
+        reportAllFlags = ((JCheckBoxMenuItem)(e.getSource())).isSelected();
+        return;
     }
 
-//sets a variable in Settings
-if (source.getActionCommand().equalsIgnoreCase("Report All Flags")){
-    reportAllFlags = ((JCheckBoxMenuItem)(e.getSource())).isSelected();
-    return;
+    //calls function in Main
+    if (source.getActionCommand().
+                     startsWith("Print Flag Report for Last Piece Inspected")){
+        actionListener.actionPerformed(new ActionEvent(
+                    this, 1, "Print Flag Report for Last Piece Inspected"));
+        return;
     }
 
-//calls function in Main
-if (source.getActionCommand().
-                    startsWith("Print Flag Report for Last Piece Inspected")){
-    actionListener.actionPerformed(
-       new ActionEvent(this, 1, "Print Flag Report for Last Piece Inspected"));
-    return;
+    //calls function in Main
+    if (source.getActionCommand().
+                        startsWith("Print Flag Report for User Selection")){
+        actionListener.actionPerformed(
+           new ActionEvent(this, 1, "Print Flag Report for User Selection"));
+        return;
     }
 
-//calls function in Main
-if (source.getActionCommand().
-                    startsWith("Print Flag Report for User Selection")){
-    actionListener.actionPerformed(
-       new ActionEvent(this, 1, "Print Flag Report for User Selection"));
-    return;
+    //calls function in Main
+    if (source.getActionCommand().
+                        startsWith("View Calibration Records")){
+        actionListener.actionPerformed(
+                        new ActionEvent(this, 1, "View Calibration Records"));
+        return;
     }
 
-//calls function in Main
-if (source.getActionCommand().
-                    startsWith("View Calibration Records")){
-    actionListener.actionPerformed(
-                    new ActionEvent(this, 1, "View Calibration Records"));
-    return;
-    }
-
-if (source.getToolTipText().equalsIgnoreCase("Exit")){
-    //set a flag that lets the mainTimer event close the program - this allows
-    //the timer to make sure everything is ok to close - disposing of the
-    //main window arbitrarily can crash the program because the timer will
-    //still be running and will try to access objects as they are destroyed
-    beginExitProgram = true;
-    return;
+    if (source.getToolTipText().equalsIgnoreCase("Exit")){
+        //set a flag that lets the mainTimer event close the program - this
+        //allows the timer to make sure everything is ok to close - disposing of
+        //the main window arbitrarily can crash the program because the timer
+        //will still be running and will try to access objects as they are
+        //destroyed
+        beginExitProgram = true;
+        return;
     }
 
 }//end of Settings::actionPerformed
@@ -525,17 +535,17 @@ if (source.getToolTipText().equalsIgnoreCase("Exit")){
 public void itemStateChanged(ItemEvent e)
 {
 
-JMenuItem source = (JMenuItem)(e.getSource());
+    JMenuItem source = (JMenuItem)(e.getSource());
 
-String s = "Item event detected."
-           + "\n"
-           + "    Event source: " + source.getText()
-           + "\n"
-           + "    New state: "
-           + ((e.getStateChange() == ItemEvent.SELECTED) ?
-             "selected":"unselected");
+    String s = "Item event detected."
+               + "\n"
+               + "    Event source: " + source.getText()
+               + "\n"
+               + "    New state: "
+               + ((e.getStateChange() == ItemEvent.SELECTED) ?
+                 "selected":"unselected");
 
-System.out.println(s); //debug mks
+    System.out.println(s); //debug mks
 
 }//end of Settings::itemStateChanged
 //-----------------------------------------------------------------------------
@@ -553,9 +563,9 @@ System.out.println(s); //debug mks
 private void setLanguage(String pLanguage)
 {
 
-language = pLanguage; optionsModified = true;
+    language = pLanguage; optionsModified = true;
 
-mainWindow.changeLanguage(pLanguage);
+    mainWindow.changeLanguage(pLanguage);
 
 }//end of Settings::setLanguage
 //-----------------------------------------------------------------------------
@@ -625,12 +635,12 @@ public void saveDBColors(IniFile pIni)
 public String dBColorsToText(Color pColor)
 {
 
-//scan the color array looking for match
-for(int i = 0; i < colorArray.length; i++ )
+    //scan the color array looking for match
+    for(int i = 0; i < colorArray.length; i++ )
                        if (pColor == colorArray[i]) return colorNamesArray[i];
 
-//if color not found, return "Undefined"
-return("Undefined");
+    //if color not found, return "Undefined"
+    return("Undefined");
 
 }//end of Settings::dBColorsToText
 //-----------------------------------------------------------------------------
@@ -644,16 +654,16 @@ return("Undefined");
 public Color textToDBColors(int pIndex, String pColor)
 {
 
-//scan the color array looking for match
-for(int i = 0; i < colorNamesArray.length; i++ )
+    //scan the color array looking for match
+    for(int i = 0; i < colorNamesArray.length; i++ )
          if (pColor.equalsIgnoreCase(colorNamesArray[i])) return colorArray[i];
 
-//if color not found, return the original default color already in the
-//array slot
+    //if color not found, return the original default color already in the
+    //array slot
 
-//return(plotScreenInfo.colorKey[pIndex]);
+    //return(plotScreenInfo.colorKey[pIndex]);
 
-return Color.BLACK; //not used in this program yet
+    return Color.BLACK; //not used in this program yet
 
 }//end of Settings::textToDBColors
 //-----------------------------------------------------------------------------
@@ -668,33 +678,33 @@ return Color.BLACK; //not used in this program yet
 public void configure(IniFile pConfigFile)
 {
 
-String section = "Configuration Info";
+    String section = "Configuration Info";
 
-//get the number of lines in the description, bail out if illegal value
+    //get the number of lines in the description, bail out if illegal value
 
-int lineCount = pConfigFile.readInt(section, "Number of Lines", 0);
-if (lineCount == 0 || lineCount > 100) return;
+    int lineCount = pConfigFile.readInt(section, "Number of Lines", 0);
+    if (lineCount == 0 || lineCount > 100) return;
 
-//create a vector to hold the lines of text read from the file
-configInfo = new ArrayList<String>(lineCount);
+    //create a vector to hold the lines of text read from the file
+    configInfo = new ArrayList<String>(lineCount);
 
-String line, number;
+    String line, number;
 
-for (int i = 0; i < lineCount; i++){
+    for (int i = 0; i < lineCount; i++){
 
-    //convert the index number to a string to load each line -- in the file,
-    //the numbers are all 3 characters long and right justified with blanks
-    //prepended for padding -- add the necessary space padding here
-    number = Integer.toString(i+1);
-    if (number.length() == 1) number = "  " + number;
-    else
-    if (number.length() == 2) number = " " + number;
+        //convert the index number to a string to load each line -- in the file,
+        //the numbers are all 3 characters long and right justified with blanks
+        //prepended for padding -- add the necessary space padding here
+        number = Integer.toString(i+1);
+        if (number.length() == 1) number = "  " + number;
+        else
+        if (number.length() == 2) number = " " + number;
 
-    line = pConfigFile.readString(section, "Line " + number, "");
-    configInfo.add(line);
+        line = pConfigFile.readString(section, "Line " + number, "");
+        configInfo.add(line);
     }
 
-section = "Main Configuration";
+    section = "Main Configuration";
 
 }//end of Settings::configure
 //-----------------------------------------------------------------------------
@@ -709,18 +719,18 @@ public void displayConfigInfo(JTextArea pTextArea)
 {
 
 
-pTextArea.append("\n");
-pTextArea.append(
+    pTextArea.append("\n");
+    pTextArea.append(
             "------------------------------------------------------------\n");
-pTextArea.append("\n");
+    pTextArea.append("\n");
 
-ListIterator i;
+    ListIterator i;
 
-for (i = configInfo.listIterator(); i.hasNext(); ){
-    pTextArea.append((String)i.next() + "\n");
+    for (i = configInfo.listIterator(); i.hasNext(); ){
+        pTextArea.append((String)i.next() + "\n");
     }
 
-pTextArea.append(
+    pTextArea.append(
             "------------------------------------------------------------\n");
 
 }//end of Settings::displayConfigInfo
@@ -966,15 +976,15 @@ public static long calculateSumOfFileData(String pFilename)
 public void loadLanguage()
 {
 
-IniFile ini = null;
+    IniFile ini = null;
 
-//if the ini file cannot be opened and loaded, exit without action
-try {ini = new IniFile("language\\Globals - Capulin UT.language",
-                                                            mainFileFormat);}
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 975");
-    return;
-}
+    //if the ini file cannot be opened and loaded, exit without action
+    try {ini = new IniFile("language\\Globals - Capulin UT.language",
+                                                             mainFileFormat);}
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 975");
+        return;
+    }
 
 }//end of Settings::loadLanguage
 //-----------------------------------------------------------------------------

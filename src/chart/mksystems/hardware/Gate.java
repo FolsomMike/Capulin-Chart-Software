@@ -1056,7 +1056,8 @@ private void configure(IniFile pConfigFile)
     shortTitle = pConfigFile.readString(
                                 whichGate, "Short Title", "G " + (gateIndex+1));
 
-    setInterfaceGate(pConfigFile.readBoolean(whichGate, "Interface Gate", false));
+    setInterfaceGate(
+                pConfigFile.readBoolean(whichGate, "Interface Gate", false));
     setWallStart(pConfigFile.readBoolean(whichGate, "Wall Start Gate", false));
     setWallEnd(pConfigFile.readBoolean(whichGate, "Wall End Gate", false));
     setFlawGate(pConfigFile.readBoolean(whichGate, "Flaw Gate", false));

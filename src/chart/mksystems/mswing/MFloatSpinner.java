@@ -18,7 +18,7 @@
 * have been determined using the default pattern.
 *
 * Because the NumberEditor tends to oversize the edit box for formats with
-* many digits after the decimal place (presumeably because it expects there to
+* many digits after the decimal place (presumably because it expects there to
 * be many digits before the decimal place, which is not always the case), the
 * user can specify a custom width via pWidth.  If the default is preferred,
 * pWidth should be set to -1.
@@ -71,8 +71,8 @@ import java.awt.Dimension;
 public class MFloatSpinner extends JSpinner
 {
 
-String formatPattern;
-public SpinnerNumberModel model;
+    String formatPattern;
+    public SpinnerNumberModel model;
 
 //-----------------------------------------------------------------------------
 // MFloatSpinner:MFloatSpinner (constructor)
@@ -100,29 +100,29 @@ public MFloatSpinner(double pValue, double pMin, double pMax,
              double pIncrement, String pFormatPattern, int pWidth, int pHeight)
 {
 
-super(new SpinnerNumberModel(pValue, pMin, pMax, pIncrement));
-    
-model = (SpinnerNumberModel)getModel();
+    super(new SpinnerNumberModel(pValue, pMin, pMax, pIncrement));
 
-//save the pattern for use by createEditor function
-formatPattern = pFormatPattern;
+    model = (SpinnerNumberModel)getModel();
 
-setEditor(new JSpinner.NumberEditor(this, formatPattern));
+    //save the pattern for use by createEditor function
+    formatPattern = pFormatPattern;
 
-//adjust the width as specified if pWidth is not -1
+    setEditor(new JSpinner.NumberEditor(this, formatPattern));
 
-if(pWidth != -1){
-    //force the editor window to the user specified dimensions
-    setMinimumSize(new Dimension(pWidth, getMinimumSize().height));
-    setMaximumSize(new Dimension(pWidth, getMaximumSize().height));
-    setPreferredSize(new Dimension(pWidth, getPreferredSize().height));
+    //adjust the width as specified if pWidth is not -1
+
+    if(pWidth != -1){
+        //force the editor window to the user specified dimensions
+        setMinimumSize(new Dimension(pWidth, getMinimumSize().height));
+        setMaximumSize(new Dimension(pWidth, getMaximumSize().height));
+        setPreferredSize(new Dimension(pWidth, getPreferredSize().height));
     }
 
-if(pHeight != -1){
-    //force the editor window to the user specified dimensions
-    setMinimumSize(new Dimension(getMinimumSize().width, pHeight));
-    setMaximumSize(new Dimension(getMaximumSize().width, pHeight));
-    setPreferredSize(new Dimension(getPreferredSize().width, pHeight));
+    if(pHeight != -1){
+        //force the editor window to the user specified dimensions
+        setMinimumSize(new Dimension(getMinimumSize().width, pHeight));
+        setMaximumSize(new Dimension(getMaximumSize().width, pHeight));
+        setPreferredSize(new Dimension(getPreferredSize().width, pHeight));
     }
 
 }//end of MFloatSpinner::MFloatSpinner (constructor)
@@ -134,13 +134,13 @@ if(pHeight != -1){
 // Returns the value in the spinner as a double.
 //
 
-public double getDoubleValue() 
+public double getDoubleValue()
 
 {
-    
-Double dValue = (Double)getValue();
 
-return dValue.doubleValue();
+    Double dValue = (Double)getValue();
+
+    return dValue.doubleValue();
 
 }//end of MFloatSpinner::getDoubleValue
 //-----------------------------------------------------------------------------
@@ -151,13 +151,13 @@ return dValue.doubleValue();
 // Returns the value in the spinner as an integer.
 //
 
-public int getIntValue() 
+public int getIntValue()
 
 {
-    
-Double dValue = (Double)getValue();
 
-return dValue.intValue();
+    Double dValue = (Double)getValue();
+
+    return dValue.intValue();
 
 }//end of MFloatSpinner::getInt
 //-----------------------------------------------------------------------------
@@ -187,7 +187,7 @@ return dValue.intValue();
 protected JComponent createEditor(SpinnerModel model)
 {
 
-return super.createEditor(model);
+    return super.createEditor(model);
 
 }//end of MFloatSpinner::createEditor
 //-----------------------------------------------------------------------------
@@ -195,4 +195,3 @@ return super.createEditor(model);
 }//end of class MFloatSpinner
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-

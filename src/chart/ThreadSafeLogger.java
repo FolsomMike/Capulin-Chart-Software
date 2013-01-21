@@ -43,14 +43,14 @@ import java.io.*;
 
 public class ThreadSafeLogger {
 
-JTextArea log;
+    JTextArea log;
 
-String filenameSuffix;
+    String filenameSuffix;
 
-String[] messages; //stores messages to be displayed by main thread
-int messagePtr = 0; //tracks message position for new messages
-int mainThreadMessagePtr = 0; //points next message in the array to be displayed
-static int NUMBER_THREADSAFE_MESSAGES = 100;
+    String[] messages; //stores messages to be displayed by main thread
+    int messagePtr = 0; //tracks message position for new messages
+    int mainThreadMessagePtr = 0; //points next message in array to be displayed
+    static int NUMBER_THREADSAFE_MESSAGES = 100;
 
 //-----------------------------------------------------------------------------
 // ThreadSafeLogger::ThreadSafeLogger (constructor)
@@ -61,9 +61,9 @@ static int NUMBER_THREADSAFE_MESSAGES = 100;
 public ThreadSafeLogger(JTextArea pLog)
 {
 
-log = pLog;
+    log = pLog;
 
-messages = new String[NUMBER_THREADSAFE_MESSAGES];
+    messages = new String[NUMBER_THREADSAFE_MESSAGES];
 
 }//end of ThreadSafeLogger::ThreadSafeLogger (constructor)
 //-----------------------------------------------------------------------------
@@ -82,17 +82,17 @@ messages = new String[NUMBER_THREADSAFE_MESSAGES];
 public void logMessage(String pMessage)
 {
 
-//store the message in a buffer where the helper can find it
+    //store the message in a buffer where the helper can find it
 
-messages[messagePtr++] = pMessage;
-if (messagePtr == NUMBER_THREADSAFE_MESSAGES) messagePtr = 0;
+    messages[messagePtr++] = pMessage;
+    if (messagePtr == NUMBER_THREADSAFE_MESSAGES) messagePtr = 0;
 
-//schedule a job for the event-dispatching thread to add the message to the log
+    //schedule a job for the event-dispatching thread to add the message to log
 
-javax.swing.SwingUtilities.invokeLater(
-        new Runnable() {
-            @Override
-            public void run() { logMessageThreadSafe(); } });
+    javax.swing.SwingUtilities.invokeLater(
+            new Runnable() {
+                @Override
+                public void run() { logMessageThreadSafe(); } });
 
 }//end of ThreadSafeLogger::logMessage
 //-----------------------------------------------------------------------------
@@ -109,16 +109,16 @@ javax.swing.SwingUtilities.invokeLater(
 public void logMessageThreadSafe()
 {
 
-// Since this function will be invoked once for every message placed in the
-// array, no need to check if there is a message available?  Would be a problem
-// if the calling thread began to overwrite the buffer before it could be
-// displayed?
+    // Since this function will be invoked once for every message placed in the
+    // array, no need to check if there is a message available?  Would be a
+    // problem if the calling thread began to overwrite the buffer before it
+    // could be displayed?
 
-//display the next message stored in the array
-log.append(messages[mainThreadMessagePtr++]);
+    //display the next message stored in the array
+    log.append(messages[mainThreadMessagePtr++]);
 
-if (mainThreadMessagePtr == NUMBER_THREADSAFE_MESSAGES)
-    mainThreadMessagePtr = 0;
+    if (mainThreadMessagePtr == NUMBER_THREADSAFE_MESSAGES)
+        mainThreadMessagePtr = 0;
 
 }//end of ThreadSafeLogger::logMessageThreadSafe
 //-----------------------------------------------------------------------------
@@ -184,16 +184,16 @@ public void section()
 public void saveToFile(String pFilenameSuffix)
 {
 
-//store the suffix in a buffer where the helper can find it
+    //store the suffix in a buffer where the helper can find it
 
-filenameSuffix = pFilenameSuffix;
+    filenameSuffix = pFilenameSuffix;
 
-//Schedule a job for the event-dispatching thread to do actual saving
+    //Schedule a job for the event-dispatching thread to do actual saving
 
-javax.swing.SwingUtilities.invokeLater(
-        new Runnable() {
-            @Override
-            public void run() { saveToFileThreadSafe(); } });
+    javax.swing.SwingUtilities.invokeLater(
+            new Runnable() {
+                @Override
+                public void run() { saveToFileThreadSafe(); } });
 
 }//end of ThreadSafeLogger::saveToFile
 //-----------------------------------------------------------------------------
@@ -246,7 +246,7 @@ public void saveToFileThreadSafe()
 private void displayErrorMessage(String pMessage)
 {
 
-JOptionPane.showMessageDialog(null, pMessage,
+    JOptionPane.showMessageDialog(null, pMessage,
                                             "Error", JOptionPane.ERROR_MESSAGE);
 
 }//end of ThreadSafeLogger::displayErrorMessage

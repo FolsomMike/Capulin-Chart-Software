@@ -36,44 +36,45 @@ public class Simulator extends Socket{
 
 public Simulator() throws SocketException{}; //default constructor - not used
 
-public InetAddress ipAddr;
-int port;
+    public InetAddress ipAddr;
+    int port;
 
-int index;
+    int index;
 
-boolean reSynced;
-int reSyncCount = 0;
+    boolean reSynced;
+    int reSyncCount = 0;
 
-public static int instanceCounter = 0;
+    public static int instanceCounter = 0;
 
-int chassisAddr, slotAddr;
+    int chassisAddr, slotAddr;
 
-byte status = 0;
+    byte status = 0;
 
-//simulates the default size of a socket created for ethernet access
-// NOTE: If the pipe size is too small, the outside object can fill the buffer
-// and have to wait until the thread on this side catches up.  If the outside
-// object has a timeout, then data will be lost because it will continue on
-// without writing if the timeout occurs.
-// In the future, it would be best if UTBoard object used some flow control
-// to limit overflow in case the default socket size ends up being too small.
+    //simulates the default size of a socket created for ethernet access
+    // NOTE: If the pipe size is too small, the outside object can fill the
+    // buffer and have to wait until the thread on this side catches up.  If
+    // the outside object has a timeout, then data will be lost because it will
+    // continue on without writing if the timeout occurs.
+    // In the future, it would be best if UTBoard object used some flow control
+    // to limit overflow in case the default socket size ends up being too
+    // small.
 
-static int PIPE_SIZE = 8192;
+    static int PIPE_SIZE = 8192;
 
-PipedOutputStream outStream;
-PipedInputStream  localInStream;
+    PipedOutputStream outStream;
+    PipedInputStream  localInStream;
 
-PipedInputStream  inStream;
-PipedOutputStream localOutStream;
+    PipedInputStream  inStream;
+    PipedOutputStream localOutStream;
 
-DataOutputStream byteOut = null;
-DataInputStream byteIn = null;
+    DataOutputStream byteOut = null;
+    DataInputStream byteIn = null;
 
-int IN_BUFFER_SIZE = 512;
-byte[] inBuffer;
+    int IN_BUFFER_SIZE = 512;
+    byte[] inBuffer;
 
-int OUT_BUFFER_SIZE = 512;
-byte[] outBuffer;
+    int OUT_BUFFER_SIZE = 512;
+    byte[] outBuffer;
 
 //-----------------------------------------------------------------------------
 // Simulator::Simulator (constructor)
@@ -82,53 +83,53 @@ byte[] outBuffer;
 public Simulator(InetAddress pIPAddress, int pPort) throws SocketException
 {
 
-port = pPort; ipAddr = pIPAddress;
+    port = pPort; ipAddr = pIPAddress;
 
-//give each instance of the class a unique number
-//this can be used to provide a unique simulated IP address
-index = instanceCounter++;
+    //give each instance of the class a unique number
+    //this can be used to provide a unique simulated IP address
+    index = instanceCounter++;
 
 
-//create an input and output stream to simulate those attached to a real
-//Socket connected to a hardware board
+    //create an input and output stream to simulate those attached to a real
+    //Socket connected to a hardware board
 
-// four steams are used - two connected pairs
-// an ouptut and an input stream are created to hand to the outside object
-// (outStream & inStream) - the outside object writes to outStream and reads
-// from inStream
-// an input stream is then created using the outStream as it's connection -
-// this object reads from that input stream to receive bytes sent by the
-// external object via the attached outStream
-// an output stream is then created using the inStream as it's connection -
-// this object writes to that output stream to send bytes to be read by the
-// external object via the attached inStream
+    // four steams are used - two connected pairs
+    // an ouptut and an input stream are created to hand to the outside object
+    // (outStream & inStream) - the outside object writes to outStream and reads
+    // from inStream
+    // an input stream is then created using the outStream as it's connection -
+    // this object reads from that input stream to receive bytes sent by the
+    // external object via the attached outStream
+    // an output stream is then created using the inStream as it's connection -
+    // this object writes to that output stream to send bytes to be read by the
+    // external object via the attached inStream
 
-//this end goes to the external object
-outStream = new PipedOutputStream();
-//create an input stream (localInStream) attached to outStream to read the
-//data sent by the external object
-try{localInStream = new PipedInputStream(outStream, PIPE_SIZE);}
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 112");
-}
+    //this end goes to the external object
+    outStream = new PipedOutputStream();
+    //create an input stream (localInStream) attached to outStream to read the
+    //data sent by the external object
+    try{localInStream = new PipedInputStream(outStream, PIPE_SIZE);}
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 112");
+    }
 
-//this end goes to the external object
-inStream = new PipedInputStream(PIPE_SIZE);
-//create an output stream (localOutStream) attached to inStream to read the
-//data sent by the external object
-try{localOutStream = new PipedOutputStream(inStream);}
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 121");
-}
+    //this end goes to the external object
+    inStream = new PipedInputStream(PIPE_SIZE);
+    //create an output stream (localOutStream) attached to inStream to read the
+    //data sent by the external object
+    try{localOutStream = new PipedOutputStream(inStream);}
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 121");
+    }
 
-inBuffer = new byte[IN_BUFFER_SIZE]; //used by various functions
-outBuffer = new byte[OUT_BUFFER_SIZE]; //used by various functions
+    inBuffer = new byte[IN_BUFFER_SIZE]; //used by various functions
+    outBuffer = new byte[OUT_BUFFER_SIZE]; //used by various functions
 
-//create an output and input byte stream
-//out for this class is in for the outside classes and vice versa
+    //create an output and input byte stream
+    //out for this class is in for the outside classes and vice versa
 
-byteOut = new DataOutputStream(localOutStream);
-byteIn = new DataInputStream(localInStream);
+    byteOut = new DataOutputStream(localOutStream);
+    byteIn = new DataInputStream(localInStream);
 
 }//end of Simulator::Simulator (constructor)
 //-----------------------------------------------------------------------------
@@ -153,21 +154,21 @@ byteIn = new DataInputStream(localInStream);
 public void reSync()
 {
 
-reSynced = false;
+    reSynced = false;
 
-//track the number of time this function is called, even if a resync is not
-//successful - this will track the number of sync errors
-reSyncCount++;
+    //track the number of time this function is called, even if a resync is not
+    //successful - this will track the number of sync errors
+    reSyncCount++;
 
-try{
-    while (byteIn.available() > 0) {
-        byteIn.read(inBuffer, 0, 1);
-        if (inBuffer[0] == (byte)0xaa) {reSynced = true; break;}
+    try{
+        while (byteIn.available() > 0) {
+            byteIn.read(inBuffer, 0, 1);
+            if (inBuffer[0] == (byte)0xaa) {reSynced = true; break;}
+            }
         }
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 169");
     }
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 169");
-}
 
 }//end of Simulator::reSync
 //-----------------------------------------------------------------------------
@@ -181,11 +182,11 @@ catch(IOException e){
 void getChassisSlotAddress()
 {
 
-byte address = (byte)((chassisAddr << 4) & 0xf0);
+    byte address = (byte)((chassisAddr << 4) & 0xf0);
 
-address += (byte)(slotAddr & 0x0f);
+    address += (byte)(slotAddr & 0x0f);
 
-sendBytes2(address, (byte)0);
+    sendBytes2(address, (byte)0);
 
 }//end of Simulator::getChassisSlotAddress
 //-----------------------------------------------------------------------------
@@ -199,16 +200,16 @@ sendBytes2(address, (byte)0);
 void sendByte(byte pByte)
 {
 
-outBuffer[0] = pByte;
+    outBuffer[0] = pByte;
 
-//send packet to remote
-if (byteOut != null)
-    try{
-        byteOut.write(outBuffer, 0 /*offset*/, 1);
-        byteOut.flush();
+    //send packet to remote
+    if (byteOut != null)
+        try{
+            byteOut.write(outBuffer, 0 /*offset*/, 1);
+            byteOut.flush();
         }
-    catch (IOException e) {
-        System.err.println(getClass().getName() + " - Error: 211");
+        catch (IOException e) {
+            System.err.println(getClass().getName() + " - Error: 211");
         }
 
 }//end of Simulator::sendByte
@@ -223,16 +224,16 @@ if (byteOut != null)
 void sendBytes2(byte pByte1, byte pByte2)
 {
 
-outBuffer[0] = pByte1; outBuffer[1] = pByte2;
+    outBuffer[0] = pByte1; outBuffer[1] = pByte2;
 
-//send packet to remote
-if (byteOut != null)
-    try{
-        byteOut.write(outBuffer, 0 /*offset*/, 2);
-        byteOut.flush();
+    //send packet to remote
+    if (byteOut != null)
+        try{
+            byteOut.write(outBuffer, 0 /*offset*/, 2);
+            byteOut.flush();
         }
-    catch (IOException e) {
-        System.err.println(getClass().getName() + " - Error: 235");
+        catch (IOException e) {
+            System.err.println(getClass().getName() + " - Error: 235");
         }
 
 }//end of Simulator::sendBytes2
@@ -247,16 +248,16 @@ if (byteOut != null)
 void sendBytes3(byte pByte1, byte pByte2, byte pByte3)
 {
 
-outBuffer[0] = pByte1; outBuffer[1] = pByte2;  outBuffer[2] = pByte3;
+    outBuffer[0] = pByte1; outBuffer[1] = pByte2;  outBuffer[2] = pByte3;
 
-//send packet to remote
-if (byteOut != null)
-    try{
-        byteOut.write(outBuffer, 0 /*offset*/, 3);
-        byteOut.flush();
+    //send packet to remote
+    if (byteOut != null)
+        try{
+            byteOut.write(outBuffer, 0 /*offset*/, 3);
+            byteOut.flush();
         }
-    catch (IOException e) {
-        System.err.println(getClass().getName() + " - Error: 259");
+        catch (IOException e) {
+            System.err.println(getClass().getName() + " - Error: 259");
         }
 
 }//end of Simulator::sendBytes3
@@ -271,17 +272,17 @@ if (byteOut != null)
 void sendBytes4(byte pByte1, byte pByte2, byte pByte3, byte pByte4)
 {
 
-outBuffer[0] = pByte1; outBuffer[1] = pByte2;  outBuffer[2] = pByte3;
-outBuffer[3] = pByte4;
+    outBuffer[0] = pByte1; outBuffer[1] = pByte2;  outBuffer[2] = pByte3;
+    outBuffer[3] = pByte4;
 
-//send packet to remote
-if (byteOut != null)
-    try{
-        byteOut.write(outBuffer, 0 /*offset*/, 4);
-        byteOut.flush();
+    //send packet to remote
+    if (byteOut != null)
+        try{
+            byteOut.write(outBuffer, 0 /*offset*/, 4);
+            byteOut.flush();
         }
-    catch (IOException e) {
-        System.err.println(getClass().getName() + " - Error: 284");
+        catch (IOException e) {
+            System.err.println(getClass().getName() + " - Error: 284");
         }
 
 }//end of Simulator::sendBytes4
@@ -296,7 +297,7 @@ if (byteOut != null)
 void sendShortInt(int pShortInt)
 {
 
-sendBytes2((byte)((pShortInt >> 8) & 0xff), (byte)(pShortInt & 0xff));
+    sendBytes2((byte)((pShortInt >> 8) & 0xff), (byte)(pShortInt & 0xff));
 
 }//end of Simulator::sendShortInt
 //-----------------------------------------------------------------------------
@@ -310,7 +311,7 @@ sendBytes2((byte)((pShortInt >> 8) & 0xff), (byte)(pShortInt & 0xff));
 void sendInteger(int pInteger)
 {
 
-sendBytes4(
+    sendBytes4(
         (byte)((pInteger >> 24) & 0xff), (byte)(pInteger >> 16 & 0xff),
         (byte)((pInteger >> 8) & 0xff), (byte)(pInteger & 0xff));
 
@@ -326,25 +327,25 @@ sendBytes4(
 void sendDataBlock(int pSize, int[] pBuffer)
 {
 
-//send packet to remote
-if (byteOut != null)
-    try{
-        for (int i=0; i<pSize; i++){
+    //send packet to remote
+    if (byteOut != null)
+        try{
+            for (int i=0; i<pSize; i++){
 
-            //limit integer to 127 and -128 before converting to byte or the
-            //sign can flip
+                //limit integer to 127 and -128 before converting to byte or the
+                //sign can flip
 
-            if (pBuffer[i] > 127) pBuffer[i] = 127;
-            if (pBuffer[i] < -128) pBuffer[i] = -128;
+                if (pBuffer[i] > 127) pBuffer[i] = 127;
+                if (pBuffer[i] < -128) pBuffer[i] = -128;
 
-            outBuffer[0] = (byte)pBuffer[i];
-            byteOut.write(outBuffer, 0 /*offset*/, 1);
+                outBuffer[0] = (byte)pBuffer[i];
+                byteOut.write(outBuffer, 0 /*offset*/, 1);
             }
 
-        byteOut.flush();
+            byteOut.flush();
         }
-    catch (IOException e) {
-        System.err.println(getClass().getName() + " - Error: 347");
+        catch (IOException e) {
+            System.err.println(getClass().getName() + " - Error: 347");
         }
 
 }//end of Simulator::sendDataBlock
@@ -361,7 +362,7 @@ if (byteOut != null)
 public InputStream getInputStream()
 {
 
-return (inStream);
+    return (inStream);
 
 }//end of Simulator::getInputStream
 //-----------------------------------------------------------------------------
@@ -377,7 +378,7 @@ return (inStream);
 public OutputStream getOutputStream()
 {
 
-return (outStream);
+    return (outStream);
 
 }//end of Simulator::getOutputStream
 //-----------------------------------------------------------------------------
@@ -394,7 +395,7 @@ return (outStream);
 public int getReceiveBufferSize()
 {
 
-return (PIPE_SIZE);
+    return (PIPE_SIZE);
 
 }//end of Simulator::getReceiveBufferSize
 //-----------------------------------------------------------------------------
@@ -411,7 +412,7 @@ return (PIPE_SIZE);
 public int getSendBufferSize()
 {
 
-return (PIPE_SIZE);
+    return (PIPE_SIZE);
 
 }//end of Simulator::getSendBufferSize
 //-----------------------------------------------------------------------------
@@ -425,12 +426,12 @@ return (PIPE_SIZE);
 public int getByteFromSocket()
 {
 
-try{byteIn.read(inBuffer, 0, 1);}
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 430");
-}
+    try{byteIn.read(inBuffer, 0, 1);}
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 430");
+    }
 
-return (int)(inBuffer[0] & 0xff);
+    return (int)(inBuffer[0] & 0xff);
 
 }//end of Simulator::getByteFromSocket
 //-----------------------------------------------------------------------------
@@ -445,12 +446,12 @@ return (int)(inBuffer[0] & 0xff);
 public int getIntFromSocket()
 {
 
-try{byteIn.read(inBuffer, 0, 2);}
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 450");
-}
+    try{byteIn.read(inBuffer, 0, 2);}
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 450");
+    }
 
-return (int)((inBuffer[0]<<8) & 0xff00) + (inBuffer[1] & 0xff);
+    return (int)((inBuffer[0]<<8) & 0xff00) + (inBuffer[1] & 0xff);
 
 }//end of Simulator::getIntFromSocket
 //-----------------------------------------------------------------------------
@@ -467,16 +468,16 @@ return (int)((inBuffer[0]<<8) & 0xff00) + (inBuffer[1] & 0xff);
 protected void finalize() throws Throwable
 {
 
-//close everything - the order of closing may be important
+    //close everything - the order of closing may be important
 
-localInStream.close();
-outStream.close();
+    localInStream.close();
+    outStream.close();
 
-inStream.close();
-localOutStream.close();
+    inStream.close();
+    localOutStream.close();
 
-//allow the parent classes to finalize
-super.finalize();
+    //allow the parent classes to finalize
+    super.finalize();
 
 }//end of Simulator::finalize
 //-----------------------------------------------------------------------------
@@ -484,4 +485,3 @@ super.finalize();
 }//end of class Simulator
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-

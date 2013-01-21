@@ -37,55 +37,57 @@ import chart.mksystems.inifile.IniFile;
 
 public class ControlSimulator extends Simulator implements MessageLink{
 
-//default constructor - not used
-public ControlSimulator() throws SocketException{};
+    //default constructor - not used
+    public ControlSimulator() throws SocketException{};
 
-//simulates the default size of a socket created for ethernet access
-// NOTE: If the pipe size is too small, the outside object can fill the buffer
-// and have to wait until the thread on this side catches up.  If the outside
-// object has a timeout, then data will be lost because it will continue on
-// without writing if the timeout occurs.
-// In the future, it would be best if ControlBoard object used some flow control
-// to limit overflow in case the default socket size ends up being too small.
+    //simulates the default size of a socket created for ethernet access
+    // NOTE: If the pipe size is too small, the outside object can fill the
+    // buffer and have to wait until the thread on this side catches up.  If the
+    // outside object has a timeout, then data will be lost because it will
+    // continue on without writing if the timeout occurs.
+    // In the future, it would be best if ControlBoard object used some flow
+    // control to limit overflow in case the default socket size ends up being
+    // too small.
 
-public static int controlBoardCounter = 0;
-int controlBoardNumber;
-String mainFileFormat;
+    public static int controlBoardCounter = 0;
+    int controlBoardNumber;
+    String mainFileFormat;
 
-boolean onPipeFlag = false;
-boolean head1Down = false;
-boolean head2Down = false;
-boolean inspectMode = false;
-int simulationMode = MessageLink.STOP;
-int encoder1 = 0, encoder2 = 0;
-int encoder1DeltaTrigger = 1000, encoder2DeltaTrigger = 1000;
-int inspectPacketCount = 0;
+    boolean onPipeFlag = false;
+    boolean head1Down = false;
+    boolean head2Down = false;
+    boolean inspectMode = false;
+    int simulationMode = MessageLink.STOP;
+    int encoder1 = 0, encoder2 = 0;
+    int encoder1DeltaTrigger = 1000, encoder2DeltaTrigger = 1000;
+    int inspectPacketCount = 0;
 
-byte controlFlags = 0, portE = 0;
+    byte controlFlags = 0, portE = 0;
 
-int positionTrack; // this is the number of packets sent, not the encoder
-                   // value
+    int positionTrack; // this is the number of packets sent, not the encoder
+                       // value
 
-public static int DELAY_BETWEEN_INSPECT_PACKETS = 1;
-int delayBetweenPackets = DELAY_BETWEEN_INSPECT_PACKETS;
+    public static int DELAY_BETWEEN_INSPECT_PACKETS = 1;
+    int delayBetweenPackets = DELAY_BETWEEN_INSPECT_PACKETS;
 
-//This mimics the 7-5/8 IRNDT test joint used at Tubo Belle Chasse
-//Number of encoder counts (using leading eye for both ends): 90107
-//The PLC actually gives pipe-on when the lead eye hits the pipe and pipe-off
-//when the trailing eye leaves the pipe:
-// eye to eye distance is 53.4375", or 17,653 encoder counts.
-//Number of encoder counts for simulated joint: 90107 + 17,653 = 107,760
-// (this assumes starting with lead eye and ending with trail eye)
-//Number of counts per packet: 83
-//Number of packets for complete simulated joint: 107,760 / 83 = 1298
+    //This mimics the 7-5/8 IRNDT test joint used at Tubo Belle Chasse
+    //Number of encoder counts (using leading eye for both ends): 90107
+    //The PLC actually gives pipe-on when the lead eye hits the pipe and
+    //pipe-off when the trailing eye leaves the pipe:
+    // eye to eye distance is 53.4375", or 17,653 encoder counts.
+    //Number of encoder counts for simulated joint: 90107 + 17,653 = 107,760
+    // (this assumes starting with lead eye and ending with trail eye)
+    //Number of counts per packet: 83
+    //Number of packets for complete simulated joint: 107,760 / 83 = 1298
 
-//number of packets to skip before simulating lead eye reaching pipe
-//this simulates the head moving from the off-pipe position to on-pipe
-public static int START_DELAY_IN_PACKETS = 10;
+    //number of packets to skip before simulating lead eye reaching pipe
+    //this simulates the head moving from the off-pipe position to on-pipe
+    public final static int START_DELAY_IN_PACKETS = 10;
 
-//number of packets for length of tube -- take into account the start delay
-//packets as inspection does not occur during that time
-public static int LENGTH_OF_JOINT_IN_PACKETS = 1298 + START_DELAY_IN_PACKETS;
+    //number of packets for length of tube -- take into account the start delay
+    //packets as inspection does not occur during that time
+    public static int LENGTH_OF_JOINT_IN_PACKETS =
+                                                1298 + START_DELAY_IN_PACKETS;
 
 //-----------------------------------------------------------------------------
 // ControlSimulator::ControlSimulator (constructor)
@@ -95,26 +97,26 @@ public ControlSimulator(InetAddress pIPAddress, int pPort,
                                 String pMainFileFormat) throws SocketException
 {
 
-//call the parent class constructor
-super(pIPAddress, pPort);
+    //call the parent class constructor
+    super(pIPAddress, pPort);
 
-mainFileFormat = pMainFileFormat;
+    mainFileFormat = pMainFileFormat;
 
-//give each Control board a unique number so it can load data from the
-//simulation.ini file and such
-//this is different than the unique index provided in the parent class Simulator
-//as that number is distributed across all sub classes -- UT boards,
-//Control boards, etc.
-controlBoardNumber = controlBoardCounter++;
+    //give each Control board a unique number so it can load data from the
+    //simulation.ini file and such
+    //this is different than the unique index provided in the parent class
+    //Simulator as that number is distributed across all sub classes -- UT
+    //boards, Control boards, etc.
+    controlBoardNumber = controlBoardCounter++;
 
-//load configuration data from file
-configure();
+    //load configuration data from file
+    configure();
 
-//create an out writer from this class - will be input for some other class
-//this writer is only used to send the greeting back to the host
+    //create an out writer from this class - will be input for some other class
+    //this writer is only used to send the greeting back to the host
 
-PrintWriter out = new PrintWriter(localOutStream, true);
-out.println("Hello from Control Board Simulator!");
+    PrintWriter out = new PrintWriter(localOutStream, true);
+    out.println("Hello from Control Board Simulator!");
 
 }//end of ControlSimulator::ControlSimulator (constructor)
 //-----------------------------------------------------------------------------
@@ -128,21 +130,21 @@ out.println("Hello from Control Board Simulator!");
 public int processDataPackets(boolean pWaitForPkt)
 {
 
-int x = 0;
+    int x = 0;
 
-//process packets until there is no more data available
+    //process packets until there is no more data available
 
-// if pWaitForPkt is true, only call once or an infinite loop will occur
-// because the subsequent call will still have the flag set but no data
-// will ever be coming because this same thread which is now blocked is
-// sometimes the one requesting data
+    // if pWaitForPkt is true, only call once or an infinite loop will occur
+    // because the subsequent call will still have the flag set but no data
+    // will ever be coming because this same thread which is now blocked is
+    // sometimes the one requesting data
 
-if (pWaitForPkt)
-    return processDataPacketsHelper(pWaitForPkt);
-else
-    while ((x = processDataPacketsHelper(pWaitForPkt)) != -1){}
+    if (pWaitForPkt)
+        return processDataPacketsHelper(pWaitForPkt);
+    else
+        while ((x = processDataPacketsHelper(pWaitForPkt)) != -1){}
 
-return x;
+    return x;
 
 }//end of ControlSimulator::processDataPackets
 //-----------------------------------------------------------------------------
@@ -157,71 +159,71 @@ return x;
 public int processDataPacketsHelper(boolean pWaitForPkt)
 {
 
-if (byteIn == null) return 0;  //do nothing if the port is closed
+    if (byteIn == null) return 0;  //do nothing if the port is closed
 
-//simulate the inspection signals and send back packets to the host
-if (inspectMode == true) simulateInspection();
+    //simulate the inspection signals and send back packets to the host
+    if (inspectMode == true) simulateInspection();
 
-try{
+    try{
 
-    int x;
+        int x;
 
-    //wait until 5 bytes are available - this should be the 4 header bytes, and
-    //the packet identifier/command
-    if ((x = byteIn.available()) < 5) return -1;
+        //wait until 5 bytes are available - this should be the 4 header bytes,
+        //and the packet identifier/command
+        if ((x = byteIn.available()) < 5) return -1;
 
-    //read the bytes in one at a time so that if an invalid byte is encountered
-    //it won't corrupt the next valid sequence in the case where it occurs
-    //within 3 bytes of the invalid byte
+        //read the bytes in one at a time so that if an invalid byte is
+        //encountered it won't corrupt the next valid sequence in the case
+        //where it occurs within 3 bytes of the invalid byte
 
-    //check each byte to see if the first four create a valid header
-    //if not, jump to resync which deletes bytes until a valid first header
-    //byte is reached
+        //check each byte to see if the first four create a valid header
+        //if not, jump to resync which deletes bytes until a valid first header
+        //byte is reached
 
-    //if the reSynced flag is true, the buffer has been resynced and an 0xaa
-    //byte has already been read from the buffer so it shouldn't be read again
+        //if the reSynced flag is true, the buffer has been resynced and an 0xaa
+        //byte has already been read from buffer so it shouldn't be read again
 
-    //after a resync, the function exits without processing any packets
+        //after a resync, the function exits without processing any packets
 
-    if (!reSynced){
-        //look for the 0xaa byte unless buffer just resynced
-        byteIn.read(inBuffer, 0, 1);
-        if (inBuffer[0] != (byte)0xaa) {reSync(); return 0;}
+        if (!reSynced){
+            //look for the 0xaa byte unless buffer just resynced
+            byteIn.read(inBuffer, 0, 1);
+            if (inBuffer[0] != (byte)0xaa) {reSync(); return 0;}
         }
-    else reSynced = false;
+        else reSynced = false;
 
-    byteIn.read(inBuffer, 0, 1);
-    if (inBuffer[0] != (byte)0x55) {reSync(); return 0;}
-    byteIn.read(inBuffer, 0, 1);
-    if (inBuffer[0] != (byte)0xbb) {reSync(); return 0;}
-    byteIn.read(inBuffer, 0, 1);
-    if (inBuffer[0] != (byte)0x66) {reSync(); return 0;}
+        byteIn.read(inBuffer, 0, 1);
+        if (inBuffer[0] != (byte)0x55) {reSync(); return 0;}
+        byteIn.read(inBuffer, 0, 1);
+        if (inBuffer[0] != (byte)0xbb) {reSync(); return 0;}
+        byteIn.read(inBuffer, 0, 1);
+        if (inBuffer[0] != (byte)0x66) {reSync(); return 0;}
 
-    //read the packet ID
-    byteIn.read(inBuffer, 0, 1);
+        //read the packet ID
+        byteIn.read(inBuffer, 0, 1);
 
-    byte pktID = inBuffer[0];
+        byte pktID = inBuffer[0];
 
-    if (pktID == ControlBoard.GET_STATUS_CMD) getStatus();
-    else
-    if (pktID == ControlBoard.SET_ENCODERS_DELTA_TRIGGER_CMD)
-        setEncodersDeltaTrigger(pktID);
-    else
-    if (pktID == ControlBoard.START_INSPECT_CMD) startInspect(pktID);
-    else
-    if (pktID == ControlBoard.STOP_INSPECT_CMD) stopInspect(pktID);
-    else
-    if (pktID == ControlBoard.GET_CHASSIS_SLOT_ADDRESS_CMD)
-        getChassisSlotAddress();
+        if (pktID == ControlBoard.GET_STATUS_CMD) getStatus();
+        else
+        if (pktID == ControlBoard.SET_ENCODERS_DELTA_TRIGGER_CMD)
+            setEncodersDeltaTrigger(pktID);
+        else
+        if (pktID == ControlBoard.START_INSPECT_CMD) startInspect(pktID);
+        else
+        if (pktID == ControlBoard.STOP_INSPECT_CMD) stopInspect(pktID);
+        else
+        if (pktID == ControlBoard.GET_CHASSIS_SLOT_ADDRESS_CMD)
+            getChassisSlotAddress();
 
-    return 0;
+        return 0;
 
     }//try
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 221");
-}
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 221");
+    }
 
-return 0;
+    return 0;
 
 }//end of ControlSimulator::processDataPacketsHelper
 //-----------------------------------------------------------------------------
@@ -235,10 +237,10 @@ return 0;
 void getStatus()
 {
 
-//send standard packet header
-sendPacketHeader(ControlBoard.GET_STATUS_CMD);
+    //send standard packet header
+    sendPacketHeader(ControlBoard.GET_STATUS_CMD);
 
-sendBytes2(status, (byte)0);
+    sendBytes2(status, (byte)0);
 
 }//end of ControlSimulator::getStatus
 //-----------------------------------------------------------------------------
@@ -329,12 +331,13 @@ int readBlockAndVerify(int pNumberOfBytes, byte pPktID)
 void getChassisSlotAddress()
 {
 
-byte address = (byte)(((byte)chassisAddr<<4 & 0xf0) + ((byte)slotAddr & 0xf));
+    byte address =
+            (byte)(((byte)chassisAddr<<4 & 0xf0) + ((byte)slotAddr & 0xf));
 
-//send standard packet header
-sendPacketHeader(ControlBoard.GET_CHASSIS_SLOT_ADDRESS_CMD);
+    //send standard packet header
+    sendPacketHeader(ControlBoard.GET_CHASSIS_SLOT_ADDRESS_CMD);
 
-sendBytes2(address, status);
+    sendBytes2(address, status);
 
 }//end of ControlSimulator::getChassisSlotAddress
 //-----------------------------------------------------------------------------
@@ -349,30 +352,30 @@ sendBytes2(address, status);
 int startInspect(byte pPktID)
 {
 
-int bytesRead = 0;
+    int bytesRead = 0;
 
-try{
-    bytesRead = byteIn.read(inBuffer, 0, 2);
+    try{
+        bytesRead = byteIn.read(inBuffer, 0, 2);
     }
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 358");
-}
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 358");
+    }
 
-if (bytesRead == 2){
+    if (bytesRead == 2){
 
-	//calculate checksum to check validity of the packet
-	if ( (pPktID + inBuffer[0] + inBuffer[1] & (byte)0xff) != 0) return(-1);
-	}
-else{
-	//("Error - Wrong sized packet header for startInspect!\n");
-	return(-1);
-	}
+        //calculate checksum to check validity of the packet
+        if ( (pPktID + inBuffer[0] + inBuffer[1] & (byte)0xff) != 0) return(-1);
+    }
+    else{
+        //("Error - Wrong sized packet header for startInspect!\n");
+        return(-1);
+    }
 
-resetAll();
+    resetAll();
 
-inspectMode = true;
+    inspectMode = true;
 
-return(bytesRead);
+    return(bytesRead);
 
 }//end of ControlSimulator::startInspect
 //-----------------------------------------------------------------------------
@@ -386,13 +389,13 @@ return(bytesRead);
 void resetAll()
 {
 
-positionTrack = 0;
-onPipeFlag = false;
-head1Down = false;
-head2Down = false;
-encoder1 = 0; encoder2 = 0;
-inspectPacketCount = 0;
-delayBetweenPackets = DELAY_BETWEEN_INSPECT_PACKETS;
+    positionTrack = 0;
+    onPipeFlag = false;
+    head1Down = false;
+    head2Down = false;
+    encoder1 = 0; encoder2 = 0;
+    inspectPacketCount = 0;
+    delayBetweenPackets = DELAY_BETWEEN_INSPECT_PACKETS;
 
 }//end of ControlSimulator::resetAll
 //-----------------------------------------------------------------------------
@@ -406,28 +409,28 @@ delayBetweenPackets = DELAY_BETWEEN_INSPECT_PACKETS;
 int stopInspect(byte pPktID)
 {
 
-int bytesRead = 0;
+    int bytesRead = 0;
 
-try{
-    bytesRead = byteIn.read(inBuffer, 0, 2);
+    try{
+        bytesRead = byteIn.read(inBuffer, 0, 2);
     }
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 415");
-}
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 415");
+    }
 
-if (bytesRead == 2){
+    if (bytesRead == 2){
 
-	//calculate checksum to check validity of the packet
-	if ( (pPktID + inBuffer[0] + inBuffer[1] & (byte)0xff) != 0) return(-1);
-	}
-else{
-	//("Error - Wrong sized packet header for startInspect!\n");
-	return(-1);
-	}
+        //calculate checksum to check validity of the packet
+        if ( (pPktID + inBuffer[0] + inBuffer[1] & (byte)0xff) != 0) return(-1);
+    }
+    else{
+        //("Error - Wrong sized packet header for startInspect!\n");
+        return(-1);
+    }
 
-inspectMode = false;
+    inspectMode = false;
 
-return(bytesRead);
+    return(bytesRead);
 
 }//end of ControlSimulator::stopInspect
 //-----------------------------------------------------------------------------
@@ -560,17 +563,17 @@ void simulateInspection()
 void sendPacketHeader(byte pPacketID)
 {
 
-outBuffer[0] = (byte)0xaa; outBuffer[1] = (byte)0x55;
-outBuffer[2] = (byte)0xbb; outBuffer[3] = (byte)0x66;
-outBuffer[4] = (byte)pPacketID;
+    outBuffer[0] = (byte)0xaa; outBuffer[1] = (byte)0x55;
+    outBuffer[2] = (byte)0xbb; outBuffer[3] = (byte)0x66;
+    outBuffer[4] = (byte)pPacketID;
 
-//send packet to remote
-if (byteOut != null)
-    try{
-        byteOut.write(outBuffer, 0 /*offset*/, 5);
+    //send packet to remote
+    if (byteOut != null)
+        try{
+            byteOut.write(outBuffer, 0 /*offset*/, 5);
         }
-    catch (IOException e) {
-        System.err.println(getClass().getName() + " - Error: 573");
+        catch (IOException e) {
+            System.err.println(getClass().getName() + " - Error: 573");
         }
 
 }//end of ControlSimulator::sendPacketHeader
@@ -587,15 +590,15 @@ if (byteOut != null)
 public int xmtMessage(int pMessage, int pValue)
 {
 
-if (pMessage == MessageLink.SET_MODE){
+    if (pMessage == MessageLink.SET_MODE){
 
-    simulationMode = pValue;
+        simulationMode = pValue;
 
-    return(MessageLink.NULL);
+        return(MessageLink.NULL);
 
     }//if (pMessage == MessageLink.SET_MODE)
 
-return(MessageLink.NULL);
+    return(MessageLink.NULL);
 
 }//end of ControlSimulator::xmtMessage
 //----------------------------------------------------------------------------
@@ -614,20 +617,20 @@ return(MessageLink.NULL);
 private void configure()
 {
 
-IniFile configFile;
+    IniFile configFile;
 
-//if the ini file cannot be opened and loaded, exit without action
-try {configFile = new IniFile("Simulation.ini", mainFileFormat);}
-    catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 622");
-    return;
+    //if the ini file cannot be opened and loaded, exit without action
+    try {configFile = new IniFile("Simulation.ini", mainFileFormat);}
+        catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 622");
+        return;
     }
 
-String section = "Simulated Control Board " + (controlBoardNumber + 1);
+    String section = "Simulated Control Board " + (controlBoardNumber + 1);
 
-chassisAddr = (byte)configFile.readInt(section, "Chassis Number", 0);
+    chassisAddr = (byte)configFile.readInt(section, "Chassis Number", 0);
 
-slotAddr = (byte)configFile.readInt(section, "Slot Number", 0);
+    slotAddr = (byte)configFile.readInt(section, "Slot Number", 0);
 
 }//end of ControlSimulator::configure
 //-----------------------------------------------------------------------------

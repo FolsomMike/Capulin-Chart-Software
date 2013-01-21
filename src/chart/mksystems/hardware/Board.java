@@ -37,12 +37,12 @@ import chart.Log;
 
 class InstallFirmwareSettings extends Object{
 
-public byte loadFirmwareCmd;
-public byte noAction;
-public byte error;
-public byte sendDataCmd;
-public byte dataCmd;
-public byte exitCmd;
+    public byte loadFirmwareCmd;
+    public byte noAction;
+    public byte error;
+    public byte sendDataCmd;
+    public byte dataCmd;
+    public byte exitCmd;
 
 }//end of class InstallFirmwareSettings
 //-----------------------------------------------------------------------------
@@ -56,34 +56,34 @@ public byte exitCmd;
 
 public abstract class Board extends Object implements Runnable{
 
-String configFilename;
-IniFile configFile;
-String boardName;
-int boardIndex;
-JTextArea log;
-ThreadSafeLogger logger;
+    String configFilename;
+    IniFile configFile;
+    String boardName;
+    int boardIndex;
+    JTextArea log;
+    ThreadSafeLogger logger;
 
-boolean setupComplete = false; //set true if set was completed
-boolean ready = false; //set true if board is successfully setup
+    boolean setupComplete = false; //set true if set was completed
+    boolean ready = false; //set true if board is successfully setup
 
-boolean simulate;
+    boolean simulate;
 
-public InetAddress ipAddr;
-String ipAddrS;
-public int chassisAddr, slotAddr;
-String chassisSlotAddr;
-static int FIRMWARE_LOAD_TIMEOUT = 999999;
+    public InetAddress ipAddr;
+    String ipAddrS;
+    public int chassisAddr, slotAddr;
+    String chassisSlotAddr;
+    static int FIRMWARE_LOAD_TIMEOUT = 999999;
 
-Socket socket = null;
-PrintWriter out = null;
-BufferedReader in = null;
-byte[] inBuffer;
-byte[] outBuffer;
-DataOutputStream byteOut = null;
-DataInputStream byteIn = null;
+    Socket socket = null;
+    PrintWriter out = null;
+    BufferedReader in = null;
+    byte[] inBuffer;
+    byte[] outBuffer;
+    DataOutputStream byteOut = null;
+    DataInputStream byteIn = null;
 
-int TIMEOUT = 50;
-int timeOutProcess = 0; //use this one in the packet process functions
+    int TIMEOUT = 50;
+    int timeOutProcess = 0; //use this one in the packet process functions
 
 //-----------------------------------------------------------------------------
 // Board::Board (constructor)
@@ -92,10 +92,10 @@ int timeOutProcess = 0; //use this one in the packet process functions
 public Board(JTextArea pLog)
 {
 
-log = pLog;
+    log = pLog;
 
-//create an object to log messages to the log window in thread safe manner
-logger = new ThreadSafeLogger(log);
+    //create an object to log messages to the log window in thread safe manner
+    logger = new ThreadSafeLogger(log);
 
 }//end of Board::Board (constructor)
 //-----------------------------------------------------------------------------
@@ -109,9 +109,9 @@ logger = new ThreadSafeLogger(log);
 public void setIPAddr(InetAddress pIPAddr)
 {
 
-ipAddr = pIPAddr;
+    ipAddr = pIPAddr;
 
-ipAddrS = pIPAddr.toString();
+    ipAddrS = pIPAddr.toString();
 
 }//end of Board::setIPAddr
 //-----------------------------------------------------------------------------
@@ -126,22 +126,22 @@ ipAddrS = pIPAddr.toString();
 void sendByte(byte pByte)
 {
 
-sendHeader(); //send the packet header
+    sendHeader(); //send the packet header
 
-outBuffer[0] = pByte;
+    outBuffer[0] = pByte;
 
-//calculate the checksum
-outBuffer[1] = (byte)( (0x100 - outBuffer[0]) & 0xff  );
+    //calculate the checksum
+    outBuffer[1] = (byte)( (0x100 - outBuffer[0]) & 0xff  );
 
-//send packet to remote
-if (byteOut != null)
-    try{
-        byteOut.write(outBuffer, 0 /*offset*/, 2);
-        byteOut.flush();
+    //send packet to remote
+    if (byteOut != null)
+        try{
+            byteOut.write(outBuffer, 0 /*offset*/, 2);
+            byteOut.flush();
         }
-catch (IOException e){
-    System.err.println(getClass().getName() + " - Error: 143");
-}
+        catch (IOException e){
+            System.err.println(getClass().getName() + " - Error: 143");
+        }
 
 }//end of Board::sendByte
 //-----------------------------------------------------------------------------
@@ -156,22 +156,22 @@ catch (IOException e){
 void sendBytes2(byte pByte1, byte pByte2)
 {
 
-sendHeader(); //send the packet header
+    sendHeader(); //send the packet header
 
-outBuffer[0] = pByte1; outBuffer[1] = pByte2;
+    outBuffer[0] = pByte1; outBuffer[1] = pByte2;
 
-//calculate the checksum
-outBuffer[2] = (byte)( (0x100 - outBuffer[0] - outBuffer[1]) & 0xff );
+    //calculate the checksum
+    outBuffer[2] = (byte)( (0x100 - outBuffer[0] - outBuffer[1]) & 0xff );
 
-//send packet to remote
-if (byteOut != null)
-    try{
-        byteOut.write(outBuffer, 0 /*offset*/, 3);
-        byteOut.flush();
-    }
-    catch (IOException e){
-        System.err.println(getClass().getName() + " - Error: 173");
-    }
+    //send packet to remote
+    if (byteOut != null)
+        try{
+            byteOut.write(outBuffer, 0 /*offset*/, 3);
+            byteOut.flush();
+        }
+        catch (IOException e){
+            System.err.println(getClass().getName() + " - Error: 173");
+        }
 
 }//end of Board::sendBytes2
 //-----------------------------------------------------------------------------
@@ -186,24 +186,24 @@ if (byteOut != null)
 void sendBytes3(byte pByte1, byte pByte2, byte pByte3)
 {
 
-sendHeader(); //send the packet header
+    sendHeader(); //send the packet header
 
-outBuffer[0] = pByte1; outBuffer[1] = pByte2; outBuffer[2] = pByte3;
+    outBuffer[0] = pByte1; outBuffer[1] = pByte2; outBuffer[2] = pByte3;
 
-//calculate the checksum
-outBuffer[3] = (byte)(
-        (0x100 - outBuffer[0] - outBuffer[1] - outBuffer[2])
-         & 0xff );
+    //calculate the checksum
+    outBuffer[3] = (byte)(
+            (0x100 - outBuffer[0] - outBuffer[1] - outBuffer[2])
+             & 0xff );
 
-//send packet to remote
-if (byteOut != null)
-    try{
-        byteOut.write(outBuffer, 0 /*offset*/, 4);
-        byteOut.flush();
+    //send packet to remote
+    if (byteOut != null)
+        try{
+            byteOut.write(outBuffer, 0 /*offset*/, 4);
+            byteOut.flush();
         }
-    catch (IOException e){
-        System.err.println(getClass().getName() + " - Error: 205");
-    }
+        catch (IOException e){
+            System.err.println(getClass().getName() + " - Error: 205");
+        }
 
 }//end of Board::sendBytes3
 //-----------------------------------------------------------------------------
@@ -218,25 +218,25 @@ if (byteOut != null)
 void sendBytes4(byte pByte1, byte pByte2, byte pByte3, byte pByte4)
 {
 
-sendHeader(); //send the packet header
+    sendHeader(); //send the packet header
 
-outBuffer[0] = pByte1; outBuffer[1] = pByte2;
-outBuffer[2] = pByte3; outBuffer[3] = pByte4;
+    outBuffer[0] = pByte1; outBuffer[1] = pByte2;
+    outBuffer[2] = pByte3; outBuffer[3] = pByte4;
 
-//calculate the checksum
-outBuffer[4] = (byte)(
-        (0x100 - outBuffer[0] - outBuffer[1] - outBuffer[2] - outBuffer[3])
-         & 0xff );
+    //calculate the checksum
+    outBuffer[4] = (byte)(
+       (0x100 - outBuffer[0] - outBuffer[1] - outBuffer[2] - outBuffer[3])
+            & 0xff );
 
-//send packet to remote
-if (byteOut != null)
-    try{
-        byteOut.write(outBuffer, 0 /*offset*/, 5);
-        byteOut.flush();
+    //send packet to remote
+    if (byteOut != null)
+        try{
+            byteOut.write(outBuffer, 0 /*offset*/, 5);
+            byteOut.flush();
         }
-    catch (IOException e){
-        System.err.println(getClass().getName() + " - Error: 238");
-    }
+        catch (IOException e){
+            System.err.println(getClass().getName() + " - Error: 238");
+        }
 
 }//end of Board::sendBytes4
 //-----------------------------------------------------------------------------
@@ -251,27 +251,27 @@ if (byteOut != null)
 void sendBytes5(byte pByte1, byte pByte2, byte pByte3, byte pByte4, byte pByte5)
 {
 
-sendHeader(); //send the packet header
+    sendHeader(); //send the packet header
 
-outBuffer[0] = pByte1; outBuffer[1] = pByte2;
-outBuffer[2] = pByte3; outBuffer[3] = pByte4;
-outBuffer[4] = pByte5;
+    outBuffer[0] = pByte1; outBuffer[1] = pByte2;
+    outBuffer[2] = pByte3; outBuffer[3] = pByte4;
+    outBuffer[4] = pByte5;
 
-//calculate the checksum
-outBuffer[5] = (byte)(
-        (0x100 - outBuffer[0] - outBuffer[1] - outBuffer[2] - outBuffer[3]
-        - outBuffer[4])
-         & 0xff );
+    //calculate the checksum
+    outBuffer[5] = (byte)(
+            (0x100 - outBuffer[0] - outBuffer[1] - outBuffer[2] - outBuffer[3]
+            - outBuffer[4])
+             & 0xff );
 
-//send packet to remote
-if (byteOut != null)
-    try{
-        byteOut.write(outBuffer, 0 /*offset*/, 6);
-        byteOut.flush();
+    //send packet to remote
+    if (byteOut != null)
+        try{
+            byteOut.write(outBuffer, 0 /*offset*/, 6);
+            byteOut.flush();
         }
-    catch (IOException e){
-        System.err.println(getClass().getName() + " - Error: 273");
-    }
+        catch (IOException e){
+            System.err.println(getClass().getName() + " - Error: 273");
+        }
 
 }//end of Board::sendBytes5
 //-----------------------------------------------------------------------------
@@ -304,7 +304,7 @@ if (byteOut != null)
     try{
         byteOut.write(outBuffer, 0 /*offset*/, 7);
         byteOut.flush();
-        }
+    }
     catch (IOException e){
         System.err.println(getClass().getName() + " - Error: 309");
     }
@@ -323,28 +323,28 @@ void sendBytes7(byte pByte1, byte pByte2, byte pByte3, byte pByte4,
                      byte pByte5, byte pByte6, byte pByte7)
 {
 
-sendHeader(); //send the packet header
+    sendHeader(); //send the packet header
 
-outBuffer[0] = pByte1; outBuffer[1] = pByte2;
-outBuffer[2] = pByte3; outBuffer[3] = pByte4;
-outBuffer[4] = pByte5; outBuffer[5] = pByte6;
-outBuffer[6] = pByte7;
+    outBuffer[0] = pByte1; outBuffer[1] = pByte2;
+    outBuffer[2] = pByte3; outBuffer[3] = pByte4;
+    outBuffer[4] = pByte5; outBuffer[5] = pByte6;
+    outBuffer[6] = pByte7;
 
-//calculate the checksum
-outBuffer[7] = (byte)(
-        (0x100 - outBuffer[0] - outBuffer[1] - outBuffer[2] - outBuffer[3]
-        - outBuffer[4] - outBuffer[5] - outBuffer[6])
-         & 0xff );
+    //calculate the checksum
+    outBuffer[7] = (byte)(
+            (0x100 - outBuffer[0] - outBuffer[1] - outBuffer[2] - outBuffer[3]
+            - outBuffer[4] - outBuffer[5] - outBuffer[6])
+             & 0xff );
 
-//send packet to remote
-if (byteOut != null)
-    try{
-        byteOut.write(outBuffer, 0 /*offset*/, 8);
-        byteOut.flush();
+    //send packet to remote
+    if (byteOut != null)
+        try{
+            byteOut.write(outBuffer, 0 /*offset*/, 8);
+            byteOut.flush();
         }
-    catch (IOException e){
-        System.err.println(getClass().getName() + " - Error: 346");
-    }
+        catch (IOException e){
+            System.err.println(getClass().getName() + " - Error: 346");
+        }
 
 }//end of Board::sendBytes7
 //-----------------------------------------------------------------------------
@@ -360,28 +360,28 @@ void sendBytes8(byte pByte1, byte pByte2, byte pByte3, byte pByte4,
                      byte pByte5, byte pByte6, byte pByte7, byte pByte8)
 {
 
-sendHeader(); //send the packet header
+    sendHeader(); //send the packet header
 
-outBuffer[0] = pByte1; outBuffer[1] = pByte2;
-outBuffer[2] = pByte3; outBuffer[3] = pByte4;
-outBuffer[4] = pByte5; outBuffer[5] = pByte6;
-outBuffer[6] = pByte7; outBuffer[7] = pByte8;
+    outBuffer[0] = pByte1; outBuffer[1] = pByte2;
+    outBuffer[2] = pByte3; outBuffer[3] = pByte4;
+    outBuffer[4] = pByte5; outBuffer[5] = pByte6;
+    outBuffer[6] = pByte7; outBuffer[7] = pByte8;
 
-//calculate the checksum
-outBuffer[8] = (byte)(
-        (0x100 - outBuffer[0] - outBuffer[1] - outBuffer[2] - outBuffer[3]
-        - outBuffer[4] - outBuffer[5] - outBuffer[6] - outBuffer[7])
-         & 0xff );
+    //calculate the checksum
+    outBuffer[8] = (byte)(
+            (0x100 - outBuffer[0] - outBuffer[1] - outBuffer[2] - outBuffer[3]
+            - outBuffer[4] - outBuffer[5] - outBuffer[6] - outBuffer[7])
+             & 0xff );
 
-//send packet to remote
-if (byteOut != null)
-    try{
-        byteOut.write(outBuffer, 0 /*offset*/, 9);
-        byteOut.flush();
+    //send packet to remote
+    if (byteOut != null)
+        try{
+            byteOut.write(outBuffer, 0 /*offset*/, 9);
+            byteOut.flush();
         }
-    catch (IOException e){
-        System.err.println(getClass().getName() + " - Error: 383");
-    }
+        catch (IOException e){
+            System.err.println(getClass().getName() + " - Error: 383");
+        }
 
 }//end of Board::sendBytes8
 //-----------------------------------------------------------------------------
@@ -397,30 +397,30 @@ void sendBytes9(byte pByte1, byte pByte2, byte pByte3, byte pByte4,
                byte pByte5, byte pByte6, byte pByte7, byte pByte8, byte pByte9)
 {
 
-sendHeader(); //send the packet header
+    sendHeader(); //send the packet header
 
-outBuffer[0] = pByte1; outBuffer[1] = pByte2;
-outBuffer[2] = pByte3; outBuffer[3] = pByte4;
-outBuffer[4] = pByte5; outBuffer[5] = pByte6;
-outBuffer[6] = pByte7; outBuffer[7] = pByte8;
-outBuffer[8] = pByte9;
+    outBuffer[0] = pByte1; outBuffer[1] = pByte2;
+    outBuffer[2] = pByte3; outBuffer[3] = pByte4;
+    outBuffer[4] = pByte5; outBuffer[5] = pByte6;
+    outBuffer[6] = pByte7; outBuffer[7] = pByte8;
+    outBuffer[8] = pByte9;
 
-//calculate the checksum
-outBuffer[9] = (byte)(
-        (0x100 - outBuffer[0] - outBuffer[1] - outBuffer[2] - outBuffer[3]
-        - outBuffer[4] - outBuffer[5] - outBuffer[6] - outBuffer[7]
-         - outBuffer[8])
-         & 0xff );
+    //calculate the checksum
+    outBuffer[9] = (byte)(
+            (0x100 - outBuffer[0] - outBuffer[1] - outBuffer[2] - outBuffer[3]
+            - outBuffer[4] - outBuffer[5] - outBuffer[6] - outBuffer[7]
+             - outBuffer[8])
+             & 0xff );
 
-//send packet to remote
-if (byteOut != null)
-    try{
-        byteOut.write(outBuffer, 0 /*offset*/, 10);
-        byteOut.flush();
+    //send packet to remote
+    if (byteOut != null)
+        try{
+            byteOut.write(outBuffer, 0 /*offset*/, 10);
+            byteOut.flush();
         }
-    catch (IOException e) {
-        System.err.println(getClass().getName() + " - Error: 422");
-    }
+        catch (IOException e) {
+            System.err.println(getClass().getName() + " - Error: 422");
+        }
 
 }//end of Board::sendBytes9
 //-----------------------------------------------------------------------------
@@ -436,30 +436,30 @@ void sendBytes10(byte pByte1, byte pByte2, byte pByte3, byte pByte4,
   byte pByte5, byte pByte6, byte pByte7, byte pByte8, byte pByte9, byte pByte10)
 {
 
-sendHeader(); //send the packet header
+    sendHeader(); //send the packet header
 
-outBuffer[0] = pByte1; outBuffer[1] = pByte2;
-outBuffer[2] = pByte3; outBuffer[3] = pByte4;
-outBuffer[4] = pByte5; outBuffer[5] = pByte6;
-outBuffer[6] = pByte7; outBuffer[7] = pByte8;
-outBuffer[8] = pByte9; outBuffer[9] = pByte10;
+    outBuffer[0] = pByte1; outBuffer[1] = pByte2;
+    outBuffer[2] = pByte3; outBuffer[3] = pByte4;
+    outBuffer[4] = pByte5; outBuffer[5] = pByte6;
+    outBuffer[6] = pByte7; outBuffer[7] = pByte8;
+    outBuffer[8] = pByte9; outBuffer[9] = pByte10;
 
-//calculate the checksum
-outBuffer[10] = (byte)(
-        (0x100 - outBuffer[0] - outBuffer[1] - outBuffer[2] - outBuffer[3]
-        - outBuffer[4] - outBuffer[5] - outBuffer[6] - outBuffer[7]
-         - outBuffer[8] - outBuffer[9])
-         & 0xff );
+    //calculate the checksum
+    outBuffer[10] = (byte)(
+            (0x100 - outBuffer[0] - outBuffer[1] - outBuffer[2] - outBuffer[3]
+            - outBuffer[4] - outBuffer[5] - outBuffer[6] - outBuffer[7]
+             - outBuffer[8] - outBuffer[9])
+             & 0xff );
 
-//send packet to remote
-if (byteOut != null)
-    try{
-        byteOut.write(outBuffer, 0 /*offset*/, 11);
-        byteOut.flush();
+    //send packet to remote
+    if (byteOut != null)
+        try{
+            byteOut.write(outBuffer, 0 /*offset*/, 11);
+            byteOut.flush();
         }
-    catch (IOException e){
-        System.err.println(getClass().getName() + " - Error: 461");
-    }
+        catch (IOException e){
+            System.err.println(getClass().getName() + " - Error: 461");
+        }
 
 }//end of Board::sendBytes10
 //-----------------------------------------------------------------------------
@@ -476,31 +476,31 @@ void sendBytes11(byte pByte1, byte pByte2, byte pByte3, byte pByte4,
                  byte pByte9, byte pByte10, byte pByte11)
 {
 
-sendHeader(); //send the packet header
+    sendHeader(); //send the packet header
 
-outBuffer[0] = pByte1; outBuffer[1] = pByte2;
-outBuffer[2] = pByte3; outBuffer[3] = pByte4;
-outBuffer[4] = pByte5; outBuffer[5] = pByte6;
-outBuffer[6] = pByte7; outBuffer[7] = pByte8;
-outBuffer[8] = pByte9; outBuffer[9] = pByte10;
-outBuffer[10] = pByte11;
+    outBuffer[0] = pByte1; outBuffer[1] = pByte2;
+    outBuffer[2] = pByte3; outBuffer[3] = pByte4;
+    outBuffer[4] = pByte5; outBuffer[5] = pByte6;
+    outBuffer[6] = pByte7; outBuffer[7] = pByte8;
+    outBuffer[8] = pByte9; outBuffer[9] = pByte10;
+    outBuffer[10] = pByte11;
 
-//calculate the checksum
-outBuffer[11] = (byte)(
-        (0x100 - outBuffer[0] - outBuffer[1] - outBuffer[2] - outBuffer[3]
-        - outBuffer[4] - outBuffer[5] - outBuffer[6] - outBuffer[7]
-         - outBuffer[8] - outBuffer[9] - outBuffer[10])
-         & 0xff );
+    //calculate the checksum
+    outBuffer[11] = (byte)(
+            (0x100 - outBuffer[0] - outBuffer[1] - outBuffer[2] - outBuffer[3]
+            - outBuffer[4] - outBuffer[5] - outBuffer[6] - outBuffer[7]
+             - outBuffer[8] - outBuffer[9] - outBuffer[10])
+             & 0xff );
 
-//send packet to remote
-if (byteOut != null)
-    try{
-        byteOut.write(outBuffer, 0 /*offset*/, 12);
-        byteOut.flush();
+    //send packet to remote
+    if (byteOut != null)
+        try{
+            byteOut.write(outBuffer, 0 /*offset*/, 12);
+            byteOut.flush();
         }
-    catch (IOException e){
-        System.err.println(getClass().getName() + " - Error: 502");
-    }
+        catch (IOException e){
+            System.err.println(getClass().getName() + " - Error: 502");
+        }
 
 }//end of Board::sendBytes11
 //-----------------------------------------------------------------------------
@@ -518,34 +518,34 @@ void sendBytes15(byte pByte1, byte pByte2, byte pByte3, byte pByte4,
                  byte pByte13, byte pByte14, byte pByte15)
 {
 
-sendHeader(); //send the packet header
+    sendHeader(); //send the packet header
 
-outBuffer[0] = pByte1; outBuffer[1] = pByte2;
-outBuffer[2] = pByte3; outBuffer[3] = pByte4;
-outBuffer[4] = pByte5; outBuffer[5] = pByte6;
-outBuffer[6] = pByte7; outBuffer[7] = pByte8;
-outBuffer[8] = pByte9; outBuffer[9] = pByte10;
-outBuffer[10] = pByte11; outBuffer[11] = pByte12;
-outBuffer[12] = pByte13; outBuffer[13] = pByte14;
-outBuffer[14] = pByte15;
+    outBuffer[0] = pByte1; outBuffer[1] = pByte2;
+    outBuffer[2] = pByte3; outBuffer[3] = pByte4;
+    outBuffer[4] = pByte5; outBuffer[5] = pByte6;
+    outBuffer[6] = pByte7; outBuffer[7] = pByte8;
+    outBuffer[8] = pByte9; outBuffer[9] = pByte10;
+    outBuffer[10] = pByte11; outBuffer[11] = pByte12;
+    outBuffer[12] = pByte13; outBuffer[13] = pByte14;
+    outBuffer[14] = pByte15;
 
-//calculate the checksum
-outBuffer[15] = (byte)(
-        (0x100 - outBuffer[0] - outBuffer[1] - outBuffer[2] - outBuffer[3]
-        - outBuffer[4] - outBuffer[5] - outBuffer[6] - outBuffer[7]
-         - outBuffer[8] - outBuffer[9] - outBuffer[10] - outBuffer[11] -
-         outBuffer[12] - outBuffer[13] - outBuffer[14])
-         & 0xff );
+    //calculate the checksum
+    outBuffer[15] = (byte)(
+            (0x100 - outBuffer[0] - outBuffer[1] - outBuffer[2] - outBuffer[3]
+            - outBuffer[4] - outBuffer[5] - outBuffer[6] - outBuffer[7]
+             - outBuffer[8] - outBuffer[9] - outBuffer[10] - outBuffer[11] -
+             outBuffer[12] - outBuffer[13] - outBuffer[14])
+             & 0xff );
 
-//send packet to remote
-if (byteOut != null)
-    try{
-        byteOut.write(outBuffer, 0 /*offset*/, 16);
-        byteOut.flush();
+    //send packet to remote
+    if (byteOut != null)
+        try{
+            byteOut.write(outBuffer, 0 /*offset*/, 16);
+            byteOut.flush();
         }
-    catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 547");
-    }
+        catch(IOException e){
+            System.err.println(getClass().getName() + " - Error: 547");
+        }
 
 }//end of Board::sendBytes15
 //-----------------------------------------------------------------------------
@@ -559,15 +559,17 @@ if (byteOut != null)
 void sendHeader()
 {
 
-outBuffer[0] = (byte)0xaa; outBuffer[1] = (byte)0x55;
-outBuffer[2] = (byte)0xbb; outBuffer[3] = (byte)0x66;
+    outBuffer[0] = (byte)0xaa; outBuffer[1] = (byte)0x55;
+    outBuffer[2] = (byte)0xbb; outBuffer[3] = (byte)0x66;
 
-//send packet to remote
-if (byteOut != null)
-    try{byteOut.write(outBuffer, 0 /*offset*/, 4);}
-    catch (IOException e){
-        System.err.println(getClass().getName() + " - Error: 569");
-    }
+    //send packet to remote
+    if (byteOut != null)
+        try{
+            byteOut.write(outBuffer, 0 /*offset*/, 4);
+        }
+        catch (IOException e){
+            System.err.println(getClass().getName() + " - Error: 569");
+        }
 
 }//end of Board::sendHeader
 //-----------------------------------------------------------------------------
@@ -583,19 +585,19 @@ if (byteOut != null)
 public int process2BytePacket()
 {
 
-try{
-    timeOutProcess = 0;
-    while(timeOutProcess++ < TIMEOUT){
-        if (byteIn.available() >= 2) break;
-        waitSleep(10);
+    try{
+        timeOutProcess = 0;
+        while(timeOutProcess++ < TIMEOUT){
+            if (byteIn.available() >= 2) break;
+            waitSleep(10);
         }
-    if (byteIn.available() >= 2) return byteIn.read(inBuffer, 0, 2);
+        if (byteIn.available() >= 2) return byteIn.read(inBuffer, 0, 2);
     }// try
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 595");
-}
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 595");
+    }
 
-return 0;
+    return 0;
 
 }//end of Board::process2BytePacket
 //-----------------------------------------------------------------------------
@@ -622,14 +624,14 @@ return 0;
 byte getRemoteData(byte pCommand, boolean pForceProcessDataPackets)
 {
 
-if (byteIn == null) return(0);
+    if (byteIn == null) return(0);
 
-sendByte(pCommand); //request the data from the remote
+    sendByte(pCommand); //request the data from the remote
 
-//force waiting for and processing of receive packets
-if (pForceProcessDataPackets) processDataPackets(true, TIMEOUT);
+    //force waiting for and processing of receive packets
+    if (pForceProcessDataPackets) processDataPackets(true, TIMEOUT);
 
-return inBuffer[0];
+    return inBuffer[0];
 
 }//end of Board::getRemoteData
 //-----------------------------------------------------------------------------
@@ -645,30 +647,30 @@ return inBuffer[0];
 byte getRemoteAddressedData(byte pCommand, byte pSendData)
 {
 
-if (byteIn == null) return(0);
+    if (byteIn == null) return(0);
 
-sendBytes2(pCommand, pSendData);
+    sendBytes2(pCommand, pSendData);
 
-int IN_BUFFER_SIZE = 2;
-byte[] inBuf;
-inBuf = new byte[IN_BUFFER_SIZE];
+    int IN_BUFFER_SIZE = 2;
+    byte[] inBuf;
+    inBuf = new byte[IN_BUFFER_SIZE];
 
-try{
-    while(true){
+    try{
+        while(true){
 
-        if (byteIn.available() >= IN_BUFFER_SIZE){
+            if (byteIn.available() >= IN_BUFFER_SIZE){
 
-            byteIn.read(inBuf, 0, IN_BUFFER_SIZE);
-            break;
+                byteIn.read(inBuf, 0, IN_BUFFER_SIZE);
+                break;
 
             }// if
         }// while...
     }// try
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 668");
-}
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 668");
+    }
 
-return inBuf[0];
+    return inBuf[0];
 
 }//end of Board::getRemoteAddressedData
 //-----------------------------------------------------------------------------
@@ -685,35 +687,35 @@ void getRemoteDataBlock(byte pCommand, byte pQualifier, int pSize,
                                                                  int[] pBuffer)
 {
 
-return; //debug mks - remove this line - reinsert next block
+    return; //debug mks - remove this line - reinsert next block
 
-/*
+    /*
 
-if (byteIn == null) return;
+    if (byteIn == null) return;
 
-sendBytes4(pCommand, pQualifier,
-          (byte) ((pSize >> 8) & 0xff), (byte) (pSize & 0xff));
+    sendBytes4(pCommand, pQualifier,
+              (byte) ((pSize >> 8) & 0xff), (byte) (pSize & 0xff));
 
-try{
-    while(true){
+    try{
+        while(true){
 
-        if (byteIn.available() >= pSize){
+            if (byteIn.available() >= pSize){
 
-            byteIn.read(pktBuffer, 0, pSize);
-            break;
+                byteIn.read(pktBuffer, 0, pSize);
+                break;
 
-            }// if
-        }// while...
-    }// try
-catch(IOException e){}
+                }// if
+            }// while...
+        }// try
+    catch(IOException e){}
 
-//transfer the bytes to the int array - allow for sign extension
-for (int i=0; i<pSize; i++) pBuffer[i] = (int)pktBuffer[i];
+    //transfer the bytes to the int array - allow for sign extension
+    for (int i=0; i<pSize; i++) pBuffer[i] = (int)pktBuffer[i];
 
-//use this line to prevent sign extension
-//for (int i=0; i<pSize; i++) pBuffer[i] = ((int)pktBuffer[i]) & 0xff;
+    //use this line to prevent sign extension
+    //for (int i=0; i<pSize; i++) pBuffer[i] = ((int)pktBuffer[i]) & 0xff;
 
-*/
+    */
 
 }//end of Board::getRemoteDataBlock
 //-----------------------------------------------------------------------------
@@ -730,21 +732,21 @@ for (int i=0; i<pSize; i++) pBuffer[i] = (int)pktBuffer[i];
 public int processDataPackets(boolean pWaitForPkt, int pTimeOut)
 {
 
-int x = 0;
+    int x = 0;
 
-//process packets until there is no more data available
+    //process packets until there is no more data available
 
-// if pWaitForPkt is true, only call once or an infinite loop will occur
-// because the subsequent call will still have the flag set but no data
-// will ever be coming because this same thread which is now blocked is
-// sometimes the one requesting data
+    // if pWaitForPkt is true, only call once or an infinite loop will occur
+    // because the subsequent call will still have the flag set but no data
+    // will ever be coming because this same thread which is now blocked is
+    // sometimes the one requesting data
 
-if (pWaitForPkt)
-    return processOneDataPacket(pWaitForPkt, pTimeOut);
-else
-    while ((x = processOneDataPacket(pWaitForPkt, pTimeOut)) != -1){}
+    if (pWaitForPkt)
+        return processOneDataPacket(pWaitForPkt, pTimeOut);
+    else
+        while ((x = processOneDataPacket(pWaitForPkt, pTimeOut)) != -1){}
 
-return x;
+    return x;
 
 }//end of Board::processDataPackets
 //-----------------------------------------------------------------------------
@@ -762,7 +764,7 @@ return x;
 public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
 {
 
-return(0);
+    return(0);
 
 }//end of Board::processOneDataPacket
 //-----------------------------------------------------------------------------
@@ -776,7 +778,7 @@ return(0);
 public void waitSleep(int pTime)
 {
 
-try {Thread.sleep(pTime);} catch (InterruptedException e) { }
+    try {Thread.sleep(pTime);} catch (InterruptedException e) { }
 
 }//end of Board::waitSleep
 //-----------------------------------------------------------------------------
@@ -790,8 +792,8 @@ try {Thread.sleep(pTime);} catch (InterruptedException e) { }
 public synchronized void waitForConnectCompletion()
 {
 
-while(!setupComplete){
-    try {wait(); } catch (InterruptedException e) { }
+    while(!setupComplete){
+        try {wait(); } catch (InterruptedException e) { }
     }
 
 }//end of Board::waitForConnectCompletion
@@ -843,113 +845,115 @@ void installNewRabbitFirmware(String pBoardType, String pFilename,
                                                 InstallFirmwareSettings pS)
 {
 
-int CODE_BUFFER_SIZE = 1025; //transfer command word and 1024 data bytes
-byte[] codeBuffer;
-codeBuffer = new byte[CODE_BUFFER_SIZE];
-int remoteStatus;
-int timeOutRead;
-int bufPtr;
+    int CODE_BUFFER_SIZE = 1025; //transfer command word and 1024 data bytes
+    byte[] codeBuffer;
+    codeBuffer = new byte[CODE_BUFFER_SIZE];
+    int remoteStatus;
+    int timeOutRead;
+    int bufPtr;
 
-boolean fileDone = false;
+    boolean fileDone = false;
 
-FileInputStream inFile = null;
+    FileInputStream inFile = null;
 
-try {
+    try {
 
-    sendByte(pS.loadFirmwareCmd); //send command to initiate loading
+        sendByte(pS.loadFirmwareCmd); //send command to initiate loading
 
-    logger.logMessage(pBoardType + " " + ipAddrS +
-                                        " loading Rabbit firmware..." + "\n");
+        logger.logMessage(pBoardType + " " + ipAddrS +
+                                         " loading Rabbit firmware..." + "\n");
 
-    timeOutRead = 0;
-    inFile = new FileInputStream(pFilename);
-    int c, inCount;
+        timeOutRead = 0;
+        inFile = new FileInputStream(pFilename);
+        int c, inCount;
 
-    while(timeOutRead < FIRMWARE_LOAD_TIMEOUT){
+        while(timeOutRead < FIRMWARE_LOAD_TIMEOUT){
 
-        inBuffer[0] = pS.noAction; //clear request byte from host
-        inBuffer[1] = pS.noAction; //clear status word (upper byte) from host
-        inBuffer[2] = pS.noAction; //clear status word (lower byte) from host
+            inBuffer[0] = pS.noAction; //clear request byte from host
+            //clear status word (upper byte) from host
+            inBuffer[1] = pS.noAction;
+            //clear status word (lower byte) from host
+            inBuffer[2] = pS.noAction;
 
-        remoteStatus = 0;
+            remoteStatus = 0;
 
-        //check for a request from the remote if connected
-        if (byteIn != null){
-            inCount = byteIn.available();
-            //0 = buffer offset, 2 = number of bytes to read
-            if (inCount >= 3)
-                byteIn.read(inBuffer, 0, 3);
-            remoteStatus = (int)((inBuffer[0]<<8) & 0xff00)
-                                                    + (int)(inBuffer[1] & 0xff);
-        }
-
-        //trap and respond to messages from the remote
-        if (inBuffer[0] == pS.error){
-            logger.logMessage(pBoardType + " " + ipAddrS +
-                " error loading firmware, error code: " + remoteStatus + "\n");
-            return;
+            //check for a request from the remote if connected
+            if (byteIn != null){
+                inCount = byteIn.available();
+                //0 = buffer offset, 2 = number of bytes to read
+                if (inCount >= 3)
+                    byteIn.read(inBuffer, 0, 3);
+                remoteStatus = (int)((inBuffer[0]<<8) & 0xff00)
+                                                   + (int)(inBuffer[1] & 0xff);
             }
 
-        //send data packet when requested by remote
-        if (inBuffer[0] == pS.sendDataCmd && !fileDone){
+            //trap and respond to messages from the remote
+            if (inBuffer[0] == pS.error){
+                logger.logMessage(pBoardType + " " + ipAddrS +
+                 " error loading firmware, error code: " + remoteStatus + "\n");
+                return;
+            }
 
-            bufPtr = 0; c = 0;
-            codeBuffer[bufPtr++] = pS.dataCmd; // command byte = data packet
+            //send data packet when requested by remote
+            if (inBuffer[0] == pS.sendDataCmd && !fileDone){
 
-            //be sure to check bufPtr on left side or a byte will get read
-            //and ignored every time bufPtr test fails
-            while (bufPtr < CODE_BUFFER_SIZE && (c = inFile.read()) != -1 ) {
+                bufPtr = 0; c = 0;
+                codeBuffer[bufPtr++] = pS.dataCmd; // command byte = data packet
 
-                //stuff the bytes into the buffer after the command byte
-                codeBuffer[bufPtr++] = (byte)c;
+                //be sure to check bufPtr on left side or a byte will get read
+                //and ignored every time bufPtr test fails
+                while (bufPtr<CODE_BUFFER_SIZE && (c = inFile.read()) != -1 ) {
 
-                //reset timer in this loop so it only gets reset when
-                //a request has been received AND not at end of file
-                timeOutRead = 0;
+                    //stuff the bytes into the buffer after the command byte
+                    codeBuffer[bufPtr++] = (byte)c;
 
-                }
+                    //reset timer in this loop so it only gets reset when
+                    //a request has been received AND not at end of file
+                    timeOutRead = 0;
 
-            if (c == -1) fileDone = true;
+                }//while (bufPtr<CODE_BUFFER_SIZE...
 
-            //send packet to remote -- at the end of the file, this may have
-            //random values as padding to fill out the buffer
-            byteOut.write(codeBuffer, 0 /*offset*/, CODE_BUFFER_SIZE);
+                if (c == -1) fileDone = true;
 
-            //send the exit command when the file is done
-            if (fileDone){
-                codeBuffer[0] = pS.exitCmd;
-                byteOut.write(codeBuffer, 0 /*offset*/, 1);
-                break;
-            }//if (fileDone)
+                //send packet to remote -- at the end of the file, this may have
+                //random values as padding to fill out the buffer
+                byteOut.write(codeBuffer, 0 /*offset*/, CODE_BUFFER_SIZE);
 
-        }//if (inBuffer[0] == SEND_DATA)
+                //send the exit command when the file is done
+                if (fileDone){
+                    codeBuffer[0] = pS.exitCmd;
+                    byteOut.write(codeBuffer, 0 /*offset*/, 1);
+                    break;
+                }//if (fileDone)
 
-        //count loops - will exit when max reached
-        //this is reset whenever a packet request is received and the end of
-        //file not reached - when end of file reached, loop will wait until
-        //timeout reached again before exiting in order to catch success/error
-        //messages from the remote
+            }//if (inBuffer[0] == SEND_DATA)
 
-        timeOutRead++;
+            //count loops - will exit when max reached
+            //this is reset whenever a packet request is received and the end of
+            //file not reached - when end of file reached, loop will wait until
+            //timeout reached again before exiting in order to catch success/error
+            //messages from the remote
 
-        }// while(timeOutGet <...
+            timeOutRead++;
 
-    if (fileDone)
-        logger.logMessage(
-           pBoardType + " " + ipAddrS + " firmware installed." + "\n");
-    else
-    //remote has not responded if this part reached
-        logger.logMessage(pBoardType + " " + ipAddrS
-                        + " error loading firmware - contact lost." + "\n");
+            }// while(timeOutGet <...
+
+        if (fileDone)
+            logger.logMessage(
+               pBoardType + " " + ipAddrS + " firmware installed." + "\n");
+        else
+        //remote has not responded if this part reached
+            logger.logMessage(pBoardType + " " + ipAddrS
+                            + " error loading firmware - contact lost." + "\n");
 
     }//try
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 947");
-    logger.logMessage(
-            pBoardType + " " + ipAddrS + " error loading firmware!" + "\n");
-}
-finally {
-    if (inFile != null) try {inFile.close();}catch(IOException e){}
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 947");
+        logger.logMessage(
+                pBoardType + " " + ipAddrS + " error loading firmware!" + "\n");
+    }
+    finally {
+        if (inFile != null) try {inFile.close();}catch(IOException e){}
     }//finally
 
 }//end of Board::installNewRabbitFirmware

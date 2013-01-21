@@ -60,15 +60,15 @@ import chart.mksystems.inifile.IniFile;
 
 public class CalFileSaver extends Thread{
 
-Settings settings;
-Hardware hardware;
-HardwareVars hdwVs;
-boolean humanReadable;
+    Settings settings;
+    Hardware hardware;
+    HardwareVars hdwVs;
+    boolean humanReadable;
 
-static JFrame mainFrame;
-static MessageWindow messageWindow;
+    static JFrame mainFrame;
+    static MessageWindow messageWindow;
 
-DecimalFormat[] decimalFormats;
+    DecimalFormat[] decimalFormats;
 
 //-----------------------------------------------------------------------------
 // CalFileSaver::CalFileSaver (constructor)
@@ -78,13 +78,13 @@ public CalFileSaver(Settings pSettings, Hardware pHardware,
                                                         boolean pHumanReadable)
 {
 
-settings = pSettings;
-hardware = pHardware;
-hdwVs = hardware.hdwVs;
-humanReadable = pHumanReadable;
+    settings = pSettings;
+    hardware = pHardware;
+    hdwVs = hardware.hdwVs;
+    humanReadable = pHumanReadable;
 
-//store in a static variable so it can be used from static methods
-mainFrame = settings.mainFrame;
+    //store in a static variable so it can be used from static methods
+    mainFrame = settings.mainFrame;
 
 }//end of CalFileSaver::CalFileSaver (constructor)
 //-----------------------------------------------------------------------------
@@ -119,40 +119,40 @@ public void init()
 @Override
 public void run() {
 
-//tell the GUI to update the status message
-javax.swing.SwingUtilities.invokeLater(
-    new Runnable() {
-    @Override
-    public void run() {
-        createMessageWindow("Saving data to primary folder...");}});
+    //tell the GUI to update the status message
+    javax.swing.SwingUtilities.invokeLater(
+        new Runnable() {
+        @Override
+        public void run() {
+            createMessageWindow("Saving data to primary folder...");}});
 
-//begin saving the data to the primary path
-if (!humanReadable)
-    saveFile(settings.currentJobPrimaryPath);
-else
-    saveFileHumanReadable(settings.currentJobPrimaryPath);
+    //begin saving the data to the primary path
+    if (!humanReadable)
+        saveFile(settings.currentJobPrimaryPath);
+    else
+        saveFileHumanReadable(settings.currentJobPrimaryPath);
 
-//tell the GUI to update the status message
-javax.swing.SwingUtilities.invokeLater(
-    new Runnable() {
-    @Override
-    public void run() {
-        messageWindow.message.setText("Saving data to backup folder...");}});
+    //tell the GUI to update the status message
+    javax.swing.SwingUtilities.invokeLater(
+        new Runnable() {
+        @Override
+        public void run() {
+           messageWindow.message.setText("Saving data to backup folder...");}});
 
-//begin saving the data to the backup path
-if (!humanReadable)
-    saveFile(settings.currentJobBackupPath);
-else
-    saveFileHumanReadable(settings.currentJobBackupPath);
+    //begin saving the data to the backup path
+    if (!humanReadable)
+        saveFile(settings.currentJobBackupPath);
+    else
+        saveFileHumanReadable(settings.currentJobBackupPath);
 
-//tell the GUI to dispose of the message window
-javax.swing.SwingUtilities.invokeLater(
-    new Runnable() {
-    @Override
-    public void run() {disposeOfMessageWindow();}});
+    //tell the GUI to dispose of the message window
+    javax.swing.SwingUtilities.invokeLater(
+        new Runnable() {
+        @Override
+        public void run() {disposeOfMessageWindow();}});
 
-//this thread is done - set the pointer to this object null to dispose it
-settings.fileSaver = null;
+    //this thread is done - set the pointer to this object null to dispose it
+    settings.fileSaver = null;
 
 }//end of CalFileSaver::run
 //-----------------------------------------------------------------------------
@@ -173,56 +173,59 @@ settings.fileSaver = null;
 protected void saveFile(String pJobPath)
 {
 
-//if the job path has not been set, don't save anything or it will be saved in
-//the program root folder -- this occurs when the current job path specified in
-//the Main Settings.ini is blank
+    //if the job path has not been set, don't save anything or it will be saved in
+    //the program root folder -- this occurs when the current job path specified in
+    //the Main Settings.ini is blank
 
-if (pJobPath.equals("")) return;
+    if (pJobPath.equals("")) return;
 
-IniFile calFile = null;
+    IniFile calFile = null;
 
-//if the ini file cannot be opened and loaded, exit without action
-try {
-    calFile = new IniFile(pJobPath + "00 - " + settings.currentJobName +
-                            " Calibration File.ini", settings.jobFileFormat);
+    //if the ini file cannot be opened and loaded, exit without action
+    try {
+        calFile = new IniFile(pJobPath + "00 - " + settings.currentJobName +
+                              " Calibration File.ini", settings.jobFileFormat);
     }
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 190");
-    return;
-}
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 190");
+        return;
+    }
 
-//if true, traces will restart at left edge of chart for each new piece
-//if false, new piece will be added to end of traces while chart scrolls
-calFile.writeBoolean("General", "Restart Each New Piece at Left Edge of Chart",
+    //if true, traces will restart at left edge of chart for each new piece
+    //if false, new piece will be added to end of traces while chart scrolls
+    calFile.writeBoolean("General",
+                         "Restart Each New Piece at Left Edge of Chart",
                                            settings.restartNewPieceAtLeftEdge);
 
-//settings which control peak hold display on the A Scan
-calFile.writeBoolean("General", "Show Red Peak Line at Gate Center",
-                                        settings.showRedPeakLineInGateCenter);
-calFile.writeBoolean("General", "Show Red Peak Line at Peak Location",
+    //settings which control peak hold display on the A Scan
+    calFile.writeBoolean("General", "Show Red Peak Line at Gate Center",
+                                         settings.showRedPeakLineInGateCenter);
+    calFile.writeBoolean("General", "Show Red Peak Line at Peak Location",
                                        settings.showRedPeakLineAtPeakLocation);
-calFile.writeBoolean("General", "Show Peak Symbol at Peak Location",
+    calFile.writeBoolean("General", "Show Peak Symbol at Peak Location",
                                         settings.showPseudoPeakAtPeakLocation);
-calFile.writeBoolean("General",
-        "Report all flags (do not skip duplicates at the same location)",
-                                                       settings.reportAllFlags);
+    calFile.writeBoolean("General",
+            "Report all flags (do not skip duplicates at the same location)",
+                                                      settings.reportAllFlags);
 
-calFile.writeInt(
+    calFile.writeInt(
                "General", "Scanning and Inspecting Speed", settings.scanSpeed);
 
-calFile.writeString("General", "Graph Print Layout", settings.graphPrintLayout);
+    calFile.writeString("General", "Graph Print Layout",
+                                                    settings.graphPrintLayout);
 
-calFile.writeString(
-                  "General", "Graph Print Magnify", settings.userPrintMagnify);
+    calFile.writeString(
+                      "General", "Graph Print Magnify",
+                                                    settings.userPrintMagnify);
 
-//save info for all charts
-for (int i=0; i < settings.numberOfChartGroups; i++)
-    settings.chartGroups[i].saveCalFile(calFile);
+    //save info for all charts
+    for (int i=0; i < settings.numberOfChartGroups; i++)
+        settings.chartGroups[i].saveCalFile(calFile);
 
-hardware.saveCalFile(calFile);
+    hardware.saveCalFile(calFile);
 
-//force save buffer to disk
-calFile.save();
+    //force save buffer to disk
+    calFile.save();
 
 }//end of MainWindow::saveFile
 //-----------------------------------------------------------------------------
@@ -243,47 +246,47 @@ calFile.save();
 protected void saveFileHumanReadable(String pJobPath)
 {
 
-//if the job path has not been set, don't save anything or it will be saved in
-//the program root folder -- this occurs when the current job path specified in
-//the Main Settings.ini is blank
+    //if the job path has not been set, don't save anything or it will be saved
+    //in the program root folder -- this occurs when the current job path
+    //specified in the Main Settings.ini is blank
 
-if (pJobPath.equals("")) return;
+    if (pJobPath.equals("")) return;
 
-String date = new Date().toString();
+    String date = new Date().toString();
 
-String filename = pJobPath + "00 - " + settings.currentJobName
-       + " Calibration File ~ " + date.replace(":", "-") + ".txt";
+    String filename = pJobPath + "00 - " + settings.currentJobName
+                 + " Calibration File ~ " + date.replace(":", "-") + ".txt";
 
-//create a buffered writer stream
-FileOutputStream fileOutputStream = null;
-OutputStreamWriter outputStreamWriter = null;
-BufferedWriter out = null;
+    //create a buffered writer stream
+    FileOutputStream fileOutputStream = null;
+    OutputStreamWriter outputStreamWriter = null;
+    BufferedWriter out = null;
 
-try{
+    try{
 
-    fileOutputStream = new FileOutputStream(filename);
-    outputStreamWriter =
-            new OutputStreamWriter(fileOutputStream, settings.jobFileFormat);
-    out = new BufferedWriter(outputStreamWriter);
+        fileOutputStream = new FileOutputStream(filename);
+        outputStreamWriter =
+               new OutputStreamWriter(fileOutputStream, settings.jobFileFormat);
+        out = new BufferedWriter(outputStreamWriter);
 
-    //write data to the file
-    saveFileHumanReadableHelper(out);
+        //write data to the file
+        saveFileHumanReadableHelper(out);
 
-    //Note! You MUST flush to make sure everything is written.
-    out.flush();
+        //Note! You MUST flush to make sure everything is written.
+        out.flush();
 
     }
-catch(IOException e){
-System.err.println(getClass().getName() + " - Error: 277");
-}
-finally{
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 277");
+    }
+    finally{
 
-    try{if (out != null) out.close();}
-    catch(IOException e){}
-    try{if (outputStreamWriter != null) outputStreamWriter.close();}
-    catch(IOException e){}
-    try{if (fileOutputStream != null) fileOutputStream.close();}
-    catch(IOException e){}
+        try{if (out != null) out.close();}
+        catch(IOException e){}
+        try{if (outputStreamWriter != null) outputStreamWriter.close();}
+        catch(IOException e){}
+        try{if (fileOutputStream != null) fileOutputStream.close();}
+        catch(IOException e){}
     }
 
     //calculate a security hash code and append it to the file
@@ -366,7 +369,7 @@ protected void saveFileHumanReadableHelper(BufferedWriter pOut)
 private static void createMessageWindow(String pMessage)
 {
 
-messageWindow = new MessageWindow(mainFrame, pMessage);
+    messageWindow = new MessageWindow(mainFrame, pMessage);
 
 }//end of CalFileSaver::createMessageWindow
 //-----------------------------------------------------------------------------
@@ -384,8 +387,8 @@ messageWindow = new MessageWindow(mainFrame, pMessage);
 private static void disposeOfMessageWindow()
 {
 
-messageWindow.dispose();
-messageWindow = null;
+    messageWindow.dispose();
+    messageWindow = null;
 
 }//end of CalFileSaver::disposeOfMessageWindow
 //-----------------------------------------------------------------------------

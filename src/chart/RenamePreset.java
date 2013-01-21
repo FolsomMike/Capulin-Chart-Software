@@ -173,13 +173,13 @@ public void actionPerformed(ActionEvent e)
         setVisible(false);
         dispose();  //destroy the dialog window
         return;
-        }
+    }
 
     if (source.getActionCommand().equalsIgnoreCase("Cancel")){
          setVisible(false);
          dispose();  //destroy the dialog window
         return;
-        }
+    }
 
 }//end of Change::actionPerformed
 //-----------------------------------------------------------------------------
@@ -206,7 +206,7 @@ boolean renamePreset()
         "You must select a Preset.",
         "Error", JOptionPane.ERROR_MESSAGE);
         return(false);
-        }
+    }
     else
         presetSelected = true;
 
@@ -216,7 +216,7 @@ boolean renamePreset()
         "The New Name entry cannot be blank.",
         "Error", JOptionPane.ERROR_MESSAGE);
         return(false);
-        }
+    }
 
     //if the user has entered an illegal character, display an error
     //illegal characters    <>/?:"\|*
@@ -227,7 +227,7 @@ boolean renamePreset()
         "The Preset name cannot contain:  <>/?:\"\\|*",
         "Error", JOptionPane.ERROR_MESSAGE);
         return(false);
-        }
+    }
 
     int n = JOptionPane.showConfirmDialog(
         frame,
@@ -237,8 +237,8 @@ boolean renamePreset()
 
     if (n != JOptionPane.YES_OPTION) return(false);  //bail out if user cancels
 
-    //if the name to be used for the preset does not end with ".preset" then add it
-    //as a suffix to make the presets more identifiable
+    //if the name to be used for the preset does not end with ".preset" then add
+    //it as a suffix to make the presets more identifiable
     if (!newName.toLowerCase().endsWith(".preset")) newName += ".preset";
 
     File presetFile = new File ("presets/" + selectedItemName);
@@ -253,7 +253,7 @@ boolean renamePreset()
             "Error", JOptionPane.ERROR_MESSAGE);
             return(false);
 
-        }
+    }
 
     //signal the class which invoked this window that user has acted and pass back
     //the name of the file/folder acted on
@@ -322,7 +322,7 @@ boolean copyFile(String pSource, String pDest)
         while ((c = in.read()) != -1) {
             out.write(c); }
 
-        }
+    }
     catch(IOException e){
         System.err.println(getClass().getName() + " - Error: 327");
         return (false);
@@ -331,7 +331,7 @@ boolean copyFile(String pSource, String pDest)
         try{
             if (in != null) in.close();
             if (out != null) out.close();
-            }
+        }
         catch(IOException e){
             System.err.println(getClass().getName() + " - Error: 336");
             return(false);

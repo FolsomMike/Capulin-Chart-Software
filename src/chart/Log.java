@@ -31,7 +31,7 @@ import java.util.Date;
 
 public class Log extends JDialog{
 
-public JTextArea textArea;
+    public JTextArea textArea;
 
 //-----------------------------------------------------------------------------
 // Log::Log (constructor)
@@ -41,22 +41,22 @@ public JTextArea textArea;
 public Log(JFrame frame)
 {
 
-super(frame, "Message Log");
+    super(frame, "Message Log");
 
-int panelWidth = 330;
-int panelHeight = 500;
+    int panelWidth = 330;
+    int panelHeight = 500;
 
-setMinimumSize(new Dimension(panelWidth, panelHeight));
-setPreferredSize(new Dimension(panelWidth, panelHeight));
-setMaximumSize(new Dimension(panelWidth, panelHeight));
+    setMinimumSize(new Dimension(panelWidth, panelHeight));
+    setPreferredSize(new Dimension(panelWidth, panelHeight));
+    setMaximumSize(new Dimension(panelWidth, panelHeight));
 
-textArea = new JTextArea();
+    textArea = new JTextArea();
 
-JScrollPane areaScrollPane = new JScrollPane(textArea);
+    JScrollPane areaScrollPane = new JScrollPane(textArea);
 
-//add(textArea);
+    //add(textArea);
 
-add(areaScrollPane);
+    add(areaScrollPane);
 
 
 }//end of Log::Log (constructor)

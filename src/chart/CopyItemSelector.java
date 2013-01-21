@@ -34,7 +34,7 @@ import java.awt.event.*;
 
 public class CopyItemSelector extends JDialog implements ActionListener{
 
-JPanel panel;
+    JPanel panel;
 
 //-----------------------------------------------------------------------------
 // CopyItemSelector::CopyItemSelector (constructor)
@@ -44,7 +44,7 @@ JPanel panel;
 public CopyItemSelector(JFrame pFrame)
 {
 
-super(pFrame, "Copy Items");
+    super(pFrame, "Copy Items");
 
 }//end of CopyItemSelector::CopyItemSelector (constructor)
 //-----------------------------------------------------------------------------
@@ -58,32 +58,32 @@ super(pFrame, "Copy Items");
 public void init()
 {
 
-//don't allow user to close the window with the x in the corner
-setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+    //don't allow user to close the window with the x in the corner
+    setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
-//add panel to hold everything
-JPanel mainPanel = new JPanel();
-mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
-mainPanel.setOpaque(true);
-add(mainPanel);
+    //add panel to hold everything
+    JPanel mainPanel = new JPanel();
+    mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+    mainPanel.setOpaque(true);
+    add(mainPanel);
 
-//add panel to hold list of items as check boxes
-panel = new JPanel();
-panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-panel.setOpaque(true);
-panel.setAlignmentX(Component.CENTER_ALIGNMENT);
-mainPanel.add(panel);
+    //add panel to hold list of items as check boxes
+    panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    panel.setOpaque(true);
+    panel.setAlignmentX(Component.CENTER_ALIGNMENT);
+    mainPanel.add(panel);
 
-//add panel to hold "Help" button
-JPanel helpPanel = new JPanel();
-helpPanel.setLayout(new BoxLayout(helpPanel, BoxLayout.Y_AXIS));
-helpPanel.setOpaque(true);
-JButton b = new JButton("Help");
-b.addActionListener(this);
-b.setActionCommand("Help");
-helpPanel.add(b);
-helpPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-mainPanel.add(helpPanel);
+    //add panel to hold "Help" button
+    JPanel helpPanel = new JPanel();
+    helpPanel.setLayout(new BoxLayout(helpPanel, BoxLayout.Y_AXIS));
+    helpPanel.setOpaque(true);
+    JButton b = new JButton("Help");
+    b.addActionListener(this);
+    b.setActionCommand("Help");
+    helpPanel.add(b);
+    helpPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+    mainPanel.add(helpPanel);
 
 }//end of CopyItemSelector::init
 //-----------------------------------------------------------------------------
@@ -101,12 +101,12 @@ mainPanel.add(helpPanel);
 public boolean getItemState(String pItemName)
 {
 
-JCheckBox cb = getItemWithName(pItemName);
+    JCheckBox cb = getItemWithName(pItemName);
 
-if (cb != null)
-    return cb.isSelected();
-else
-    return(false);
+    if (cb != null)
+        return cb.isSelected();
+    else
+        return(false);
 
 }//end of CopyItemSelector::getItemState
 //-----------------------------------------------------------------------------
@@ -133,26 +133,26 @@ else
 public void addItem(String pItemName)
 {
 
-JCheckBox cb;
+    JCheckBox cb;
 
-//add special item so user can choose to select all parameters for copy
-if (getItemWithName("Copy All Parameters") == null){
-    cb = new JCheckBox("Copy All Parameters");
-    cb.setSelected(false);
-    panel.add(cb);
-}
+    //add special item so user can choose to select all parameters for copy
+    if (getItemWithName("Copy All Parameters") == null){
+        cb = new JCheckBox("Copy All Parameters");
+        cb.setSelected(false);
+        panel.add(cb);
+    }
 
-//only add item if it is not already present
-if (!pItemName.equals("") && getItemWithName(pItemName) == null){
-    //add a new checkbox for the item
-    cb = new JCheckBox(pItemName);
-    cb.setSelected(true);
-    panel.add(cb);
-}
+    //only add item if it is not already present
+    if (!pItemName.equals("") && getItemWithName(pItemName) == null){
+        //add a new checkbox for the item
+        cb = new JCheckBox(pItemName);
+        cb.setSelected(true);
+        panel.add(cb);
+    }
 
-setVisible(true); //display the window
+    setVisible(true); //display the window
 
-pack();
+    pack();
 
 }//end of CopyItemSelector::addItem
 //-----------------------------------------------------------------------------
@@ -167,12 +167,12 @@ pack();
 JCheckBox getItemWithName(String pItemName)
 {
 
-for (Component child : panel.getComponents())
-    if (child instanceof JCheckBox)
-        if (((JCheckBox)child).getText().equals(pItemName))
-            return((JCheckBox)child);
+    for (Component child : panel.getComponents())
+        if (child instanceof JCheckBox)
+            if (((JCheckBox)child).getText().equals(pItemName))
+                return((JCheckBox)child);
 
-return(null);
+    return(null);
 
 }//end of CopyItemSelector::getItemWithName
 //-----------------------------------------------------------------------------
@@ -187,7 +187,7 @@ return(null);
 public void removeAll()
 {
 
-panel.removeAll();
+    panel.removeAll();
 
 }//end of CopyItemSelector::removeAll
 //-----------------------------------------------------------------------------
@@ -201,22 +201,22 @@ panel.removeAll();
 public void displayHelp()
 {
 
-JOptionPane.showMessageDialog(this,
-     "   Copying Parameters Between Channels\n\n"
-     + "Right click on the controls in the Calibration window to add them"
-     + " to the Copy Items window.\n"
-     + "Any item listed there will be copied if checked. To copy all"
-     + " settings for a channel, check the\n"
-     + "Copy All Parameters entry.\n"
-     + "To add the DAC settings to the list, right click anywhere on the"
-     + " DAC tab.\n"
-     + "To copy the chosen items from the currently selected channel to"
-     + " another channel, click the <\n"
-     + "button to the right of the destination channel.  To copy"
-     + " from the selected channel to all other\n"
-     + "channels, click the Copy to All button.\n"
-     + "To close the Copy Items window and clear all items, click the"
-     + " Cancel Copy button");
+    JOptionPane.showMessageDialog(this,
+         "   Copying Parameters Between Channels\n\n"
+         + "Right click on the controls in the Calibration window to add them"
+         + " to the Copy Items window.\n"
+         + "Any item listed there will be copied if checked. To copy all"
+         + " settings for a channel, check the\n"
+         + "Copy All Parameters entry.\n"
+         + "To add the DAC settings to the list, right click anywhere on the"
+         + " DAC tab.\n"
+         + "To copy the chosen items from the currently selected channel to"
+         + " another channel, click the <\n"
+         + "button to the right of the destination channel.  To copy"
+         + " from the selected channel to all other\n"
+         + "channels, click the Copy to All button.\n"
+         + "To close the Copy Items window and clear all items, click the"
+         + " Cancel Copy button");
 
 }//end of CopyItemSelector::displayHelp
 //-----------------------------------------------------------------------------
@@ -231,8 +231,8 @@ JOptionPane.showMessageDialog(this,
 public void actionPerformed(ActionEvent e)
 {
 
-//trap "Help" button
-if (e.getActionCommand().equals("Help")) displayHelp();
+    //trap "Help" button
+    if (e.getActionCommand().equals("Help")) displayHelp();
 
 }//end of CopyItemSelector::actionPerformed
 //-----------------------------------------------------------------------------

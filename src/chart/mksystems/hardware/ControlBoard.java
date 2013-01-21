@@ -34,96 +34,96 @@ import chart.mksystems.inifile.IniFile;
 
 public class ControlBoard extends Board implements MessageLink{
 
-byte[] monitorBuffer;
-static int MONITOR_PACKET_SIZE = 25;
-String fileFormat;
+    byte[] monitorBuffer;
+    static int MONITOR_PACKET_SIZE = 25;
+    String fileFormat;
 
-int packetRequestTimer = 0;
+    int packetRequestTimer = 0;
 
-int runtimePacketSize;
+    int runtimePacketSize;
 
-MessageLink mechSimulator = null;
+    MessageLink mechSimulator = null;
 
-int pktID;
-boolean encoderDataPacketProcessed = false;
-boolean reSynced;
-int reSyncCount = 0, reSyncPktID;
-int timeOutWFP = 0; //used by processDataPackets
+    int pktID;
+    boolean encoderDataPacketProcessed = false;
+    boolean reSynced;
+    int reSyncCount = 0, reSyncPktID;
+    int timeOutWFP = 0; //used by processDataPackets
 
-boolean newInspectPacketReady = false;
+    boolean newInspectPacketReady = false;
 
-int encoder1, prevEncoder1;
-int encoder2, prevEncoder2;
-int encoder1Dir, encoder2Dir;
+    int encoder1, prevEncoder1;
+    int encoder2, prevEncoder2;
+    int encoder1Dir, encoder2Dir;
 
-int inspectPacketCount = 0;
+    int inspectPacketCount = 0;
 
-boolean onPipeFlag = false;
-boolean inspectControlFlag = false;
-boolean head1Down = false;
-boolean head2Down = false;
-boolean tdcFlag = false;
-boolean unused1Flag = false;
-boolean unused2Flag = false;
-boolean unused3Flag = false;
-byte controlPortA, controlPortE;
-byte controlFlags;
+    boolean onPipeFlag = false;
+    boolean inspectControlFlag = false;
+    boolean head1Down = false;
+    boolean head2Down = false;
+    boolean tdcFlag = false;
+    boolean unused1Flag = false;
+    boolean unused2Flag = false;
+    boolean unused3Flag = false;
+    byte controlPortA, controlPortE;
+    byte controlFlags;
 
-//number of counts each encoder moves to trigger an inspection data packet
-//these values are read later from the config file
-int encoder1DeltaTrigger, encoder2DeltaTrigger;
+    //number of counts each encoder moves to trigger an inspection data packet
+    //these values are read later from the config file
+    int encoder1DeltaTrigger, encoder2DeltaTrigger;
 
-//Commands for Control boards
-//These should match the values in the code for those boards.
+    //Commands for Control boards
+    //These should match the values in the code for those boards.
 
-static byte NO_ACTION = 0;
-static byte GET_INSPECT_PACKET_CMD = 1;
-static byte ZERO_ENCODERS_CMD = 2;
-static byte GET_MONITOR_PACKET_CMD = 3;
-static byte PULSE_OUTPUT_CMD = 4;
-static byte TURN_ON_OUTPUT_CMD = 5;
-static byte TURN_OFF_OUTPUT_CMD = 6;
-static byte SET_ENCODERS_DELTA_TRIGGER_CMD = 7;
-static byte START_INSPECT_CMD = 8;
-static byte STOP_INSPECT_CMD = 9;
-static byte START_MONITOR_CMD = 10;
-static byte STOP_MONITOR_CMD = 11;
-static byte GET_STATUS_CMD = 12;
-static byte LOAD_FIRMWARE_CMD = 13;
-static byte SEND_DATA_CMD = 14;
-static byte DATA_CMD = 15;
-static byte GET_CHASSIS_SLOT_ADDRESS_CMD = 16;
+    static byte NO_ACTION = 0;
+    static byte GET_INSPECT_PACKET_CMD = 1;
+    static byte ZERO_ENCODERS_CMD = 2;
+    static byte GET_MONITOR_PACKET_CMD = 3;
+    static byte PULSE_OUTPUT_CMD = 4;
+    static byte TURN_ON_OUTPUT_CMD = 5;
+    static byte TURN_OFF_OUTPUT_CMD = 6;
+    static byte SET_ENCODERS_DELTA_TRIGGER_CMD = 7;
+    static byte START_INSPECT_CMD = 8;
+    static byte STOP_INSPECT_CMD = 9;
+    static byte START_MONITOR_CMD = 10;
+    static byte STOP_MONITOR_CMD = 11;
+    static byte GET_STATUS_CMD = 12;
+    static byte LOAD_FIRMWARE_CMD = 13;
+    static byte SEND_DATA_CMD = 14;
+    static byte DATA_CMD = 15;
+    static byte GET_CHASSIS_SLOT_ADDRESS_CMD = 16;
 
-static byte ERROR = 125;
-static byte DEBUG_CMD = 126;
-static byte EXIT_CMD = 127;
+    static byte ERROR = 125;
+    static byte DEBUG_CMD = 126;
+    static byte EXIT_CMD = 127;
 
-//Status Codes for Control boards
-//These should match the values in the code for those boards.
+    //Status Codes for Control boards
+    //These should match the values in the code for those boards.
 
-static byte NO_STATUS = 0;
+    static byte NO_STATUS = 0;
 
-static int RUNTIME_PACKET_SIZE = 2048;
+    static int RUNTIME_PACKET_SIZE = 2048;
 
-//Masks for the Control Board inputs
+    //Masks for the Control Board inputs
 
-static byte UNUSED1_MASK = (byte)0x10;	// bit on Port A
-static byte UNUSED2_MASK = (byte)0x20;	// bit on Port A
-static byte INSPECT_MASK = (byte)0x40;	// bit on Port A
-static byte ON_PIPE_MASK = (byte)0x80;	// bit on Port A ??no longer true??
-static byte TDC_MASK = (byte)0x01;    	// bit on Port E
-static byte UNUSED3_MASK = (byte)0x20;	// bit on Port E
+    static byte UNUSED1_MASK = (byte)0x10;	// bit on Port A
+    static byte UNUSED2_MASK = (byte)0x20;	// bit on Port A
+    static byte INSPECT_MASK = (byte)0x40;	// bit on Port A
+    static byte ON_PIPE_MASK = (byte)0x80;	// bit on Port A ??no longer true??
+    static byte TDC_MASK = (byte)0x01;    	// bit on Port E
+    static byte UNUSED3_MASK = (byte)0x20;	// bit on Port E
 
-//Masks for the Control Board command flags
+    //Masks for the Control Board command flags
 
-static byte ON_PIPE_CTRL =      (byte)0x01;
-static byte HEAD1_DOWN_CTRL =   (byte)0x02;
-static byte HEAD2_DOWN_CTRL =   (byte)0x04;
-static byte UNUSED1_CTRL =      (byte)0x08;
-static byte UNUSED2_CTRL =      (byte)0x10;
-static byte UNUSED3_CTRL =      (byte)0x20;
-static byte UNUSED4_CTRL =      (byte)0x40;
-static byte UNUSED5_CTRL =      (byte)0x80;
+    static byte ON_PIPE_CTRL =      (byte)0x01;
+    static byte HEAD1_DOWN_CTRL =   (byte)0x02;
+    static byte HEAD2_DOWN_CTRL =   (byte)0x04;
+    static byte UNUSED1_CTRL =      (byte)0x08;
+    static byte UNUSED2_CTRL =      (byte)0x10;
+    static byte UNUSED3_CTRL =      (byte)0x20;
+    static byte UNUSED4_CTRL =      (byte)0x40;
+    static byte UNUSED5_CTRL =      (byte)0x80;
 
 //-----------------------------------------------------------------------------
 // UTBoard::UTBoard (constructor)
@@ -136,19 +136,19 @@ public ControlBoard(IniFile pConfigFile, String pBoardName, int pBoardIndex,
   int pRuntimePacketSize, boolean pSimulate, JTextArea pLog, String pFileFormat)
 {
 
-super(pLog);
+    super(pLog);
 
-configFile = pConfigFile;
-boardName = pBoardName;
-boardIndex = pBoardIndex;
-runtimePacketSize = pRuntimePacketSize;
-simulate = pSimulate;
-fileFormat = pFileFormat;
+    configFile = pConfigFile;
+    boardName = pBoardName;
+    boardIndex = pBoardIndex;
+    runtimePacketSize = pRuntimePacketSize;
+    simulate = pSimulate;
+    fileFormat = pFileFormat;
 
-monitorBuffer = new byte[MONITOR_PACKET_SIZE];
+    monitorBuffer = new byte[MONITOR_PACKET_SIZE];
 
-//read the configuration file and create/setup the charting/control elements
-configure(configFile);
+    //read the configuration file and create/setup the charting/control elements
+    configure(configFile);
 
 }//end of UTBoard::UTBoard (constructor)
 //-----------------------------------------------------------------------------
@@ -163,18 +163,18 @@ configure(configFile);
 @Override
 public void run() {
 
-//link with all the remotes
-connect();
+    //link with all the remotes
+    connect();
 
-//Since the sockets and associated streams were created by this
-//thread, it cannot be closed without disrupting the connections. If
-//other threads try to read from the socket after the thread which
-//created the socket finishes, an exception will be thrown.  This
-//thread just waits() after performing the connect function.  The
-//alternative is to close the socket and allow another thread to
-//reopen it, but this results in a lot of overhead.
+    //Since the sockets and associated streams were created by this
+    //thread, it cannot be closed without disrupting the connections. If
+    //other threads try to read from the socket after the thread which
+    //created the socket finishes, an exception will be thrown.  This
+    //thread just waits() after performing the connect function.  The
+    //alternative is to close the socket and allow another thread to
+    //reopen it, but this results in a lot of overhead.
 
-waitForever();
+    waitForever();
 
 }//end of ControlBoard::run
 //-----------------------------------------------------------------------------
@@ -188,9 +188,9 @@ waitForever();
 public synchronized void waitForever()
 {
 
-while (true){
-    try{wait();}
-    catch (InterruptedException e) { }
+    while (true){
+        try{wait();}
+        catch (InterruptedException e) { }
     }
 
 }//end of ControlBoard::waitForever
@@ -205,67 +205,68 @@ while (true){
 public synchronized void connect()
 {
 
-//displays message on bottom panel of IDE
-logger.logMessage("Opening connection with Control board...\n");
+    //displays message on bottom panel of IDE
+    logger.logMessage("Opening connection with Control board...\n");
 
-try {
+    try {
 
-    logger.logMessage("Control Board IP Address: " + ipAddr.toString() + "\n");
+        logger.logMessage("Control Board IP Address: " +
+                                                    ipAddr.toString() + "\n");
 
-    if (!simulate) socket = new Socket(ipAddr, 23);
-    else {
+        if (!simulate) socket = new Socket(ipAddr, 23);
+        else {
 
-        socket = new ControlSimulator(ipAddr, 23, fileFormat);
-        //when simulating, the socket is a ControlSimulator class object which
-        //is also a MessageLink implementor, so cast it for use as such so that
-        //messages can be sent to the object
-        mechSimulator = (MessageLink)socket;
+            socket = new ControlSimulator(ipAddr, 23, fileFormat);
+            //when simulating, the socket is a ControlSimulator class object
+            //which is also a MessageLink implementor, so cast it for use as
+            //such so that messages can be sent to the object
+            mechSimulator = (MessageLink)socket;
         }
 
-    //set amount of time in milliseconds that a read from the socket will
-    //wait for data - this prevents program lock up when no data is ready
-    socket.setSoTimeout(250);
+        //set amount of time in milliseconds that a read from the socket will
+        //wait for data - this prevents program lock up when no data is ready
+        socket.setSoTimeout(250);
 
-    out = new PrintWriter(socket.getOutputStream(), true);
+        out = new PrintWriter(socket.getOutputStream(), true);
 
-    in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-    byteOut = new DataOutputStream(socket.getOutputStream());
-    byteIn =  new DataInputStream(socket.getInputStream());
+        byteOut = new DataOutputStream(socket.getOutputStream());
+        byteIn =  new DataInputStream(socket.getInputStream());
 
     }//try
     catch (IOException e) {
         System.err.println(getClass().getName() + " - Error: 238");
         logger.logMessage("Couldn't get I/O for " + ipAddrS + "\n");
         return;
-        }
-
-try {
-    //display the greeting message sent by the remote
-    logger.logMessage(ipAddrS + " says " + in.readLine() + "\n");
     }
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 248");
-}
 
-//flag that board setup has been completed - whether it failed or not
-setupComplete = true;
+    try {
+        //display the greeting message sent by the remote
+        logger.logMessage(ipAddrS + " says " + in.readLine() + "\n");
+    }
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 248");
+    }
 
-//flag that setup was successful and board is ready for use
-ready = true;
+    //flag that board setup has been completed - whether it failed or not
+    setupComplete = true;
 
-//retrieve the board's chassis and slot addresses
-getChassisSlotAddress();
+    //flag that setup was successful and board is ready for use
+    ready = true;
 
-//NOTE: now that the chassis and slot addresses are known, display messages
-// using those to identify the board instead of the IP address so it is easier
-// to discern which board is which.
+    //retrieve the board's chassis and slot addresses
+    getChassisSlotAddress();
 
-chassisSlotAddr = chassisAddr + ":" + slotAddr;
+    //NOTE: now that the chassis and slot addresses are known, display messages
+    // using those to identify the board instead of the IP address so it is
+    // easier to discern which board is which.
 
-logger.logMessage("Control " + chassisSlotAddr + " is ready." + "\n");
+    chassisSlotAddr = chassisAddr + ":" + slotAddr;
 
-notifyAll(); //wake up all threads that are waiting for this to complete
+    logger.logMessage("Control " + chassisSlotAddr + " is ready." + "\n");
+
+    notifyAll(); //wake up all threads that are waiting for this to complete
 
 }//end of ControlBoard::connect
 //-----------------------------------------------------------------------------
@@ -279,7 +280,7 @@ notifyAll(); //wake up all threads that are waiting for this to complete
 public void initialize()
 {
 
-setEncodersDeltaTrigger();
+    setEncodersDeltaTrigger();
 
 }//end of ControlBoard::initialize
 //-----------------------------------------------------------------------------
@@ -295,14 +296,14 @@ setEncodersDeltaTrigger();
 private void getChassisSlotAddress()
 {
 
-//read the chassis and slot address from the remote
-byte address = getRemoteData(GET_CHASSIS_SLOT_ADDRESS_CMD, true);
+    //read the chassis and slot address from the remote
+    byte address = getRemoteData(GET_CHASSIS_SLOT_ADDRESS_CMD, true);
 
-//parse the returned value
-chassisAddr =  (address>>4 & 0xf);
-slotAddr = address & 0xf;
+    //parse the returned value
+    chassisAddr =  (address>>4 & 0xf);
+    slotAddr = address & 0xf;
 
-logger.logMessage("Control " + ipAddrS + " chassis & slot address: "
+    logger.logMessage("Control " + ipAddrS + " chassis & slot address: "
                                         + chassisAddr + "-" + slotAddr + "\n");
 
 }//end of ControlBoard::getChassisSlotAddress
@@ -318,7 +319,7 @@ logger.logMessage("Control " + ipAddrS + " chassis & slot address: "
 public void startMonitor()
 {
 
-sendBytes2(START_MONITOR_CMD, (byte) 0);
+    sendBytes2(START_MONITOR_CMD, (byte) 0);
 
 }//end of ControlBoard::startMonitor
 //-----------------------------------------------------------------------------
@@ -332,7 +333,7 @@ sendBytes2(START_MONITOR_CMD, (byte) 0);
 public void stopMonitor()
 {
 
-sendBytes2(STOP_MONITOR_CMD, (byte) 0);
+    sendBytes2(STOP_MONITOR_CMD, (byte) 0);
 
 }//end of ControlBoard::stopMonitor
 //-----------------------------------------------------------------------------
@@ -356,16 +357,16 @@ sendBytes2(STOP_MONITOR_CMD, (byte) 0);
 public byte[] getMonitorPacket(boolean pRequestPacket)
 {
 
-if (pRequestPacket)
-        //request a packet be sent if the counter has timed out
-        //this packet will arrive in the future and be processed by another
-        //function so it can be retrieved by another call to this function
-        if (packetRequestTimer++ == 50){
-            packetRequestTimer = 0;
-            sendBytes2(GET_MONITOR_PACKET_CMD, (byte) 0);
-            }
+    if (pRequestPacket)
+            //request a packet be sent if the counter has timed out
+            //this packet will arrive in the future and be processed by another
+            //function so it can be retrieved by another call to this function
+            if (packetRequestTimer++ == 50){
+                packetRequestTimer = 0;
+                sendBytes2(GET_MONITOR_PACKET_CMD, (byte) 0);
+                }
 
-return monitorBuffer;
+    return monitorBuffer;
 
 }//end of ControlBoard::getMonitorPacket
 //-----------------------------------------------------------------------------
@@ -381,21 +382,21 @@ return monitorBuffer;
 public int processMonitorPacket()
 {
 
-try{
-    timeOutProcess = 0;
-    while(timeOutProcess++ < TIMEOUT){
-        if (byteIn.available() >= MONITOR_PACKET_SIZE) break;
-        waitSleep(10);
+    try{
+        timeOutProcess = 0;
+        while(timeOutProcess++ < TIMEOUT){
+            if (byteIn.available() >= MONITOR_PACKET_SIZE) break;
+            waitSleep(10);
         }
-    if (byteIn.available() >= MONITOR_PACKET_SIZE)
-        return   byteIn.read(monitorBuffer, 0, MONITOR_PACKET_SIZE);
+        if (byteIn.available() >= MONITOR_PACKET_SIZE)
+            return   byteIn.read(monitorBuffer, 0, MONITOR_PACKET_SIZE);
 
     }// try
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 395");
-}
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 395");
+    }
 
-return 0;
+    return 0;
 
 }//end of ControlBoard::processMonitorPacket
 //-----------------------------------------------------------------------------
@@ -413,7 +414,7 @@ return 0;
 public void requestInspectPacket()
 {
 
-sendBytes2(GET_INSPECT_PACKET_CMD, (byte) 0);
+    sendBytes2(GET_INSPECT_PACKET_CMD, (byte) 0);
 
 }//end of ControlBoard::requestInspectPacket
 //-----------------------------------------------------------------------------
@@ -429,96 +430,100 @@ sendBytes2(GET_INSPECT_PACKET_CMD, (byte) 0);
 public int processInspectPacket()
 {
 
-int x = 0, cnt = 0;
-int pktSize = 12;
+    int x = 0, cnt = 0;
+    int pktSize = 12;
 
-try{
-    timeOutProcess = 0;
-    while(timeOutProcess++ < TIMEOUT){
-        if (byteIn.available() >= pktSize) break;
-        waitSleep(10);
+    try{
+        timeOutProcess = 0;
+        while(timeOutProcess++ < TIMEOUT){
+            if (byteIn.available() >= pktSize) break;
+            waitSleep(10);
         }
-    if (byteIn.available() >= pktSize)
-        cnt = byteIn.read(inBuffer, 0, pktSize);
+        if (byteIn.available() >= pktSize)
+            cnt = byteIn.read(inBuffer, 0, pktSize);
 
-    inspectPacketCount = (int)((inBuffer[x++]<<8) & 0xff00)
-                                               + (int)(inBuffer[x++] & 0xff);
+        inspectPacketCount = (int)((inBuffer[x++]<<8) & 0xff00)
+                                                 + (int)(inBuffer[x++] & 0xff);
 
-    // combine four bytes each to make the encoder counts
+        // combine four bytes each to make the encoder counts
 
-    int encoder1Count = 0, encoder2Count = 0;
+        int encoder1Count = 0, encoder2Count = 0;
 
-    // create integer from four bytes in buffer
-    encoder1Count = ((inBuffer[x++] << 24));
-    encoder1Count |= (inBuffer[x++] << 16) & 0x00ff0000;
-    encoder1Count |= (inBuffer[x++] << 8)  & 0x0000ff00;
-    encoder1Count |= (inBuffer[x++])       & 0x000000ff;
+        // create integer from four bytes in buffer
+        encoder1Count = ((inBuffer[x++] << 24));
+        encoder1Count |= (inBuffer[x++] << 16) & 0x00ff0000;
+        encoder1Count |= (inBuffer[x++] << 8)  & 0x0000ff00;
+        encoder1Count |= (inBuffer[x++])       & 0x000000ff;
 
-    // create integer from four bytes in buffer
-    encoder2Count = ((inBuffer[x++] << 24));
-    encoder2Count |= (inBuffer[x++] << 16) & 0x00ff0000;
-    encoder2Count |= (inBuffer[x++] << 8)  & 0x0000ff00;
-    encoder2Count |= (inBuffer[x++])       & 0x000000ff;
+        // create integer from four bytes in buffer
+        encoder2Count = ((inBuffer[x++] << 24));
+        encoder2Count |= (inBuffer[x++] << 16) & 0x00ff0000;
+        encoder2Count |= (inBuffer[x++] << 8)  & 0x0000ff00;
+        encoder2Count |= (inBuffer[x++])       & 0x000000ff;
 
-    //transfer to the class variables in one move -- this will be an atomic
-    //copy so it is safe for other threads to access those variables
-    encoder1 = encoder1Count; encoder2 = encoder2Count;
+        //transfer to the class variables in one move -- this will be an atomic
+        //copy so it is safe for other threads to access those variables
+        encoder1 = encoder1Count; encoder2 = encoder2Count;
 
-    //flag if encoder count was increased or decreased
-    //a no change case should not occur since packets are sent when there has
-    //been a change of encoder count
+        //flag if encoder count was increased or decreased
+        //a no change case should not occur since packets are sent when there
+        //has been a change of encoder count
 
-    if (encoder1 > prevEncoder1) encoder1Dir = InspectControlVars.INCREASING;
-    else encoder1Dir = InspectControlVars.DECREASING;
+        if (encoder1 > prevEncoder1)
+            encoder1Dir = InspectControlVars.INCREASING;
+        else
+            encoder1Dir = InspectControlVars.DECREASING;
 
-    //flag if encoder count was increased or decreased
-    if (encoder2 > prevEncoder2) encoder2Dir = InspectControlVars.INCREASING;
-    else encoder2Dir = InspectControlVars.DECREASING;
+        //flag if encoder count was increased or decreased
+        if (encoder2 > prevEncoder2)
+            encoder2Dir = InspectControlVars.INCREASING;
+        else
+            encoder2Dir = InspectControlVars.DECREASING;
 
-    //update the previous encoder values for use next time
-    prevEncoder1 = encoder1; prevEncoder2 = encoder2;
+        //update the previous encoder values for use next time
+        prevEncoder1 = encoder1; prevEncoder2 = encoder2;
 
-    //transfer the status of the Control board input ports
-    controlFlags = inBuffer[x++];
-    controlPortE = inBuffer[x++];
+        //transfer the status of the Control board input ports
+        controlFlags = inBuffer[x++];
+        controlPortE = inBuffer[x++];
 
-    //control flags are active high
+        //control flags are active high
 
-    if ((controlFlags & ON_PIPE_CTRL) != 0)
-        onPipeFlag = true;
-    else
-        onPipeFlag = false;
+        if ((controlFlags & ON_PIPE_CTRL) != 0)
+            onPipeFlag = true;
+        else
+            onPipeFlag = false;
 
-    if ((controlFlags & HEAD1_DOWN_CTRL) != 0)
-        head1Down = true; else head1Down = false;
+        if ((controlFlags & HEAD1_DOWN_CTRL) != 0)
+            head1Down = true; else head1Down = false;
 
-    if ((controlFlags & HEAD2_DOWN_CTRL) != 0)
-        head2Down = true; else head2Down = false;
+        if ((controlFlags & HEAD2_DOWN_CTRL) != 0)
+            head2Down = true; else head2Down = false;
 
-    //port E inputs are active low
+        //port E inputs are active low
 
-    if ((controlPortE & TDC_MASK) == 0)
-        tdcFlag = true; else tdcFlag = false;
+        if ((controlPortE & TDC_MASK) == 0)
+            tdcFlag = true; else tdcFlag = false;
 
-    if ((controlPortA & UNUSED1_MASK) == 0)
-        unused1Flag = true; else unused1Flag = false;
+        if ((controlPortA & UNUSED1_MASK) == 0)
+            unused1Flag = true; else unused1Flag = false;
 
-    if ((controlPortA & UNUSED2_MASK) == 0)
-        unused2Flag = true; else unused2Flag = false;
+        if ((controlPortA & UNUSED2_MASK) == 0)
+            unused2Flag = true; else unused2Flag = false;
 
-    if ((controlPortE & UNUSED3_MASK) == 0)
-        unused3Flag = true; else unused3Flag = false;
+        if ((controlPortE & UNUSED3_MASK) == 0)
+            unused3Flag = true; else unused3Flag = false;
 
-    newInspectPacketReady = true; //signal other objects
+        newInspectPacketReady = true; //signal other objects
 
-    return(cnt);
+        return(cnt);
 
     }// try
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 518");
-}
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 518");
+    }
 
-return(0);
+    return(0);
 
 }//end of ControlBoard::processInspectPacket
 //-----------------------------------------------------------------------------
@@ -532,7 +537,7 @@ return(0);
 public void zeroEncoderCounts()
 {
 
-sendBytes2(ZERO_ENCODERS_CMD, (byte) 0);
+    sendBytes2(ZERO_ENCODERS_CMD, (byte) 0);
 
 }//end of ControlBoard::zeroEncoderCounts
 //-----------------------------------------------------------------------------
@@ -549,7 +554,7 @@ sendBytes2(ZERO_ENCODERS_CMD, (byte) 0);
 public void pulseOutput()
 {
 
-sendBytes2(PULSE_OUTPUT_CMD, (byte) 0);
+    sendBytes2(PULSE_OUTPUT_CMD, (byte) 0);
 
 }//end of ControlBoard::pulseOutput
 //-----------------------------------------------------------------------------
@@ -566,7 +571,7 @@ sendBytes2(PULSE_OUTPUT_CMD, (byte) 0);
 public void turnOnOutput()
 {
 
-sendBytes2(TURN_ON_OUTPUT_CMD, (byte) 0);
+    sendBytes2(TURN_ON_OUTPUT_CMD, (byte) 0);
 
 }//end of ControlBoard::turnOnOutput
 //-----------------------------------------------------------------------------
@@ -583,7 +588,7 @@ sendBytes2(TURN_ON_OUTPUT_CMD, (byte) 0);
 public void turnOffOutput()
 {
 
-sendBytes2(TURN_OFF_OUTPUT_CMD, (byte) 0);
+    sendBytes2(TURN_OFF_OUTPUT_CMD, (byte) 0);
 
 }//end of ControlBoard::turnOffOutput
 //-----------------------------------------------------------------------------
@@ -602,12 +607,12 @@ sendBytes2(TURN_OFF_OUTPUT_CMD, (byte) 0);
 public void setEncodersDeltaTrigger()
 {
 
-sendBytes5(SET_ENCODERS_DELTA_TRIGGER_CMD,
-            (byte)((encoder1DeltaTrigger >> 8) & 0xff),
-            (byte)(encoder1DeltaTrigger & 0xff),
-            (byte)((encoder2DeltaTrigger >> 8) & 0xff),
-            (byte)(encoder2DeltaTrigger & 0xff)
-            );
+    sendBytes5(SET_ENCODERS_DELTA_TRIGGER_CMD,
+                (byte)((encoder1DeltaTrigger >> 8) & 0xff),
+                (byte)(encoder1DeltaTrigger & 0xff),
+                (byte)((encoder2DeltaTrigger >> 8) & 0xff),
+                (byte)(encoder2DeltaTrigger & 0xff)
+                );
 
 }//end of ControlBoard::setEncodersDeltaTrigger
 //-----------------------------------------------------------------------------
@@ -623,7 +628,7 @@ sendBytes5(SET_ENCODERS_DELTA_TRIGGER_CMD,
 public void startInspect()
 {
 
-sendBytes2(START_INSPECT_CMD, (byte) 0);
+    sendBytes2(START_INSPECT_CMD, (byte) 0);
 
 }//end of ControlBoard::startInspect
 //-----------------------------------------------------------------------------
@@ -637,7 +642,7 @@ sendBytes2(START_INSPECT_CMD, (byte) 0);
 public void stopInspect()
 {
 
-sendBytes2(STOP_INSPECT_CMD, (byte) 0);
+    sendBytes2(STOP_INSPECT_CMD, (byte) 0);
 
 }//end of ControlBoard::stopInspect
 //-----------------------------------------------------------------------------
@@ -654,26 +659,26 @@ sendBytes2(STOP_INSPECT_CMD, (byte) 0);
 public boolean prepareData()
 {
 
-if (byteIn != null)
-    try {
+    if (byteIn != null)
+        try {
 
-        int c = byteIn.available();
+            int c = byteIn.available();
 
-        //if a full packet is not ready, return false
-        if (c < runtimePacketSize) return false;
+            //if a full packet is not ready, return false
+            if (c < runtimePacketSize) return false;
 
-        byteIn.read(inBuffer, 0, runtimePacketSize);
+            byteIn.read(inBuffer, 0, runtimePacketSize);
 
-        //wip mks - distribute the data to the gate's newData variables here
+            //wip mks - distribute the data to the gate's newData variables here
 
         }
-    catch(EOFException eof){log.append("End of stream.\n"); return false;}
-    catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 672");
-        return false;
-    }
+        catch(EOFException eof){log.append("End of stream.\n"); return false;}
+        catch(IOException e){
+            System.err.println(getClass().getName() + " - Error: 672");
+            return false;
+        }
 
-return true;
+    return true;
 
 }//end of ControlBoard::prepareData
 //-----------------------------------------------------------------------------
@@ -693,20 +698,20 @@ return true;
 public int processDataPacketsUntilEncoderPacket()
 {
 
-int x = 0;
+    int x = 0;
 
-//this flag will be set true if a Peak Data packet is processed
-encoderDataPacketProcessed = false;
+    //this flag will be set true if a Peak Data packet is processed
+    encoderDataPacketProcessed = false;
 
-//process packets until there is no more data available or until a Peak Data
-//packet has been processed
+    //process packets until there is no more data available or until a Peak Data
+    //packet has been processed
 
-while ((x = processOneDataPacket(false, TIMEOUT)) > 0
+    while ((x = processOneDataPacket(false, TIMEOUT)) > 0
                                       && encoderDataPacketProcessed == false){}
 
 
-if (encoderDataPacketProcessed == true) return 1;
-else return -1;
+    if (encoderDataPacketProcessed == true) return 1;
+    else return -1;
 
 }//end of ControlBoard::processDataPacketsUntilEncoderPacket
 //-----------------------------------------------------------------------------
@@ -739,67 +744,70 @@ else return -1;
 public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
 {
 
-if (byteIn == null) return -1;  //do nothing if the port is closed
+    if (byteIn == null) return -1;  //do nothing if the port is closed
 
-try{
+    try{
 
-    //wait a while for a packet if parameter is true
-    if (pWaitForPkt){
-        timeOutWFP = 0;
-        while(byteIn.available() < 5 && timeOutWFP++ < pTimeOut){waitSleep(10);}
+        //wait a while for a packet if parameter is true
+        if (pWaitForPkt){
+            timeOutWFP = 0;
+            while(byteIn.available() < 5 && timeOutWFP++ < pTimeOut){
+                waitSleep(10);
+            }
         }
 
-    //wait until 5 bytes are available - this should be the 4 header bytes, and
-    //the packet identifier
-    if (byteIn.available() < 5) return -1;
+        //wait until 5 bytes are available - this should be the 4 header bytes,
+        //and the packet identifier
+        if (byteIn.available() < 5) return -1;
 
-    //read the bytes in one at a time so that if an invalid byte is encountered
-    //it won't corrupt the next valid sequence in the case where it occurs
-    //within 3 bytes of the invalid byte
+        //read the bytes in one at a time so that if an invalid byte is
+        //encountered it won't corrupt the next valid sequence in the case
+        //where it occurs within 3 bytes of the invalid byte
 
-    //check each byte to see if the first four create a valid header
-    //if not, jump to resync which deletes bytes until a valid first header
-    //byte is reached
+        //check each byte to see if the first four create a valid header
+        //if not, jump to resync which deletes bytes until a valid first header
+        //byte is reached
 
-    //if the reSynced flag is true, the buffer has been resynced and an 0xaa
-    //byte has already been read from the buffer so it shouldn't be read again
+        //if the reSynced flag is true, the buffer has been resynced and an 0xaa
+        //byte has already been read from the buffer so it shouldn't be read
+        //again
 
-    //after a resync, the function exits without processing any packets
+        //after a resync, the function exits without processing any packets
 
-    if (!reSynced){
-        //look for the 0xaa byte unless buffer just resynced
+        if (!reSynced){
+            //look for the 0xaa byte unless buffer just resynced
+            byteIn.read(inBuffer, 0, 1);
+            if (inBuffer[0] != (byte)0xaa) {reSync(); return 0;}
+        }
+        else reSynced = false;
+
         byteIn.read(inBuffer, 0, 1);
-        if (inBuffer[0] != (byte)0xaa) {reSync(); return 0;}
-        }
-    else reSynced = false;
+        if (inBuffer[0] != (byte)0x55) {reSync(); return 0;}
+        byteIn.read(inBuffer, 0, 1);
+        if (inBuffer[0] != (byte)0xbb) {reSync(); return 0;}
+        byteIn.read(inBuffer, 0, 1);
+        if (inBuffer[0] != (byte)0x66) {reSync(); return 0;}
 
-    byteIn.read(inBuffer, 0, 1);
-    if (inBuffer[0] != (byte)0x55) {reSync(); return 0;}
-    byteIn.read(inBuffer, 0, 1);
-    if (inBuffer[0] != (byte)0xbb) {reSync(); return 0;}
-    byteIn.read(inBuffer, 0, 1);
-    if (inBuffer[0] != (byte)0x66) {reSync(); return 0;}
+        //read in the packet identifier
+        byteIn.read(inBuffer, 0, 1);
 
-    //read in the packet identifier
-    byteIn.read(inBuffer, 0, 1);
+        //store the ID of the packet (the packet type)
+        pktID = inBuffer[0];
 
-    //store the ID of the packet (the packet type)
-    pktID = inBuffer[0];
-
-    if ( pktID == GET_STATUS_CMD) return process2BytePacket();
-    else
-    if ( pktID == GET_CHASSIS_SLOT_ADDRESS_CMD) return process2BytePacket();
-    else
-    if ( pktID == GET_INSPECT_PACKET_CMD) return processInspectPacket();
-    else
-    if ( pktID == GET_MONITOR_PACKET_CMD) return processMonitorPacket();
+        if ( pktID == GET_STATUS_CMD) return process2BytePacket();
+        else
+        if ( pktID == GET_CHASSIS_SLOT_ADDRESS_CMD) return process2BytePacket();
+        else
+        if ( pktID == GET_INSPECT_PACKET_CMD) return processInspectPacket();
+        else
+        if ( pktID == GET_MONITOR_PACKET_CMD) return processMonitorPacket();
 
     }
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 799");
-}
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 799");
+    }
 
-return 0;
+    return 0;
 
 }//end of ControlBoard::processOneDataPacket
 //-----------------------------------------------------------------------------
@@ -824,28 +832,28 @@ return 0;
 public void reSync()
 {
 
-reSynced = false;
+    reSynced = false;
 
-//track the number of times this function is called, even if a resync is not
-//successful - this will track the number of sync errors
-reSyncCount++;
+    //track the number of times this function is called, even if a resync is not
+    //successful - this will track the number of sync errors
+    reSyncCount++;
 
-//store info pertaining to what preceded the reSync - these values will be
-//overwritten by the next reSync, so they only reflect the last error
-//NOTE: when a reSync occurs, these values are left over from the PREVIOUS good
-// packet, so they indicate what PRECEDED the sync error.
+    //store info pertaining to what preceded the reSync - these values will be
+    //overwritten by the next reSync, so they only reflect the last error
+    //NOTE: when a reSync occurs, these values are left over from the PREVIOUS good
+    // packet, so they indicate what PRECEDED the sync error.
 
-reSyncPktID = pktID;
+    reSyncPktID = pktID;
 
-try{
-    while (byteIn.available() > 0) {
-        byteIn.read(inBuffer, 0, 1);
-        if (inBuffer[0] == (byte)0xaa) {reSynced = true; break;}
+    try{
+        while (byteIn.available() > 0) {
+            byteIn.read(inBuffer, 0, 1);
+            if (inBuffer[0] == (byte)0xaa) {reSynced = true; break;}
         }
     }
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 847");
-}
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 847");
+    }
 
 }//end of ControlBoard::reSync
 //-----------------------------------------------------------------------------
@@ -860,8 +868,8 @@ catch(IOException e){
 public void driveSimulation()
 {
 
-if (simulate && socket != null)
-    ((ControlSimulator)socket).processDataPackets(false);
+    if (simulate && socket != null)
+        ((ControlSimulator)socket).processDataPackets(false);
 
 }//end of ControlBoard::driveSimulation
 //-----------------------------------------------------------------------------
@@ -876,18 +884,18 @@ if (simulate && socket != null)
 public void getInspectControlVars(InspectControlVars pICVars)
 {
 
-pICVars.onPipeFlag = onPipeFlag;
+    pICVars.onPipeFlag = onPipeFlag;
 
-pICVars.head1Down = head1Down;
+    pICVars.head1Down = head1Down;
 
-pICVars.head2Down = head2Down;
+    pICVars.head2Down = head2Down;
 
-pICVars.encoder1 = encoder1; pICVars.prevEncoder1 = prevEncoder1;
+    pICVars.encoder1 = encoder1; pICVars.prevEncoder1 = prevEncoder1;
 
-pICVars.encoder2 = encoder2; pICVars.prevEncoder2 = prevEncoder2;
+    pICVars.encoder2 = encoder2; pICVars.prevEncoder2 = prevEncoder2;
 
-pICVars.encoder1Dir = encoder1Dir;
-pICVars.encoder2Dir = encoder2Dir;
+    pICVars.encoder1Dir = encoder1Dir;
+    pICVars.encoder2Dir = encoder2Dir;
 
 }//end of ControlBoard::getInspectControlVars
 //-----------------------------------------------------------------------------
@@ -904,19 +912,19 @@ pICVars.encoder2Dir = encoder2Dir;
 public void installNewRabbitFirmware()
 {
 
-//create an object to hold codes specific to the UT board for use by the
-//firmware installer method
+    //create an object to hold codes specific to the UT board for use by the
+    //firmware installer method
 
-InstallFirmwareSettings settings = new InstallFirmwareSettings();
-settings.loadFirmwareCmd = LOAD_FIRMWARE_CMD;
-settings.noAction = NO_ACTION;
-settings.error = ERROR;
-settings.sendDataCmd = SEND_DATA_CMD;
-settings.dataCmd = DATA_CMD;
-settings.exitCmd = EXIT_CMD;
+    InstallFirmwareSettings settings = new InstallFirmwareSettings();
+    settings.loadFirmwareCmd = LOAD_FIRMWARE_CMD;
+    settings.noAction = NO_ACTION;
+    settings.error = ERROR;
+    settings.sendDataCmd = SEND_DATA_CMD;
+    settings.dataCmd = DATA_CMD;
+    settings.exitCmd = EXIT_CMD;
 
-super.installNewRabbitFirmware("Control", "Rabbit\\CAPULIN CONTROL BOARD.bin",
-                                                                    settings);
+    super.installNewRabbitFirmware(
+            "Control", "Rabbit\\CAPULIN CONTROL BOARD.bin", settings);
 
 }//end of ControlBoard::installNewRabbitFirmware
 //-----------------------------------------------------------------------------
@@ -935,10 +943,10 @@ super.installNewRabbitFirmware("Control", "Rabbit\\CAPULIN CONTROL BOARD.bin",
 public int xmtMessage(int pMessage, int pValue)
 {
 
-if (mechSimulator == null) return MessageLink.NULL;
+    if (mechSimulator == null) return MessageLink.NULL;
 
-//pass the message on to the mechanical simulation object
-return mechSimulator.xmtMessage(pMessage, pValue);
+    //pass the message on to the mechanical simulation object
+    return mechSimulator.xmtMessage(pMessage, pValue);
 
 }//end of ControlBoard::xmtMessage
 //----------------------------------------------------------------------------
@@ -969,15 +977,15 @@ public void setNewInspectPacketReady(boolean pValue)
 private void configure(IniFile pConfigFile)
 {
 
-inBuffer = new byte[RUNTIME_PACKET_SIZE];
-outBuffer = new byte[RUNTIME_PACKET_SIZE];
+    inBuffer = new byte[RUNTIME_PACKET_SIZE];
+    outBuffer = new byte[RUNTIME_PACKET_SIZE];
 
-//debug mks -- calculate this delta to give one packet per pixel????
+    //debug mks -- calculate this delta to give one packet per pixel????
 
-encoder1DeltaTrigger =
+    encoder1DeltaTrigger =
           pConfigFile.readInt("Hardware", "Encoder 1 Delta Count Trigger", 83);
 
-encoder2DeltaTrigger =
+    encoder2DeltaTrigger =
           pConfigFile.readInt("Hardware", "Encoder 2 Delta Count Trigger", 83);
 
 }//end of ControlBoard::configure
@@ -994,20 +1002,20 @@ encoder2DeltaTrigger =
 protected void shutDown()
 {
 
-//close everything - the order of closing may be important
+    //close everything - the order of closing may be important
 
-try{
+    try{
 
-    if (byteOut != null) byteOut.close();
-    if (byteIn != null) byteIn.close();
-    if (out != null) out.close();
-    if (in != null) in.close();
-    if (socket != null) socket.close();
+        if (byteOut != null) byteOut.close();
+        if (byteIn != null) byteIn.close();
+        if (out != null) out.close();
+        if (in != null) in.close();
+        if (socket != null) socket.close();
 
     }
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 1009");
-}
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 1009");
+    }
 
 }//end of ControlBoard::shutDown
 //-----------------------------------------------------------------------------

@@ -38,13 +38,13 @@ package chart.mksystems.hardware;
 
 public class RemoteParam extends Object{
 
-double doubleValue = 0;
-int intValue = 0;
-boolean booleanValue = false;
+    double doubleValue = 0;
+    int intValue = 0;
+    boolean booleanValue = false;
 
-boolean dataChanged;
+    boolean dataChanged;
 
-SyncFlag dataChanged1, dataChanged2, dataChanged3, dataChanged4;
+    SyncFlag dataChanged1, dataChanged2, dataChanged3, dataChanged4;
 
 //-----------------------------------------------------------------------------
 // RemoteParam::RemoteParam (constructor)
@@ -63,10 +63,10 @@ public RemoteParam(SyncFlag pDataChanged1, SyncFlag pDataChanged2,
                                 SyncFlag pDataChanged3, SyncFlag pDataChanged4)
 {
 
-dataChanged1 = pDataChanged1;
-dataChanged2 = pDataChanged2;
-dataChanged3 = pDataChanged3;
-dataChanged4 = pDataChanged4;
+    dataChanged1 = pDataChanged1;
+    dataChanged2 = pDataChanged2;
+    dataChanged3 = pDataChanged3;
+    dataChanged4 = pDataChanged4;
 
 }//end of RemoteParam::RemoteParam (constructor)
 //-----------------------------------------------------------------------------
@@ -83,9 +83,9 @@ dataChanged4 = pDataChanged4;
 public synchronized void setDouble(double pDouble)
 {
 
-doubleValue = pDouble;
+    doubleValue = pDouble;
 
-setDataChangedFlags(true);
+    setDataChangedFlags(true);
 
 }//end of RemoteParam::setDouble
 //-----------------------------------------------------------------------------
@@ -101,7 +101,7 @@ setDataChangedFlags(true);
 public double getDouble()
 {
 
-return(doubleValue);
+    return(doubleValue);
 
 }//end of RemoteParam::getDouble
 //-----------------------------------------------------------------------------
@@ -116,9 +116,9 @@ return(doubleValue);
 public synchronized double xmtDouble()
 {
 
-setDataChangedFlags(false);
+    setDataChangedFlags(false);
 
-return(doubleValue);
+    return(doubleValue);
 
 }//end of RemoteParam::xmtDouble
 //-----------------------------------------------------------------------------
@@ -135,9 +135,9 @@ return(doubleValue);
 public synchronized void setInt(int pInt)
 {
 
-intValue = pInt;
+    intValue = pInt;
 
-setDataChangedFlags(true);
+    setDataChangedFlags(true);
 
 }//end of RemoteParam::setInt
 //-----------------------------------------------------------------------------
@@ -153,7 +153,7 @@ setDataChangedFlags(true);
 public int getInt()
 {
 
-return(intValue);
+    return(intValue);
 
 }//end of RemoteParam::getInt
 //-----------------------------------------------------------------------------
@@ -168,9 +168,9 @@ return(intValue);
 public synchronized int xmtInt()
 {
 
-setDataChangedFlags(false);
+    setDataChangedFlags(false);
 
-return(intValue);
+    return(intValue);
 
 }//end of RemoteParam::xmtInt
 //-----------------------------------------------------------------------------
@@ -187,9 +187,9 @@ return(intValue);
 public synchronized void setBoolean(boolean pBoolean)
 {
 
-booleanValue = pBoolean;
+    booleanValue = pBoolean;
 
-setDataChangedFlags(true);
+    setDataChangedFlags(true);
 
 }//end of RemoteParam::setBoolean
 //-----------------------------------------------------------------------------
@@ -205,7 +205,7 @@ setDataChangedFlags(true);
 public boolean getBoolean()
 {
 
-return(booleanValue);
+    return(booleanValue);
 
 }//end of RemoteParam::getBoolean
 //-----------------------------------------------------------------------------
@@ -220,9 +220,9 @@ return(booleanValue);
 public synchronized boolean xmtBoolean()
 {
 
-setDataChangedFlags(false);
+    setDataChangedFlags(false);
 
-return(booleanValue);
+    return(booleanValue);
 
 }//end of RemoteParam::xmtBoolean
 //-----------------------------------------------------------------------------
@@ -236,7 +236,7 @@ return(booleanValue);
 public boolean isDataChanged()
 {
 
-return(dataChanged);
+    return(dataChanged);
 
 }//end of RemoteParam::isDataChanged
 //-----------------------------------------------------------------------------
@@ -256,14 +256,14 @@ return(dataChanged);
 public synchronized void setDataChangedFlags(boolean pState)
 {
 
-dataChanged = pState; //set this object's flag
+    dataChanged = pState; //set this object's flag
 
-//set all other flags which tell outside objects that data has changed
+    //set all other flags which tell outside objects that data has changed
 
-if (dataChanged1 != null) dataChanged1.flag = pState;
-if (dataChanged2 != null) dataChanged2.flag = pState;
-if (dataChanged3 != null) dataChanged3.flag = pState;
-if (dataChanged4 != null) dataChanged4.flag = pState;
+    if (dataChanged1 != null) dataChanged1.flag = pState;
+    if (dataChanged2 != null) dataChanged2.flag = pState;
+    if (dataChanged3 != null) dataChanged3.flag = pState;
+    if (dataChanged4 != null) dataChanged4.flag = pState;
 
 }//end of RemoteParam::setChangedFlags
 //-----------------------------------------------------------------------------

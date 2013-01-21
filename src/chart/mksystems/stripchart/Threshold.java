@@ -36,34 +36,34 @@ import chart.Xfer;
 
 public class Threshold extends Object{
 
-Settings settings;
-IniFile configFile;
-int chartGroup;
-int chartIndex;
-int thresholdIndex;
-JPanel canvas;
-int canvasXLimit;
-int canvasYLimit;
+    Settings settings;
+    IniFile configFile;
+    int chartGroup;
+    int chartIndex;
+    int thresholdIndex;
+    JPanel canvas;
+    int canvasXLimit;
+    int canvasYLimit;
 
-public static int flagWidth = 5;
-public static int flagHeight = 7;
+    public static int flagWidth = 5;
+    public static int flagHeight = 7;
 
-public boolean okToMark = true;
+    public boolean okToMark = true;
 
-public String title;
-String shortTitle;
-boolean doNotFlag, flagOnOver;
-public Color thresholdColor;
+    public String title;
+    String shortTitle;
+    boolean doNotFlag, flagOnOver;
+    public Color thresholdColor;
 
-public int thresholdLevel;
-int plotThresholdLevel;
-boolean invert;
+    public int thresholdLevel;
+    int plotThresholdLevel;
+    boolean invert;
 
-// references to point at the controls used to adjust the values - these
-// references are set up by the object which handles the adjusters and are
-// only used temporarily
+    // references to point at the controls used to adjust the values - these
+    // references are set up by the object which handles the adjusters and are
+    // only used temporarily
 
-public Object levelAdjuster;
+    public Object levelAdjuster;
 
 
 //-----------------------------------------------------------------------------
@@ -77,12 +77,12 @@ public Threshold(Settings pSettings, IniFile pConfigFile, int pChartGroup,
                                         int pChartIndex, int pThresholdIndex)
 {
 
-settings = pSettings; configFile = pConfigFile;
-chartGroup = pChartGroup;
-chartIndex = pChartIndex; thresholdIndex = pThresholdIndex;
+    settings = pSettings; configFile = pConfigFile;
+    chartGroup = pChartGroup;
+    chartIndex = pChartIndex; thresholdIndex = pThresholdIndex;
 
-//read the configuration file and create/setup the charting/control elements
-configure(configFile);
+    //read the configuration file and create/setup the charting/control elements
+    configure(configFile);
 
 }//end of Threshold::Threshold (constructor)
 //-----------------------------------------------------------------------------
@@ -96,23 +96,23 @@ configure(configFile);
 private void configure(IniFile pConfigFile)
 {
 
-String section = "Chart Group " + (chartGroup + 1)
+    String section = "Chart Group " + (chartGroup + 1)
      + " Strip Chart " + (chartIndex + 1) + " Threshold " + (thresholdIndex+1);
 
-title = pConfigFile.readString(section, "Title", "*");
+    title = pConfigFile.readString(section, "Title", "*");
 
-shortTitle = pConfigFile.readString(section, "Short Title", "*");
+    shortTitle = pConfigFile.readString(section, "Short Title", "*");
 
-doNotFlag =
-    pConfigFile.readBoolean(section, "Do Not Flag - For Reference Only", false);
+    doNotFlag = pConfigFile.readBoolean(
+                            section, "Do Not Flag - For Reference Only", false);
 
-flagOnOver = pConfigFile.readBoolean(section, "Flag On Over", true);
+    flagOnOver = pConfigFile.readBoolean(section, "Flag On Over", true);
 
-thresholdColor = pConfigFile.readColor(section, "Color", Color.RED);
+    thresholdColor = pConfigFile.readColor(section, "Color", Color.RED);
 
-invert = pConfigFile.readBoolean(section, "Invert Threshold", true);
+    invert = pConfigFile.readBoolean(section, "Invert Threshold", true);
 
-thresholdLevel = pConfigFile.readInt(section, "Default Level", 50);
+    thresholdLevel = pConfigFile.readInt(section, "Default Level", 50);
 
 }//end of Threshold::configure
 //-----------------------------------------------------------------------------
@@ -130,10 +130,10 @@ thresholdLevel = pConfigFile.readInt(section, "Default Level", 50);
 public void loadCalFile(IniFile pCalFile)
 {
 
-String section = "Chart Group " + (chartGroup + 1) + " Strip Chart "
-        + (chartIndex + 1) + " Threshold " + (thresholdIndex + 1);
+    String section = "Chart Group " + (chartGroup + 1) + " Strip Chart "
+            + (chartIndex + 1) + " Threshold " + (thresholdIndex + 1);
 
-thresholdLevel = pCalFile.readInt(section, "Threshold Level", 10);
+    thresholdLevel = pCalFile.readInt(section, "Threshold Level", 10);
 
 }//end of Threshold::loadCalFile
 //-----------------------------------------------------------------------------
@@ -151,10 +151,10 @@ thresholdLevel = pCalFile.readInt(section, "Threshold Level", 10);
 public void saveCalFile(IniFile pCalFile)
 {
 
-String section = "Chart Group " + (chartGroup + 1) + " Strip Chart "
-        + (chartIndex + 1) + " Threshold " + (thresholdIndex + 1);
+    String section = "Chart Group " + (chartGroup + 1) + " Strip Chart "
+            + (chartIndex + 1) + " Threshold " + (thresholdIndex + 1);
 
-pCalFile.writeInt(section, "Threshold Level", thresholdLevel);
+    pCalFile.writeInt(section, "Threshold Level", thresholdLevel);
 
 }//end of Threshold::saveCalFile
 //-----------------------------------------------------------------------------
@@ -174,8 +174,8 @@ pCalFile.writeInt(section, "Threshold Level", thresholdLevel);
 public void saveCalFileHumanReadable(BufferedWriter pOut) throws IOException
 {
 
-pOut.write(Settings.postPad(title, 10));
-pOut.write(Settings.prePad(" " + thresholdLevel, 4) + ", ");
+    pOut.write(Settings.postPad(title, 10));
+    pOut.write(Settings.prePad(" " + thresholdLevel, 4) + ", ");
 
 }//end of Threshold::saveCalFileHumanReadable
 //-----------------------------------------------------------------------------
@@ -189,7 +189,7 @@ pOut.write(Settings.prePad(" " + thresholdLevel, 4) + ", ");
 public void setCanvas(JPanel pCanvas)
 {
 
-canvas = pCanvas;
+    canvas = pCanvas;
 
 }//end of Threshold::setCanvas
 //-----------------------------------------------------------------------------
@@ -204,11 +204,11 @@ canvas = pCanvas;
 public void handleSizeChanges()
 {
 
-canvasXLimit = canvas.getWidth() - 1;
-canvasYLimit = canvas.getHeight() - 1;
+    canvasXLimit = canvas.getWidth() - 1;
+    canvasYLimit = canvas.getHeight() - 1;
 
-//force recalculation of values associated with the level
-setThresholdLevel(thresholdLevel);
+    //force recalculation of values associated with the level
+    setThresholdLevel(thresholdLevel);
 
 }//end of Threshold::handleSizeChanges
 //-----------------------------------------------------------------------------
@@ -222,15 +222,15 @@ setThresholdLevel(thresholdLevel);
 public void setThresholdLevel( int pLevel)
 {
 
-thresholdLevel = pLevel;
+    thresholdLevel = pLevel;
 
-plotThresholdLevel = thresholdLevel;
-if(plotThresholdLevel < 0) plotThresholdLevel = 0;
-if(plotThresholdLevel > canvasYLimit) plotThresholdLevel = canvasYLimit;
+    plotThresholdLevel = thresholdLevel;
+    if(plotThresholdLevel < 0) plotThresholdLevel = 0;
+    if(plotThresholdLevel > canvasYLimit) plotThresholdLevel = canvasYLimit;
 
-//invert the y position if specified
-if (invert){
-    plotThresholdLevel = canvasYLimit - plotThresholdLevel;
+    //invert the y position if specified
+    if (invert){
+        plotThresholdLevel = canvasYLimit - plotThresholdLevel;
     }
 
 }//end of Threshold::setThresholdLevel
@@ -245,8 +245,8 @@ public void paint(Graphics2D pG2, int pStart, int pEnd)
 
 {
 
-pG2.setColor(thresholdColor);
-pG2.drawLine(pStart, plotThresholdLevel, pEnd, plotThresholdLevel);
+    pG2.setColor(thresholdColor);
+    pG2.drawLine(pStart, plotThresholdLevel, pEnd, plotThresholdLevel);
 
 }//end of Threshold::paint
 //-----------------------------------------------------------------------------
@@ -261,8 +261,9 @@ public void drawSlice(Graphics2D pG2, int xPos)
 
 {
 
-pG2.setColor(thresholdColor);
-pG2.drawRect(xPos, plotThresholdLevel, 0, 0); //draw a dot to make the threshold
+    pG2.setColor(thresholdColor);
+    //draw a dot to make the threshold
+    pG2.drawRect(xPos, plotThresholdLevel, 0, 0);
 
 }//end of Threshold::drawSlice
 //-----------------------------------------------------------------------------
@@ -291,19 +292,19 @@ public boolean checkViolation(int pSigHeight)
 
 {
 
-//if the threshold is non-flagging, return without action
-if (doNotFlag) return(false);
+    //if the threshold is non-flagging, return without action
+    if (doNotFlag) return(false);
 
-//if the signal level exceeds the threshold, draw a flag - if flagOnOver is
-//true check for signal above, if false check for signal below
-if (flagOnOver){
-    if (pSigHeight >= thresholdLevel) return(true);
+    //if the signal level exceeds the threshold, draw a flag - if flagOnOver is
+    //true check for signal above, if false check for signal below
+    if (flagOnOver){
+        if (pSigHeight >= thresholdLevel) return(true);
     }
-else{
-    if (pSigHeight <= thresholdLevel) return(true);
+    else{
+        if (pSigHeight <= thresholdLevel) return(true);
     }
 
-return(false); //no flag set
+    return(false); //no flag set
 
 }//end of Threshold::checkViolation
 //-----------------------------------------------------------------------------
@@ -338,14 +339,14 @@ public void drawFlag(Graphics2D pPG2, int pXPos, int pYPos)
 public void saveSegment(BufferedWriter pOut) throws IOException
 {
 
-pOut.write("[Threshold]"); pOut.newLine();
-pOut.write("Threshold Index=" + thresholdIndex); pOut.newLine();
-pOut.write("Threshold Title=" + title); pOut.newLine();
-pOut.write("Threshold Short Title=" + shortTitle); pOut.newLine();
-pOut.newLine();
+    pOut.write("[Threshold]"); pOut.newLine();
+    pOut.write("Threshold Index=" + thresholdIndex); pOut.newLine();
+    pOut.write("Threshold Title=" + title); pOut.newLine();
+    pOut.write("Threshold Short Title=" + shortTitle); pOut.newLine();
+    pOut.newLine();
 
-pOut.write("Threshold Level=" + thresholdLevel); //save the threshold level
-pOut.newLine(); pOut.newLine();
+    pOut.write("Threshold Level=" + thresholdLevel); //save the threshold level
+    pOut.newLine(); pOut.newLine();
 
 }//end of Threshold::saveSegment
 //-----------------------------------------------------------------------------
@@ -368,10 +369,10 @@ public String loadSegment(BufferedReader pIn, String pLastLine)
                                                              throws IOException
 {
 
-//handle entries for the threshold itself
-String line = processThresholdEntries(pIn, pLastLine);
+    //handle entries for the threshold itself
+    String line = processThresholdEntries(pIn, pLastLine);
 
-return(line);
+    return(line);
 
 }//end of Threshold::loadSegment
 //-----------------------------------------------------------------------------
@@ -394,83 +395,87 @@ private String processThresholdEntries(BufferedReader pIn, String pLastLine)
 
 {
 
-String line;
-boolean success = false;
-Xfer matchSet = new Xfer(); //for receiving data from function calls
+    String line;
+    boolean success = false;
+    Xfer matchSet = new Xfer(); //for receiving data from function calls
 
-//if pLastLine contains the [Threshold] tag, then skip ahead else read until
-// end of file reached or "[Threshold]" section tag reached
+    //if pLastLine contains the [Threshold] tag, then skip ahead else read until
+    // end of file reached or "[Threshold]" section tag reached
 
-if (Viewer.matchAndParseString(pLastLine, "[Threshold]", "",  matchSet))
-    success = true; //tag already found
-else
-    while ((line = pIn.readLine()) != null){  //search for tag
-        if (Viewer.matchAndParseString(line, "[Threshold]", "",  matchSet)){
-            success = true; break;
+    if (Viewer.matchAndParseString(pLastLine, "[Threshold]", "",  matchSet))
+        success = true; //tag already found
+    else
+        while ((line = pIn.readLine()) != null){  //search for tag
+            if (Viewer.matchAndParseString(line, "[Threshold]", "",  matchSet)){
+                success = true; break;
             }
         }//while
 
-if (!success) throw new IOException(
-       "The file could not be read - section not found for Chart Group "
-        + chartGroup + " Chart " + chartIndex + " Threshold " + thresholdIndex);
+    if (!success) throw new IOException(
+           "The file could not be read - section not found for Chart Group "
+            + chartGroup + " Chart " + chartIndex + " Threshold " +
+            thresholdIndex);
 
-//set defaults
-int thresholdIndexRead = -1;
-String titleRead = "", shortTitleRead = "";
-int levelRead = 100;
+    //set defaults
+    int thresholdIndexRead = -1;
+    String titleRead = "", shortTitleRead = "";
+    int levelRead = 100;
 
-//scan the first part of the section and parse its entries
-//these entries apply to the chart group itself
+    //scan the first part of the section and parse its entries
+    //these entries apply to the chart group itself
 
-success = false;
-while ((line = pIn.readLine()) != null){
+    success = false;
+    while ((line = pIn.readLine()) != null){
 
-    //stop when next section tag reached (will start with [)
-    if (Viewer.matchAndParseString(line, "[", "",  matchSet)){
-        success = true; break;
+        //stop when next section tag reached (will start with [)
+        if (Viewer.matchAndParseString(line, "[", "",  matchSet)){
+            success = true; break;
         }
 
-    //read the "Threshold Index" entry - if not found, default to -1
-    if (Viewer.matchAndParseInt(line, "Threshold Index", -1, matchSet))
-        thresholdIndexRead = matchSet.rInt1;
+        //read the "Threshold Index" entry - if not found, default to -1
+        if (Viewer.matchAndParseInt(line, "Threshold Index", -1, matchSet))
+            thresholdIndexRead = matchSet.rInt1;
 
-    //NOTE: this match is due to a bug in segments saved under
-    // Segment Data Version 1.0 - the tag was misspelled - can be removed
-    // eventually - only one job run with that version
-    //read the "Theshold Index" entry - if not found, default to -1
-    if (Viewer.matchAndParseInt(line, "Theshold Index", -1, matchSet))
-        thresholdIndexRead = matchSet.rInt1;
+        //NOTE: this match is due to a bug in segments saved under
+        // Segment Data Version 1.0 - the tag was misspelled - can be removed
+        // eventually - only one job run with that version
+        //read the "Theshold Index" entry - if not found, default to -1
+        if (Viewer.matchAndParseInt(line, "Theshold Index", -1, matchSet))
+            thresholdIndexRead = matchSet.rInt1;
 
-    //read the "Threshold Title" entry - if not found, default to ""
-    if (Viewer.matchAndParseString(line, "Threshold Title", "", matchSet))
-        titleRead = matchSet.rString1;
+        //read the "Threshold Title" entry - if not found, default to ""
+        if (Viewer.matchAndParseString(line, "Threshold Title", "", matchSet))
+            titleRead = matchSet.rString1;
 
-    //read the "Threshold Short Title" entry - if not found, default to ""
-    if (Viewer.matchAndParseString(line, "Threshold Short Title", "", matchSet))
-        shortTitleRead = matchSet.rString1;
+        //read the "Threshold Short Title" entry - if not found, default to ""
+        if (Viewer.matchAndParseString(
+                                line, "Threshold Short Title", "", matchSet))
+            shortTitleRead = matchSet.rString1;
 
-    //read the "Threshold Level" entry - if not found, default to 100
-    if (Viewer.matchAndParseInt(line, "Threshold Level", 100, matchSet))
-        levelRead = matchSet.rInt1;
+        //read the "Threshold Level" entry - if not found, default to 100
+        if (Viewer.matchAndParseInt(line, "Threshold Level", 100, matchSet))
+            levelRead = matchSet.rInt1;
 
-    }
+    }//while ((line = pIn.readLine()) != null)
 
-//apply settings
-title = titleRead; shortTitle = shortTitleRead;
-setThresholdLevel(levelRead);
+    //apply settings
+    title = titleRead; shortTitle = shortTitleRead;
+    setThresholdLevel(levelRead);
 
-if (!success) throw new IOException(
+    if (!success)
+        throw new IOException(
         "The file could not be read - missing end of section for Chart Group "
         + chartGroup + " Chart " + chartIndex + " Threshold " + thresholdIndex);
 
-//if the index number in the file does not match the index number for this
-//threshold, abort the file read
+    //if the index number in the file does not match the index number for this
+    //threshold, abort the file read
 
-if (thresholdIndexRead != thresholdIndex) throw new IOException(
+    if (thresholdIndexRead != thresholdIndex)
+        throw new IOException(
         "The file could not be read - section not found for Chart Group "
         + chartGroup + " Chart " + chartIndex + " Threshold " + thresholdIndex);
 
-return(line); //should be "[xxxx]" tag on success, unknown value if not
+    return(line); //should be "[xxxx]" tag on success, unknown value if not
 
 }//end of Threshold::processThresholdEntries
 //-----------------------------------------------------------------------------

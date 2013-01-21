@@ -33,12 +33,12 @@ import java.util.*;
 
 class CopyPreset extends JDialog implements ActionListener{
 
-JFrame frame;
-JComboBox presetSelect;
-ArrayList<String> jobList;
-Xfer xfer;
-String primaryDataPath, backupDataPath;
-String currentJobName;
+    JFrame frame;
+    JComboBox presetSelect;
+    ArrayList<String> jobList;
+    Xfer xfer;
+    String primaryDataPath, backupDataPath;
+    String currentJobName;
 
 //-----------------------------------------------------------------------------
 // CopyPreset::CopyPreset (constructor)
@@ -49,12 +49,12 @@ public CopyPreset(JFrame pFrame, String pPrimaryDataPath,
                      String pBackupDataPath, Xfer pXfer, String pCurrentJobName)
 {
 
-super(pFrame, "Choose Job From Which to Copy Calibrations");
+    super(pFrame, "Choose Job From Which to Copy Calibrations");
 
-frame = pFrame;
-primaryDataPath = pPrimaryDataPath; backupDataPath = pBackupDataPath;
-xfer = pXfer;
-currentJobName = pCurrentJobName;
+    frame = pFrame;
+    primaryDataPath = pPrimaryDataPath; backupDataPath = pBackupDataPath;
+    xfer = pXfer;
+    currentJobName = pCurrentJobName;
 
 }//end of CopyPreset::CopyPreset (constructor)
 //-----------------------------------------------------------------------------
@@ -66,55 +66,55 @@ currentJobName = pCurrentJobName;
 public void init()
 {
 
-xfer.rBoolean1 = false; //action completed flag - set true if user completes
+    xfer.rBoolean1 = false; //action completed flag - set true if user completes
 
-setModal(true); //window always on top and has focus until closed
+    setModal(true); //window always on top and has focus until closed
 
-loadJobList(); //retrieve a list of available jobs
+    loadJobList(); //retrieve a list of available jobs
 
-setLayout(new BoxLayout(getContentPane(), BoxLayout.PAGE_AXIS));
+    setLayout(new BoxLayout(getContentPane(), BoxLayout.PAGE_AXIS));
 
-JPanel tPanel;
+    JPanel tPanel;
 
-add(Box.createRigidArea(new Dimension(0,15)));
+    add(Box.createRigidArea(new Dimension(0,15)));
 
-//drop down selection list for presets
-tPanel = new JPanel();
-tPanel.setLayout(new BoxLayout(tPanel, BoxLayout.LINE_AXIS));
-tPanel.add(Box.createRigidArea(new Dimension(5,0)));
-presetSelect = new JComboBox(jobList.toArray());
-tPanel.add(presetSelect);
-tPanel.add(Box.createRigidArea(new Dimension(5,0)));
-add(tPanel);
+    //drop down selection list for presets
+    tPanel = new JPanel();
+    tPanel.setLayout(new BoxLayout(tPanel, BoxLayout.LINE_AXIS));
+    tPanel.add(Box.createRigidArea(new Dimension(5,0)));
+    presetSelect = new JComboBox(jobList.toArray());
+    tPanel.add(presetSelect);
+    tPanel.add(Box.createRigidArea(new Dimension(5,0)));
+    add(tPanel);
 
-add(Box.createRigidArea(new Dimension(0,15)));
+    add(Box.createRigidArea(new Dimension(0,15)));
 
-JButton button;
+    JButton button;
 
-JPanel buttonPanel = new JPanel();
-buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.LINE_AXIS));
+    JPanel buttonPanel = new JPanel();
+    buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.LINE_AXIS));
 
-buttonPanel.add(Box.createRigidArea(new Dimension(5,0)));
-buttonPanel.add(button = new JButton("Load"));
-button.setToolTipText("Load the selected preset.");
-button.setActionCommand("Load");
-button.addActionListener(this);
+    buttonPanel.add(Box.createRigidArea(new Dimension(5,0)));
+    buttonPanel.add(button = new JButton("Load"));
+    button.setToolTipText("Load the selected preset.");
+    button.setActionCommand("Load");
+    button.addActionListener(this);
 
-buttonPanel.add(Box.createHorizontalGlue()); //force space between buttons
+    buttonPanel.add(Box.createHorizontalGlue()); //force space between buttons
 
-buttonPanel.add(button = new JButton("Cancel"));
-button.setToolTipText("Cancel");
-button.setActionCommand("Cancel");
-button.addActionListener(this);
-buttonPanel.add(Box.createRigidArea(new Dimension(5,0)));
+    buttonPanel.add(button = new JButton("Cancel"));
+    button.setToolTipText("Cancel");
+    button.setActionCommand("Cancel");
+    button.addActionListener(this);
+    buttonPanel.add(Box.createRigidArea(new Dimension(5,0)));
 
-add(buttonPanel);
+    add(buttonPanel);
 
-add(Box.createRigidArea(new Dimension(0,15)));
+    add(Box.createRigidArea(new Dimension(0,15)));
 
-pack();
+    pack();
 
-setVisible(true);
+    setVisible(true);
 
 }//end of CopyPreset::init
 //-----------------------------------------------------------------------------
@@ -128,19 +128,19 @@ setVisible(true);
 private void loadJobList()
 {
 
-//directory containing the various pertinent files
-File jobDir = new File(primaryDataPath);
-//get a list of the files/folders in the directory
-String[] configs = jobDir.list();
+    //directory containing the various pertinent files
+    File jobDir = new File(primaryDataPath);
+    //get a list of the files/folders in the directory
+    String[] configs = jobDir.list();
 
-//create a list to hold the file/folder names
-jobList = new ArrayList<String>(1000);
-jobList.addAll(Arrays.asList(configs));
-//sort the items alphabetically
-Collections.sort(jobList);
+    //create a list to hold the file/folder names
+    jobList = new ArrayList<String>(1000);
+    jobList.addAll(Arrays.asList(configs));
+    //sort the items alphabetically
+    Collections.sort(jobList);
 
-//after sorting, add the instruction text at the top so it will be displayed
-jobList.add(0, "Select a Job");
+    //after sorting, add the instruction text at the top so it will be displayed
+    jobList.add(0, "Select a Job");
 
 }//end of ChooseJob::loadJobList
 //-----------------------------------------------------------------------------
@@ -156,20 +156,20 @@ jobList.add(0, "Select a Job");
 public void actionPerformed(ActionEvent e)
 {
 
-JButton source = (JButton)(e.getSource());
+    JButton source = (JButton)(e.getSource());
 
-if (source.getActionCommand().equalsIgnoreCase("Load")){
-    boolean finished = copySelectedPreset();
-    if (!finished) return;
-    setVisible(false);
-    dispose();  //destroy the dialog window
-    return;
+    if (source.getActionCommand().equalsIgnoreCase("Load")){
+        boolean finished = copySelectedPreset();
+        if (!finished) return;
+        setVisible(false);
+        dispose();  //destroy the dialog window
+        return;
     }
 
-if (source.getActionCommand().equalsIgnoreCase("Cancel")){
-     setVisible(false);
-     dispose();  //destroy the dialog window
-    return;
+    if (source.getActionCommand().equalsIgnoreCase("Cancel")){
+        setVisible(false);
+        dispose();  //destroy the dialog window
+        return;
     }
 
 }//end of Change::actionPerformed
@@ -186,47 +186,47 @@ if (source.getActionCommand().equalsIgnoreCase("Cancel")){
 boolean copySelectedPreset()
 {
 
-String selectedItemName = (String)presetSelect.getSelectedItem();
+    String selectedItemName = (String)presetSelect.getSelectedItem();
 
-boolean presetSelected;
+    boolean presetSelected;
 
-//if the user has not selected a configuration, display an error message
-if (selectedItemName.equalsIgnoreCase("Select a Job")){
-    JOptionPane.showMessageDialog(frame,
-    "You must select a Job.",
-    "Error", JOptionPane.ERROR_MESSAGE);
-    return(false);
+    //if the user has not selected a configuration, display an error message
+    if (selectedItemName.equalsIgnoreCase("Select a Job")){
+        JOptionPane.showMessageDialog(frame,
+        "You must select a Job.",
+        "Error", JOptionPane.ERROR_MESSAGE);
+        return(false);
     }
-else
-    presetSelected = true;
+    else
+        presetSelected = true;
 
-int n = JOptionPane.showConfirmDialog(
-    frame,
-    "All of your current settings will be lost!  " +
-    "Are you sure you want to load this preset?",
-    "Confirm",
-    JOptionPane.YES_NO_OPTION);
+    int n = JOptionPane.showConfirmDialog(
+        frame,
+        "All of your current settings will be lost!  " +
+        "Are you sure you want to load this preset?",
+        "Confirm",
+        JOptionPane.YES_NO_OPTION);
 
-if (n != JOptionPane.YES_OPTION) return(false);  //bail out if user cancels
+    if (n != JOptionPane.YES_OPTION) return(false);  //bail out if user cancels
 
-//copy calibrations from the selected job folder
-File primarySrc = new File(primaryDataPath + selectedItemName);
+    //copy calibrations from the selected job folder
+    File primarySrc = new File(primaryDataPath + selectedItemName);
 
-//copy to both the primary and backup folders of the current job
-File primaryFolder = new File (primaryDataPath + currentJobName);
-File backupFolder  = new File (backupDataPath + currentJobName);
+    //copy to both the primary and backup folders of the current job
+    File primaryFolder = new File (primaryDataPath + currentJobName);
+    File backupFolder  = new File (backupDataPath + currentJobName);
 
-//copy the selected preset file into the job folder
-//this is the Job Info file and stores user settings
-//note that the "00 - " prefix is to force the file to the top of the
-//explorer window when the files are alphabetized to make it easier to find
+    //copy the selected preset file into the job folder
+    //this is the Job Info file and stores user settings
+    //note that the "00 - " prefix is to force the file to the top of the
+    //explorer window when the files are alphabetized to make it easier to find
 
-if (presetSelected &&
-    (!copyFile(
+    if (presetSelected &&
+        (!copyFile(
             primarySrc + "/00 - " + selectedItemName + " Calibration File.ini",
             primaryFolder + "/00 - " + currentJobName + " Calibration File.ini")
- ||
-    !copyFile(
+     ||
+        !copyFile(
           primarySrc + "/00 - " + selectedItemName + " Calibration File.ini",
           backupFolder + "/00 - " + currentJobName + " Calibration File.ini"))){
 
@@ -238,13 +238,13 @@ if (presetSelected &&
 
     }
 
-//signal the class which invoked this window that user has acted and pass back
-//the name of the file/folder acted on
+    //signal the class which invoked this window that user has acted and pass
+    //back the name of the file/folder acted on
 
-xfer.rBoolean1 = true; //set action completed flag true
-xfer.rString1 = selectedItemName; //pass back the target file/folder name
+    xfer.rBoolean1 = true; //set action completed flag true
+    xfer.rString1 = selectedItemName; //pass back the target file/folder name
 
-return(true);
+    return(true);
 
 }//end of CopyPreset::CopySelectedPreset
 //-----------------------------------------------------------------------------
@@ -260,35 +260,36 @@ return(true);
 boolean copyFile(String pSource, String pDest)
 {
 
-FileInputStream in = null;
-FileOutputStream out = null;
+    FileInputStream in = null;
+    FileOutputStream out = null;
 
-try {
+    try {
 
-    in = new FileInputStream(pSource);
-    out = new FileOutputStream(pDest);
+        in = new FileInputStream(pSource);
+        out = new FileOutputStream(pDest);
 
-    int c;
+        int c;
 
-    while ((c = in.read()) != -1) {
-        out.write(c); }
+        while ((c = in.read()) != -1) {
+            out.write(c); }
 
     }
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 278");
-    return (false);
-}
-finally {
-    try{
-        if (in != null) in.close();
-        if (out != null) out.close();
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 278");
+        return (false);
+    }
+    finally {
+        try{
+            if (in != null) in.close();
+            if (out != null) out.close();
         }
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 287");
-    return(false);}
-}
+        catch(IOException e){
+            System.err.println(getClass().getName() + " - Error: 287");
+            return(false);
+        }
+    }
 
-return(true);
+    return(true);
 
 }//end of CopyPreset::copyFile
 //-----------------------------------------------------------------------------

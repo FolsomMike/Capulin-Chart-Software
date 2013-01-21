@@ -309,22 +309,22 @@ void calculateTraceOffsetDelays()
                 if ((tracePtr != null) && (tracePtr.head == 1)){
                     tracePtr.startFwdDelayDistance =
                             photoEye1DistanceFrontOfHead1
-                                        + tracePtr.distanceSensorToFrontEdgeOfHead;
+                                    + tracePtr.distanceSensorToFrontEdgeOfHead;
 
                     tracePtr.startRevDelayDistance =
                             photoEye2DistanceFrontOfHead1 -
-                                        tracePtr.distanceSensorToFrontEdgeOfHead;
+                                      tracePtr.distanceSensorToFrontEdgeOfHead;
 
                 }//if ((tracePtr != null) && (tracePtr.head == 1))
 
                 if ((tracePtr != null) && (tracePtr.head == 2)){
                     tracePtr.startFwdDelayDistance =
                             photoEye1DistanceFrontOfHead2
-                                        + tracePtr.distanceSensorToFrontEdgeOfHead;
+                                    + tracePtr.distanceSensorToFrontEdgeOfHead;
 
                     tracePtr.startRevDelayDistance =
                             photoEye2DistanceFrontOfHead2 -
-                                        tracePtr.distanceSensorToFrontEdgeOfHead;
+                                      tracePtr.distanceSensorToFrontEdgeOfHead;
 
                 }//if ((tracePtr != null) && (tracePtr.head == 2))
             }//for (int tr = 0; tr < nTr; tr++)
@@ -1024,13 +1024,13 @@ void collectAnalogDataMinOrMax(Gate gatePtr, boolean pChannelActive)
         else
             //can't use MAX_VALUE -- that is default
             newData = Integer.MAX_VALUE-1;
-        }
+    }
 
     //if the array value is still default, replace with the new data
     if (gatePtr.dBuffer1[nextIndex] == Integer.MAX_VALUE){
         gatePtr.dBuffer1[nextIndex] = newData;
         dataStored = true;
-        }
+    }
     else{
         //if the array value already has data, only overwrite it if the new
         //data is more severe than what is already stored there - whether
@@ -1044,15 +1044,15 @@ void collectAnalogDataMinOrMax(Gate gatePtr, boolean pChannelActive)
                 gatePtr.dBuffer1[nextIndex] = newData;
                 dataStored = true;
                 }//if (newData >...
-            }//gatePtr.peakDirection...
+        }//gatePtr.peakDirection...
         else{
             //lower values are more severe - keep lowest value
             if (newData < gatePtr.dBuffer1[nextIndex]){
                 gatePtr.dBuffer1[nextIndex] = newData;
                 dataStored = true;
-                }//if (newData <...
-            }//else if (gatePtr.peakDirection...
-        }//else if (gatePtr.dBuffer1[nextIndex]...
+            }//if (newData <...
+        }//else if (gatePtr.peakDirection...
+    }//else if (gatePtr.dBuffer1[nextIndex]...
 
 
     //check for threshold violations and store flags as necessary
@@ -1488,8 +1488,8 @@ boolean collectEncoderDataInspectMode()
             //once)
             inspectCtrlVars.encoder2Start = inspectCtrlVars.encoder2;
             prevPixPosition = 0;
-            }
         }
+    }
 
     if (manualInspectControl){
         inspectCtrlVars.head1Down = true;
@@ -1501,24 +1501,24 @@ boolean collectEncoderDataInspectMode()
     //transition
     if (!hdwVs.head1Down && inspectCtrlVars.head1Down){
         hdwVs.head1Down = true; flaggingEnableDelay1 = 6;
-        }
+    }
 
     //if head 2 is up and goes down, enable flagging for all traces on head 2
     //a small distance delay is used to prevent flagging of the initial
     //transition
     if (!hdwVs.head2Down && inspectCtrlVars.head2Down){
         hdwVs.head2Down = true; flaggingEnableDelay2 = 6;
-        }
+    }
 
     //if head 1 is down and goes up, disable flagging for all traces on head 1
     if (hdwVs.head1Down && !inspectCtrlVars.head1Down){
         hdwVs.head1Down = false; enableHeadTraceFlagging(1, false);
-        }
+    }
 
     //if head 2 is down and goes up, disable flagging for all traces on head 2
     if (hdwVs.head2Down && !inspectCtrlVars.head2Down){
         hdwVs.head2Down = false; enableHeadTraceFlagging(2, false);
-        }
+    }
 
     //watch for piece to exit head
     if (hdwVs.watchForOffPipe){
@@ -1562,9 +1562,8 @@ boolean collectEncoderDataInspectMode()
             //set flag to force preparation for a new piece
             prepareForNewPiece = true;
 
-
-            }
-        }
+        }//if (!inspectCtrlVars.onPipeFlag)
+    }//if (hdwVs.watchForOffPipe)
 
     boolean newPositionData = true;  //signal that position has been changed
 
@@ -1734,7 +1733,6 @@ void moveTracesForward(Trace pTrace, int pPixelsMoved, double pPosition)
                 prepareForNewPiece = true;
             }
         }
-
     }//for (int x = 0; x < pixelsMoved; x++){
 
 }//end of Hardware::moveTracesForward
@@ -1911,9 +1909,9 @@ public void initializeTraceOffsetDelays(int pDirection)
                     if (tracePtr.delayDistance > trailingTraceCatch)
                         {trail = tr; trailingTraceCatch=tracePtr.delayDistance;}
 
-                    }//if (tracePtr != null)
+                }//if (tracePtr != null)
 
-                }//for (int tr = 0; tr < nTr; tr++)
+            }//for (int tr = 0; tr < nTr; tr++)
 
                 chartGroups[cg].
                         getStripChart(sc).getTrace(lead).leadTrace = true;

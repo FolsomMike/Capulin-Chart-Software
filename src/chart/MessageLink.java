@@ -30,21 +30,21 @@ package chart;
 
 public interface MessageLink {
 
-//modes
-    
-static int FORWARD = 0;
-static int REVERSE = 1;
-static int STOP = 2;
-static int RESET = 3;    
+    //modes
 
-//commands
-static int SET_MODE = 1;
+    static int FORWARD = 0;
+    static int REVERSE = 1;
+    static int STOP = 2;
+    static int RESET = 3;
 
-//status flags
+    //commands
+    static int SET_MODE = 1;
 
-static int NULL = 0;
+    //status flags
 
-public int xmtMessage(int pMessage, int pValue);
+    static int NULL = 0;
+
+    public int xmtMessage(int pMessage, int pValue);
 
 }//end of interface MessageLink
 //-----------------------------------------------------------------------------

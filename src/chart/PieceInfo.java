@@ -37,20 +37,20 @@ import chart.mksystems.inifile.IniFile;
 public class PieceInfo extends JDialog implements ActionListener,
                                                 WindowListener, FocusListener {
 
-JPanel panel;
-String configFilename;
-String primaryDataPath, backupDataPath;
-String currentWorkOrder;
-ActionListener actionListener;
-int prevOrderedLow;
-int prevPrintedPosition;
-boolean displayUpdateButton;
-JButton updateButton;
-String filename;
-String fileFormat;
+    JPanel panel;
+    String configFilename;
+    String primaryDataPath, backupDataPath;
+    String currentWorkOrder;
+    ActionListener actionListener;
+    int prevOrderedLow;
+    int prevPrintedPosition;
+    boolean displayUpdateButton;
+    JButton updateButton;
+    String filename;
+    String fileFormat;
 
-PieceInfoItem[] items;
-static int NUMBER_OF_ITEMS = 100;
+    PieceInfoItem[] items;
+    static int NUMBER_OF_ITEMS = 100;
 
 //-----------------------------------------------------------------------------
 // PieceInfo::PieceInfo (constructor)
@@ -61,12 +61,12 @@ public PieceInfo(JFrame pFrame, String pPrimaryDataPath, String pBackupDataPath,
                       boolean pDisplayUpdateButton, String pFileFormat)
 {
 
-super(pFrame, "Identifier Info");
+    super(pFrame, "Identifier Info");
 
-primaryDataPath = pPrimaryDataPath; backupDataPath = pBackupDataPath;
-currentWorkOrder = pCurrentWorkOrder; actionListener = pActionListener;
-displayUpdateButton = pDisplayUpdateButton;
-fileFormat = pFileFormat;
+    primaryDataPath = pPrimaryDataPath; backupDataPath = pBackupDataPath;
+    currentWorkOrder = pCurrentWorkOrder; actionListener = pActionListener;
+    displayUpdateButton = pDisplayUpdateButton;
+    fileFormat = pFileFormat;
 
 }//end of PieceInfo::PieceInfo (constructor)
 //-----------------------------------------------------------------------------
@@ -78,17 +78,17 @@ fileFormat = pFileFormat;
 public void init()
 {
 
-addWindowListener(this);
+    addWindowListener(this);
 
-//load the configuration from the primary data folder
-configFilename = primaryDataPath + "05 - " + currentWorkOrder
-                                    + " Configuration - Piece Info Window.ini";
+    //load the configuration from the primary data folder
+    configFilename = primaryDataPath + "05 - " + currentWorkOrder
+                                     + " Configuration - Piece Info Window.ini";
 
-//create and array to hold 100 items - each item is an data entry object
-items = new PieceInfoItem[NUMBER_OF_ITEMS];
+    //create and array to hold 100 items - each item is an data entry object
+    items = new PieceInfoItem[NUMBER_OF_ITEMS];
 
-//setup the window according to the configuration file
-configure(configFilename);
+    //setup the window according to the configuration file
+    configure(configFilename);
 
 }//end of PieceInfo::init
 //-----------------------------------------------------------------------------
@@ -116,120 +116,124 @@ configure(configFilename);
 private void configure(String pConfigFilename)
 {
 
-//create a panel to hold the labels and data entry boxes
-panel = new JPanel();
-panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-panel.setOpaque(true);
-add(panel);
+    //create a panel to hold the labels and data entry boxes
+    panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    panel.setOpaque(true);
+    add(panel);
 
-JPanel itemPanel; //panels to hold label and text field
-int maxLabelWidth = 0;
+    JPanel itemPanel; //panels to hold label and text field
+    int maxLabelWidth = 0;
 
-IniFile configFile;
-String section, text;
+    IniFile configFile;
+    String section, text;
 
-//if the ini file cannot be opened and loaded, exit without action
-try {configFile = new IniFile(pConfigFilename, fileFormat);}
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 134");
-    return;
-}
+    //if the ini file cannot be opened and loaded, exit without action
+    try {configFile = new IniFile(pConfigFilename, fileFormat);}
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 134");
+        return;
+    }
 
-//scan through the array checking to see if an item exists in the configuration
-//file for each index positon
-for (int i=0; i < NUMBER_OF_ITEMS; i++){
+    //scan through the array checking to see if an item exists in the
+    //configuration file for each index positon
+    for (int i=0; i < NUMBER_OF_ITEMS; i++){
 
-    section = "Item " + (i+1);
+        section = "Item " + (i+1);
 
-    //see if a label exists for the index
-    text = configFile.readString(section, "Label", "blank");
+        //see if a label exists for the index
+        text = configFile.readString(section, "Label", "blank");
 
-    //if a label exists, create the item and load the other data for it
-    if (!text.equalsIgnoreCase("blank")) {
+        //if a label exists, create the item and load the other data for it
+        if (!text.equalsIgnoreCase("blank")) {
 
-        items[i] = new PieceInfoItem();
-        items[i].labelText = text;
-        items[i].numberCharacters =
-                        configFile.readInt(section, "Number of Characters", 20);
-        items[i].editable =
-                    configFile.readBoolean(section, "Editable", true);
-        items[i].clearedInNewJob =
-                configFile.readBoolean(section, "Cleared in a New Job", true);
+            items[i] = new PieceInfoItem();
+            items[i].labelText = text;
+            items[i].numberCharacters =
+                       configFile.readInt(section, "Number of Characters", 20);
+            items[i].editable =
+                        configFile.readBoolean(section, "Editable", true);
+            items[i].clearedInNewJob =
+                 configFile.readBoolean(section, "Cleared in a New Job", true);
 
-        items[i].printInFooter =
-                    configFile.readBoolean(section, "Print in Footer", true);
-        items[i].printOrder = configFile.readInt(section, "Print Order", -1);
+            items[i].printInFooter =
+                      configFile.readBoolean(section, "Print in Footer", true);
+            items[i].printOrder =
+                                configFile.readInt(section, "Print Order", -1);
 
-        if (items[i].width < 1) items[i].width = 1; //range check -- is this used any more?
+            //range check -- is this used any more?
+            if (items[i].width < 1) items[i].width = 1;
 
-        //add each label/field pair to a panel
-        itemPanel = new JPanel();
-        itemPanel.setLayout(new BoxLayout(itemPanel, BoxLayout.X_AXIS));
-        items[i].createTextField(this);
-        items[i].label = new JLabel(items[i].labelText);
-        items[i].label.setFocusable(true); //see notes in method header
-        //space at left edge
-        itemPanel.add(Box.createRigidArea(new Dimension(5,0)));
-        itemPanel.add(items[i].label);
-        //space between label and field
-        itemPanel.add(Box.createRigidArea(new Dimension(5,0)));
-        itemPanel.add(items[i].textField);
-        itemPanel.add(Box.createHorizontalGlue()); //push components to the left
+            //add each label/field pair to a panel
+            itemPanel = new JPanel();
+            itemPanel.setLayout(new BoxLayout(itemPanel, BoxLayout.X_AXIS));
+            items[i].createTextField(this);
+            items[i].label = new JLabel(items[i].labelText);
+            items[i].label.setFocusable(true); //see notes in method header
+            //space at left edge
+            itemPanel.add(Box.createRigidArea(new Dimension(5,0)));
+            itemPanel.add(items[i].label);
+            //space between label and field
+            itemPanel.add(Box.createRigidArea(new Dimension(5,0)));
+            itemPanel.add(items[i].textField);
+            //push components to the left
+            itemPanel.add(Box.createHorizontalGlue());
 
-        //add each panel to the main panel
-        panel.add(itemPanel);
+            //add each panel to the main panel
+            panel.add(itemPanel);
 
-        //store the maximum width of any label for use in setting all label
-        //widths the same - Java seems to set Min/Preferred/Max to the same so
-        //use the Preferred size for this purpose
-        if (items[i].label.getPreferredSize().width > maxLabelWidth)
-            maxLabelWidth = items[i].label.getPreferredSize().width;
+            //store the maximum width of any label for use in setting all label
+            //widths the same - Java seems to set Min/Preferred/Max to the same
+            //so use the Preferred size for this purpose
+            if (items[i].label.getPreferredSize().width > maxLabelWidth)
+                maxLabelWidth = items[i].label.getPreferredSize().width;
 
         }// if (text.equalsIgnoreCase("blank"))
 
     }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
 
+    int height;
 
-int height;
+    //set all label widths to that of the widest label to align the fields
+    for (int i=0; i < NUMBER_OF_ITEMS; i++){
 
+        if (items[i] != null){
 
-//set all label widths to that of the widest label to align the fields
-for (int i=0; i < NUMBER_OF_ITEMS; i++){
+            //get the default height of the label
+            height = items[i].label.getPreferredSize().height;
 
-    if (items[i] != null){
-
-        //get the default height of the label
-        height = items[i].label.getPreferredSize().height;
-
-        //set all dimensions to match the widest label
-        items[i].label.setMinimumSize(new Dimension(maxLabelWidth, height));
-        items[i].label.setPreferredSize(new Dimension(maxLabelWidth, height));
-        items[i].label.setMaximumSize(new Dimension(maxLabelWidth, height));
+            //set all dimensions to match the widest label
+            items[i].label.setMinimumSize(
+                                    new Dimension(maxLabelWidth, height));
+            items[i].label.setPreferredSize(
+                                    new Dimension(maxLabelWidth, height));
+            items[i].label.setMaximumSize(
+                                    new Dimension(maxLabelWidth, height));
 
         }
 
     }//for (int i=0; i < NUMBER_OF_ITEMS; i++)
 
 
-//display Update button if specified -- this allows the user to save changes
-//made to the data
+    //display Update button if specified -- this allows the user to save changes
+    //made to the data
 
-if(displayUpdateButton){
+    if(displayUpdateButton){
 
-    itemPanel = new JPanel();
-    itemPanel.setLayout(new BoxLayout(itemPanel, BoxLayout.X_AXIS));
+        itemPanel = new JPanel();
+        itemPanel.setLayout(new BoxLayout(itemPanel, BoxLayout.X_AXIS));
 
-    updateButton = new JButton("Update");
-    updateButton.setEnabled(false);
-    updateButton.setToolTipText("Update/Save info.");
-    updateButton.setActionCommand("Update Info");
-    updateButton.addActionListener(this);
-    itemPanel.add(updateButton);
-    panel.add(itemPanel);
+        updateButton = new JButton("Update");
+        updateButton.setEnabled(false);
+        updateButton.setToolTipText("Update/Save info.");
+        updateButton.setActionCommand("Update Info");
+        updateButton.addActionListener(this);
+        itemPanel.add(updateButton);
+        panel.add(itemPanel);
 
     }//if(displayUpdateButton)
 
-pack();
+    pack();
 
 }//end of PieceInfo::configure
 //-----------------------------------------------------------------------------
@@ -248,16 +252,16 @@ public void prepareForNewJob(String pPrimaryDataPath, String pBackupDataPath,
                                                       String pCurrentWorkOrder)
 {
 
-primaryDataPath = pPrimaryDataPath; backupDataPath = pBackupDataPath;
-currentWorkOrder = pCurrentWorkOrder;
+    primaryDataPath = pPrimaryDataPath; backupDataPath = pBackupDataPath;
+    currentWorkOrder = pCurrentWorkOrder;
 
-//clear all items which have been defined and specified for clearing for a new
-//job
+    //clear all items which have been defined and specified for clearing for a
+    //new job
 
-for (int i=0; i < NUMBER_OF_ITEMS; i++)
-    if (items[i] != null && items[i].clearedInNewJob){
+    for (int i=0; i < NUMBER_OF_ITEMS; i++)
+        if (items[i] != null && items[i].clearedInNewJob){
 
-        items[i].textField.setText("");
+            items[i].textField.setText("");
 
         }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
 
@@ -277,16 +281,16 @@ for (int i=0; i < NUMBER_OF_ITEMS; i++)
 public String getValue(String pKey)
 {
 
-for (int i=0; i < NUMBER_OF_ITEMS; i++)
-    if (items[i] != null){
+    for (int i=0; i < NUMBER_OF_ITEMS; i++)
+        if (items[i] != null){
 
-        //look in each Item.label for the matching key, return the value
-        if (pKey.equals(items[i].labelText))
-            return (items[i].textField.getText());
+            //look in each Item.label for the matching key, return the value
+            if (pKey.equals(items[i].labelText))
+                return (items[i].textField.getText());
 
         }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
 
-return(""); //key not found, return empty string
+    return(""); //key not found, return empty string
 
 }//end of PieceInfo::getValue
 //-----------------------------------------------------------------------------
@@ -324,15 +328,15 @@ return(""); //key not found, return empty string
 public boolean getFirstToPrint(KeyValue pKeyValue)
 {
 
-//preset values and flags to begin printing
+    //preset values and flags to begin printing
 
-for (int i=0; i < NUMBER_OF_ITEMS; i++)
-    if (items[i] != null) items[i].printed = false;
+    for (int i=0; i < NUMBER_OF_ITEMS; i++)
+        if (items[i] != null) items[i].printed = false;
 
-//make first call to getNextToPrint
-// subsequent calls should call that function directly instead of this one
+    //make first call to getNextToPrint
+    // subsequent calls should call that function directly instead of this one
 
-return(getNextToPrint(pKeyValue));
+    return(getNextToPrint(pKeyValue));
 
 }//end of PieceInfo::getFirstToPrint
 //-----------------------------------------------------------------------------
@@ -370,65 +374,64 @@ return(getNextToPrint(pKeyValue));
 public boolean getNextToPrint(KeyValue pKeyValue)
 {
 
-int order = 0;
-prevPrintedPosition = -1;
-prevOrderedLow = Integer.MAX_VALUE;
+    int order = 0;
+    prevPrintedPosition = -1;
+    prevOrderedLow = Integer.MAX_VALUE;
 
-//find any printable items which have printOrder >=0, these are printed first
-//in numerical order based on their printOrder values -- find the unprinted
-//item with the lowest print order
+    //find any printable items which have printOrder >=0, these are printed
+    //first in numerical order based on their printOrder values -- find the
+    //unprinted item with the lowest print order
 
-for (int i=0; i < NUMBER_OF_ITEMS; i++){
+    for (int i=0; i < NUMBER_OF_ITEMS; i++){
 
-    if (items[i] != null && items[i].printInFooter && !items[i].printed){
+        if (items[i] != null && items[i].printInFooter && !items[i].printed){
 
-        order = items[i].printOrder;
+            order = items[i].printOrder;
 
-        //catch the lowest order number which is not -1, this is the first
-        //to be printed -- items with -1 are not ordered
-        if ((order > -1) && (order < prevOrderedLow)){
-            prevOrderedLow = order; //store to catch next larger in future
-            prevPrintedPosition = i; //store position
-            //store the key/value for the entry to be printed
-            pKeyValue.keyString = items[i].labelText;
-            pKeyValue.valueString = items[i].textField.getText();
-            }
-
-        }//if (items[i] != null && items[i].printInFooter)
-    }//for (int i=0; i < NUMBER_OF_ITEMS; i++)
-
-//if an ordered entry was found, flag it as already printed and return true
-if (prevPrintedPosition != -1) {
-    items[prevPrintedPosition].printed = true;
-    return(true);
-    }
-
-//if no ordered items were found, return the first item in the list which has
-//its printInFooter flag set true
-
-for (int i=0; i < NUMBER_OF_ITEMS; i++){
-    if (items[i] != null && items[i].printInFooter){
-
-        //catch the first with print flag set true
-        if (!items[i].printed){
-            prevPrintedPosition = i; //store position
-            //store the key/value for the entry to be printed
-            pKeyValue.keyString = items[i].labelText;
-            pKeyValue.valueString = items[i].textField.getText();
-            break;
-            }
+            //catch the lowest order number which is not -1, this is the first
+            //to be printed -- items with -1 are not ordered
+            if ((order > -1) && (order < prevOrderedLow)){
+                prevOrderedLow = order; //store to catch next larger in future
+                prevPrintedPosition = i; //store position
+                //store the key/value for the entry to be printed
+                pKeyValue.keyString = items[i].labelText;
+                pKeyValue.valueString = items[i].textField.getText();
+                }
 
         }//if (items[i] != null && items[i].printInFooter)
     }//for (int i=0; i < NUMBER_OF_ITEMS; i++)
 
-//if an ordered entry was found, flag it as already printed and return true
-if (prevPrintedPosition != -1) {
-    items[prevPrintedPosition].printed = true;
-    return(true);
+    //if an ordered entry was found, flag it as already printed and return true
+    if (prevPrintedPosition != -1) {
+        items[prevPrintedPosition].printed = true;
+        return(true);
     }
 
-//return false if no printable entry found
-return(false);
+    //if no ordered items were found, return the first item in the list which has
+    //its printInFooter flag set true
+
+    for (int i=0; i < NUMBER_OF_ITEMS; i++){
+        if (items[i] != null && items[i].printInFooter){
+
+            //catch the first with print flag set true
+            if (!items[i].printed){
+                prevPrintedPosition = i; //store position
+                //store the key/value for the entry to be printed
+                pKeyValue.keyString = items[i].labelText;
+                pKeyValue.valueString = items[i].textField.getText();
+                break;
+            }
+        }//if (items[i] != null && items[i].printInFooter)
+    }//for (int i=0; i < NUMBER_OF_ITEMS; i++)
+
+    //if an ordered entry was found, flag it as already printed and return true
+    if (prevPrintedPosition != -1) {
+        items[prevPrintedPosition].printed = true;
+        return(true);
+    }
+
+    //return false if no printable entry found
+    return(false);
 
 }//end of PieceInfo::getNextToPrint
 //-----------------------------------------------------------------------------
@@ -442,32 +445,32 @@ return(false);
 public void loadData(String pFilename)
 {
 
-filename = pFilename;
+    filename = pFilename;
 
-IniFile jobInfoFile;
+    IniFile jobInfoFile;
 
-//if the ini file cannot be opened and loaded, exit without action
-try {jobInfoFile = new IniFile(pFilename, fileFormat);}
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 452");
-    return;
-}
+    //if the ini file cannot be opened and loaded, exit without action
+    try {jobInfoFile = new IniFile(pFilename, fileFormat);}
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 452");
+        return;
+    }
 
-String section = "Identifying Information";
+    String section = "Identifying Information";
 
-//load all items which have been defined
+    //load all items which have been defined
 
-for (int i=0; i < NUMBER_OF_ITEMS; i++)
-    if (items[i] != null){
+    for (int i=0; i < NUMBER_OF_ITEMS; i++)
+        if (items[i] != null){
 
-        //use the label text as the key, the value is the text in the box
-        items[i].textField.setText(
-                       jobInfoFile.readString(section, items[i].labelText, ""));
+            //use the label text as the key, the value is the text in the box
+            items[i].textField.setText(
+                      jobInfoFile.readString(section, items[i].labelText, ""));
 
-        }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
+            }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
 
-//disable the update button -- will be re-enabled when user clicks in a box
-if (updateButton != null) updateButton.setEnabled(false);
+    //disable the update button -- will be re-enabled when user clicks in a box
+    if (updateButton != null) updateButton.setEnabled(false);
 
 }//end of PieceInfo::loadData
 //-----------------------------------------------------------------------------
@@ -481,7 +484,7 @@ if (updateButton != null) updateButton.setEnabled(false);
 public PieceInfoItem[] getItems()
 {
 
-return(items);
+    return(items);
 
 }//end of PieceInfo::getItems
 //-----------------------------------------------------------------------------
@@ -496,29 +499,29 @@ return(items);
 public void saveData(String pFilename)
 {
 
-IniFile jobInfoFile;
+    IniFile jobInfoFile;
 
-//if the ini file cannot be opened and loaded, exit without action
-try {jobInfoFile = new IniFile(pFilename, fileFormat);}
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 504");
-    return;
-}
+    //if the ini file cannot be opened and loaded, exit without action
+    try {jobInfoFile = new IniFile(pFilename, fileFormat);}
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 504");
+        return;
+    }
 
-String section = "Identifying Information";
+    String section = "Identifying Information";
 
-//save all items which have been defined
+    //save all items which have been defined
 
-for (int i=0; i < NUMBER_OF_ITEMS; i++)
-    if (items[i] != null){
+    for (int i=0; i < NUMBER_OF_ITEMS; i++)
+        if (items[i] != null){
 
-        //use the label text as the key, the value is the text in the box
-        jobInfoFile.writeString(section, items[i].labelText,
-                                                items[i].textField.getText());
+            //use the label text as the key, the value is the text in the box
+            jobInfoFile.writeString(section, items[i].labelText,
+                                                 items[i].textField.getText());
 
         }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
 
-jobInfoFile.save();  //save to disk
+    jobInfoFile.save();  //save to disk
 
 }//end of PieceInfo::saveData
 //-----------------------------------------------------------------------------
@@ -533,18 +536,18 @@ jobInfoFile.save();  //save to disk
 public void saveDataToStream(BufferedWriter pOut) throws IOException
 {
 
-//save section name
+    //save section name
 
-pOut.write("[Identifying Information]"); pOut.newLine();
-pOut.newLine();
-
-//save all items which have been defined
-
-for (int i=0; i < NUMBER_OF_ITEMS; i++)
-    if (items[i] != null){
-
-    pOut.write(items[i].labelText + "=" + items[i].textField.getText());
+    pOut.write("[Identifying Information]"); pOut.newLine();
     pOut.newLine();
+
+    //save all items which have been defined
+
+    for (int i=0; i < NUMBER_OF_ITEMS; i++)
+        if (items[i] != null){
+
+        pOut.write(items[i].labelText + "=" + items[i].textField.getText());
+        pOut.newLine();
 
     }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
 
@@ -562,10 +565,10 @@ for (int i=0; i < NUMBER_OF_ITEMS; i++)
 public void actionPerformed(ActionEvent e)
 {
 
-if ("Update Info".equals(e.getActionCommand())) {
-    if (updateButton != null) updateButton.setEnabled(false);
-    saveData(filename);
-    }
+    if ("Update Info".equals(e.getActionCommand())) {
+        if (updateButton != null) updateButton.setEnabled(false);
+        saveData(filename);
+        }
 
 }//end of PieceInfo::actionPerformed
 //-----------------------------------------------------------------------------
@@ -581,13 +584,13 @@ if ("Update Info".equals(e.getActionCommand())) {
 public void focusGained(FocusEvent e)
 {
 
-//if the Update button is in place (such as when window is displayed from the
-//viewer), it gets enabled whenever the user clicks in any of the textfields so
-//the data can be saved -- the enabled button also serves as a visual clue that
-//data has been modified
+    //if the Update button is in place (such as when window is displayed from
+    //the viewer), it gets enabled whenever the user clicks in any of the
+    //textfields so the data can be saved -- the enabled button also serves as
+    //a visual clue that data has been modified
 
-if (e.getComponent().getName().equals("Value Text Field"))
-    if (updateButton != null) updateButton.setEnabled(true);
+    if (e.getComponent().getName().equals("Value Text Field"))
+        if (updateButton != null) updateButton.setEnabled(true);
 
 }//end of PieceInfo::focusGained
 //-----------------------------------------------------------------------------

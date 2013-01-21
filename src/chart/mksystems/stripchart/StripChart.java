@@ -45,29 +45,29 @@ import chart.Xfer;
 
 class ValueDisplay extends Object {
 
-int labelXPos = 500, labelYPos = 23;
-int xPos = labelXPos + 100;
-int yPos = labelYPos;
-String label = "";
-String decPlaces = "0.000";
-DecimalFormat decimalFormat;
-Color textColor, backgroundColor;
+    int labelXPos = 500, labelYPos = 23;
+    int xPos = labelXPos + 100;
+    int yPos = labelYPos;
+    String label = "";
+    String decPlaces = "0.000";
+    DecimalFormat decimalFormat;
+    Color textColor, backgroundColor;
 
-public int iValue = 0;
-int iPrevValue = -1;
+    public int iValue = 0;
+    int iPrevValue = -1;
 
-public double dValue = 0;
-double dPrevValue = -1;
+    public double dValue = 0;
+    double dPrevValue = -1;
 
-public String sValue = "";
-String sPrevValue = "";
+    public String sValue = "";
+    String sPrevValue = "";
 
-static int UNDEFINED = 0;
-static int INTEGER = 1;
-static int DOUBLE = 2;
-static int STRING = 3;
+    static int UNDEFINED = 0;
+    static int INTEGER = 1;
+    static int DOUBLE = 2;
+    static int STRING = 3;
 
-int valueType = UNDEFINED;
+    int valueType = UNDEFINED;
 
 //-----------------------------------------------------------------------------
 // ValueDisplay::ValueDisplay (constructor)
@@ -90,12 +90,12 @@ public ValueDisplay(int pLabelXPos, int pLabelYPos, int pXPos, int pYPos,
 {
 
 
-labelXPos = pLabelXPos; labelYPos = pLabelYPos;
-xPos = pXPos; yPos = pYPos;
-label = pLabel; decPlaces = pDecPlaces;
-textColor = pTextColor; backgroundColor = pBackgroundColor;
+    labelXPos = pLabelXPos; labelYPos = pLabelYPos;
+    xPos = pXPos; yPos = pYPos;
+    label = pLabel; decPlaces = pDecPlaces;
+    textColor = pTextColor; backgroundColor = pBackgroundColor;
 
-decimalFormat = new DecimalFormat(decPlaces);
+    decimalFormat = new DecimalFormat(decPlaces);
 
 }//end of ValueDisplay::ValueDisplay (constructor)
 //-----------------------------------------------------------------------------
@@ -111,13 +111,13 @@ decimalFormat = new DecimalFormat(decPlaces);
 void paint(Graphics2D pG2)
 {
 
-pG2.setColor(textColor);
-pG2.drawString(label, labelXPos, labelYPos);
+    pG2.setColor(textColor);
+    pG2.drawString(label, labelXPos, labelYPos);
 
-//draw the appropriate value
-if (valueType == INTEGER) updateInt(pG2, iValue, true);
-if (valueType == DOUBLE) updateDouble(pG2, dValue, true);
-if (valueType == STRING) updateString(pG2, sValue, true);
+    //draw the appropriate value
+    if (valueType == INTEGER) updateInt(pG2, iValue, true);
+    if (valueType == DOUBLE) updateDouble(pG2, dValue, true);
+    if (valueType == STRING) updateString(pG2, sValue, true);
 
 }//end of ValueDisplay::paint
 //-----------------------------------------------------------------------------
@@ -133,18 +133,18 @@ if (valueType == STRING) updateString(pG2, sValue, true);
 void updateInt(Graphics2D pG2, int pNewValue, boolean pForceUpdate)
 {
 
-valueType = INTEGER; //variable type for this object is now int
+    valueType = INTEGER; //variable type for this object is now int
 
-iValue = pNewValue;
+    iValue = pNewValue;
 
-if ((iValue != iPrevValue) || pForceUpdate){
-    //erase the previous value
-    pG2.setColor(backgroundColor);
-    pG2.drawString(Integer.toString(iPrevValue), xPos, yPos);
-    //draw the new value
-    pG2.setColor(textColor);
-    pG2.drawString(Integer.toString(iValue), xPos, yPos);
-    iPrevValue = iValue;
+    if ((iValue != iPrevValue) || pForceUpdate){
+        //erase the previous value
+        pG2.setColor(backgroundColor);
+        pG2.drawString(Integer.toString(iPrevValue), xPos, yPos);
+        //draw the new value
+        pG2.setColor(textColor);
+        pG2.drawString(Integer.toString(iValue), xPos, yPos);
+        iPrevValue = iValue;
     }
 
 }//end of ValueDisplay::updateInt
@@ -161,18 +161,18 @@ if ((iValue != iPrevValue) || pForceUpdate){
 void updateDouble(Graphics2D pG2, double pNewValue, boolean pForceUpdate)
 {
 
-valueType = DOUBLE; //variable type for this object is now double
+    valueType = DOUBLE; //variable type for this object is now double
 
-dValue = pNewValue;
+    dValue = pNewValue;
 
-if ((dValue != dPrevValue) || pForceUpdate){
-    //erase the previous value
-    pG2.setColor(backgroundColor);
-    pG2.drawString(decimalFormat.format(dPrevValue), xPos, yPos);
-    //draw the new value
-    pG2.setColor(textColor);
-    pG2.drawString(decimalFormat.format(dValue), xPos, yPos);
-    dPrevValue = dValue;
+    if ((dValue != dPrevValue) || pForceUpdate){
+        //erase the previous value
+        pG2.setColor(backgroundColor);
+        pG2.drawString(decimalFormat.format(dPrevValue), xPos, yPos);
+        //draw the new value
+        pG2.setColor(textColor);
+        pG2.drawString(decimalFormat.format(dValue), xPos, yPos);
+        dPrevValue = dValue;
     }
 
 }//end of ValueDisplay::updateDouble
@@ -189,18 +189,18 @@ if ((dValue != dPrevValue) || pForceUpdate){
 void updateString(Graphics2D pG2, String pNewValue, boolean pForceUpdate)
 {
 
-valueType = STRING; //variable type for this object is now string
+    valueType = STRING; //variable type for this object is now string
 
-sValue = pNewValue;
+    sValue = pNewValue;
 
-if (!sValue.equals(sPrevValue) || pForceUpdate){
-    //erase the previous value
-    pG2.setColor(backgroundColor);
-    pG2.drawString(sPrevValue, xPos, yPos);
-    //draw the new value
-    pG2.setColor(textColor);
-    pG2.drawString(sValue, xPos, yPos);
-    sPrevValue = sValue;
+    if (!sValue.equals(sPrevValue) || pForceUpdate){
+        //erase the previous value
+        pG2.setColor(backgroundColor);
+        pG2.drawString(sPrevValue, xPos, yPos);
+        //draw the new value
+        pG2.setColor(textColor);
+        pG2.drawString(sValue, xPos, yPos);
+        sPrevValue = sValue;
     }
 
 }//end of ValueDisplay::updateString
@@ -221,23 +221,23 @@ if (!sValue.equals(sPrevValue) || pForceUpdate){
 
 class ChartCanvas extends JPanel {
 
-Settings settings;
-Color backgroundColor;
-Color gridColor;
-int width, height;
+    Settings settings;
+    Color backgroundColor;
+    Color gridColor;
+    int width, height;
 
-int numberOfTraces;
-Trace traces[];
-public int leadingTrace, trailingTrace;
-int numberOfThresholds;
-Threshold thresholds[];
+    int numberOfTraces;
+    Trace traces[];
+    public int leadingTrace, trailingTrace;
+    int numberOfThresholds;
+    Threshold thresholds[];
 
-MouseMotionListener mouseMotionListener;
+    MouseMotionListener mouseMotionListener;
 
-public BufferedImage imageBuffer;
+    public BufferedImage imageBuffer;
 
-int peakChannel;
-double runningValue;
+    int peakChannel;
+    double runningValue;
 
 //-----------------------------------------------------------------------------
 // ChartCanvas::ChartCanvas (constructor)
@@ -250,19 +250,19 @@ public ChartCanvas(Settings pSettings, int pWidth, int pHeight,
                                MouseMotionListener pMouseMotionListener)
 {
 
-settings = pSettings;
-width = pWidth; height = pHeight;
+    settings = pSettings;
+    width = pWidth; height = pHeight;
 
-backgroundColor = pBackgroundColor; gridColor = pGridColor;
-numberOfTraces = pNumberOfTraces; traces = pTraces;
-numberOfThresholds = pNumberOfThresholds; thresholds = pThresholds;
-mouseMotionListener = pMouseMotionListener;
-addMouseMotionListener(mouseMotionListener);
+    backgroundColor = pBackgroundColor; gridColor = pGridColor;
+    numberOfTraces = pNumberOfTraces; traces = pTraces;
+    numberOfThresholds = pNumberOfThresholds; thresholds = pThresholds;
+    mouseMotionListener = pMouseMotionListener;
+    addMouseMotionListener(mouseMotionListener);
 
-setOpaque(true);
+    setOpaque(true);
 
-//set the min, preferred, and max sizes
-setSizes(width, height);
+    //set the min, preferred, and max sizes
+    setSizes(width, height);
 
 }//end of ChartCanvas::ChartCanvas (constructor)
 //-----------------------------------------------------------------------------
@@ -276,9 +276,9 @@ setSizes(width, height);
 private void setSizes(int pWidth, int pHeight)
 {
 
-setMinimumSize(new Dimension(pWidth, pHeight));
-setPreferredSize(new Dimension(pWidth, pHeight));
-setMaximumSize(new Dimension(pWidth, pHeight));
+    setMinimumSize(new Dimension(pWidth, pHeight));
+    setPreferredSize(new Dimension(pWidth, pHeight));
+    setMaximumSize(new Dimension(pWidth, pHeight));
 
 }//end of ChartCanvas::setSizes
 //-----------------------------------------------------------------------------
@@ -292,7 +292,7 @@ setMaximumSize(new Dimension(pWidth, pHeight));
 public void resetCanvas()
 {
 
-for (int i = 0; i < numberOfTraces; i++) traces[i].resetTrace();
+    for (int i = 0; i < numberOfTraces; i++) traces[i].resetTrace();
 
 }//end of ChartCanvas::resetCanvas
 //-----------------------------------------------------------------------------
@@ -306,19 +306,19 @@ for (int i = 0; i < numberOfTraces; i++) traces[i].resetTrace();
 public void paintCanvas(Graphics2D pG2)
 {
 
-//if the canvas is hidden, don't try to repaint it
-if (!isVisible()) return;
+    //if the canvas is hidden, don't try to repaint it
+    if (!isVisible()) return;
 
-//erase canvas
-pG2.setColor(backgroundColor);
-pG2.fillRect(0, 0, getWidth(), getHeight());
+    //erase canvas
+    pG2.setColor(backgroundColor);
+    pG2.fillRect(0, 0, getWidth(), getHeight());
 
-//draw the thresholds
-for (int i = 0; i < numberOfThresholds; i++)
-     thresholds[i].paint(pG2, 0, getWidth()-1);
+    //draw the thresholds
+    for (int i = 0; i < numberOfThresholds; i++)
+         thresholds[i].paint(pG2, 0, getWidth()-1);
 
-//paint all the traces
-for (int i = 0; i < numberOfTraces; i++) traces[i].paintComponent(pG2);
+    //paint all the traces
+    for (int i = 0; i < numberOfTraces; i++) traces[i].paintComponent(pG2);
 
 }//end of ChartCanvas::paintCanvas
 //-----------------------------------------------------------------------------
@@ -332,50 +332,52 @@ for (int i = 0; i < numberOfTraces; i++) traces[i].paintComponent(pG2);
 public void plotData()
 {
 
-//if the canvas is hidden, don't try to plot the data
-if (!isVisible()) return;
+    //if the canvas is hidden, don't try to plot the data
+    if (!isVisible()) return;
 
-//NOTE: All traces are updated only when new data has been added for the leading
-// trace. Since the leading trace shifts the screen and draws the decorations,
-// no trace can be drawn ahead of it.  The hardware should fill the buffers for
-// all traces on a given chart in lockstep, data in the traces other than the
-// leading trace can be delayed.  If the sensors are offset in their mounting,
-// the leading trace should always be the lead sensor.
+    //NOTE: All traces are updated only when new data has been added for the
+    // leading trace. Since the leading trace shifts the screen and draws the
+    // decorations, no trace can be drawn ahead of it.  The hardware should
+    // fill the buffers for all traces on a given chart in lockstep, data in
+    // the traces other than the leading trace can be delayed.  If the sensors
+    // are offset in their mounting, the leading trace should always be the
+    // lead sensor.
 
-//while there is data to be plotted for the leading trace, plot data for all
-//traces which have data
+    //while there is data to be plotted for the leading trace, plot data for all
+    //traces which have data
 
-while (traces[leadingTrace].newDataReady()){
+    while (traces[leadingTrace].newDataReady()){
 
-    //find the hardware channel which produced the worst case value - this
-    //requires that the worst case trace be found - it is assumed that all
-    //traces on the chart have the same direction of severity - won't work
-    //on a chart with a min trace(s) and a max trace(s)
-    //look at trace 0 setting to determine which direction is more severe
-    int peak;
-    peak = (traces[0].higherMoreSevere) ? Integer.MIN_VALUE : Integer.MAX_VALUE;
+        //find the hardware channel which produced the worst case value - this
+        //requires that the worst case trace be found - it is assumed that all
+        //traces on the chart have the same direction of severity - won't work
+        //on a chart with a min trace(s) and a max trace(s)
+        //look at trace 0 setting to determine which direction is more severe
+        int peak;
+        peak =
+           (traces[0].higherMoreSevere) ? Integer.MIN_VALUE : Integer.MAX_VALUE;
 
-    int lastValue;
+        int lastValue;
 
-    //plot any new data in the traces
-    //check for new data on each trace because delayed traces might not have
-    //data at the same time
-    for (int i = 0; i < numberOfTraces; i++)
-        if (traces[i].newDataReady()){
-            lastValue = traces[i].plotNewData((Graphics2D)getGraphics());
+        //plot any new data in the traces
+        //check for new data on each trace because delayed traces might not have
+        //data at the same time
+        for (int i = 0; i < numberOfTraces; i++)
+            if (traces[i].newDataReady()){
+                lastValue = traces[i].plotNewData((Graphics2D)getGraphics());
 
-            //catch the trace with the worst value and record its channel
-            if (traces[0].higherMoreSevere)
-                if (lastValue > peak){
-                    peak = lastValue; peakChannel = traces[i].peakChannel;
+                //catch the trace with the worst value and record its channel
+                if (traces[0].higherMoreSevere)
+                    if (lastValue > peak){
+                        peak = lastValue; peakChannel = traces[i].peakChannel;
                     }
-              else
-                if (lastValue < peak){
-                    peak = lastValue; peakChannel = traces[i].peakChannel;
+                  else
+                    if (lastValue < peak){
+                        peak = lastValue; peakChannel = traces[i].peakChannel;
                     }
 
-            //store the wall thickness reading
-            runningValue = traces[i].wallThickness;
+                //store the wall thickness reading
+                runningValue = traces[i].wallThickness;
 
             }// if (traces[i].newDataReady())
 
@@ -393,11 +395,11 @@ public void paintComponent(Graphics g)
 
 {
 
-Graphics2D g2 = (Graphics2D) g;
+    Graphics2D g2 = (Graphics2D) g;
 
-super.paintComponent(g2); //paint background
+    super.paintComponent(g2); //paint background
 
-paintCanvas(g2);
+    paintCanvas(g2);
 
 }//end of ChartCanvas::paintComponent
 //-----------------------------------------------------------------------------
@@ -419,7 +421,7 @@ public void print(Graphics2D pG2)
 
 {
 
-paintCanvas(pG2);
+    paintCanvas(pG2);
 
 }//end of ChartCanvas::print
 //-----------------------------------------------------------------------------
@@ -438,55 +440,55 @@ paintCanvas(pG2);
 public class StripChart extends JPanel implements MouseListener,
                                                            MouseMotionListener{
 
-ChartCanvas canvas;
-public TitledBorder titledBorder;
-Settings settings;
-IniFile configFile;
-int chartGroup;
-int chartIndex;
-TraceValueCalculator traceValueCalculator;
-Hardware hardware;
-Color borderColor;
-TraceGlobals traceGlobals;
-public int chartHeight;
+    ChartCanvas canvas;
+    public TitledBorder titledBorder;
+    Settings settings;
+    IniFile configFile;
+    int chartGroup;
+    int chartIndex;
+    TraceValueCalculator traceValueCalculator;
+    Hardware hardware;
+    Color borderColor;
+    TraceGlobals traceGlobals;
+    public int chartHeight;
 
-boolean displayPeakChannel;
-ValueDisplay peakChannelDisplay;
-StringBuilder lastFlaggedText;
-boolean displayLastFlaggedChannel;
-ValueDisplay lastFlaggedChannelDisplay;
-public int lastFlaggedChannel = -1;
-int prevLastFlaggedChannel = -1;
-public int lastFlaggedClockPos = 0;
-int prevLastFlaggedClockPos = 0;
-boolean displayPrevMinWall;
-ValueDisplay prevMinWallDisplay;
-boolean displayRunningValue;
-ValueDisplay runningValueDisplay;
-boolean displayComputedAtCursor;
-ValueDisplay computedAtCursorDisplay;
-boolean displayChartHeightAtCursor;
-ValueDisplay chartHeightAtCursorDisplay;
-boolean displayLinearPositionAtCursor;
-ValueDisplay linearPositionAtCursorDisplay;
+    boolean displayPeakChannel;
+    ValueDisplay peakChannelDisplay;
+    StringBuilder lastFlaggedText;
+    boolean displayLastFlaggedChannel;
+    ValueDisplay lastFlaggedChannelDisplay;
+    public int lastFlaggedChannel = -1;
+    int prevLastFlaggedChannel = -1;
+    public int lastFlaggedClockPos = 0;
+    int prevLastFlaggedClockPos = 0;
+    boolean displayPrevMinWall;
+    ValueDisplay prevMinWallDisplay;
+    boolean displayRunningValue;
+    ValueDisplay runningValueDisplay;
+    boolean displayComputedAtCursor;
+    ValueDisplay computedAtCursorDisplay;
+    boolean displayChartHeightAtCursor;
+    ValueDisplay chartHeightAtCursorDisplay;
+    boolean displayLinearPositionAtCursor;
+    ValueDisplay linearPositionAtCursorDisplay;
 
-public String title, shortTitle;
-int numberOfTraces;
-Trace[] traces;
-int numberOfThresholds;
-Threshold[] thresholds;
-Color backgroundColor;
-Color gridColor;
-int gridXSpacing;
-//why do we have mask boolean values?
-boolean leadMask, trailMask;
-double leadMaskPos, trailMaskPos;
-Color maskColor;
-Color separatorColor;
-public int lastAScanChannel = 0;
-boolean chartSizeEqualsBufferSize;
+    public String title, shortTitle;
+    int numberOfTraces;
+    Trace[] traces;
+    int numberOfThresholds;
+    Threshold[] thresholds;
+    Color backgroundColor;
+    Color gridColor;
+    int gridXSpacing;
+    //why do we have mask boolean values?
+    boolean leadMask, trailMask;
+    double leadMaskPos, trailMaskPos;
+    Color maskColor;
+    Color separatorColor;
+    public int lastAScanChannel = 0;
+    boolean chartSizeEqualsBufferSize;
 
-ActionListener actionListener;
+    ActionListener actionListener;
 
 //-----------------------------------------------------------------------------
 // StripChart::StripChart (constructor)
@@ -506,56 +508,60 @@ public StripChart(Settings pSettings, IniFile pConfigFile, int pChartGroup,
         TraceValueCalculator pTraceValueCalculator)
 {
 
-settings = pSettings; configFile = pConfigFile; chartIndex = pChartIndex;
-chartGroup = pChartGroup;
-hardware = pHardware; actionListener = pActionListener;
-traceValueCalculator = pTraceValueCalculator;
-traceGlobals = new TraceGlobals();
-chartSizeEqualsBufferSize = pChartSizeEqualsBufferSize;
+    settings = pSettings; configFile = pConfigFile; chartIndex = pChartIndex;
+    chartGroup = pChartGroup;
+    hardware = pHardware; actionListener = pActionListener;
+    traceValueCalculator = pTraceValueCalculator;
+    traceGlobals = new TraceGlobals();
+    chartSizeEqualsBufferSize = pChartSizeEqualsBufferSize;
 
-//set up the main panel - this panel does nothing more than provide a title
-//border and a spacing border
-setOpaque(true);
+    //set up the main panel - this panel does nothing more than provide a title
+    //border and a spacing border
+    setOpaque(true);
 
-//listen for mouse events on the strip chart
-addMouseListener(this);
+    //listen for mouse events on the strip chart
+    addMouseListener(this);
 
-//read the configuration file and create/setup the charting/control elements
-configure(configFile);
+    //read the configuration file and create/setup the charting/control elements
+    configure(configFile);
 
-// if enabled by the config file, create object to display values related to
-// the traces
+    // if enabled by the config file, create object to display values related to
+    // the traces
 
-// the positions, labels, and decimal formats could be loaded from the config
-// file in the future
+    // the positions, labels, and decimal formats could be loaded from the
+    // config file in the future
 
-if (displayPeakChannel) peakChannelDisplay =  new ValueDisplay(250, 23, 350, 23,
-    "Peak Channel:", "0.000", Color.BLACK, borderColor);
+    if (displayPeakChannel)
+        peakChannelDisplay =  new ValueDisplay(250, 23, 350, 23,
+                           "Peak Channel:", "0.000", Color.BLACK, borderColor);
 
-if (displayLastFlaggedChannel){
-    lastFlaggedChannelDisplay =  new ValueDisplay(
-        250, 23, 380, 23, "Last Flagged Channel:", "0.000",
-                                                    Color.BLACK, borderColor);
-    //a StringBuilder is used to avoid creating new strings during time
-    //critical code and thus creating excess garbage collection
-    lastFlaggedText = new StringBuilder(50);
-}
+    if (displayLastFlaggedChannel){
+        lastFlaggedChannelDisplay =  new ValueDisplay(
+            250, 23, 380, 23, "Last Flagged Channel:", "0.000",
+                                                     Color.BLACK, borderColor);
+        //a StringBuilder is used to avoid creating new strings during time
+        //critical code and thus creating excess garbage collection
+        lastFlaggedText = new StringBuilder(50);
+    }
 
-if (displayPrevMinWall) prevMinWallDisplay =  new ValueDisplay(
-    250, 23, 355, 23, "Previous Wall Min:", "0.000", Color.BLACK, borderColor);
+    if (displayPrevMinWall)
+        prevMinWallDisplay =  new ValueDisplay(250, 23, 355, 23,
+                     "Previous Wall Min:", "0.000", Color.BLACK, borderColor);
 
-if (displayRunningValue) runningValueDisplay =  new ValueDisplay(
-       500, 23, 600, 23, "Wall Thickness:", "0.000", Color.BLACK, borderColor);
+    if (displayRunningValue)
+        runningValueDisplay = new ValueDisplay( 500, 23, 600, 23,
+                       "Wall Thickness:", "0.000", Color.BLACK, borderColor);
 
-if (displayComputedAtCursor) computedAtCursorDisplay = new ValueDisplay(
-      650, 23, 720, 23,  "At Cursor:", "0.000", Color.BLACK, borderColor);
+    if (displayComputedAtCursor) computedAtCursorDisplay = new ValueDisplay(
+          650, 23, 720, 23,  "At Cursor:", "0.000", Color.BLACK, borderColor);
 
-if (displayChartHeightAtCursor) chartHeightAtCursorDisplay  = new ValueDisplay(
-      800, 23, 865, 23,  "Amplitude:", "0", Color.BLACK, borderColor);
+    if (displayChartHeightAtCursor)
+        chartHeightAtCursorDisplay  = new ValueDisplay(
+              800, 23, 865, 23,  "Amplitude:", "0", Color.BLACK, borderColor);
 
-if (displayLinearPositionAtCursor)
-    linearPositionAtCursorDisplay  = new ValueDisplay(
-      950, 23, 1050, 23,  "Linear Position:", "0.0", Color.BLACK, borderColor);
+    if (displayLinearPositionAtCursor)
+        linearPositionAtCursorDisplay  = new ValueDisplay( 950, 23, 1050, 23,
+                        "Linear Position:", "0.0", Color.BLACK, borderColor);
 
 }//end of StripChart::StripChart (constructor)
 //-----------------------------------------------------------------------------
@@ -574,96 +580,98 @@ if (displayLinearPositionAtCursor)
 private void configure(IniFile pConfigFile)
 {
 
-String section = "Chart Group " + (chartGroup + 1)
-                                        + " Strip Chart " + (chartIndex + 1);
+    String section = "Chart Group " + (chartGroup + 1)
+                                          + " Strip Chart " + (chartIndex + 1);
 
-title = pConfigFile.readString(section, "Title", "Chart " + (chartIndex+1));
+    title = pConfigFile.readString(section, "Title", "Chart " + (chartIndex+1));
 
-shortTitle = pConfigFile.readString(
-                           section, "Short Title", "Ch " + (chartIndex+1));
+    shortTitle = pConfigFile.readString(
+                               section, "Short Title", "Ch " + (chartIndex+1));
 
-borderColor = new Color(238,238,238);
+    borderColor = new Color(238,238,238);
 
-//read colors first so they can be passed to other objects
+    //read colors first so they can be passed to other objects
 
-backgroundColor = pConfigFile.readColor(
-                      section, "Background Color", new Color(238, 238, 238));
+    backgroundColor = pConfigFile.readColor(
+                        section, "Background Color", new Color(238, 238, 238));
 
-gridColor = pConfigFile.readColor(section, "Grid Color", Color.BLACK);
+    gridColor = pConfigFile.readColor(section, "Grid Color", Color.BLACK);
 
-gridXSpacing = pConfigFile.readInt(section, "Grid X Spacing", 10);
+    gridXSpacing = pConfigFile.readInt(section, "Grid X Spacing", 10);
 
-leadMask = pConfigFile.readBoolean(section, "Leading Mask", true);
+    leadMask = pConfigFile.readBoolean(section, "Leading Mask", true);
 
-trailMask = pConfigFile.readBoolean(section, "Trailing Mask", true);
+    trailMask = pConfigFile.readBoolean(section, "Trailing Mask", true);
 
-maskColor = pConfigFile.readColor(section, "Mask Color", Color.BLACK);
+    maskColor = pConfigFile.readColor(section, "Mask Color", Color.BLACK);
 
-separatorColor =
-        pConfigFile.readColor(section, "Piece Separator Color", Color.BLACK);
+    separatorColor =
+          pConfigFile.readColor(section, "Piece Separator Color", Color.BLACK);
 
-displayPeakChannel =
-                pConfigFile.readBoolean(section, "Display Peak Channel", false);
+    displayPeakChannel =
+               pConfigFile.readBoolean(section, "Display Peak Channel", false);
 
-displayLastFlaggedChannel =
-        pConfigFile.readBoolean(section, "Display Last Flagged Channel", false);
+    displayLastFlaggedChannel =
+       pConfigFile.readBoolean(section, "Display Last Flagged Channel", false);
 
-displayPrevMinWall = pConfigFile.readBoolean(
-            section, "Display Minimum Wall From Last Finished Piece", false);
+    displayPrevMinWall = pConfigFile.readBoolean(
+             section, "Display Minimum Wall From Last Finished Piece", false);
 
-displayRunningValue =
+    displayRunningValue =
               pConfigFile.readBoolean(section, "Display Running Value", false);
 
-displayComputedAtCursor = pConfigFile.readBoolean(section,
-                "Display Computed Value Represented by Cursor Position", false);
+    displayComputedAtCursor = pConfigFile.readBoolean(section,
+               "Display Computed Value Represented by Cursor Position", false);
 
-displayChartHeightAtCursor = pConfigFile.readBoolean(section,
-       "Display Chart Height Percentage Represented by Cursor Position", false);
+    displayChartHeightAtCursor = pConfigFile.readBoolean(section,
+      "Display Chart Height Percentage Represented by Cursor Position", false);
 
-displayLinearPositionAtCursor = pConfigFile.readBoolean(section,
+    displayLinearPositionAtCursor = pConfigFile.readBoolean(section,
         "Display Chart Linear Position Represented by Cursor Position", false);
 
-numberOfThresholds = pConfigFile.readInt(section, "Number of Thresholds", 1);
+    numberOfThresholds =
+                       pConfigFile.readInt(section, "Number of Thresholds", 1);
 
-//read the configuration file and create/setup the thresholds
-configureThresholds(configFile);
+    //read the configuration file and create/setup the thresholds
+    configureThresholds(configFile);
 
-numberOfTraces = pConfigFile.readInt(section, "Number of Traces", 1);
+    numberOfTraces = pConfigFile.readInt(section, "Number of Traces", 1);
 
-//read the configuration file and create/setup the traces
-configureTraces(configFile);
+    //read the configuration file and create/setup the traces
+    configureTraces(configFile);
 
-setBorder(titledBorder = BorderFactory.createTitledBorder(title));
+    setBorder(titledBorder = BorderFactory.createTitledBorder(title));
 
-int chartWidth = pConfigFile.readInt(section, "Width", 1000);
+    int chartWidth = pConfigFile.readInt(section, "Width", 1000);
 
-chartHeight = pConfigFile.readInt(section, "Height", 100);
+    chartHeight = pConfigFile.readInt(section, "Height", 100);
 
-//if flag is true, make chart wide enough to hold all data in the trace
-// see header notes in constructor for more info
+    //if flag is true, make chart wide enough to hold all data in the trace
+    // see header notes in constructor for more info
 
-if (chartSizeEqualsBufferSize) chartWidth = traces[0].sizeOfDataBuffer;
+    if (chartSizeEqualsBufferSize) chartWidth = traces[0].sizeOfDataBuffer;
 
-//create a Canvas object to be placed on the main panel - the Canvas object
-//provides a panel and methods for drawing data - all the work is actually
-//done by the Canvas object
-canvas = new ChartCanvas(settings, chartWidth, chartHeight,
-                 backgroundColor, gridColor, numberOfTraces, traces,
-                 numberOfThresholds, thresholds, this);
+    //create a Canvas object to be placed on the main panel - the Canvas object
+    //provides a panel and methods for drawing data - all the work is actually
+    //done by the Canvas object
+    canvas = new ChartCanvas(settings, chartWidth, chartHeight,
+                     backgroundColor, gridColor, numberOfTraces, traces,
+                     numberOfThresholds, thresholds, this);
 
-//default to trace 0 as the leading trace for now so the chart decorations
-//will be drawn
-canvas.leadingTrace = 0;
+    //default to trace 0 as the leading trace for now so the chart decorations
+    //will be drawn
+    canvas.leadingTrace = 0;
 
-//listen for mouse events on the canvas
-canvas.addMouseListener(this);
-add(canvas);
+    //listen for mouse events on the canvas
+    canvas.addMouseListener(this);
+    add(canvas);
 
-//give all traces a link to their canvas
-for (int i = 0; i < numberOfTraces; i++) traces[i].setCanvas(canvas);
+    //give all traces a link to their canvas
+    for (int i = 0; i < numberOfTraces; i++) traces[i].setCanvas(canvas);
 
-//give all thresholds a link to their canvas
-for (int i = 0; i < numberOfThresholds; i++) thresholds[i].setCanvas(canvas);
+    //give all thresholds a link to their canvas
+    for (int i = 0; i < numberOfThresholds; i++)
+        thresholds[i].setCanvas(canvas);
 
 }//end of StripChart::configure
 //-----------------------------------------------------------------------------
@@ -678,26 +686,26 @@ for (int i = 0; i < numberOfThresholds; i++) thresholds[i].setCanvas(canvas);
 private void configureTraces(IniFile pConfigFile)
 {
 
-//create an array of traces per the config file setting
-if (numberOfTraces > 0){
+    //create an array of traces per the config file setting
+    if (numberOfTraces > 0){
 
-    //protect against too many items
-    if (numberOfTraces > 100) numberOfTraces = 100;
+        //protect against too many items
+        if (numberOfTraces > 100) numberOfTraces = 100;
 
-    traces = new Trace[numberOfTraces];
+        traces = new Trace[numberOfTraces];
 
-    for (int i = 0; i < numberOfTraces; i++){ traces[i] =
-       new Trace(settings, configFile, chartGroup, this, chartIndex, i,
-             traceGlobals, backgroundColor, gridColor, gridXSpacing,
-                                                    thresholds, hardware);
-       traces[i].init();
-    }
+        for (int i = 0; i < numberOfTraces; i++){ traces[i] =
+           new Trace(settings, configFile, chartGroup, this, chartIndex, i,
+                 traceGlobals, backgroundColor, gridColor, gridXSpacing,
+                                                        thresholds, hardware);
+           traces[i].init();
+        }
 
-    //default to trace 0 as the leading trace for now so the chart decorations
-    //will be drawn
-    traces[0].leadTrace = true;
+        //default to trace 0 as the leading trace for now so the chart
+        //decorations will be drawn
+        traces[0].leadTrace = true;
 
-    }//if (numberOf...
+    }//if (numberOfTraces > 0)
 
 }//end of StripChart::configureTraces
 //-----------------------------------------------------------------------------
@@ -712,19 +720,21 @@ if (numberOfTraces > 0){
 private void configureThresholds(IniFile pConfigFile)
 {
 
-//create an array of thresholds per the config file setting
-if (numberOfThresholds > 0){
+    //create an array of thresholds per the config file setting
+    if (numberOfThresholds > 0){
 
-    //protect against too many items
-    if (numberOfThresholds > 100) numberOfThresholds = 100;
+        //protect against too many items
+        if (numberOfThresholds > 100) numberOfThresholds = 100;
 
-    thresholds = new Threshold[numberOfThresholds];
+        thresholds = new Threshold[numberOfThresholds];
 
-    for (int i = 0; i < numberOfThresholds; i++)
-        thresholds[i] = new Threshold(settings, configFile, chartGroup,
+        //wip mks -- change configFile below to pConfigFile
+
+        for (int i = 0; i < numberOfThresholds; i++)
+            thresholds[i] = new Threshold(settings, configFile, chartGroup,
                                                                 chartIndex, i);
 
-    }//if (numberOf...
+    }//if (numberOfThresholds > 0)
 
 }//end of StripChart::configureThresholds
 //-----------------------------------------------------------------------------
@@ -738,7 +748,7 @@ if (numberOfThresholds > 0){
 public int getNumberOfThresholds()
 {
 
-return numberOfThresholds;
+    return numberOfThresholds;
 
 }//end of StripChart::getNumberOfThresholds
 //-----------------------------------------------------------------------------
@@ -752,7 +762,7 @@ return numberOfThresholds;
 public Threshold getThreshold(int pWhich)
 {
 
-return thresholds[pWhich];
+    return thresholds[pWhich];
 
 }//end of StripChart::getThreshold
 //-----------------------------------------------------------------------------
@@ -766,7 +776,7 @@ return thresholds[pWhich];
 public void setThresholdLevel(int pWhich, int pLevel)
 {
 
-thresholds[pWhich].setThresholdLevel(pLevel);
+    thresholds[pWhich].setThresholdLevel(pLevel);
 
 }//end of StripChart::setThresholdLevel
 //-----------------------------------------------------------------------------
@@ -780,7 +790,7 @@ thresholds[pWhich].setThresholdLevel(pLevel);
 public int getThresholdLevel(int pWhich)
 {
 
-return thresholds[pWhich].thresholdLevel;
+    return thresholds[pWhich].thresholdLevel;
 
 }//end of StripChart::getThresholdLevel
 //-----------------------------------------------------------------------------
@@ -794,7 +804,7 @@ return thresholds[pWhich].thresholdLevel;
 public Color getThresholdColor(int pWhich)
 {
 
-return thresholds[pWhich].thresholdColor;
+    return thresholds[pWhich].thresholdColor;
 
 }//end of StripChart::getThresholdColor
 //-----------------------------------------------------------------------------
@@ -809,9 +819,10 @@ return thresholds[pWhich].thresholdColor;
 public void handleSizeChanges()
 {
 
-for (int i = 0; i < numberOfTraces; i++) traces[i].handleSizeChanges();
+    for (int i = 0; i < numberOfTraces; i++) traces[i].handleSizeChanges();
 
-for (int i = 0; i < numberOfThresholds; i++) thresholds[i].handleSizeChanges();
+    for (int i = 0; i < numberOfThresholds; i++)
+        thresholds[i].handleSizeChanges();
 
 }//end of StripChart::handleSizeChanges
 //-----------------------------------------------------------------------------
@@ -822,36 +833,36 @@ for (int i = 0; i < numberOfThresholds; i++) thresholds[i].handleSizeChanges();
 
 @Override
 public void paintComponent(Graphics g)
-
 {
 
-Graphics2D g2 = (Graphics2D) g;
+    Graphics2D g2 = (Graphics2D) g;
 
-super.paintComponent(g2); //paint background
+    super.paintComponent(g2); //paint background
 
-//draw these labels before calling drawKeyLabel because that function changes
-//the font
+    //draw these labels before calling drawKeyLabel because that function
+    //changes the font
 
-//add one to the peak channel to switch from 0 based counting
-if (displayPeakChannel) peakChannelDisplay.paint((Graphics2D) g2);
+    //add one to the peak channel to switch from 0 based counting
+    if (displayPeakChannel) peakChannelDisplay.paint((Graphics2D) g2);
 
-if (displayLastFlaggedChannel) lastFlaggedChannelDisplay.paint((Graphics2D) g2);
+    if (displayLastFlaggedChannel)
+        lastFlaggedChannelDisplay.paint((Graphics2D) g2);
 
-if (displayPrevMinWall) prevMinWallDisplay.paint((Graphics2D) g2);
+    if (displayPrevMinWall) prevMinWallDisplay.paint((Graphics2D) g2);
 
-if (displayRunningValue) runningValueDisplay.paint((Graphics2D) g2);
+    if (displayRunningValue) runningValueDisplay.paint((Graphics2D) g2);
 
-if (displayComputedAtCursor) computedAtCursorDisplay.paint((Graphics2D) g2);
+    if (displayComputedAtCursor) computedAtCursorDisplay.paint((Graphics2D) g2);
 
-if (displayChartHeightAtCursor)
-    chartHeightAtCursorDisplay.paint((Graphics2D) g2);
+    if (displayChartHeightAtCursor)
+        chartHeightAtCursorDisplay.paint((Graphics2D) g2);
 
-if (displayLinearPositionAtCursor)
-    linearPositionAtCursorDisplay.paint((Graphics2D) g2);
+    if (displayLinearPositionAtCursor)
+        linearPositionAtCursorDisplay.paint((Graphics2D) g2);
 
-//draw the keys for the different traces to show which trace is what - each
-//key is a label describing the trace and drawn in the color of the trace
-for (int i = 0; i < numberOfTraces; i++) traces[i].drawKeyLabel(g2);
+    //draw the keys for the different traces to show which trace is what - each
+    //key is a label describing the trace and drawn in the color of the trace
+    for (int i = 0; i < numberOfTraces; i++) traces[i].drawKeyLabel(g2);
 
 }//end of StripChart::paintComponent
 //-----------------------------------------------------------------------------
@@ -865,7 +876,7 @@ for (int i = 0; i < numberOfTraces; i++) traces[i].drawKeyLabel(g2);
 public void repaintCanvas()
 {
 
-canvas.paintComponent(canvas.getGraphics());
+    canvas.paintComponent(canvas.getGraphics());
 
 }//end of StripChart::repaintCanvas
 //-----------------------------------------------------------------------------
@@ -879,41 +890,41 @@ canvas.paintComponent(canvas.getGraphics());
 public void plotData()
 {
 
-canvas.plotData();
+    canvas.plotData();
 
-//if enabled, display the channel which is supplying the peak value
-if (displayPeakChannel)
-    peakChannelDisplay.updateString((Graphics2D) getGraphics(),
-                    hardware.getChannels()[canvas.peakChannel].title, false);
+    //if enabled, display the channel which is supplying the peak value
+    if (displayPeakChannel)
+        peakChannelDisplay.updateString((Graphics2D) getGraphics(),
+                      hardware.getChannels()[canvas.peakChannel].title, false);
 
-//if enabled and the channel or clock has changed, update the display for the
-//channel which was last flagged
+    //if enabled and the channel or clock has changed, update the display for
+    //the channel which was last flagged
 
-if (displayLastFlaggedChannel
-    && (lastFlaggedChannel != prevLastFlaggedChannel
-                || lastFlaggedClockPos != prevLastFlaggedClockPos)){
+    if (displayLastFlaggedChannel
+        && (lastFlaggedChannel != prevLastFlaggedChannel
+                    || lastFlaggedClockPos != prevLastFlaggedClockPos)){
 
-    prevLastFlaggedChannel = lastFlaggedChannel;
-    prevLastFlaggedClockPos = lastFlaggedClockPos;
+        prevLastFlaggedChannel = lastFlaggedChannel;
+        prevLastFlaggedClockPos = lastFlaggedClockPos;
 
-    if (lastFlaggedChannel == -1)
-        lastFlaggedText.setLength(0); //display nothing if channel not set
-    else{
-        //use multiple appends rather than the + operator to combine the
-        //strings as it is faster
-        lastFlaggedText.setLength(0);
-        lastFlaggedText.append(
-              hardware.getChannels()[lastFlaggedChannel].title);
-        lastFlaggedText.append(" ~ ");
-        lastFlaggedText.append(lastFlaggedClockPos);
+        if (lastFlaggedChannel == -1)
+            lastFlaggedText.setLength(0); //display nothing if channel not set
+        else{
+            //use multiple appends rather than the + operator to combine the
+            //strings as it is faster
+            lastFlaggedText.setLength(0);
+            lastFlaggedText.append(
+                  hardware.getChannels()[lastFlaggedChannel].title);
+            lastFlaggedText.append(" ~ ");
+            lastFlaggedText.append(lastFlaggedClockPos);
+        }
+
+        lastFlaggedChannelDisplay.updateString((Graphics2D) getGraphics(),
+                                            lastFlaggedText.toString(), false);
     }
 
-    lastFlaggedChannelDisplay.updateString((Graphics2D) getGraphics(),
-                                            lastFlaggedText.toString(), false);
-}
-
-//if enabled, display the current value of the trace height
-if (displayRunningValue) runningValueDisplay.updateDouble(
+    //if enabled, display the current value of the trace height
+    if (displayRunningValue) runningValueDisplay.updateDouble(
                        (Graphics2D) getGraphics(), canvas.runningValue, false);
 
 }//end of StripChart::plotData
@@ -944,12 +955,12 @@ public void updatePreviousMinWallValue(double pMinWall)
 public void resetChart()
 {
 
-Graphics2D g2 = (Graphics2D) canvas.getGraphics();
+    Graphics2D g2 = (Graphics2D) canvas.getGraphics();
 
-//reset all chart and trace data
-canvas.resetCanvas();
+    //reset all chart and trace data
+    canvas.resetCanvas();
 
-repaint();
+    repaint();
 
 }//end of StripChart::resetChart
 //-----------------------------------------------------------------------------
@@ -967,7 +978,7 @@ repaint();
 public void markSegmentStart()
 {
 
-for (int i = 0; i < numberOfTraces; i++) traces[i].markSegmentStart();
+    for (int i = 0; i < numberOfTraces; i++) traces[i].markSegmentStart();
 
 }//end of StripChart::markSegmentStart
 //-----------------------------------------------------------------------------
@@ -987,7 +998,7 @@ for (int i = 0; i < numberOfTraces; i++) traces[i].markSegmentStart();
 public void markSegmentEnd()
 {
 
-for (int i = 0; i < numberOfTraces; i++) traces[i].markSegmentEnd();
+    for (int i = 0; i < numberOfTraces; i++) traces[i].markSegmentEnd();
 
 }//end of StripChart::markSegmentEnd
 //-----------------------------------------------------------------------------
@@ -1008,24 +1019,27 @@ for (int i = 0; i < numberOfTraces; i++) traces[i].markSegmentEnd();
 public void saveSegment(BufferedWriter pOut) throws IOException
 {
 
-pOut.write("[Chart]"); pOut.newLine();
-pOut.write("Chart Index=" + chartIndex); pOut.newLine();
-pOut.write("Chart Title=" + title); pOut.newLine();
-pOut.write("Chart Short Title=" + shortTitle); pOut.newLine();
-pOut.newLine();
-pOut.write("Note that the Chart Title and Short Title may have been changed");
-pOut.newLine();
-pOut.write("by the user, so the text displayed on the screen may not match");
-pOut.newLine();
-pOut.write("the values shown here.");
-pOut.newLine(); pOut.newLine();
+    pOut.write("[Chart]"); pOut.newLine();
+    pOut.write("Chart Index=" + chartIndex); pOut.newLine();
+    pOut.write("Chart Title=" + title); pOut.newLine();
+    pOut.write("Chart Short Title=" + shortTitle); pOut.newLine();
+    pOut.newLine();
+    pOut.write(
+            "Note that the Chart Title and Short Title may have been changed");
+    pOut.newLine();
+    pOut.write(
+            "by the user, so the text displayed on the screen may not match");
+    pOut.newLine();
+    pOut.write("the values shown here.");
+    pOut.newLine(); pOut.newLine();
 
-pOut.write("Chart is Visible=" + isChartVisible()); //save visibility flag
-pOut.newLine(); pOut.newLine();
+    pOut.write("Chart is Visible=" + isChartVisible()); //save visibility flag
+    pOut.newLine(); pOut.newLine();
 
-for (int i = 0; i < numberOfThresholds; i++) thresholds[i].saveSegment(pOut);
+    for (int i = 0; i < numberOfThresholds; i++)
+        thresholds[i].saveSegment(pOut);
 
-for (int i = 0; i < numberOfTraces; i++) traces[i].saveSegment(pOut);
+    for (int i = 0; i < numberOfTraces; i++) traces[i].saveSegment(pOut);
 
 }//end of StripChart::saveSegment
 //-----------------------------------------------------------------------------
@@ -1040,10 +1054,10 @@ for (int i = 0; i < numberOfTraces; i++) traces[i].saveSegment(pOut);
 public boolean segmentStarted()
 {
 
-for (int i = 0; i < numberOfTraces; i++)
-    if (traces[i].segmentStarted()) return(true);
+    for (int i = 0; i < numberOfTraces; i++)
+        if (traces[i].segmentStarted()) return(true);
 
-return(false);
+    return(false);
 
 }//end of StripChart::segmentStarted
 //-----------------------------------------------------------------------------
@@ -1066,19 +1080,19 @@ public String loadSegment(BufferedReader pIn, String pLastLine)
                                                             throws IOException
 {
 
-//handle entries for the strip chart itself
-String line = processStripChartEntries(pIn, pLastLine);
+    //handle entries for the strip chart itself
+    String line = processStripChartEntries(pIn, pLastLine);
 
-//allow each threshold to load data, passing the last line read to the next
-//call each time
+    //allow each threshold to load data, passing the last line read to the next
+    //call each time
 
-for (int i = 0; i < numberOfThresholds; i++)
-   line = thresholds[i].loadSegment(pIn, line);
+    for (int i = 0; i < numberOfThresholds; i++)
+        line = thresholds[i].loadSegment(pIn, line);
 
-for (int i = 0; i < numberOfTraces; i++)
-   line = traces[i].loadSegment(pIn, line);
+    for (int i = 0; i < numberOfTraces; i++)
+        line = traces[i].loadSegment(pIn, line);
 
-return(line);
+    return(line);
 
 }//end of StripChart::loadSegment
 //-----------------------------------------------------------------------------
@@ -1098,80 +1112,81 @@ return(line);
 
 private String processStripChartEntries(BufferedReader pIn, String pLastLine)
                                                              throws IOException
-
 {
 
-String line;
-boolean success = false;
-Xfer matchSet = new Xfer(); //for receiving data from function calls
+    String line;
+    boolean success = false;
+    Xfer matchSet = new Xfer(); //for receiving data from function calls
 
-//if pLastLine contains the [Chart] tag, then skip ahead else read until end of
-//file reached or "[Chart]" section tag reached
+    //if pLastLine contains the [Chart] tag, then skip ahead else read until
+    //end of file reached or "[Chart]" section tag reached
 
-if (Viewer.matchAndParseString(pLastLine, "[Chart]", "",  matchSet))
-    success = true; //tag already found
-else
-    while ((line = pIn.readLine()) != null){  //search for tag
-        if (Viewer.matchAndParseString(line, "[Chart]", "",  matchSet)){
-            success = true; break;
+    if (Viewer.matchAndParseString(pLastLine, "[Chart]", "",  matchSet))
+        success = true; //tag already found
+    else
+        while ((line = pIn.readLine()) != null){  //search for tag
+            if (Viewer.matchAndParseString(line, "[Chart]", "",  matchSet)){
+                success = true; break;
             }
         }//while
 
-if (!success) throw new IOException(
-       "The file could not be read - section not found for Chart Group "
+    if (!success) throw new IOException(
+           "The file could not be read - section not found for Chart Group "
                                          + chartGroup + " Chart " + chartIndex);
 
-//set defaults
-int chartIndexRead = -1;
-String titleRead = "", shortTitleRead = "";
-boolean visibleRead = true;
+    //set defaults
+    int chartIndexRead = -1;
+    String titleRead = "", shortTitleRead = "";
+    boolean visibleRead = true;
 
-//scan the first part of the section and parse its entries
-//these entries apply to the chart group itself
+    //scan the first part of the section and parse its entries
+    //these entries apply to the chart group itself
 
-success = false;
-while ((line = pIn.readLine()) != null){
+    success = false;
+    while ((line = pIn.readLine()) != null){
 
-    //stop when next section tag reached (will start with [)
-    if (Viewer.matchAndParseString(line, "[", "",  matchSet)){
-        success = true; break;
+        //stop when next section tag reached (will start with [)
+        if (Viewer.matchAndParseString(line, "[", "",  matchSet)){
+            success = true; break;
         }
 
-    //read the "Chart Index" entry - if not found, default to -1
-    if (Viewer.matchAndParseInt(line, "Chart Index", -1,  matchSet))
-        chartIndexRead = matchSet.rInt1;
+        //read the "Chart Index" entry - if not found, default to -1
+        if (Viewer.matchAndParseInt(line, "Chart Index", -1,  matchSet))
+            chartIndexRead = matchSet.rInt1;
 
-    //read the "Chart Title" entry - if not found, default to ""
-    if (Viewer.matchAndParseString(line, "Chart Title", "",  matchSet))
-        titleRead = matchSet.rString1;
+        //read the "Chart Title" entry - if not found, default to ""
+        if (Viewer.matchAndParseString(line, "Chart Title", "",  matchSet))
+            titleRead = matchSet.rString1;
 
-    //read the "Chart Short Title" entry - if not found, default to ""
-    if (Viewer.matchAndParseString(line, "Chart Short Title", "",  matchSet))
-        shortTitleRead = matchSet.rString1;
+        //read the "Chart Short Title" entry - if not found, default to ""
+        if (Viewer.matchAndParseString(
+                                     line, "Chart Short Title", "",  matchSet))
+            shortTitleRead = matchSet.rString1;
 
-    //read the "Chart is Visible" entry - if not found, default to true
-    if (Viewer.matchAndParseBoolean(line, "Chart is Visible", true,  matchSet))
-        visibleRead = matchSet.rBoolean1;
+        //read the "Chart is Visible" entry - if not found, default to true
+        if (Viewer.matchAndParseBoolean(
+                                    line, "Chart is Visible", true,  matchSet))
+            visibleRead = matchSet.rBoolean1;
 
     }// while ((line = pIn.readLine()) != null)
 
-//apply settings
-title = titleRead; titledBorder.setTitle(title);
-shortTitle = shortTitleRead;
-setChartVisible(visibleRead);
+    //apply settings
+    title = titleRead; titledBorder.setTitle(title);
+    shortTitle = shortTitleRead;
+    setChartVisible(visibleRead);
 
-if (!success) throw new IOException(
+    if (!success) throw new IOException(
         "The file could not be read - missing end of section for Chart Group "
                                          + chartGroup + " Chart " + chartIndex);
 
-//if the index number in the file does not match the index number for this
-//strip chart, abort the file read
+    //if the index number in the file does not match the index number for this
+    //strip chart, abort the file read
 
-if (chartIndexRead != chartIndex) throw new IOException(
-        "The file could not be read - section not found for Chart Group "
-                                         + chartGroup + " Chart " + chartIndex);
+    if (chartIndexRead != chartIndex) throw new IOException(
+            "The file could not be read - section not found for Chart Group "
+                                        + chartGroup + " Chart " + chartIndex);
 
-return(line); //should be "[xxxx]" tag on success, unknown value if not
+    return(line); //should be "[xxxx]" tag on success, unknown value if not
 
 }//end of StripChart::processStripChartEntries
 //-----------------------------------------------------------------------------
@@ -1186,7 +1201,7 @@ return(line); //should be "[xxxx]" tag on success, unknown value if not
 public int convertToXPixelLocation(double pAbsoluteX)
 {
 
-return(0);
+    return(0);
 
 }//end of StripChart::convertToXPixelLocation
 //-----------------------------------------------------------------------------
@@ -1201,7 +1216,7 @@ return(0);
 public int convertToYPixelLocation(double pAbsoluteY)
 {
 
-return(0);
+    return(0);
 
 }//end of StripChart::convertToYPixelLocation
 //-----------------------------------------------------------------------------
@@ -1216,7 +1231,7 @@ return(0);
 public int convertToPixels(double pAbsoluteX)
 {
 
-return(0);
+    return(0);
 
 }//end of StripChart::convertToPixels
 //-----------------------------------------------------------------------------
@@ -1231,7 +1246,7 @@ return(0);
 public double convertToXAbsLocation(double pPixX)
 {
 
-return(0);
+    return(0);
 
 }//end of StripChart::convertToXAbsLocation
 //-----------------------------------------------------------------------------
@@ -1245,11 +1260,11 @@ return(0);
 public void setTitle(String pTitle)
 {
 
-title = pTitle;
+    title = pTitle;
 
-titledBorder.setTitle(title);
+    titledBorder.setTitle(title);
 
-repaint(); //force display update of title
+    repaint(); //force display update of title
 
 }//end of StripChart::setTitle
 //-----------------------------------------------------------------------------
@@ -1263,7 +1278,7 @@ repaint(); //force display update of title
 public String getTitle()
 {
 
-return title;
+    return title;
 
 }//end of StripChart::getTitle
 //-----------------------------------------------------------------------------
@@ -1277,7 +1292,7 @@ return title;
 public void setShortTitle(String pShortTitle)
 {
 
-shortTitle = pShortTitle;
+    shortTitle = pShortTitle;
 
 }//end of StripChart::setShortTitle
 //-----------------------------------------------------------------------------
@@ -1291,7 +1306,7 @@ shortTitle = pShortTitle;
 public String getShortTitle()
 {
 
-return shortTitle;
+    return shortTitle;
 
 }//end of StripChart::getShortTitle
 //-----------------------------------------------------------------------------
@@ -1305,7 +1320,7 @@ return shortTitle;
 public void setChartVisible(Boolean pVisible)
 {
 
-canvas.setVisible(pVisible);
+    canvas.setVisible(pVisible);
 
 }//end of StripChart::setChartVisible
 //-----------------------------------------------------------------------------
@@ -1319,7 +1334,7 @@ canvas.setVisible(pVisible);
 public Boolean isChartVisible()
 {
 
-return canvas.isVisible();
+    return canvas.isVisible();
 
 }//end of StripChart::isChartVisible
 //-----------------------------------------------------------------------------
@@ -1337,32 +1352,32 @@ return canvas.isVisible();
 public void loadCalFile(IniFile pCalFile)
 {
 
-String section = "Chart Group " + (chartGroup + 1)
-                                        + " Strip Chart " + (chartIndex + 1);
+    String section = "Chart Group " + (chartGroup + 1)
+                                         + " Strip Chart " + (chartIndex + 1);
 
-// a title is loaded from the configuration file but this is replaced when the
-// job file is loaded - the user can modify the title inside the program so it
-// is saved with the job file info
+    // a title is loaded from the configuration file but this is replaced when
+    // the job file is loaded - the user can modify the title inside the
+    // program so it is saved with the job file info
 
-//only override the titles if the cal file strings are not empty and are not
-//the default asterisk -- this allows the titles from the config file to be
-//displayed if the user has not explictly set the titles
+    //only override the titles if the cal file strings are not empty and are not
+    //the default asterisk -- this allows the titles from the config file to be
+    //displayed if the user has not explictly set the titles
 
-String s;
-s = pCalFile.readString(section, "Title", "*");
-if (!s.equalsIgnoreCase("*")) setTitle(s);
-s = pCalFile.readString(section, "Short Title", "*");
-if (!s.equalsIgnoreCase("*")) setShortTitle(s);
+    String s;
+    s = pCalFile.readString(section, "Title", "*");
+    if (!s.equalsIgnoreCase("*")) setTitle(s);
+    s = pCalFile.readString(section, "Short Title", "*");
+    if (!s.equalsIgnoreCase("*")) setShortTitle(s);
 
-setChartVisible(pCalFile.readBoolean(section, "Chart is Visible", true));
+    setChartVisible(pCalFile.readBoolean(section, "Chart is Visible", true));
 
-// call each threshold to load its data
-for (int i = 0; i < numberOfThresholds; i++)
-                                          thresholds[i].loadCalFile(pCalFile);
+    // call each threshold to load its data
+    for (int i = 0; i < numberOfThresholds; i++)
+                                           thresholds[i].loadCalFile(pCalFile);
 
-leadMaskPos = pCalFile.readDouble(
-                              section, "Leading Mask Position (inches)", 24.0);
-trailMaskPos = pCalFile.readDouble(
+    leadMaskPos = pCalFile.readDouble(
+                             section, "Leading Mask Position (inches)", 24.0);
+    trailMaskPos = pCalFile.readDouble(
                              section, "Trailing Mask Position (inches)", 24.0);
 
 }//end of StripChart::loadCalFile
@@ -1381,24 +1396,26 @@ trailMaskPos = pCalFile.readDouble(
 public void saveCalFile(IniFile pCalFile)
 {
 
-String section = "Chart Group " + (chartGroup + 1)
-                                        + " Strip Chart " + (chartIndex + 1);
+    String section = "Chart Group " + (chartGroup + 1)
+                                         + " Strip Chart " + (chartIndex + 1);
 
 
-// a title is loaded from the configuration file but this is replaced when the
-// job file is loaded - the user can modify the title inside the program so it
-// is saved with the job file info
+    // a title is loaded from the configuration file but this is replaced when
+    // the job file is loaded - the user can modify the title inside the
+    // program so it is saved with the job file info
 
-pCalFile.writeString(section, "Title", getTitle());
-pCalFile.writeString(section, "Short Title", getShortTitle());
-pCalFile.writeBoolean(section, "Chart is Visible", isChartVisible());
+    pCalFile.writeString(section, "Title", getTitle());
+    pCalFile.writeString(section, "Short Title", getShortTitle());
+    pCalFile.writeBoolean(section, "Chart is Visible", isChartVisible());
 
-// call each threshold to save its data
-for (int i = 0; i < numberOfThresholds; i++)
-    thresholds[i].saveCalFile(pCalFile);
+    // call each threshold to save its data
+    for (int i = 0; i < numberOfThresholds; i++)
+        thresholds[i].saveCalFile(pCalFile);
 
-pCalFile.writeDouble(section, "Leading Mask Position (inches)", leadMaskPos);
-pCalFile.writeDouble(section, "Trailing Mask Position (inches)", trailMaskPos);
+    pCalFile.writeDouble(
+                     section, "Leading Mask Position (inches)", leadMaskPos);
+    pCalFile.writeDouble(
+                     section, "Trailing Mask Position (inches)", trailMaskPos);
 
 }//end of StripChart::saveCalFile
 //-----------------------------------------------------------------------------
@@ -1418,14 +1435,14 @@ pCalFile.writeDouble(section, "Trailing Mask Position (inches)", trailMaskPos);
 public void saveCalFileHumanReadable(BufferedWriter pOut) throws IOException
 {
 
-pOut.write(Settings.postPad(getTitle(), 15));
+    pOut.write(Settings.postPad(getTitle(), 15));
 
-//call each threshold to save its data
-for (int i = 0; i < numberOfThresholds; i++)
-    thresholds[i].saveCalFileHumanReadable(pOut);
+    //call each threshold to save its data
+    for (int i = 0; i < numberOfThresholds; i++)
+        thresholds[i].saveCalFileHumanReadable(pOut);
 
-pOut.write( " Lead Mask  " + leadMaskPos);
-pOut.write( " Trail Mask " + trailMaskPos);
+    pOut.write( " Lead Mask  " + leadMaskPos);
+    pOut.write( " Trail Mask " + trailMaskPos);
 
 }//end of StripChart::saveCalFileHumanReadable
 //-----------------------------------------------------------------------------
@@ -1440,7 +1457,7 @@ pOut.write( " Trail Mask " + trailMaskPos);
 public double convertToYAbsLocation(double pPixY)
 {
 
-return(0);
+    return(0);
 
 }//end of StripChart::convertToYAbsLocation
 //-----------------------------------------------------------------------------
@@ -1454,7 +1471,7 @@ return(0);
 public Trace getTrace(int pWhich)
 {
 
-return traces[pWhich];
+    return traces[pWhich];
 
 }//end of StripChart::getTrace
 //-----------------------------------------------------------------------------
@@ -1473,10 +1490,10 @@ public int findMinOrMaxValueOfTrace(Trace pTrace, boolean pFindMin,
                                                         int pStart, int pEnd)
 {
 
-if(pFindMin)
-    return(pTrace.findMinValue(pStart, pEnd));
-else
-    return(pTrace.findMaxValue(pStart, pEnd));
+    if(pFindMin)
+        return(pTrace.findMinValue(pStart, pEnd));
+    else
+        return(pTrace.findMaxValue(pStart, pEnd));
 
 }//end of StripChart::findMinOrMaxValueOfTrace
 //-----------------------------------------------------------------------------
@@ -1493,32 +1510,33 @@ else
 public int createArtificialLeadMask()
 {
 
-//first look for a section at the beginning where at least one of the traces
-//is the same value for several consecutive points -- for Wall data, this
-//usually signifies that the head is up and flat line data is being received
+    //first look for a section at the beginning where at least one of the traces
+    //is the same value for several consecutive points -- for Wall data, this
+    //usually signifies that the head is up and flat line data is being received
 
-//if a straight line section is found, start at the end of it plus 30 points
+    //if a straight line section is found, start at the end of it plus 30 points
 
-int buffer0[] = traces[0].getDataBuffer1();
-int buffer1[] = traces[1].getDataBuffer1();
+    int buffer0[] = traces[0].getDataBuffer1();
+    int buffer1[] = traces[1].getDataBuffer1();
 
-//look for end of flat line sections near the beginning of both traces
-int endOfFlatline0 = findEndOfFlatlineSectionNearTraceStart(buffer0);
-int endOfFlatline1 = findEndOfFlatlineSectionNearTraceStart(buffer1);
+    //look for end of flat line sections near the beginning of both traces
+    int endOfFlatline0 = findEndOfFlatlineSectionNearTraceStart(buffer0);
+    int endOfFlatline1 = findEndOfFlatlineSectionNearTraceStart(buffer1);
 
-int maskStart;
+    int maskStart;
 
-//use the larger of the two to extend past the longest flatline section
-maskStart = Math.max(endOfFlatline0, endOfFlatline1);
+    //use the larger of the two to extend past the longest flatline section
+    maskStart = Math.max(endOfFlatline0, endOfFlatline1);
 
-//if both were -1, then no flat line sections were found so just start from 0
-if (maskStart == -1) maskStart = 0;
+    //if both were -1, then no flat line sections were found so just
+    //start from 0
+    if (maskStart == -1) maskStart = 0;
 
-//if flat line section not found, start at position 80 -- if section found,
-//start at end of section plus 80
-maskStart += 80;
+    //if flat line section not found, start at position 80 -- if section found,
+    //start at end of section plus 80
+    maskStart += 80;
 
-return(maskStart);
+    return(maskStart);
 
 }//end of StripChart::createArtificialLeadMask
 //-----------------------------------------------------------------------------
@@ -1537,50 +1555,50 @@ return(maskStart);
 public int findEndOfFlatlineSectionNearTraceStart(int[] pBuffer)
 {
 
-int startOfFlatline = -1;
-int sample = 0;
-int end = 100;
+    int startOfFlatline = -1;
+    int sample = 0;
+    int end = 100;
 
-//return no find code if buffer is too small for the test
-if (end > (pBuffer.length - 5)) return(-1);
+    //return no find code if buffer is too small for the test
+    if (end > (pBuffer.length - 5)) return(-1);
 
-//look for flat line section
-for (int i = 0; i <= end; i++){
+    //look for flat line section
+    for (int i = 0; i <= end; i++){
 
-    //check to see if 5 consecutive points match
-    sample = pBuffer[i];
-    if (pBuffer[i+1] == sample && pBuffer[i+2] == sample
-          && pBuffer[i+3] == sample && pBuffer[i+4] == sample){
+        //check to see if 5 consecutive points match
+        sample = pBuffer[i];
+        if (pBuffer[i+1] == sample && pBuffer[i+2] == sample
+              && pBuffer[i+3] == sample && pBuffer[i+4] == sample){
 
-        startOfFlatline = i;
-        break;
+            startOfFlatline = i;
+            break;
 
         }
-
     }//for (int i = 0; i < 100; i++)
 
-//return no find code if no flatline section found
-if (startOfFlatline == -1) return(-1);
+    //return no find code if no flatline section found
+    if (startOfFlatline == -1) return(-1);
 
-//find the end of the flatline
+    //find the end of the flatline
 
-int endOfFlatline = -1;
-int endSearchEnd = 100; //only search first several inches
+    int endOfFlatline = -1;
+    int endSearchEnd = 100; //only search first several inches
 
-if(endSearchEnd >= pBuffer.length) endSearchEnd = pBuffer.length - 1;
+    if(endSearchEnd >= pBuffer.length) endSearchEnd = pBuffer.length - 1;
 
-//find first position which is not a match -- this is the end of the flatline
-for (int i = startOfFlatline; i <= end; i++){
+    //find first position which is not a match -- this is the end of
+    //the flatline
+    for (int i = startOfFlatline; i <= end; i++){
 
-    if (sample != pBuffer[i]){
-        endOfFlatline = i;
-        break;
+        if (sample != pBuffer[i]){
+            endOfFlatline = i;
+            break;
         }
 
     }//for (int i = startOfFlatline; i <= end; i++){
 
-//returned value will be the end of the flat line section or -1 if none found
-return(endOfFlatline);
+    //returned value will be the end of the flat line section or -1 if none found
+    return(endOfFlatline);
 
 }//end of StripChart::findEndOfFlatlineSectionNearTraceStart
 //-----------------------------------------------------------------------------
@@ -1597,33 +1615,33 @@ return(endOfFlatline);
 public int createArtificialTrailMask()
 {
 
-//first look for a section at the end where at least one of the traces
-//is the same value for several consecutive points -- for Wall data, this
-//usually signifies that the head is up and flat line data is being received
+    //first look for a section at the end where at least one of the traces
+    //is the same value for several consecutive points -- for Wall data, this
+    //usually signifies that the head is up and flat line data is being received
 
-//if a straight line section is found, end at the start of it minus 30 points
+    //if a straight line section is found, end at start of it minus 30 points
 
-int buffer0[] = traces[0].getDataBuffer1();
-int buffer1[] = traces[1].getDataBuffer1();
+    int buffer0[] = traces[0].getDataBuffer1();
+    int buffer1[] = traces[1].getDataBuffer1();
 
-//look for end of flat line sections near the end of both traces
-int endOfFlatline0 = findEndOfFlatlineSectionNearTraceEnd(buffer0);
-int endOfFlatline1 = findEndOfFlatlineSectionNearTraceEnd(buffer1);
+    //look for end of flat line sections near the end of both traces
+    int endOfFlatline0 = findEndOfFlatlineSectionNearTraceEnd(buffer0);
+    int endOfFlatline1 = findEndOfFlatlineSectionNearTraceEnd(buffer1);
 
-int maskStart;
+    int maskStart;
 
-//use the smaller of the two to stop before the longest flatline section
-maskStart = Math.min(endOfFlatline0, endOfFlatline1);
+    //use the smaller of the two to stop before the longest flatline section
+    maskStart = Math.min(endOfFlatline0, endOfFlatline1);
 
-//if both were -1, then no flat line sections were found so just start from end
-//of trace 0 (which should match end of other traces as well)
-if (maskStart == -1) maskStart = findEndOfData(buffer0);
+    //if both were -1, then no flat line sections were found so just start from
+    //end of trace 0 (which should match end of other traces as well)
+    if (maskStart == -1) maskStart = findEndOfData(buffer0);
 
-//if flat line section not found, start at end minus 80 -- if section found,
-//start at end of section minus 80
-maskStart -= 80;
+    //if flat line section not found, start at end minus 80 -- if section found,
+    //start at end of section minus 80
+    maskStart -= 80;
 
-return(maskStart);
+    return(maskStart);
 
 }//end of StripChart::createArtificialTrailMask
 //-----------------------------------------------------------------------------
@@ -1651,64 +1669,64 @@ return(maskStart);
 public int findEndOfFlatlineSectionNearTraceEnd(int[] pBuffer)
 {
 
-int startOfFlatline = -1;
-int sample = 0;
-int endOfData;
+    int startOfFlatline = -1;
+    int sample = 0;
+    int endOfData;
 
-//when searching from the end of the buffer, the last data point must be found
-//to serve as the starting point else the default unfilled values will trigger
-//the flat line section detector
+    //when searching from the end of the buffer, the last data point must be found
+    //to serve as the starting point else the default unfilled values will trigger
+    //the flat line section detector
 
-endOfData = findEndOfData(pBuffer);
+    endOfData = findEndOfData(pBuffer);
 
-//return no find code if no data found
-if (endOfData == -1) return(-1);
+    //return no find code if no data found
+    if (endOfData == -1) return(-1);
 
-//search from end of data to 100 points prior
-int end = endOfData - 100;
+    //search from end of data to 100 points prior
+    int end = endOfData - 100;
 
-//return no find code if buffer is too small for the test
-if (end < 5) return(-1);
+    //return no find code if buffer is too small for the test
+    if (end < 5) return(-1);
 
-//look for flat line section
-for (int i = endOfData; i >= end; i--){
+    //look for flat line section
+    for (int i = endOfData; i >= end; i--){
 
-    //check to see if 5 consecutive points match
-    sample = pBuffer[i];
+        //check to see if 5 consecutive points match
+        sample = pBuffer[i];
 
-    if (pBuffer[i-1] == sample && pBuffer[i-2] == sample
-          && pBuffer[i-3] == sample && pBuffer[i-4] == sample){
+        if (pBuffer[i-1] == sample && pBuffer[i-2] == sample
+              && pBuffer[i-3] == sample && pBuffer[i-4] == sample){
 
-        startOfFlatline = i;
-        break;
+            startOfFlatline = i;
+            break;
 
         }
 
     }//for (int i = 0; i < 100; i++)
 
-//return no find code if no flatline section found
-if (startOfFlatline == -1) return(-1);
+    //return no find code if no flatline section found
+    if (startOfFlatline == -1) return(-1);
 
-//find the end of the flatline
+    //find the end of the flatline
 
-int endOfFlatline = -1;
-int endSearchEnd = endOfData - 100; //only search last several inches
+    int endOfFlatline = -1;
+    int endSearchEnd = endOfData - 100; //only search last several inches
 
-//return no find code if buffer too small for the test
-if(endSearchEnd < 5) return(-1);
+    //return no find code if buffer too small for the test
+    if(endSearchEnd < 5) return(-1);
 
-//find first position which is not a match -- this is the end of the flatline
-for (int i = startOfFlatline; i >= endSearchEnd; i--){
+    //find first position which is not a match -- this is the end of the flatline
+    for (int i = startOfFlatline; i >= endSearchEnd; i--){
 
-    if (sample != pBuffer[i]){
-        endOfFlatline = i;
-        break;
+        if (sample != pBuffer[i]){
+            endOfFlatline = i;
+            break;
         }
 
     }//for (int i = startOfFlatline; i <= end; i++){
 
-//returned value will be the end of the flat line section or -1 if none found
-return(endOfFlatline);
+    //returned value will be the end of the flat line section or -1 if none found
+    return(endOfFlatline);
 
 }//end of StripChart::findEndOfFlatlineSectionNearTraceEnd
 //-----------------------------------------------------------------------------
@@ -1724,19 +1742,19 @@ return(endOfFlatline);
 public int findEndOfData(int[] pBuffer)
 {
 
-int endOfData = -1;
+    int endOfData = -1;
 
-//NOTE: Start at pBuffer.length - 2 as the last element seems to be filled
-// with zero -- why is this? -- fix?
+    //NOTE: Start at pBuffer.length - 2 as the last element seems to be filled
+    // with zero -- why is this? -- fix?
 
-for (int i = (pBuffer.length - 2); i > 0; i--){
-    if (pBuffer[i] != Integer.MAX_VALUE){
-        endOfData = i;
-        break;
+    for (int i = (pBuffer.length - 2); i > 0; i--){
+        if (pBuffer[i] != Integer.MAX_VALUE){
+            endOfData = i;
+            break;
         }
     }//for (int i = (pBuffer.length - 1); i <= 0; i--){
 
-return(endOfData);
+    return(endOfData);
 
 }//end of StripChart::findEndOfData
 //-----------------------------------------------------------------------------
@@ -1750,7 +1768,7 @@ return(endOfData);
 public int getNumberOfTraces()
 {
 
-return numberOfTraces;
+    return numberOfTraces;
 
 }//end of StripChart::getNumberOfTraces
 //-----------------------------------------------------------------------------
@@ -1765,7 +1783,7 @@ return numberOfTraces;
 public void setLeadTrailTraces(int pLead, int pTrail)
 {
 
-canvas.leadingTrace = pLead; canvas.trailingTrace = pTrail;
+    canvas.leadingTrace = pLead; canvas.trailingTrace = pTrail;
 
 }//end of StripChart::setLeadTrailTraces
 //-----------------------------------------------------------------------------
@@ -1779,39 +1797,39 @@ public void mouseClicked(MouseEvent e)
 {
 
 
-//get button pressed
-int b = e.getButton();
+    //get button pressed
+    int b = e.getButton();
 
-//get mouse x,y
-Integer x = e.getX(); Integer y = e.getY();
+    //get mouse x,y
+    Integer x = e.getX(); Integer y = e.getY();
 
-//do nothing if the click is outside the plot area
-//if (x < dx1 || x > dx2) return; if (y < dy1 || y > dy2) return;
+    //do nothing if the click is outside the plot area
+    //if (x < dx1 || x > dx2) return; if (y < dy1 || y > dy2) return;
 
-//For UT, clicking either trace labeled ID or OD brings up all channels
-//for the chart regardless of trace - this is because ID/OD is tied to all
-//traces.  In the future, perhaps add switch for other types of systems so
-//that clicking on one trace only brings up the channels tied to that trace.
+    //For UT, clicking either trace labeled ID or OD brings up all channels
+    //for the chart regardless of trace - this is because ID/OD is tied to all
+    //traces.  In the future, perhaps add switch for other types of systems so
+    //that clicking on one trace only brings up the channels tied to that trace.
 
-//left mouse button, set width
-if (b == MouseEvent.BUTTON1){
+    //left mouse button, set width
+    if (b == MouseEvent.BUTTON1){
 
-    //check if click in on a trace's key label
-    //if clicked, call the parent listener with the command string and the
-    //chart's group and index numbers appended
-    for (int i = 0; i < numberOfTraces; i++) {
-        if ((traces[i].keyBounds != null) && traces[i].keyBounds.contains(x,y)){
-            // trigger event to open the calibration window
-            actionListener.actionPerformed(new ActionEvent(this,
-                                     ActionEvent.ACTION_PERFORMED,
-                "Open Calibration Window ~" + chartGroup + "~" + chartIndex));
-            break;
+        //check if click in on a trace's key label
+        //if clicked, call the parent listener with the command string and the
+        //chart's group and index numbers appended
+        for (int i = 0; i < numberOfTraces; i++) {
+            if ((traces[i].keyBounds != null) && traces[i].keyBounds.contains(x,y)){
+                // trigger event to open the calibration window
+                actionListener.actionPerformed(new ActionEvent(this,
+                                         ActionEvent.ACTION_PERFORMED,
+                    "Open Calibration Window ~" + chartGroup + "~" + chartIndex));
+                break;
             }
         }//for (int i = 0;...
     }//if (b == MouseEvent.BUTTON1)
 
-//right button, set height
-if (b == MouseEvent.BUTTON3){
+    //right button, set height
+    if (b == MouseEvent.BUTTON3){
 
     }//if (b == MouseEvent.BUTTON3)
 

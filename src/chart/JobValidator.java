@@ -70,66 +70,66 @@ import javax.swing.JOptionPane;
 
 class JobValidator extends Object {
 
-Xfer xfer;
-boolean robust;
-String primaryDataPath, backupDataPath;
-String currentJobPrimaryPath, currentJobBackupPath;
-String jobName;
-PrintWriter logFile = null;
-boolean pathRecreated = false;
+    Xfer xfer;
+    boolean robust;
+    String primaryDataPath, backupDataPath;
+    String currentJobPrimaryPath, currentJobBackupPath;
+    String jobName;
+    PrintWriter logFile = null;
+    boolean pathRecreated = false;
 
-//file type enumerators
-//used to specify which type of file is being processed
-static int CAL_FILE = 0;
-static int CONFIG_FILE = 1;
-static int PIECE_NUMBER_FILE = 2;
-static int JOB_INFO_FILE = 3;
-static int JOB_INFO_CONFIG_FILE = 4;
+    //file type enumerators
+    //used to specify which type of file is being processed
+    static int CAL_FILE = 0;
+    static int CONFIG_FILE = 1;
+    static int PIECE_NUMBER_FILE = 2;
+    static int JOB_INFO_FILE = 3;
+    static int JOB_INFO_CONFIG_FILE = 4;
 
-//used to specify which folder is being repaired
-static int PRIMARY = 0;
-static int BACKUP = 1;
+    //used to specify which folder is being repaired
+    static int PRIMARY = 0;
+    static int BACKUP = 1;
 
-//various success message strings tied to the file type enumerators
-String SuccessMsgs[] = {
+    //various success message strings tied to the file type enumerators
+    String SuccessMsgs[] = {
 
-    "The calibration file was restored from the backup version."
-        + " Please check all calibration settings.",
+        "The calibration file was restored from the backup version."
+            + " Please check all calibration settings.",
 
-    "The configuration file was restored from the backup version."
-        + " Please check all calibration settings.",
+        "The configuration file was restored from the backup version."
+            + " Please check all calibration settings.",
 
-    "The file containing the number of the next piece to be inspected"
-        + " was restored from the backup version."
-        + " Please check that the number is correct.",
+        "The file containing the number of the next piece to be inspected"
+            + " was restored from the backup version."
+            + " Please check that the number is correct.",
 
-    "The job information file was restored from the backup version."
-        + " Please check that the job information is correct.",
+        "The job information file was restored from the backup version."
+            + " Please check that the job information is correct.",
 
-    "The job information configuration file"
-        + " was restored from the backup version."
-        + " Please check that the job information is correct."
-    };
+        "The job information configuration file"
+            + " was restored from the backup version."
+            + " Please check that the job information is correct."
+        };
 
-//various failure message strings tied to the file type enumerators
-String FailureMsgs[] = {
+    //various failure message strings tied to the file type enumerators
+    String FailureMsgs[] = {
 
-    "The calibration file was damaged or missing and could not be restored."
-        + " Please reset all calibration settings.",
+      "The calibration file was damaged or missing and could not be restored."
+            + " Please reset all calibration settings.",
 
-    "The configuration file was damaged or missing and could not be restored."
-        + " Please select the proper configuration file.",
+      "The configuration file was damaged or missing and could not be restored."
+            + " Please select the proper configuration file.",
 
-    "The file containing the number of the next piece to be inspected"
-        + " was damaged or missing and could not be restored."
-        + " Please enter the correct number.",
+      "The file containing the number of the next piece to be inspected"
+            + " was damaged or missing and could not be restored."
+            + " Please enter the correct number.",
 
-    "The job information file"
-        + " was damaged or missing and could not be restored."
-        + " Please re-enter the job information.",
+      "The job information file"
+            + " was damaged or missing and could not be restored."
+            + " Please re-enter the job information.",
 
-    "" //no failure message here for JOB_INFO_CONFIG_FILE
-    };
+      "" //no failure message here for JOB_INFO_CONFIG_FILE
+      };
 
 //-----------------------------------------------------------------------------
 // JobValidator::JobValidator (constructor)
@@ -139,82 +139,89 @@ public JobValidator(String pPrimaryDataPath, String pBackupDataPath,
                                    String pJobName, boolean pRobust, Xfer pXfer)
 {
 
-jobName = pJobName; robust = pRobust; xfer = pXfer;
+    jobName = pJobName; robust = pRobust; xfer = pXfer;
 
-primaryDataPath = pPrimaryDataPath; backupDataPath = pBackupDataPath;
+    primaryDataPath = pPrimaryDataPath; backupDataPath = pBackupDataPath;
 
-currentJobPrimaryPath = pPrimaryDataPath + jobName + File.separator;
-currentJobBackupPath = pBackupDataPath + jobName + File.separator;
+    currentJobPrimaryPath = pPrimaryDataPath + jobName + File.separator;
+    currentJobBackupPath = pBackupDataPath + jobName + File.separator;
 
-try{
+    try{
 
-    xfer.rBoolean2 = xfer.rBoolean3 = false;
+        xfer.rBoolean2 = xfer.rBoolean3 = false;
 
-    //check to see if the root data paths exist or can be repaired if robust
-    if (!validatePathAndRepair(pPrimaryDataPath, "root primary", robust)
-        || !validatePathAndRepair(pBackupDataPath, "root backup", robust)
-        ) {xfer.rBoolean2 = true; return;}
+        //check to see if the root data paths exist or can be repaired if robust
+        if (!validatePathAndRepair(pPrimaryDataPath, "root primary", robust)
+            || !validatePathAndRepair(pBackupDataPath, "root backup", robust)
+            ) {
 
-    //if no path repair option and both job folders are missing, assume
-    //that the job does not exist at all - only do this check if robust if false
-    if (!robust && !validateEitherPath()){xfer.rBoolean3 = true; return;}
+            xfer.rBoolean2 = true; return;
 
-    //if the primary job folder could not be verified or repaired, bail out
-    if (!validatePathAndRepair(currentJobPrimaryPath, "primary job", true)){
-        xfer.rBoolean3 = true; return;}
-
-    //open the repair log file in case it is needed - data is appended to the
-    //log file if it already exists
-    //the log file is created after verifying the existence of the primary
-    //directory because it is stored there
-    logFile = new PrintWriter(new FileWriter(
-      currentJobPrimaryPath + "15 - " + jobName + " Repair Log.txt", true));
-
-    //if the call to validatePath for the primary folder caused the primary
-    //folder to be recreated, log that error
-    if(pathRecreated){
-        logMessage("Error - primary path does not exist: " +
-                                                currentJobPrimaryPath, true);
-        logMessage("Action - creating primary path.");
-        pathRecreated = false;
         }
 
-    //if the backup job folder could not be verified or repaired, bail out
-    if (!validatePathAndRepair(currentJobBackupPath, "backup job", true)){
-        xfer.rBoolean3 = true; return;}
+        //if no path repair option and both job folders are missing, assume
+        //that the job does not exist at all - only do this check if robust if
+        //false
+        if (!robust && !validateEitherPath()){xfer.rBoolean3 = true; return;}
 
-    //if the call to validatePath for the backup folder caused the backup
-    //folder to be recreated, log that error
-    if(pathRecreated){
-        logMessage("Error - backup path does not exist: " +
-                                                currentJobBackupPath, true);
-        logMessage("Action - creating backup path.");
-        pathRecreated = false;
+        //if the primary job folder could not be verified or repaired, bail out
+        if (!validatePathAndRepair(currentJobPrimaryPath, "primary job", true)){
+            xfer.rBoolean3 = true; return;
         }
 
-    //validate/repair the primary folder files
-    validate("00 - ", " Calibration File.ini", CAL_FILE, PRIMARY);
-    validate("01 - ", " Configuration.ini", CONFIG_FILE, PRIMARY);
-    validate("02 - ", " Piece Number File.ini", PIECE_NUMBER_FILE, PRIMARY);
-    validate("03 - ", " Job Info.ini", JOB_INFO_FILE, PRIMARY);
-    validate("04 - ", " Configuration - Job Info Window.ini",
-                                                JOB_INFO_CONFIG_FILE, PRIMARY);
+        //open the repair log file in case it is needed - data is appended to
+        //the log file if it already exists
+        //the log file is created after verifying the existence of the primary
+        //directory because it is stored there
+        logFile = new PrintWriter(new FileWriter(
+          currentJobPrimaryPath + "15 - " + jobName + " Repair Log.txt", true));
 
-    //validate/repair the backup folder files
-    validate("00 - ", " Calibration File.ini", CAL_FILE, BACKUP);
-    validate("01 - ", " Configuration.ini", CONFIG_FILE, BACKUP);
-    validate("02 - ", " Piece Number File.ini", PIECE_NUMBER_FILE, BACKUP);
-    validate("03 - ", " Job Info.ini", JOB_INFO_FILE, BACKUP);
-    validate("04 - ", " Configuration - Job Info Window.ini",
-                                                JOB_INFO_CONFIG_FILE, BACKUP);
+        //if the call to validatePath for the primary folder caused the primary
+        //folder to be recreated, log that error
+        if(pathRecreated){
+            logMessage("Error - primary path does not exist: " +
+                                                  currentJobPrimaryPath, true);
+            logMessage("Action - creating primary path.");
+            pathRecreated = false;
+        }
+
+        //if the backup job folder could not be verified or repaired, bail out
+        if (!validatePathAndRepair(currentJobBackupPath, "backup job", true)){
+            xfer.rBoolean3 = true; return;
+        }
+
+        //if the call to validatePath for the backup folder caused the backup
+        //folder to be recreated, log that error
+        if(pathRecreated){
+            logMessage("Error - backup path does not exist: " +
+                                                    currentJobBackupPath, true);
+            logMessage("Action - creating backup path.");
+            pathRecreated = false;
+        }
+
+        //validate/repair the primary folder files
+        validate("00 - ", " Calibration File.ini", CAL_FILE, PRIMARY);
+        validate("01 - ", " Configuration.ini", CONFIG_FILE, PRIMARY);
+        validate("02 - ", " Piece Number File.ini", PIECE_NUMBER_FILE, PRIMARY);
+        validate("03 - ", " Job Info.ini", JOB_INFO_FILE, PRIMARY);
+        validate("04 - ", " Configuration - Job Info Window.ini",
+                                                 JOB_INFO_CONFIG_FILE, PRIMARY);
+
+        //validate/repair the backup folder files
+        validate("00 - ", " Calibration File.ini", CAL_FILE, BACKUP);
+        validate("01 - ", " Configuration.ini", CONFIG_FILE, BACKUP);
+        validate("02 - ", " Piece Number File.ini", PIECE_NUMBER_FILE, BACKUP);
+        validate("03 - ", " Job Info.ini", JOB_INFO_FILE, BACKUP);
+        validate("04 - ", " Configuration - Job Info Window.ini",
+                                                  JOB_INFO_CONFIG_FILE, BACKUP);
 
     }
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 213");
-}
-finally{
-    if (logFile != null) logFile.close();
-}
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 213");
+    }
+    finally{
+        if (logFile != null) logFile.close();
+    }
 
 }//end of JobValidator::JobValidator (constructor)
 //-----------------------------------------------------------------------------
@@ -236,15 +243,15 @@ finally{
 private boolean validateEitherPath()
 {
 
-//if the jobName is empty, validation fails
-if (jobName.equals("")) return(false);
+    //if the jobName is empty, validation fails
+    if (jobName.equals("")) return(false);
 
-//verify that the job folder exists in at least one path
-File folder1 = new File(currentJobPrimaryPath);
-File folder2 = new File(currentJobBackupPath);
-if (folder1.exists() || folder2.exists()) return(true);
+    //verify that the job folder exists in at least one path
+    File folder1 = new File(currentJobPrimaryPath);
+    File folder2 = new File(currentJobBackupPath);
+    if (folder1.exists() || folder2.exists()) return(true);
 
-return(false);
+    return(false);
 
 }//end of JobValidator::validateEitherPath
 //-----------------------------------------------------------------------------
@@ -263,36 +270,36 @@ private boolean validatePathAndRepair(String pPath, String pIdentifier,
                                                                boolean pRepair)
 {
 
-//if the specified path is blank, bail out with error
-if (pPath.equals("")){
-    displayErrorMessage("The " + pIdentifier +
-                            " folder specified is blank - cannot be repaired.");
-    return(false);
+    //if the specified path is blank, bail out with error
+    if (pPath.equals("")){
+        displayErrorMessage("The " + pIdentifier +
+                           " folder specified is blank - cannot be repaired.");
+        return(false);
     }
 
-File folder = new File(pPath);
+    File folder = new File(pPath);
 
-//all good
-if (folder.exists()) return(true);
+    //all good
+    if (folder.exists()) return(true);
 
-//path bad, don't repair if pRepair is false
-if (!pRepair) {
-    displayErrorMessage("The " + pIdentifier +
-                                " folder was missing and was not repaired.");
-    return(false);
+    //path bad, don't repair if pRepair is false
+    if (!pRepair) {
+        displayErrorMessage("The " + pIdentifier +
+                                  " folder was missing and was not repaired.");
+        return(false);
     }
 
-//try to create the path
-if (folder.mkdirs()){
-    displayErrorMessage("The " + pIdentifier +
-                                     " folder was missing and was repaired.");
-    pathRecreated = true;
-    return(true);
+    //try to create the path
+    if (folder.mkdirs()){
+        displayErrorMessage("The " + pIdentifier +
+                                      " folder was missing and was repaired.");
+        pathRecreated = true;
+        return(true);
     }
-else{
-    displayErrorMessage("The " + pIdentifier +
-                            " folder was missing and could not be repaired.");
-    return(false);
+    else{
+        displayErrorMessage("The " + pIdentifier +
+                             " folder was missing and could not be repaired.");
+        return(false);
     }
 
 }//end of JobValidator::validatePathAndRepair
@@ -314,24 +321,24 @@ private void validate(String pPrefix, String pFilename, int pFileType,
                                                                int pWhichFolder)
 {
 
-String toFix = "", backup = "";
-//select the folder to be repaired and the folder to provide backup copies
-if  (pWhichFolder == PRIMARY){
-    toFix = currentJobPrimaryPath;
-    backup = currentJobBackupPath;
+    String toFix = "", backup = "";
+    //select the folder to be repaired and the folder to provide backup copies
+    if  (pWhichFolder == PRIMARY){
+        toFix = currentJobPrimaryPath;
+        backup = currentJobBackupPath;
     }
 
-if  (pWhichFolder == BACKUP){
-    toFix = currentJobBackupPath;
-    backup = currentJobPrimaryPath;
+    if  (pWhichFolder == BACKUP){
+        toFix = currentJobBackupPath;
+        backup = currentJobPrimaryPath;
     }
 
-String filename = toFix + pPrefix + jobName + pFilename;
-String filenameBackup = backup + pPrefix + jobName + pFilename;
+    String filename = toFix + pPrefix + jobName + pFilename;
+    String filenameBackup = backup + pPrefix + jobName + pFilename;
 
-File file = new File(filename);
+    File file = new File(filename);
 
-if (!file.exists()) handleMissingFile(filenameBackup, filename, pFileType);
+    if (!file.exists()) handleMissingFile(filenameBackup, filename, pFileType);
 
 }//end of JobValidator::validate
 //-----------------------------------------------------------------------------
@@ -355,34 +362,34 @@ public boolean handleMissingFile(String pSource, String pDestination,
                                                                 int pFileType)
 {
 
-logMessage("Error - file does not exist: " + pDestination, true);
+    logMessage("Error - file does not exist: " + pDestination, true);
 
-boolean success;
+    boolean success;
 
-success = copyFileFromBackup(pSource, pDestination);
+    success = copyFileFromBackup(pSource, pDestination);
 
-//display the appropriate success or failure message for the file type
+    //display the appropriate success or failure message for the file type
 
-if (success)
-    displayErrorMessage(SuccessMsgs[pFileType]);
-else{
-    //display the error message for the file type if the message is not blank
-    if (!FailureMsgs[pFileType].equals(""))
-        displayErrorMessage(FailureMsgs[pFileType]);
+    if (success)
+        displayErrorMessage(SuccessMsgs[pFileType]);
+    else{
+        //display the error message for the file type if message is not blank
+        if (!FailureMsgs[pFileType].equals(""))
+            displayErrorMessage(FailureMsgs[pFileType]);
     }
 
-//if the job info configuration file could not be restored from the backup
-//version, copy the default version to both directories
-if (!success && pFileType == JOB_INFO_CONFIG_FILE)
-    success =
-            handleJobInfoConfigFileBackupRestoreFailure(pSource, pDestination);
+    //if the job info configuration file could not be restored from the backup
+    //version, copy the default version to both directories
+    if (!success && pFileType == JOB_INFO_CONFIG_FILE)
+        success =
+             handleJobInfoConfigFileBackupRestoreFailure(pSource, pDestination);
 
-//if the job configuration file could not be restored from the backup version,
-//allow the user to select the appropriate file from the list of defaults
-if (!success && pFileType == CONFIG_FILE)
-    success = handleConfigFileBackupRestoreFailure();
+    //if the job configuration file could not be restored from the backup
+    //version, allow the user to select appropriate file from list of defaults
+    if (!success && pFileType == CONFIG_FILE)
+        success = handleConfigFileBackupRestoreFailure();
 
-return success;
+    return success;
 
 }//end of JobValidator::handleMissingFile
 //-----------------------------------------------------------------------------
@@ -401,7 +408,7 @@ public boolean handleConfigFileBackupRestoreFailure()
 
 {
 
-new LoadConfiguration(null, currentJobPrimaryPath, currentJobBackupPath,
+    new LoadConfiguration(null, currentJobPrimaryPath, currentJobBackupPath,
                                                                 jobName, xfer);
 
 return true;
@@ -422,34 +429,35 @@ public boolean handleJobInfoConfigFileBackupRestoreFailure(
 
 {
 
-//put a copy of the Job Info Window configuration file into the job folder
-//this makes sure that the same configuration file will always be used when
-//the job is loaded
-//note that the "04 - " prefix is to force the file near the top of the
-//explorer window when the files are alphabetized to make it easier to find
+    //put a copy of the Job Info Window configuration file into the job folder
+    //this makes sure that the same configuration file will always be used when
+    //the job is loaded
+    //note that the "04 - " prefix is to force the file near the top of the
+    //explorer window when the files are alphabetized to make it easier to find
 
-boolean successP = false, successB = false;
+    boolean successP = false, successB = false;
 
-if (!(successP =
-            copyFile("Configuration - Job Info Window.ini", pFilenamePrimary))
-    ||
-    !(successB =
-            copyFile("Configuration - Job Info Window.ini", pFilenameBackup))){
+    if (!(successP =
+             copyFile("Configuration - Job Info Window.ini", pFilenamePrimary))
+        ||
+        !(successB =
+             copyFile("Configuration - Job Info Window.ini", pFilenameBackup))){
 
-    displayErrorMessage("The job information configuration file "
-        + " was damaged or missing and could not be repaired."
-        + " Please contact technical support.");
+        displayErrorMessage("The job information configuration file "
+            + " was damaged or missing and could not be repaired."
+            + " Please contact technical support.");
 
     }
-else
-    {
-    displayErrorMessage("The job information configuration file"
-        + " was damaged or missing and replaced with the default version.");
+    else{
+        displayErrorMessage("The job information configuration file"
+            + " was damaged or missing and replaced with the default version.");
     }
 
-//if file could not be copied to either directory, return error
-if (!successP || !successB) return false;
-else return true;
+    //if file could not be copied to either directory, return error
+    if (!successP || !successB)
+        return false;
+    else
+        return true;
 
 }//end of JobValidator::handleJobInfoConfigFileBackupRestoreFailure
 //-----------------------------------------------------------------------------
@@ -468,14 +476,14 @@ else return true;
 public boolean copyFileFromBackup(String pSource, String pDestination)
 {
 
-logMessage("Action - copying from backup folder: " + pSource);
+    logMessage("Action - copying from backup folder: " + pSource);
 
-boolean success;
+    boolean success;
 
-if (!(success = copyFile(pSource, pDestination)))
-    logMessage("Error - cannot copy from backup folder: " + pSource);
+    if (!(success = copyFile(pSource, pDestination)))
+        logMessage("Error - cannot copy from backup folder: " + pSource);
 
-return success;
+    return success;
 
 }//end of JobValidator::copyFileFromBackup
 //-----------------------------------------------------------------------------
@@ -494,9 +502,9 @@ return success;
 private void logMessage(String pMessage, boolean pLogDate)
 {
 
-if (pLogDate) logFile.println(new Date().toString());
+    if (pLogDate) logFile.println(new Date().toString());
 
-logFile.println(pMessage);
+    logFile.println(pMessage);
 
 }//end of JobValidator::logMessage
 //-----------------------------------------------------------------------------
@@ -512,7 +520,7 @@ logFile.println(pMessage);
 private void logMessage(String pMessage)
 {
 
-logMessage(pMessage, false);
+    logMessage(pMessage, false);
 
 }//end of JobValidator::logMessage
 //-----------------------------------------------------------------------------
@@ -528,35 +536,35 @@ logMessage(pMessage, false);
 boolean copyFile(String pSource, String pDest)
 {
 
-FileInputStream in = null;
-FileOutputStream out = null;
+    FileInputStream in = null;
+    FileOutputStream out = null;
 
-try {
+    try {
 
-    in = new FileInputStream(pSource);
-    out = new FileOutputStream(pDest);
+        in = new FileInputStream(pSource);
+        out = new FileOutputStream(pDest);
 
-    int c;
+        int c;
 
-    while ((c = in.read()) != -1) {out.write(c); }
+        while ((c = in.read()) != -1) {out.write(c); }
 
     }
-catch(IOException e){
-    System.err.println(getClass().getName() + " - Error: 545");
-    return (false);
-}
-finally {
-    try{
-        if (in != null) in.close();
-        if (out != null) out.close();
-        }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 554");
-        return(false);
+        System.err.println(getClass().getName() + " - Error: 545");
+        return (false);
     }
-}
+    finally {
+        try{
+            if (in != null) in.close();
+            if (out != null) out.close();
+        }
+        catch(IOException e){
+            System.err.println(getClass().getName() + " - Error: 554");
+            return(false);
+        }
+    }
 
-return(true);
+    return(true);
 
 }//end of JobValidator::copyFile
 //-----------------------------------------------------------------------------
@@ -570,7 +578,7 @@ return(true);
 private void displayErrorMessage(String pMessage)
 {
 
-JOptionPane.showMessageDialog(null, pMessage,
+    JOptionPane.showMessageDialog(null, pMessage,
                                             "Error", JOptionPane.ERROR_MESSAGE);
 
 }//end of JobValidator::displayErrorMessage

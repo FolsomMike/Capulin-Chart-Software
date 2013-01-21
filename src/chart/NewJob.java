@@ -220,15 +220,16 @@ public void actionPerformed(ActionEvent e)
         if (xfer.rBoolean1){
             setVisible(false);
             dispose();  //destroy the dialog window
-            }
-        return;
         }
+
+        return;
+    }
 
     if (source.getActionCommand().equalsIgnoreCase("Cancel")){
         setVisible(false);
         dispose();  //destroy the dialog window
         return;
-        }
+    }
 
 }//end of NewJob::actionPerformed
 //-----------------------------------------------------------------------------
@@ -253,7 +254,7 @@ void createJob()
         "The Job Name cannot be blank.",
         "Error", JOptionPane.ERROR_MESSAGE);
         return;
-        }
+    }
 
     //if the user has entered an illegal character, display an error
     //illegal characters    <>/?:"\|*
@@ -264,7 +265,7 @@ void createJob()
         "The Job Name cannot contain:  <>/?:\"\\|*",
         "Error", JOptionPane.ERROR_MESSAGE);
         return;
-        }
+    }
 
     //if the user has not selected a configuration, display an error message
     if (configName.equalsIgnoreCase("Select a Configuration (required)")){
@@ -272,7 +273,7 @@ void createJob()
         "You must select a Configuration.",
         "Error", JOptionPane.ERROR_MESSAGE);
         return;
-        }
+    }
 
     File primaryFolder = new File (primaryDataPath + newJobName);
     File backupFolder  = new File (backupDataPath + newJobName);
@@ -285,7 +286,7 @@ void createJob()
         "in the primary and/or backup directories.",
         "Error", JOptionPane.ERROR_MESSAGE);
         return;
-        }
+    }
 
     //try to create a folder in both directories, error on fail
     if (!primaryFolder.mkdirs() || !backupFolder.mkdirs()){
@@ -294,7 +295,7 @@ void createJob()
         "in the primary and/or backup directories.",
         "Error", JOptionPane.ERROR_MESSAGE);
         return;
-        }
+    }
 
     //put a copy of the Job Info Window configuration file into the job folder
     //this makes sure that the same configuration file will always be used when
@@ -314,7 +315,7 @@ void createJob()
             "The Job Info Window Configuration file could not be copied " +
             "to the primary and/or backup directories.",
             "Error", JOptionPane.ERROR_MESSAGE);
-        }
+    }
 
     //put a copy of the Piece Info Window configuration file into the job folder
     //this makes sure that the same configuration file will always be used when
@@ -334,7 +335,7 @@ void createJob()
             "The Piece Info Window Configuration file could not be copied " +
             "to the primary and/or backup directories.",
             "Error", JOptionPane.ERROR_MESSAGE);
-        }
+    }
 
     //put a copy of the selected configuration file into the job folder
     //this makes sure that the same configuration file will always be used when
@@ -343,16 +344,16 @@ void createJob()
     //explorer window when the files are alphabetized to make it easier to find
 
     if (!copyFile("configurations" + "/" + configName,
-                    primaryFolder + "/01 - " + newJobName + " Configuration.ini")
+                  primaryFolder + "/01 - " + newJobName + " Configuration.ini")
      ||
         !copyFile("configurations" + "/" + configName,
-                    backupFolder + "/01 - " + newJobName + " Configuration.ini")){
+                 backupFolder + "/01 - " + newJobName + " Configuration.ini")){
 
             JOptionPane.showMessageDialog(frame,
             "The configuration file could not be copied " +
             "to the primary and/or backup directories.",
             "Error", JOptionPane.ERROR_MESSAGE);
-        }
+    }
 
     //determine if the user has selected a preset
     boolean presetSelected =
@@ -456,7 +457,7 @@ boolean copyFile(String pSource, String pDest)
 
         while ((c = in.read()) != -1) {out.write(c); }
 
-        }
+    }
     catch(IOException e){
         System.err.println(getClass().getName() + " - Error: 461");
         return (false);

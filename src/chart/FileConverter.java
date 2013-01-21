@@ -82,7 +82,7 @@ import java.io.*;
 class MKSFilenameFilter implements FilenameFilter
 {
 
-String extensionUC = "";
+    String extensionUC = "";
 
 //-----------------------------------------------------------------------------
 // MKSFilenameFilter::MKSFilenameFilter
@@ -113,8 +113,8 @@ public boolean accept(File dir, String name)
     //the file satisfies the filter if it ends with the extension value,
     //ignoring case
     if (name.toUpperCase().endsWith(extensionUC))
-        return(true); 
-    else 
+        return(true);
+    else
         return(false);
 
 }//end of MKSFilenameFilter::accept
@@ -133,15 +133,15 @@ public boolean accept(File dir, String name)
 
 public abstract class FileConverter extends Object {
 
-LogFile logFile;
-boolean processGood = true;    
+    LogFile logFile;
+    boolean processGood = true;
 
-String tempFileSuffix;
-String logFileName;
-String conversionCompletedFlagFileName;
+    String tempFileSuffix;
+    String logFileName;
+    String conversionCompletedFlagFileName;
 
-String[] pathList;
-String[] extList;
+    String[] pathList;
+    String[] extList;
 
 //-----------------------------------------------------------------------------
 // FileConverter::FileConverter (constructor)
@@ -170,7 +170,7 @@ public FileConverter()
 
 protected void init()
 {
-    
+
     processGood = true;
 
     //if the already converted flag file exists, exit without converting as the
@@ -192,11 +192,11 @@ protected void init()
         if (!convertFiles(extList[x], pathList[x])) processGood = false;
         logFile.log(""); //log a blank line between each path/ext group
     }
-    
+
     //verify all the converted files, delete old version, rename new to old
     logFile.log("Validating conversions and cleaning up:");
     logFile.log(""); // blank line
-    
+
     for (int x = 0; x < pathList.length; x++){
         if (!compareFilesAndCleanUp(extList[x], pathList[x]))
             processGood = false;
@@ -210,10 +210,10 @@ protected void init()
     //the tempFileSuffix appended.  The method compareFilesAndCleanUp will
     //automatically remove the suffix if it exists so the function can operate
     //as normal -- expecting the files found to be without the suffix.
-    
+
     logFile.log("Validating conversions and cleaning up orphans:");
     logFile.log(""); // blank line
-    
+
     for (int x = 0; x < pathList.length; x++){
         if (!compareFilesAndCleanUp(extList[x] + tempFileSuffix, pathList[x]))
             processGood = false;
@@ -225,9 +225,9 @@ protected void init()
     //been converted to UTF-8 format -- this class checks for this flag file and
     //will do nothing if it is found so the conversion is not attempted when
     //all files have already been converted
-    
+
     //see notes at top of this method for an overview of partial success
-    
+
     if (processGood) {
         file = new File(conversionCompletedFlagFileName);
         try{file.createNewFile();}catch(IOException e){processGood = false;}
@@ -238,7 +238,7 @@ protected void init()
     }
 
     logFile.close();
-    
+
 }//end of FileConverter::init
 //-----------------------------------------------------------------------------
 
@@ -254,7 +254,7 @@ protected void init()
 
 private boolean convertFiles(String pExtension, String pPath)
 {
-    
+
     File file;
     String filename;
     boolean convertFilesGood = true;
@@ -269,23 +269,23 @@ private boolean convertFiles(String pExtension, String pPath)
                 + "' in folder '" + pPath + "'");
         return(convertFilesGood); //this is not an error
     }
-    
+
     for (int i = 0; i < files.length; i++){
-        
+
         filename = pPath + "/" + files[i];
 
         file = new File(filename);
 
         //convert only normal files -- ignore directories -- if an error occurs
         //with any file, record the error
-        if (file.isFile()) 
+        if (file.isFile())
             if (convertFile(filename, filename + tempFileSuffix) == false)
                 convertFilesGood = false;
 
     }//for (int i = 0...
-        
+
     return(convertFilesGood);
-    
+
 }//end of FileConverter::convertFiles
 //-----------------------------------------------------------------------------
 
@@ -309,7 +309,7 @@ private boolean convertFiles(String pExtension, String pPath)
 
 private boolean compareFilesAndCleanUp(String pExtension, String pPath)
 {
-    
+
     File file;
     String oldFile, tempFile;
     boolean compareFilesGood = true;
@@ -324,7 +324,7 @@ private boolean compareFilesAndCleanUp(String pExtension, String pPath)
                 + "' in folder '" + pPath + "'");
         return(compareFilesGood);
     }
-    
+
     for (int i = 0; i < files.length; i++){
 
         //remove the tempFileSuffix if it is present -- this function is called
@@ -336,13 +336,13 @@ private boolean compareFilesAndCleanUp(String pExtension, String pPath)
            files[i] = files[i].substring(0,
                                           files[i].lastIndexOf(tempFileSuffix));
         }
-                
+
         oldFile = pPath + "/" + files[i];
         tempFile = oldFile + tempFileSuffix;
-        
+
         //the new and old versions have identical content, then delete the old
         //version and rename the new version with the old filename
-        
+
         if (compareFile(oldFile, tempFile)){
             if (deleteOldRenameNew(oldFile, tempFile) == false)
                 compareFilesGood = false;
@@ -355,9 +355,9 @@ private boolean compareFilesAndCleanUp(String pExtension, String pPath)
         }
 
     }//for (int i = 0...
-        
+
     return(compareFilesGood);
-    
+
 }//end of Converter::compareFilesAndCleanUp
 //-----------------------------------------------------------------------------
 
@@ -379,17 +379,17 @@ protected boolean deleteOldRenameNew(String pOldFile, String pTempFile)
 {
 
     boolean cleanUpGood = true;
-    
+
     File oldFile = new File(pOldFile); File tempFile = new File(pTempFile);
-    
+
     //if a new temp file is not present, then exit without error -- the temp
     //file was probably already renamed for this set on a previous conversion
     //attempt
-    
+
     if (!tempFile.exists()){
-        logFile.log("Delete and rename ignored -- there is no temp file: " 
+        logFile.log("Delete and rename ignored -- there is no temp file: "
                                                                     + tempFile);
-        return(cleanUpGood);        
+        return(cleanUpGood);
     }
 
     //if the old file exists, delete it -- bail out on error
@@ -399,7 +399,7 @@ protected boolean deleteOldRenameNew(String pOldFile, String pTempFile)
             cleanUpGood = false;
             return(cleanUpGood);
         }
-    
+
     //if old file successfully deleted, rename new file to old name
     if (tempFile.renameTo(oldFile)){
         logFile.log("Success -- temp file renamed: " + oldFile);

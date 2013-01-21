@@ -31,17 +31,17 @@ import java.awt.event.*;
 
 public class PieceInfoItem extends Object{
 
-public String labelText;
-public int width;
-public int height;
-public int numberCharacters;
-public boolean editable;
-public boolean clearedInNewJob;
-public JLabel label;
-public JTextField textField;
-public boolean printInFooter;
-public int printOrder;
-boolean printed;
+    public String labelText;
+    public int width;
+    public int height;
+    public int numberCharacters;
+    public boolean editable;
+    public boolean clearedInNewJob;
+    public JLabel label;
+    public JTextField textField;
+    public boolean printInFooter;
+    public int printOrder;
+    boolean printed;
 
 //-----------------------------------------------------------------------------
 // PieceInfoItem::createTextField
@@ -50,22 +50,22 @@ boolean printed;
 void createTextField(FocusListener focusListener)
 {
 
-textField = new JTextField(numberCharacters);
+    textField = new JTextField(numberCharacters);
 
-//all text fields have the same name so they all trigger the focus listener in
-//the same way
-textField.setName("Value Text Field");
-textField.addFocusListener(focusListener);
+    //all text fields have the same name so they all trigger the focus listener
+    //in the same way
+    textField.setName("Value Text Field");
+    textField.addFocusListener(focusListener);
 
-int dHeight = textField.getPreferredSize().height;
+    int dHeight = textField.getPreferredSize().height;
 
-//set the width to 1 pixel - Java will override this to make the field large
-//enough to hold the specified number of characters but prevents it from
-//enlarging the field to fill its container
+    //set the width to 1 pixel - Java will override this to make the field large
+    //enough to hold the specified number of characters but prevents it from
+    //enlarging the field to fill its container
 
-textField.setMinimumSize(new Dimension(1, dHeight));
-textField.setPreferredSize(new Dimension(1, dHeight));
-textField.setMaximumSize(new Dimension(1, dHeight));
+    textField.setMinimumSize(new Dimension(1, dHeight));
+    textField.setPreferredSize(new Dimension(1, dHeight));
+    textField.setMaximumSize(new Dimension(1, dHeight));
 
 }//end of PieceInfoItem::createTextField
 //-----------------------------------------------------------------------------

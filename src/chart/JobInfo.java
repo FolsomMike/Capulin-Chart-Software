@@ -227,13 +227,11 @@ private void configure(String pConfigFilename)
             if (items[i].label.getPreferredSize().width > maxLabelWidth)
                 maxLabelWidth = items[i].label.getPreferredSize().width;
 
-            }// if (text.equalsIgnoreCase("blank"))
+        }// if (text.equalsIgnoreCase("blank"))
 
-        }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
-
+    }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
 
     int height;
-
 
     //set all label widths to that of the widest label to align the fields
     for (int i=0; i < NUMBER_OF_ITEMS; i++){
@@ -249,9 +247,9 @@ private void configure(String pConfigFilename)
                                          new Dimension(maxLabelWidth, height));
             items[i].label.setMaximumSize(new Dimension(maxLabelWidth, height));
 
-            }
+        }
 
-        }//for (int i=0; i < NUMBER_OF_ITEMS; i++)
+    }//for (int i=0; i < NUMBER_OF_ITEMS; i++)
 
     pack();
 
@@ -283,7 +281,7 @@ public void prepareForNewJob(String pPrimaryDataPath, String pBackupDataPath,
 
             items[i].textField.setText("");
 
-            }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
+        }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
 
     //save the file to both data folders
     saveData(primaryDataPath);
@@ -312,7 +310,7 @@ public String getValue(String pKey)
             if (pKey.equals(items[i].labelText))
                 return (items[i].textField.getText());
 
-            }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
+        }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
 
     return(""); //key not found, return empty string
 
@@ -351,7 +349,7 @@ public void loadData()
             items[i].textField.setText(
                       jobInfoFile.readString(section, items[i].labelText, ""));
 
-            }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
+        }// if (items[i] != null)
 
 }//end of JobInfo::loadData
 //-----------------------------------------------------------------------------
@@ -372,10 +370,10 @@ public void saveData(String pDataPath)
 
     //if the ini file cannot be opened and loaded, exit without action
     try {jobInfoFile = new IniFile(jobInfoFilename, fileFormat);}
-        catch(IOException e){
-            System.err.println(getClass().getName() + " - Error: 376");
-            return;
-        }
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 376");
+        return;
+    }
 
     String section = "Job Info";
 
@@ -388,7 +386,7 @@ public void saveData(String pDataPath)
             jobInfoFile.writeString(section, items[i].labelText,
                                                   items[i].textField.getText());
 
-            }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
+            }// if (items[i] != null)
 
     jobInfoFile.save();  //save to disk
 

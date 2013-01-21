@@ -76,13 +76,13 @@ public class Trace extends Object{
     public int sizeOfDataBuffer;
     public int dataBuffer1[];
     int dataBuffer2[];
-    public int flagBuffer[];     //stores various flags for plotting
-                                 //0000 0000 0000 0000 | 0000 000 | 0 0000 0000
-                                 //               |||| | threshold| clock position
-                                 //               |||> min or max was flagged
-                                 //               ||> segment start separator
-                                 //               |> segment end separator
-                                 //               > end mask marks
+    public int flagBuffer[]; //stores various flags for plotting
+                             //0000 0000 0000 0000 | 0000 000 | 0 0000 0000
+                             //               |||| | threshold| clock position
+                             //               |||> min or max was flagged
+                             //               ||> segment start separator
+                             //               |> segment end separator
+                             //               > end mask marks
 
 
     boolean invert;
@@ -112,7 +112,8 @@ public class Trace extends Object{
 
     public int beingFilledSlot; //updated by external class - slot for new data
     public int inProcessSlot; //being filled with data
-    public int endPlotSlot; //updated by external class - point to last data to plot
+    //updated by external class - point to last data to plot
+    public int endPlotSlot;
     public boolean nextIndexUpdated;  //used by external class
 
     int segmentStartCounter;
@@ -362,7 +363,7 @@ public void resetTrace()
         for (int i = 0; i < dataBuffer1.length; i++){
             dataBuffer1[i] = Integer.MAX_VALUE;
             flagBuffer[i] = 0;
-        }
+    }
 
     //set the position where the pointers start to non-default -- this is the
     //first data that is plotted unless it happens to be replaced by a peak
@@ -537,7 +538,7 @@ public void saveSegment(BufferedWriter pOut) throws IOException
 
         pOut.write("[End of Set]"); pOut.newLine();
 
-    }// if (hdwVs.plotStyle == TraceHdwVars.SPAN)
+    }//if (dataBuffer2 != null)
 
     i = lastSegmentStartIndex;
 

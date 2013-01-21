@@ -31,12 +31,12 @@ package chart;
 
 public class KeyValue extends Object{
 
-public String keyString;
-public String valueString;
+    public String keyString;
+    public String valueString;
 
-public int keyInt;
-public int valueInt;
-    
+    public int keyInt;
+    public int valueInt;
+
 }//end of class KeyValue
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

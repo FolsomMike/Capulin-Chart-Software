@@ -46,25 +46,25 @@ import chart.mksystems.hardware.HardwareVars;
 
 public class ChartGroup extends JPanel implements MouseListener{
 
-Settings settings;
-IniFile configFile;
-int chartGroupIndex;
-Hardware hardware;
-TraceValueCalculator traceValueCalculator;
+    Settings settings;
+    IniFile configFile;
+    int chartGroupIndex;
+    Hardware hardware;
+    TraceValueCalculator traceValueCalculator;
 
-int windowXPos, windowYPos;
+    int windowXPos, windowYPos;
 
-int numberOfStripCharts;
-StripChart[] stripCharts;
-String pieceName;
-Color jointLabelColor;
-boolean singleColumn;
-boolean chartSizeEqualsBufferSize;
+    int numberOfStripCharts;
+    StripChart[] stripCharts;
+    String pieceName;
+    Color jointLabelColor;
+    boolean singleColumn;
+    boolean chartSizeEqualsBufferSize;
 
-public int viewerWindowWidth;
-public int viewerWindowHeight;
+    public int viewerWindowWidth;
+    public int viewerWindowHeight;
 
-ActionListener actionListener;
+    ActionListener actionListener;
 
 //-----------------------------------------------------------------------------
 // ChartGroup::ChartGroup (constructor)
@@ -79,26 +79,26 @@ public ChartGroup(Settings pSettings, IniFile pConfigFile, int pChartGroupIndex,
                                   TraceValueCalculator pTraceValueCalculator)
 {
 
-settings = pSettings; configFile = pConfigFile;
-chartGroupIndex = pChartGroupIndex;
-hardware = pHardware;
-actionListener = pActionListener;
-chartSizeEqualsBufferSize = pChartSizeEqualsBufferSize;
+    settings = pSettings; configFile = pConfigFile;
+    chartGroupIndex = pChartGroupIndex;
+    hardware = pHardware;
+    actionListener = pActionListener;
+    chartSizeEqualsBufferSize = pChartSizeEqualsBufferSize;
 
 
-//If a hardware object exists, then that object is often passed in as the
-//traceValueCalculator.  If it does not exist, such as when the ChartGroups
-//are being created by a Viewer window, then the Viewer window might pass
-//itself in as the calculator.
+    //If a hardware object exists, then that object is often passed in as the
+    //traceValueCalculator.  If it does not exist, such as when the ChartGroups
+    //are being created by a Viewer window, then the Viewer window might pass
+    //itself in as the calculator.
 
-traceValueCalculator = pTraceValueCalculator;
+    traceValueCalculator = pTraceValueCalculator;
 
-//set up the main panel - this panel does nothing more than provide a title
-//border and a spacing border
-setOpaque(true);
+    //set up the main panel - this panel does nothing more than provide a title
+    //border and a spacing border
+    setOpaque(true);
 
-//read the configuration file and create/setup the charting/control elements
-configure(configFile);
+    //read the configuration file and create/setup the charting/control elements
+    configure(configFile);
 
 }//end of ChartGroup::ChartGroup (constructor)
 //-----------------------------------------------------------------------------
@@ -117,53 +117,54 @@ configure(configFile);
 private void configure(IniFile pConfigFile)
 {
 
-String section = "Chart Group " + (chartGroupIndex + 1);
+    String section = "Chart Group " + (chartGroupIndex + 1);
 
-numberOfStripCharts =
-         pConfigFile.readInt(section, "Number of Strip Charts", 1);
+    numberOfStripCharts =
+             pConfigFile.readInt(section, "Number of Strip Charts", 1);
 
-pieceName = pConfigFile.readString(section, "Name Of Pieces", "Piece");
+    pieceName = pConfigFile.readString(section, "Name Of Pieces", "Piece");
 
-jointLabelColor = pConfigFile.readColor(
+    jointLabelColor = pConfigFile.readColor(
                                     section, "Joint Label Color", Color.BLACK);
 
-singleColumn = pConfigFile.readBoolean(section, "Single Column", true);
+    singleColumn = pConfigFile.readBoolean(section, "Single Column", true);
 
 
-//if config file specifies a single column, use BoxLayout to force a single
-//column else use FlowLayout to allow multiple columns
-if (singleColumn)
-    setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-else
-    setLayout(new FlowLayout());
+    //if config file specifies a single column, use BoxLayout to force a single
+    //column else use FlowLayout to allow multiple columns
+    if (singleColumn)
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+    else
+        setLayout(new FlowLayout());
 
-//read values used by the Viewer window to set the size of the scroll pane
-//this pane contains the charts to be viewed - where possible, the height
-//can be set to show all of the charts at once, if there are too many then
-//a convenient height can be set and a vertical scroll bar will automatically
-//be shown to allow scrolling to view all charts
+    //read values used by the Viewer window to set the size of the scroll pane
+    //this pane contains the charts to be viewed - where possible, the height
+    //can be set to show all of the charts at once, if there are too many then
+    //a convenient height can be set and a vertical scroll bar will
+    //automatically be shown to allow scrolling to view all charts
 
-viewerWindowWidth = pConfigFile.readInt(
-                            section, "Viewer Window Width", 1233);
-viewerWindowHeight = pConfigFile.readInt(
-                            section, "Viewer Window Height", -1);
+    viewerWindowWidth = pConfigFile.readInt(
+                                section, "Viewer Window Width", 1233);
+    viewerWindowHeight = pConfigFile.readInt(
+                                section, "Viewer Window Height", -1);
 
-//create an array of strip charts per the config file setting
-if (numberOfStripCharts > 0){
+    //create an array of strip charts per the config file setting
+    if (numberOfStripCharts > 0){
 
-    //protect against too many groups
-    if (numberOfStripCharts > 100) numberOfStripCharts = 100;
+        //protect against too many groups
+        if (numberOfStripCharts > 100) numberOfStripCharts = 100;
 
-    stripCharts = new StripChart[numberOfStripCharts];
+        stripCharts = new StripChart[numberOfStripCharts];
 
-    for (int i = 0; i < numberOfStripCharts; i++){
-       stripCharts[i] = new StripChart(settings, configFile, chartGroupIndex, i,
-                        hardware, actionListener, chartSizeEqualsBufferSize,
-                        traceValueCalculator);
-        add(stripCharts[i]);
-        }
+        for (int i = 0; i < numberOfStripCharts; i++){
+           stripCharts[i] =
+                   new StripChart(settings, configFile, chartGroupIndex, i,
+                            hardware, actionListener, chartSizeEqualsBufferSize,
+                            traceValueCalculator);
+            add(stripCharts[i]);
+            }
 
-    }//if (numberOfChartGroups > 0)
+        }//if (numberOfChartGroups > 0)
 
 }//end of ChartGroup::configure
 //-----------------------------------------------------------------------------
@@ -181,13 +182,13 @@ if (numberOfStripCharts > 0){
 public void loadCalFile(IniFile pCalFile)
 {
 
-String section = "Chart Group " + (chartGroupIndex + 1);
+    String section = "Chart Group " + (chartGroupIndex + 1);
 
-windowXPos = pCalFile.readInt(section, "Window X Position", 0);
-windowYPos = pCalFile.readInt(section, "Window Y Position", 0);
+    windowXPos = pCalFile.readInt(section, "Window X Position", 0);
+    windowYPos = pCalFile.readInt(section, "Window Y Position", 0);
 
-// call each chart to load its data
-for (int i = 0; i < numberOfStripCharts; i++)
+    // call each chart to load its data
+    for (int i = 0; i < numberOfStripCharts; i++)
                                           stripCharts[i].loadCalFile(pCalFile);
 
 }//end of ChartGroup::loadCalFile
@@ -206,13 +207,13 @@ for (int i = 0; i < numberOfStripCharts; i++)
 public void saveCalFile(IniFile pCalFile)
 {
 
-String section = "Chart Group " + (chartGroupIndex + 1);
+    String section = "Chart Group " + (chartGroupIndex + 1);
 
-pCalFile.writeInt(section, "Window X Position", windowXPos);
-pCalFile.writeInt(section, "Window Y Position", windowYPos);
+    pCalFile.writeInt(section, "Window X Position", windowXPos);
+    pCalFile.writeInt(section, "Window Y Position", windowYPos);
 
-// call each chart to save its data
-for (int i = 0; i < numberOfStripCharts; i++)
+    // call each chart to save its data
+    for (int i = 0; i < numberOfStripCharts; i++)
                                           stripCharts[i].saveCalFile(pCalFile);
 
 }//end of ChartGroup::saveCalFile
@@ -256,7 +257,7 @@ public void saveCalFileHumanReadable(BufferedWriter pOut) throws IOException
 public StripChart getStripChart(int pWhich)
 {
 
-return stripCharts[pWhich];
+    return stripCharts[pWhich];
 
 }//end of ChartGroup::getStripChart
 //-----------------------------------------------------------------------------
@@ -270,7 +271,7 @@ return stripCharts[pWhich];
 public int getNumberOfStripCharts()
 {
 
-return numberOfStripCharts;
+    return numberOfStripCharts;
 
 }//end of ChartGroup::getNumberOfStripCharts
 //-----------------------------------------------------------------------------
@@ -284,7 +285,7 @@ return numberOfStripCharts;
 public void resetChartGroup()
 {
 
-for (int i = 0; i < numberOfStripCharts; i++) stripCharts[i].resetChart();
+    for (int i = 0; i < numberOfStripCharts; i++) stripCharts[i].resetChart();
 
 }//end of ChartGroup::resetChartGroup
 //-----------------------------------------------------------------------------
@@ -302,8 +303,8 @@ for (int i = 0; i < numberOfStripCharts; i++) stripCharts[i].resetChart();
 public void markSegmentStart()
 {
 
-for (int i = 0; i < numberOfStripCharts; i++)
-    stripCharts[i].markSegmentStart();
+    for (int i = 0; i < numberOfStripCharts; i++)
+        stripCharts[i].markSegmentStart();
 
 }//end of ChartGroup::markSegmentStart
 //-----------------------------------------------------------------------------
@@ -323,8 +324,8 @@ for (int i = 0; i < numberOfStripCharts; i++)
 public void markSegmentEnd()
 {
 
-for (int i = 0; i < numberOfStripCharts; i++)
-    stripCharts[i].markSegmentEnd();
+    for (int i = 0; i < numberOfStripCharts; i++)
+        stripCharts[i].markSegmentEnd();
 
 }//end of ChartGroup::markSegmentEnd
 //-----------------------------------------------------------------------------
@@ -345,12 +346,12 @@ for (int i = 0; i < numberOfStripCharts; i++)
 public void saveSegment(BufferedWriter pOut) throws IOException
 {
 
-pOut.write("[Chart Group]"); pOut.newLine();
-pOut.write("Chart Group Index=" + chartGroupIndex); pOut.newLine();
-pOut.newLine();
+    pOut.write("[Chart Group]"); pOut.newLine();
+    pOut.write("Chart Group Index=" + chartGroupIndex); pOut.newLine();
+    pOut.newLine();
 
-for (int i = 0; i < numberOfStripCharts; i++)
-    stripCharts[i].saveSegment(pOut);
+    for (int i = 0; i < numberOfStripCharts; i++)
+        stripCharts[i].saveSegment(pOut);
 
 }//end of ChartGroup::saveSegment
 //-----------------------------------------------------------------------------
@@ -365,10 +366,10 @@ for (int i = 0; i < numberOfStripCharts; i++)
 public boolean segmentStarted()
 {
 
-for (int i = 0; i < numberOfStripCharts; i++)
-    if (stripCharts[i].segmentStarted()) return(true);
+    for (int i = 0; i < numberOfStripCharts; i++)
+        if (stripCharts[i].segmentStarted()) return(true);
 
-return(false);
+    return(false);
 
 }//end of ChartGroup::segmentStarted
 //-----------------------------------------------------------------------------
@@ -391,16 +392,16 @@ public String loadSegment(BufferedReader pIn, String pLastLine)
                                                             throws IOException
 {
 
-//handle entries for the chart group itself
-String line = processChartGroupEntries(pIn, pLastLine);
+    //handle entries for the chart group itself
+    String line = processChartGroupEntries(pIn, pLastLine);
 
-//allow each strip chart to load data, passing the last line read to the next
-//call each time
+    //allow each strip chart to load data, passing the last line read to the
+    //next call each time
 
-for (int i = 0; i < numberOfStripCharts; i++)
-    line = stripCharts[i].loadSegment(pIn, line);
+    for (int i = 0; i < numberOfStripCharts; i++)
+        line = stripCharts[i].loadSegment(pIn, line);
 
-return(line);
+    return(line);
 
 }//end of ChartGroup::loadSegment
 //-----------------------------------------------------------------------------
@@ -423,58 +424,59 @@ private String processChartGroupEntries(BufferedReader pIn, String pLastLine)
 
 {
 
-String line;
-boolean success = false;
-Xfer matchSet = new Xfer(); //for receiving data from function calls
+    String line;
+    boolean success = false;
+    Xfer matchSet = new Xfer(); //for receiving data from function calls
 
-//if pLastLine contains the [Chart Group] tag, then skip ahead else read until
-// end of file reached or "[Chart Group]" section tag reached
+    //if pLastLine contains the [Chart Group] tag, then skip ahead else read
+    //until end of file reached or "[Chart Group]" section tag reached
 
-if (Viewer.matchAndParseString(pLastLine, "[Chart Group]", "", matchSet))
-    success = true; //tag already found
-else
-    while ((line = pIn.readLine()) != null){  //search for tag
-        if (Viewer.matchAndParseString(line, "[Chart Group]", "", matchSet)){
-            success = true; break;
+    if (Viewer.matchAndParseString(pLastLine, "[Chart Group]", "", matchSet))
+        success = true; //tag already found
+    else
+        while ((line = pIn.readLine()) != null){  //search for tag
+            if (Viewer.matchAndParseString(
+                                        line, "[Chart Group]", "", matchSet)){
+                success = true; break;
             }
         }//while
 
-if (!success) throw new IOException(
-       "The file could not be read - section not found for Chart Group "
-                                                            + chartGroupIndex);
+    if (!success) throw new IOException(
+           "The file could not be read - section not found for Chart Group "
+                                                             + chartGroupIndex);
 
-//set defaults
-int chartGroupIndexRead = -1;
+    //set defaults
+    int chartGroupIndexRead = -1;
 
-//scan the first part of the section and parse its entries
-//these entries apply to the chart group itself
+    //scan the first part of the section and parse its entries
+    //these entries apply to the chart group itself
 
-success = false;
-while ((line = pIn.readLine()) != null){
+    success = false;
+    while ((line = pIn.readLine()) != null){
 
-    //stop when next section tag reached (will start with [)
-    if (Viewer.matchAndParseString(line, "[", "",  matchSet)){
-        success = true; break;
+        //stop when next section tag reached (will start with [)
+        if (Viewer.matchAndParseString(line, "[", "",  matchSet)){
+            success = true; break;
         }
 
-    //catch the "Chart Group Index" entry - if not found, default to -1
-    if (Viewer.matchAndParseInt(line, "Chart Group Index", -1,  matchSet))
-        chartGroupIndexRead = matchSet.rInt1;
+        //catch the "Chart Group Index" entry - if not found, default to -1
+        if (Viewer.matchAndParseInt(line, "Chart Group Index", -1,  matchSet))
+            chartGroupIndexRead = matchSet.rInt1;
 
     }// while ((line = pIn.readLine()) != null)
 
-if (!success) throw new IOException(
-        "The file could not be read - missing end of section for Chart Group "
-                                                            + chartGroupIndex);
+    if (!success) throw new IOException(
+          "The file could not be read - missing end of section for Chart Group "
+                                                             + chartGroupIndex);
 
-//if the index number in the file does not match the index number for this
-//chart group, abort the file read
+    //if the index number in the file does not match the index number for this
+    //chart group, abort the file read
 
-if (chartGroupIndexRead != chartGroupIndex) throw new IOException(
-        "The file could not be read - section not found for Chart Group "
-                                                            + chartGroupIndex);
+    if (chartGroupIndexRead != chartGroupIndex) throw new IOException(
+            "The file could not be read - section not found for Chart Group "
+                                                             + chartGroupIndex);
 
-return(line); //should be "[xxxx]" tag on success, unknown value if not
+    return(line); //should be "[xxxx]" tag on success, unknown value if not
 
 }//end of Viewer::processChartGroupEntries
 //-----------------------------------------------------------------------------
@@ -489,7 +491,7 @@ return(line); //should be "[xxxx]" tag on success, unknown value if not
 public void handleSizeChanges()
 {
 
-for (int i = 0; i < numberOfStripCharts; i++)
+    for (int i = 0; i < numberOfStripCharts; i++)
                                              stripCharts[i].handleSizeChanges();
 
 }//end of ChartGroup::handleSizeChanges
@@ -504,7 +506,7 @@ for (int i = 0; i < numberOfStripCharts; i++)
 public void plotData()
 {
 
-for (int i = 0; i < numberOfStripCharts; i++) stripCharts[i].plotData();
+    for (int i = 0; i < numberOfStripCharts; i++) stripCharts[i].plotData();
 
 }//end of ChartGroup::plotData
 //-----------------------------------------------------------------------------
@@ -522,7 +524,7 @@ public int getStripChartWidth()
 
 {
 
-return stripCharts[0].getWidth();
+    return stripCharts[0].getWidth();
 
 }//end of ChartGroup::getStripChartWidth
 //-----------------------------------------------------------------------------
@@ -541,7 +543,7 @@ public int getStripChartHeight()
 
 {
 
-return stripCharts[0].getHeight();
+    return stripCharts[0].getHeight();
 
 }//end of ChartGroup::getStripChartHeight
 //-----------------------------------------------------------------------------

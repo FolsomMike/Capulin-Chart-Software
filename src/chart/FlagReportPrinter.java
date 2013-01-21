@@ -325,7 +325,7 @@ public boolean isCalSelected()
 public void displayErrorMessage(String pMessage)
 {
 
-JOptionPane.showMessageDialog(mainFrame, pMessage,
+    JOptionPane.showMessageDialog(mainFrame, pMessage,
                                             "Error", JOptionPane.ERROR_MESSAGE);
 
 }//end of FlagReportPrinter::displayErrorMessage
@@ -351,10 +351,10 @@ public void printReportForEnteredRange()
 
         pieceTrack = startPiece;
         startPrint();
-        }
+    }
     catch(NumberFormatException nfe)  {
         displayErrorMessage("Error in print range.");
-        }
+    }
 
 }//end of FlagReportPrinter::printReportForEnteredRange
 //-----------------------------------------------------------------------------
@@ -405,7 +405,7 @@ String loadSegment(boolean pQuietMode)
     //on error, display the message, repaint with empty chart, and exit
     if (result.startsWith("Error")){
         if(!pQuietMode)displayErrorMessage(result);
-        }
+    }
 
     return(result);
 
@@ -467,7 +467,7 @@ public String createFolder()
             if (!folder.mkdirs()){
                 displayErrorMessage("The reports folder could not be created.");
                 return("");
-                }
+            }
         }//if(!reportsPath.isEmpty)
     }//if(!reportsPath.isEmpty())
 
@@ -501,7 +501,7 @@ public String createFolder()
             displayErrorMessage(
                             "The job's reports folder could not be created.");
             return("");
-            }
+        }
     }
 
 //if all folders created okay, return the full path
@@ -835,9 +835,9 @@ public void printHeader(PrintWriter pFile, int pPiece)
 public void printSeparator(PrintWriter pFile)
 {
 
-pFile.println(
-  "--------------------------------------------------------------------------"
-        + "------");
+    pFile.println(
+        "-----------------------------------------------------------------"
+        + "---------------");
 
 }//end of FlagReportPrinter::printSeparator
 //-----------------------------------------------------------------------------
@@ -909,11 +909,11 @@ String truncate(String pSource, int pLength)
 public double calculateComputedValue1(int pAmplitude)
 {
 
-double offset = (pAmplitude - hdwVs.nominalWallChartPosition)
+    double offset = (pAmplitude - hdwVs.nominalWallChartPosition)
                                                         * hdwVs.wallChartScale;
 
-//calculate wall at cursor y position relative to nominal wall value
-return (hdwVs.nominalWall + offset);
+    //calculate wall at cursor y position relative to nominal wall value
+    return (hdwVs.nominalWall + offset);
 
 }//end of FlagReportPrinter::calculateComputedValue1
 //-----------------------------------------------------------------------------
@@ -1006,7 +1006,6 @@ public boolean isNumerical(char pInput)
 
 }//end of FlagReportPrinter::isNumerical
 //-----------------------------------------------------------------------------
-
 
 }//end of class FlagReportPrinter
 //-----------------------------------------------------------------------------

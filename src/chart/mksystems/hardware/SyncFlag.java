@@ -28,7 +28,7 @@ package chart.mksystems.hardware;
 
 public class SyncFlag extends Object{
 
-boolean flag = false;
+    boolean flag = false;
 
 //-----------------------------------------------------------------------------
 // SyncFlag::SyncFlag (constructor)
@@ -50,8 +50,8 @@ public SyncFlag()
 public synchronized void set(boolean pState)
 {
 
-flag = pState;
-    
+    flag = pState;
+
 }//end of SyncFlag::set
 //-----------------------------------------------------------------------------
 
@@ -66,11 +66,11 @@ flag = pState;
 public synchronized boolean getAndClear()
 {
 
-boolean flagNow = flag;
+    boolean flagNow = flag;
 
-flag = false;
+    flag = false;
 
-return(flagNow);
+    return(flagNow);
 
 }//end of SyncFlag::getAndClear
 //-----------------------------------------------------------------------------

@@ -27,8 +27,8 @@ package chart.mksystems.stripchart;
 
 public class TraceGlobals{
 
-int bufOffset;
-int scrollCount;
+    int bufOffset;
+    int scrollCount;
 
 }//end of class TraceGlobals
 //-----------------------------------------------------------------------------

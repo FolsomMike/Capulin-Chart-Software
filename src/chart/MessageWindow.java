@@ -37,35 +37,35 @@ public JLabel message;
 // MessageWindow::MessageWindow (constructor)
 //
 //
-  
+
 public MessageWindow(JFrame pFrame, String pMessage)
 {
 
-super(pFrame, "Info");
+    super(pFrame, "Info");
 
-setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
-JPanel panel = new JPanel();
-panel.setOpaque(true);
+    JPanel panel = new JPanel();
+    panel.setOpaque(true);
 
-message = new JLabel(pMessage);
-panel.add(message);
+    message = new JLabel(pMessage);
+    panel.add(message);
 
-//have to use getContentPane to add a panel - seems though some other components
-//can be added directly to the object but not panels
-getContentPane().add(panel);
+    //have to use getContentPane to add a panel - seems though some other
+    //components can be added directly to the object but not panels
+    getContentPane().add(panel);
 
-pack();
+    pack();
 
-//position in center of parent frame
-Rectangle r = pFrame.getBounds();
-setLocation(((r.x + r.width)/2) - (getWidth()/2),
-        ((r.y + r.height)/2) - (getHeight()/2));
+    //position in center of parent frame
+    Rectangle r = pFrame.getBounds();
+    setLocation(((r.x + r.width)/2) - (getWidth()/2),
+            ((r.y + r.height)/2) - (getHeight()/2));
 
-setVisible(true);
+    setVisible(true);
 
 }//end of MessageWindow::MessageWindow (constructor)
-//-----------------------------------------------------------------------------    
+//-----------------------------------------------------------------------------
 
 }//end of class MessageWindow
 //-----------------------------------------------------------------------------

@@ -165,13 +165,13 @@ public void actionPerformed(ActionEvent e)
         setVisible(false);
         dispose();  //destroy the dialog window
         return;
-        }
+    }
 
     if (source.getActionCommand().equalsIgnoreCase("Cancel")){
          setVisible(false);
          dispose();  //destroy the dialog window
         return;
-        }
+    }
 
 }//end of Change::actionPerformed
 //-----------------------------------------------------------------------------
@@ -197,7 +197,7 @@ boolean savePreset()
         "You must enter a Preset name.",
         "Error", JOptionPane.ERROR_MESSAGE);
         return(false);
-        }
+    }
     else
         presetSelected = true;
 
@@ -210,7 +210,7 @@ boolean savePreset()
         "The Preset name cannot contain:  <>/?:\"\\|*",
         "Error", JOptionPane.ERROR_MESSAGE);
         return(false);
-        }
+    }
 
     //if the name to be used for the preset does not end with ".preset" then add it
     //as a suffix to make the presets more identifiable
@@ -231,7 +231,7 @@ boolean savePreset()
 
         if (n != JOptionPane.YES_OPTION) return(false);  //bail out if user cancels
 
-        }
+    }
 
     File primaryFolder = new File (primaryDataPath + currentJobName);
 
@@ -251,7 +251,7 @@ boolean savePreset()
             "Error", JOptionPane.ERROR_MESSAGE);
             return(false);
 
-        }
+    }
 
     //signal the class which invoked this window that user has acted and pass back
     //the name of the file/folder acted on
@@ -320,7 +320,7 @@ boolean copyFile(String pSource, String pDest)
         while ((c = in.read()) != -1) {
             out.write(c); }
 
-        }
+    }
     catch(IOException e){
         System.err.println(getClass().getName() + " - Error: 325");
         return (false);
@@ -329,10 +329,11 @@ boolean copyFile(String pSource, String pDest)
         try{
             if (in != null) in.close();
             if (out != null) out.close();
-            }
+        }
         catch(IOException e){
             System.err.println(getClass().getName() + " - Error: 334");
-            return(false);}
+            return(false);
+        }
     }
 
     return(true);

@@ -1939,7 +1939,7 @@ void loadDSPCode(int pDSPChip, int pDSPCore)
                     if(packetCnt++ >= 100){
                         getRemoteData(GET_STATUS_CMD, true);
                         packetCnt = 0;
-                        }
+                    }
 
                     place = 3; value = 0; //start over for next word
 
@@ -4368,29 +4368,41 @@ public int processPeakDataPacketX()
 
     int dspCoreFromPkt = (int)inBuffer[x++];
 
-    int flags1 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
+    int flags1 =
+            (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
-    int peak1 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
+    int peak1 =
+            (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
-    int peakLoc1 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
+    int peakLoc1 =
+            (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
-    int peakTrk1 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
+    int peakTrk1 =
+            (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
-    int flags2 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
+    int flags2 =
+            (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
-    int peak2 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
+    int peak2 =
+            (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
-    int peakLoc2 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
+    int peakLoc2 =
+            (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
-    int peakTrk2 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
+    int peakTrk2 =
+            (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
-    int flags3 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
+    int flags3 =
+            (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
-    int peak3 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
+    int peak3 =
+            (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
-    int peakLoc3 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
+    int peakLoc3 =
+            (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
-    int peakTrk3 = (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
+    int peakTrk3 =
+            (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
     return(numberReturnBytes); //number of bytes read from the socket
 
@@ -4436,33 +4448,33 @@ public void installNewRabbitFirmware()
 public void logStatus(Log pLogWindow)
 {
 
-    Log log = pLogWindow; //use shorter name
+    Log lLog = pLogWindow; //use shorter name
 
     //------------------------------------------------
 
     // if there have been socket sync errors, display message and clear count
 
     if (reSyncCount > 0){
-        log.append("----------------------------------------------\n");
-        log.append("Number of reSync errors since last report: " + reSyncCount
+        lLog.append("----------------------------------------------\n");
+        lLog.append("Number of reSync errors since last report: " + reSyncCount
         + "\nInfo for packet processed prior to sync error: \n"
         + "DSP Chip: " + reSyncDSPChip + " DSP Core: " + reSyncDSPCore
         + "\nPacket ID: " + reSyncPktID + " DSP Message ID: " + reSyncDSPMsgID);
-        log.append("\n----------------------------------------------\n");
+        lLog.append("\n----------------------------------------------\n");
     }
 
     reSyncCount = 0;
 
     //display a header to identify the board
 
-    log.appendLine("Chassis #: " + chassisAddr + "   Slot #: " + slotAddr);
+    lLog.appendLine("Chassis #: " + chassisAddr + "   Slot #: " + slotAddr);
 
     //------------------------------------------------
 
     //display number of peak data requests which had no response
     if (noResponseToPeakDataRequestCount > 0){
-        log.append("Number of Peak Data Packet Requests with no response:");
-        log.appendLine(" " + noResponseToPeakDataRequestCount);
+        lLog.append("Number of Peak Data Packet Requests with no response:");
+        lLog.appendLine(" " + noResponseToPeakDataRequestCount);
         noResponseToPeakDataRequestCount = 0;
     }
 
@@ -4470,13 +4482,10 @@ public void logStatus(Log pLogWindow)
 
     //display number of peak data requests which time out before response
     if (noResponseToPeakDataRequestTimeOutCount > 0){
-        log.append("Number of Peak Data Packet Requests which timed out:");
-        log.appendLine(" " + noResponseToPeakDataRequestTimeOutCount);
+        lLog.append("Number of Peak Data Packet Requests which timed out:");
+        lLog.appendLine(" " + noResponseToPeakDataRequestTimeOutCount);
         noResponseToPeakDataRequestTimeOutCount = 0;
     }
-
-
-
 
 }//end of UTBoard::logStatus
 //-----------------------------------------------------------------------------
@@ -4504,7 +4513,7 @@ public void shutDown()
         if (out != null) out.close();
         if (in != null) in.close();
         if (socket != null) socket.close();
-        }
+    }
     catch(IOException e){
         System.err.println(getClass().getName() + " - Error: 4509");
     }

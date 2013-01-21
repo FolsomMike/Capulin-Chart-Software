@@ -26,12 +26,12 @@ package chart.mksystems.hardware;
 
 public class AScan extends Object{
 
-public int bufSize = 1;
+    public int bufSize = 1;
 
-public int range;
-public int interfaceCrossingPosition;
+    public int range;
+    public int interfaceCrossingPosition;
 
-public int[] buffer;
+    public int[] buffer;
 
 //-----------------------------------------------------------------------------
 // AScan::AScan (constructor)
@@ -41,9 +41,9 @@ public int[] buffer;
 public AScan(int pBufSize)
 {
 
-bufSize = pBufSize;
+    bufSize = pBufSize;
 
-buffer = new int[bufSize];
+    buffer = new int[bufSize];
 
 }//end of AScan::AScan (constructor)
 //-----------------------------------------------------------------------------

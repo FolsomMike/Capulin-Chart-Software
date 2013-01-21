@@ -162,13 +162,13 @@ public void actionPerformed(ActionEvent e)
         setVisible(false);
         dispose();  //destroy the dialog window
         return;
-        }
+    }
 
     if (source.getActionCommand().equalsIgnoreCase("Cancel")){
          setVisible(false);
          dispose();  //destroy the dialog window
         return;
-        }
+    }
 
 }//end of Change::actionPerformed
 //-----------------------------------------------------------------------------
@@ -192,7 +192,7 @@ boolean deletePreset()
         "You must select a Preset.",
         "Error", JOptionPane.ERROR_MESSAGE);
         return(false);
-        }
+    }
 
     int n = JOptionPane.showConfirmDialog(
         frame,

@@ -41,32 +41,32 @@ import chart.mksystems.hardware.UTBoard;
 public class UTCalibrator extends JDialog implements ActionListener,
          WindowListener, MouseListener, MouseMotionListener, ComponentListener{
 
-JFrame frame;
-public Oscilloscope scope1;
-JPanel channelSelector, copyPanel;
-JButton minMax, viewIP;
-JToggleButton persist;
-Settings settings;
+    JFrame frame;
+    public Oscilloscope scope1;
+    JPanel channelSelector, copyPanel;
+    JButton minMax, viewIP;
+    JToggleButton persist;
+    Settings settings;
 
-CopyItemSelector copyItemSelector;
-public int currentChannelIndex=0;
-int numberOfChannels; //number of channels in the current group (chart)
-int numberOfChannelsInSystem; //number of all channels in the system
-StripChart chart;
-Hardware hardware;
-public Channel[] channels; //channels in the current group (chart)
-public Channel[] allChannels; //all channels in the system
-Gate gate;
-UTControls utControls;
-JButton copyButton, copyToAllButton;
-JButton allOnButton, allOffButton;
-Component rigidArea, rigidAreaDynamic;
+    CopyItemSelector copyItemSelector;
+    public int currentChannelIndex=0;
+    int numberOfChannels; //number of channels in the current group (chart)
+    int numberOfChannelsInSystem; //number of all channels in the system
+    StripChart chart;
+    Hardware hardware;
+    public Channel[] channels; //channels in the current group (chart)
+    public Channel[] allChannels; //all channels in the system
+    Gate gate;
+    UTControls utControls;
+    JButton copyButton, copyToAllButton;
+    JButton allOnButton, allOffButton;
+    Component rigidArea, rigidAreaDynamic;
 
-double previousDelay;
+    double previousDelay;
 
-ButtonGroup channelSelectorGroup;
+    ButtonGroup channelSelectorGroup;
 
-Font blackFont, redFont;
+    Font blackFont, redFont;
 
 //-----------------------------------------------------------------------------
 // UTCalibrator::UTCalibrator (constructor)
@@ -76,9 +76,9 @@ Font blackFont, redFont;
 public UTCalibrator(JFrame pFrame, Hardware pHardware, Settings pSettings)
 {
 
-super(pFrame, "Calibration");
+    super(pFrame, "Calibration");
 
-frame = pFrame; hardware = pHardware; settings = pSettings;
+    frame = pFrame; hardware = pHardware; settings = pSettings;
 
 }//end of UTCalibrator::UTCalibrator (constructor)
 //-----------------------------------------------------------------------------
@@ -90,94 +90,95 @@ frame = pFrame; hardware = pHardware; settings = pSettings;
 public void init()
 {
 
-addWindowListener(this);
-addComponentListener(this);
+    addWindowListener(this);
+    addComponentListener(this);
 
-//create red and black fonts for use with display objects
-HashMap<TextAttribute, Object> map =
-            new HashMap<TextAttribute, Object>();
-blackFont = new Font("Dialog", Font.PLAIN, 12);
-map.put(TextAttribute.FOREGROUND, Color.RED);
-redFont = blackFont.deriveFont(map);
+    //create red and black fonts for use with display objects
+    HashMap<TextAttribute, Object> map =
+                new HashMap<TextAttribute, Object>();
+    blackFont = new Font("Dialog", Font.PLAIN, 12);
+    map.put(TextAttribute.FOREGROUND, Color.RED);
+    redFont = blackFont.deriveFont(map);
 
-Container contentPane = getContentPane();
-contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.X_AXIS));
+    Container contentPane = getContentPane();
+    contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.X_AXIS));
 
-//create the channel selector panel with a dummy label
-channelSelector = new JPanel();
-channelSelector.setLayout(new BoxLayout(channelSelector, BoxLayout.Y_AXIS));
-channelSelector.setOpaque(true);
-channelSelector.setBorder(BorderFactory.createTitledBorder("Channels"));
-channelSelector.setAlignmentY(Component.TOP_ALIGNMENT);
-contentPane.add(channelSelector);
+    //create the channel selector panel with a dummy label
+    channelSelector = new JPanel();
+    channelSelector.setLayout(new BoxLayout(channelSelector, BoxLayout.Y_AXIS));
+    channelSelector.setOpaque(true);
+    channelSelector.setBorder(BorderFactory.createTitledBorder("Channels"));
+    channelSelector.setAlignmentY(Component.TOP_ALIGNMENT);
+    contentPane.add(channelSelector);
 
-//create a panel to hold the scope and control panels
-JPanel panel = new JPanel();
-panel.setAlignmentY(Component.TOP_ALIGNMENT);
-panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    //create a panel to hold the scope and control panels
+    JPanel panel = new JPanel();
+    panel.setAlignmentY(Component.TOP_ALIGNMENT);
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-//create a panel to hold the scope and alarm panel
-JPanel scopeAndAlarms = new JPanel();
-scopeAndAlarms.setAlignmentX(Component.LEFT_ALIGNMENT);
-scopeAndAlarms.setLayout(new BoxLayout(scopeAndAlarms, BoxLayout.X_AXIS));
+    //create a panel to hold the scope and alarm panel
+    JPanel scopeAndAlarms = new JPanel();
+    scopeAndAlarms.setAlignmentX(Component.LEFT_ALIGNMENT);
+    scopeAndAlarms.setLayout(new BoxLayout(scopeAndAlarms, BoxLayout.X_AXIS));
 
-//create the oscilloscope
-scope1 = new Oscilloscope("Scope", hardware.getUSPerDataPoint(), this, this,
-                                                                     settings);
-scope1.setAlignmentY(Component.TOP_ALIGNMENT);
-scopeAndAlarms.add(scope1);
+    //create the oscilloscope
+    scope1 = new Oscilloscope("Scope", hardware.getUSPerDataPoint(), this, this,
+                                                                      settings);
+    scope1.setAlignmentY(Component.TOP_ALIGNMENT);
+    scopeAndAlarms.add(scope1);
 
-//create a panel to hold alarm flags and various controls
-JPanel alarms = new JPanel();
-alarms.setLayout(new BoxLayout(alarms, BoxLayout.Y_AXIS));
-alarms.setOpaque(true);
-alarms.setBorder(BorderFactory.createTitledBorder("Alarms"));
-alarms.setAlignmentY(Component.TOP_ALIGNMENT);
+    //create a panel to hold alarm flags and various controls
+    JPanel alarms = new JPanel();
+    alarms.setLayout(new BoxLayout(alarms, BoxLayout.Y_AXIS));
+    alarms.setOpaque(true);
+    alarms.setBorder(BorderFactory.createTitledBorder("Alarms"));
+    alarms.setAlignmentY(Component.TOP_ALIGNMENT);
 
-minMax = new JButton("Minimize");
-minMax.setAlignmentX(Component.CENTER_ALIGNMENT);
-minMax.addActionListener(this);
-minMax.setActionCommand("Min / Max");
-minMax.setToolTipText("Minimize or Maximize the scope display.");
-alarms.add(minMax);
+    minMax = new JButton("Minimize");
+    minMax.setAlignmentX(Component.CENTER_ALIGNMENT);
+    minMax.addActionListener(this);
+    minMax.setActionCommand("Min / Max");
+    minMax.setToolTipText("Minimize or Maximize the scope display.");
+    alarms.add(minMax);
 
-//add invisible filler to spread buttons
-alarms.add(Box.createVerticalGlue());
+    //add invisible filler to spread buttons
+    alarms.add(Box.createVerticalGlue());
 
-persist = new JToggleButton("Persist");
-persist.setAlignmentX(Component.CENTER_ALIGNMENT);
-persist.addActionListener(this);
-persist.setActionCommand("Persist");
-persist.setToolTipText("Turn persistence mode on/off for the scope.");
-alarms.add(persist);
+    persist = new JToggleButton("Persist");
+    persist.setAlignmentX(Component.CENTER_ALIGNMENT);
+    persist.addActionListener(this);
+    persist.setActionCommand("Persist");
+    persist.setToolTipText("Turn persistence mode on/off for the scope.");
+    alarms.add(persist);
 
-alarms.add(Box.createRigidArea(new Dimension(0,3))); //vertical spacer
+    alarms.add(Box.createRigidArea(new Dimension(0,3))); //vertical spacer
 
-viewIP = new JButton("View IP");
-viewIP.setAlignmentX(Component.CENTER_ALIGNMENT);
-viewIP.addMouseListener(this);
-viewIP.setName("View IP"); //used by the mouse listener functions
-viewIP.setToolTipText("Temporarily set delay to zero to view initial pulse.");
-alarms.add(viewIP);
+    viewIP = new JButton("View IP");
+    viewIP.setAlignmentX(Component.CENTER_ALIGNMENT);
+    viewIP.addMouseListener(this);
+    viewIP.setName("View IP"); //used by the mouse listener functions
+    viewIP.setToolTipText(
+                        "Temporarily set delay to zero to view initial pulse.");
+    alarms.add(viewIP);
 
-scopeAndAlarms.add(alarms);
-panel.add(scopeAndAlarms);
+    scopeAndAlarms.add(alarms);
+    panel.add(scopeAndAlarms);
 
-//create the window used to display items selected for copying
-copyItemSelector = new CopyItemSelector(frame);
-copyItemSelector.init();
+    //create the window used to display items selected for copying
+    copyItemSelector = new CopyItemSelector(frame);
+    copyItemSelector.init();
 
-utControls = new UTControls(frame, scope1.getOscopeCanvas(), hardware,
+    utControls = new UTControls(frame, scope1.getOscopeCanvas(), hardware,
                                                        copyItemSelector, this);
-utControls.init();
-utControls.setAlignmentX(Component.LEFT_ALIGNMENT);
-panel.add(utControls);
+    utControls.init();
+    utControls.setAlignmentX(Component.LEFT_ALIGNMENT);
+    panel.add(utControls);
 
-contentPane.add(panel);
+    contentPane.add(panel);
 
-setLocation(settings.utCalWindowLocationX, settings.utCalWindowLocationY);
+    setLocation(settings.utCalWindowLocationX, settings.utCalWindowLocationY);
 
-pack();
+    pack();
 
 }//end of UTCalibrator::init
 //-----------------------------------------------------------------------------
@@ -193,10 +194,10 @@ pack();
 public void setCopyItemsWindowLocation()
 {
 
-//set the position of the "Copy Items" window so that it is to the right of the
-//calibrator window
+    //set the position of the "Copy Items" window so that it is to the right of
+    //the calibrator window
 
-copyItemSelector.setLocation(getWidth() + (int)getLocation().getX(),
+    copyItemSelector.setLocation(getWidth() + (int)getLocation().getX(),
                                                 (int)getLocation().getY());
 
 }//end of UTCalibrator::setCopyItemsWindowLocation
@@ -211,64 +212,64 @@ copyItemSelector.setLocation(getWidth() + (int)getLocation().getX(),
 void displayData(int pRange, int pInterfaceCrossingPosition, int[] pUTAscanData)
 {
 
-Channel ch = channels[currentChannelIndex]; //use shorter name
+    Channel ch = channels[currentChannelIndex]; //use shorter name
 
-// if pInterfaceCrossingPosition is -1, then tracking is off
-// if greater than -1, then tracking is on
+    // if pInterfaceCrossingPosition is -1, then tracking is off
+    // if greater than -1, then tracking is on
 
-//adjust the gate start and end positions
-//if interface tracking is off, the positions are transferred as is
-//if interface tracking is on, the positions are added to the interface
-//crossing point so that they are relative to the interface
+    //adjust the gate start and end positions
+    //if interface tracking is off, the positions are transferred as is
+    //if interface tracking is on, the positions are added to the interface
+    //crossing point so that they are relative to the interface
 
-if (!ch.getInterfaceTracking()){
+    if (!ch.getInterfaceTracking()){
 
-    for (int i = 0; i < ch.getNumberOfGates(); i++){
-        ch.gates[i].adjustPositionsNoTracking();
-        //set to -1 to flag the interface tracking is off
-        ch.gates[0].interfaceCrossingPixAdjusted = -1;
-        }
+        for (int i = 0; i < ch.getNumberOfGates(); i++){
+            ch.gates[i].adjustPositionsNoTracking();
+            //set to -1 to flag the interface tracking is off
+            ch.gates[0].interfaceCrossingPixAdjusted = -1;
+            }
 
-    for (int i=0; i < ch.getNumberOfDACGates(); i++)
-        if (ch.dacGates[i].getActive())
-            ch.dacGates[i].adjustPositionsNoTracking();
+        for (int i=0; i < ch.getNumberOfDACGates(); i++)
+            if (ch.dacGates[i].getActive())
+                ch.dacGates[i].adjustPositionsNoTracking();
 
     }//if (!channels[currentChannelIndex].getInterfaceTracking())
-else{
+    else{
 
-    //translate the interface crossing position from relative to the initial
-    //pulse to relative to the left edge of the scope display
-    //multiply pInterfaceCrossingPosition by .015 to convert from samples
-    //of 15 ns each to total us
-    //interface gate MUST be gate 0 for compatibility with DSP code
+        //translate the interface crossing position from relative to the initial
+        //pulse to relative to the left edge of the scope display
+        //multiply pInterfaceCrossingPosition by .015 to convert from samples
+        //of 15 ns each to total us
+        //interface gate MUST be gate 0 for compatibility with DSP code
 
-    ch.gates[0].interfaceCrossingPixAdjusted =
-     (int)((double)((pInterfaceCrossingPosition * 0.015)
-        / ch.uSPerPixel) - ch.delayPix);
+        ch.gates[0].interfaceCrossingPixAdjusted =
+         (int)((double)((pInterfaceCrossingPosition * 0.015)
+            / ch.uSPerPixel) - ch.delayPix);
 
-    int offset = ch.gates[0].interfaceCrossingPixAdjusted;
+        int offset = ch.gates[0].interfaceCrossingPixAdjusted;
 
-    //compute all gate start positions relative to the interface crossing
-    // do not do this for gate 0 - the interface gate is always positioned
-    // absolutely
-    //interface gate MUST be gate 0 for compatibility with DSP code
+        //compute all gate start positions relative to the interface crossing
+        // do not do this for gate 0 - the interface gate is always positioned
+        // absolutely
+        //interface gate MUST be gate 0 for compatibility with DSP code
 
-    for (int i = 1; i < ch.getNumberOfGates(); i++)
-        ch.gates[i].adjustPositionsWithTracking(offset);
+        for (int i = 1; i < ch.getNumberOfGates(); i++)
+            ch.gates[i].adjustPositionsWithTracking(offset);
 
-    //interface gate does not track the interface
-    ch.gates[0].adjustPositionsNoTracking();
+        //interface gate does not track the interface
+        ch.gates[0].adjustPositionsNoTracking();
 
-    //translate the positions for the DAC gates
-    for (int i=0; i < ch.getNumberOfDACGates(); i++)
-        if (ch.dacGates[i].getActive())
-            ch.dacGates[i].adjustPositionsWithTracking(offset);
+        //translate the positions for the DAC gates
+        for (int i=0; i < ch.getNumberOfDACGates(); i++)
+            if (ch.dacGates[i].getActive())
+                ch.dacGates[i].adjustPositionsWithTracking(offset);
 
     }// else of if (!ch.getInterfaceTracking())
 
-if (pUTAscanData != null && scope1 != null)
-    scope1.displayData(pRange, ch.gates[0].interfaceCrossingPixAdjusted,
-                                                                pUTAscanData);
+    if (pUTAscanData != null && scope1 != null)
+        scope1.displayData(pRange, ch.gates[0].interfaceCrossingPixAdjusted,
+                                                                 pUTAscanData);
 
 }//end of UTCalibrator::displayData
 //-----------------------------------------------------------------------------
@@ -288,26 +289,26 @@ public void setChannels(int pNumberOfChannels, Channel[] pChannels,
       StripChart pChart, int pNumberOfChannelsInSystem, Channel[] pAllChannels)
 {
 
-numberOfChannelsInSystem = pNumberOfChannelsInSystem;
-allChannels = pAllChannels;
+    numberOfChannelsInSystem = pNumberOfChannelsInSystem;
+    allChannels = pAllChannels;
 
-numberOfChannels = pNumberOfChannels; channels = pChannels;
-chart = pChart;
+    numberOfChannels = pNumberOfChannels; channels = pChannels;
+    chart = pChart;
 
-//set the current channel to that last viewed for the current chart
-//the first time, through the value will be 0, the first channel
+    //set the current channel to that last viewed for the current chart
+    //the first time, through the value will be 0, the first channel
 
-currentChannelIndex = chart.lastAScanChannel;
+    currentChannelIndex = chart.lastAScanChannel;
 
-scope1.setChannel(channels[currentChannelIndex], chart.getTitle());
+    scope1.setChannel(channels[currentChannelIndex], chart.getTitle());
 
-//this also recalculates all UT values
-utControls.setChannel(chart, channels[currentChannelIndex]);
+    //this also recalculates all UT values
+    utControls.setChannel(chart, channels[currentChannelIndex]);
 
-setupChannelSelectorPanel();
+    setupChannelSelectorPanel();
 
-pack();
-repaint(); //force update of label on scope
+    pack();
+    repaint(); //force update of label on scope
 
 }//end of UTCalibrator::setChannels
 //-----------------------------------------------------------------------------
@@ -322,131 +323,134 @@ repaint(); //force update of label on scope
 public void setupChannelSelectorPanel()
 {
 
-//if channelSelectorGroup is not null, then this function has already been
-//called so remove previous components before installing new ones
-if (channelSelectorGroup != null)
-    channelSelector.removeAll();
+    //if channelSelectorGroup is not null, then this function has already been
+    //called so remove previous components before installing new ones
+    if (channelSelectorGroup != null)
+        channelSelector.removeAll();
 
-//setting the pointer to a new object will release the old one if this
-//function has been called before
-channelSelectorGroup = new ButtonGroup();
+    //setting the pointer to a new object will release the old one if this
+    //function has been called before
+    channelSelectorGroup = new ButtonGroup();
 
-JPanel allSelectors, panel;
-JRadioButton rb;
+    JPanel allSelectors, panel;
+    JRadioButton rb;
 
-//put all channel selectors in a parent panel so they can be aligned
-allSelectors = new JPanel();
-allSelectors.setLayout(new BoxLayout(allSelectors, BoxLayout.Y_AXIS));
-allSelectors.setAlignmentX(Component.LEFT_ALIGNMENT);
-channelSelector.add(allSelectors); //add the sub-panel to the parent
+    //put all channel selectors in a parent panel so they can be aligned
+    allSelectors = new JPanel();
+    allSelectors.setLayout(new BoxLayout(allSelectors, BoxLayout.Y_AXIS));
+    allSelectors.setAlignmentX(Component.LEFT_ALIGNMENT);
+    channelSelector.add(allSelectors); //add the sub-panel to the parent
 
-for (int i=0; i < numberOfChannels; i++){
+    for (int i=0; i < numberOfChannels; i++){
 
-    //create a panel to hold each radio button with its accompanying copy button
-    panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        //create a panel to hold each radio button with its accompanying copy
+        //button
+        panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+        panel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-    rb = new JRadioButton(channels[i].shortTitle);
+        rb = new JRadioButton(channels[i].shortTitle);
 
-    channels[i].calRadioButton = rb; //store a reference to the radio button
+        channels[i].calRadioButton = rb; //store a reference to the radio button
 
-    //if the channel is off, display in red and change tool tip
-    setChannelSelectorColor(channels[i]);
+        //if the channel is off, display in red and change tool tip
+        setChannelSelectorColor(channels[i]);
 
-    rb.addActionListener(this);
+        rb.addActionListener(this);
 
-    rb.setActionCommand(Integer.toString(i)); //use index as the action string
+        //use index as the action string
+        rb.setActionCommand(Integer.toString(i));
 
-    // select the currently active channel
-    if (i == currentChannelIndex) rb.setSelected(true);
+        // select the currently active channel
+        if (i == currentChannelIndex) rb.setSelected(true);
 
-    channelSelectorGroup.add(rb); //group the radio buttons
+        channelSelectorGroup.add(rb); //group the radio buttons
 
-    panel.add(rb); //add the radio button to the sub-panel
+        panel.add(rb); //add the radio button to the sub-panel
 
-    //add the copy button to the sub-panel so it displays to the right
-    JButton b = new JButton("<");
-    //set the buttons name to the index number of its owner channel so when the
-    //button is clicked the associated channel can be discerned
-    b.setName(Integer.toString(i));
-    //get rid of the blank space around the text so button can be smaller
-    b.setMargin(new Insets(0, 0, 0, 0));
-    setSizes(b, 15, 18); //make button small
-    b.addActionListener(this);
-    b.setActionCommand("Copy to This Channel");
-    b.setToolTipText("Copy settings to this channel.");
-    b.setVisible(false);
-    channels[i].copyButton = b; //store a reference to the copy button
-    panel.add(b);
+        //add the copy button to the sub-panel so it displays to the right
+        JButton b = new JButton("<");
+        //set the buttons name to the index number of its owner channel so when
+        //the button is clicked the associated channel can be discerned
+        b.setName(Integer.toString(i));
+        //get rid of the blank space around the text so button can be smaller
+        b.setMargin(new Insets(0, 0, 0, 0));
+        setSizes(b, 15, 18); //make button small
+        b.addActionListener(this);
+        b.setActionCommand("Copy to This Channel");
+        b.setToolTipText("Copy settings to this channel.");
+        b.setVisible(false);
+        channels[i].copyButton = b; //store a reference to the copy button
+        panel.add(b);
 
-    allSelectors.add(panel); //add the sub-panel to the parent
+        allSelectors.add(panel); //add the sub-panel to the parent
 
-    }
+        }
 
-channelSelector.add(Box.createRigidArea(new Dimension(0,15))); //vertical spacer
+    //vertical spacer
+    channelSelector.add(Box.createRigidArea(new Dimension(0,15)));
 
-//create a panel to hold the "Copy", "Cancel", and other buttons so that they
-//can be centered
-copyPanel = new JPanel();
-copyPanel.setLayout(new BoxLayout(copyPanel, BoxLayout.Y_AXIS));
-copyPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    //create a panel to hold the "Copy", "Cancel", and other buttons so that
+    //they can be centered
+    copyPanel = new JPanel();
+    copyPanel.setLayout(new BoxLayout(copyPanel, BoxLayout.Y_AXIS));
+    copyPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-//add a button for turning all channels on
-allOnButton = new JButton("All On");
-allOnButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-allOnButton.addActionListener(this);
-allOnButton.setActionCommand("All On");
-allOnButton.setToolTipText("Turn all channels on.");
-copyPanel.add(allOnButton);
+    //add a button for turning all channels on
+    allOnButton = new JButton("All On");
+    allOnButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+    allOnButton.addActionListener(this);
+    allOnButton.setActionCommand("All On");
+    allOnButton.setToolTipText("Turn all channels on.");
+    copyPanel.add(allOnButton);
 
-copyPanel.add(Box.createRigidArea(new Dimension(0,4)));
+    copyPanel.add(Box.createRigidArea(new Dimension(0,4)));
 
-//add a button for turning all channels off
-allOffButton = new JButton("All Off");
-allOffButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-allOffButton.addActionListener(this);
-allOffButton.setActionCommand("All Off");
-allOffButton.setToolTipText("Turn all channels off.");
-copyPanel.add(allOffButton);
+    //add a button for turning all channels off
+    allOffButton = new JButton("All Off");
+    allOffButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+    allOffButton.addActionListener(this);
+    allOffButton.setActionCommand("All Off");
+    allOffButton.setToolTipText("Turn all channels off.");
+    copyPanel.add(allOffButton);
 
-copyPanel.add(Box.createRigidArea(new Dimension(0,4)));
+    copyPanel.add(Box.createRigidArea(new Dimension(0,4)));
 
-//add a button for copying the selected channel settings to other channel(s)
-copyButton = new JButton("Copy");
-copyButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-copyButton.addActionListener(this);
-copyButton.setActionCommand("Copy");
-copyButton.setToolTipText(
-                "Copy settings for selected channel to other channel(s).");
-copyPanel.add(copyButton);
+    //add a button for copying the selected channel settings to other channel(s)
+    copyButton = new JButton("Copy");
+    copyButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+    copyButton.addActionListener(this);
+    copyButton.setActionCommand("Copy");
+    copyButton.setToolTipText(
+                    "Copy settings for selected channel to other channel(s).");
+    copyPanel.add(copyButton);
 
-//create a vertical spacer between the "Cancel Copy" and "Copy to All" buttons
-//to help prevent accidental clicking of the latter -- make the spacer invisible
-//(it's not really visible anyway) so that it doesn't create a space until the
-//"Copy" button is clicked
-rigidAreaDynamic = Box.createRigidArea(new Dimension(0,60));
-rigidAreaDynamic.setVisible(false);
-copyPanel.add(rigidAreaDynamic);
+    //create a vertical spacer between the "Cancel Copy" and "Copy to All"
+    //buttons to help prevent accidental clicking of the latter -- make the
+    //spacer invisible (it's not really visible anyway) so that it doesn't
+    //create a space until the "Copy" button is clicked
+    rigidAreaDynamic = Box.createRigidArea(new Dimension(0,60));
+    rigidAreaDynamic.setVisible(false);
+    copyPanel.add(rigidAreaDynamic);
 
-//add a button for copying the selected channel settings to all channels
-//this button is hidden until the "Copy" button is clicked
-copyToAllButton = new JButton("Copy to All");
-copyToAllButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-copyToAllButton.setVisible(false);
-copyToAllButton.addActionListener(this);
-copyToAllButton.setActionCommand("Copy to All");
-copyToAllButton.setToolTipText(
-                "Copy settings for selected channel to all other channels.");
-copyPanel.add(copyToAllButton);
+    //add a button for copying the selected channel settings to all channels
+    //this button is hidden until the "Copy" button is clicked
+    copyToAllButton = new JButton("Copy to All");
+    copyToAllButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+    copyToAllButton.setVisible(false);
+    copyToAllButton.addActionListener(this);
+    copyToAllButton.setActionCommand("Copy to All");
+    copyToAllButton.setToolTipText(
+                  "Copy settings for selected channel to all other channels.");
+    copyPanel.add(copyToAllButton);
 
-//set the panel's max size to unlimited so it will fill the width of its
-//parent panel, setting max height to it's preferred height keeps it from
-//growing vertically -- no way to only set max width only
-copyPanel.setMaximumSize(new Dimension(Short.MAX_VALUE,
-        copyPanel.getPreferredSize().height));
+    //set the panel's max size to unlimited so it will fill the width of its
+    //parent panel, setting max height to it's preferred height keeps it from
+    //growing vertically -- no way to only set max width only
+    copyPanel.setMaximumSize(new Dimension(Short.MAX_VALUE,
+            copyPanel.getPreferredSize().height));
 
-channelSelector.add(copyPanel);
+    channelSelector.add(copyPanel);
 
 }//end of UTCalibrator::setupChannelSelectorPanel
 //-----------------------------------------------------------------------------

@@ -34,11 +34,11 @@ import chart.mksystems.threadsafe.*;
 public class DACGate extends BasicGate{
 
 
-boolean doInterfaceTracking = false;
+    boolean doInterfaceTracking = false;
 
-int scopeMax;
-double softwareGain;
-SyncedInteger gainForRemote;
+    int scopeMax;
+    double softwareGain;
+    SyncedInteger gainForRemote;
 
 //-----------------------------------------------------------------------------
 // DACGate::DACGate (constructor)
@@ -51,18 +51,18 @@ public DACGate(IniFile pConfigFile, int pChannelIndex, int pGateIndex,
                                  SyncedVariableSet pSyncedVarMgr, int pScopeMax)
 {
 
-super(pSyncedVarMgr);
+    super(pSyncedVarMgr);
 
-configFile = pConfigFile; channelIndex = pChannelIndex; gateIndex = pGateIndex;
-scopeMax = pScopeMax;
+    configFile = pConfigFile; channelIndex = pChannelIndex;
+    gateIndex = pGateIndex; scopeMax = pScopeMax;
 
-gainForRemote = new SyncedInteger(syncedVarMgr); gainForRemote.init();
+    gainForRemote = new SyncedInteger(syncedVarMgr); gainForRemote.init();
 
-//read the configuration file and create/setup the charting/control elements
-configure(configFile);
+    //read the configuration file and create/setup the charting/control elements
+    configure(configFile);
 
-//unlike flaw/wall gates, DAC gates are not set active until the user explicitly
-//sets them active
+    //unlike flaw/wall gates, DAC gates are not set active until the user
+    //explicitly sets them active
 
 }//end of DACGate::DACGate (constructor)
 //-----------------------------------------------------------------------------
@@ -150,10 +150,10 @@ public void calculateGateTimeLocation(double pUSPerPixel, int pDelayPix,
                                              int pCanvasHeight, int pVertOffset)
 {
 
-super.calculateGateTimeLocation(
+    super.calculateGateTimeLocation(
                         pUSPerPixel, pDelayPix, pCanvasHeight, pVertOffset);
 
-calculateDACGain(false);
+    calculateDACGain(false);
 
 }//end of BasicGate::calculateGateTimeLocation
 //-----------------------------------------------------------------------------
@@ -241,10 +241,10 @@ public void calculateDACGain(boolean pForceUpdate)
 public void setActive(boolean pOn)
 {
 
-gateActive = pOn;
+    gateActive = pOn;
 
-//update the flags to reflect the change
-setFlags();
+    //update the flags to reflect the change
+    setFlags();
 
 }//end of DACGate::setActive
 //-----------------------------------------------------------------------------
@@ -258,7 +258,7 @@ setFlags();
 public boolean getActive()
 {
 
-return gateActive;
+    return gateActive;
 
 }//end of DACGate::getActive
 //-----------------------------------------------------------------------------
@@ -272,7 +272,7 @@ return gateActive;
 public void setSelected(boolean pValue)
 {
 
-selectedFlag = pValue;
+    selectedFlag = pValue;
 
 }//end of DACGate::setSelected
 //-----------------------------------------------------------------------------
@@ -286,7 +286,7 @@ selectedFlag = pValue;
 public boolean getSelected()
 {
 
-return selectedFlag;
+    return selectedFlag;
 
 }//end of DACGate::getSelected
 //-----------------------------------------------------------------------------
@@ -301,27 +301,27 @@ return selectedFlag;
 public void copyFromGate(DACGate pSourceGate)
 {
 
-gateStart = pSourceGate.gateStart;
-gateStartTrackingOn = pSourceGate.gateStartTrackingOn;
-gateStartTrackingOff = pSourceGate.gateStartTrackingOff;
-gatePixStart = pSourceGate.gatePixStart;
-gatePixStartAdjusted = pSourceGate.gatePixStartAdjusted;
-gatePixEnd = pSourceGate.gatePixEnd;
-gatePixEndAdjusted = pSourceGate.gatePixEndAdjusted;
-gateWidth = pSourceGate.gateWidth;
-gateLevel = pSourceGate.gateLevel;
-gatePixLevel = pSourceGate.gatePixLevel;
+    gateStart = pSourceGate.gateStart;
+    gateStartTrackingOn = pSourceGate.gateStartTrackingOn;
+    gateStartTrackingOff = pSourceGate.gateStartTrackingOff;
+    gatePixStart = pSourceGate.gatePixStart;
+    gatePixStartAdjusted = pSourceGate.gatePixStartAdjusted;
+    gatePixEnd = pSourceGate.gatePixEnd;
+    gatePixEndAdjusted = pSourceGate.gatePixEndAdjusted;
+    gateWidth = pSourceGate.gateWidth;
+    gateLevel = pSourceGate.gateLevel;
+    gatePixLevel = pSourceGate.gatePixLevel;
 
-previousGateStart = pSourceGate.previousGateStart;
-previousGateWidth = pSourceGate.previousGateWidth;
+    previousGateStart = pSourceGate.previousGateStart;
+    previousGateWidth = pSourceGate.previousGateWidth;
 
-interfaceCrossingPixAdjusted = pSourceGate.interfaceCrossingPixAdjusted;
+    interfaceCrossingPixAdjusted = pSourceGate.interfaceCrossingPixAdjusted;
 
-gateActive = pSourceGate.gateActive;
-doInterfaceTracking = pSourceGate.doInterfaceTracking;
+    gateActive = pSourceGate.gateActive;
+    doInterfaceTracking = pSourceGate.doInterfaceTracking;
 
-//update the flags to reflect any changes
-setFlags();
+    //update the flags to reflect any changes
+    setFlags();
 
 }//end of DACGate::copyFromGate
 //-----------------------------------------------------------------------------
@@ -337,10 +337,10 @@ setFlags();
 public void setInterfaceTracking(boolean pOn)
 {
 
-doInterfaceTracking = pOn;
+    doInterfaceTracking = pOn;
 
-//update the flags to reflect the change
-setFlags();
+    //update the flags to reflect the change
+    setFlags();
 
 }//end of DACGate::setInterfaceTracking
 //-----------------------------------------------------------------------------
@@ -358,13 +358,13 @@ setFlags();
 public boolean isPositionChanged()
 {
 
-if (     gateStart.getDataChangedFlag()
-      || gateWidth.getDataChangedFlag()
-      || gainForRemote.getDataChangedFlag())
+    if (     gateStart.getDataChangedFlag()
+          || gateWidth.getDataChangedFlag()
+          || gainForRemote.getDataChangedFlag())
 
-    return(true);
-else
-    return(false);
+        return(true);
+    else
+        return(false);
 
 }//end of DACGate::isPositionChanged
 //-----------------------------------------------------------------------------
@@ -380,13 +380,14 @@ else
 private void configure(IniFile pConfigFile)
 {
 
-String whichGate = "Channel " + (channelIndex+1) + " DAC Gate " + (gateIndex+1);
+    String whichGate =
+                "Channel " + (channelIndex+1) + " DAC Gate " + (gateIndex+1);
 
-title =
-      pConfigFile.readString(whichGate, "Title", "DAC Gate " + (gateIndex+1));
+    title =
+        pConfigFile.readString(whichGate, "Title", "DAC Gate " + (gateIndex+1));
 
-shortTitle = pConfigFile.readString(
-                            whichGate, "Short Title", "DG " + (gateIndex+1));
+    shortTitle = pConfigFile.readString(
+                               whichGate, "Short Title", "DG " + (gateIndex+1));
 
 }//end of DACGate::configure
 //-----------------------------------------------------------------------------
@@ -408,17 +409,18 @@ shortTitle = pConfigFile.readString(
 public synchronized void loadCalFile(IniFile pCalFile)
 {
 
-String section = "Channel " + (channelIndex+1) + " DAC Gate " + (gateIndex+1);
+    String section =
+                "Channel " + (channelIndex+1) + " DAC Gate " + (gateIndex+1);
 
 
-setActive(pCalFile.readBoolean(section, "Gate is Active", false));
-gateStart.setValue(pCalFile.readDouble(section, "Gate Start", 50));
-gateStartTrackingOn = pCalFile.readDouble(section,
-                "Gate Start with Interface Tracking", 50);
-gateStartTrackingOff = pCalFile.readDouble(section,
-            "Gate Start without Interface Tracking", 50);
-gateWidth.setValue(pCalFile.readDouble(section, "Gate Width", 2));
-setLevel(pCalFile.readInt(section, "Gate Level", 15), true);
+    setActive(pCalFile.readBoolean(section, "Gate is Active", false));
+    gateStart.setValue(pCalFile.readDouble(section, "Gate Start", 50));
+    gateStartTrackingOn = pCalFile.readDouble(section,
+                    "Gate Start with Interface Tracking", 50);
+    gateStartTrackingOff = pCalFile.readDouble(section,
+                "Gate Start without Interface Tracking", 50);
+    gateWidth.setValue(pCalFile.readDouble(section, "Gate Width", 2));
+    setLevel(pCalFile.readInt(section, "Gate Level", 15), true);
 
 }//end of DACGate::loadCalFile
 //-----------------------------------------------------------------------------
@@ -436,16 +438,17 @@ setLevel(pCalFile.readInt(section, "Gate Level", 15), true);
 public void saveCalFile(IniFile pCalFile)
 {
 
-String section = "Channel " + (channelIndex+1) + " DAC Gate " + (gateIndex+1);
+    String section =
+            "Channel " + (channelIndex+1) + " DAC Gate " + (gateIndex+1);
 
-pCalFile.writeBoolean(section, "Gate is Active", getActive());
-pCalFile.writeDouble(section, "Gate Start", gateStart.getValue());
-pCalFile.writeDouble(section,
-                "Gate Start with Interface Tracking",  gateStartTrackingOn);
-pCalFile.writeDouble(section,
-            "Gate Start without Interface Tracking",  gateStartTrackingOff);
-pCalFile.writeDouble(section, "Gate Width", gateWidth.getValue());
-pCalFile.writeInt(section, "Gate Level", gateLevel.getValue());
+    pCalFile.writeBoolean(section, "Gate is Active", getActive());
+    pCalFile.writeDouble(section, "Gate Start", gateStart.getValue());
+    pCalFile.writeDouble(section,
+                    "Gate Start with Interface Tracking",  gateStartTrackingOn);
+    pCalFile.writeDouble(section,
+                "Gate Start without Interface Tracking",  gateStartTrackingOff);
+    pCalFile.writeDouble(section, "Gate Width", gateWidth.getValue());
+    pCalFile.writeInt(section, "Gate Level", gateLevel.getValue());
 
 }//end of DACGate::saveCalFile
 //-----------------------------------------------------------------------------

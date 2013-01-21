@@ -33,11 +33,11 @@ import java.util.*;
 
 class ChooseJob extends JDialog implements ActionListener{
 
-JFrame frame;
-JComboBox jobSelect;
-ArrayList<String> jobList;
-Xfer xfer;
-String primaryDataPath, backupDataPath;
+    JFrame frame;
+    JComboBox jobSelect;
+    ArrayList<String> jobList;
+    Xfer xfer;
+    String primaryDataPath, backupDataPath;
 
 //-----------------------------------------------------------------------------
 // ChooseJob::ChooseJob (constructor)
@@ -48,11 +48,11 @@ public ChooseJob(JFrame pFrame, String pPrimaryDataPath, String pBackupDataPath,
                                                                      Xfer pXfer)
 {
 
-super(pFrame, "Choose Job");
+    super(pFrame, "Choose Job");
 
-frame = pFrame;
-primaryDataPath = pPrimaryDataPath; backupDataPath = pBackupDataPath;
-xfer = pXfer;
+    frame = pFrame;
+    primaryDataPath = pPrimaryDataPath; backupDataPath = pBackupDataPath;
+    xfer = pXfer;
 
 }//end of ChooseJob::ChooseJob (constructor)
 //-----------------------------------------------------------------------------
@@ -64,56 +64,56 @@ xfer = pXfer;
 public void init()
 {
 
-xfer.rBoolean1 = false; //job switched flag - set true if user switches
+    xfer.rBoolean1 = false; //job switched flag - set true if user switches
 
-setModal(true); //window always on top and has focus until closed
+    setModal(true); //window always on top and has focus until closed
 
-loadJobList(); //retrieve a list of available jobs
+    loadJobList(); //retrieve a list of available jobs
 
-setLayout(new BoxLayout(getContentPane(), BoxLayout.PAGE_AXIS));
+    setLayout(new BoxLayout(getContentPane(), BoxLayout.PAGE_AXIS));
 
-JPanel tPanel;
+    JPanel tPanel;
 
-add(Box.createRigidArea(new Dimension(0,15)));
+    add(Box.createRigidArea(new Dimension(0,15)));
 
-//drop down selection list for jobs
-tPanel = new JPanel();
-tPanel.setLayout(new BoxLayout(tPanel, BoxLayout.LINE_AXIS));
-tPanel.add(Box.createRigidArea(new Dimension(5,0)));
-jobSelect = new JComboBox(jobList.toArray());
-tPanel.add(jobSelect);
-tPanel.add(Box.createRigidArea(new Dimension(5,0)));
-add(tPanel);
+    //drop down selection list for jobs
+    tPanel = new JPanel();
+    tPanel.setLayout(new BoxLayout(tPanel, BoxLayout.LINE_AXIS));
+    tPanel.add(Box.createRigidArea(new Dimension(5,0)));
+    jobSelect = new JComboBox(jobList.toArray());
+    tPanel.add(jobSelect);
+    tPanel.add(Box.createRigidArea(new Dimension(5,0)));
+    add(tPanel);
 
-add(Box.createRigidArea(new Dimension(0,15)));
+    add(Box.createRigidArea(new Dimension(0,15)));
 
-JButton button;
+    JButton button;
 
-JPanel buttonPanel = new JPanel();
-buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.LINE_AXIS));
+    JPanel buttonPanel = new JPanel();
+    buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.LINE_AXIS));
 
-buttonPanel.add(Box.createRigidArea(new Dimension(5,0)));
-buttonPanel.add(button = new JButton("Choose"));
-button.setToolTipText("Choose the selected job.");
-button.setActionCommand("Choose");
-button.addActionListener(this);
+    buttonPanel.add(Box.createRigidArea(new Dimension(5,0)));
+    buttonPanel.add(button = new JButton("Choose"));
+    button.setToolTipText("Choose the selected job.");
+    button.setActionCommand("Choose");
+    button.addActionListener(this);
 
-buttonPanel.add(Box.createHorizontalGlue()); //force space between buttons
+    buttonPanel.add(Box.createHorizontalGlue()); //force space between buttons
 
-buttonPanel.add(button = new JButton("Cancel"));
-button.setToolTipText("Cancel");
-button.setActionCommand("Cancel");
-button.addActionListener(this);
-buttonPanel.add(Box.createRigidArea(new Dimension(5,0)));
+    buttonPanel.add(button = new JButton("Cancel"));
+    button.setToolTipText("Cancel");
+    button.setActionCommand("Cancel");
+    button.addActionListener(this);
+    buttonPanel.add(Box.createRigidArea(new Dimension(5,0)));
 
-add(buttonPanel);
+    add(buttonPanel);
 
-add(Box.createRigidArea(new Dimension(0,15)));
+    add(Box.createRigidArea(new Dimension(0,15)));
 
-pack();
+    pack();
 
-setVisible(true);
-      
+    setVisible(true);
+
 }//end of ChooseJob::init
 //-----------------------------------------------------------------------------
 
@@ -126,19 +126,19 @@ setVisible(true);
 private void loadJobList()
 {
 
-//directory containing the various pertinent files
-File jobDir = new File(primaryDataPath);
-//get a list of the files/folders in the directory
-String[] configs = jobDir.list();
+    //directory containing the various pertinent files
+    File jobDir = new File(primaryDataPath);
+    //get a list of the files/folders in the directory
+    String[] configs = jobDir.list();
 
-//create a list to hold the file/folder names
-jobList = new ArrayList<String>(1000);
-jobList.addAll(Arrays.asList(configs));
-//sort the items alphabetically
-Collections.sort(jobList);
+    //create a list to hold the file/folder names
+    jobList = new ArrayList<String>(1000);
+    jobList.addAll(Arrays.asList(configs));
+    //sort the items alphabetically
+    Collections.sort(jobList);
 
-//after sorting, add the instruction text at the top so it will be displayed
-jobList.add(0, "Select a Job");
+    //after sorting, add the instruction text at the top so it will be displayed
+    jobList.add(0, "Select a Job");
 
 }//end of ChooseJob::loadJobList
 //-----------------------------------------------------------------------------
@@ -153,20 +153,20 @@ jobList.add(0, "Select a Job");
 public void actionPerformed(ActionEvent e)
 {
 
-JButton source = (JButton)(e.getSource());
+    JButton source = (JButton)(e.getSource());
 
-if (source.getActionCommand().equalsIgnoreCase("Choose")){
-    chooseSelectedJob();
-    setVisible(false);
-    dispose();  //destroy the dialog window
-    return;
-    }
+    if (source.getActionCommand().equalsIgnoreCase("Choose")){
+        chooseSelectedJob();
+        setVisible(false);
+        dispose();  //destroy the dialog window
+        return;
+        }
 
-if (source.getActionCommand().equalsIgnoreCase("Cancel")){
-    setVisible(false);
-    dispose();  //destroy the dialog window
-    return;
-    }
+    if (source.getActionCommand().equalsIgnoreCase("Cancel")){
+        setVisible(false);
+        dispose();  //destroy the dialog window
+        return;
+        }
 
 }//end of ChooseJob::actionPerformed
 //-----------------------------------------------------------------------------
@@ -180,25 +180,24 @@ if (source.getActionCommand().equalsIgnoreCase("Cancel")){
 void chooseSelectedJob()
 {
 
-String selectedJobName = (String)jobSelect.getSelectedItem();
+    String selectedJobName = (String)jobSelect.getSelectedItem();
 
-//if the user has not selected an item, display an error message
-if (selectedJobName.equalsIgnoreCase("Select a Job")){
-    JOptionPane.showMessageDialog(frame,
-    "You must select a Job.",
-    "Error", JOptionPane.ERROR_MESSAGE);
-    return;
-    }
+    //if the user has not selected an item, display an error message
+    if (selectedJobName.equalsIgnoreCase("Select a Job")){
+        JOptionPane.showMessageDialog(frame,
+        "You must select a Job.",
+        "Error", JOptionPane.ERROR_MESSAGE);
+        return;
+        }
 
-//signal the class which invoked this window that a different job has been
-//selected and pass back the name of that job
+    //signal the class which invoked this window that a different job has been
+    //selected and pass back the name of that job
 
-xfer.rBoolean1 = true; //set job selected flag to true
-xfer.rString1 = selectedJobName; //pass back the selected job name
+    xfer.rBoolean1 = true; //set job selected flag to true
+    xfer.rString1 = selectedJobName; //pass back the selected job name
 
 }//end of ChooseJob::chooseSelectedJob
 //-----------------------------------------------------------------------------
-
 
 }//end of class ChooseJob
 //-----------------------------------------------------------------------------
