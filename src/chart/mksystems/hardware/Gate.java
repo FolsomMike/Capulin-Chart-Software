@@ -392,7 +392,7 @@ private void setFlags()
     //merge into bits 15,14 of flags value
     flags |= (averaging<<14);
 
-    gateFlags.setValue(flags);
+    gateFlags.setValue(flags, true);
 
 }//end of Gate::setFlags
 //-----------------------------------------------------------------------------
@@ -1094,18 +1094,19 @@ public void loadCalFile(IniFile pCalFile)
     String section = "Channel " + (channelIndex + 1) + " Gate "
                                                             + (gateIndex + 1);
 
-    gateStart.setValue(pCalFile.readDouble(section, "Gate Start", 50));
+    gateStart.setValue(pCalFile.readDouble(section, "Gate Start", 50), true);
     gateStartTrackingOn = pCalFile.readDouble(section,
                     "Gate Start with Interface Tracking", 50);
     gateStartTrackingOff = pCalFile.readDouble(section,
                 "Gate Start without Interface Tracking", 50);
-    gateWidth.setValue(pCalFile.readDouble(section, "Gate Width", 2));
-    gateLevel.setValue(pCalFile.readInt(section, "Gate Level", 15));
-    gateHitCount.setValue(pCalFile.readInt(section, "Gate Hit Count", 0));
-    gateMissCount.setValue(pCalFile.readInt(section, "Gate Miss Count", 0));
+    gateWidth.setValue(pCalFile.readDouble(section, "Gate Width", 2), true);
+    gateLevel.setValue(pCalFile.readInt(section, "Gate Level", 15), true);
+    gateHitCount.setValue(pCalFile.readInt(section, "Gate Hit Count", 0), true);
+    gateMissCount.setValue(
+                        pCalFile.readInt(section, "Gate Miss Count", 0), true);
 
     sigProcThreshold.setValue(
-                pCalFile.readInt(section, "Signal Processing Threshold", 0));
+            pCalFile.readInt(section, "Signal Processing Threshold", 0), true);
 
     setSignalProcessing(
        pCalFile.readString(section, "Signal Processing Function", "undefined"));

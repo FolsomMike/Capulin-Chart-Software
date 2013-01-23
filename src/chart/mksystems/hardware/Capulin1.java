@@ -706,7 +706,7 @@ public void loadCalFile(IniFile pCalFile)
 {
 
     repRateInHertz.setValue(
-                pCalFile.readInt("Hardware", "Pulse Rep Rate in Hertz", 2000));
+          pCalFile.readInt("Hardware", "Pulse Rep Rate in Hertz", 2000), true);
 
     // call each channel to load its data
     for (int i = 0; i < numberOfChannels; i++)

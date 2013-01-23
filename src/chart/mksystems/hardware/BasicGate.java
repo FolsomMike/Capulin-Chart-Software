@@ -52,7 +52,7 @@ public class BasicGate extends Object{
     //  before each gate draw to set these values.  See notes in those
     //  functions.
 
-    SyncedDouble gateStart;
+    final SyncedDouble gateStart;
     double gateStartTrackingOn = 0;
     double gateStartTrackingOff = 0;
     public int gatePixStart = 0;
@@ -63,10 +63,10 @@ public class BasicGate extends Object{
     public int gatePixMidPointAdjusted = 0;
 
     public boolean gateActive;
-    SyncedDouble gateWidth;
-    SyncedInteger gateLevel;
+    final SyncedDouble gateWidth;
+    final SyncedInteger gateLevel;
     public int gatePixLevel = 0;
-    SyncedInteger gateFlags;
+    final SyncedInteger gateFlags;
 
     double previousGateStart;
     double previousGateWidth;
@@ -193,14 +193,10 @@ public void calculateGateTimeLocation(double pUSPerPixel, int pDelayPix,
 {
 
     double nGateStart =  (gatePixStart + pDelayPix) * pUSPerPixel;
-    if (gateStart.getValue() != nGateStart){
-        gateStart.setValue(nGateStart);
-    }
+    gateStart.setValue(nGateStart, false);
 
     double nGateWidth = (gatePixEnd - gatePixStart) * pUSPerPixel;
-    if (gateWidth.getValue() != nGateWidth){
-        gateWidth.setValue(nGateWidth);
-    }
+    gateWidth.setValue(nGateWidth, false);
 
     int nPixLevel = gatePixLevel; //use a temp variable - don't modify original
 
@@ -215,9 +211,7 @@ public void calculateGateTimeLocation(double pUSPerPixel, int pDelayPix,
     int nGateLevel =
             (int)Math.round(((double)nPixLevel / (double)pCanvasHeight * 100));
 
-    if (gateLevel.getValue() != nGateLevel){
-        gateLevel.setValue(nGateLevel);
-    }
+    gateLevel.setValue(nGateLevel, false);
 
 }//end of BasicGate::calculateGateTimeLocation
 //-----------------------------------------------------------------------------

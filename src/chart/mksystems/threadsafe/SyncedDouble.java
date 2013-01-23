@@ -59,12 +59,21 @@ public SyncedDouble(SyncedVariableSet pSyncedVariableSet)
 // Sets the value to pValue, sets the dataChangedFlag, and notifies the
 // manager of the change.
 //
+// If pForceUpdate is false, the value will only be updated if the new value
+// is different than the current value. If true, then the value will be
+// updated regardless of the current value -- this allows the dataChangedFlag
+// to be forcibly set.
+//
 
-public synchronized void setValue(double pValue)
+public synchronized void setValue(double pValue, boolean pForceUpdate)
 {
 
-    value = pValue;
-    setDataChangedTrue();
+    if (pForceUpdate || value != pValue){
+    
+        value = pValue;
+        setDataChangedTrue();
+
+    }
 
 }//end of SyncedDouble::setValue
 //-----------------------------------------------------------------------------

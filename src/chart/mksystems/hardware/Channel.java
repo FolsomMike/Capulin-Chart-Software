@@ -129,7 +129,7 @@ public Channel(IniFile pConfigFile, Settings pSettings, int pChannelIndex,
     flags1SetMask = new SyncedInteger(syncedVarMgr); flags1SetMask.init();
     flags1ClearMask = new SyncedInteger(syncedVarMgr); flags1ClearMask.init();
     mode = new SyncedInteger(syncedVarMgr); mode.init();
-    mode.setValue((int)UTBoard.POSITIVE_HALF);
+    mode.setValue((int)UTBoard.POSITIVE_HALF, true);
     hardwareRange = new SyncedInteger(syncedVarMgr); hardwareRange.init();
     aScanScale = new SyncedInteger(syncedVarMgr); aScanScale.init();
 
@@ -714,11 +714,7 @@ public Trace getTrace(int pGate)
 public void setFlags1(int pSetMask, boolean pForceUpdate)
 {
 
-    if (pSetMask != flags1SetMask.getValue()) pForceUpdate = true;
-
-    if (!pForceUpdate) return; //do nothing unless value change or forced
-
-    flags1SetMask.setValue(pSetMask);
+    flags1SetMask.setValue(pSetMask, pForceUpdate);
 
 }//end of Channel::setFlags1
 //-----------------------------------------------------------------------------
@@ -777,11 +773,7 @@ public void sendSetFlags1()
 public void clearFlags1(int pClearMask, boolean pForceUpdate)
 {
 
-    if (pClearMask != flags1ClearMask.getValue()) pForceUpdate = true;
-
-    if (!pForceUpdate) return; //do nothing unless value change or forced
-
-    flags1ClearMask.setValue(pClearMask);
+    flags1ClearMask.setValue(pClearMask, pForceUpdate);
 
 }//end of Channel::clearFlags1
 //-----------------------------------------------------------------------------
@@ -833,9 +825,9 @@ public void setDACEnabled(boolean pEnable, boolean pForceUpdate)
     dacEnabled = pEnable;
 
     if (dacEnabled)
-        flags1SetMask.setValue((int)UTBoard.DAC_ENABLED);
+        flags1SetMask.setValue((int)UTBoard.DAC_ENABLED, pForceUpdate);
     else
-        flags1ClearMask.setValue((int)~UTBoard.DAC_ENABLED);
+        flags1ClearMask.setValue((int)~UTBoard.DAC_ENABLED, pForceUpdate);
 
 }//end of Channel::setDACEnabled
 //-----------------------------------------------------------------------------
@@ -891,10 +883,12 @@ public void setAScanFastEnabled(boolean pEnable,
     //flag that new data needs to be sent to remotes
     if (pForceUpdate){
         if (aScanFastEnabled){
-            flags1SetMask.setValue((int)UTBoard.ASCAN_FAST_ENABLED);
+            flags1SetMask.setValue(
+                                (int)UTBoard.ASCAN_FAST_ENABLED, pForceUpdate);
         }
         else{
-            flags1ClearMask.setValue((int)~UTBoard.ASCAN_FAST_ENABLED);
+            flags1ClearMask.setValue(
+                               (int)~UTBoard.ASCAN_FAST_ENABLED, pForceUpdate);
         }
     }//if (pForceUpdate)
 
@@ -951,9 +945,11 @@ public void setAScanSlowEnabled(boolean pEnable,
     aScanSlowEnabled = pEnable;
 
     if (aScanSlowEnabled)
-        flags1SetMask.setValue((int)UTBoard.ASCAN_SLOW_ENABLED);
+        flags1SetMask.setValue(
+                                (int)UTBoard.ASCAN_SLOW_ENABLED, pForceUpdate);
     else
-        flags1ClearMask.setValue((int)~UTBoard.ASCAN_SLOW_ENABLED);
+        flags1ClearMask.setValue(
+                               (int)~UTBoard.ASCAN_SLOW_ENABLED, pForceUpdate);
 
 }//end of Channel::setAScanSlowEnabled
 //-----------------------------------------------------------------------------
@@ -1000,9 +996,9 @@ public void setAScanFreeRun(boolean pEnable, boolean pForceUpdate)
     aScanFreeRun = pEnable;
 
     if (aScanFreeRun)
-        flags1SetMask.setValue((int)UTBoard.ASCAN_FREE_RUN);
+        flags1SetMask.setValue((int)UTBoard.ASCAN_FREE_RUN, pForceUpdate);
     else
-        flags1ClearMask.setValue((int)~UTBoard.ASCAN_FREE_RUN);
+        flags1ClearMask.setValue((int)~UTBoard.ASCAN_FREE_RUN, pForceUpdate);
 
 }//end of Channel::setAScanFreeRun
 //-----------------------------------------------------------------------------
@@ -1347,7 +1343,7 @@ public void setAScanSmoothing(int pAScanSmoothing, boolean pForceUpdate)
 
     if (pForceUpdate){
 
-        aScanSmoothing.setValue(pAScanSmoothing);
+        aScanSmoothing.setValue(pAScanSmoothing, pForceUpdate);
 
         //update all gates with new averaging value
         for (int i = 0; i < numberOfGates; i++)
@@ -1448,7 +1444,7 @@ public void setMode(int pMode, boolean pForceUpdate)
 
     if (!pForceUpdate) return; //do nothing unless value change or forced
 
-    mode.setValue(pMode);
+    mode.setValue(pMode, pForceUpdate);
 
     boolean lChannelOn =
                     (mode.getValue() != UTBoard.CHANNEL_OFF) ? true : false;
@@ -1539,9 +1535,6 @@ public int getMode()
 public void setRange(double pRange, boolean pForceUpdate)
 {
 
-    int oldHardwareRange = hardwareRange.getValue();
-    int oldAScanScale = aScanScale.getValue();
-
     aScanRange = pRange;
 
     //calculate the position of the left edge of the AScan in sample counts
@@ -1567,23 +1560,23 @@ public void setRange(double pRange, boolean pForceUpdate)
     else stop = lastGateEdgePos;
 
     //calculate the number of required samples to cover the range specified
-    hardwareRange.setValue(stop - start);
+    hardwareRange.setValue(stop - start, pForceUpdate);
 
     //force sample size to be even - see notes at top of
     //UTboard.setHardwareRange for more info
     if (hardwareRange.getValue() % 2 != 0)
-        hardwareRange.setValue(hardwareRange.getValue() + 1);
+        hardwareRange.setValue(hardwareRange.getValue() + 1, pForceUpdate);
 
     //calculate the compression needed to fit at least the desired number of
     //AScan samples into the 400 sample AScan buffer - the scale factor is
     //rounded up rather than down to make sure the desired range is collected
 
     aScanScale.setValue(
-                (rightEdgeAScan - leftEdgeAScan) / UTBoard.ASCAN_SAMPLE_SIZE);
+    (rightEdgeAScan - leftEdgeAScan) / UTBoard.ASCAN_SAMPLE_SIZE, pForceUpdate);
 
     //if the range is not a perfect integer, round it up
     if (((rightEdgeAScan - leftEdgeAScan) % UTBoard.ASCAN_SAMPLE_SIZE) != 0)
-        aScanScale.setValue(aScanScale.getValue() + 1);
+        aScanScale.setValue(aScanScale.getValue() + 1, pForceUpdate);
 
 }//end of Channel::setRange
 //-----------------------------------------------------------------------------
@@ -1664,7 +1657,7 @@ public void setSoftwareGain(double pSoftwareGain, boolean pForceUpdate)
 
     if (!pForceUpdate) return; //do nothing unless value change or forced
 
-    softwareGain.setValue(pSoftwareGain);
+    softwareGain.setValue(pSoftwareGain, pForceUpdate);
 
     for (int i = 0; i < numberOfDACGates; i++)
         dacGates[i].setSoftwareGain(pSoftwareGain, pForceUpdate);
@@ -1714,14 +1707,8 @@ public void setHardwareGain(int pHardwareGain1, int pHardwareGain2,
                                                            boolean pForceUpdate)
 {
 
-    if ((pHardwareGain1 != hardwareGain1.getValue()) ||
-                                 (pHardwareGain2 != hardwareGain2.getValue() ))
-        pForceUpdate = true;
-
-    if (pForceUpdate){
-        hardwareGain1.setValue(pHardwareGain1);
-        hardwareGain2.setValue(pHardwareGain2);
-    }
+    hardwareGain1.setValue(pHardwareGain1, pForceUpdate);
+    hardwareGain2.setValue(pHardwareGain2, pForceUpdate);
 
 }//end of Channel::setHardwareGain
 //-----------------------------------------------------------------------------
@@ -2099,7 +2086,7 @@ public void setGateStart(int pGate, double pStart, boolean pForceUpdate)
 
     if (!pForceUpdate) return; //do nothing unless value change or forced
 
-    gates[pGate].gateStart.setValue(pStart);
+    gates[pGate].gateStart.setValue(pStart, pForceUpdate);
 
     //store the variable as appropriate for the interface tracking mode - this
     //allows switching back and forth between modes
@@ -2238,7 +2225,7 @@ public void setGateWidth(int pGate, double pWidth, boolean pForceUpdate)
 
     if (!pForceUpdate) return; //do nothing unless value change or forced
 
-    gates[pGate].gateWidth.setValue(pWidth);
+    gates[pGate].gateWidth.setValue(pWidth, pForceUpdate);
 
     //determine the span from the earliest gate edge to the latest (in time)
     calculateGateSpan();
@@ -2318,7 +2305,7 @@ public void setGateLevel(int pGate, int pLevel, boolean pForceUpdate)
 
     if (!pForceUpdate) return; //do nothing unless value change or forced
 
-    gates[pGate].gateLevel.setValue(pLevel);
+    gates[pGate].gateLevel.setValue(pLevel, pForceUpdate);
 
 }//end of Channel::setGateLevel
 //-----------------------------------------------------------------------------
@@ -2350,11 +2337,7 @@ public int getGateLevel(int pGate)
 public void setGateHitCount(int pGate, int pHitCount, boolean pForceUpdate)
 {
 
-    if (pHitCount != gates[pGate].gateHitCount.getValue()) pForceUpdate = true;
-
-    if (!pForceUpdate) return; //do nothing unless value change or forced
-
-    gates[pGate].gateHitCount.setValue(pHitCount);
+    gates[pGate].gateHitCount.setValue(pHitCount, pForceUpdate);
 
 }//end of Channel::setGateHitCount
 //-----------------------------------------------------------------------------
@@ -2388,12 +2371,7 @@ public int getGateHitCount(int pGate)
 public void setGateMissCount(int pGate, int pMissCount, boolean pForceUpdate)
 {
 
-    if (pMissCount != gates[pGate].gateMissCount.getValue())
-        pForceUpdate = true;
-
-    if (!pForceUpdate) return; //do nothing unless value change or forced
-
-    gates[pGate].gateMissCount.setValue(pMissCount);
+    gates[pGate].gateMissCount.setValue(pMissCount, pForceUpdate);
 
 }//end of Channel::setGateMissCount
 //-----------------------------------------------------------------------------
@@ -2463,12 +2441,7 @@ public void setGateSigProcThreshold(
                                int pGate, int pThreshold, boolean pForceUpdate)
 {
 
-    if (pThreshold != gates[pGate].sigProcThreshold.getValue())
-        pForceUpdate = true;
-
-    if (!pForceUpdate) return; //do nothing unless value change or forced
-
-    gates[pGate].sigProcThreshold.setValue(pThreshold);
+    gates[pGate].sigProcThreshold.setValue(pThreshold, pForceUpdate);
 
 }//end of Channel::setGateSigProcThreshold
 //-----------------------------------------------------------------------------
@@ -2952,20 +2925,20 @@ public void loadCalFile(IniFile pCalFile)
     aScanRange = pCalFile.readDouble(section, "Range", 53.0);
     setSoftwareGain(pCalFile.readDouble(section, "Software Gain", 0), true);
     hardwareGain1.setValue(
-                        pCalFile.readInt(section, "Hardware Gain Stage 1", 2));
+                pCalFile.readInt(section, "Hardware Gain Stage 1", 2), true);
     hardwareGain2.setValue(
-                        pCalFile.readInt(section, "Hardware Gain Stage 2", 1));
+                  pCalFile.readInt(section, "Hardware Gain Stage 2", 1), true);
     interfaceTracking = pCalFile.readBoolean(
                                         section, "Interface Tracking", false);
     dacEnabled = pCalFile.readBoolean(section, "DAC Enabled", false);
-    mode.setValue(pCalFile.readInt(section, "Signal Mode", 0));
+    mode.setValue(pCalFile.readInt(section, "Signal Mode", 0), true);
     //default previousMode to mode if previousMode has never been saved
     previousMode =
             pCalFile.readInt(section, "Previous Signal Mode", mode.getValue());
     channelOn = (mode.getValue() != UTBoard.CHANNEL_OFF) ? true : false;
     rejectLevel = pCalFile.readInt(section, "Reject Level", 0);
     aScanSmoothing.setValue(
-                      pCalFile.readInt(section, "AScan Display Smoothing", 1));
+                 pCalFile.readInt(section, "AScan Display Smoothing", 1), true);
 
     // call each gate to load its data
     for (int i = 0; i < numberOfGates; i++) gates[i].loadCalFile(pCalFile);
