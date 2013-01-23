@@ -20,24 +20,22 @@
 
 package chart;
 
-import javax.swing.*;
+import chart.mksystems.hardware.Channel;
+import chart.mksystems.hardware.DACGate;
+import chart.mksystems.hardware.Gate;
+import chart.mksystems.hardware.Hardware;
+import chart.mksystems.hardware.UTBoard;
+import chart.mksystems.mswing.MFloatSpinner;
+import chart.mksystems.stripchart.StripChart;
 import java.awt.*;
 import java.awt.event.*;
-
+import java.awt.font.TextAttribute;
+import java.awt.image.BufferedImage;
+import java.util.*;
+import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import java.awt.image.BufferedImage;
-import java.util.*;
-import java.awt.font.TextAttribute;
-
-import chart.mksystems.mswing.MFloatSpinner;
-import chart.mksystems.stripchart.StripChart;
-import chart.mksystems.hardware.Hardware;
-import chart.mksystems.hardware.Channel;
-import chart.mksystems.hardware.Gate;
-import chart.mksystems.hardware.DACGate;
-import chart.mksystems.hardware.UTBoard;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -116,13 +114,15 @@ private void setSpinnerNameAndMouseListener(JSpinner pSpinner, String pName,
 {
 
     for (Component child : pSpinner.getComponents()) {
-        if (child instanceof JSpinner.NumberEditor)
+        if (child instanceof JSpinner.NumberEditor) {
             for (Component child2 :
                   ((javax.swing.JSpinner.NumberEditor) child).getComponents()){
-                if(pMouseListener != null)
-                    ((javax.swing.JFormattedTextField) child2).
+                if(pMouseListener != null) {
+                          ((javax.swing.JFormattedTextField) child2).
                                                addMouseListener(pMouseListener);
+                }
                 ((javax.swing.JFormattedTextField) child2).setName(pName);
+            }
         }
     }
 
@@ -352,21 +352,27 @@ public void setChannel(StripChart pChart, Channel pChannel)
     // if current channel is null, then only the chart stuff will be displayed
     // so make the grid large enough to hold the thresholds, igoring gates
 
-    if (currentChannel != null)
+    if (currentChannel != null) {
         gridYCount = (
               currentChannel.numberOfGates > chart.getNumberOfThresholds())
                  ? currentChannel.numberOfGates : chart.getNumberOfThresholds();
-    else
+    }
+    else {
         gridYCount = chart.getNumberOfThresholds();
+    }
 
-    if (gridYCount < 4) gridYCount = 4;
+    if (gridYCount < 4) {
+        gridYCount = 4;
+    }
 
     //setup the chart controls tab before checking if a valid channel is
     //available so the user can still hide or display the chart
 
     setupChartTab();
 
-    if (currentChannel == null) return;
+    if (currentChannel == null) {
+        return;
+    }
 
     setupGatesTab();
 
@@ -603,15 +609,25 @@ void updateSignalModeControl()
 
     displayMode = currentChannel.getMode();
 
-    if (displayMode == 0)posHalfRadioButton.setSelected(true);
+    if (displayMode == 0) {
+        posHalfRadioButton.setSelected(true);
+    }
     else
-    if (displayMode == 1)negHalfRadioButton.setSelected(true);
+    if (displayMode == 1) {
+        negHalfRadioButton.setSelected(true);
+    }
     else
-    if (displayMode == 2)fullWaveRadioButton.setSelected(true);
+    if (displayMode == 2) {
+        fullWaveRadioButton.setSelected(true);
+    }
     else
-    if (displayMode == 3)rfRadioButton.setSelected(true);
+    if (displayMode == 3) {
+        rfRadioButton.setSelected(true);
+    }
     else
-    if (displayMode == 4)offRadioButton.setSelected(true);
+    if (displayMode == 4) {
+        offRadioButton.setSelected(true);
+    }
 
     updateEnabled = true;
 
@@ -633,11 +649,16 @@ void setupSignalTab()
     signalTab.setLayout(new BoxLayout(signalTab, BoxLayout.PAGE_AXIS));
 
     String timeDistLabel;
-    if (hardware.unitsTimeDistance == Hardware.TIME)
+    if (hardware.unitsTimeDistance == Hardware.TIME) {
         timeDistLabel = " uS";
+    }
     else{
-        if (hardware.units == Hardware.INCHES) timeDistLabel = " inches";
-        else timeDistLabel = " mm";
+        if (hardware.units == Hardware.INCHES) {
+            timeDistLabel = " inches";
+        }
+        else {
+            timeDistLabel = " mm";
+        }
         }
 
     //create a panel to hold top row of panels and components
@@ -664,8 +685,12 @@ void setupSignalTab()
     //check for out-of-range value or exception will be thrown
 
     double rangeCheck = currentChannel.getRange() * timeDistMult;
-    if (rangeCheck < .1) rangeCheck = .1;
-    if (rangeCheck > timeDistMax) rangeCheck = timeDistMax;
+    if (rangeCheck < .1) {
+        rangeCheck = .1;
+    }
+    if (rangeCheck > timeDistMax) {
+        rangeCheck = timeDistMax;
+    }
 
     multiSpinnerPanel.add(rangeSpin =
       new SpinnerPanel(rangeCheck, .1, timeDistMax,
@@ -739,15 +764,25 @@ void setupSignalTab()
 
     displayMode = currentChannel.getMode();
 
-    if (displayMode == 0)posHalfRadioButton.setSelected(true);
+    if (displayMode == 0) {
+        posHalfRadioButton.setSelected(true);
+    }
     else
-    if (displayMode == 1)negHalfRadioButton.setSelected(true);
+    if (displayMode == 1) {
+        negHalfRadioButton.setSelected(true);
+    }
     else
-    if (displayMode == 2)fullWaveRadioButton.setSelected(true);
+    if (displayMode == 2) {
+        fullWaveRadioButton.setSelected(true);
+    }
     else
-    if (displayMode == 3)rfRadioButton.setSelected(true);
+    if (displayMode == 3) {
+        rfRadioButton.setSelected(true);
+    }
     else
-    if (displayMode == 4)offRadioButton.setSelected(true);
+    if (displayMode == 4) {
+        offRadioButton.setSelected(true);
+    }
 
     //add the panel with the spinners and the panel with the unit selection
     //to the top panel1
@@ -776,8 +811,12 @@ void setupWallTab()
 
     String units;
 
-    if (hardware.units == Hardware.INCHES) units = " inches";
-    else units = " mm";
+    if (hardware.units == Hardware.INCHES) {
+        units = " inches";
+    }
+    else {
+        units = " mm";
+    }
 
     JPanel topLeftPanel = new JPanel();
     topLeftPanel.setLayout(new BoxLayout(topLeftPanel, BoxLayout.PAGE_AXIS));
@@ -1211,8 +1250,12 @@ void setupConfigTab()
 
     String units;
 
-    if (hardware.units == Hardware.INCHES) units = " inches";
-    else units = " mm";
+    if (hardware.units == Hardware.INCHES) {
+        units = " inches";
+    }
+    else {
+        units = " mm";
+    }
 
     JPanel topLeftPanel = new JPanel();
     topLeftPanel.setLayout(new BoxLayout(topLeftPanel, BoxLayout.PAGE_AXIS));
@@ -1292,10 +1335,12 @@ void setupConfigTab()
     topRightPanel.add(inchesMMPanel);
 
     //set the inches/mm button
-    if (hardware.units == Hardware.INCHES)
+    if (hardware.units == Hardware.INCHES) {
         inchesRadioButton.setSelected(true);
-    else
+    }
+    else {
         mmRadioButton.setSelected(true);
+    }
 
     //Time/Distance display (time or distance) selection panel and radio buttons
 
@@ -1316,10 +1361,12 @@ void setupConfigTab()
     topRightPanel.add(timeDistancePanel);
 
     //set the time/distance button
-    if (hardware.unitsTimeDistance == Hardware.TIME)
+    if (hardware.unitsTimeDistance == Hardware.TIME) {
         timeRadioButton.setSelected(true);
-    else
+    }
+    else {
         distanceRadioButton.setSelected(true);
+    }
 
     topRightPanel.add(Box.createRigidArea(new Dimension(0,7))); //vertical spacer
 
@@ -1352,10 +1399,12 @@ void setupConfigTab()
     topRightPanel.add(markerModePanel);
 
     //set the marker pulse/continuous button
-    if (hardware.markerMode == Hardware.PULSE)
+    if (hardware.markerMode == Hardware.PULSE) {
         markerPulseButton.setSelected(true);
-    else
+    }
+    else {
         markerContinuousButton.setSelected(true);
+    }
 
     //vertical spacer
     topRightPanel.add(Box.createRigidArea(new Dimension(0,10)));
@@ -1451,13 +1500,14 @@ void setSpinnerNameAndMouseListener(JSpinner pSpinner, String pName,
 
     for (Component child : pSpinner.getComponents()) {
 
-        if (child instanceof JSpinner.NumberEditor)
+        if (child instanceof JSpinner.NumberEditor) {
             for (Component child2 :
                   ((javax.swing.JSpinner.NumberEditor) child).getComponents()){
                 ((javax.swing.JFormattedTextField) child2).
                                                addMouseListener(pMouseListener);
                                 ((javax.swing.JFormattedTextField) child2).
                                                                 setName(pName);
+            }
         }
     }
 
@@ -1723,7 +1773,9 @@ void updateChartSettings()
 public void updateAllSettings(boolean pForceUpdate)
 {
 
-    if (!updateEnabled) return;
+    if (!updateEnabled) {
+        return;
+    }
 
     //using the references to each adjust control stored when the panel was
     //setup, scan through each gate storing the values in the gate object
@@ -1759,31 +1811,32 @@ public void updateAllSettings(boolean pForceUpdate)
         //not all gates have a trigger check box (such as interface gates), so
         //check for null before using
 
-        if (((JCheckBox)gate.aScanTriggerCheckBox) != null)
+        if (((JCheckBox)gate.aScanTriggerCheckBox) != null) {
             ch.setAScanTrigger(i,
              ((JCheckBox)gate.aScanTriggerCheckBox).isSelected(), pForceUpdate);
+        }
 
     }//for (int i=0; i < numberOfGates; i++)
 
     ch.setDelay(delaySpin.spinner.getDoubleValue() / timeDistMult, pForceUpdate);
 
-    if (interfaceTrackingCheckBox != null) ch.setInterfaceTracking(
-                          interfaceTrackingCheckBox.isSelected(), pForceUpdate);
+    if (interfaceTrackingCheckBox != null) {ch.setInterfaceTracking(
+                        interfaceTrackingCheckBox.isSelected(), pForceUpdate);}
 
     ch.setDACEnabled(dacEnabled.isSelected(), pForceUpdate);
     //set the scope's DAC enabled flag to match the control
     ((OscopeCanvas)oscopeCanvas).setDACEnabled(dacEnabled.isSelected());
 
-    if (posHalfRadioButton.isSelected()) displayMode = 0;
-    if (negHalfRadioButton.isSelected()) displayMode = 1;
-    if (fullWaveRadioButton.isSelected()) displayMode = 2;
-    if (rfRadioButton.isSelected()) displayMode = 3;
-    if (offRadioButton.isSelected()) displayMode = 4;
+    if (posHalfRadioButton.isSelected()) {displayMode = 0;}
+    if (negHalfRadioButton.isSelected()) {displayMode = 1;}
+    if (fullWaveRadioButton.isSelected()) {displayMode = 2;}
+    if (rfRadioButton.isSelected()) {displayMode = 3;}
+    if (offRadioButton.isSelected()) {displayMode = 4;}
 
     ch.setMode(displayMode, pForceUpdate);
     //only set the previous mode if the current mode is not "OFF" -- the
     //previous mode should always be the last "ON" mode so it can be restored
-    if (displayMode != UTBoard.CHANNEL_OFF) ch.previousMode = displayMode;
+    if (displayMode != UTBoard.CHANNEL_OFF) {ch.previousMode = displayMode;}
     setChannelSelectorColor(ch);
 
     //always set range after setting gate position or width, delay and interface
@@ -1803,18 +1856,22 @@ public void updateAllSettings(boolean pForceUpdate)
 
     //the screen will not be updated until the user changes channels or exits
     //the calibrator when inches/mm button changed
-    if (inchesRadioButton.isSelected()) hardware.units = Hardware.INCHES;
-    if (mmRadioButton.isSelected()) hardware.units = Hardware.MM;
+    if (inchesRadioButton.isSelected()){hardware.units = Hardware.INCHES;}
+    if (mmRadioButton.isSelected()){hardware.units = Hardware.MM;}
 
-    if (timeRadioButton.isSelected())
+    if (timeRadioButton.isSelected()){
         hardware.unitsTimeDistance = Hardware.TIME;
-    if (distanceRadioButton.isSelected())
+    }
+    if (distanceRadioButton.isSelected()){
         hardware.unitsTimeDistance = Hardware.DISTANCE;
+    }
 
-    if (markerPulseButton.isSelected())
+    if (markerPulseButton.isSelected()) {
         hardware.markerMode = Hardware.PULSE;
-    if (markerContinuousButton.isSelected())
+    }
+    if (markerContinuousButton.isSelected()) {
         hardware.markerMode = Hardware.CONTINUOUS;
+    }
 
     hardware.hdwVs.velocityShearUS = velocityShearSpin.spinner.getDoubleValue();
     //calculate velocity in distance per NS
@@ -1873,18 +1930,20 @@ public void calculateAllUTValues()
     //and negative halves of the signal will be visible
     //for all other modes, do not shift
 
-    if (displayMode == 3)
+    if (displayMode == 3) {
         ((OscopeCanvas)oscopeCanvas).
                                   setVertOffset(oscopeCanvas.getHeight() / 2 );
-    else
+    }
+    else {
         ((OscopeCanvas)oscopeCanvas).setVertOffset(0);
+    }
 
     //calculate the uS per pixel using current Range setting and canvas width
     currentChannel.uSPerPixel =
                             currentChannel.getRange() / oscopeCanvas.getWidth();
 
     //prevent divide by zero errors
-    if (currentChannel.uSPerPixel <= 0) currentChannel.uSPerPixel = .1;
+    if (currentChannel.uSPerPixel <= 0) {currentChannel.uSPerPixel = .1;}
 
     //also calculate nS per pixel
     currentChannel.nSPerPixel = currentChannel.uSPerPixel * 1000;
@@ -1918,10 +1977,12 @@ public void calculateGatePixelLocation()
     //do not take into account any delay
     //the exception is the interface gate, which is corrected later in the code
 
-    if (!currentChannel.getInterfaceTracking())
+    if (!currentChannel.getInterfaceTracking()) {
         delayPix = currentChannel.delayPix;
-    else
+    }
+    else {
         delayPix = 0;
+    }
 
     //scan through the gates calculating the pixel locations of each setting
     //the pixel values are used by the display function to avoid having to waste
@@ -1991,10 +2052,12 @@ public void calculateDACGateTimeLocation()
     //do not take into account any delay
     //the exception is the interface gate, which is corrected later in the code
 
-    if (!ch.getInterfaceTracking())
+    if (!ch.getInterfaceTracking()) {
         delayPix = ch.delayPix;
-    else
+    }
+    else {
         delayPix = 0;
+    }
 
     //get the current vertical offset for the scope display
     int vertOffset = ((OscopeCanvas)oscopeCanvas).getVertOffset();
@@ -2027,11 +2090,12 @@ public void mousePressedOnScope(MouseEvent e)
 {
 
     //bail out if the selected component has not had the name set
-    if (getSelectedComponent().getName() == null) return;
+    if (getSelectedComponent().getName() == null) {return;}
 
     //if the currently selected tab is the DAC, call associated function
-    if (getSelectedComponent().getName().equals("DAC"))
+    if (getSelectedComponent().getName().equals("DAC")){
         handleMousePressForDAC(e);
+    }
 
 }//end of UTControls::mousePressedOnScope
 //-----------------------------------------------------------------------------
@@ -2050,11 +2114,12 @@ public void mouseReleasedOnScope(MouseEvent e)
 {
 
     //bail out if the selected component has not had the name set
-    if (getSelectedComponent().getName() == null) return;
+    if (getSelectedComponent().getName() == null){return;}
 
     //if the currently selected tab is the DAC, call associated function
-    if (getSelectedComponent().getName().equals("DAC"))
+    if (getSelectedComponent().getName().equals("DAC")) {
         handleMouseReleaseForDAC(e);
+    }
 
 }//end of UTControls::mouseReleasedOnScope
 //-----------------------------------------------------------------------------
@@ -2075,13 +2140,13 @@ public void handleMousePressForDAC(MouseEvent e)
 
     //do nothing if the "Enable DAC" checkbox is unchecked or the "Lock DAC"
     //checkbox is checked
-    if (!dacEnabled.isSelected() || dacLocked.isSelected()) return;
+    if (!dacEnabled.isSelected() || dacLocked.isSelected()){return;}
 
     //process left click events for the DAC gates
-    if (e.getButton() == MouseEvent.BUTTON1) handleLeftClickForDAC(e);
+    if (e.getButton() == MouseEvent.BUTTON1) {handleLeftClickForDAC(e);}
 
     //process right click events for the DAC gates
-    if (e.getButton() == MouseEvent.BUTTON3) handleRightClickForDAC(e);
+    if (e.getButton() == MouseEvent.BUTTON3) {handleRightClickForDAC(e);}
 
 }//end of UTControls::handleMousePressForDAC
 //-----------------------------------------------------------------------------
@@ -2149,8 +2214,9 @@ public void handleLeftClickForDAC(MouseEvent e)
     //find which DAC gate the start of which the mouse is pointing at
     //if none, then bail out
     if ((pointedDACGate = currentChannel.getPointedDACGate(e.getX(), e.getY()))
-            == -1)
+            == -1) {
         return;
+    }
 
     //set the selected gate as being dragged - when the user releases the left
     //button draggingDACGate will be set back to -1
@@ -2182,13 +2248,15 @@ public void handleMouseReleaseForDAC(MouseEvent e)
 
     //do nothing if the "Enable DAC" checkbox is unchecked or the "Lock DAC"
     //checkbox is checked
-    if (!dacEnabled.isSelected() || dacLocked.isSelected()) return;
+    if (!dacEnabled.isSelected() || dacLocked.isSelected()) {return;}
 
     //process left click releases for the DAC gates
     if (e.getButton() == MouseEvent.BUTTON1){
         //force recalc of all gate time locations and flag for sending
         //to remotes
-        if (draggingDACGate != -1) calculateDACGateTimeLocation();
+        if (draggingDACGate != -1) {
+            calculateDACGateTimeLocation();
+        }
         draggingDACGate = -1;  //release the gate from being dragged
     }
 
@@ -2215,7 +2283,7 @@ public void mouseDraggedOnScope(MouseEvent e)
 
     Channel ch = currentChannel;
 
-    if (draggingDACGate == -1) return;  //do nothing if not gate selected
+    if (draggingDACGate == -1) {return;} //do nothing if not gate selected
 
     int xPos = e.getX(), yPos = e.getY();
 
@@ -2226,15 +2294,16 @@ public void mouseDraggedOnScope(MouseEvent e)
     }
 
     //don't allow positioning off the screen
-    if (xPos < 0) xPos = 0;
+    if (xPos < 0) {xPos = 0;}
 
-    if (yPos < 0) yPos = 0;
-    if (yPos > oscopeCanvas.getHeight()) yPos = oscopeCanvas.getHeight();
+    if (yPos < 0) {yPos = 0;}
+    if (yPos > oscopeCanvas.getHeight()) {yPos = oscopeCanvas.getHeight();}
 
     //don't allow dragging in front of prior gate
     if (draggingDACGate > 0){
-        if (xPos < ch.getDACGate(draggingDACGate-1).gatePixStart)
+        if (xPos < ch.getDACGate(draggingDACGate-1).gatePixStart) {
             xPos = ch.getDACGate(draggingDACGate-1).gatePixStart;
+        }
     }
 
     //don't allow dragging gate start past its own end unless it is the last
@@ -2248,12 +2317,14 @@ public void mouseDraggedOnScope(MouseEvent e)
     if ( (draggingDACGate < (ch.getNumberOfDACGates()-1))
                               && ch.getDACGate(draggingDACGate+1).getActive()){
 
-        if (xPos > ch.getDACGate(draggingDACGate).gatePixEnd)
+        if (xPos > ch.getDACGate(draggingDACGate).gatePixEnd) {
             xPos = ch.getDACGate(draggingDACGate).gatePixEnd;
+        }
     }
     else {
-        if (xPos > ch.getDACGate(draggingDACGate).gatePixEnd)
+        if (xPos > ch.getDACGate(draggingDACGate).gatePixEnd) {
             ch.getDACGate(draggingDACGate).gatePixEnd = xPos;
+        }
     }
 
     ch.getDACGate(draggingDACGate).gatePixStart = xPos;
