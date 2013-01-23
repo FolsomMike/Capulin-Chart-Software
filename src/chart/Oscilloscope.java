@@ -305,8 +305,8 @@ public void displayData(int pRange, int pInterfaceCrossingPosition,
     //image
     drawGates(channel, g2, pInterfaceCrossingPosition);
 
-    //draw the DAC gates on the scope, use g2 graphics object as it is for buffered
-    //image
+    //draw the DAC gates on the scope, use g2 graphics object as it is for
+    //buffered image
     if (dacEnabled) drawDACGates(channel, g2, pInterfaceCrossingPosition);
 
     //display the image buffer on the screen

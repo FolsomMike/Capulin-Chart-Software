@@ -553,7 +553,7 @@ copyToAllHelper(channels[currentChannelIndex], allChannels,
 // Copies the info from channel in pSource to the channel in pDestination.
 //
 // If pCopyAll is true, all settings are copied.  If false, only the values
-// fromt the controls whose Name variable is included in pCopyList will be
+// from the controls whose Name variable is included in pCopyList will be
 // copied.
 //
 // If the "Copy All Parameters" item is checked in the CopyItemSelector
@@ -583,12 +583,16 @@ int numberOfGates, numberOfDACGates;
 numberOfGates = pSource.getNumberOfGates();
 numberOfDACGates = pSource.getNumberOfDACGates();
 
+// copy the regular gates
 // each call to set a value will set the trigger flag for the sending thread
 // to send the value next time it runs -- if it runs between setting of two
 // values tied to the same flag, a duplicate call might be made but causes no
 // harm
 // all setting / sending functions are synchronized so the value setting and
 // flag setting/clearing by different threads is protected against collision
+
+// since each part of a gate can be selected for copying, each part is
+// copied seperately here
 
 Gate sGate;
 
@@ -616,6 +620,11 @@ for (int g = 0; g < numberOfGates; g++){
     }
 
 //copy the DAC gate info
+
+//since the entire DAC gate group is copied without the user being able to
+//select individual parts, the copyGate function can be used here unlike the
+//copy section used above for the regular gates
+
 if(pCopyAll || copyItemSelector.getItemState("DAC")){
     for (int dg = 0; dg < numberOfDACGates; dg++)
         pDestination.copyGate(dg, pSource.dacGates[dg]);

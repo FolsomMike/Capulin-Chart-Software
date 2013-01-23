@@ -2239,8 +2239,8 @@ public void mouseDraggedOnScope(MouseEvent e)
 
     //don't allow dragging gate start past its own end unless it is the last
     //gate, in which case the end will follow the beginning - this allows the
-    //last gate to be stretched as need - it has to be handled differently because
-    //there is not a grab point at the end of the last gate
+    //last gate to be stretched as need - it has to be handled differently
+    //because there is not a grab point at the end of the last gate
 
     //the gate can be the last by two ways - being the last spot in the array or
     //being the last active gate in the array
