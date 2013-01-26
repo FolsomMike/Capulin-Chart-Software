@@ -177,31 +177,36 @@ void sendHeader()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Board::process2BytePacket
+// Board::readBytes
 //
-// Retrieves two data bytes from the packet and stores them in inBuffer.
+// Retrieves pNumBytes number of data bytes from the packet and stores them
+// in inBuffer.
 //
 // Returns number of bytes retrieved from the socket.
 //
+// If the attempt times out, returns 0.
+//
 
-public int process2BytePacket()
+public int readBytes(int pNumBytes)
 {
 
     try{
         timeOutProcess = 0;
         while(timeOutProcess++ < TIMEOUT){
-            if (byteIn.available() >= 2) {break;}
+            if (byteIn.available() >= pNumBytes) {break;}
             waitSleep(10);
         }
-        if (byteIn.available() >= 2){return byteIn.read(inBuffer, 0, 2);}
+        if (byteIn.available() >= pNumBytes){
+            return byteIn.read(inBuffer, 0, pNumBytes);
+        }
     }// try
     catch(IOException e){
         System.err.println(getClass().getName() + " - Error: 595");
     }
 
     return 0;
-
-}//end of Board::process2BytePacket
+    
+}//end of Board::readBytes
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

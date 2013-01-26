@@ -240,7 +240,7 @@ void getStatus()
     //send standard packet header
     sendPacketHeader(ControlBoard.GET_STATUS_CMD);
 
-    sendBytes2(status, (byte)0);
+    sendBytes(status, (byte)0);
 
 }//end of ControlSimulator::getStatus
 //-----------------------------------------------------------------------------
@@ -337,7 +337,7 @@ void getChassisSlotAddress()
     //send standard packet header
     sendPacketHeader(ControlBoard.GET_CHASSIS_SLOT_ADDRESS_CMD);
 
-    sendBytes2(address, status);
+    sendBytes(address, status);
 
 }//end of ControlSimulator::getChassisSlotAddress
 //-----------------------------------------------------------------------------

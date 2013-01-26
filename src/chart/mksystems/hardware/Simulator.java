@@ -22,8 +22,8 @@
 
 package chart.mksystems.hardware;
 
-import java.net.*;
 import java.io.*;
+import java.net.*;
 
 //-----------------------------------------------------------------------------
 
@@ -186,106 +186,33 @@ void getChassisSlotAddress()
 
     address += (byte)(slotAddr & 0x0f);
 
-    sendBytes2(address, (byte)0);
+    sendBytes(address, (byte)0);
 
 }//end of Simulator::getChassisSlotAddress
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Simulator::sendByte
+// Simulator::sendBytes
 //
-// Sends pByte back to the host.
+// Sends a variable number of bytes (one or more) to the remote device.
 //
 
-void sendByte(byte pByte)
+void sendBytes(byte... pBytes)
 {
-
-    outBuffer[0] = pByte;
+    System.arraycopy(pBytes, 0, outBuffer, 0, pBytes.length);
 
     //send packet to remote
-    if (byteOut != null)
+    if (byteOut != null) {
         try{
-            byteOut.write(outBuffer, 0 /*offset*/, 1);
-            byteOut.flush();
+              byteOut.write(outBuffer, 0 /*offset*/, pBytes.length);
+              byteOut.flush();
         }
         catch (IOException e) {
-            System.err.println(getClass().getName() + " - Error: 211");
+            System.err.println(getClass().getName() + " - Error: 220");
         }
+    }
 
-}//end of Simulator::sendByte
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Simulator::sendBytes2
-//
-// Sends two bytes to the host.
-//
-
-void sendBytes2(byte pByte1, byte pByte2)
-{
-
-    outBuffer[0] = pByte1; outBuffer[1] = pByte2;
-
-    //send packet to remote
-    if (byteOut != null)
-        try{
-            byteOut.write(outBuffer, 0 /*offset*/, 2);
-            byteOut.flush();
-        }
-        catch (IOException e) {
-            System.err.println(getClass().getName() + " - Error: 235");
-        }
-
-}//end of Simulator::sendBytes2
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Simulator::sendBytes3
-//
-// Sends three bytes to the host.
-//
-
-void sendBytes3(byte pByte1, byte pByte2, byte pByte3)
-{
-
-    outBuffer[0] = pByte1; outBuffer[1] = pByte2;  outBuffer[2] = pByte3;
-
-    //send packet to remote
-    if (byteOut != null)
-        try{
-            byteOut.write(outBuffer, 0 /*offset*/, 3);
-            byteOut.flush();
-        }
-        catch (IOException e) {
-            System.err.println(getClass().getName() + " - Error: 259");
-        }
-
-}//end of Simulator::sendBytes3
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Simulator::sendBytes4
-//
-// Sends four bytes to the host.
-//
-
-void sendBytes4(byte pByte1, byte pByte2, byte pByte3, byte pByte4)
-{
-
-    outBuffer[0] = pByte1; outBuffer[1] = pByte2;  outBuffer[2] = pByte3;
-    outBuffer[3] = pByte4;
-
-    //send packet to remote
-    if (byteOut != null)
-        try{
-            byteOut.write(outBuffer, 0 /*offset*/, 4);
-            byteOut.flush();
-        }
-        catch (IOException e) {
-            System.err.println(getClass().getName() + " - Error: 284");
-        }
-
-}//end of Simulator::sendBytes4
+}//end of Simulator::sendBytes
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -297,7 +224,7 @@ void sendBytes4(byte pByte1, byte pByte2, byte pByte3, byte pByte4)
 void sendShortInt(int pShortInt)
 {
 
-    sendBytes2((byte)((pShortInt >> 8) & 0xff), (byte)(pShortInt & 0xff));
+    sendBytes((byte)((pShortInt >> 8) & 0xff), (byte)(pShortInt & 0xff));
 
 }//end of Simulator::sendShortInt
 //-----------------------------------------------------------------------------
@@ -311,7 +238,7 @@ void sendShortInt(int pShortInt)
 void sendInteger(int pInteger)
 {
 
-    sendBytes4(
+    sendBytes(
         (byte)((pInteger >> 24) & 0xff), (byte)(pInteger >> 16 & 0xff),
         (byte)((pInteger >> 8) & 0xff), (byte)(pInteger & 0xff));
 
@@ -328,15 +255,15 @@ void sendDataBlock(int pSize, int[] pBuffer)
 {
 
     //send packet to remote
-    if (byteOut != null)
+    if (byteOut != null) {
         try{
             for (int i=0; i<pSize; i++){
 
                 //limit integer to 127 and -128 before converting to byte or the
                 //sign can flip
 
-                if (pBuffer[i] > 127) pBuffer[i] = 127;
-                if (pBuffer[i] < -128) pBuffer[i] = -128;
+                if (pBuffer[i] > 127) {pBuffer[i] = 127;}
+                if (pBuffer[i] < -128) {pBuffer[i] = -128;}
 
                 outBuffer[0] = (byte)pBuffer[i];
                 byteOut.write(outBuffer, 0 /*offset*/, 1);
@@ -347,6 +274,7 @@ void sendDataBlock(int pSize, int[] pBuffer)
         catch (IOException e) {
             System.err.println(getClass().getName() + " - Error: 347");
         }
+    }
 
 }//end of Simulator::sendDataBlock
 //-----------------------------------------------------------------------------
@@ -454,32 +382,6 @@ public int getIntFromSocket()
     return (int)((inBuffer[0]<<8) & 0xff00) + (inBuffer[1] & 0xff);
 
 }//end of Simulator::getIntFromSocket
-//-----------------------------------------------------------------------------
-
-
-//-----------------------------------------------------------------------------
-// Simulator::finalize
-//
-// This function is inherited from the object class and is called by the Java
-// VM before the object is discarded.
-//
-
-@Override
-protected void finalize() throws Throwable
-{
-
-    //close everything - the order of closing may be important
-
-    localInStream.close();
-    outStream.close();
-
-    inStream.close();
-    localOutStream.close();
-
-    //allow the parent classes to finalize
-    super.finalize();
-
-}//end of Simulator::finalize
 //-----------------------------------------------------------------------------
 
 }//end of class Simulator

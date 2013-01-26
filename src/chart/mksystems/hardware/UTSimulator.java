@@ -213,6 +213,7 @@ public UTSimulator() throws SocketException{}; //default constructor - not used
     static int MAX_BOARD_CHANNELS = 4;
     BoardChannel[] boardChannels;
     String mainFileFormat;
+    int peakDataPktCounter = 0;
 
     static int ASCAN_BUFFER_SIZE = 8 * 1024; //matches RAM sample buffer in FPGA
     int[] aScanBuffer;
@@ -520,7 +521,7 @@ int readDSPStatus(int pDSPChip, int pDSPCore)
     sendPacketHeader(UTBoard.MESSAGE_DSP_CMD, (byte)0, (byte)0);
 
     //send core and status flags back
-    sendBytes4((byte)UTBoard.DSP_GET_STATUS_CMD, (byte)pDSPCore,
+    sendBytes((byte)UTBoard.DSP_GET_STATUS_CMD, (byte)pDSPCore,
                 (byte)0, (byte)1);
 
     return 12;
@@ -602,7 +603,7 @@ void getStatus()
     //send standard packet header
     sendPacketHeader(UTBoard.GET_STATUS_CMD, (byte)0, (byte)0);
 
-    sendBytes2(status, (byte)0);
+    sendBytes(status, (byte)0);
 
 }//end of UTSimulator::getStatus
 //-----------------------------------------------------------------------------
@@ -657,7 +658,7 @@ void getDSPRamBlockChecksum()
     sendPacketHeader(UTBoard.GET_DSP_RAM_BLOCK_CHECKSUM, chip, core);
 
     //return the lower two bytes of the checksum
-    sendBytes2((byte)((checksum >> 8) & 0xff),(byte)(checksum & 0xff));
+    sendBytes((byte)((checksum >> 8) & 0xff),(byte)(checksum & 0xff));
 
 }//end of UTSimulator::getDSPRamBlockChecksum
 //-----------------------------------------------------------------------------
@@ -810,7 +811,7 @@ void readDSP()
     int readWord = 0xaa55;
 
     //send the value back to the host, MSB followed by LSB
-    sendBytes2((byte)((readWord >> 8) & 0xff), (byte)(readWord & 0xff));
+    sendBytes((byte)((readWord >> 8) & 0xff), (byte)(readWord & 0xff));
 
 }//end of UTSimulator::readDSP
 //-----------------------------------------------------------------------------
@@ -872,6 +873,13 @@ public void getPeakData4()
     //use 0 for DSP chip and core because the data is from multiple cores
     sendPacketHeader(UTBoard.GET_PEAK_DATA4_CMD, (byte)0, (byte)0);
 
+    //count packets sent -- this is sent to the host to detect missed packets
+    peakDataPktCounter++;
+    if (peakDataPktCounter > 255){peakDataPktCounter = 0;}
+
+    //send packet count and status
+    sendBytes((byte)peakDataPktCounter, (byte)(0));
+
     //these can be incremented in the future - use test values for now
     int encoder1 = 1234; int encoder2 = 5678;
 
@@ -882,9 +890,9 @@ public void getPeakData4()
     for (int ch=0; ch<NUMBER_OF_BOARD_CHANNELS; ch++){
 
         //send channel number
-        sendByte((byte)channelPeakSets[ch].channel);
+        sendBytes((byte)channelPeakSets[ch].channel);
         //send number of gates
-        sendByte((byte)channelPeakSets[ch].numberOfGates);
+        sendBytes((byte)channelPeakSets[ch].numberOfGates);
 
         //send peak data back for each gate of the channel
         for (int gate=0; gate<channelPeakSets[ch].numberOfGates; gate++){

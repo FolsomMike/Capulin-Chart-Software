@@ -823,9 +823,9 @@ public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
         //store the ID of the packet (the packet type)
         pktID = inBuffer[0];
 
-        if (pktID == GET_STATUS_CMD) {return process2BytePacket();}
+        if (pktID == GET_STATUS_CMD) {return readBytes(2);}
         else
-        if (pktID == GET_CHASSIS_SLOT_ADDRESS_CMD){return process2BytePacket();}
+        if (pktID == GET_CHASSIS_SLOT_ADDRESS_CMD){return readBytes(2);}
         else
         if (pktID == GET_INSPECT_PACKET_CMD) {return processInspectPacket();}
         else

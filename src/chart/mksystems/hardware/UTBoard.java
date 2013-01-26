@@ -3442,7 +3442,7 @@ public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
 
         dspMsgID = DSP_NULL_MSG_CMD;
 
-        if ( pktID == GET_STATUS_CMD) {return process2BytePacket();}
+        if ( pktID == GET_STATUS_CMD) {return readBytes(2);}
 
         if ( pktID == GET_ASCAN_CMD) {return processAScanPacket();}
 
@@ -3993,22 +3993,8 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
 
     for (int h=0; h < pNumberOfChannels; h++){
 
-        try{
-            timeOutProcess = 0;
-            while(timeOutProcess++ < TIMEOUT){
-                if (byteIn.available() >= 2) {break;}
-                waitSleep(10);
-                }
-            if ((byteIn.available()) >= 2) {
-                byteIn.read(inBuffer, 0, 2);
-            }
-            else {
-                return 0;
-            }
-            }// try
-        catch(IOException e){
-            System.err.println(getClass().getName() + " - Error: 3992");
-        }
+        //get next two bytes -- channel number and number of gates for section
+        if (readBytes(2) == 0) {return(0);}
 
          x = 0;
 
@@ -4028,7 +4014,7 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
 
         if (numberOfGates < 0 || numberOfGates > 9) {return x;}
 
-        // calculate the number of data bytes
+        // calculate the number of data bytes for the channel
         int numberDataBytes = numberOfGates * PEAK_DATA_BYTES_PER_GATE;
 
         //add extra for wall data if the specified channel has such
@@ -4036,22 +4022,8 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
             numberDataBytes += PEAK_DATA_BYTES_FOR_WALL;
         }
 
-        try{
-            timeOutProcess = 0;
-            while(timeOutProcess++ < TIMEOUT){
-                if (byteIn.available() >= numberDataBytes) {break;}
-                waitSleep(10);
-                }
-            if ((byteIn.available()) >= numberDataBytes) {
-                byteIn.read(inBuffer, 0, numberDataBytes);
-            }
-            else {
-                return 0;
-            }
-        }// try
-        catch(IOException e){
-            System.err.println(getClass().getName() + " - Error: 4032");
-        }
+        //read bytes for the channel
+        if (readBytes(numberDataBytes) == 0) {return(0);}
 
         int peakFlags;
         int peak;
@@ -4280,9 +4252,9 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
             bdChs[channel].gates[2].storeNewDataD(
                                          minThickness, wallMinTrack, clockPos);
 
-            }// if (bdChs[channel].isWallChannel)
+        }// if (bdChs[channel].isWallChannel)
 
-        }// for (int h=0; h < pNumberOfChannels; h++)
+    }// for (int h=0; h < pNumberOfChannels; h++)
 
     return 1;
 
@@ -4304,36 +4276,36 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
 public int processPeakDataPacket(int pNumberOfChannels)
 {
 
+    int pktNumber, status;
+
     //allow another request packet to be transmitted now that the return
     //packet for the previous request has been received
     peakDataRcvd = true;
 
     int x;
 
-    try{
-        timeOutProcess = 0;
-        while(timeOutProcess++ < TIMEOUT){
-            if (byteIn.available() >= 8) {break;}
-            waitSleep(10);
-            }
-        if ((byteIn.available()) >= 8) {byteIn.read(inBuffer, 0, 8);}
-        else
-            {return 0;}
-        }// try
-    catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 4295");
-    }
+    //read packet number, status, encoder 1, encoder 2
+    if (readBytes(10) == 0) {return(0);}
 
     x = 0;
 
+    pktNumber = (int)inBuffer[x++];
+    status = (int)inBuffer[x++];
+
     //get the position of encoder 1
     //this is the entry encoder or the carriage encoder depending on unit type
+    //note that not all systems use the encoder 1 value in this packet -- in
+    //many configurations the UT boards do not know the encoder values
+
     int encoder1 =
          ((inBuffer[x++]<<24) & 0xff000000) +  ((inBuffer[x++]<<16) & 0xff0000)
           + ((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
 
     //get the position of encoder 2
     //this is the entry encoder or the carriage encoder depending on unit type
+    //note that not all systems use the encoder 2 value in this packet -- in
+    //many configurations the UT boards do not know the encoder values
+
     int encoder2 =
           ((inBuffer[x++]<<24) & 0xff000000) + ((inBuffer[x++]<<16) & 0xff0000)
            + ((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
