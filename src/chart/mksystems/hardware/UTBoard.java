@@ -4095,6 +4095,9 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
 
             //end debug mks
 
+            //protect against corrupt values
+            if(peakTrack < 0) peakTrack = 0;
+
             //Add in the clock position adjustment to account for offset sensor
             //positions and timing errors.  Wraparound past the max clock
             //position gets taken care of with modulo in the next bit of code.
@@ -4181,6 +4184,7 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
             }
 
             //see notes above for peakTrack -- make this into a function?
+            if(wallMaxTrack < 0) wallMaxTrack = 0;
             wallMaxTrack += CLOCK_OFFSET;
             if (wallMaxTrack > MAX_CLOCK_POSITION) {
                 wallMaxTrack = wallMaxTrack % (MAX_CLOCK_POSITION + 1);
@@ -4240,6 +4244,7 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
                 }
 
             //see notes above for peakTrack -- make this into a function?
+            if(wallMinTrack < 0) wallMinTrack = 0;
             wallMinTrack += CLOCK_OFFSET;
             if (wallMinTrack > MAX_CLOCK_POSITION) {
                 wallMinTrack = wallMinTrack % (MAX_CLOCK_POSITION + 1);
