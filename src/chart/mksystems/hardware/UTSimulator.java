@@ -21,10 +21,9 @@
 
 package chart.mksystems.hardware;
 
-import java.net.*;
-import java.io.*;
-
 import chart.mksystems.inifile.IniFile;
+import java.io.*;
+import java.net.*;
 
 //-----------------------------------------------------------------------------
 
@@ -130,10 +129,10 @@ void setDelayCount(byte pRegAddr, byte pValue){
     //to the full values - the values must be tested for out of bounds each time
     //as it could be illegal when only some of the bytes have been updated
 
-    if (pRegAddr == sampleDelayReg0) delayCount0 = pValue;
-    if (pRegAddr == sampleDelayReg1) delayCount1 = pValue;
-    if (pRegAddr == sampleDelayReg2) delayCount2 = pValue;
-    if (pRegAddr == sampleDelayReg3) delayCount2 = pValue;
+    if (pRegAddr == sampleDelayReg0) {delayCount0 = pValue;}
+    if (pRegAddr == sampleDelayReg1) {delayCount1 = pValue;}
+    if (pRegAddr == sampleDelayReg2) {delayCount2 = pValue;}
+    if (pRegAddr == sampleDelayReg3) {delayCount2 = pValue;}
 
 
     delayCount = (int)(
@@ -146,9 +145,10 @@ void setDelayCount(byte pRegAddr, byte pValue){
     //allows for a signed integer - this limitation is also used for the
     //hardware even though it could handle a larger number
 
-    if (delayCount < 0) delayCount = 0;
-    if (delayCount > UTBoard.MAX_DELAY_COUNT)
+    if (delayCount < 0) {delayCount = 0;}
+    if (delayCount > UTBoard.MAX_DELAY_COUNT) {
         delayCount = UTBoard.MAX_DELAY_COUNT;
+    }
 
 }//end of BoardChannel::setDelayCount
 //-----------------------------------------------------------------------------
@@ -172,9 +172,9 @@ void setSampleCount(byte pRegAddr, byte pValue){
     //to the full values - the values must be tested for out of bounds each time
     //as it could be illegal when only some of the bytes have been updated
 
-    if (pRegAddr == sampleCountReg0) sampleCount0 = pValue;
-    if (pRegAddr == sampleCountReg1) sampleCount1 = pValue;
-    if (pRegAddr == sampleCountReg2) sampleCount2 = pValue;
+    if (pRegAddr == sampleCountReg0) {sampleCount0 = pValue;}
+    if (pRegAddr == sampleCountReg1) {sampleCount1 = pValue;}
+    if (pRegAddr == sampleCountReg2) {sampleCount2 = pValue;}
 
 
     sampleCount = (int)(
@@ -186,9 +186,10 @@ void setSampleCount(byte pRegAddr, byte pValue){
     //easily, so the max value is limited to the maximum positive value Java
     //allows for a signed integer
 
-    if (sampleCount < 0) sampleCount = 0;
-    if (sampleCount > UTBoard.MAX_SAMPLE_COUNT)
+    if (sampleCount < 0) {sampleCount = 0;}
+    if (sampleCount > UTBoard.MAX_SAMPLE_COUNT) {
         sampleCount = UTBoard.MAX_SAMPLE_COUNT;
+    }
 
 }//end of BoardChannel::setSampleCount
 //-----------------------------------------------------------------------------
@@ -297,18 +298,21 @@ public UTSimulator(InetAddress pIPAddress, int pPort, String pMainFileFormat)
 
     //create an array of channel variables
     boardChannels = new BoardChannel[MAX_BOARD_CHANNELS];
-    for (int i=0; i<MAX_BOARD_CHANNELS; i++)
+    for (int i=0; i<MAX_BOARD_CHANNELS; i++) {
         boardChannels[i] = new BoardChannel(
                     i, UTBoard.CH1_SAMPLE_DELAY_0, UTBoard.CH1_SAMPLE_COUNT_0);
+    }
 
     channelPeakSets = new ChannelPeakSet[NUMBER_OF_BOARD_CHANNELS];
-    for (int i=0; i < NUMBER_OF_BOARD_CHANNELS; i++)
+    for (int i=0; i < NUMBER_OF_BOARD_CHANNELS; i++) {
         channelPeakSets[i] = new ChannelPeakSet();
+    }
 
     ramMemoryBlockChecksums =
                         new RamMemoryBlockChecksum[NUMBER_OF_RAM_MEMORY_BLOCKS];
-    for (int i=0; i < NUMBER_OF_RAM_MEMORY_BLOCKS; i++)
+    for (int i=0; i < NUMBER_OF_RAM_MEMORY_BLOCKS; i++) {
         ramMemoryBlockChecksums[i] = new RamMemoryBlockChecksum();
+    }
 
     //load configuration data from file
     configure();
@@ -342,10 +346,12 @@ public int processDataPackets(boolean pWaitForPkt)
     // will ever be coming because this same thread which is now blocked is
     // sometimes the one requesting data
 
-    if (pWaitForPkt)
+    if (pWaitForPkt) {
         return processDataPacketsHelper(pWaitForPkt);
-    else
+    }
+    else {
         while ((x = processDataPacketsHelper(pWaitForPkt)) != -1){}
+    }
 
     return x;
 
@@ -362,7 +368,7 @@ public int processDataPackets(boolean pWaitForPkt)
 public int processDataPacketsHelper(boolean pWaitForPkt)
 {
 
-    if (byteIn == null) return 0;  //do nothing if the port is closed
+    if (byteIn == null) {return(0);}  //do nothing if the port is closed
 
     try{
 
@@ -370,7 +376,7 @@ public int processDataPacketsHelper(boolean pWaitForPkt)
 
         //wait until 5 bytes are available - this should be the 4 header bytes,
         //and the packet identifier/command
-        if ((x = byteIn.available()) < 5) return -1;
+        if ((x = byteIn.available()) < 5) {return(-1);}
 
         //read the bytes in one at a time so that if an invalid byte is
         //encountered it won't corrupt the next valid sequence in the case
@@ -390,7 +396,9 @@ public int processDataPacketsHelper(boolean pWaitForPkt)
             byteIn.read(inBuffer, 0, 1);
             if (inBuffer[0] != (byte)0xaa) {reSync(); return 0;}
         }
-        else reSynced = false;
+        else {
+            reSynced = false;
+        }
 
         byteIn.read(inBuffer, 0, 1);
         if (inBuffer[0] != (byte)0x55) {reSync(); return 0;}
@@ -402,28 +410,28 @@ public int processDataPacketsHelper(boolean pWaitForPkt)
         //read the packet ID
         byteIn.read(inBuffer, 0, 1);
 
-        if (inBuffer[0] == UTBoard.GET_STATUS_CMD) getStatus();
+        if (inBuffer[0] == UTBoard.GET_STATUS_CMD) {getStatus();}
         else
-        if (inBuffer[0] == UTBoard.LOAD_FPGA_CMD) loadFPGA();
+        if (inBuffer[0] == UTBoard.LOAD_FPGA_CMD) {loadFPGA();}
         else
-        if (inBuffer[0] == UTBoard.WRITE_FPGA_CMD) writeFPGA();
+        if (inBuffer[0] == UTBoard.WRITE_FPGA_CMD) {writeFPGA();}
         else
-        if (inBuffer[0] == UTBoard.READ_FPGA_CMD) readFPGA();
+        if (inBuffer[0] == UTBoard.READ_FPGA_CMD) {readFPGA();}
         else
-        if (inBuffer[0] == UTBoard.WRITE_DSP_CMD) writeDSP();
+        if (inBuffer[0] == UTBoard.WRITE_DSP_CMD) {writeDSP();}
         else
-        if (inBuffer[0] == UTBoard.WRITE_NEXT_DSP_CMD) writeNextDSP();
+        if (inBuffer[0] == UTBoard.WRITE_NEXT_DSP_CMD) {writeNextDSP();}
         else
-        if (inBuffer[0] == UTBoard.READ_DSP_CMD) readDSP();
+        if (inBuffer[0] == UTBoard.READ_DSP_CMD) {readDSP();}
         else
         if (inBuffer[0] == UTBoard.GET_DSP_RAM_BLOCK_CHECKSUM)
-                                                      getDSPRamBlockChecksum();
+        {   getDSPRamBlockChecksum();}
         else
-        if (inBuffer[0] == UTBoard.GET_PEAK_DATA4_CMD) getPeakData4();
+        if (inBuffer[0] == UTBoard.GET_PEAK_DATA4_CMD) {getPeakData4();}
         else
-        if (inBuffer[0] == UTBoard.GET_ASCAN_CMD) getAScan();
+        if (inBuffer[0] == UTBoard.GET_ASCAN_CMD) {getAScan();}
         else
-        if (inBuffer[0] == UTBoard.MESSAGE_DSP_CMD) processDSPMessage();
+        if (inBuffer[0] == UTBoard.MESSAGE_DSP_CMD) {processDSPMessage();}
 
         return 0;
 
@@ -458,8 +466,9 @@ private int processDSPMessage()
     int dspCore = inBuffer[1];
     int dspMsgID = inBuffer[2];
 
-    if ( dspMsgID == UTBoard.DSP_GET_STATUS_CMD)
-        return readDSPStatus(dspChip, dspCore);
+    if ( dspMsgID == UTBoard.DSP_GET_STATUS_CMD) {
+        return (readDSPStatus(dspChip, dspCore));
+    }
 
     //clear out the remaining bytes of any unhandled DSP message
     tossDSPMessageRemainder();
@@ -576,7 +585,7 @@ void readFPGA()
         System.err.println(getClass().getName() + " - Error: 574");
     }
 
-    if (inBuffer[0] == UTBoard.CHASSIS_SLOT_ADDRESS) getChassisSlotAddress();
+    if (inBuffer[0] == UTBoard.CHASSIS_SLOT_ADDRESS) {getChassisSlotAddress();}
 
 }//end of UTSimulator::readFPGA
 //-----------------------------------------------------------------------------
@@ -754,7 +763,7 @@ void writeDSP()
 
     //if no empty block was found, don't store info to it -- this block cannot
     //be verified later by the host
-    if (currentBlock == -1) return;
+    if (currentBlock == -1) {return;}
 
     prevChip = chip; prevCore = core; prevPage = page; prevAddress = address;
 
@@ -824,13 +833,14 @@ void sendPacketHeader(byte pPacketID, byte pDSPChip, byte pDSPCore)
     outBuffer[6] = pDSPCore;
 
     //send packet to remote
-    if (byteOut != null)
+    if (byteOut != null) {
         try{
             byteOut.write(outBuffer, 0 /*offset*/, 7);
         }
         catch (IOException e) {
             System.err.println(getClass().getName() + " - Error: 830");
         }
+    }
 
 }//end of UTSimulator::sendPacketHeader
 //----------------------------------------------------------------------------
@@ -886,8 +896,9 @@ public void getPeakData4()
             channelPeakSets[ch].peak = (int)(Math.random()*5);
 
             //occasional peak
-            if(((int)(Math.random()*200)) == 1)
+            if(((int)(Math.random()*200)) == 1) {
                 channelPeakSets[ch].peak = (int)(Math.random()*100);
+            }
 
             sendShortInt((short)channelPeakSets[ch].peak);
 
@@ -937,7 +948,9 @@ public void getPeakData4()
             wall = (short)(95 + (Math.random()*10));
 
             //occasional peak
-            if(((int)(Math.random()*200)) == 1) wall -= (int)(Math.random()*30);
+            if(((int)(Math.random()*200)) == 1) {
+                wall -= (int)(Math.random()*30);
+            }
 
             sendShortInt(wall);  //wall min peak uS distance
 
@@ -1075,7 +1088,7 @@ public void simulateAScan(int pChannel)
 
     int []aScan = aScanBuffer;
 
-    int i = delayCount, j = 0;
+    int i, j = 0;
 
     //first byte returned is the channel
     aScan[j++] = pChannel;
@@ -1086,12 +1099,13 @@ public void simulateAScan(int pChannel)
     aScan[j++] = (byte)((iFaceCrossing >> 8) & 0xff);
     aScan[j++] = (byte)((iFaceCrossing) & 0xff);
 
-    int simData = 40;
+    int simData;
 
     //fill the array with data - generate a spike for the interface
     for (i=0; i<400; i++){
-        if (i==iFaceCrossing)
+        if (i==iFaceCrossing) {
             simData = 280;
+        }
         else{
             simData = (int)(Math.random()*10);
             }
@@ -1144,7 +1158,9 @@ void simulateMainBang(int[] pBuffer, int pIndex, double pGain)
                                                            / mainBangSineAngle);
 
     //if the signal is attenuated down to zero, add some noise
-    if (pBuffer[pIndex] == 0) pBuffer[pIndex] = (int)(Math.random()*5);
+    if (pBuffer[pIndex] == 0) {
+        pBuffer[pIndex] = (int)(Math.random()*5);
+    }
 
 }//end of UTSimulator::simulateMainBang
 //-----------------------------------------------------------------------------
@@ -1167,8 +1183,9 @@ void simulateInterface(int[] pBuffer, int pIndex, double pGain)
         pBuffer[pIndex] = ifaceProfile[ifaceProfileCounter];
         ifaceProfileCounter++;
     }
-    else
+    else {
         pBuffer[pIndex] = 25;
+    }
 
     //apply gain
     pBuffer[pIndex] *= pGain;
@@ -1201,7 +1218,7 @@ void simulateReflection(int[] pBuffer, int pIndex, double pGain)
     //reflectionSineAngle to give sin(x)/x decay function to show attenuation
 
     int attenuation = (byte)(reflectionSineAngle/20.0);
-    if (attenuation < 1) attenuation = 1;
+    if (attenuation < 1) {attenuation = 1;}
 
     //multiplying the angle by 12 gives approx 2.25Mhz pulse when sampling
     //period is 15 ns
@@ -1211,7 +1228,7 @@ void simulateReflection(int[] pBuffer, int pIndex, double pGain)
                                                          * 2) / attenuation );
 
     //if the signal is attenuated down to zero, add some noise
-    if (pBuffer[pIndex] == 0) pBuffer[pIndex] = (int)(Math.random()*5);
+    if (pBuffer[pIndex] == 0) {pBuffer[pIndex] = (int)(Math.random()*5);}
 
 }//end of UTSimulator::simulateReflection
 //-----------------------------------------------------------------------------
