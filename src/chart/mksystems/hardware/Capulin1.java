@@ -216,6 +216,7 @@ public void connectControlBoard()
     DatagramPacket inPacket;
     inPacket = new DatagramPacket(inBuf, inBuf.length);
     int responseCount = 0;
+    String response;
 
     try{
         group = InetAddress.getByName("230.0.0.1");
@@ -257,25 +258,42 @@ public void connectControlBoard()
 
                 socket.receive(inPacket);
 
-                //store each new ip address in a board
+                //store each new ip address in a Control board object
                 for (int i = 0; i < numberOfControlBoards; i++){
-                    //if an unused board reached, store ip there
-                    if (controlBoards[i].ipAddr == null){
-                        controlBoards[i].setIPAddr(inPacket.getAddress());
-                        responseCount++; //count unique Control board responses
+
+                    //if a ut board already has the same ip, don't save it
+                    //this might occur if a board responds more than once as the
+                    //host repeatedly broadcasts the greeting
+                    //since the first utBoard objects in the array are filled
+                    //first -- this will catch duplicates
+
+                    if (controlBoards[i].ipAddr != null &&
+                            controlBoards[i].ipAddr == inPacket.getAddress()){
                         break;
                     }
-                    //if a control board already has the same ip, don't save it
-                    if (controlBoards[i].ipAddr == inPacket.getAddress()){
+
+                    //only boards which haven't been already seen make it here
+
+                    //if an unused board reached, store ip there
+                    if (controlBoards[i].ipAddr == null){
+
+                        //store the ip address in the unused object
+                        controlBoards[i].setIPAddr(inPacket.getAddress());
+
+                        //count unique IP address responses
+                        responseCount++;
+
+                        //convert the response packet to a string
+                        response = new String(
+                                inPacket.getData(), 0, inPacket.getLength());
+
+                        //display the greeting string from the remote
+                        logger.logMessage(
+                             controlBoards[i].ipAddrS + "  " + response + "\n");
+
                         break;
                     }
                 }//for (int i = 0; i < numberOfControlBoards; i++)
-
-                //if receive finds a packet before timing out, this reached
-                //display the greeting string from the remote
-                logger.logMessage(new String(inPacket.getData(), 0,
-                                                inPacket.getLength()) + "\n");
-
             }//while(true)
         }//try
         catch(IOException e){
@@ -414,8 +432,9 @@ public synchronized void connectUTBoards()
                     //host repeatedly broadcasts the greeting
                     //since the first utBoard objects in the array are filled
                     //first -- this will catch duplicates
-                    if (utBoards[i].ipAddr != null
-                          && utBoards[i].ipAddr.equals(inPacket.getAddress())){
+
+                    if (utBoards[i].ipAddr != null &&
+                            utBoards[i].ipAddr.equals(inPacket.getAddress())){
                         break;
                     }
 
@@ -424,10 +443,10 @@ public synchronized void connectUTBoards()
                     //if an unused board reached, store ip there
                     if (utBoards[i].ipAddr == null){
 
-                        //store the ip address in the unused utBoard object
+                        //store the ip address in the unused object
                         utBoards[i].setIPAddr(inPacket.getAddress());
 
-                        //count unique UT board responses
+                        //count unique IP address responses
                         responseCount++;
 
                         //convert the response packet to a string
@@ -438,7 +457,8 @@ public synchronized void connectUTBoards()
                         if (response.contains("FPGA loaded")) fpgaLoadedCount++;
 
                         //display the greeting string from the remote
-                        logger.logMessage(response + "\n");
+                        logger.logMessage(
+                                utBoards[i].ipAddrS + "  " + response + "\n");
 
                         //stop scanning the boards now that ip saved
                         break;
