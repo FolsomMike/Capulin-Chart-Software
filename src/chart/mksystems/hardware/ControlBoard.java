@@ -320,7 +320,7 @@ private void getChassisSlotAddress()
 public void startMonitor()
 {
 
-    sendBytes2(START_MONITOR_CMD, (byte) 0);
+    sendBytes(START_MONITOR_CMD, (byte) 0);
 
 }//end of ControlBoard::startMonitor
 //-----------------------------------------------------------------------------
@@ -334,7 +334,7 @@ public void startMonitor()
 public void stopMonitor()
 {
 
-    sendBytes2(STOP_MONITOR_CMD, (byte) 0);
+    sendBytes(STOP_MONITOR_CMD, (byte) 0);
 
 }//end of ControlBoard::stopMonitor
 //-----------------------------------------------------------------------------
@@ -364,7 +364,7 @@ public byte[] getMonitorPacket(boolean pRequestPacket)
         //function so it can be retrieved by another call to this function
         if (packetRequestTimer++ == 50){
             packetRequestTimer = 0;
-            sendBytes2(GET_MONITOR_PACKET_CMD, (byte) 0);
+            sendBytes(GET_MONITOR_PACKET_CMD, (byte) 0);
         }
     }
 
@@ -417,7 +417,7 @@ public int processMonitorPacket()
 public void requestInspectPacket()
 {
 
-    sendBytes2(GET_INSPECT_PACKET_CMD, (byte) 0);
+    sendBytes(GET_INSPECT_PACKET_CMD, (byte) 0);
 
 }//end of ControlBoard::requestInspectPacket
 //-----------------------------------------------------------------------------
@@ -565,7 +565,7 @@ public int processInspectPacket()
 public void zeroEncoderCounts()
 {
 
-    sendBytes2(ZERO_ENCODERS_CMD, (byte) 0);
+    sendBytes(ZERO_ENCODERS_CMD, (byte) 0);
 
 }//end of ControlBoard::zeroEncoderCounts
 //-----------------------------------------------------------------------------
@@ -582,7 +582,7 @@ public void zeroEncoderCounts()
 public void pulseOutput()
 {
 
-    sendBytes2(PULSE_OUTPUT_CMD, (byte) 0);
+    sendBytes(PULSE_OUTPUT_CMD, (byte) 0);
 
 }//end of ControlBoard::pulseOutput
 //-----------------------------------------------------------------------------
@@ -599,7 +599,7 @@ public void pulseOutput()
 public void turnOnOutput()
 {
 
-    sendBytes2(TURN_ON_OUTPUT_CMD, (byte) 0);
+    sendBytes(TURN_ON_OUTPUT_CMD, (byte) 0);
 
 }//end of ControlBoard::turnOnOutput
 //-----------------------------------------------------------------------------
@@ -616,7 +616,7 @@ public void turnOnOutput()
 public void turnOffOutput()
 {
 
-    sendBytes2(TURN_OFF_OUTPUT_CMD, (byte) 0);
+    sendBytes(TURN_OFF_OUTPUT_CMD, (byte) 0);
 
 }//end of ControlBoard::turnOffOutput
 //-----------------------------------------------------------------------------
@@ -635,7 +635,7 @@ public void turnOffOutput()
 public void setEncodersDeltaTrigger()
 {
 
-    sendBytes5(SET_ENCODERS_DELTA_TRIGGER_CMD,
+    sendBytes(SET_ENCODERS_DELTA_TRIGGER_CMD,
                 (byte)((encoder1DeltaTrigger >> 8) & 0xff),
                 (byte)(encoder1DeltaTrigger & 0xff),
                 (byte)((encoder2DeltaTrigger >> 8) & 0xff),
@@ -656,7 +656,7 @@ public void setEncodersDeltaTrigger()
 public void startInspect()
 {
 
-    sendBytes2(START_INSPECT_CMD, (byte) 0);
+    sendBytes(START_INSPECT_CMD, (byte) 0);
 
 }//end of ControlBoard::startInspect
 //-----------------------------------------------------------------------------
@@ -670,7 +670,7 @@ public void startInspect()
 public void stopInspect()
 {
 
-    sendBytes2(STOP_INSPECT_CMD, (byte) 0);
+    sendBytes(STOP_INSPECT_CMD, (byte) 0);
 
 }//end of ControlBoard::stopInspect
 //-----------------------------------------------------------------------------

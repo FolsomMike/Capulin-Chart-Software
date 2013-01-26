@@ -922,7 +922,7 @@ public void loadFPGA()
 
     try {
 
-        sendByte(LOAD_FPGA_CMD); //send command to initiate loading
+        sendBytes(LOAD_FPGA_CMD); //send command to initiate loading
 
         logger.logMessage("UT " + ipAddrS + " loading FPGA..." + "\n");
 
@@ -1030,7 +1030,7 @@ public void loadFPGA()
 public byte writeFPGAReg(byte pAddress, byte pByte)
 {
 
-    sendBytes3(WRITE_FPGA_CMD, pAddress, pByte);
+    sendBytes(WRITE_FPGA_CMD, pAddress, pByte);
 
     return pByte;
 
@@ -1472,7 +1472,7 @@ void sendHardwareGain(int pChannel, int pGain1, int pGain2)
     if (gain2 >= 5)  {gain2 |= 0x40;}
     // gains less than 6 (value of 5) have 00b compensation
 
-    sendBytes4((byte)SET_HDW_GAIN_CMD, (byte)pChannel, gain1, gain2);
+    sendBytes((byte)SET_HDW_GAIN_CMD, (byte)pChannel, gain1, gain2);
 
 }//end of UTBoard::sendHardwareGain
 //-----------------------------------------------------------------------------
@@ -1556,7 +1556,7 @@ void writeDSPRam(int pDSPChip, int pDSPCore, int pRAMType,
     //if shared memory is selected, set bit 20 of the HPIA register - this is
     //bit 4 of the upper address byte 2
 
-    sendBytes8(WRITE_DSP_CMD, (byte)pDSPChip, (byte)pDSPCore,
+    sendBytes(WRITE_DSP_CMD, (byte)pDSPChip, (byte)pDSPCore,
                 (byte)(pPage |= ((pRAMType == 1) ? 0x10 : 0x00)),
                 (byte)((pAddress >> 8) & 0xff),(byte)(pAddress & 0xff),
                 (byte)((pValue >> 8) & 0xff), (byte)(pValue & 0xff));
@@ -1584,7 +1584,7 @@ void writeNextDSPRam(int pDSPChip, int pDSPCore, int pValue)
     // byte3 = high byte of value to be written
     // byte4 = low byte of value to be written
 
-    sendBytes5(WRITE_NEXT_DSP_CMD, (byte)pDSPChip, (byte)pDSPCore,
+    sendBytes(WRITE_NEXT_DSP_CMD, (byte)pDSPChip, (byte)pDSPCore,
                 (byte)((pValue >> 8) & 0xff), (byte)(pValue & 0xff));
 
 }//end of UTBoard::writeNextDSPRam
@@ -1659,7 +1659,7 @@ public void readRAM(int pDSPChip, int pDSPCore, int pRAMType,
     //if shared memory is selected, set bit 20 of the HPIA register - this is
     //bit 4 of the upper address byte 2
 
-    sendBytes7(READ_DSP_BLOCK_CMD, (byte)pDSPChip, (byte)pDSPCore,
+    sendBytes(READ_DSP_BLOCK_CMD, (byte)pDSPChip, (byte)pDSPCore,
                 (byte)(pPage |= ((pRAMType == 1) ? 0x10 : 0x00)),
                 (byte)((pAddress >> 8) & 0xff),(byte)(pAddress & 0xff),
                 (byte)(pCount & 0xff));
@@ -1709,7 +1709,7 @@ void readRAMDSP(int pDSPChip, int pDSPCore, int pRAMType,
     //if shared memory is selected, set bit 20 of the HPIA register - this is
     //bit 4 of the upper address byte 2
 
-    sendBytes6(READ_DSP_CMD, (byte)pDSPChip, (byte)pDSPCore,
+    sendBytes(READ_DSP_CMD, (byte)pDSPChip, (byte)pDSPCore,
                 (byte)(pPage |= ((pRAMType == 1) ? 0x10 : 0x00)),
                 (byte)((pAddress >> 8) & 0xff),(byte)(pAddress & 0xff));
 
@@ -1767,7 +1767,7 @@ int getDSPRamChecksum(int pDSPChip, int pDSPCore, int pRAMType,
     //if shared memory is selected, set bit 20 of the HPIA register - this is
     //bit 4 of the upper address byte 2
 
-    sendBytes8(GET_DSP_RAM_BLOCK_CHECKSUM, (byte)pDSPChip, (byte)pDSPCore,
+    sendBytes(GET_DSP_RAM_BLOCK_CHECKSUM, (byte)pDSPChip, (byte)pDSPCore,
                 (byte)(pPage |= ((pRAMType == 1) ? 0x10 : 0x00)),
                 (byte)((pAddress >> 8) & 0xff),(byte)(pAddress & 0xff),
                 (byte)((pBlockSize >> 8) & 0xff),(byte)(pBlockSize & 0xff)
@@ -1819,7 +1819,7 @@ void readNextRAMDSP(int pDSPChip, int pDSPCore, byte[] pRetBuffer)
     //return packet
     readDSPDone = false;
 
-    sendBytes3(READ_NEXT_DSP_CMD, (byte)pDSPChip, (byte)pDSPCore);
+    sendBytes(READ_NEXT_DSP_CMD, (byte)pDSPChip, (byte)pDSPCore);
 
     // wait until processDSPPackets reaches the answer packet from the remote
     // and processes it
@@ -2939,7 +2939,7 @@ public boolean logDSPStatusHelper(int pDSPChip, int pDSPCore,
 public void readDSPStatus(int pDSPChip, int pDSPCore)
 {
 
-    sendBytes15(MESSAGE_DSP_CMD,
+    sendBytes(MESSAGE_DSP_CMD,
            (byte)pDSPChip, (byte)pDSPCore,
            (byte) DSP_GET_STATUS_CMD, // DSP message type id
            (byte) 2, //return packet size expected
@@ -2974,7 +2974,7 @@ public void sendChannelParam(int pChannel, byte pMsgID,
 
     // 1st Core handling the channel
 
-    sendBytes15(MESSAGE_DSP_CMD, bdChs[pChannel].dspChip,
+    sendBytes(MESSAGE_DSP_CMD, bdChs[pChannel].dspChip,
            bdChs[pChannel].dspCore1,
            pMsgID, // DSP message type id
            (byte) 1, //return packet size expected (expects an ACK packet)
@@ -2985,7 +2985,7 @@ public void sendChannelParam(int pChannel, byte pMsgID,
 
     // 2nd Core handling the channel
 
-    sendBytes15(MESSAGE_DSP_CMD, bdChs[pChannel].dspChip,
+    sendBytes(MESSAGE_DSP_CMD, bdChs[pChannel].dspChip,
                bdChs[pChannel].dspCore2,
                pMsgID, // DSP message type id
                (byte) 1, //return packet size expected (expects an ACK packet)
@@ -3074,7 +3074,7 @@ public void requestAScan(int pChannel, int pHardwareDelay)
         if (aScanCoreSelector == 1) {aScanCoreSelector = 2;}
         else {aScanCoreSelector = 1;}
 
-        sendBytes4(GET_ASCAN_CMD, bdChs[pChannel].dspChip,
+        sendBytes(GET_ASCAN_CMD, bdChs[pChannel].dspChip,
             aScanCoreSelector == 1
                     ? bdChs[pChannel].dspCore1 : bdChs[pChannel].dspCore2,
             (byte) pChannel);
@@ -3144,7 +3144,7 @@ public void requestPeakData(int pChannel)
 
         // if the channel is setup for wall data, last byte sent is set to 1
 
-        sendBytes4(GET_PEAK_DATA_CMD,
+        sendBytes(GET_PEAK_DATA_CMD,
                 (byte)pChannel, (byte)bdChs[pChannel].numberOfGates,
                 (byte)(bdChs[pChannel].isWallChannel ? 1:0));
 
@@ -3198,7 +3198,7 @@ public void requestPeakData4(int pChannel0, int pChannel1, int pChannel2,
         if(bdChs[pChannel2].isWallChannel) {wallFlags |= 4;}
         if(bdChs[pChannel3].isWallChannel) {wallFlags |= 8;}
 
-        sendBytes10(GET_PEAK_DATA4_CMD,
+        sendBytes(GET_PEAK_DATA4_CMD,
                 (byte)pChannel0, (byte)bdChs[pChannel0].numberOfGates,
                 (byte)pChannel1, (byte)bdChs[pChannel1].numberOfGates,
                 (byte)pChannel2, (byte)bdChs[pChannel2].numberOfGates,
@@ -3252,7 +3252,7 @@ public void getPeakDataFromDSP(int pChannel)
     int numberReturnBytes =
         bdChs[pChannel].numberOfGates * PEAK_DATA_BYTES_PER_GATE;
 
-    sendBytes15(MESSAGE_DSP_CMD,
+    sendBytes(MESSAGE_DSP_CMD,
            (byte)bdChs[pChannel].dspChip,
            (byte)bdChs[pChannel].dspCore1,
            (byte) DSP_GET_PEAK_DATA, // DSP message type id

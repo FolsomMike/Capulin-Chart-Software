@@ -116,449 +116,39 @@ public void setIPAddr(InetAddress pIPAddr)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Board::sendByte
+// Board::sendBytes
 //
-// Sends pByte to the remote device, prepending a valid header and appending
-// the appropriate checksum.
+// Sends a variable number of bytes (one or more) to the remote device,
+// prepending a valid header and appending the appropriate checksum.
 //
 
-void sendByte(byte pByte)
+void sendBytes(byte... pBytes)
 {
+
+    int checksum = 0;
 
     sendHeader(); //send the packet header
 
-    outBuffer[0] = pByte;
-
-    //calculate the checksum
-    outBuffer[1] = (byte)( (0x100 - outBuffer[0]) & 0xff  );
-
-    //send packet to remote
-    if (byteOut != null) {
-        try{
-            byteOut.write(outBuffer, 0 /*offset*/, 2);
-            byteOut.flush();
-        }
-        catch (IOException e){
-            System.err.println(getClass().getName() + " - Error: 143");
-        }
+    for(int i=0; i<pBytes.length; i++){
+        outBuffer[i] = pBytes[i];
+        checksum += pBytes[i];
     }
 
-}//end of Board::sendByte
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Board::sendBytes2
-//
-// Sends two bytes to the remote device, prepending a valid header and appending
-// the appropriate checksum.
-//
-
-void sendBytes2(byte pByte1, byte pByte2)
-{
-
-    sendHeader(); //send the packet header
-
-    outBuffer[0] = pByte1; outBuffer[1] = pByte2;
-
-    //calculate the checksum
-    outBuffer[2] = (byte)( (0x100 - outBuffer[0] - outBuffer[1]) & 0xff );
+    //calculate checksum and put at end of buffer
+    outBuffer[pBytes.length] = (byte)(0x100 - (byte)(checksum & 0xff));
 
     //send packet to remote
     if (byteOut != null) {
         try{
-            byteOut.write(outBuffer, 0 /*offset*/, 3);
-            byteOut.flush();
-        }
-        catch (IOException e){
-            System.err.println(getClass().getName() + " - Error: 173");
-        }
-    }
-
-}//end of Board::sendBytes2
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Board::sendBytes3
-//
-// Sends three bytes to the remote device, prepending a valid header and
-// appending the appropriate checksum.
-//
-
-void sendBytes3(byte pByte1, byte pByte2, byte pByte3)
-{
-
-    sendHeader(); //send the packet header
-
-    outBuffer[0] = pByte1; outBuffer[1] = pByte2; outBuffer[2] = pByte3;
-
-    //calculate the checksum
-    outBuffer[3] = (byte)(
-            (0x100 - outBuffer[0] - outBuffer[1] - outBuffer[2])
-             & 0xff );
-
-    //send packet to remote
-    if (byteOut != null) {
-        try{
-            byteOut.write(outBuffer, 0 /*offset*/, 4);
-            byteOut.flush();
-        }
-        catch (IOException e){
-            System.err.println(getClass().getName() + " - Error: 205");
-        }
-    }
-
-}//end of Board::sendBytes3
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Board::sendBytes4
-//
-// Sends four bytes to the remote device, prepending a valid header and
-// appending the appropriate checksum.
-//
-
-void sendBytes4(byte pByte1, byte pByte2, byte pByte3, byte pByte4)
-{
-
-    sendHeader(); //send the packet header
-
-    outBuffer[0] = pByte1; outBuffer[1] = pByte2;
-    outBuffer[2] = pByte3; outBuffer[3] = pByte4;
-
-    //calculate the checksum
-    outBuffer[4] = (byte)(
-       (0x100 - outBuffer[0] - outBuffer[1] - outBuffer[2] - outBuffer[3])
-            & 0xff );
-
-    //send packet to remote
-    if (byteOut != null) {
-        try{
-            byteOut.write(outBuffer, 0 /*offset*/, 5);
-            byteOut.flush();
-        }
-        catch (IOException e){
-            System.err.println(getClass().getName() + " - Error: 238");
-        }
-    }
-
-}//end of Board::sendBytes4
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Board::sendBytes5
-//
-// Sends five bytes to the remote device, prepending a valid header and
-// appending the appropriate checksum.
-//
-
-void sendBytes5(byte pByte1, byte pByte2, byte pByte3, byte pByte4, byte pByte5)
-{
-
-    sendHeader(); //send the packet header
-
-    outBuffer[0] = pByte1; outBuffer[1] = pByte2;
-    outBuffer[2] = pByte3; outBuffer[3] = pByte4;
-    outBuffer[4] = pByte5;
-
-    //calculate the checksum
-    outBuffer[5] = (byte)(
-            (0x100 - outBuffer[0] - outBuffer[1] - outBuffer[2] - outBuffer[3]
-            - outBuffer[4])
-             & 0xff );
-
-    //send packet to remote
-    if (byteOut != null) {
-        try{
-            byteOut.write(outBuffer, 0 /*offset*/, 6);
-            byteOut.flush();
-        }
-        catch (IOException e){
-            System.err.println(getClass().getName() + " - Error: 273");
-        }
-    }
-
-}//end of Board::sendBytes5
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Board::sendBytes6
-//
-// Sends six bytes to the remote device, prepending a valid header and appending
-// the appropriate checksum.
-//
-
-void sendBytes6(byte pByte1, byte pByte2, byte pByte3, byte pByte4,
-                                                    byte pByte5, byte pByte6)
-{
-
-    sendHeader(); //send the packet header
-
-    outBuffer[0] = pByte1; outBuffer[1] = pByte2;
-    outBuffer[2] = pByte3; outBuffer[3] = pByte4;
-    outBuffer[4] = pByte5; outBuffer[5] = pByte6;
-
-    //calculate the checksum
-    outBuffer[6] = (byte)(
-            (0x100 - outBuffer[0] - outBuffer[1] - outBuffer[2] - outBuffer[3]
-            - outBuffer[4] - outBuffer[5])
-             & 0xff );
-
-    //send packet to remote
-    if (byteOut != null) {
-            try{
-                byteOut.write(outBuffer, 0 /*offset*/, 7);
-                byteOut.flush();
-            }
-            catch (IOException e){
-                System.err.println(getClass().getName() + " - Error: 309");
-            }
-        }
-
-}//end of Board::sendBytes6
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Board::sendBytes7
-//
-// Sends seven bytes to the remote device, prepending a valid header and
-// appending the appropriate checksum.
-//
-
-void sendBytes7(byte pByte1, byte pByte2, byte pByte3, byte pByte4,
-                     byte pByte5, byte pByte6, byte pByte7)
-{
-
-    sendHeader(); //send the packet header
-
-    outBuffer[0] = pByte1; outBuffer[1] = pByte2;
-    outBuffer[2] = pByte3; outBuffer[3] = pByte4;
-    outBuffer[4] = pByte5; outBuffer[5] = pByte6;
-    outBuffer[6] = pByte7;
-
-    //calculate the checksum
-    outBuffer[7] = (byte)(
-            (0x100 - outBuffer[0] - outBuffer[1] - outBuffer[2] - outBuffer[3]
-            - outBuffer[4] - outBuffer[5] - outBuffer[6])
-             & 0xff );
-
-    //send packet to remote
-    if (byteOut != null) {
-        try{
-            byteOut.write(outBuffer, 0 /*offset*/, 8);
-            byteOut.flush();
-        }
-        catch (IOException e){
-            System.err.println(getClass().getName() + " - Error: 346");
-        }
-    }
-
-}//end of Board::sendBytes7
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Board::sendBytes8
-//
-// Sends eight bytes to the remote device, prepending a valid header and
-// appending the appropriate checksum.
-//
-
-void sendBytes8(byte pByte1, byte pByte2, byte pByte3, byte pByte4,
-                     byte pByte5, byte pByte6, byte pByte7, byte pByte8)
-{
-
-    sendHeader(); //send the packet header
-
-    outBuffer[0] = pByte1; outBuffer[1] = pByte2;
-    outBuffer[2] = pByte3; outBuffer[3] = pByte4;
-    outBuffer[4] = pByte5; outBuffer[5] = pByte6;
-    outBuffer[6] = pByte7; outBuffer[7] = pByte8;
-
-    //calculate the checksum
-    outBuffer[8] = (byte)(
-            (0x100 - outBuffer[0] - outBuffer[1] - outBuffer[2] - outBuffer[3]
-            - outBuffer[4] - outBuffer[5] - outBuffer[6] - outBuffer[7])
-             & 0xff );
-
-    //send packet to remote
-    if (byteOut != null) {
-        try{
-            byteOut.write(outBuffer, 0 /*offset*/, 9);
-            byteOut.flush();
-        }
-        catch (IOException e){
-            System.err.println(getClass().getName() + " - Error: 383");
-        }
-    }
-
-}//end of Board::sendBytes8
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Board::sendBytes9
-//
-// Sends nine bytes to the remote device, prepending a valid header and
-// appending the appropriate checksum.
-//
-
-void sendBytes9(byte pByte1, byte pByte2, byte pByte3, byte pByte4,
-               byte pByte5, byte pByte6, byte pByte7, byte pByte8, byte pByte9)
-{
-
-    sendHeader(); //send the packet header
-
-    outBuffer[0] = pByte1; outBuffer[1] = pByte2;
-    outBuffer[2] = pByte3; outBuffer[3] = pByte4;
-    outBuffer[4] = pByte5; outBuffer[5] = pByte6;
-    outBuffer[6] = pByte7; outBuffer[7] = pByte8;
-    outBuffer[8] = pByte9;
-
-    //calculate the checksum
-    outBuffer[9] = (byte)(
-            (0x100 - outBuffer[0] - outBuffer[1] - outBuffer[2] - outBuffer[3]
-            - outBuffer[4] - outBuffer[5] - outBuffer[6] - outBuffer[7]
-             - outBuffer[8])
-             & 0xff );
-
-    //send packet to remote
-    if (byteOut != null) {
-        try{
-            byteOut.write(outBuffer, 0 /*offset*/, 10);
-            byteOut.flush();
+              byteOut.write(outBuffer, 0 /*offset*/, pBytes.length + 1);
+              byteOut.flush();
         }
         catch (IOException e) {
             System.err.println(getClass().getName() + " - Error: 422");
         }
     }
 
-}//end of Board::sendBytes9
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Board::sendBytes10
-//
-// Sends ten bytes to the remote device, prepending a valid header and
-// appending the appropriate checksum.
-//
-
-void sendBytes10(byte pByte1, byte pByte2, byte pByte3, byte pByte4,
-  byte pByte5, byte pByte6, byte pByte7, byte pByte8, byte pByte9, byte pByte10)
-{
-
-    sendHeader(); //send the packet header
-
-    outBuffer[0] = pByte1; outBuffer[1] = pByte2;
-    outBuffer[2] = pByte3; outBuffer[3] = pByte4;
-    outBuffer[4] = pByte5; outBuffer[5] = pByte6;
-    outBuffer[6] = pByte7; outBuffer[7] = pByte8;
-    outBuffer[8] = pByte9; outBuffer[9] = pByte10;
-
-    //calculate the checksum
-    outBuffer[10] = (byte)(
-            (0x100 - outBuffer[0] - outBuffer[1] - outBuffer[2] - outBuffer[3]
-            - outBuffer[4] - outBuffer[5] - outBuffer[6] - outBuffer[7]
-             - outBuffer[8] - outBuffer[9])
-             & 0xff );
-
-    //send packet to remote
-    if (byteOut != null) {
-        try{
-            byteOut.write(outBuffer, 0 /*offset*/, 11);
-            byteOut.flush();
-        }
-        catch (IOException e){
-            System.err.println(getClass().getName() + " - Error: 461");
-        }
-    }
-
-}//end of Board::sendBytes10
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Board::sendBytes11
-//
-// Sends eleven bytes to the remote device, prepending a valid header and
-// appending the appropriate checksum.
-//
-
-void sendBytes11(byte pByte1, byte pByte2, byte pByte3, byte pByte4,
-                 byte pByte5, byte pByte6, byte pByte7, byte pByte8,
-                 byte pByte9, byte pByte10, byte pByte11)
-{
-
-    sendHeader(); //send the packet header
-
-    outBuffer[0] = pByte1; outBuffer[1] = pByte2;
-    outBuffer[2] = pByte3; outBuffer[3] = pByte4;
-    outBuffer[4] = pByte5; outBuffer[5] = pByte6;
-    outBuffer[6] = pByte7; outBuffer[7] = pByte8;
-    outBuffer[8] = pByte9; outBuffer[9] = pByte10;
-    outBuffer[10] = pByte11;
-
-    //calculate the checksum
-    outBuffer[11] = (byte)(
-            (0x100 - outBuffer[0] - outBuffer[1] - outBuffer[2] - outBuffer[3]
-            - outBuffer[4] - outBuffer[5] - outBuffer[6] - outBuffer[7]
-             - outBuffer[8] - outBuffer[9] - outBuffer[10])
-             & 0xff );
-
-    //send packet to remote
-    if (byteOut != null) {
-        try{
-            byteOut.write(outBuffer, 0 /*offset*/, 12);
-            byteOut.flush();
-        }
-        catch (IOException e){
-            System.err.println(getClass().getName() + " - Error: 502");
-        }
-    }
-
-}//end of Board::sendBytes11
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Board::sendBytes15
-//
-// Sends fifteen bytes to the remote device, prepending a valid header and
-// appending the appropriate checksum.
-//
-
-void sendBytes15(byte pByte1, byte pByte2, byte pByte3, byte pByte4,
-                 byte pByte5, byte pByte6, byte pByte7, byte pByte8,
-                 byte pByte9, byte pByte10, byte pByte11, byte pByte12,
-                 byte pByte13, byte pByte14, byte pByte15)
-{
-
-    sendHeader(); //send the packet header
-
-    outBuffer[0] = pByte1; outBuffer[1] = pByte2;
-    outBuffer[2] = pByte3; outBuffer[3] = pByte4;
-    outBuffer[4] = pByte5; outBuffer[5] = pByte6;
-    outBuffer[6] = pByte7; outBuffer[7] = pByte8;
-    outBuffer[8] = pByte9; outBuffer[9] = pByte10;
-    outBuffer[10] = pByte11; outBuffer[11] = pByte12;
-    outBuffer[12] = pByte13; outBuffer[13] = pByte14;
-    outBuffer[14] = pByte15;
-
-    //calculate the checksum
-    outBuffer[15] = (byte)(
-            (0x100 - outBuffer[0] - outBuffer[1] - outBuffer[2] - outBuffer[3]
-            - outBuffer[4] - outBuffer[5] - outBuffer[6] - outBuffer[7]
-             - outBuffer[8] - outBuffer[9] - outBuffer[10] - outBuffer[11] -
-             outBuffer[12] - outBuffer[13] - outBuffer[14])
-             & 0xff );
-
-    //send packet to remote
-    if (byteOut != null) {
-        try{
-            byteOut.write(outBuffer, 0 /*offset*/, 16);
-            byteOut.flush();
-        }
-        catch(IOException e){
-            System.err.println(getClass().getName() + " - Error: 547");
-        }
-    }
-
-}//end of Board::sendBytes15
+}//end of Board::sendBytes
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -638,7 +228,7 @@ byte getRemoteData(byte pCommand, boolean pForceProcessDataPackets)
 
     if (byteIn == null) {return(0);}
 
-    sendByte(pCommand); //request the data from the remote
+    sendBytes(pCommand); //request the data from the remote
 
     //force waiting for and processing of receive packets
     if (pForceProcessDataPackets) {processDataPackets(true, TIMEOUT);}
@@ -661,7 +251,7 @@ byte getRemoteAddressedData(byte pCommand, byte pSendData)
 
     if (byteIn == null) {return(0);}
 
-    sendBytes2(pCommand, pSendData);
+    sendBytes(pCommand, pSendData);
 
     int IN_BUFFER_SIZE = 2;
     byte[] inBuf;
@@ -872,7 +462,7 @@ void installNewRabbitFirmware(String pBoardType, String pFilename,
 
     try {
 
-        sendByte(pS.loadFirmwareCmd); //send command to initiate loading
+        sendBytes(pS.loadFirmwareCmd); //send command to initiate loading
 
         logger.logMessage(pBoardType + " " + ipAddrS +
                                          " loading Rabbit firmware..." + "\n");
