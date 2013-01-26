@@ -18,12 +18,11 @@
 
 package chart.mksystems.hardware;
 
+import chart.MessageLink;
+import chart.mksystems.inifile.IniFile;
 import java.io.*;
 import java.net.*;
 import javax.swing.*;
-
-import chart.MessageLink;
-import chart.mksystems.inifile.IniFile;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -213,7 +212,9 @@ public synchronized void connect()
         logger.logMessage("Control Board IP Address: " +
                                                     ipAddr.toString() + "\n");
 
-        if (!simulate) socket = new Socket(ipAddr, 23);
+        if (!simulate) {
+            socket = new Socket(ipAddr, 23);
+        }
         else {
 
             socket = new ControlSimulator(ipAddr, 23, fileFormat);
@@ -357,14 +358,15 @@ public void stopMonitor()
 public byte[] getMonitorPacket(boolean pRequestPacket)
 {
 
-    if (pRequestPacket)
-            //request a packet be sent if the counter has timed out
-            //this packet will arrive in the future and be processed by another
-            //function so it can be retrieved by another call to this function
-            if (packetRequestTimer++ == 50){
-                packetRequestTimer = 0;
-                sendBytes2(GET_MONITOR_PACKET_CMD, (byte) 0);
-                }
+    if (pRequestPacket){
+        //request a packet be sent if the counter has timed out
+        //this packet will arrive in the future and be processed by another
+        //function so it can be retrieved by another call to this function
+        if (packetRequestTimer++ == 50){
+            packetRequestTimer = 0;
+            sendBytes2(GET_MONITOR_PACKET_CMD, (byte) 0);
+        }
+    }
 
     return monitorBuffer;
 
@@ -385,11 +387,12 @@ public int processMonitorPacket()
     try{
         timeOutProcess = 0;
         while(timeOutProcess++ < TIMEOUT){
-            if (byteIn.available() >= MONITOR_PACKET_SIZE) break;
+            if (byteIn.available() >= MONITOR_PACKET_SIZE) {break;}
             waitSleep(10);
         }
-        if (byteIn.available() >= MONITOR_PACKET_SIZE)
-            return   byteIn.read(monitorBuffer, 0, MONITOR_PACKET_SIZE);
+        if (byteIn.available() >= MONITOR_PACKET_SIZE) {
+            return (byteIn.read(monitorBuffer, 0, MONITOR_PACKET_SIZE));
+        }
 
     }// try
     catch(IOException e){
@@ -436,18 +439,19 @@ public int processInspectPacket()
     try{
         timeOutProcess = 0;
         while(timeOutProcess++ < TIMEOUT){
-            if (byteIn.available() >= pktSize) break;
+            if (byteIn.available() >= pktSize) {break;}
             waitSleep(10);
         }
-        if (byteIn.available() >= pktSize)
+        if (byteIn.available() >= pktSize) {
             cnt = byteIn.read(inBuffer, 0, pktSize);
+        }
 
         inspectPacketCount = (int)((inBuffer[x++]<<8) & 0xff00)
                                                  + (int)(inBuffer[x++] & 0xff);
 
         // combine four bytes each to make the encoder counts
 
-        int encoder1Count = 0, encoder2Count = 0;
+        int encoder1Count, encoder2Count;
 
         // create integer from four bytes in buffer
         encoder1Count = ((inBuffer[x++] << 24));
@@ -469,16 +473,20 @@ public int processInspectPacket()
         //a no change case should not occur since packets are sent when there
         //has been a change of encoder count
 
-        if (encoder1 > prevEncoder1)
+        if (encoder1 > prevEncoder1) {
             encoder1Dir = InspectControlVars.INCREASING;
-        else
+        }
+        else {
             encoder1Dir = InspectControlVars.DECREASING;
+        }
 
         //flag if encoder count was increased or decreased
-        if (encoder2 > prevEncoder2)
+        if (encoder2 > prevEncoder2) {
             encoder2Dir = InspectControlVars.INCREASING;
-        else
+        }
+        else {
             encoder2Dir = InspectControlVars.DECREASING;
+        }
 
         //update the previous encoder values for use next time
         prevEncoder1 = encoder1; prevEncoder2 = encoder2;
@@ -489,30 +497,50 @@ public int processInspectPacket()
 
         //control flags are active high
 
-        if ((controlFlags & ON_PIPE_CTRL) != 0)
+        if ((controlFlags & ON_PIPE_CTRL) != 0) {
             onPipeFlag = true;
-        else
+        }
+        else {
             onPipeFlag = false;
+        }
 
-        if ((controlFlags & HEAD1_DOWN_CTRL) != 0)
-            head1Down = true; else head1Down = false;
+        if ((controlFlags & HEAD1_DOWN_CTRL) != 0) {
+            head1Down = true;
+        } else {
+            head1Down = false;
+        }
 
-        if ((controlFlags & HEAD2_DOWN_CTRL) != 0)
-            head2Down = true; else head2Down = false;
+        if ((controlFlags & HEAD2_DOWN_CTRL) != 0) {
+            head2Down = true;
+        } else {
+            head2Down = false;
+        }
 
         //port E inputs are active low
 
-        if ((controlPortE & TDC_MASK) == 0)
-            tdcFlag = true; else tdcFlag = false;
+        if ((controlPortE & TDC_MASK) == 0) {
+            tdcFlag = true;
+        } else {
+            tdcFlag = false;
+        }
 
-        if ((controlPortA & UNUSED1_MASK) == 0)
-            unused1Flag = true; else unused1Flag = false;
+        if ((controlPortA & UNUSED1_MASK) == 0) {
+            unused1Flag = true;
+        } else {
+            unused1Flag = false;
+        }
 
-        if ((controlPortA & UNUSED2_MASK) == 0)
-            unused2Flag = true; else unused2Flag = false;
+        if ((controlPortA & UNUSED2_MASK) == 0) {
+            unused2Flag = true;
+        } else {
+            unused2Flag = false;
+        }
 
-        if ((controlPortE & UNUSED3_MASK) == 0)
-            unused3Flag = true; else unused3Flag = false;
+        if ((controlPortE & UNUSED3_MASK) == 0) {
+            unused3Flag = true;
+        } else {
+            unused3Flag = false;
+        }
 
         newInspectPacketReady = true; //signal other objects
 
@@ -659,13 +687,13 @@ public void stopInspect()
 public boolean prepareData()
 {
 
-    if (byteIn != null)
+    if (byteIn != null) {
         try {
 
             int c = byteIn.available();
 
             //if a full packet is not ready, return false
-            if (c < runtimePacketSize) return false;
+            if (c < runtimePacketSize) {return false;}
 
             byteIn.read(inBuffer, 0, runtimePacketSize);
 
@@ -677,6 +705,7 @@ public boolean prepareData()
             System.err.println(getClass().getName() + " - Error: 672");
             return false;
         }
+    }
 
     return true;
 
@@ -710,8 +739,8 @@ public int processDataPacketsUntilEncoderPacket()
                                       && encoderDataPacketProcessed == false){}
 
 
-    if (encoderDataPacketProcessed == true) return 1;
-    else return -1;
+    if (encoderDataPacketProcessed == true) {return 1;}
+    else {return -1;}
 
 }//end of ControlBoard::processDataPacketsUntilEncoderPacket
 //-----------------------------------------------------------------------------
@@ -744,7 +773,7 @@ public int processDataPacketsUntilEncoderPacket()
 public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
 {
 
-    if (byteIn == null) return -1;  //do nothing if the port is closed
+    if (byteIn == null) {return -1;}  //do nothing if the port is closed
 
     try{
 
@@ -758,7 +787,7 @@ public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
 
         //wait until 5 bytes are available - this should be the 4 header bytes,
         //and the packet identifier
-        if (byteIn.available() < 5) return -1;
+        if (byteIn.available() < 5) {return -1;}
 
         //read the bytes in one at a time so that if an invalid byte is
         //encountered it won't corrupt the next valid sequence in the case
@@ -779,7 +808,7 @@ public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
             byteIn.read(inBuffer, 0, 1);
             if (inBuffer[0] != (byte)0xaa) {reSync(); return 0;}
         }
-        else reSynced = false;
+        else {reSynced = false;}
 
         byteIn.read(inBuffer, 0, 1);
         if (inBuffer[0] != (byte)0x55) {reSync(); return 0;}
@@ -794,13 +823,13 @@ public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
         //store the ID of the packet (the packet type)
         pktID = inBuffer[0];
 
-        if ( pktID == GET_STATUS_CMD) return process2BytePacket();
+        if (pktID == GET_STATUS_CMD) {return process2BytePacket();}
         else
-        if ( pktID == GET_CHASSIS_SLOT_ADDRESS_CMD) return process2BytePacket();
+        if (pktID == GET_CHASSIS_SLOT_ADDRESS_CMD){return process2BytePacket();}
         else
-        if ( pktID == GET_INSPECT_PACKET_CMD) return processInspectPacket();
+        if (pktID == GET_INSPECT_PACKET_CMD) {return processInspectPacket();}
         else
-        if ( pktID == GET_MONITOR_PACKET_CMD) return processMonitorPacket();
+        if (pktID == GET_MONITOR_PACKET_CMD) {return processMonitorPacket();}
 
     }
     catch(IOException e){
@@ -868,8 +897,9 @@ public void reSync()
 public void driveSimulation()
 {
 
-    if (simulate && socket != null)
+    if (simulate && socket != null) {
         ((ControlSimulator)socket).processDataPackets(false);
+    }
 
 }//end of ControlBoard::driveSimulation
 //-----------------------------------------------------------------------------
@@ -943,7 +973,7 @@ public void installNewRabbitFirmware()
 public int xmtMessage(int pMessage, int pValue)
 {
 
-    if (mechSimulator == null) return MessageLink.NULL;
+    if (mechSimulator == null) {return MessageLink.NULL;}
 
     //pass the message on to the mechanical simulation object
     return mechSimulator.xmtMessage(pMessage, pValue);
@@ -1006,11 +1036,11 @@ protected void shutDown()
 
     try{
 
-        if (byteOut != null) byteOut.close();
-        if (byteIn != null) byteIn.close();
-        if (out != null) out.close();
-        if (in != null) in.close();
-        if (socket != null) socket.close();
+        if (byteOut != null) {byteOut.close();}
+        if (byteIn != null) {byteIn.close();}
+        if (out != null) {out.close();}
+        if (in != null) {in.close();}
+        if (socket != null) {socket.close();}
 
     }
     catch(IOException e){

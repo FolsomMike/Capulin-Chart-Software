@@ -18,13 +18,11 @@
 
 package chart.mksystems.hardware;
 
+import chart.Log;
+import chart.mksystems.inifile.IniFile;
 import java.io.*;
 import java.net.*;
 import javax.swing.*;
-import java.lang.Math.*;
-
-import chart.mksystems.inifile.IniFile;
-import chart.Log;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -546,8 +544,9 @@ public UTBoard(String pConfigFilename, String pBoardName, int pBoardIndex,
     //aScanFIFO holds multiple data sets which can then be averaged to create
     //the data for aScan - this allows for smoothing
     aScanFIFO = new AScan[ASCAN_FIFO_SIZE];
-    for (int i = 0; i < ASCAN_FIFO_SIZE; i++)
+    for (int i = 0; i < ASCAN_FIFO_SIZE; i++) {
         aScanFIFO[i] = new AScan(ASCAN_BUFFER_SIZE);
+    }
 
     readDSPResult = new byte[512];
 
@@ -573,7 +572,7 @@ private void setupBoardChannels() {
 
     bdChs = new BoardChannel[NUMBER_OF_BOARD_CHANNELS];
 
-    for (int i=0; i<4; i++) bdChs[i] = new BoardChannel();
+    for (int i=0; i<4; i++) {bdChs[i] = new BoardChannel();}
 
     //Each channel is handled by two DSP cores.
     //select the proper dsp chip and cores for each channel as follows
@@ -700,8 +699,8 @@ public synchronized void connect()
         //displays message on bottom panel of IDE
         logger.logMessage("Connecting to UT board " + ipAddrS + "...\n");
 
-        if (!simulate) socket = new Socket(ipAddr, 23);
-        else socket = new UTSimulator(ipAddr, 23, mainFileFormat);
+        if (!simulate) {socket = new Socket(ipAddr, 23);}
+        else {socket = new UTSimulator(ipAddr, 23, mainFileFormat);}
 
         //set amount of time in milliseconds that a read from the socket will
         //wait for data - this prevents program lock up when no data is ready
@@ -900,7 +899,7 @@ public void loadFPGA()
 {
 
     // don't attempt to load the FPGA if no contact made with remote
-    if (byteOut == null) return;
+    if (byteOut == null) {return;}
 
     // check to see if the FPGA has already been loaded
     if ((getRemoteData(GET_STATUS_CMD, true) & FPGA_LOADED_FLAG) != 0) {
@@ -941,7 +940,7 @@ public void loadFPGA()
             if (byteIn != null){
                 inCount = byteIn.available();
                 //0 = buffer offset, 2 = number of bytes to read
-                if (inCount >= 2) byteIn.read(inBuffer, 0, 2);
+                if (inCount >= 2) {byteIn.read(inBuffer, 0, 2);}
             }
 
             //trap error and finished status messages, second byte in buffer
@@ -988,7 +987,7 @@ public void loadFPGA()
 
                 }
 
-                if (c == -1) fileDone = true; //send no more packets
+                if (c == -1) {fileDone = true;} //send no more packets
 
                 //send packet to remote
                 byteOut.write(codeBuffer, 0 /*offset*/, CODE_BUFFER_SIZE);
@@ -1014,7 +1013,7 @@ public void loadFPGA()
         System.err.println(getClass().getName() + " - Error: 1014");
     }
     finally {
-        if (inFile != null) try {inFile.close();} catch(IOException e){}
+        if (inFile != null) {try {inFile.close();} catch(IOException e){}}
     }//finally
 
 }//end of UTBoard::loadFPGA
@@ -1115,7 +1114,7 @@ public void initialize()
     //use 0x05 for board to be a receiver of the pulser sync
 
     //set the board up as the pulse sync source if specified
-    if (syncSource) masterControlShadow |= SYNC_SOURCE;
+    if (syncSource) {masterControlShadow |= SYNC_SOURCE;}
 
     //set the board up to use real data instead of simulation data
     masterControlShadow &= (~SIM_DATA);
@@ -1232,12 +1231,13 @@ void getChassisSlotAddressOverride()
     //if a chassis and board address were found for this board's IP address,
     //set the board's addresses to match
 
-    if (chassisAddrL != -1) chassisAddr = chassisAddrL;
-    if (slotAddrL != -1) slotAddr = slotAddrL;
+    if (chassisAddrL != -1) {chassisAddr = chassisAddrL;}
+    if (slotAddrL != -1) {slotAddr = slotAddrL;}
 
-    if (chassisAddrL != -1 || slotAddrL != -1)
+    if (chassisAddrL != -1 || slotAddrL != -1) {
         logger.logMessage("UT " + ipAddrS + " chassis & slot override: "
                                         + chassisAddr + "-" + slotAddr + "\n");
+    }
 
 }//end of UTBoard::getChassisSlotAddressOverride
 //-----------------------------------------------------------------------------
@@ -1295,7 +1295,7 @@ void setRepRateInHertz(int pValue)
     //too wide, the pulser circuitry will have an excessive duty cycle and burn
     //up 4166 is twice 2Khz for 4 channels - a reasonable maximum
     // (a smaller value is a higher rep rate)
-    if (repRate < 4166 || repRate > 65535 ) repRate = 33333;
+    if (repRate < 4166 || repRate > 65535 ) {repRate = 33333;}
 
 }//end of UTBoard::setRepRateInHertz
 //-----------------------------------------------------------------------------
@@ -1440,7 +1440,7 @@ void sendPulseDelay(int pValue)
 void sendHardwareGain(int pChannel, int pGain1, int pGain2)
 {
 
-    byte gain1 = 0, gain2 = 0;
+    byte gain1, gain2;
 
     // gain goes in lower nibble
     gain1 = (byte)((pGain1-1) & 0x0f); gain2 = (byte)((pGain2-1) & 0x0f);
@@ -1458,18 +1458,18 @@ void sendHardwareGain(int pChannel, int pGain1, int pGain2)
     //   so choosing the highest value for each case gives the lowest comp and
     //   therefore the highest possible frequency response for that range
 
-    if (gain1 == 15) gain1 |= 0xc0;
+    if (gain1 == 15) {gain1 |= 0xc0;}
     else
-    if (gain1 >= 10) gain1 |= 0x80;
+    if (gain1 >= 10) {gain1 |= 0x80;}
     else
-    if (gain1 >= 5)  gain1 |= 0x40;
+    if (gain1 >= 5)  {gain1 |= 0x40;}
     // gains less than 6 (value of 5) have 00b compensation
 
-    if (gain2 == 15) gain2 |= 0xc0;
+    if (gain2 == 15) {gain2 |= 0xc0;}
     else
-    if (gain2 >= 10) gain2 |= 0x80;
+    if (gain2 >= 10) {gain2 |= 0x80;}
     else
-    if (gain2 >= 5)  gain2 |= 0x40;
+    if (gain2 >= 5)  {gain2 |= 0x40;}
     // gains less than 6 (value of 5) have 00b compensation
 
     sendBytes4((byte)SET_HDW_GAIN_CMD, (byte)pChannel, gain1, gain2);
@@ -1488,8 +1488,8 @@ void sendHardwareGain(int pChannel, int pGain1, int pGain2)
 void setAScanSmoothing(int pChannel, int pAScanSmoothing)
 {
 
-    if (pAScanSmoothing < 1) pAScanSmoothing = 1;
-    if (pAScanSmoothing > ASCAN_FIFO_SIZE) pAScanSmoothing = ASCAN_FIFO_SIZE;
+    if (pAScanSmoothing < 1) {pAScanSmoothing = 1;}
+    if (pAScanSmoothing > ASCAN_FIFO_SIZE) {pAScanSmoothing = ASCAN_FIFO_SIZE;}
 
     bdChs[pChannel].aScanSmoothing = pAScanSmoothing;
 
@@ -1606,10 +1606,12 @@ public void fillRAM(int pDSPChip, int pDSPCore,
 
         //modifyRAMDSP sets up the address and modifies the first word
         //subsequent words are modified with modifyNextRAMDSP
-        if (i++ == 0)
+        if (i++ == 0) {
             writeDSPRam(pDSPChip, pDSPCore, pRAMType, pPage, pAddress, pValue);
-        else
+        }
+        else {
             writeNextDSPRam(pDSPChip, pDSPCore, pValue);
+        }
 
     }//while (i < pBlockSize)
 
@@ -1635,11 +1637,11 @@ public void readRAM(int pDSPChip, int pDSPCore, int pRAMType,
     //and the remote device must be able to specify the number of data bytes
     //returned in the single size byte which can express a maximum of 255
 
-    if (pCount > 127) pCount = 127;
+    if (pCount > 127) {pCount = 127;}
 
     //limit bytes retrieved to size of array
     //pCount is in words so multiply by 2 for the number of bytes
-    if ((pCount*2) > readDSPResult.length) pCount = readDSPResult.length / 2;
+    if ((pCount*2) > readDSPResult.length) {pCount = readDSPResult.length / 2;}
 
     //transfer the values to the command packet
     // byte0 = command
@@ -1714,9 +1716,10 @@ void readRAMDSP(int pDSPChip, int pDSPCore, int pRAMType,
     // wait until processDSPPackets reaches the answer packet from the remote
     // and processes it
 
-    if (pForceProcessDataPackets)
+    if (pForceProcessDataPackets){
         //force waiting for and processing of receive packets
         processDataPackets(true, TIMEOUT);
+    }
     else {
         timeOutRead = 0;
         while(!readDSPDone && timeOutRead++ < TIMEOUT){waitSleep(10);}
@@ -1773,11 +1776,12 @@ int getDSPRamChecksum(int pDSPChip, int pDSPCore, int pRAMType,
     // wait until processDSPPackets reaches the answer packet from the remote
     // and processes it
 
-    if (pForceProcessDataPackets)
+    if (pForceProcessDataPackets){
         //force waiting for and processing of receive packets
         //use a time out number large enough to give the remote time to scan the
         //block of DSP ram
         processDataPackets(true, 500);
+    }
     else {
         timeOutRead = 0;
         while(!getDSPRamChecksumDone && timeOutRead++ < TIMEOUT){waitSleep(10);}
@@ -1870,10 +1874,10 @@ void loadDSPCode(int pDSPChip, int pDSPCore)
     int packetCnt = 0;
 
     String core;
-    if (pDSPCore == 1) core = "A & B";
+    if (pDSPCore == 1) {core = "A & B";}
     else
-    if (pDSPCore == 3) core = "C & D";
-    else core = "";
+    if (pDSPCore == 3) {core = "C & D";}
+    else {core = "";}
 
     logger.logMessage("UT " + chassisSlotAddr + " loading DSP code for" + "\n"
             + "    Chip " + pDSPChip + " Cores " + core + "\n");
@@ -1887,16 +1891,16 @@ void loadDSPCode(int pDSPChip, int pDSPCore)
 
         while ((c = inputStream.read()) != -1) {
 
-            if (c == 2) continue; //catch the ctrl-B file start marker - skip it
+            if (c == 2) {continue;} //catch ctrl-B file start marker - skip it
 
-            if (c == 3) break; //catch the ctrl-C file end marker - exit
+            if (c == 3) {break;} //catch the ctrl-C file end marker - exit
 
-            if (c == '\r' || c == '\n' || c == ',' || c == ' ') continue;
+            if (c == '\r' || c == '\n' || c == ',' || c == ' ') {continue;}
 
             // catch new address flag
             if (c == '$') {
 
-                c = inputStream.read(); //read and ignore the 'A'
+                inputStream.read(); //read and ignore the 'A'
 
                 //read next four characters to create new address value
                 n3 = fromHex(inputStream.read());
@@ -1920,11 +1924,11 @@ void loadDSPCode(int pDSPChip, int pDSPCore)
 
                 c = fromHex(c);
 
-                if (place == 3) value += (int)((c<<12) & 0xf000);
+                if (place == 3) {value += (int)((c<<12) & 0xf000);}
                 else
-                if (place == 2) value += (int)((c<<8)  & 0xf00);
+                if (place == 2) {value += (int)((c<<8)  & 0xf00);}
                 else
-                if (place == 1) value += (int)((c<<4) & 0xf0);
+                if (place == 1) {value += (int)((c<<4) & 0xf0);}
                 else{
 
                     //fourth character converted, add it in and write word
@@ -1997,10 +2001,10 @@ boolean verifyDSPCode(int pDSPChip, int pDSPCore)
     int checksum = 0;
 
     String core;
-    if (pDSPCore == 1) core = "A & B";
+    if (pDSPCore == 1) {core = "A & B";}
     else
-    if (pDSPCore == 3) core = "C & D";
-    else core = "";
+    if (pDSPCore == 3) {core = "C & D";}
+    else {core = "";}
 
     logger.logMessage("UT " + chassisSlotAddr + " verifying DSP code for" + "\n"
             + "    Chip " + pDSPChip + " Cores " + core + "\n");
@@ -2016,16 +2020,16 @@ boolean verifyDSPCode(int pDSPChip, int pDSPCore)
 
         while ((c = inputStream.read()) != -1) {
 
-            if (c == 2) continue; //catch the ctrl-B file start marker - skip it
+            if (c == 2) {continue;} //catch ctrl-B file start marker - skip it
 
-            if (c == 3) break; //catch the ctrl-C file end marker - exit
+            if (c == 3) {break;} //catch the ctrl-C file end marker - exit
 
-            if (c == '\r' || c == '\n' || c == ',' || c == ' ') continue;
+            if (c == '\r' || c == '\n' || c == ',' || c == ' ') {continue;}
 
             // catch new address flag
             if (c == '$') {
 
-                c = inputStream.read(); //read and ignore the 'A'
+                inputStream.read(); //read and ignore the 'A'
 
                 //read next four characters to create new address value
                 n3 = fromHex(inputStream.read());
@@ -2074,11 +2078,11 @@ boolean verifyDSPCode(int pDSPChip, int pDSPCore)
 
                 c = fromHex(c);
 
-                if (place == 3) value += (int)((c<<12) & 0xf000);
+                if (place == 3) {value += (int)((c<<12) & 0xf000);}
                 else
-                if (place == 2) value += (int)((c<<8)  & 0xf00);
+                if (place == 2) {value += (int)((c<<8)  & 0xf00);}
                 else
-                if (place == 1) value += (int)((c<<4) & 0xf0);
+                if (place == 1) {value += (int)((c<<4) & 0xf0);}
                 else{
 
                     //fourth character converted, add it in and write word
@@ -2157,10 +2161,10 @@ void verifyDSPCode2(int pDSPChip, int pDSPCore)
     int packetCnt = 0;
 
     String core;
-    if (pDSPCore == 1) core = "A & B";
+    if (pDSPCore == 1) {core = "A & B";}
     else
-    if (pDSPCore == 3) core = "C & D";
-    else core = "";
+    if (pDSPCore == 3) {core = "C & D";}
+    else {core = "";}
 
     logger.logMessage("UT " + chassisSlotAddr + " verifying DSP code for" + "\n"
             + "    Chip " + pDSPChip + " Cores " + core + "\n");
@@ -2176,16 +2180,16 @@ void verifyDSPCode2(int pDSPChip, int pDSPCore)
 
         while ((c = inputStream.read()) != -1) {
 
-            if (c == 2) continue; //catch the ctrl-B file start marker - skip it
+            if (c == 2) {continue;} //catch ctrl-B file start marker - skip it
 
-            if (c == 3) break; //catch the ctrl-C file end marker - exit
+            if (c == 3) {break;} //catch the ctrl-C file end marker - exit
 
-            if (c == '\r' || c == '\n' || c == ',' || c == ' ') continue;
+            if (c == '\r' || c == '\n' || c == ',' || c == ' ') {continue;}
 
             // catch new address flag
             if (c == '$') {
 
-                c = inputStream.read(); //read and ignore the 'A'
+                inputStream.read(); //read and ignore the 'A'
 
                 //read next four characters to create new address value
                 n3 = fromHex(inputStream.read());
@@ -2209,11 +2213,11 @@ void verifyDSPCode2(int pDSPChip, int pDSPCore)
 
                 c = fromHex(c);
 
-                if (place == 3) value += (int)((c<<12) & 0xf000);
+                if (place == 3) {value += (int)((c<<12) & 0xf000);}
                 else
-                if (place == 2) value += (int)((c<<8)  & 0xf00);
+                if (place == 2) {value += (int)((c<<8)  & 0xf00);}
                 else
-                if (place == 1) value += (int)((c<<4) & 0xf0);
+                if (place == 1) {value += (int)((c<<4) & 0xf0);}
                 else{
 
                     //fourth character converted, add it in and write word
@@ -2228,11 +2232,12 @@ void verifyDSPCode2(int pDSPChip, int pDSPCore)
                                                      + (int)(buffer[1] & 0xff);
 
                     //compare the value read from memory with the code from file
-                    if (value != memValue)
+                    if (value != memValue) {
                         logger.logMessage(
                          "UT " + chassisSlotAddr + " DSP code error"
                          + "\n" + "    Chip " + pDSPChip + " Cores " + core
                          + "  Address: " + (address-1) + "\n");
+                    }
 
                     //request and wait for a status flag ever so often to make
                     //sure the remote's buffer is not overrun
@@ -2279,39 +2284,39 @@ void verifyDSPCode2(int pDSPChip, int pDSPCore)
 int fromHex(int pChar)
 {
 
-    if (pChar == '0') return 0;
+    if (pChar == '0') {return 0;}
     else
-    if (pChar == '1') return 1;
+    if (pChar == '1') {return 1;}
     else
-    if (pChar == '2') return 2;
+    if (pChar == '2') {return 2;}
     else
-    if (pChar == '3') return 3;
+    if (pChar == '3') {return 3;}
     else
-    if (pChar == '4') return 4;
+    if (pChar == '4') {return 4;}
     else
-    if (pChar == '5') return 5;
+    if (pChar == '5') {return 5;}
     else
-    if (pChar == '6') return 6;
+    if (pChar == '6') {return 6;}
     else
-    if (pChar == '7') return 7;
+    if (pChar == '7') {return 7;}
     else
-    if (pChar == '8') return 8;
+    if (pChar == '8') {return 8;}
     else
-    if (pChar == '9') return 9;
+    if (pChar == '9') {return 9;}
     else
-    if (pChar == 'a' || pChar == 'A') return 10;
+    if (pChar == 'a' || pChar == 'A') {return 10;}
     else
-    if (pChar == 'b' || pChar == 'B') return 11;
+    if (pChar == 'b' || pChar == 'B') {return 11;}
     else
-    if (pChar == 'c' || pChar == 'C') return 12;
+    if (pChar == 'c' || pChar == 'C') {return 12;}
     else
-    if (pChar == 'd' || pChar == 'D') return 13;
+    if (pChar == 'd' || pChar == 'D') {return 13;}
     else
-    if (pChar == 'e' || pChar == 'E') return 14;
+    if (pChar == 'e' || pChar == 'E') {return 14;}
     else
-    if (pChar == 'f' || pChar == 'F') return 15;
+    if (pChar == 'f' || pChar == 'F') {return 15;}
     else
-    return 0;
+        {return 0;}
 
 }//end of UTBoard::fromHex
 //-----------------------------------------------------------------------------
@@ -2387,7 +2392,7 @@ void sendHardwareRange(int pChannel, int pCount)
 
     //force pCount to be even - FPGA transfers two samples at a time to the DSP
     //RAM via the HPI port - odd number will cause transfer lock up in FPGA
-    if (pCount % 2 != 0) pCount++;
+    if (pCount % 2 != 0) {pCount++;}
 
     writeFPGAReg(bdChs[pChannel].countReg0, (byte) (pCount & 0xff));
     writeFPGAReg(bdChs[pChannel].countReg1, (byte) ((pCount >> 8) & 0xff));
@@ -2431,7 +2436,7 @@ void sendAScanScale(int pChannel, int pScale)
 {
 
     //protect against divide by zero
-    if (pScale < 1) pScale = 1;
+    if (pScale < 1) {pScale = 1;}
 
     // calculate number of output samples to process for a desired number of
     // input samples to be processed -- rounding off is fine
@@ -2442,7 +2447,7 @@ void sendAScanScale(int pChannel, int pScale)
     // since the value is used as a loop counter, adjust down by subtracting 1
     int batchSize = (50 / pScale / 2) - 1;
 
-    if (batchSize < 1) batchSize = 1;
+    if (batchSize < 1) {batchSize = 1;}
 
     sendChannelParam(pChannel, (byte) DSP_SET_ASCAN_SCALE,
                    (byte)((pScale >> 8) & 0xff), (byte)(pScale & 0xff),
@@ -2535,7 +2540,7 @@ void sendDAC(int pChannel, int pGate, int pStart, int pWidth, int pLevel)
 {
 
     //remotes will crash if gate width is less than 1
-    if (pWidth < 1) pWidth = 1;
+    if (pWidth < 1) {pWidth = 1;}
 
     sendChannelParam(pChannel, (byte) DSP_SET_DAC,
                 (byte)pGate,
@@ -2666,10 +2671,10 @@ public int getState(int pWhich)
     }
 
     //return the DSP's enabled and running flag
-    if (pWhich == 1) return(resetShadow & 0x3c);
+    if (pWhich == 1) {return(resetShadow & 0x3c);}
 
     //return the test/actual data flag
-    if (pWhich == 2) return(masterControlShadow & SIM_DATA);
+    if (pWhich == 2) {return(masterControlShadow & SIM_DATA);}
 
     return 0;
 
@@ -2694,9 +2699,10 @@ public void setState(int pWhich, int pValue)
         //PC control of the HPI interfaces or FPGA control which enables samples
         //to be stored in the DSP
 
-        if (pValue == FALSE)
+        if (pValue == FALSE){
             //clear the flag (setup mode)
             masterControlShadow &= (~SETUP_RUN_MODE);
+        }
         else{
 
             //If entering run mode, always read a word from the DSP RAM page
@@ -2734,33 +2740,33 @@ public void setState(int pWhich, int pValue)
     }
 
     if (pWhich == ENABLE_DSP_RUN){
-        if (pValue == FALSE)
-            //false, DSP run not enabled, set all core resets low (in reset)
+        if (pValue == FALSE) {
             resetShadow = writeFPGAReg(RESET_REG, (byte)(resetShadow & (~0x3c)));
-        else
-            //true, DSP run enabled, set all core resets high (not in reset)
+        }
+        else {
             resetShadow = writeFPGAReg(RESET_REG, (byte)(resetShadow | 0x3c));
+        }
     }
 
     if (pWhich == ENABLE_TEST_DATA){
-        if (pValue == FALSE)
-            //false, use A/D data instead of simulated data
+        if (pValue == FALSE) {
             masterControlShadow = writeFPGAReg(
                 MASTER_CONTROL_REG, (byte)(masterControlShadow & (~SIM_DATA)));
-        else
-            //true, use simulated data
+        }
+        else {
             masterControlShadow = writeFPGAReg(
                    MASTER_CONTROL_REG, (byte)(masterControlShadow | SIM_DATA));
+        }
     }
 
     if (pWhich == ENABLE_FPGA_INTERNALS){
-        if (pValue == FALSE)
-            //false, put all internal functions into reset
+        if (pValue == FALSE) {
             resetShadow = writeFPGAReg(RESET_REG, (byte)(resetShadow | 0x01));
-        else
-            //true, enable all internal functions
+        }
+        else {
             resetShadow =
                         writeFPGAReg(RESET_REG, (byte)(resetShadow & (~0x01)));
+        }
     }
 
 }//end of UTBoard::setState
@@ -2849,14 +2855,17 @@ public void logDSPStatus(int pDSPChip, int pDSPCore,
 {
 
     //request status - try three times
-    if (logDSPStatusHelper(pDSPChip, pDSPCore, pForceProcessDataPackets))
+    if (logDSPStatusHelper(pDSPChip, pDSPCore, pForceProcessDataPackets)) {
         return;
+    }
 
-    if (logDSPStatusHelper(pDSPChip, pDSPCore, pForceProcessDataPackets))
+    if (logDSPStatusHelper(pDSPChip, pDSPCore, pForceProcessDataPackets)) {
         return;
+    }
 
-    if (logDSPStatusHelper(pDSPChip, pDSPCore, pForceProcessDataPackets))
+    if (logDSPStatusHelper(pDSPChip, pDSPCore, pForceProcessDataPackets)) {
         return;
+    }
 
 }//end of Channel::logDSPStatus
 //-----------------------------------------------------------------------------
@@ -2889,8 +2898,9 @@ public boolean logDSPStatusHelper(int pDSPChip, int pDSPCore,
     //loop until a dsp status message received
     if (pForceProcessDataPackets){
         dspStatusMessageRcvd = false;
-        while (!dspStatusMessageRcvd && wait++ < 10)
+        while (!dspStatusMessageRcvd && wait++ < 10) {
             bytesRead = processDataPackets(true, TIMEOUT);
+        }
     }
 
     //if bytesRead is > 0, a packet was processed and data will be in inBuffer
@@ -2962,7 +2972,7 @@ public void sendChannelParam(int pChannel, byte pMsgID,
                         byte pByte8, byte pByte9)
 {
 
-// 1st Core handling the channel
+    // 1st Core handling the channel
 
     sendBytes15(MESSAGE_DSP_CMD, bdChs[pChannel].dspChip,
            bdChs[pChannel].dspCore1,
@@ -2973,16 +2983,16 @@ public void sendChannelParam(int pChannel, byte pMsgID,
            pByte5, pByte6, pByte7, pByte8, pByte9
            );
 
-// 2nd Core handling the channel
+    // 2nd Core handling the channel
 
-sendBytes15(MESSAGE_DSP_CMD, bdChs[pChannel].dspChip,
-           bdChs[pChannel].dspCore2,
-           pMsgID, // DSP message type id
-           (byte) 1, //return packet size expected (expects an ACK packet)
-           (byte) 9, //data packet size sent
-           pByte1, pByte2, pByte3, pByte4,
-           pByte5, pByte6, pByte7, pByte8, pByte9
-           );
+    sendBytes15(MESSAGE_DSP_CMD, bdChs[pChannel].dspChip,
+               bdChs[pChannel].dspCore2,
+               pMsgID, // DSP message type id
+               (byte) 1, //return packet size expected (expects an ACK packet)
+               (byte) 9, //data packet size sent
+               pByte1, pByte2, pByte3, pByte4,
+               pByte5, pByte6, pByte7, pByte8, pByte9
+               );
 
 }//end of Channel::sendChannelParam
 //-----------------------------------------------------------------------------
@@ -3061,8 +3071,8 @@ public void requestAScan(int pChannel, int pHardwareDelay)
     //if a request is not still pending, send request for new aScan data packet
     if (aScanRcvd){
 
-        if (aScanCoreSelector == 1) aScanCoreSelector = 2;
-        else aScanCoreSelector = 1;
+        if (aScanCoreSelector == 1) {aScanCoreSelector = 2;}
+        else {aScanCoreSelector = 1;}
 
         sendBytes4(GET_ASCAN_CMD, bdChs[pChannel].dspChip,
             aScanCoreSelector == 1
@@ -3107,8 +3117,9 @@ public AScan getAScan()
         aScanDataPacketProcessed = false;
         return (aScan);
     }
-    else
+    else {
         return(null);
+    }
 
 }//end of UTBoard::getAScan
 //-----------------------------------------------------------------------------
@@ -3182,10 +3193,10 @@ public void requestPeakData4(int pChannel0, int pChannel1, int pChannel2,
 
         byte wallFlags = 0;
 
-        if(bdChs[pChannel0].isWallChannel) wallFlags |= 1;
-        if(bdChs[pChannel1].isWallChannel) wallFlags |= 2;
-        if(bdChs[pChannel2].isWallChannel) wallFlags |= 4;
-        if(bdChs[pChannel3].isWallChannel) wallFlags |= 8;
+        if(bdChs[pChannel0].isWallChannel) {wallFlags |= 1;}
+        if(bdChs[pChannel1].isWallChannel) {wallFlags |= 2;}
+        if(bdChs[pChannel2].isWallChannel) {wallFlags |= 4;}
+        if(bdChs[pChannel3].isWallChannel) {wallFlags |= 8;}
 
         sendBytes10(GET_PEAK_DATA4_CMD,
                 (byte)pChannel0, (byte)bdChs[pChannel0].numberOfGates,
@@ -3264,8 +3275,9 @@ public void getPeakDataFromDSP(int pChannel)
 public void driveSimulation()
 {
 
-    if (simulate && socket != null)
+    if (simulate && socket != null) {
         ((UTSimulator)socket).processDataPackets(false);
+    }
 
 }//end of UTBoard::driveSimulation
 //-----------------------------------------------------------------------------
@@ -3312,7 +3324,7 @@ private void configureExtended(IniFile pConfigFile)
 
     numberOfBanks = pConfigFile.readInt(section, "Number Of Banks", 1) - 1;
     //check for validity - set to one bank (value of zero)
-    if (numberOfBanks < 0 || numberOfBanks > 3) numberOfBanks = 0;
+    if (numberOfBanks < 0 || numberOfBanks > 3) {numberOfBanks = 0;}
 
     repRateInHertz = pConfigFile.readInt(
                                      section, "Pulse Rep Rate in Hertz", 2000);
@@ -3324,7 +3336,7 @@ private void configureExtended(IniFile pConfigFile)
     triggerWidth = pConfigFile.readInt(section, "Pulse Width", 15);
 
     //limit to a safe value - see notes above for repRate
-    if (triggerWidth < 0 || triggerWidth > 50) triggerWidth = 15;
+    if (triggerWidth < 0 || triggerWidth > 50) {triggerWidth = 15;}
 
     //each count is 15 ns
     syncWidth = pConfigFile.readInt(section, "Sync Width", 200);
@@ -3367,7 +3379,7 @@ private void configureExtended(IniFile pConfigFile)
 public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
 {
 
-    if (byteIn == null) return -1;  //do nothing if the port is closed
+    if (byteIn == null) {return -1;}  //do nothing if the port is closed
 
     try{
 
@@ -3382,7 +3394,7 @@ public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
         //wait until 7 bytes are available - this should be the 4 header bytes,
         //the packet identifier, the DSP chip identifier, and the DSP core
         //identifier
-        if (byteIn.available() < 7) return -1;
+        if (byteIn.available() < 7) {return -1;}
 
         //read the bytes in one at a time so that if an invalid byte is
         //encountered it won't corrupt the next valid sequence in the case
@@ -3403,7 +3415,7 @@ public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
             byteIn.read(inBuffer, 0, 1);
             if (inBuffer[0] != (byte)0xaa) {reSync(); return 0;}
         }
-        else reSynced = false;
+        else {reSynced = false;}
 
         byteIn.read(inBuffer, 0, 1);
         if (inBuffer[0] != (byte)0x55) {reSync(); return 0;}
@@ -3430,23 +3442,25 @@ public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
 
         dspMsgID = DSP_NULL_MSG_CMD;
 
-        if ( pktID == GET_STATUS_CMD) return process2BytePacket();
+        if ( pktID == GET_STATUS_CMD) {return process2BytePacket();}
 
-        if ( pktID == GET_ASCAN_CMD) return processAScanPacket();
+        if ( pktID == GET_ASCAN_CMD) {return processAScanPacket();}
 
-        if ( pktID == READ_DSP_CMD || pktID == READ_NEXT_DSP_CMD)
+        if ( pktID == READ_DSP_CMD || pktID == READ_NEXT_DSP_CMD) {
             return processReadDSPPacket();
+        }
 
-        if ( pktID == READ_DSP_BLOCK_CMD) return processReadDSPBlockPacket();
+        if ( pktID == READ_DSP_BLOCK_CMD) {return processReadDSPBlockPacket();}
 
-        if ( pktID == MESSAGE_DSP_CMD) return processDSPMessage();
+        if ( pktID == MESSAGE_DSP_CMD) {return processDSPMessage();}
 
-        if ( pktID == GET_PEAK_DATA_CMD) return processPeakDataPacket(1);
+        if ( pktID == GET_PEAK_DATA_CMD) {return processPeakDataPacket(1);}
 
-        if ( pktID == GET_PEAK_DATA4_CMD) return processPeakDataPacket(4);
+        if ( pktID == GET_PEAK_DATA4_CMD) {return processPeakDataPacket(4);}
 
-        if ( pktID == GET_DSP_RAM_BLOCK_CHECKSUM)
+        if ( pktID == GET_DSP_RAM_BLOCK_CHECKSUM) {
             return processGetDSPRamChecksumPacket();
+        }
 
     }
     catch(IOException e){
@@ -3484,8 +3498,8 @@ public int processDataPacketsUntilPeakPacket()
                                          && peakDataPacketProcessed == false){}
 
 
-    if (peakDataPacketProcessed == true) return 1;
-    else return -1;
+    if (peakDataPacketProcessed == true) {return 1;}
+    else {return -1;}
 
 }//end of UTBoard::processDataPacketsUntilPeakPacket
 //-----------------------------------------------------------------------------
@@ -3508,10 +3522,10 @@ private int processDSPMessage()
     try{
         timeOutProcess = 0;
         while(timeOutProcess++ < TIMEOUT){
-            if (byteIn.available() >= 1) break;
+            if (byteIn.available() >= 1) {break;}
             waitSleep(10);
             }
-        if (byteIn.available() < 1) return 0;
+        if (byteIn.available() < 1) {return 0;}
         byteIn.read(inBuffer, 0, 1);
         }// try
     catch(IOException e){
@@ -3520,9 +3534,9 @@ private int processDSPMessage()
 
     dspMsgID = inBuffer[0];
 
-    if ( dspMsgID == DSP_GET_STATUS_CMD) return processDSPStatusMessage();
+    if ( dspMsgID == DSP_GET_STATUS_CMD) {return processDSPStatusMessage();}
 
-    if ( dspMsgID == DSP_ACKNOWLEDGE) return processDSPAckMessage();
+    if ( dspMsgID == DSP_ACKNOWLEDGE) {return processDSPAckMessage();}
 
     return 0;
 
@@ -3592,7 +3606,7 @@ private int processReadDSPPacket()
     try{
         timeOutProcess = 0;
         while(timeOutProcess++ < TIMEOUT){
-            if (byteIn.available() >= 2) break;
+            if (byteIn.available() >= 2) {break;}
             waitSleep(10);
             }
         if (timeOutProcess < TIMEOUT && byteIn.available() >= 2){
@@ -3638,7 +3652,7 @@ private int processReadDSPBlockPacket()
         timeOutProcess = 0;
 
         while(timeOutProcess++ < TIMEOUT){
-            if (byteIn.available() >= 1) break;
+            if (byteIn.available() >= 1) {break;}
             waitSleep(10);
             }
 
@@ -3646,7 +3660,7 @@ private int processReadDSPBlockPacket()
             c = byteIn.read(readDSPResult, 0, 1);
             }
         else {
-            for (int i=0; i < readDSPResult.length; i++) readDSPResult[i] = 0;
+            for (int i=0; i < readDSPResult.length; i++) {readDSPResult[i] = 0;}
             readDSPDone = true;
             return(c);
             }
@@ -3656,13 +3670,13 @@ private int processReadDSPBlockPacket()
 
         int count;
         count = (int)readDSPResult[0] & 0xff;
-        if (count > readDSPResult.length) count = readDSPResult.length;
+        if (count > readDSPResult.length) {count = readDSPResult.length;}
 
         // read in the data bytes
 
         timeOutProcess = 0;
         while(timeOutProcess++ < TIMEOUT){
-            if (byteIn.available() >= count) break;
+            if (byteIn.available() >= count) {break;}
             waitSleep(10);
             }
 
@@ -3672,7 +3686,7 @@ private int processReadDSPBlockPacket()
             return(c);
             }
         else {
-            for (int i=0; i < readDSPResult.length; i++) readDSPResult[i] = 0;
+            for (int i=0; i < readDSPResult.length; i++) {readDSPResult[i] = 0;}
             readDSPDone = true;
             return(c);
             }
@@ -3701,7 +3715,7 @@ private int processDSPStatusMessage()
     try{
         timeOutProcess = 0;
         while(timeOutProcess++ < TIMEOUT){
-            if (byteIn.available() >= 3) break;
+            if (byteIn.available() >= 3) {break;}
             waitSleep(10);}
         if (byteIn.available() >= 3){
             dspStatusMessageRcvd = true;
@@ -3733,7 +3747,7 @@ private int processGetDSPRamChecksumPacket()
     try{
         timeOutProcess = 0;
         while(timeOutProcess++ < TIMEOUT){
-            if (byteIn.available() >= 2) break;
+            if (byteIn.available() >= 2) {break;}
             waitSleep(10);
             }
         if (timeOutProcess < TIMEOUT && byteIn.available() >= 2){
@@ -3786,10 +3800,10 @@ private int processDSPAckMessage()
     try{
         timeOutProcess = 0;
         while(timeOutProcess++ < TIMEOUT){
-            if (byteIn.available() >= 2) break;
+            if (byteIn.available() >= 2) {break;}
             waitSleep(10);
             }
-        if (byteIn.available() >= 2) return byteIn.read(inBuffer, 0, 2);
+        if (byteIn.available() >= 2) {return byteIn.read(inBuffer, 0, 2);}
         }// try
     catch(IOException e){
         System.err.println(getClass().getName() + " - Error: 3795");
@@ -3821,12 +3835,12 @@ public int processAScanPacket()
     try{
         timeOutProcess = 0;
         while(timeOutProcess++ < TIMEOUT){
-            if (byteIn.available() >= 804) break;
+            if (byteIn.available() >= 804) {break;}
             waitSleep(10);
             }
-        if ((x = byteIn.available()) >= 804) byteIn.read(inBuffer, 0, 804);
+        if ((x = byteIn.available()) >= 804) {byteIn.read(inBuffer, 0, 804);}
         else
-            return 0;
+            {return 0;}
         }// try
     catch(IOException e){
         System.err.println(getClass().getName() + " - Error: 3832");
@@ -3834,13 +3848,13 @@ public int processAScanPacket()
 
     //get the board channel from the packet for the aScan data set
     int channel = inBuffer[0];
-    if (channel < 0) channel = 0; if (channel > 3) channel = 3;
+    if (channel < 0) {channel = 0;} if (channel > 3) {channel = 3;}
 
     int aScanSmoothing = bdChs[channel].aScanSmoothing;
 
     //move to the next position of the filtering FIFO each time
     aScanFIFOIndex++;
-    if (aScanFIFOIndex >= aScanSmoothing) aScanFIFOIndex = 0;
+    if (aScanFIFOIndex >= aScanSmoothing) {aScanFIFOIndex = 0;}
 
     //get the aScan range associated with this data set - this should be used
     //for the display because when the range is being changed, the value the
@@ -3860,7 +3874,7 @@ public int processAScanPacket()
     //add this back in to make the crossing value relative to the initial pulse
     aScanFIFO[aScanFIFOIndex].interfaceCrossingPosition += hardwareDelay;
 
-    for (int i = 0; i < firBuf.length; i++) firBuf[i] = 0;
+    for (int i = 0; i < firBuf.length; i++) {firBuf[i] = 0;}
 
     //transfer the bytes to the int array - allow for sign extension
     //400 words from 800 bytes, MSB first
@@ -3869,14 +3883,14 @@ public int processAScanPacket()
 
     for (int i=0; i<ASCAN_SAMPLE_SIZE; i++){
 
-        int raw = 0, filtered = 0;
+        int raw, filtered = 0;
 
          raw =
            (int)((int)(inBuffer[i*2+4]<<8) + (inBuffer[(i*2)+5] & 0xff));
 
-        if (raw > 0 && raw < bdChs[channel].rejectLevel) raw = raw % 10;
+        if (raw > 0 && raw < bdChs[channel].rejectLevel) {raw = raw % 10;}
         else
-        if (raw < 0 && raw > -bdChs[channel].rejectLevel) raw = raw % 10;
+        if (raw < 0 && raw > -bdChs[channel].rejectLevel) {raw = raw % 10;}
 
         raw *= ASCAN_SCALE;
 
@@ -3887,12 +3901,13 @@ public int processAScanPacket()
             //apply FIR filtering
 
             //shift the old samples and insert the newest
-            for(int n = firBuf.length-1; n>0; n--) firBuf[n] = firBuf[n-1];
+            for(int n = firBuf.length-1; n>0; n--) {firBuf[n] = firBuf[n-1];}
             firBuf[0] = raw;
 
             //calculate the new filtered output value
-            for(int n=0; n<firCoef.length; n++)
+            for(int n=0; n<firCoef.length; n++){
                 filtered += firCoef[n] * firBuf[n];
+            }
 
             filtered /= 290000;
 
@@ -3915,7 +3930,7 @@ public int processAScanPacket()
     //the interfaceCrossingPosition gets averaged
     aScanBuffer.interfaceCrossingPosition = 0;
     //the data samples get averaged
-    for (int i=0; i<ASCAN_SAMPLE_SIZE; i++) aScanBuffer.buffer[i] = 0;
+    for (int i=0; i<ASCAN_SAMPLE_SIZE; i++) {aScanBuffer.buffer[i] = 0;}
 
     for (int i=0; i<aScanSmoothing; i++){
 
@@ -3924,10 +3939,11 @@ public int processAScanPacket()
                                         aScanFIFO[i].interfaceCrossingPosition;
 
         //sum all datasets in the fifo
-        for (int j=0; j<ASCAN_SAMPLE_SIZE; j++)
+        for (int j=0; j<ASCAN_SAMPLE_SIZE; j++){
             aScanBuffer.buffer[j] += aScanFIFO[i].buffer[j];
+        }
 
-        }//for (int i=1; i< aScanSmoothing; i++)
+    }//for (int i=0; i< aScanSmoothing; i++)
 
 
     // transfer from aScanBuffer to aScan now that most calculations are done
@@ -3970,7 +3986,7 @@ public int processAScanPacket()
 public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
 {
 
-    int x = 0;
+    int x;
 
     //process number of channels specified - each channel data section in the
     //packet has the number of gates for that channel
@@ -3980,13 +3996,15 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
         try{
             timeOutProcess = 0;
             while(timeOutProcess++ < TIMEOUT){
-                if (byteIn.available() >= 2) break;
+                if (byteIn.available() >= 2) {break;}
                 waitSleep(10);
                 }
-            if ((byteIn.available()) >= 2)
+            if ((byteIn.available()) >= 2) {
                 byteIn.read(inBuffer, 0, 2);
-            else
+            }
+            else {
                 return 0;
+            }
             }// try
         catch(IOException e){
             System.err.println(getClass().getName() + " - Error: 3992");
@@ -4001,33 +4019,36 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
         // if the channel number is illegal, bail out - the code will resync to
         // toss the unused bytes still in the socket
 
-        if (channel < 0 || channel > NUMBER_OF_BOARD_CHANNELS-1) return x;
+        if (channel < 0 || channel > NUMBER_OF_BOARD_CHANNELS-1) {return x;}
 
         int numberOfGates = inBuffer[x++]; //number of gates for the channel
 
         // if the gate count is illegal, bail out - the code will resync to
         // toss the unused bytes still in the socket
 
-        if (numberOfGates < 0 || numberOfGates > 9) return x;
+        if (numberOfGates < 0 || numberOfGates > 9) {return x;}
 
         // calculate the number of data bytes
         int numberDataBytes = numberOfGates * PEAK_DATA_BYTES_PER_GATE;
 
         //add extra for wall data if the specified channel has such
-        if (bdChs[channel].isWallChannel)
+        if (bdChs[channel].isWallChannel){
             numberDataBytes += PEAK_DATA_BYTES_FOR_WALL;
+        }
 
         try{
             timeOutProcess = 0;
             while(timeOutProcess++ < TIMEOUT){
-                if (byteIn.available() >= numberDataBytes) break;
+                if (byteIn.available() >= numberDataBytes) {break;}
                 waitSleep(10);
                 }
-            if ((byteIn.available()) >= numberDataBytes)
+            if ((byteIn.available()) >= numberDataBytes) {
                 byteIn.read(inBuffer, 0, numberDataBytes);
-            else
+            }
+            else {
                 return 0;
-            }// try
+            }
+        }// try
         catch(IOException e){
             System.err.println(getClass().getName() + " - Error: 4032");
         }
@@ -4045,7 +4066,7 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
                (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
             //did gate receive the host specified number of consecutive hits?
-            boolean hitCountMet = true;
+            boolean hitCountMet;
             hitCountMet = (peakFlags & HIT_COUNT_MET) == 0 ? false : true;
 
             //cast to short used to force sign extension for signed values
@@ -4053,7 +4074,7 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
                  (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
 
             //if the signal is below the reject level, squash it down to 10%
-            if (peak < bdChs[channel].rejectLevel) peak %= 10;
+            if (peak < bdChs[channel].rejectLevel) {peak %= 10;}
 
             //if the hit count for the gate is greater than zero and the signal
             //did not exceed the gate the specified number of times, squash it
@@ -4064,8 +4085,9 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
             //hitCount is zero, so have to catch that special case here
 
             if (bdChs[channel].gates[i].gateHitCount.getValue() > 0
-                                                               && !hitCountMet)
+                                                             && !hitCountMet) {
                 peak %= 10;
+            }
 
             peakFlightTime =
                (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
@@ -4090,14 +4112,14 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
             debug++;
 
             if (peakTrack > 14)
-                debug = 0;
+                {debug = 0;}
 
             if (peakTrack > 22)
-                debug = 0;
+                {debug = 0;}
 
             //catch a particular slot and board channel
             if (slotAddr == 6 && channel == 1)
-                debug = 26;
+                {debug = 26;}
 
             //end debug mks
 
@@ -4111,14 +4133,15 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
             //still be accurate, so the actual clock position can be determined
             //by computing the wrap around.
 
-            if (peakTrack > MAX_CLOCK_POSITION)
+            if (peakTrack > MAX_CLOCK_POSITION) {
                 peakTrack = peakTrack % (MAX_CLOCK_POSITION + 1);
+            }
 
             //the peakTrack variable denotes the clock position, replace
             //position 0 with 12 before saving
 
             int clockPos = peakTrack;
-            if (clockPos == 0) clockPos = 12;
+            if (clockPos == 0) {clockPos = 12;}
 
             //NOTE: clockPos and peakTrack are the same now -- should really
             //store the original peakTrack value along with the clockPos.
@@ -4136,11 +4159,12 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
             //the data so that it can be used to modify the wall elsewhere
             if (bdChs[channel].gates[i].modifyWall){
                 //store the value if it is greater than the stored peak
-                if (peak > hdwVs.wallMinModifier)
+                if (peak > hdwVs.wallMinModifier) {
                     hdwVs.wallMinModifier = peak;
                 }
+            }
 
-            }// for (int i=0; i < numberOfGates; i++)
+        }// for (int i=0; i < numberOfGates; i++)
 
         if (bdChs[channel].isWallChannel){
 
@@ -4177,17 +4201,20 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
             //invalid (missed interface or echo, etc.)  use the previous reading
             //instead -- if value is good then save as the previous value
 
-            if (maxThickness == -32768)
+            if (maxThickness == -32768) {
                 maxThickness = prevMaxThickness;
-            else
+            }
+            else {
                 prevMaxThickness = maxThickness;
+            }
 
             //see notes above for peakTrack -- make this into a function?
             wallMaxTrack += CLOCK_OFFSET;
-            if (wallMaxTrack > MAX_CLOCK_POSITION)
+            if (wallMaxTrack > MAX_CLOCK_POSITION) {
                 wallMaxTrack = wallMaxTrack % (MAX_CLOCK_POSITION + 1);
+            }
             int clockPos = wallMaxTrack;
-            if (clockPos == 0) clockPos = 12;
+            if (clockPos == 0) {clockPos = 12;}
 
             //store the max peak - overwrites info saved for this gate above
             //debug mks - gates[1] should use wallStartGate specified by user
@@ -4224,8 +4251,9 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
             //invalid (missed interface or echo, etc.)  use the previous reading
             //instead -- if value is good then save as the previous value
 
-            if (minThickness == 32767)
+            if (minThickness == 32767) {
                 minThickness = prevMinThickness;
+            }
             else {
                 //if the modifier value is over the threshold, then modify the
                 //wall trace with it
@@ -4241,10 +4269,11 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
 
             //see notes above for peakTrack -- make this into a function?
             wallMinTrack += CLOCK_OFFSET;
-            if (wallMinTrack > MAX_CLOCK_POSITION)
+            if (wallMinTrack > MAX_CLOCK_POSITION) {
                 wallMinTrack = wallMinTrack % (MAX_CLOCK_POSITION + 1);
+            }
             clockPos = wallMinTrack;
-            if (clockPos == 0) clockPos = 12;
+            if (clockPos == 0) {clockPos = 12;}
 
             //store the min peak - overwrites info saved for this gate above
             //debug mks - gates[2] should use the wallEndGate specified by user
@@ -4284,12 +4313,12 @@ public int processPeakDataPacket(int pNumberOfChannels)
     try{
         timeOutProcess = 0;
         while(timeOutProcess++ < TIMEOUT){
-            if (byteIn.available() >= 8) break;
+            if (byteIn.available() >= 8) {break;}
             waitSleep(10);
             }
-        if ((x = byteIn.available()) >= 8) byteIn.read(inBuffer, 0, 8);
+        if ((byteIn.available()) >= 8) {byteIn.read(inBuffer, 0, 8);}
         else
-            return 0;
+            {return 0;}
         }// try
     catch(IOException e){
         System.err.println(getClass().getName() + " - Error: 4295");
@@ -4352,14 +4381,15 @@ public int processPeakDataPacketX()
     try{
         timeOutProcess = 0;
         while(timeOutProcess++ < TIMEOUT){
-            if (byteIn.available() >= numberReturnBytes) break;
+            if (byteIn.available() >= numberReturnBytes) {break;}
             waitSleep(10);
             }
-        if ((x = byteIn.available()) >= numberReturnBytes)
+        if ((byteIn.available()) >= numberReturnBytes) {
             byteIn.read(inBuffer, 0, numberReturnBytes);
+        }
         else
-            return 0;
-        }// try
+        {   return 0;}
+    }// try
     catch(IOException e){
         System.err.println(getClass().getName() + " - Error: 4364");
     }
@@ -4508,11 +4538,11 @@ public void shutDown()
     //close everything - the order of closing may be important
 
     try{
-        if (byteOut != null) byteOut.close();
-        if (byteIn != null) byteIn.close();
-        if (out != null) out.close();
-        if (in != null) in.close();
-        if (socket != null) socket.close();
+        if (byteOut != null) {byteOut.close();}
+        if (byteIn != null) {byteIn.close();}
+        if (out != null) {out.close();}
+        if (in != null) {in.close();}
+        if (socket != null) {socket.close();}
     }
     catch(IOException e){
         System.err.println(getClass().getName() + " - Error: 4509");
