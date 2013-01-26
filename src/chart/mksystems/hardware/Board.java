@@ -19,13 +19,12 @@
 
 package chart.mksystems.hardware;
 
+import chart.Log;
+import chart.ThreadSafeLogger;
+import chart.mksystems.inifile.IniFile;
 import java.io.*;
 import java.net.*;
 import javax.swing.*;
-
-import chart.ThreadSafeLogger;
-import chart.mksystems.inifile.IniFile;
-import chart.Log;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -134,7 +133,7 @@ void sendByte(byte pByte)
     outBuffer[1] = (byte)( (0x100 - outBuffer[0]) & 0xff  );
 
     //send packet to remote
-    if (byteOut != null)
+    if (byteOut != null) {
         try{
             byteOut.write(outBuffer, 0 /*offset*/, 2);
             byteOut.flush();
@@ -142,6 +141,7 @@ void sendByte(byte pByte)
         catch (IOException e){
             System.err.println(getClass().getName() + " - Error: 143");
         }
+    }
 
 }//end of Board::sendByte
 //-----------------------------------------------------------------------------
@@ -164,7 +164,7 @@ void sendBytes2(byte pByte1, byte pByte2)
     outBuffer[2] = (byte)( (0x100 - outBuffer[0] - outBuffer[1]) & 0xff );
 
     //send packet to remote
-    if (byteOut != null)
+    if (byteOut != null) {
         try{
             byteOut.write(outBuffer, 0 /*offset*/, 3);
             byteOut.flush();
@@ -172,6 +172,7 @@ void sendBytes2(byte pByte1, byte pByte2)
         catch (IOException e){
             System.err.println(getClass().getName() + " - Error: 173");
         }
+    }
 
 }//end of Board::sendBytes2
 //-----------------------------------------------------------------------------
@@ -196,7 +197,7 @@ void sendBytes3(byte pByte1, byte pByte2, byte pByte3)
              & 0xff );
 
     //send packet to remote
-    if (byteOut != null)
+    if (byteOut != null) {
         try{
             byteOut.write(outBuffer, 0 /*offset*/, 4);
             byteOut.flush();
@@ -204,6 +205,7 @@ void sendBytes3(byte pByte1, byte pByte2, byte pByte3)
         catch (IOException e){
             System.err.println(getClass().getName() + " - Error: 205");
         }
+    }
 
 }//end of Board::sendBytes3
 //-----------------------------------------------------------------------------
@@ -229,7 +231,7 @@ void sendBytes4(byte pByte1, byte pByte2, byte pByte3, byte pByte4)
             & 0xff );
 
     //send packet to remote
-    if (byteOut != null)
+    if (byteOut != null) {
         try{
             byteOut.write(outBuffer, 0 /*offset*/, 5);
             byteOut.flush();
@@ -237,6 +239,7 @@ void sendBytes4(byte pByte1, byte pByte2, byte pByte3, byte pByte4)
         catch (IOException e){
             System.err.println(getClass().getName() + " - Error: 238");
         }
+    }
 
 }//end of Board::sendBytes4
 //-----------------------------------------------------------------------------
@@ -264,7 +267,7 @@ void sendBytes5(byte pByte1, byte pByte2, byte pByte3, byte pByte4, byte pByte5)
              & 0xff );
 
     //send packet to remote
-    if (byteOut != null)
+    if (byteOut != null) {
         try{
             byteOut.write(outBuffer, 0 /*offset*/, 6);
             byteOut.flush();
@@ -272,6 +275,7 @@ void sendBytes5(byte pByte1, byte pByte2, byte pByte3, byte pByte4, byte pByte5)
         catch (IOException e){
             System.err.println(getClass().getName() + " - Error: 273");
         }
+    }
 
 }//end of Board::sendBytes5
 //-----------------------------------------------------------------------------
@@ -287,27 +291,28 @@ void sendBytes6(byte pByte1, byte pByte2, byte pByte3, byte pByte4,
                                                     byte pByte5, byte pByte6)
 {
 
-sendHeader(); //send the packet header
+    sendHeader(); //send the packet header
 
-outBuffer[0] = pByte1; outBuffer[1] = pByte2;
-outBuffer[2] = pByte3; outBuffer[3] = pByte4;
-outBuffer[4] = pByte5; outBuffer[5] = pByte6;
+    outBuffer[0] = pByte1; outBuffer[1] = pByte2;
+    outBuffer[2] = pByte3; outBuffer[3] = pByte4;
+    outBuffer[4] = pByte5; outBuffer[5] = pByte6;
 
-//calculate the checksum
-outBuffer[6] = (byte)(
-        (0x100 - outBuffer[0] - outBuffer[1] - outBuffer[2] - outBuffer[3]
-        - outBuffer[4] - outBuffer[5])
-         & 0xff );
+    //calculate the checksum
+    outBuffer[6] = (byte)(
+            (0x100 - outBuffer[0] - outBuffer[1] - outBuffer[2] - outBuffer[3]
+            - outBuffer[4] - outBuffer[5])
+             & 0xff );
 
-//send packet to remote
-if (byteOut != null)
-    try{
-        byteOut.write(outBuffer, 0 /*offset*/, 7);
-        byteOut.flush();
-    }
-    catch (IOException e){
-        System.err.println(getClass().getName() + " - Error: 309");
-    }
+    //send packet to remote
+    if (byteOut != null) {
+            try{
+                byteOut.write(outBuffer, 0 /*offset*/, 7);
+                byteOut.flush();
+            }
+            catch (IOException e){
+                System.err.println(getClass().getName() + " - Error: 309");
+            }
+        }
 
 }//end of Board::sendBytes6
 //-----------------------------------------------------------------------------
@@ -337,7 +342,7 @@ void sendBytes7(byte pByte1, byte pByte2, byte pByte3, byte pByte4,
              & 0xff );
 
     //send packet to remote
-    if (byteOut != null)
+    if (byteOut != null) {
         try{
             byteOut.write(outBuffer, 0 /*offset*/, 8);
             byteOut.flush();
@@ -345,6 +350,7 @@ void sendBytes7(byte pByte1, byte pByte2, byte pByte3, byte pByte4,
         catch (IOException e){
             System.err.println(getClass().getName() + " - Error: 346");
         }
+    }
 
 }//end of Board::sendBytes7
 //-----------------------------------------------------------------------------
@@ -374,7 +380,7 @@ void sendBytes8(byte pByte1, byte pByte2, byte pByte3, byte pByte4,
              & 0xff );
 
     //send packet to remote
-    if (byteOut != null)
+    if (byteOut != null) {
         try{
             byteOut.write(outBuffer, 0 /*offset*/, 9);
             byteOut.flush();
@@ -382,6 +388,7 @@ void sendBytes8(byte pByte1, byte pByte2, byte pByte3, byte pByte4,
         catch (IOException e){
             System.err.println(getClass().getName() + " - Error: 383");
         }
+    }
 
 }//end of Board::sendBytes8
 //-----------------------------------------------------------------------------
@@ -413,7 +420,7 @@ void sendBytes9(byte pByte1, byte pByte2, byte pByte3, byte pByte4,
              & 0xff );
 
     //send packet to remote
-    if (byteOut != null)
+    if (byteOut != null) {
         try{
             byteOut.write(outBuffer, 0 /*offset*/, 10);
             byteOut.flush();
@@ -421,6 +428,7 @@ void sendBytes9(byte pByte1, byte pByte2, byte pByte3, byte pByte4,
         catch (IOException e) {
             System.err.println(getClass().getName() + " - Error: 422");
         }
+    }
 
 }//end of Board::sendBytes9
 //-----------------------------------------------------------------------------
@@ -452,7 +460,7 @@ void sendBytes10(byte pByte1, byte pByte2, byte pByte3, byte pByte4,
              & 0xff );
 
     //send packet to remote
-    if (byteOut != null)
+    if (byteOut != null) {
         try{
             byteOut.write(outBuffer, 0 /*offset*/, 11);
             byteOut.flush();
@@ -460,6 +468,7 @@ void sendBytes10(byte pByte1, byte pByte2, byte pByte3, byte pByte4,
         catch (IOException e){
             System.err.println(getClass().getName() + " - Error: 461");
         }
+    }
 
 }//end of Board::sendBytes10
 //-----------------------------------------------------------------------------
@@ -493,7 +502,7 @@ void sendBytes11(byte pByte1, byte pByte2, byte pByte3, byte pByte4,
              & 0xff );
 
     //send packet to remote
-    if (byteOut != null)
+    if (byteOut != null) {
         try{
             byteOut.write(outBuffer, 0 /*offset*/, 12);
             byteOut.flush();
@@ -501,6 +510,7 @@ void sendBytes11(byte pByte1, byte pByte2, byte pByte3, byte pByte4,
         catch (IOException e){
             System.err.println(getClass().getName() + " - Error: 502");
         }
+    }
 
 }//end of Board::sendBytes11
 //-----------------------------------------------------------------------------
@@ -538,7 +548,7 @@ void sendBytes15(byte pByte1, byte pByte2, byte pByte3, byte pByte4,
              & 0xff );
 
     //send packet to remote
-    if (byteOut != null)
+    if (byteOut != null) {
         try{
             byteOut.write(outBuffer, 0 /*offset*/, 16);
             byteOut.flush();
@@ -546,6 +556,7 @@ void sendBytes15(byte pByte1, byte pByte2, byte pByte3, byte pByte4,
         catch(IOException e){
             System.err.println(getClass().getName() + " - Error: 547");
         }
+    }
 
 }//end of Board::sendBytes15
 //-----------------------------------------------------------------------------
@@ -563,13 +574,14 @@ void sendHeader()
     outBuffer[2] = (byte)0xbb; outBuffer[3] = (byte)0x66;
 
     //send packet to remote
-    if (byteOut != null)
+    if (byteOut != null) {
         try{
             byteOut.write(outBuffer, 0 /*offset*/, 4);
         }
         catch (IOException e){
             System.err.println(getClass().getName() + " - Error: 569");
         }
+    }
 
 }//end of Board::sendHeader
 //-----------------------------------------------------------------------------
@@ -588,10 +600,10 @@ public int process2BytePacket()
     try{
         timeOutProcess = 0;
         while(timeOutProcess++ < TIMEOUT){
-            if (byteIn.available() >= 2) break;
+            if (byteIn.available() >= 2) {break;}
             waitSleep(10);
         }
-        if (byteIn.available() >= 2) return byteIn.read(inBuffer, 0, 2);
+        if (byteIn.available() >= 2){return byteIn.read(inBuffer, 0, 2);}
     }// try
     catch(IOException e){
         System.err.println(getClass().getName() + " - Error: 595");
@@ -624,12 +636,12 @@ public int process2BytePacket()
 byte getRemoteData(byte pCommand, boolean pForceProcessDataPackets)
 {
 
-    if (byteIn == null) return(0);
+    if (byteIn == null) {return(0);}
 
     sendByte(pCommand); //request the data from the remote
 
     //force waiting for and processing of receive packets
-    if (pForceProcessDataPackets) processDataPackets(true, TIMEOUT);
+    if (pForceProcessDataPackets) {processDataPackets(true, TIMEOUT);}
 
     return inBuffer[0];
 
@@ -647,7 +659,7 @@ byte getRemoteData(byte pCommand, boolean pForceProcessDataPackets)
 byte getRemoteAddressedData(byte pCommand, byte pSendData)
 {
 
-    if (byteIn == null) return(0);
+    if (byteIn == null) {return(0);}
 
     sendBytes2(pCommand, pSendData);
 
@@ -741,10 +753,12 @@ public int processDataPackets(boolean pWaitForPkt, int pTimeOut)
     // will ever be coming because this same thread which is now blocked is
     // sometimes the one requesting data
 
-    if (pWaitForPkt)
+    if (pWaitForPkt) {
         return processOneDataPacket(pWaitForPkt, pTimeOut);
-    else
+    }
+    else {
         while ((x = processOneDataPacket(pWaitForPkt, pTimeOut)) != -1){}
+    }
 
     return x;
 
@@ -881,8 +895,7 @@ void installNewRabbitFirmware(String pBoardType, String pFilename,
             if (byteIn != null){
                 inCount = byteIn.available();
                 //0 = buffer offset, 2 = number of bytes to read
-                if (inCount >= 3)
-                    byteIn.read(inBuffer, 0, 3);
+                if (inCount >= 3) {byteIn.read(inBuffer, 0, 3);}
                 remoteStatus = (int)((inBuffer[0]<<8) & 0xff00)
                                                    + (int)(inBuffer[1] & 0xff);
             }
@@ -913,7 +926,7 @@ void installNewRabbitFirmware(String pBoardType, String pFilename,
 
                 }//while (bufPtr<CODE_BUFFER_SIZE...
 
-                if (c == -1) fileDone = true;
+                if (c == -1) {fileDone = true;}
 
                 //send packet to remote -- at the end of the file, this may have
                 //random values as padding to fill out the buffer
@@ -938,13 +951,14 @@ void installNewRabbitFirmware(String pBoardType, String pFilename,
 
             }// while(timeOutGet <...
 
-        if (fileDone)
+        if (fileDone) {
             logger.logMessage(
                pBoardType + " " + ipAddrS + " firmware installed." + "\n");
-        else
-        //remote has not responded if this part reached
+        }
+        else {
             logger.logMessage(pBoardType + " " + ipAddrS
                             + " error loading firmware - contact lost." + "\n");
+        }
 
     }//try
     catch(IOException e){
@@ -953,7 +967,7 @@ void installNewRabbitFirmware(String pBoardType, String pFilename,
                 pBoardType + " " + ipAddrS + " error loading firmware!" + "\n");
     }
     finally {
-        if (inFile != null) try {inFile.close();}catch(IOException e){}
+        if (inFile != null) {try {inFile.close();}catch(IOException e){}}
     }//finally
 
 }//end of Board::installNewRabbitFirmware
