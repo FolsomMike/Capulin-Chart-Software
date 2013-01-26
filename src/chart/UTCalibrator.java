@@ -425,7 +425,7 @@ public void setupChannelSelectorPanel()
                     "Copy settings for selected channel to other channel(s).");
     copyPanel.add(copyButton);
 
-    //create a vertical spacer between the "Cancel Copy" and "Copy to All"
+    //create a vertical spacer between the "Exit Copy Mode" and "Copy to All"
     //buttons to help prevent accidental clicking of the latter -- make the
     //spacer invisible (it's not really visible anyway) so that it doesn't
     //create a space until the "Copy" button is clicked
@@ -906,10 +906,10 @@ if (e.getActionCommand().equals("Copy")){
     rigidAreaDynamic.setVisible(true);
     //display the "Copy to All" button so it can be clicked
     copyToAllButton.setVisible(true);
-    //"Copy" button becomes "Cancel Copy" button
-    copyButton.setText("Cancel Copy");
-    copyButton.setActionCommand("Cancel Copy");
-    copyButton.setToolTipText("Cancel copy mode.");
+    //"Copy" button becomes "Exit Copy Mode" button
+    copyButton.setText("Exit Copy Mode");
+    copyButton.setActionCommand("Exit Copy Mode");
+    copyButton.setToolTipText("Exit the copy mode.");
     //set new max height to account for the now visible button and spacer
     copyPanel.setMaximumSize(new Dimension(Short.MAX_VALUE,
         copyPanel.getPreferredSize().height));
@@ -922,8 +922,8 @@ if (e.getActionCommand().equals("Copy")){
     return;
     }
 
-//trap "Cancel" (cancel copy) button
-if (e.getActionCommand().equals("Cancel Copy")){
+//trap "Exit Copy Mode" button
+if (e.getActionCommand().equals("Exit Copy Mode")){
 
     //unhide the all on/off buttons
     allOnButton.setVisible(true);

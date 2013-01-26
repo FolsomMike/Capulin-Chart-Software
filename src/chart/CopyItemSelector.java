@@ -216,7 +216,7 @@ public void displayHelp()
          + " from the selected channel to all other\n"
          + "channels, click the Copy to All button.\n"
          + "To close the Copy Items window and clear all items, click the"
-         + " Cancel Copy button");
+         + " Exit Copy Mode button");
 
 }//end of CopyItemSelector::displayHelp
 //-----------------------------------------------------------------------------
