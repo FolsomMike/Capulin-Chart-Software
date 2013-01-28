@@ -807,7 +807,7 @@ public void displayMessages()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Hardware::updateRabbitCode
+// Capulin1::updateRabbitCode
 //
 // Installs new firmware on the Rabbit micro-controllers.  Which boards are
 // updated is selected by pWhichRabbits -- all, UT, or Control boards.
@@ -817,20 +817,8 @@ public void displayMessages()
 public void updateRabbitCode(int pWhichRabbits)
 {
 
-    String which = "";
-
-    if (pWhichRabbits == Hardware.ALL_RABBITS) which = "all";
-    else
-    if (pWhichRabbits == Hardware.UT_RABBITS) which = "the UT";
-    else
-    if (pWhichRabbits == Hardware.CONTROL_RABBITS) which = "the Control";
-
-    int n = JOptionPane.showConfirmDialog( null,
-    "Update " + which + " Rabbit micro-controllers?",
-    "Warning", JOptionPane.YES_NO_OPTION);
-
-    //bail out if user does not click yes
-    if (n != JOptionPane.YES_OPTION) return;
+    logger.logMessage("\n");
+    logger.logMessage("-- Updating Rabbit Firmware --" + "\n\n");
 
     if (pWhichRabbits == Hardware.UT_RABBITS
             || pWhichRabbits == Hardware.ALL_RABBITS){
@@ -845,7 +833,11 @@ public void updateRabbitCode(int pWhichRabbits)
                 controlBoards[j].installNewRabbitFirmware();
     }
 
-}//end of Hardware::updateRabbitCode
+    logger.logMessage("\n");
+    logger.logMessage("-- Rabbit Firmware Update Complete --");
+
+
+}//end of Capulin1::updateRabbitCode
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

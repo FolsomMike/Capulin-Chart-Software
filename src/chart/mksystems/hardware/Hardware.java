@@ -50,6 +50,8 @@ public class Hardware extends Object implements TraceValueCalculator, Runnable,
 
     ThreadSafeLogger logger;
 
+    public boolean startUTRabbitUpdater, startControlRabbitUpdater;
+
     //debug mks -- needs to be loaded from config file -- specifies if carriage
     //moving away is increasing or decreasing encoder counts
     int AwayDirection = 0;
@@ -1910,6 +1912,35 @@ public void setState(int pChassis, int pSlot, int pWhich, int pValue)
     analogDriver.setState(pChassis, pSlot, pWhich, pValue);
 
 }//end of Hardware::setState
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware:runBackgroundProcesses
+//
+// Runs any background processes which are enabled.
+//
+// Should be called periodically by a thread other than the main GUI thread.
+//
+// WARNING: Some of the processes may block this thread from continuing until
+//      they complete, so some of them should not be called during critical
+//      inspection operations.
+
+public void runBackgroundProcesses()
+{
+
+    //update the firmware in the UT board rabbits
+    if(startUTRabbitUpdater){
+        startUTRabbitUpdater = false;
+        updateRabbitCode(Hardware.UT_RABBITS);
+    }
+
+    //update the firmware in the Control board rabbits
+    if(startControlRabbitUpdater){
+        startControlRabbitUpdater = false;
+        updateRabbitCode(Hardware.CONTROL_RABBITS);
+    }
+
+}//end of Hardware::runBackgroundProcesses
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

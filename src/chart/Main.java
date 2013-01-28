@@ -91,6 +91,9 @@ public void run() {
             //if connection has not been made to the remotes, do so
             if (!hardware.connected) hardware.connect();
 
+            //run any miscellaneous background processes
+            hardware.runBackgroundProcesses();
+
             //the hardware.connect function will not return until all boards
             //are setup, so the setup can access sockets without worry of
             //collision with the hardware.collectData function which also
@@ -1248,15 +1251,15 @@ public void actionPerformed(ActionEvent e)
         return;
     }
 
-    //this part handles updating the Rabbit code
+    //this part handles updating the Rabbit code by a slave thread
     if ("Update UT Rabbit Code".equals(e.getActionCommand())) {
-        hardware.updateRabbitCode(Hardware.UT_RABBITS);
+        startRabbitUpdater(Hardware.UT_RABBITS);
         return;
     }
 
-    //this part handles updating the Rabbit code
+    //this part handles updating the Rabbit code by a slave thread
     if ("Update Control Rabbit Code".equals(e.getActionCommand())) {
-        hardware.updateRabbitCode(Hardware.CONTROL_RABBITS);
+        startRabbitUpdater(Hardware.CONTROL_RABBITS);
         return;
     }
 
@@ -1313,6 +1316,49 @@ public void actionPerformed(ActionEvent e)
     if ("Timer".equals(e.getActionCommand())) processMainTimerEvent();
 
 }//end of MainWindow::actionPerformed
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Main::startRabbitUpdater
+//
+// Starts a process in a slave thread which installs new firmware on the Rabbit
+// micro-controllers.  Which boards are updated is selected by pWhichRabbits
+// -- all, UT, or Control boards.
+//
+
+public void startRabbitUpdater(int pWhichRabbits)
+{
+
+    String which = "";
+
+    if (pWhichRabbits == Hardware.ALL_RABBITS) which = "all";
+    else
+    if (pWhichRabbits == Hardware.UT_RABBITS) which = "the UT";
+    else
+    if (pWhichRabbits == Hardware.CONTROL_RABBITS) which = "the Control";
+
+    int n = JOptionPane.showConfirmDialog( null,
+    "Update " + which + " Rabbit micro-controllers?",
+    "Warning", JOptionPane.YES_NO_OPTION);
+
+    //bail out if user does not click yes
+    if (n != JOptionPane.YES_OPTION) return;
+
+    if (pWhichRabbits == Hardware.UT_RABBITS
+            || pWhichRabbits == Hardware.ALL_RABBITS){
+
+        hardware.startUTRabbitUpdater = true;
+
+    }
+
+    if (pWhichRabbits == Hardware.CONTROL_RABBITS
+            || pWhichRabbits == Hardware.ALL_RABBITS){
+
+        hardware.startControlRabbitUpdater = true;
+
+    }
+
+}//end of Main::startRabbitUpdater
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

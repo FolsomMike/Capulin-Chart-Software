@@ -205,7 +205,7 @@ public int readBytes(int pNumBytes)
     }
 
     return 0;
-    
+
 }//end of Board::readBytes
 //-----------------------------------------------------------------------------
 
@@ -460,6 +460,7 @@ void installNewRabbitFirmware(String pBoardType, String pFilename,
     int remoteStatus;
     int timeOutRead;
     int bufPtr;
+    int pktCounter = 0;
 
     boolean fileDone = false;
 
@@ -527,6 +528,8 @@ void installNewRabbitFirmware(String pBoardType, String pFilename,
                 //random values as padding to fill out the buffer
                 byteOut.write(codeBuffer, 0 /*offset*/, CODE_BUFFER_SIZE);
 
+                pktCounter++; //track number of packets sent
+
                 //send the exit command when the file is done
                 if (fileDone){
                     codeBuffer[0] = pS.exitCmd;
@@ -551,8 +554,9 @@ void installNewRabbitFirmware(String pBoardType, String pFilename,
                pBoardType + " " + ipAddrS + " firmware installed." + "\n");
         }
         else {
-            logger.logMessage(pBoardType + " " + ipAddrS
-                            + " error loading firmware - contact lost." + "\n");
+            logger.logMessage(pBoardType + " " + ipAddrS +
+               " error loading firmware - contact lost after " + pktCounter +
+               " packets." + "\n");
         }
 
     }//try
@@ -564,6 +568,21 @@ void installNewRabbitFirmware(String pBoardType, String pFilename,
     finally {
         if (inFile != null) {try {inFile.close();}catch(IOException e){}}
     }//finally
+
+
+    //display status message sent back from remote
+
+    String msg = null;
+    int c = 0;
+
+    //loop for a bit looking for messages from the remote
+    do{
+        try{msg = in.readLine();} catch(IOException e){}
+        if (msg != null){
+            logger.logMessage("UT " + ipAddrS + " says " + msg + "\n");
+            msg = null;
+        }
+    }while(c++ < 50);
 
 }//end of Board::installNewRabbitFirmware
 //-----------------------------------------------------------------------------
