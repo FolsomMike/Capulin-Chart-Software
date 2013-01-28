@@ -777,6 +777,11 @@ public synchronized void connect()
     //release DSPs A,B,C,D resets (low = reset)
     resetShadow = writeFPGAReg(RESET_REG, (byte)0x3e);
 
+    //give another reset pulse to the four DSP cores -- without this, random
+    //DSP cores won't start after a cold boot
+    resetShadow = writeFPGAReg(RESET_REG, (byte)(resetShadow & (~0x3c)));
+    resetShadow = writeFPGAReg(RESET_REG, (byte)(resetShadow | 0x3c));
+
     //sleep for a bit to allow DSPs to start up
     waitSleep(1000);
 

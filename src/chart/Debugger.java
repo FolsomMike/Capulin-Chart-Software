@@ -466,9 +466,10 @@ public void actionPerformed(ActionEvent e)
     //DSP cores running or in reset
     if (e.getActionCommand().equalsIgnoreCase("DSP's Running")){
         hardware.setState(
-                        chassisNum, slotNum, 1, dspRunEnabled.isSelected() ? 1:0);
+                     chassisNum, slotNum, 1, dspRunEnabled.isSelected() ? 1:0);
         if (!dspRunEnabled.isSelected()){
-            textArea.append("\nSample tranfer into DSP's may have errors when\n");
+            textArea.append(
+                        "\nSample tranfer into DSP's may have errors when\n");
             textArea.append("they are not running due to the internal DSP\n");
             textArea.append("clocks running slower while in reset.\n");
         }
@@ -497,7 +498,7 @@ public void actionPerformed(ActionEvent e)
     if (e.getActionCommand().equalsIgnoreCase("Next")){
 
         displayAddress.setText(
-                toHexString(Integer.parseInt(displayAddress.getText(), 16) + 64));
+              toHexString(Integer.parseInt(displayAddress.getText(), 16) + 64));
 
     }
 
@@ -505,7 +506,7 @@ public void actionPerformed(ActionEvent e)
     if (e.getActionCommand().equalsIgnoreCase("Previous")){
 
         displayAddress.setText(
-                toHexString(Integer.parseInt(displayAddress.getText(), 16) - 64));
+              toHexString(Integer.parseInt(displayAddress.getText(), 16) - 64));
 
     }
 
