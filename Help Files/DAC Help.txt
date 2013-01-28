@@ -1,5 +1,7 @@
+DAC Help
+-----------------------------------------------------------------------
 
-When the DAc is on, any signal not covered by a gate is set to 38.0 dB.
+When the DAC is on, any signal not covered by a gate is set to 38.0 dB.
 
 
 Any signal covered by a gate has a gain equal to the Gain setting on
@@ -27,3 +29,5 @@ The actual decimal multiplier value for no software gain modification
 is 512.  The value of 38.0 dB is equivalant to a decimal value of 514
 which is the closest value which can be obtained with the resolution
 of 0.1 dB allowed for user entry.
+
+-----------------------------------------------------------------------

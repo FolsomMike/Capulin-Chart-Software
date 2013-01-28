@@ -81,7 +81,6 @@ public Debugger(JFrame frame, Hardware pHardware)
 //
 // Initializes new objects. Should be called immediately after instantiation.
 //
-//
 
 public void init()
 {
@@ -287,7 +286,7 @@ public void init()
     p2.setLayout(new BoxLayout(p2, BoxLayout.PAGE_AXIS));
     p2.setAlignmentY(Component.TOP_ALIGNMENT);
 
-    ramPage0 = new JRadioButton("0");
+    ramPage0 = new JRadioButton("0    "); //force wide so room for "Page" title
     ramPage0.setActionCommand("RAM Page 0");
     ramPage0.addActionListener(this);
     ramPage0.setToolTipText("Display DSP memory page 0.");
@@ -327,14 +326,27 @@ public void init()
 
     ramEdit.add(p);
 
+    //add a panel to hold miscellanous buttons
+    p = new JPanel();
+    p.setLayout(new BoxLayout(p, BoxLayout.LINE_AXIS));
+
     //add a button to clear the window
     b = new JButton("Clear");
-    p2.setAlignmentX(Component.CENTER_ALIGNMENT);
+    b.setAlignmentX(Component.CENTER_ALIGNMENT);
     b.setActionCommand("Clear");
     b.addActionListener(this);
     b.setToolTipText("Clear the display.");
-    b.setSelected(true);
-    ramEdit.add(b);
+    p.add(b);
+
+    //add a Help button
+    b = new JButton("Help");
+    b.setAlignmentX(Component.CENTER_ALIGNMENT);
+    b.setActionCommand("Help");
+    b.addActionListener(this);
+    b.setToolTipText("Display help information.");
+    p.add(b);
+
+    ramEdit.add(p);
 
     //add the DSP Memory editor panel to the window
     add(ramEdit);
@@ -442,6 +454,14 @@ public void actionPerformed(ActionEvent e)
         textArea.setText(null);
         return;
     }
+
+    //display the help info window
+    if (e.getActionCommand().equalsIgnoreCase("Help")){
+        Help help = new Help(null, "Debugger Help.txt");
+        help.init();
+        return;
+    }
+
 
     //DSP cores running or in reset
     if (e.getActionCommand().equalsIgnoreCase("DSP's Running")){
