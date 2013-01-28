@@ -18,13 +18,11 @@
 
 package chart;
 
-import javax.swing.*;
+import chart.mksystems.hardware.Hardware;
 import java.awt.*;
-import javax.swing.BorderFactory;
 import java.awt.event.*;
 import java.text.DecimalFormat;
-
-import chart.mksystems.hardware.Hardware;
+import javax.swing.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -75,7 +73,20 @@ public Debugger(JFrame frame, Hardware pHardware)
 
     hardware = pHardware;
 
-    dataBlock = new byte[DATABLOCK_SIZE];
+}//end of Debugger::Debugger (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Debugger::init
+//
+// Initializes new objects. Should be called immediately after instantiation.
+//
+//
+
+public void init()
+{
+
+        dataBlock = new byte[DATABLOCK_SIZE];
 
     JPanel p, p2;
     JButton b;
@@ -398,7 +409,7 @@ public Debugger(JFrame frame, Hardware pHardware)
 
     pack();
 
-}//end of Debugger::Debugger (constructor)
+}//end of Debugger::init
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -521,29 +532,29 @@ public void actionPerformed(ActionEvent e)
         fillSize.setText("0000");
     }
 
-    if (dspChip1.isSelected()) whichDSPChip = 1;
+    if (dspChip1.isSelected()) {whichDSPChip = 1;}
     else
-    if (dspChip2.isSelected()) whichDSPChip = 2;
+    if (dspChip2.isSelected()) {whichDSPChip = 2;}
 
-    if (dspCoreA.isSelected()) whichDSPCore = 1;
+    if (dspCoreA.isSelected()) {whichDSPCore = 1;}
     else
-    if (dspCoreB.isSelected()) whichDSPCore = 2;
+    if (dspCoreB.isSelected()) {whichDSPCore = 2;}
     else
-    if (dspCoreC.isSelected()) whichDSPCore = 3;
+    if (dspCoreC.isSelected()) {whichDSPCore = 3;}
     else
-    if (dspCoreD.isSelected()) whichDSPCore = 4;
+    if (dspCoreD.isSelected()) {whichDSPCore = 4;}
 
-    if (ramLocal.isSelected()) ramType = 0;
+    if (ramLocal.isSelected()) {ramType = 0;}
     else
-    if (ramShared.isSelected()) ramType = 1;
+    if (ramShared.isSelected()) {ramType = 1;}
 
-    if (ramPage0.isSelected()) ramPage = 0;
+    if (ramPage0.isSelected()) {ramPage = 0;}
     else
-    if (ramPage1.isSelected()) ramPage = 1;
+    if (ramPage1.isSelected()) {ramPage = 1;}
     else
-    if (ramPage2.isSelected()) ramPage = 2;
+    if (ramPage2.isSelected()) {ramPage = 2;}
     else
-    if (ramPage3.isSelected()) ramPage = 3;
+    if (ramPage3.isSelected()) {ramPage = 3;}
 
     //write the data to the specified address
     if (e.getActionCommand().equalsIgnoreCase("Modify")){
@@ -577,14 +588,14 @@ void refreshVarsFromUserInputs()
     boolean changed = false;
 
     int newChassisNum = Integer.valueOf(chassisNumber.getText());
-    if (newChassisNum != chassisNum) changed = true;
+    if (newChassisNum != chassisNum) {changed = true;}
     chassisNum = newChassisNum;
 
     int newSlotNum = Integer.valueOf(slotNumber.getText());
-    if (newSlotNum != slotNum) changed = true;
+    if (newSlotNum != slotNum) {changed = true;}
     slotNum = newSlotNum;
 
-    if (changed) refreshDisplayedStates();
+    if (changed) {refreshDisplayedStates();}
 
 }//end of Debugger::refreshVarsFromUserInputs
 //-----------------------------------------------------------------------------
@@ -601,15 +612,15 @@ String toHexString(int pValue)
     String s = Integer.toString(pValue, 16);
 
     //force length to be four characters
-    if (s.length() == 0) return "0000" + s;
+    if (s.length() == 0) {return("0000" + s);}
     else
-    if (s.length() == 1) return "000" + s;
+    if (s.length() == 1) {return("000" + s);}
     else
-    if (s.length() == 2) return "00" + s;
+    if (s.length() == 2) {return("00" + s);}
     else
-    if (s.length() == 3) return "0" + s;
+    if (s.length() == 3) {return("0" + s);}
     else
-    return s;
+    {return (s);}
 
 }//end of Debugger::toHexString
 //-----------------------------------------------------------------------------

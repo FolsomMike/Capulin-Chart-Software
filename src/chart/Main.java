@@ -604,6 +604,7 @@ private void configure()
 
     //create a debugger window with a link to the hardware object
     debugger = new Debugger(mainFrame, hardware);
+    debugger.init();
 
     //create an array to hold references to each channel for the strip chart
     //which invoked the opening of the cal window
