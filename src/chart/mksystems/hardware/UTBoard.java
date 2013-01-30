@@ -491,7 +491,7 @@ public class UTBoard extends Board{
     static byte FPGA_LOADED_FLAG = 0x01;
 
     //number of loops to wait for response before timeout
-    static int FPGA_LOAD_TIMEOUT = 999999;
+    static int FPGA_LOAD_TIMEOUT = 200;
 
     boolean reSynced;
 
@@ -903,6 +903,8 @@ public void verifyAllDSPCode2()
 public void loadFPGA()
 {
 
+    int pktCounter = 0;
+
     // don't attempt to load the FPGA if no contact made with remote
     if (byteOut == null) {return;}
 
@@ -937,7 +939,6 @@ public void loadFPGA()
 
         while(timeOutRead < FPGA_LOAD_TIMEOUT){
 
-
             inBuffer[0] = NO_ACTION; //clear request byte from host
             inBuffer[1] = NO_STATUS; //clear status byte from host
 
@@ -945,7 +946,13 @@ public void loadFPGA()
             if (byteIn != null){
                 inCount = byteIn.available();
                 //0 = buffer offset, 2 = number of bytes to read
-                if (inCount >= 2) {byteIn.read(inBuffer, 0, 2);}
+                if (inCount >= 2) {
+                    byteIn.read(inBuffer, 0, 2);
+                }
+                else{
+                    waitSleep(10);
+                }
+
             }
 
             //trap error and finished status messages, second byte in buffer
@@ -979,6 +986,8 @@ public void loadFPGA()
                 bufPtr = 0; c = 0;
                 codeBuffer[bufPtr++] = DATA_CMD; // command byte = data packet
 
+                pktCounter++; //count packets sent
+
                 //be sure to check bufPtr on left side or a byte will get read
                 //and ignored every time bufPtr test fails
                 while (bufPtr < CODE_BUFFER_SIZE && (c = inFile.read()) != -1 ){
@@ -1011,8 +1020,8 @@ public void loadFPGA()
 
         //remote has not responded if this part reached
         logger.logMessage(
-              "UT " + ipAddrS + " error loading FPGA - contact lost." + "\n");
-
+              "UT " + ipAddrS + " error loading FPGA - contact lost after " +
+                pktCounter + " packets." + "\n");
     }//try
     catch(IOException e){
         System.err.println(getClass().getName() + " - Error: 1014");
@@ -1256,19 +1265,17 @@ void getChassisSlotAddressOverride()
 void sendRepRate()
 {
 
-    //debug mks zzz
+    //the rep rate registers should NEVER be set directly by the host
+    //using the SET_REP_RATE_CMD as done here is safer as the remote can
+    //check that the received value is within limits; also the chances of
+    //missing a packet write for any one of the bytes is greatly reduced
 
-    //write the bytes of the integer to the appropriate registers
-    writeFPGAReg(REP_RATE_0_REG, (byte) (repRate & 0xff));
-    writeFPGAReg(REP_RATE_1_REG, (byte) ((repRate >> 8) & 0xff));
-    writeFPGAReg(REP_RATE_2_REG, (byte) ((repRate >> 16) & 0xff));
-    writeFPGAReg(REP_RATE_3_REG, (byte) ((repRate >> 24) & 0xff));
-
-    //change this to send the value to the Rabbit and let it stuff into the
-    //DSP so it can validate the value -- the current method is dangerous -- if
-    //one of the writes above gets lost, the rep rate could get set very high
-    //and blow the fuse and destroy the resistors
-    // use sendSoftwareDelay as an example
+    sendBytes(SET_REP_RATE_CMD,
+                (byte) ((repRate >> 24) & 0xff),
+                (byte) ((repRate >> 16) & 0xff),
+                (byte) ((repRate >> 8) & 0xff),
+                (byte) (repRate & 0xff)
+                );
 
 }//end of UTBoard::sendRepRate
 //-----------------------------------------------------------------------------
