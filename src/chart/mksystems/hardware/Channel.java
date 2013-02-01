@@ -18,15 +18,14 @@
 
 package chart.mksystems.hardware;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.text.DecimalFormat;
-
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.settings.Settings;
 import chart.mksystems.stripchart.Threshold;
 import chart.mksystems.stripchart.Trace;
 import chart.mksystems.threadsafe.*;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.text.DecimalFormat;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -117,10 +116,12 @@ public Channel(IniFile pConfigFile, Settings pSettings, int pChannelIndex,
 
     //if a SyncedVariableSet manager is provided use it, if not then create one
 
-    if (pSyncedVarMgr != null)
+    if (pSyncedVarMgr != null) {
         syncedVarMgr = pSyncedVarMgr;
-    else
+    }
+    else {
         syncedVarMgr = new SyncedVariableSet();
+    }
 
     softwareGain = new SyncedDouble(syncedVarMgr); softwareGain.init();
     hardwareGain1 = new SyncedInteger(syncedVarMgr); hardwareGain1.init();
@@ -156,7 +157,7 @@ public void initialize()
     decimalFormats[3] = new  DecimalFormat("0.000");
 
     //give the utBoard a link to the gates array
-    if (utBoard != null) utBoard.linkGates(boardChannel, gates, numberOfGates);
+    if (utBoard != null){utBoard.linkGates(boardChannel, gates, numberOfGates);}
 
     //set FPGA values such as sample start delay, sample size by calling each
     //function
@@ -174,9 +175,9 @@ public void initialize()
 
     //flag if interface and wall gates are present
     for (int i = 0; i < numberOfGates; i++){
-        if (gates[i].getInterfaceGate()) interfaceGatePresent = true;
-        if (gates[i].isWallStartGate) wallStartGateSet = true;
-        if (gates[i].isWallEndGate) wallEndGateSet = true;
+        if (gates[i].getInterfaceGate()) {interfaceGatePresent = true;}
+        if (gates[i].isWallStartGate) {wallStartGateSet = true;}
+        if (gates[i].isWallEndGate) {wallEndGateSet = true;}
     }
 
     //if both wall start and end gates, set channel for wall data and
@@ -184,8 +185,9 @@ public void initialize()
 
     if (wallStartGateSet && wallEndGateSet){
         isWallChannel = true;
-        if (utBoard != null)
+        if (utBoard != null) {
             utBoard.sendWallChannelFlag(boardChannel, isWallChannel);
+        }
     }
 
     //force interface tracking to false if no interface gate was set up
@@ -197,13 +199,13 @@ public void initialize()
     // channels. This will disable the channels without an interface gate
     // the progam is restarted and this piece of code gets executed.
 
-    if (!interfaceGatePresent) interfaceTracking = false;
+    if (!interfaceGatePresent) {interfaceTracking = false;}
 
     //set bits in flags1 variable
     //all flags1 variables should be set at once in the init to avoid conflicts
     //due to all flag1 setting functions using the same mask storage variables
     int flags1Mask = UTBoard.GATES_ENABLED;
-    if (dacEnabled) flags1Mask |= UTBoard.DAC_ENABLED;
+    if (dacEnabled) {flags1Mask |= UTBoard.DAC_ENABLED;}
     flags1Mask |= UTBoard.ASCAN_FREE_RUN;
 
     setFlags1(flags1Mask, true);
@@ -283,15 +285,18 @@ public int getPointedDACGate(int pX, int pY)
     int i;
 
     //scan all gates for start which is near pX,pY
-    for (i = 0; i < numberOfDACGates; i++)
-        if (dacGates[i].getActive())
+    for (i = 0; i < numberOfDACGates; i++) {
+        if (dacGates[i].getActive()) {
             if (pX >= (dacGates[i].gatePixStartAdjusted - 5)
                     && pX <= (dacGates[i].gatePixStartAdjusted + 5)
                     && pY >= (dacGates[i].gatePixLevel - 5)
-                    && pY <= (dacGates[i].gatePixLevel + 5))
+                    && pY <= (dacGates[i].gatePixLevel + 5)) {
                 break;
+            }
+        }
+    }
 
-    if (i == numberOfDACGates) i = -1; //no match found
+    if (i == numberOfDACGates) {i = -1;} //no match found
 
     return i;
 
@@ -312,12 +317,13 @@ public int getSelectedDACGate()
     int i;
 
     //scan all gates to find the first selected one
-    for (i = 0; i < numberOfDACGates; i++)
-        if (dacGates[i].getActive())
-            if (dacGates[i].getSelected())
-                break;
+    for (i = 0; i < numberOfDACGates; i++) {
+        if (dacGates[i].getActive()) {
+            if (dacGates[i].getSelected()) {break;}
+        }
+    }
 
-    if (i == numberOfDACGates) i = -1; //no match found
+    if (i == numberOfDACGates) {i = -1;} //no match found
 
     return i;
 
@@ -334,7 +340,7 @@ public int getSelectedDACGate()
 public void setSelectedDACGate(int pGate, boolean pState)
 {
 
-    if (pGate < 0 || pGate >= numberOfDACGates) return;
+    if (pGate < 0 || pGate >= numberOfDACGates) {return;}
 
     dacGates[pGate].setSelected(pState);
 
@@ -353,7 +359,9 @@ public int getActiveDACGateCount()
     int c = 0;
 
     //scan all gates to count the active ones
-    for (int i = 0; i < numberOfDACGates; i++) if (dacGates[i].getActive()) c++;
+    for (int i = 0; i < numberOfDACGates; i++) {
+        if (dacGates[i].getActive()) {c++;}
+    }
 
     return c;
 
@@ -388,7 +396,7 @@ public void insertDACGate(int pStart, int pLevel)
 {
 
     //do not allow insertion if gate array is full
-    if (getActiveDACGateCount() == numberOfDACGates) return;
+    if (getActiveDACGateCount() == numberOfDACGates) {return;}
 
     int lastGate = getActiveDACGateCount() - 1;
 
@@ -420,20 +428,25 @@ public void insertDACGate(int pStart, int pLevel)
     //old gate to give space for the new gate
 
     int i;
-    for (i = 0; i < numberOfDACGates; i++)
-        if (dacGates[i].getActive())
+    for (i = 0; i < numberOfDACGates; i++) {
+        if (dacGates[i].getActive()) {
             if (pStart >= dacGates[i].gatePixStart
-                                           && pStart <= dacGates[i].gatePixEnd)
+                                           && pStart <= dacGates[i].gatePixEnd) {
                 break;
+            }
+        }
+    }
 
     //the end of the new gate will equal the start of the following gate
     //if there is no following gate, then the end will be the end of old gate
     int pEnd;
 
-    if (i < lastGate)
+    if (i < lastGate) {
         pEnd = dacGates[i+1].gatePixStart;
-    else
+    }
+    else {
         pEnd = dacGates[i].gatePixEnd;
+    }
 
     shiftDACGatesUp(i+1); //shift gates to make room
 
@@ -455,7 +468,7 @@ public void insertDACGate(int pStart, int pLevel)
 public void deleteDACGate(int pGate)
 {
 
-    if (pGate < 0 || pGate >= numberOfDACGates) return;
+    if (pGate < 0 || pGate >= numberOfDACGates) {return;}
 
     int lastGate = getActiveDACGateCount() - 1; //need this in a second
 
@@ -469,8 +482,9 @@ public void deleteDACGate(int pGate)
     //which was after the deleted one to avoid diagonal lines
     //don't do this if the gates involved are at the ends of the array
 
-    if (pGate > 0 && pGate < getActiveDACGateCount())
+    if (pGate > 0 && pGate < getActiveDACGateCount()) {
         setDACPixEnd(pGate - 1, dacGates[pGate].gatePixStart, false);
+    }
 
 }//end of Channel::deleteDACGate
 //-----------------------------------------------------------------------------
@@ -484,7 +498,7 @@ public void deleteDACGate(int pGate)
 public void deleteAllDACGates()
 {
 
-    for (int i = 0; i < numberOfDACGates; i++) setDACActive(i, false, false);
+    for (int i = 0; i < numberOfDACGates; i++) {setDACActive(i, false, false);}
 
 }//end of Channel::deleteAllDACGates
 //-----------------------------------------------------------------------------
@@ -499,7 +513,7 @@ public void shiftDACGatesDown(int pStart)
 {
 
     int newFirstGate = pStart - 1;
-    if (newFirstGate < 0) return; //protect against shifting out of bounds
+    if (newFirstGate < 0) {return;} //protect against shifting out of bounds
 
     int stop = getActiveDACGateCount() - 1;
 
@@ -525,7 +539,7 @@ public void shiftDACGatesUp(int pStart)
 {
 
     int newLastGate = getActiveDACGateCount();
-    if (newLastGate >= numberOfDACGates) return; //protect against full array
+    if (newLastGate >= numberOfDACGates) {return;} //protect against full array
 
     //copy gates to shift them
     for (int i = newLastGate; i > pStart; i--){
@@ -571,9 +585,9 @@ public void setDACGatePixelValues(int pGate, int pStart, int pEnd,
 public void setDACPixStart(int pGate, int pStart, boolean pForceUpdate)
 {
 
-    if (pStart != dacGates[pGate].gatePixStart) pForceUpdate = true;
+    if (pStart != dacGates[pGate].gatePixStart) {pForceUpdate = true;}
 
-    if (pForceUpdate) dacGates[pGate].gatePixStart = pStart;
+    if (pForceUpdate) {dacGates[pGate].gatePixStart = pStart;}
 
 }//end of Channel::setDACPixStart
 //-----------------------------------------------------------------------------
@@ -590,9 +604,9 @@ public void setDACPixStart(int pGate, int pStart, boolean pForceUpdate)
 public void setDACPixEnd(int pGate, int pEnd, boolean pForceUpdate)
 {
 
-    if (pEnd != dacGates[pGate].gatePixEnd) pForceUpdate = true;
+    if (pEnd != dacGates[pGate].gatePixEnd) {pForceUpdate = true;}
 
-    if (pForceUpdate) dacGates[pGate].gatePixEnd = pEnd;
+    if (pForceUpdate) {dacGates[pGate].gatePixEnd = pEnd;}
 
 }//end of Channel::setDACPixEnd
 //-----------------------------------------------------------------------------
@@ -609,9 +623,9 @@ public void setDACPixEnd(int pGate, int pEnd, boolean pForceUpdate)
 public void setDACPixLevel(int pGate, int pLevel, boolean pForceUpdate)
 {
 
-    if (pLevel != dacGates[pGate].gatePixLevel) pForceUpdate = true;
+    if (pLevel != dacGates[pGate].gatePixLevel) {pForceUpdate = true;}
 
-    if (pForceUpdate) dacGates[pGate].gatePixLevel = pLevel;
+    if (pForceUpdate) {dacGates[pGate].gatePixLevel = pLevel;}
 
 }//end of Channel::setDACPixLevel
 //-----------------------------------------------------------------------------
@@ -736,10 +750,12 @@ public void setFlags1(int pSetMask, boolean pForceUpdate)
 public void sendSetFlags1()
 {
 
-    if (utBoard != null)
+    if (utBoard != null) {
         utBoard.sendSetFlags1(boardChannel, flags1SetMask.applyValue());
-    else
+    }
+    else {
         System.out.println("UT Board not assigned to channel " + channelIndex);
+    }
 
 }//end of Channel::sendSetFlags1
 //-----------------------------------------------------------------------------
@@ -818,16 +834,18 @@ public void sendClearFlags1()
 public void setDACEnabled(boolean pEnable, boolean pForceUpdate)
 {
 
-    if (pEnable != dacEnabled) pForceUpdate = true;
+    if (pEnable != dacEnabled) {pForceUpdate = true;}
 
-    if (!pForceUpdate) return; //do nothing unless value change or forced
+    if (!pForceUpdate) {return;} //do nothing unless value change or forced
 
     dacEnabled = pEnable;
 
-    if (dacEnabled)
+    if (dacEnabled) {
         flags1SetMask.setValue((int)UTBoard.DAC_ENABLED, pForceUpdate);
-    else
+    }
+    else {
         flags1ClearMask.setValue((int)~UTBoard.DAC_ENABLED, pForceUpdate);
+    }
 
 }//end of Channel::setDACEnabled
 //-----------------------------------------------------------------------------
@@ -876,7 +894,7 @@ public void setAScanFastEnabled(boolean pEnable,
                                                            boolean pForceUpdate)
 {
 
-    if (pEnable != aScanFastEnabled) pForceUpdate = true;
+    if (pEnable != aScanFastEnabled) {pForceUpdate = true;}
 
     aScanFastEnabled = pEnable;
 
@@ -938,18 +956,20 @@ public void setAScanSlowEnabled(boolean pEnable,
                                                            boolean pForceUpdate)
 {
 
-    if (pEnable != aScanSlowEnabled) pForceUpdate = true;
+    if (pEnable != aScanSlowEnabled) {pForceUpdate = true;}
 
-    if (!pForceUpdate) return; //do nothing unless value change or forced
+    if (!pForceUpdate) {return;} //do nothing unless value change or forced
 
     aScanSlowEnabled = pEnable;
 
-    if (aScanSlowEnabled)
+    if (aScanSlowEnabled) {
         flags1SetMask.setValue(
                                 (int)UTBoard.ASCAN_SLOW_ENABLED, pForceUpdate);
-    else
+    }
+    else {
         flags1ClearMask.setValue(
-                               (int)~UTBoard.ASCAN_SLOW_ENABLED, pForceUpdate);
+                                (int)~UTBoard.ASCAN_SLOW_ENABLED, pForceUpdate);
+    }
 
 }//end of Channel::setAScanSlowEnabled
 //-----------------------------------------------------------------------------
@@ -989,16 +1009,18 @@ public boolean getAScanSlowEnabled()
 public void setAScanFreeRun(boolean pEnable, boolean pForceUpdate)
 {
 
-    if (pEnable != aScanFreeRun) pForceUpdate = true;
+    if (pEnable != aScanFreeRun) {pForceUpdate = true;}
 
-    if (!pForceUpdate) return; //do nothing unless value change or forced
+    if (!pForceUpdate) {return;} //do nothing unless value change or forced
 
     aScanFreeRun = pEnable;
 
-    if (aScanFreeRun)
+    if (aScanFreeRun) {
         flags1SetMask.setValue((int)UTBoard.ASCAN_FREE_RUN, pForceUpdate);
-    else
+    }
+    else {
         flags1ClearMask.setValue((int)~UTBoard.ASCAN_FREE_RUN, pForceUpdate);
+    }
 
 }//end of Channel::setAScanFreeRun
 //-----------------------------------------------------------------------------
@@ -1054,19 +1076,23 @@ void calculateGateSpan()
         //find the earliest gate
 
         int firstGate = 0;
-        for (int i = 0; i < numberOfGates; i++)
+        for (int i = 0; i < numberOfGates; i++) {
             if (gates[i].gateStart.getValue()
-                                        < gates[firstGate].gateStart.getValue())
+                                        < gates[firstGate].gateStart.getValue()) {
                 firstGate = i;
+            }
+        }
 
         //find the latest gate
 
         int lastGate = 0;
-        for (int i = 0; i < numberOfGates; i++)
+        for (int i = 0; i < numberOfGates; i++) {
             if ((gates[i].gateStart.getValue() + gates[i].gateWidth.getValue())
                             > (gates[lastGate].gateStart.getValue()
-                                       + gates[lastGate].gateWidth.getValue()))
+                                       + gates[lastGate].gateWidth.getValue())){
                 lastGate = i;
+            }
+        }
 
         //absolute positioning
 
@@ -1100,19 +1126,23 @@ void calculateGateSpan()
         //gates will be relative to the interface crossing if tracking is on
 
         int firstGate = 1;
-        for (int i = 1; i < numberOfGates; i++)
+        for (int i = 1; i < numberOfGates; i++) {
             if (gates[i].gateStart.getValue() <
-                                        gates[firstGate].gateStart.getValue())
+                                        gates[firstGate].gateStart.getValue()) {
                 firstGate = i;
+            }
+        }
 
         //find the latest gate, not including the interface gate (see note above)
 
         int lastGate = 1;
-        for (int i = 1; i < numberOfGates; i++)
+        for (int i = 1; i < numberOfGates; i++) {
             if ((gates[i].gateStart.getValue() + gates[i].gateWidth.getValue())
                            > (gates[lastGate].gateStart.getValue()
-                                        + gates[lastGate].gateWidth.getValue()))
+                                     + gates[lastGate].gateWidth.getValue())) {
                 lastGate = i;
+            }
+        }
 
         //positioning relative to interface gate
         //interface gate is always gate 0
@@ -1123,8 +1153,9 @@ void calculateGateSpan()
                 + gates[firstGate].gateStart.getValue()) / uSPerDataPoint);
 
         //if the interface gate is before all other gates, use its position
-        if (interfaceGateLead < firstGateEdgePos)
+        if (interfaceGateLead < firstGateEdgePos) {
             firstGateEdgePos = interfaceGateLead;
+        }
 
         //calculate the position in number of samples of trailing edge of last
         //gate relative to the trailing edge of interface gate (worst case)
@@ -1134,8 +1165,9 @@ void calculateGateSpan()
                 + gates[lastGate].gateWidth.getValue()) / uSPerDataPoint);
 
         //if the interface gate is after all other gates, use its position
-        if (interfaceGateTrail > lastGateEdgePos)
+        if (interfaceGateTrail > lastGateEdgePos) {
             lastGateEdgePos = interfaceGateTrail;
+        }
 
     }// else of if (!interfaceTracking)
 
@@ -1192,22 +1224,24 @@ public void setDelay(double pDelay, boolean pForceUpdate)
     //delay - the remaining delay for an AScan will be accounted for by setting
     //a the aScanDelay in the DSP
 
-    if (firstGateEdgePos < hardwareDelay) hardwareDelay = firstGateEdgePos;
+    if (firstGateEdgePos < hardwareDelay) {hardwareDelay = firstGateEdgePos;}
 
-    if (hardwareDelay != oldHardwareDelay) pForceUpdate = true;
+    if (hardwareDelay != oldHardwareDelay) {pForceUpdate = true;}
 
-    if (utBoard != null && pForceUpdate)
+    if (utBoard != null && pForceUpdate) {
         utBoard.sendHardwareDelay(boardChannel, hardwareDelay);
+    }
 
     //calculate and set the remaining delay left over required to positon the
     //AScan correctly after taking into account the FPGA sample delay
 
     softwareDelay = totalDelayCount - hardwareDelay;
 
-    if (softwareDelay != oldSoftwareDelay) pForceUpdate = true;
+    if (softwareDelay != oldSoftwareDelay) {pForceUpdate = true;}
 
-    if (utBoard != null && pForceUpdate)
+    if (utBoard != null && pForceUpdate) {
         utBoard.sendSoftwareDelay(boardChannel, softwareDelay, hardwareDelay);
+    }
 
 }//end of Channel::setDelay
 //-----------------------------------------------------------------------------
@@ -1300,12 +1334,13 @@ public int getSoftwareDelay()
 public void setRejectLevel(int pRejectLevel, boolean pForceUpdate)
 {
 
-    if (pRejectLevel != rejectLevel) pForceUpdate = true;
+    if (pRejectLevel != rejectLevel) {pForceUpdate = true;}
 
     rejectLevel = pRejectLevel;
 
-    if (utBoard != null && pForceUpdate)
+    if (utBoard != null && pForceUpdate) {
         utBoard.setRejectLevel(boardChannel, pRejectLevel);
+    }
 
 }//end of Channel::setRejectLevel
 //-----------------------------------------------------------------------------
@@ -1339,15 +1374,16 @@ public int getRejectLevel()
 public void setAScanSmoothing(int pAScanSmoothing, boolean pForceUpdate)
 {
 
-    if (pAScanSmoothing != aScanSmoothing.getValue()) pForceUpdate = true;
+    if (pAScanSmoothing != aScanSmoothing.getValue()) {pForceUpdate = true;}
 
     if (pForceUpdate){
 
         aScanSmoothing.setValue(pAScanSmoothing, pForceUpdate);
 
         //update all gates with new averaging value
-        for (int i = 0; i < numberOfGates; i++)
+        for (int i = 0; i < numberOfGates; i++) {
             gates[i].setAScanSmoothing(pAScanSmoothing);
+        }
 
     }
 
@@ -1377,8 +1413,9 @@ public int getAScanSmoothing()
 public void sendAScanSmoothing()
 {
 
-    if (utBoard != null)
+    if (utBoard != null) {
         utBoard.setAScanSmoothing(boardChannel, aScanSmoothing.applyValue());
+    }
 
 }//end of Channel::sendAScanSmoothing
 //-----------------------------------------------------------------------------
@@ -1392,7 +1429,7 @@ public void sendAScanSmoothing()
 public void setDCOffset(int pDCOffset, boolean pForceUpdate)
 {
 
-    if (pDCOffset != dcOffset) pForceUpdate = true;
+    if (pDCOffset != dcOffset) {pForceUpdate = true;}
 
     dcOffset = pDCOffset;
 
@@ -1402,8 +1439,9 @@ public void setDCOffset(int pDCOffset, boolean pForceUpdate)
     //will equal 1 - the value will only change every 5 or so counts because the
     //AD resolution is 4+ mV and the input value is mV
 
-    if (utBoard != null && pForceUpdate)
+    if (utBoard != null && pForceUpdate) {
         utBoard.sendDCOffset(boardChannel, (int)(dcOffset / 4.6875));
+    }
 
 }//end of Channel::setDCOffset
 //-----------------------------------------------------------------------------
@@ -1438,11 +1476,11 @@ public void setMode(int pMode, boolean pForceUpdate)
 {
 
     //if the channel is disabled in the configuration file, mode is always off
-    if (disabled) pMode = UTBoard.CHANNEL_OFF;
+    if (disabled) {pMode = UTBoard.CHANNEL_OFF;}
 
-    if (pMode != mode.getValue()) pForceUpdate = true;
+    if (pMode != mode.getValue()) {pForceUpdate = true;}
 
-    if (!pForceUpdate) return; //do nothing unless value change or forced
+    if (!pForceUpdate) {return;} //do nothing unless value change or forced
 
     mode.setValue(pMode, pForceUpdate);
 
@@ -1464,7 +1502,7 @@ public void setMode(int pMode, boolean pForceUpdate)
 public void sendMode()
 {
 
-    if (utBoard != null) utBoard.sendMode(boardChannel, mode.applyValue());
+    if (utBoard != null) {utBoard.sendMode(boardChannel, mode.applyValue());}
 
 }//end of Channel::sendMode
 //-----------------------------------------------------------------------------
@@ -1550,22 +1588,31 @@ public void setRange(double pRange, boolean pForceUpdate)
     //edge of the AScan or the leading edge of the first gate, which ever is
     //first
 
-    if (leftEdgeAScan <= firstGateEdgePos) start = leftEdgeAScan;
-    else start = firstGateEdgePos;
+    if (leftEdgeAScan <= firstGateEdgePos) {
+        start = leftEdgeAScan;
+    }
+    else {
+        start = firstGateEdgePos;
+    }
 
     //determine the latest event for which samples are required - the right edge
     //of the AScan or the trailing edge of the last gate, which ever is last
 
-    if (rightEdgeAScan >= lastGateEdgePos) stop = rightEdgeAScan;
-    else stop = lastGateEdgePos;
+    if (rightEdgeAScan >= lastGateEdgePos) {
+        stop = rightEdgeAScan;
+    }
+    else {
+        stop = lastGateEdgePos;
+    }
 
     //calculate the number of required samples to cover the range specified
     hardwareRange.setValue(stop - start, pForceUpdate);
 
     //force sample size to be even - see notes at top of
     //UTboard.setHardwareRange for more info
-    if (hardwareRange.getValue() % 2 != 0)
+    if (hardwareRange.getValue() % 2 != 0) {
         hardwareRange.setValue(hardwareRange.getValue() + 1, pForceUpdate);
+    }
 
     //calculate the compression needed to fit at least the desired number of
     //AScan samples into the 400 sample AScan buffer - the scale factor is
@@ -1575,8 +1622,9 @@ public void setRange(double pRange, boolean pForceUpdate)
     (rightEdgeAScan - leftEdgeAScan) / UTBoard.ASCAN_SAMPLE_SIZE, pForceUpdate);
 
     //if the range is not a perfect integer, round it up
-    if (((rightEdgeAScan - leftEdgeAScan) % UTBoard.ASCAN_SAMPLE_SIZE) != 0)
+    if (((rightEdgeAScan - leftEdgeAScan) % UTBoard.ASCAN_SAMPLE_SIZE) != 0) {
         aScanScale.setValue(aScanScale.getValue() + 1, pForceUpdate);
+    }
 
 }//end of Channel::setRange
 //-----------------------------------------------------------------------------
@@ -1634,9 +1682,10 @@ public double getRange()
 public void setSampleBufferStart()
 {
 
-    if (utBoard != null)
+    if (utBoard != null) {
         utBoard.sendSampleBufferStart(boardChannel,
                                             UTBoard.AD_RAW_DATA_BUFFER_ADDRESS);
+    }
 
 }//end of Channel::setSampleBufferStart
 //-----------------------------------------------------------------------------
@@ -1653,14 +1702,15 @@ public void setSampleBufferStart()
 public void setSoftwareGain(double pSoftwareGain, boolean pForceUpdate)
 {
 
-    if (pSoftwareGain != softwareGain.getValue()) pForceUpdate = true;
+    if (pSoftwareGain != softwareGain.getValue()) {pForceUpdate = true;}
 
-    if (!pForceUpdate) return; //do nothing unless value change or forced
+    if (!pForceUpdate) {return;} //do nothing unless value change or forced
 
     softwareGain.setValue(pSoftwareGain, pForceUpdate);
 
-    for (int i = 0; i < numberOfDACGates; i++)
+    for (int i = 0; i < numberOfDACGates; i++) {
         dacGates[i].setSoftwareGain(pSoftwareGain, pForceUpdate);
+    }
 
 }//end of Channel::setSoftwareGain
 //-----------------------------------------------------------------------------
@@ -1674,8 +1724,9 @@ public void setSoftwareGain(double pSoftwareGain, boolean pForceUpdate)
 public void sendSoftwareGain()
 {
 
-    if (utBoard != null)
+    if (utBoard != null) {
         utBoard.sendSoftwareGain(boardChannel, softwareGain.applyValue());
+    }
 
 }//end of Channel::sendSoftwareGain
 //-----------------------------------------------------------------------------
@@ -1722,8 +1773,10 @@ public void setHardwareGain(int pHardwareGain1, int pHardwareGain2,
 public void sendHardwareGain()
 {
 
-    if (utBoard != null) utBoard.sendHardwareGain(
-        boardChannel, hardwareGain1.applyValue(), hardwareGain2.applyValue());
+    if (utBoard != null) {
+        utBoard.sendHardwareGain(
+         boardChannel, hardwareGain1.applyValue(), hardwareGain2.applyValue());
+    }
 
 }//end of Channel::sendHardwareGain
 //-----------------------------------------------------------------------------
@@ -1768,25 +1821,28 @@ public int getHardwareGain2()
 public void setInterfaceTracking(boolean pState, boolean pForceUpdate)
 {
 
-    if (pState != interfaceTracking) pForceUpdate = true;
+    if (pState != interfaceTracking) {pForceUpdate = true;}
 
-    if (!pForceUpdate) return; //do nothing unless value change or forced
+    if (!pForceUpdate) {return;} //do nothing unless value change or forced
 
     interfaceTracking = pState;
 
     //switch gate start positions to the appropriate values for the current mode
-    for (int i = 0; i < numberOfGates; i++)
+    for (int i = 0; i < numberOfGates; i++) {
         setGateStart(i, interfaceTracking ?
            gates[i].gateStartTrackingOn : gates[i].gateStartTrackingOff, false);
+    }
 
     //determine the span from the earliest gate edge to the latest (in time)
     calculateGateSpan();
 
-    for (int i = 0; i < numberOfGates; i++)
+    for (int i = 0; i < numberOfGates; i++) {
         gates[i].setInterfaceTracking(pState);
+    }
 
-    for (int i = 0; i < numberOfDACGates; i++)
+    for (int i = 0; i < numberOfDACGates; i++) {
         dacGates[i].setInterfaceTracking(pState);
+    }
 
 }//end of Channel::setInterfaceTracking
 //-----------------------------------------------------------------------------
@@ -1820,9 +1876,9 @@ public boolean getInterfaceTracking()
 public void setAScanTrigger(int pGate, boolean pState, boolean pForceUpdate)
 {
 
-    if (pState != gates[pGate].getIsAScanTriggerGate()) pForceUpdate = true;
+    if (pState != gates[pGate].getIsAScanTriggerGate()) {pForceUpdate = true;}
 
-    if (!pForceUpdate) return; //do nothing unless value change or forced
+    if (!pForceUpdate) {return;} //do nothing unless value change or forced
 
     //store the AScan trigger gate setting for the specified gate
     gates[pGate].setAScanTriggerGate(pState);
@@ -1842,7 +1898,7 @@ public void setAScanTrigger(int pGate, boolean pState, boolean pForceUpdate)
     }//for(int i = 0; i < numberOfGates; i++)
 
     //no gate was a trigger gate so set DSP's AScan mode to free-run
-    if (!triggerGateFound) setAScanFreeRun(true, false);
+    if (!triggerGateFound) {setAScanFreeRun(true, false);}
 
 }//end of Channel::setAScanTrigger
 //-----------------------------------------------------------------------------
@@ -1868,18 +1924,19 @@ void setTransducer(boolean pChannelOn, int pPulseBank, int pPulseChannel,
                                                         boolean pForceUpdate)
 {
 
-    if (pChannelOn != channelOn) pForceUpdate = true;
-    if (pPulseBank != pulseBank) pForceUpdate = true;
-    if (pPulseChannel != pulseChannel) pForceUpdate = true;
+    if (pChannelOn != channelOn) {pForceUpdate = true;}
+    if (pPulseBank != pulseBank) {pForceUpdate = true;}
+    if (pPulseChannel != pulseChannel) {pForceUpdate = true;}
 
     channelOn =
             pChannelOn; pulseBank = pPulseBank; pulseChannel = pPulseChannel;
 
     channelOn = (mode.getValue() != UTBoard.CHANNEL_OFF) ? true : false;
 
-    if (utBoard != null && pForceUpdate)
+    if (utBoard != null && pForceUpdate) {
         utBoard.sendTransducer(boardChannel,
                  (byte)(channelOn ? 1:0), (byte)pulseBank, (byte)pulseChannel);
+    }
 
 }//end of Channel::setTransducer
 //-----------------------------------------------------------------------------
@@ -1896,9 +1953,10 @@ public void linkTraces(int pChartGroup, int pChart, int pTrace, int[] pDBuffer,
    Trace pTracePtr)
 {
 
-    for (int i = 0; i < numberOfGates; i++)
+    for (int i = 0; i < numberOfGates; i++) {
         gates[i].linkTraces(pChartGroup, pChart, pTrace, pDBuffer, pDBuffer2,
                          pFBuffer, pThresholds, pPlotStyle, pTracePtr);
+    }
 
 }//end of Channel::linkTraces
 //-----------------------------------------------------------------------------
@@ -1972,12 +2030,13 @@ private void configureGates()
     if (numberOfGates > 0){
 
         //protect against too many
-        if (numberOfGates > 20) numberOfGates = 20;
+        if (numberOfGates > 20) {numberOfGates = 20;}
 
         gates = new Gate[numberOfGates];
 
-        for (int i = 0; i < numberOfGates; i++)
+        for (int i = 0; i < numberOfGates; i++) {
             gates[i] = new Gate(configFile, channelIndex, i, syncedVarMgr);
+        }
 
     }//if (numberOfGates > 0)
 
@@ -1998,13 +2057,14 @@ private void configureDACGates()
     if (numberOfDACGates > 0){
 
         //protect against too many
-        if (numberOfDACGates > 20) numberOfDACGates = 20;
+        if (numberOfDACGates > 20) {numberOfDACGates = 20;}
 
         dacGates = new DACGate[numberOfDACGates];
 
-        for (int i = 0; i < numberOfDACGates; i++)
+        for (int i = 0; i < numberOfDACGates; i++) {
             dacGates[i] = new DACGate(configFile, channelIndex, i,
                                                     syncedVarMgr, scopeMax);
+        }
 
     }//if (numberOfDACGates > 0)
 
@@ -2024,8 +2084,9 @@ public void requestAScan()
     //boardChannel specifies which analog channel on the UT board is associated
     //with this channel object - it is read from the configuration file
 
-    if (utBoard != null)
+    if (utBoard != null) {
         utBoard.requestAScan(boardChannel, hardwareDelay);
+    }
 
 }//end of Channel::requestAScan
 //-----------------------------------------------------------------------------
@@ -2042,10 +2103,12 @@ public AScan getAScan()
     //boardChannel specifies which analog channel on the UT board is associated
     //with this channel object - it is read from the configuration file
 
-    if (utBoard != null)
+    if (utBoard != null) {
         return utBoard.getAScan();
-    else
+    }
+    else {
         return null;
+    }
 
 }//end of Channel::getAScan
 //-----------------------------------------------------------------------------
@@ -2065,7 +2128,7 @@ public AScan getAScan()
 public void requestPeakData()
 {
 
-    if (utBoard != null) utBoard.requestPeakData(boardChannel);
+    if (utBoard != null) {utBoard.requestPeakData(boardChannel);}
 
 }//end of Channel::requestPeakData
 //-----------------------------------------------------------------------------
@@ -2082,18 +2145,20 @@ public void requestPeakData()
 public void setGateStart(int pGate, double pStart, boolean pForceUpdate)
 {
 
-    if (pStart != gates[pGate].gateStart.getValue()) pForceUpdate = true;
+    if (pStart != gates[pGate].gateStart.getValue()) {pForceUpdate = true;}
 
-    if (!pForceUpdate) return; //do nothing unless value change or forced
+    if (!pForceUpdate) {return;} //do nothing unless value change or forced
 
     gates[pGate].gateStart.setValue(pStart, pForceUpdate);
 
     //store the variable as appropriate for the interface tracking mode - this
     //allows switching back and forth between modes
-    if (interfaceTracking)
+    if (interfaceTracking) {
         gates[pGate].gateStartTrackingOn = pStart;
-    else
+    }
+    else {
         gates[pGate].gateStartTrackingOff = pStart;
+    }
 
     //determine the span from the earliest gate edge to the latest (in time)
     calculateGateSpan();
@@ -2221,9 +2286,9 @@ public double getPreviousGateStart(int pGate)
 public void setGateWidth(int pGate, double pWidth, boolean pForceUpdate)
 {
 
-    if (pWidth != gates[pGate].gateWidth.getValue()) pForceUpdate = true;
+    if (pWidth != gates[pGate].gateWidth.getValue()) {pForceUpdate = true;}
 
-    if (!pForceUpdate) return; //do nothing unless value change or forced
+    if (!pForceUpdate) {return;} //do nothing unless value change or forced
 
     gates[pGate].gateWidth.setValue(pWidth, pForceUpdate);
 
@@ -2301,9 +2366,9 @@ public int getGateFlags(int pGate)
 public void setGateLevel(int pGate, int pLevel, boolean pForceUpdate)
 {
 
-    if (pLevel != gates[pGate].gateLevel.getValue()) pForceUpdate = true;
+    if (pLevel != gates[pGate].gateLevel.getValue()) {pForceUpdate = true;}
 
-    if (!pForceUpdate) return; //do nothing unless value change or forced
+    if (!pForceUpdate) {return;} //do nothing unless value change or forced
 
     gates[pGate].gateLevel.setValue(pLevel, pForceUpdate);
 
@@ -2418,9 +2483,9 @@ public int getSigProcThreshold(int pGate)
 public void setGateSigProc(int pGate, String pMode, boolean pForceUpdate)
 {
 
-    if (!pMode.equals(gates[pGate].getSignalProcessing())) pForceUpdate = true;
+    if (!pMode.equals(gates[pGate].getSignalProcessing())){pForceUpdate = true;}
 
-    if (!pForceUpdate) return; //do nothing unless value change or forced
+    if (!pForceUpdate) {return;} //do nothing unless value change or forced
 
     gates[pGate].setSignalProcessing(pMode);
 
@@ -2455,8 +2520,9 @@ public void setGateSigProcThreshold(
 private boolean isAnyGatePositionChanged()
 {
 
-    for (int i = 0; i < numberOfGates; i++)
-        if (gates[i].isPositionChanged()) return(true);
+    for (int i = 0; i < numberOfGates; i++) {
+        if (gates[i].isPositionChanged()) {return(true);}
+    }
 
    return(false);
 
@@ -2472,8 +2538,9 @@ private boolean isAnyGatePositionChanged()
 private boolean isAnyGateSigProcThresholdChanged()
 {
 
-    for (int i = 0; i < numberOfGates; i++)
-        if (gates[i].sigProcThreshold.getDataChangedFlag()) return(true);
+    for (int i = 0; i < numberOfGates; i++) {
+        if (gates[i].sigProcThreshold.getDataChangedFlag()) {return(true);}
+    }
 
    return(false);
 
@@ -2489,8 +2556,9 @@ private boolean isAnyGateSigProcThresholdChanged()
 private boolean isAnyGateFlagsChanged()
 {
 
-    for (int i = 0; i < numberOfGates; i++)
-        if (gates[i].isFlagsChanged()) return(true);
+    for (int i = 0; i < numberOfGates; i++) {
+        if (gates[i].isFlagsChanged()) {return(true);}
+    }
 
    return(false);
 
@@ -2506,8 +2574,9 @@ private boolean isAnyGateFlagsChanged()
 private boolean isAnyDACGatePositionChanged()
 {
 
-    for (int i = 0; i < numberOfDACGates; i++)
-        if (dacGates[i].isPositionChanged()) return(true);
+    for (int i = 0; i < numberOfDACGates; i++) {
+        if (dacGates[i].isPositionChanged()) {return(true);}
+    }
 
    return(false);
 
@@ -2523,9 +2592,9 @@ private boolean isAnyDACGatePositionChanged()
 private boolean isAnyDACGateFlagsChanged()
 {
 
-    for (int i = 0; i < numberOfDACGates; i++)
-        if (dacGates[i].isFlagsChanged()) return(true);
-
+    for (int i = 0; i < numberOfDACGates; i++) {
+        if (dacGates[i].isFlagsChanged()) {return(true);}
+    }
    return(false);
 
 }//end of Channel::isAnyDACGateFlagsChanged
@@ -2540,9 +2609,10 @@ private boolean isAnyDACGateFlagsChanged()
 private boolean isAnyGateHitMissChanged()
 {
 
-    for (int i = 0; i < numberOfGates; i++)
+    for (int i = 0; i < numberOfGates; i++) {
         if (gates[i].gateHitCount.getDataChangedFlag()
-            || gates[i].gateMissCount.getDataChangedFlag()) return(true);
+            || gates[i].gateMissCount.getDataChangedFlag()) {return(true);}
+    }
 
    return(false);
 
@@ -2564,11 +2634,12 @@ public void sendGateParameters()
 
         if (gates[i].isPositionChanged()){
 
-            if (utBoard != null)
+            if (utBoard != null) {
                 utBoard.sendGate(boardChannel, i,
                     (int)(gates[i].gateStart.applyValue() / uSPerDataPoint),
                     (int)(gates[i].gateWidth.applyValue() / uSPerDataPoint),
                     gates[i].gateLevel.applyValue());
+            }
 
         }//gates[i].gateStart.getDataChanged()...
     }// for (int i = 0; i < numberOfGates; i++)
@@ -2590,8 +2661,10 @@ public void sendGateFlags()
     for (int i = 0; i < numberOfGates; i++){
         if (gates[i].getFlags().getDataChangedFlag()){
 
-            if (utBoard != null) utBoard.sendGateFlags(
-                             boardChannel, i, gates[i].getFlags().applyValue());
+            if (utBoard != null) {
+                utBoard.sendGateFlags(
+                boardChannel, i, gates[i].getFlags().applyValue());
+            }
 
         }//if (gates[i].getFlags().getDataChanged() == true)
     }// for (int i = 0; i < numberOfGates; i++)
@@ -2616,8 +2689,9 @@ public void sendGateSigProcThreshold()
 
             int threshold = gates[i].sigProcThreshold.applyValue();
 
-            if (utBoard != null)
+            if (utBoard != null) {
                 utBoard.sendGateSigProcThreshold(boardChannel, i, threshold);
+            }
 
         }//if (gates[i].sigProcThreshold.getDataChanged())
     }// for (int i = 0; i < numberOfGates; i++)
@@ -2640,10 +2714,11 @@ public void sendGateHitMiss()
         if (gates[i].gateHitCount.getDataChangedFlag()
              || gates[i].gateMissCount.getDataChangedFlag()){
 
-            if (utBoard != null)
-                utBoard.sendHitMissCounts(boardChannel, i,
-                gates[i].gateHitCount.applyValue(),
-                gates[i].gateMissCount.applyValue());
+            if (utBoard != null) {
+                     utBoard.sendHitMissCounts(boardChannel, i,
+                     gates[i].gateHitCount.applyValue(),
+                     gates[i].gateMissCount.applyValue());
+            }
 
         }//if (gates[i].gateHitCount.getDataChanged()...
     }// for (int i = 0; i < numberOfGates; i++)
@@ -2693,9 +2768,9 @@ public void sendDACGateParameters()
 public void setDACActive(int pGate, boolean pValue, boolean pForceUpdate)
 {
 
-    if (pValue != dacGates[pGate].getActive()) pForceUpdate = true;
+    if (pValue != dacGates[pGate].getActive()) {pForceUpdate = true;}
 
-    if (!pForceUpdate) return; //do nothing unless value change or forced
+    if (!pForceUpdate) {return;} //do nothing unless value change or forced
 
     dacGates[pGate].setActive(pValue);
 
@@ -2732,8 +2807,10 @@ public void sendDACGateFlags()
     for (int i = 0; i < numberOfDACGates; i++){
         if (dacGates[i].gateFlags.getDataChangedFlag()){
 
-            if (utBoard != null) utBoard.sendDACGateFlags(
-                          boardChannel, i, dacGates[i].getFlags().applyValue());
+            if (utBoard != null) {
+                utBoard.sendDACGateFlags(
+                    boardChannel, i, dacGates[i].getFlags().applyValue());
+            }
 
         }//if (dacGates[i].gateFlags.getDataChanged())
     }// for (int i = 0; i < numberOfDACGates; i++)
@@ -2769,38 +2846,37 @@ public void sendDataChangesToRemotes()
 {
 
     //do nothing if no data changed for any synced variables
-    if (!syncedVarMgr.getDataChangedMaster()) return;
+    if (!syncedVarMgr.getDataChangedMaster()) {return;}
 
-    if (flags1SetMask.getDataChangedFlag()) sendSetFlags1();
+    if (flags1SetMask.getDataChangedFlag()) {sendSetFlags1();}
 
-    if (flags1ClearMask.getDataChangedFlag()) sendClearFlags1();
+    if (flags1ClearMask.getDataChangedFlag()) {sendClearFlags1();}
 
-    if (softwareGain.getDataChangedFlag()) sendSoftwareGain();
+    if (softwareGain.getDataChangedFlag()) {sendSoftwareGain();}
 
-    if (hardwareGain1.getDataChangedFlag()) sendHardwareGain();
+    if (hardwareGain1.getDataChangedFlag()) {sendHardwareGain();}
 
-    if (hardwareGain2.getDataChangedFlag()) sendHardwareGain();
+    if (hardwareGain2.getDataChangedFlag()) {sendHardwareGain();}
 
-    if (aScanSmoothing.getDataChangedFlag()) sendAScanSmoothing();
+    if (aScanSmoothing.getDataChangedFlag()) {sendAScanSmoothing();}
 
-    if (mode.getDataChangedFlag()) sendMode();
+    if (mode.getDataChangedFlag()) {sendMode();}
 
-    if (hardwareRange.getDataChangedFlag() || aScanScale.getDataChangedFlag())
+    if (hardwareRange.getDataChangedFlag() || aScanScale.getDataChangedFlag()) {
         sendRange();
+    }
 
-    if (isAnyGatePositionChanged()) sendGateParameters();
+    if (isAnyGatePositionChanged()) {sendGateParameters();}
 
-    if (isAnyGateFlagsChanged()) sendGateFlags();
+    if (isAnyGateFlagsChanged()) {sendGateFlags();}
 
-    if (isAnyGateHitMissChanged()) sendGateHitMiss();
+    if (isAnyGateHitMissChanged()) {sendGateHitMiss();}
 
-    if (isAnyGateSigProcThresholdChanged()) sendGateSigProcThreshold();
+    if (isAnyGateSigProcThresholdChanged()) {sendGateSigProcThreshold();}
 
-    if (isAnyDACGatePositionChanged())
+    if (isAnyDACGatePositionChanged()) {sendDACGateParameters();}
 
-        sendDACGateParameters();
-
-    if (isAnyDACGateFlagsChanged()) sendDACGateFlags();
+    if (isAnyDACGateFlagsChanged()) {sendDACGateFlags();}
 
 }//end of Channel::sendDataChangesToRemotes
 //-----------------------------------------------------------------------------
@@ -2901,7 +2977,7 @@ public void setAllDACGateDataChangedFlags(boolean pValue)
 public void warmReset()
 {
 
-    if (utBoard != null) utBoard.warmReset();
+    if (utBoard != null) {utBoard.warmReset();}
 
 }//end of Channel::warmReset
 //-----------------------------------------------------------------------------
@@ -2941,11 +3017,12 @@ public void loadCalFile(IniFile pCalFile)
                  pCalFile.readInt(section, "AScan Display Smoothing", 1), true);
 
     // call each gate to load its data
-    for (int i = 0; i < numberOfGates; i++) gates[i].loadCalFile(pCalFile);
+    for (int i = 0; i < numberOfGates; i++) {gates[i].loadCalFile(pCalFile);}
 
     // call each DAC gate to load its data
-    for (int i = 0; i < numberOfDACGates; i++)
+    for (int i = 0; i < numberOfDACGates; i++) {
         dacGates[i].loadCalFile(pCalFile);
+    }
 
     //determine the span from the earliest gate edge to the latest (in time)
     calculateGateSpan();
@@ -2984,12 +3061,14 @@ public void saveCalFile(IniFile pCalFile)
                 section, "AScan Display Smoothing", aScanSmoothing.getValue());
 
     // call each gate to save its data
-    for (int i = 0; i < numberOfGates; i++)
+    for (int i = 0; i < numberOfGates; i++) {
         gates[i].saveCalFile(pCalFile);
+    }
 
     // call each DAC gate to save its data
-    for (int i = 0; i < numberOfDACGates; i++)
-       dacGates[i].saveCalFile(pCalFile);
+    for (int i = 0; i < numberOfDACGates; i++) {
+        dacGates[i].saveCalFile(pCalFile);
+    }
 
 }//end of Channel::saveCalFile
 //-----------------------------------------------------------------------------
@@ -3040,8 +3119,9 @@ public void saveCalFileHumanReadable(BufferedWriter pOut) throws IOException
     pOut.newLine();
 
     // call each gate to save its data
-    for (int i = 0; i < numberOfGates; i++)
+    for (int i = 0; i < numberOfGates; i++) {
         gates[i].saveCalFileHumanReadable(pOut);
+    }
 
 
     if(dacEnabled){
@@ -3050,8 +3130,9 @@ public void saveCalFileHumanReadable(BufferedWriter pOut) throws IOException
         pOut.newLine();
 
         // call each gate to save its data
-        for (int i = 0; i < numberOfDACGates; i++)
+        for (int i = 0; i < numberOfDACGates; i++) {
             dacGates[i].saveCalFileHumanReadable(pOut);
+        }
     }
     else{
         pOut.write("   DAC not enabled.");
