@@ -20,10 +20,10 @@
 
 package chart.mksystems.inifile;
 
-import java.io.*;
-import java.util.*;
-import java.text.DecimalFormat;
 import java.awt.Color;
+import java.io.*;
+import java.text.DecimalFormat;
+import java.util.*;
 
 //-----------------------------------------------------------------------------
 // class Parameters
@@ -148,7 +148,7 @@ static public MColor fromString(String pString, Color pDefault)
     if (pString.equals("YELLOW")) {match = Color.YELLOW; exit = true;}
 
     //if color found, exit with that color
-    if (exit) return(new MColor(match));
+    if (exit) {return(new MColor(match));}
 
     //string does not name a standard color so assume it is rrr,ggg,bbb format
     //if a format error occurs, return the default color
@@ -160,13 +160,13 @@ static public MColor fromString(String pString, Color pDefault)
     try{
         //extract red value and convert to integer
         comma = pString.indexOf(',');
-        if (comma == -1) return(new MColor(pDefault));
+        if (comma == -1) {return(new MColor(pDefault));}
         rgb = pString.substring(0, comma).trim();
         lRed = Integer.valueOf(rgb);
 
         //extract green value and convert to integer
         prevComma = comma; comma = pString.indexOf(',', prevComma+1);
-        if (comma == -1) return(new MColor(pDefault));
+        if (comma == -1) {return(new MColor(pDefault));}
         rgb = pString.substring(prevComma+1, comma).trim();
         lGreen = Integer.valueOf(rgb);
 
@@ -182,9 +182,9 @@ static public MColor fromString(String pString, Color pDefault)
     }
 
     //correct illegal values
-    if (lRed < 0) lRed = 0; if (lRed > 255) lRed = 255;
-    if (lGreen < 0) lGreen = 0; if (lGreen > 255) lGreen = 255;
-    if (lBlue < 0) lBlue = 0; if (lBlue > 255) lBlue = 255;
+    if (lRed < 0) {lRed = 0;} if (lRed > 255) {lRed = 255;}
+    if (lGreen < 0) {lGreen = 0;} if (lGreen > 255) {lGreen = 255;}
+    if (lBlue < 0) {lBlue = 0;} if (lBlue > 255) {lBlue = 255;}
 
     //create a new MColor from the rgb values
     return(new MColor(lRed, lGreen, lBlue));
@@ -224,19 +224,19 @@ static public String toString(Color pColor)
 
     //if the color matches a standard color, return that name
 
-    if (pColor.equals(Color.BLACK)) return("BLACK");
-    if (pColor.equals(Color.BLUE)) return("BLUE");
-    if (pColor.equals(Color.CYAN)) return("CYAN");
-    if (pColor.equals(Color.DARK_GRAY)) return("DARK_GRAY");
-    if (pColor.equals(Color.GRAY)) return("GRAY");
-    if (pColor.equals(Color.GREEN)) return("GREEN");
-    if (pColor.equals(Color.LIGHT_GRAY)) return("LIGHT_GRAY");
-    if (pColor.equals(Color.MAGENTA)) return("MAGENTA");
-    if (pColor.equals(Color.ORANGE)) return("ORANGE");
-    if (pColor.equals(Color.PINK)) return("PINK");
-    if (pColor.equals(Color.RED)) return("RED");
-    if (pColor.equals(Color.WHITE)) return("WHITE");
-    if (pColor.equals(Color.YELLOW)) return("YELLOW");
+    if (pColor.equals(Color.BLACK)) {return("BLACK");}
+    if (pColor.equals(Color.BLUE)) {return("BLUE");}
+    if (pColor.equals(Color.CYAN)) {return("CYAN");}
+    if (pColor.equals(Color.DARK_GRAY)) {return("DARK_GRAY");}
+    if (pColor.equals(Color.GRAY)) {return("GRAY");}
+    if (pColor.equals(Color.GREEN)) {return("GREEN");}
+    if (pColor.equals(Color.LIGHT_GRAY)) {return("LIGHT_GRAY");}
+    if (pColor.equals(Color.MAGENTA)) {return("MAGENTA");}
+    if (pColor.equals(Color.ORANGE)) {return("ORANGE");}
+    if (pColor.equals(Color.PINK)) {return("PINK");}
+    if (pColor.equals(Color.RED)) {return("RED");}
+    if (pColor.equals(Color.WHITE)) {return("WHITE");}
+    if (pColor.equals(Color.YELLOW)) {return("YELLOW");}
 
     //if not a standard color, return as rrr,ggg,bbb
     return(pColor.getRed() + "," + pColor.getGreen() + "," + pColor.getBlue());
@@ -328,7 +328,7 @@ public IniFile(String pFilename, String pFileFormat) throws IOException
 
         while ((line = in.readLine()) != null){
             buffer.add(line);
-            if (line.equals("[Header End]")) break;
+            if (line.equals("[Header End]")) {break;}
         }
     }
     catch (FileNotFoundException e){
@@ -347,9 +347,9 @@ public IniFile(String pFilename, String pFileFormat) throws IOException
         throw new IOException();
     }
     finally{
-        if (in != null) in.close();
-        if (inputStreamReader != null) inputStreamReader.close();
-        if (fileInputStream != null) fileInputStream.close();
+        if (in != null) {in.close();}
+        if (inputStreamReader != null) {inputStreamReader.close();}
+        if (fileInputStream != null) {fileInputStream.close();}
     }
 
 }//end of IniFile::IniFile (constructor)
@@ -395,11 +395,11 @@ public void save()
         System.err.println(getClass().getName() + " - Error: 394");
     }
     finally{
-        try{if (out != null) out.close();}
+        try{if (out != null) {out.close();}}
         catch(IOException e){}
-        try{if (outputStreamWriter != null) outputStreamWriter.close();}
+        try{if (outputStreamWriter != null) {outputStreamWriter.close();}}
         catch(IOException e){}
-        try{if (fileOutputStream != null) fileOutputStream.close();}
+        try{if (fileOutputStream != null) {fileOutputStream.close();}}
         catch(IOException e){}
     }
 
@@ -459,7 +459,7 @@ String getValue(String pSection, String pKey, Parameters pParams)
 
     //if match not found, section not found so return empty string - both
     //pParams.keyIndex and pParams.sectionIndex will be -1
-    if (pParams.sectionIndex == -1) return("");
+    if (pParams.sectionIndex == -1) {return("");}
 
     //search the section for the key - if another section is found before finding
     //the key, then return empty string and the index of the section entry
@@ -489,7 +489,7 @@ String getValue(String pSection, String pKey, Parameters pParams)
 
         //stop when line found containing the key name - index of key must be 0 to
         //insure that a partial match is not made
-        if ((matchIndex = line.indexOf(key)) == 0) break;
+        if ((matchIndex = line.indexOf(key)) == 0) {break;}
 
     }
 
@@ -503,7 +503,7 @@ String getValue(String pSection, String pKey, Parameters pParams)
     int indexOfEqual;
 
     //look for '=' symbol, if not found then return empty string
-    if ( (indexOfEqual = line.indexOf("=")) == -1) return("");
+    if ( (indexOfEqual = line.indexOf("=")) == -1) {return("");}
 
     //return the part of the line after the '=' sign - on error return empty string
     try{
@@ -532,7 +532,7 @@ public int readInt(String pSection, String pKey, int pDefault)
 {
 
     //if the ini file was never loaded from memory, return the default
-    if (buffer == null) return pDefault;
+    if (buffer == null) {return pDefault;}
 
     Parameters params = new Parameters();
 
@@ -540,7 +540,7 @@ public int readInt(String pSection, String pKey, int pDefault)
     String valueText = getValue(pSection, pKey, params);
 
     //if Section/Key not found, return the default
-    if (valueText.equals("")) return(pDefault);
+    if (valueText.equals("")) {return(pDefault);}
 
     int value;
 
@@ -568,7 +568,7 @@ public double readDouble(String pSection, String pKey, double pDefault)
 {
 
     //if the ini file was never loaded from memory, return the default
-    if (buffer == null) return pDefault;
+    if (buffer == null) {return pDefault;}
 
     Parameters params = new Parameters();
 
@@ -576,7 +576,7 @@ public double readDouble(String pSection, String pKey, double pDefault)
     String valueText = getValue(pSection, pKey, params);
 
     //if Section/Key not found, return the default
-    if (valueText.equals("")) return(pDefault);
+    if (valueText.equals("")) {return(pDefault);}
 
     double value;
 
@@ -604,7 +604,7 @@ public Color readColor(String pSection, String pKey, Color pDefault)
 {
 
     //if the ini file was never loaded from memory, return the default
-    if (buffer == null) return pDefault;
+    if (buffer == null) {return pDefault;}
 
     Parameters params = new Parameters();
 
@@ -612,7 +612,7 @@ public Color readColor(String pSection, String pKey, Color pDefault)
     String valueText = getValue(pSection, pKey, params);
 
     //if Section/Key not found, return the default
-    if (valueText.equals("")) return(pDefault);
+    if (valueText.equals("")) {return(pDefault);}
 
     return(MColor.fromString(valueText, pDefault));
 
@@ -630,7 +630,7 @@ public String readString(String pSection, String pKey, String pDefault)
 {
 
     //if the ini file was never loaded from memory, return the default
-    if (buffer == null) return pDefault;
+    if (buffer == null) {return pDefault;}
 
     Parameters params = new Parameters();
 
@@ -638,10 +638,12 @@ public String readString(String pSection, String pKey, String pDefault)
     String valueText = getValue(pSection, pKey, params);
 
     //if Section/Key not found, return the default
-    if (valueText.equals(""))
+    if (valueText.equals("")) {
         return(pDefault);
-    else
+    }
+    else {
         return(valueText);
+    }
 
 }//end of IniFile::readString
 //-----------------------------------------------------------------------------
@@ -658,7 +660,7 @@ public boolean readBoolean(String pSection, String pKey, boolean pDefault)
 {
 
     //if the ini file was never loaded from memory, return the default
-    if (buffer == null) return pDefault;
+    if (buffer == null) {return pDefault;}
 
     Parameters params = new Parameters();
 
@@ -666,11 +668,11 @@ public boolean readBoolean(String pSection, String pKey, boolean pDefault)
     String valueText = getValue(pSection, pKey, params);
 
     //if Section/Key not found, return the default
-    if (valueText.equals(""))return(pDefault);
+    if (valueText.equals("")){return(pDefault);}
 
     //return true if value is "true", false if it is "false", default if neither
-    if (valueText.equalsIgnoreCase("true")) return true;
-    if (valueText.equalsIgnoreCase("false")) return false;
+    if (valueText.equalsIgnoreCase("true")) {return true;}
+    if (valueText.equalsIgnoreCase("false")) {return false;}
     return(pDefault);
 
 }//end of IniFile::readString
@@ -939,9 +941,9 @@ static public boolean detectUTF16LEFormat(String pFilename)
         while ((line = in.readLine()) != null){
 
             //return true if the header line used in UTF-16LE files is found
-            if (line.startsWith(";Do not erase")) return(true);
+            if (line.startsWith(";Do not erase")) {return(true);}
             //return false if header line not found near beginning
-            if (i++ >= 5) return(false);
+            if (i++ >= 5) {return(false);}
 
         }//while...
 
@@ -957,11 +959,11 @@ static public boolean detectUTF16LEFormat(String pFilename)
         return(false);
     }//catch
     finally{
-        try{if (in != null) in.close();}
+        try{if (in != null) {in.close();}}
             catch(IOException e){}
-        try{if (inputStreamReader != null) inputStreamReader.close();}
+        try{if (inputStreamReader != null) {inputStreamReader.close();}}
             catch(IOException e){}
-        try{if (fileInputStream != null) fileInputStream.close();}
+        try{if (fileInputStream != null) {fileInputStream.close();}}
             catch(IOException e){}
     }//finally
 
