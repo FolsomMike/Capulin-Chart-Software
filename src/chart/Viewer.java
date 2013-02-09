@@ -1688,7 +1688,6 @@ class ViewerControlPanel extends JPanel implements ActionListener
     Settings settings;
     ItemListener itemListener;
     ActionListener actionListener;
-    JLabel jobValue;
     JTextField segmentEntry;
     String currentJobName;
     JCheckBox calModeCheckBox;
@@ -1758,12 +1757,32 @@ private void configure(/*IniFile pConfigFile*/)
 
     JPanel infoPanel = new JPanel();
     infoPanel.setBorder(BorderFactory.createTitledBorder("Info"));
-    infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.X_AXIS));
+    infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.LINE_AXIS));
 
-    infoPanel.add(new JLabel(" Job #: "));
-    jobValue = new JLabel(currentJobName);
-    infoPanel.add(jobValue);
-    add(infoPanel);
+    //create a panel to hold the job number/name -- the name is broken up into
+    //two lines if it is too long
+
+    JPanel jobNamePanel = new JPanel();
+    jobNamePanel.setLayout(new BoxLayout(jobNamePanel, BoxLayout.PAGE_AXIS));
+
+    String line, line2;
+    if (currentJobName.length() <= 35){
+        line = currentJobName; line2 = "";
+    }
+    else {
+        line = currentJobName.substring(0, 35);
+        line2 = currentJobName.substring(35, currentJobName.length());
+    }
+
+    JLabel jNameLine = new JLabel(" Job #: " + line);
+    jobNamePanel.add(jNameLine);
+
+    if (!line2.isEmpty()){
+        jNameLine = new JLabel("          " + line2);
+        jobNamePanel.add(jNameLine);
+    }
+
+    infoPanel.add(jobNamePanel);
 
     //add a spacer to separate
     infoPanel.add(Box.createRigidArea(new Dimension(15,0))); //horizontal spacer
@@ -1771,6 +1790,9 @@ private void configure(/*IniFile pConfigFile*/)
     infoPanel.add(infoDetails = new JButton("Details"));
     infoDetails.setActionCommand("Show Info Details");
     infoDetails.addActionListener(actionListener);
+
+    add(infoPanel);
+
 
     add(Box.createHorizontalGlue()); //spread the panels
 
