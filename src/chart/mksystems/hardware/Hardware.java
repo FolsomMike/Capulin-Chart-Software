@@ -1012,7 +1012,7 @@ void collectAnalogDataMinOrMax(Gate gatePtr, boolean pChannelActive)
     //separators
 
     //debug mks -- when code gets changed to use a flag to show valid data in
-    //array
+    //array rather than the fact that the data is changed from the default,
     //next part only needed for when flagging not enabled to display the traces
     //in a conspicuous height so they can be seen moving -- no longer necessary
     //to set the value when not active to get traces to move -- need to set the
@@ -1021,8 +1021,7 @@ void collectAnalogDataMinOrMax(Gate gatePtr, boolean pChannelActive)
     if (!pChannelActive
             || (trace.suppressTraceInEndMasks && !trace.flaggingEnabled )){
         if (gatePtr.peakDirection == 0) //0 means higher data more severe
-            //newData = Integer.MIN_VALUE;
-            newData = 50; //debug mks
+            newData = Integer.MIN_VALUE;
         else
             //can't use MAX_VALUE -- that is default
             newData = Integer.MAX_VALUE-1;
