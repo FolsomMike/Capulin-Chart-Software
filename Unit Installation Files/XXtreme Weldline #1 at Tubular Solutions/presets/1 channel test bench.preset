@@ -1,0 +1,1553 @@
+
+[Chart Group 1]
+Window X Position=0
+Window Y Position=0
+[Chart Group 1 Strip Chart 1]
+Title=Longitudinal
+Short Title=Long
+Hide Chart=false
+Chart is Visible=true
+[Chart Group 1 Strip Chart 1 Threshold 1]
+Threshold Level=52
+[Chart Group 1 Strip Chart 1 Threshold 2]
+Threshold Level=48
+[Chart Group 1 Strip Chart 2]
+Title=Transverse
+Short Title=Tran
+Hide Chart=true
+Chart is Visible=false
+[Chart Group 1 Strip Chart 2 Threshold 1]
+Threshold Level=41
+[Chart Group 1 Strip Chart 2 Threshold 2]
+Threshold Level=40
+[Chart Group 1 Strip Chart 3]
+Title=Wall
+Short Title=Wall
+Hide Chart=true
+Chart is Visible=false
+[Chart Group 1 Strip Chart 3 Threshold 1]
+Threshold Level=38
+[Chart Group 1 Strip Chart 3 Threshold 2]
+Threshold Level=71
+[Chart Group 1 Strip Chart 4]
+Title=Trans & Long
+Short Title=T&L
+Hide Chart=true
+Chart is Visible=false
+[Chart Group 1 Strip Chart 4 Threshold 1]
+Threshold Level=50
+[Chart Group 1 Strip Chart 4 Threshold 2]
+Threshold Level=40
+[Hardware]
+Velocity=0.233
+English(0) / Metric(1)=0
+Nominal Wall=0.43
+Nominal Wall Chart Position=50
+Wall Chart Scale=0.0020
+Velocity (distance/uS)=0.233
+Number of Multiples for Wall=1
+[Channel 1]
+Sample Delay=0.1
+Range=10.0
+Software Gain=47.0
+Interface Tracking=true
+Signal Rectification=0
+Signal Mode=0
+Reject Level=0
+AScan Display Smoothing=1
+Hardware Gain=5
+DAC Enabled=true
+[Channel 1 Gate 1]
+Gate Start=0.7
+Gate Start with Interface Tracking=0.7
+Gate Start without Interface Tracking=1.0
+Gate Width=2.2
+Gate Level=59
+Gate Hit Count=1
+Gate Miss Count=2
+[Channel 1 Gate 2]
+Gate Start=1.7000000000000002
+Gate Start with Interface Tracking=1.7000000000000002
+Gate Start without Interface Tracking=2.0
+Gate Width=1.3
+Gate Level=45
+Gate Hit Count=3
+Gate Miss Count=4
+[Channel 1 Gate 3]
+Gate Start=42.6
+Gate Start with Interface Tracking=3.0
+Gate Start without Interface Tracking=42.6
+Gate Width=6.0
+Gate Level=40
+Gate Hit Count=5
+Gate Miss Count=6
+[Channel 2]
+Sample Delay=0.0
+Range=34.5
+Software Gain=47.0
+Interface Tracking=false
+Signal Rectification=0
+Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+Hardware Gain=5
+[Channel 2 Gate 1]
+Gate Start=33.49999999999999
+Gate Start with Interface Tracking=35.7
+Gate Start without Interface Tracking=33.49999999999999
+Gate Width=5.4
+Gate Level=28
+Gate Hit Count=1
+Gate Miss Count=0
+[Channel 2 Gate 2]
+Gate Start=42.9
+Gate Start with Interface Tracking=39.5
+Gate Start without Interface Tracking=42.9
+Gate Width=6.199999999999999
+Gate Level=44
+Gate Hit Count=3
+Gate Miss Count=4
+[Channel 2 Gate 3]
+Gate Start=42.6
+Gate Start with Interface Tracking=3.0
+Gate Start without Interface Tracking=42.6
+Gate Width=6.0
+Gate Level=40
+Gate Hit Count=5
+Gate Miss Count=6
+[Channel 3]
+Sample Delay=24.200000000000003
+Range=34.5
+Software Gain=47.6
+Interface Tracking=false
+Signal Rectification=0
+Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+Hardware Gain=5
+[Channel 3 Gate 1]
+Gate Start=34.0
+Gate Start with Interface Tracking=35.7
+Gate Start without Interface Tracking=34.0
+Gate Width=5.4
+Gate Level=28
+Gate Hit Count=1
+Gate Miss Count=2
+[Channel 3 Gate 2]
+Gate Start=42.9
+Gate Start with Interface Tracking=39.5
+Gate Start without Interface Tracking=42.9
+Gate Width=6.199999999999999
+Gate Level=44
+Gate Hit Count=3
+Gate Miss Count=4
+[Channel 3 Gate 3]
+Gate Start=42.6
+Gate Start with Interface Tracking=3.0
+Gate Start without Interface Tracking=42.6
+Gate Width=6.0
+Gate Level=40
+Gate Hit Count=5
+Gate Miss Count=6
+[Channel 4]
+Sample Delay=24.200000000000003
+Range=34.5
+Software Gain=47.6
+Interface Tracking=false
+Signal Rectification=0
+Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+Hardware Gain=5
+[Channel 4 Gate 1]
+Gate Start=34.0
+Gate Start with Interface Tracking=35.7
+Gate Start without Interface Tracking=34.0
+Gate Width=5.4
+Gate Level=28
+Gate Hit Count=1
+Gate Miss Count=2
+[Channel 4 Gate 2]
+Gate Start=42.9
+Gate Start with Interface Tracking=39.5
+Gate Start without Interface Tracking=42.9
+Gate Width=6.199999999999999
+Gate Level=44
+Gate Hit Count=3
+Gate Miss Count=4
+[Channel 4 Gate 3]
+Gate Start=42.6
+Gate Start with Interface Tracking=3.0
+Gate Start without Interface Tracking=42.6
+Gate Width=6.0
+Gate Level=40
+Gate Hit Count=5
+Gate Miss Count=6
+[Channel 5]
+Sample Delay=24.200000000000003
+Range=34.5
+Software Gain=47.6
+Interface Tracking=false
+Signal Rectification=0
+Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+Hardware Gain=5
+[Channel 5 Gate 1]
+Gate Start=34.0
+Gate Start with Interface Tracking=35.7
+Gate Start without Interface Tracking=34.0
+Gate Width=5.4
+Gate Level=28
+Gate Hit Count=1
+Gate Miss Count=2
+[Channel 5 Gate 2]
+Gate Start=42.9
+Gate Start with Interface Tracking=39.5
+Gate Start without Interface Tracking=42.9
+Gate Width=6.199999999999999
+Gate Level=44
+Gate Hit Count=3
+Gate Miss Count=4
+[Channel 5 Gate 3]
+Gate Start=42.6
+Gate Start with Interface Tracking=3.0
+Gate Start without Interface Tracking=42.6
+Gate Width=6.0
+Gate Level=40
+Gate Hit Count=5
+Gate Miss Count=6
+[Channel 6]
+Sample Delay=24.200000000000003
+Range=34.5
+Software Gain=47.6
+Interface Tracking=false
+Signal Rectification=0
+Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+Hardware Gain=5
+[Channel 6 Gate 1]
+Gate Start=34.0
+Gate Start with Interface Tracking=35.7
+Gate Start without Interface Tracking=34.0
+Gate Width=5.4
+Gate Level=28
+Gate Hit Count=1
+Gate Miss Count=2
+[Channel 6 Gate 2]
+Gate Start=42.9
+Gate Start with Interface Tracking=39.5
+Gate Start without Interface Tracking=42.9
+Gate Width=6.199999999999999
+Gate Level=44
+Gate Hit Count=3
+Gate Miss Count=4
+[Channel 6 Gate 3]
+Gate Start=42.6
+Gate Start with Interface Tracking=3.0
+Gate Start without Interface Tracking=42.6
+Gate Width=6.0
+Gate Level=40
+Gate Hit Count=5
+Gate Miss Count=6
+[Channel 7]
+Sample Delay=24.200000000000003
+Range=34.5
+Software Gain=47.6
+Interface Tracking=false
+Signal Rectification=0
+Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+Hardware Gain=5
+[Channel 7 Gate 1]
+Gate Start=34.0
+Gate Start with Interface Tracking=35.7
+Gate Start without Interface Tracking=34.0
+Gate Width=5.4
+Gate Level=28
+Gate Hit Count=1
+Gate Miss Count=2
+[Channel 7 Gate 2]
+Gate Start=42.9
+Gate Start with Interface Tracking=39.5
+Gate Start without Interface Tracking=42.9
+Gate Width=6.199999999999999
+Gate Level=44
+Gate Hit Count=3
+Gate Miss Count=4
+[Channel 7 Gate 3]
+Gate Start=42.6
+Gate Start with Interface Tracking=3.0
+Gate Start without Interface Tracking=42.6
+Gate Width=6.0
+Gate Level=40
+Gate Hit Count=5
+Gate Miss Count=6
+[Channel 8]
+Sample Delay=24.200000000000003
+Range=34.5
+Software Gain=49.2
+Interface Tracking=false
+Signal Rectification=0
+Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+Hardware Gain=5
+[Channel 8 Gate 1]
+Gate Start=34.0
+Gate Start with Interface Tracking=35.7
+Gate Start without Interface Tracking=34.0
+Gate Width=5.4
+Gate Level=28
+Gate Hit Count=1
+Gate Miss Count=2
+[Channel 8 Gate 2]
+Gate Start=42.199999999999996
+Gate Start with Interface Tracking=39.5
+Gate Start without Interface Tracking=42.199999999999996
+Gate Width=6.199999999999999
+Gate Level=44
+Gate Hit Count=3
+Gate Miss Count=4
+[Channel 8 Gate 3]
+Gate Start=42.6
+Gate Start with Interface Tracking=3.0
+Gate Start without Interface Tracking=42.6
+Gate Width=6.0
+Gate Level=40
+Gate Hit Count=5
+Gate Miss Count=6
+[Channel 9]
+Sample Delay=29.200000000000003
+Range=26.599999999999998
+Software Gain=51.5
+Interface Tracking=false
+Signal Rectification=0
+Signal Mode=1
+Reject Level=10
+AScan Display Smoothing=1
+Hardware Gain=6
+[Channel 9 Gate 1]
+Gate Start=32.5
+Gate Start with Interface Tracking=28.6
+Gate Start without Interface Tracking=32.5
+Gate Width=5.5
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=2
+[Channel 9 Gate 2]
+Gate Start=39.5
+Gate Start with Interface Tracking=32.199999999999996
+Gate Start without Interface Tracking=39.5
+Gate Width=7.6
+Gate Level=40
+Gate Hit Count=3
+Gate Miss Count=4
+[Channel 9 Gate 3]
+Gate Start=44.2
+Gate Start with Interface Tracking=40.5
+Gate Start without Interface Tracking=44.2
+Gate Width=6.0
+Gate Level=40
+Gate Hit Count=5
+Gate Miss Count=6
+[Channel 10]
+Sample Delay=29.200000000000003
+Range=26.599999999999998
+Software Gain=51.5
+Interface Tracking=false
+Signal Rectification=0
+Signal Mode=1
+Reject Level=10
+AScan Display Smoothing=1
+Hardware Gain=6
+[Channel 10 Gate 1]
+Gate Start=32.5
+Gate Start with Interface Tracking=28.6
+Gate Start without Interface Tracking=32.5
+Gate Width=5.5
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=2
+[Channel 10 Gate 2]
+Gate Start=39.5
+Gate Start with Interface Tracking=32.199999999999996
+Gate Start without Interface Tracking=39.5
+Gate Width=7.6
+Gate Level=40
+Gate Hit Count=3
+Gate Miss Count=4
+[Channel 10 Gate 3]
+Gate Start=44.2
+Gate Start with Interface Tracking=40.5
+Gate Start without Interface Tracking=44.2
+Gate Width=6.0
+Gate Level=40
+Gate Hit Count=5
+Gate Miss Count=6
+[Channel 11]
+Sample Delay=29.200000000000003
+Range=26.599999999999998
+Software Gain=51.5
+Interface Tracking=false
+Signal Rectification=0
+Signal Mode=1
+Reject Level=10
+AScan Display Smoothing=1
+Hardware Gain=6
+[Channel 11 Gate 1]
+Gate Start=32.5
+Gate Start with Interface Tracking=28.6
+Gate Start without Interface Tracking=32.5
+Gate Width=5.5
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=2
+[Channel 11 Gate 2]
+Gate Start=39.5
+Gate Start with Interface Tracking=32.199999999999996
+Gate Start without Interface Tracking=39.5
+Gate Width=7.6
+Gate Level=40
+Gate Hit Count=3
+Gate Miss Count=4
+[Channel 11 Gate 3]
+Gate Start=44.2
+Gate Start with Interface Tracking=40.5
+Gate Start without Interface Tracking=44.2
+Gate Width=6.0
+Gate Level=40
+Gate Hit Count=5
+Gate Miss Count=6
+[Channel 12]
+Sample Delay=29.200000000000003
+Range=26.599999999999998
+Software Gain=51.5
+Interface Tracking=false
+Signal Rectification=0
+Signal Mode=1
+Reject Level=10
+AScan Display Smoothing=1
+Hardware Gain=6
+[Channel 12 Gate 1]
+Gate Start=32.5
+Gate Start with Interface Tracking=28.6
+Gate Start without Interface Tracking=32.5
+Gate Width=5.5
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=2
+[Channel 12 Gate 2]
+Gate Start=39.5
+Gate Start with Interface Tracking=32.199999999999996
+Gate Start without Interface Tracking=39.5
+Gate Width=7.6
+Gate Level=40
+Gate Hit Count=3
+Gate Miss Count=4
+[Channel 12 Gate 3]
+Gate Start=44.2
+Gate Start with Interface Tracking=40.5
+Gate Start without Interface Tracking=44.2
+Gate Width=6.0
+Gate Level=40
+Gate Hit Count=5
+Gate Miss Count=6
+[Channel 13]
+Sample Delay=29.200000000000003
+Range=26.599999999999998
+Software Gain=51.5
+Interface Tracking=false
+Signal Rectification=2
+Signal Mode=1
+Reject Level=10
+AScan Display Smoothing=1
+Hardware Gain=6
+[Channel 13 Gate 1]
+Gate Start=32.5
+Gate Start with Interface Tracking=28.6
+Gate Start without Interface Tracking=32.5
+Gate Width=5.5
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=2
+[Channel 13 Gate 2]
+Gate Start=39.5
+Gate Start with Interface Tracking=32.199999999999996
+Gate Start without Interface Tracking=39.5
+Gate Width=7.6
+Gate Level=40
+Gate Hit Count=3
+Gate Miss Count=4
+[Channel 13 Gate 3]
+Gate Start=44.2
+Gate Start with Interface Tracking=40.5
+Gate Start without Interface Tracking=44.2
+Gate Width=6.0
+Gate Level=40
+Gate Hit Count=5
+Gate Miss Count=6
+[Channel 14]
+Sample Delay=29.200000000000003
+Range=26.599999999999998
+Software Gain=51.5
+Interface Tracking=false
+Signal Rectification=0
+Signal Mode=1
+Reject Level=10
+AScan Display Smoothing=1
+Hardware Gain=6
+[Channel 14 Gate 1]
+Gate Start=32.5
+Gate Start with Interface Tracking=28.6
+Gate Start without Interface Tracking=32.5
+Gate Width=5.5
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=2
+[Channel 14 Gate 2]
+Gate Start=39.5
+Gate Start with Interface Tracking=32.199999999999996
+Gate Start without Interface Tracking=39.5
+Gate Width=7.6
+Gate Level=40
+Gate Hit Count=3
+Gate Miss Count=4
+[Channel 14 Gate 3]
+Gate Start=44.2
+Gate Start with Interface Tracking=40.5
+Gate Start without Interface Tracking=44.2
+Gate Width=6.0
+Gate Level=40
+Gate Hit Count=5
+Gate Miss Count=6
+[Channel 15]
+Sample Delay=29.200000000000003
+Range=26.599999999999998
+Software Gain=51.5
+Interface Tracking=false
+Signal Rectification=0
+Signal Mode=1
+Reject Level=10
+AScan Display Smoothing=1
+Hardware Gain=6
+[Channel 15 Gate 1]
+Gate Start=32.5
+Gate Start with Interface Tracking=28.6
+Gate Start without Interface Tracking=32.5
+Gate Width=5.5
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=2
+[Channel 15 Gate 2]
+Gate Start=39.5
+Gate Start with Interface Tracking=32.199999999999996
+Gate Start without Interface Tracking=39.5
+Gate Width=7.6
+Gate Level=40
+Gate Hit Count=3
+Gate Miss Count=4
+[Channel 15 Gate 3]
+Gate Start=44.2
+Gate Start with Interface Tracking=40.5
+Gate Start without Interface Tracking=44.2
+Gate Width=6.0
+Gate Level=40
+Gate Hit Count=5
+Gate Miss Count=6
+[Channel 16]
+Sample Delay=29.200000000000003
+Range=26.599999999999998
+Software Gain=51.5
+Interface Tracking=false
+Signal Rectification=0
+Signal Mode=1
+Reject Level=10
+AScan Display Smoothing=1
+Hardware Gain=6
+[Channel 16 Gate 1]
+Gate Start=32.5
+Gate Start with Interface Tracking=28.6
+Gate Start without Interface Tracking=32.5
+Gate Width=5.5
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=2
+[Channel 16 Gate 2]
+Gate Start=39.5
+Gate Start with Interface Tracking=32.199999999999996
+Gate Start without Interface Tracking=39.5
+Gate Width=7.6
+Gate Level=40
+Gate Hit Count=3
+Gate Miss Count=4
+[Channel 16 Gate 3]
+Gate Start=44.2
+Gate Start with Interface Tracking=40.5
+Gate Start without Interface Tracking=44.2
+Gate Width=6.0
+Gate Level=40
+Gate Hit Count=5
+Gate Miss Count=6
+[Channel 17]
+Sample Delay=0.0
+Range=9.4
+Software Gain=48.6
+Interface Tracking=true
+Signal Rectification=0
+Signal Mode=2
+Reject Level=0
+AScan Display Smoothing=1
+Hardware Gain=5
+[Channel 17 Gate 1]
+Gate Start=35.4
+Gate Start with Interface Tracking=35.4
+Gate Start without Interface Tracking=34.4
+Gate Width=4.9
+Gate Level=15
+Gate Hit Count=1
+Gate Miss Count=2
+[Channel 17 Gate 2]
+Gate Start=3.0
+Gate Start with Interface Tracking=3.0
+Gate Start without Interface Tracking=39.1
+Gate Width=1.5
+Gate Level=40
+Gate Hit Count=3
+Gate Miss Count=4
+[Channel 17 Gate 3]
+Gate Start=6.5
+Gate Start with Interface Tracking=6.5
+Gate Start without Interface Tracking=42.300000000000004
+Gate Width=1.5
+Gate Level=40
+Gate Hit Count=5
+Gate Miss Count=6
+[Channel 18]
+Sample Delay=0.0
+Range=9.4
+Software Gain=48.6
+Interface Tracking=true
+Signal Rectification=0
+Signal Mode=2
+Reject Level=0
+AScan Display Smoothing=1
+Hardware Gain=5
+[Channel 18 Gate 1]
+Gate Start=35.4
+Gate Start with Interface Tracking=35.4
+Gate Start without Interface Tracking=34.4
+Gate Width=4.9
+Gate Level=15
+Gate Hit Count=1
+Gate Miss Count=2
+[Channel 18 Gate 2]
+Gate Start=3.0
+Gate Start with Interface Tracking=3.0
+Gate Start without Interface Tracking=39.1
+Gate Width=1.5
+Gate Level=40
+Gate Hit Count=3
+Gate Miss Count=4
+[Channel 18 Gate 3]
+Gate Start=6.5
+Gate Start with Interface Tracking=6.5
+Gate Start without Interface Tracking=42.300000000000004
+Gate Width=1.5
+Gate Level=40
+Gate Hit Count=5
+Gate Miss Count=6
+[Channel 19]
+Sample Delay=0.0
+Range=9.4
+Software Gain=48.6
+Interface Tracking=true
+Signal Rectification=0
+Signal Mode=2
+Reject Level=0
+AScan Display Smoothing=1
+Hardware Gain=5
+[Channel 19 Gate 1]
+Gate Start=35.4
+Gate Start with Interface Tracking=35.4
+Gate Start without Interface Tracking=34.4
+Gate Width=4.9
+Gate Level=15
+Gate Hit Count=1
+Gate Miss Count=2
+[Channel 19 Gate 2]
+Gate Start=3.0
+Gate Start with Interface Tracking=3.0
+Gate Start without Interface Tracking=39.1
+Gate Width=1.5
+Gate Level=40
+Gate Hit Count=3
+Gate Miss Count=4
+[Channel 19 Gate 3]
+Gate Start=6.5
+Gate Start with Interface Tracking=6.5
+Gate Start without Interface Tracking=42.300000000000004
+Gate Width=1.5
+Gate Level=40
+Gate Hit Count=5
+Gate Miss Count=6
+[Channel 20]
+Sample Delay=0.0
+Range=10.0
+Software Gain=48.6
+Interface Tracking=true
+Signal Rectification=0
+Signal Mode=2
+Reject Level=0
+AScan Display Smoothing=1
+Hardware Gain=5
+[Channel 20 Gate 1]
+Gate Start=4.5
+Gate Start with Interface Tracking=4.5
+Gate Start without Interface Tracking=34.4
+Gate Width=1.0
+Gate Level=38
+Gate Hit Count=1
+Gate Miss Count=2
+[Channel 20 Gate 2]
+Gate Start=3.0
+Gate Start with Interface Tracking=3.0
+Gate Start without Interface Tracking=39.1
+Gate Width=1.5
+Gate Level=40
+Gate Hit Count=3
+Gate Miss Count=4
+[Channel 20 Gate 3]
+Gate Start=6.5
+Gate Start with Interface Tracking=6.5
+Gate Start without Interface Tracking=42.300000000000004
+Gate Width=1.5
+Gate Level=40
+Gate Hit Count=5
+Gate Miss Count=6
+[Channel 21]
+Sample Delay=0.0
+Range=10.0
+Software Gain=48.6
+Interface Tracking=true
+Signal Rectification=0
+Signal Mode=2
+Reject Level=0
+AScan Display Smoothing=1
+Hardware Gain=5
+[Channel 21 Gate 1]
+Gate Start=3.0
+Gate Start with Interface Tracking=3.0
+Gate Start without Interface Tracking=34.4
+Gate Width=1.0
+Gate Level=44
+Gate Hit Count=1
+Gate Miss Count=2
+[Channel 21 Gate 2]
+Gate Start=3.0
+Gate Start with Interface Tracking=3.0
+Gate Start without Interface Tracking=39.1
+Gate Width=1.5
+Gate Level=40
+Gate Hit Count=3
+Gate Miss Count=4
+[Channel 21 Gate 3]
+Gate Start=6.5
+Gate Start with Interface Tracking=6.5
+Gate Start without Interface Tracking=42.300000000000004
+Gate Width=1.5
+Gate Level=40
+Gate Hit Count=5
+Gate Miss Count=6
+[Channel 22]
+Sample Delay=0.0
+Range=9.4
+Software Gain=48.6
+Interface Tracking=true
+Signal Rectification=0
+Signal Mode=2
+Reject Level=0
+AScan Display Smoothing=1
+Hardware Gain=5
+[Channel 22 Gate 1]
+Gate Start=35.4
+Gate Start with Interface Tracking=35.4
+Gate Start without Interface Tracking=34.4
+Gate Width=4.9
+Gate Level=15
+Gate Hit Count=1
+Gate Miss Count=2
+[Channel 22 Gate 2]
+Gate Start=3.0
+Gate Start with Interface Tracking=3.0
+Gate Start without Interface Tracking=39.1
+Gate Width=1.5
+Gate Level=40
+Gate Hit Count=3
+Gate Miss Count=4
+[Channel 22 Gate 3]
+Gate Start=6.5
+Gate Start with Interface Tracking=6.5
+Gate Start without Interface Tracking=42.300000000000004
+Gate Width=1.5
+Gate Level=40
+Gate Hit Count=5
+Gate Miss Count=6
+[Channel 23]
+Sample Delay=0.0
+Range=9.4
+Software Gain=48.6
+Interface Tracking=true
+Signal Rectification=0
+Signal Mode=2
+Reject Level=0
+AScan Display Smoothing=1
+Hardware Gain=5
+[Channel 23 Gate 1]
+Gate Start=35.4
+Gate Start with Interface Tracking=35.4
+Gate Start without Interface Tracking=34.4
+Gate Width=4.9
+Gate Level=15
+Gate Hit Count=1
+Gate Miss Count=2
+[Channel 23 Gate 2]
+Gate Start=3.0
+Gate Start with Interface Tracking=3.0
+Gate Start without Interface Tracking=39.1
+Gate Width=1.5
+Gate Level=40
+Gate Hit Count=3
+Gate Miss Count=4
+[Channel 23 Gate 3]
+Gate Start=6.5
+Gate Start with Interface Tracking=6.5
+Gate Start without Interface Tracking=42.300000000000004
+Gate Width=1.5
+Gate Level=40
+Gate Hit Count=5
+Gate Miss Count=6
+[Channel 24]
+Sample Delay=0.0
+Range=9.4
+Software Gain=48.6
+Interface Tracking=true
+Signal Rectification=0
+Signal Mode=2
+Reject Level=0
+AScan Display Smoothing=1
+Hardware Gain=5
+[Channel 24 Gate 1]
+Gate Start=35.4
+Gate Start with Interface Tracking=35.4
+Gate Start without Interface Tracking=34.4
+Gate Width=4.9
+Gate Level=15
+Gate Hit Count=1
+Gate Miss Count=2
+[Channel 24 Gate 2]
+Gate Start=3.0
+Gate Start with Interface Tracking=3.0
+Gate Start without Interface Tracking=39.1
+Gate Width=1.5
+Gate Level=40
+Gate Hit Count=3
+Gate Miss Count=4
+[Channel 24 Gate 3]
+Gate Start=6.5
+Gate Start with Interface Tracking=6.5
+Gate Start without Interface Tracking=42.300000000000004
+Gate Width=1.5
+Gate Level=40
+Gate Hit Count=5
+Gate Miss Count=6
+[Channel 25]
+Sample Delay=24.3
+Range=34.0
+Software Gain=50.1
+Interface Tracking=false
+Signal Rectification=0
+Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+Hardware Gain=5
+[Channel 25 Gate 1]
+Gate Start=1.3
+Gate Start with Interface Tracking=1.3
+Gate Start without Interface Tracking=1.3
+Gate Width=6.699999999999999
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 25 Gate 2]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=7.3
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 25 Gate 3]
+Gate Start=50.0
+Gate Start with Interface Tracking=35.4
+Gate Start without Interface Tracking=50.0
+Gate Width=4.9
+Gate Level=15
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 26]
+Sample Delay=24.3
+Range=34.0
+Software Gain=50.1
+Interface Tracking=false
+Signal Rectification=0
+Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+Hardware Gain=5
+[Channel 26 Gate 1]
+Gate Start=1.3
+Gate Start with Interface Tracking=1.3
+Gate Start without Interface Tracking=1.3
+Gate Width=6.699999999999999
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 26 Gate 2]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=7.3
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 26 Gate 3]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 27]
+Sample Delay=24.3
+Range=34.0
+Software Gain=50.1
+Interface Tracking=false
+Signal Rectification=0
+Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+Hardware Gain=5
+[Channel 27 Gate 1]
+Gate Start=1.3
+Gate Start with Interface Tracking=1.3
+Gate Start without Interface Tracking=1.3
+Gate Width=6.699999999999999
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 27 Gate 2]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=7.3
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 27 Gate 3]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 28]
+Sample Delay=24.3
+Range=34.0
+Software Gain=50.1
+Interface Tracking=false
+Signal Rectification=0
+Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+Hardware Gain=5
+[Channel 28 Gate 1]
+Gate Start=1.3
+Gate Start with Interface Tracking=1.3
+Gate Start without Interface Tracking=1.3
+Gate Width=6.699999999999999
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 28 Gate 2]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=7.3
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 28 Gate 3]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 29]
+Sample Delay=24.3
+Range=34.0
+Software Gain=50.1
+Interface Tracking=false
+Signal Rectification=0
+Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+Hardware Gain=5
+[Channel 29 Gate 1]
+Gate Start=1.3
+Gate Start with Interface Tracking=1.3
+Gate Start without Interface Tracking=1.3
+Gate Width=6.699999999999999
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 29 Gate 2]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=7.3
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 29 Gate 3]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 30]
+Sample Delay=24.3
+Range=34.0
+Software Gain=50.1
+Interface Tracking=false
+Signal Rectification=0
+Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+Hardware Gain=5
+[Channel 30 Gate 1]
+Gate Start=1.3
+Gate Start with Interface Tracking=1.3
+Gate Start without Interface Tracking=1.3
+Gate Width=6.699999999999999
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 30 Gate 2]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=7.3
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 30 Gate 3]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 31]
+Sample Delay=24.3
+Range=34.0
+Software Gain=50.1
+Interface Tracking=false
+Signal Rectification=0
+Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+Hardware Gain=5
+[Channel 31 Gate 1]
+Gate Start=1.3
+Gate Start with Interface Tracking=1.3
+Gate Start without Interface Tracking=1.3
+Gate Width=6.699999999999999
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 31 Gate 2]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=7.3
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 31 Gate 3]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 32]
+Sample Delay=24.3
+Range=34.0
+Software Gain=50.1
+Interface Tracking=false
+Signal Rectification=0
+Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+Hardware Gain=5
+[Channel 32 Gate 1]
+Gate Start=1.3
+Gate Start with Interface Tracking=1.3
+Gate Start without Interface Tracking=1.3
+Gate Width=6.699999999999999
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 32 Gate 2]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=7.3
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 32 Gate 3]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 33]
+Sample Delay=24.3
+Range=34.0
+Software Gain=50.1
+Interface Tracking=false
+Signal Rectification=0
+Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+Hardware Gain=5
+[Channel 33 Gate 1]
+Gate Start=1.3
+Gate Start with Interface Tracking=1.3
+Gate Start without Interface Tracking=1.3
+Gate Width=6.699999999999999
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 33 Gate 2]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=7.3
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 33 Gate 3]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 34]
+Sample Delay=24.3
+Range=34.0
+Software Gain=50.1
+Interface Tracking=false
+Signal Rectification=0
+Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+Hardware Gain=5
+[Channel 34 Gate 1]
+Gate Start=1.3
+Gate Start with Interface Tracking=1.3
+Gate Start without Interface Tracking=1.3
+Gate Width=6.699999999999999
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 34 Gate 2]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=7.3
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 34 Gate 3]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 35]
+Sample Delay=24.3
+Range=34.0
+Software Gain=50.1
+Interface Tracking=false
+Signal Rectification=0
+Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+Hardware Gain=5
+[Channel 35 Gate 1]
+Gate Start=1.3
+Gate Start with Interface Tracking=1.3
+Gate Start without Interface Tracking=1.3
+Gate Width=6.699999999999999
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 35 Gate 2]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=7.3
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 35 Gate 3]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 36]
+Sample Delay=24.3
+Range=34.0
+Software Gain=50.1
+Interface Tracking=false
+Signal Rectification=0
+Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+Hardware Gain=5
+[Channel 36 Gate 1]
+Gate Start=1.3
+Gate Start with Interface Tracking=1.3
+Gate Start without Interface Tracking=1.3
+Gate Width=6.699999999999999
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 36 Gate 2]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=7.3
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 36 Gate 3]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 37]
+Sample Delay=24.3
+Range=34.0
+Software Gain=50.1
+Interface Tracking=false
+Signal Rectification=0
+Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+Hardware Gain=5
+[Channel 37 Gate 1]
+Gate Start=1.3
+Gate Start with Interface Tracking=1.3
+Gate Start without Interface Tracking=1.3
+Gate Width=6.699999999999999
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 37 Gate 2]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=7.3
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 37 Gate 3]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 38]
+Sample Delay=24.3
+Range=34.0
+Software Gain=50.1
+Interface Tracking=false
+Signal Rectification=0
+Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+Hardware Gain=5
+[Channel 38 Gate 1]
+Gate Start=1.3
+Gate Start with Interface Tracking=1.3
+Gate Start without Interface Tracking=1.3
+Gate Width=6.699999999999999
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 38 Gate 2]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=7.3
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 38 Gate 3]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 39]
+Sample Delay=24.3
+Range=34.0
+Software Gain=50.1
+Interface Tracking=false
+Signal Rectification=0
+Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+Hardware Gain=5
+[Channel 39 Gate 1]
+Gate Start=1.3
+Gate Start with Interface Tracking=1.3
+Gate Start without Interface Tracking=1.3
+Gate Width=6.699999999999999
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 39 Gate 2]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=7.3
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 39 Gate 3]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 40]
+Sample Delay=24.3
+Range=34.0
+Software Gain=50.1
+Interface Tracking=false
+Signal Rectification=0
+Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+Hardware Gain=5
+[Channel 40 Gate 1]
+Gate Start=1.3
+Gate Start with Interface Tracking=1.3
+Gate Start without Interface Tracking=1.3
+Gate Width=6.699999999999999
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 40 Gate 2]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=7.3
+Gate Level=40
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 40 Gate 3]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+Gate Hit Count=1
+Gate Miss Count=1
+[Chart Group 1 Strip Chart 3 Threshold 3]
+Threshold Level=50
+[Chart Group 1 Strip Chart 5]
+Title=Pit
+Short Title=Pit
+Chart is Visible=false
+[Chart Group 1 Strip Chart 5 Threshold 1]
+Threshold Level=90
+[Chart Group 1 Strip Chart 5 Threshold 2]
+Threshold Level=80
+[Channel 17 Gate 4]
+Gate Start=4.0
+Gate Start with Interface Tracking=4.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.0
+Gate Level=15
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 18 Gate 4]
+Gate Start=4.0
+Gate Start with Interface Tracking=4.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.0
+Gate Level=15
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 19 Gate 4]
+Gate Start=4.0
+Gate Start with Interface Tracking=4.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.0
+Gate Level=15
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 20 Gate 4]
+Gate Start=4.0
+Gate Start with Interface Tracking=4.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.0
+Gate Level=15
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 21 Gate 4]
+Gate Start=4.0
+Gate Start with Interface Tracking=4.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.0
+Gate Level=15
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 22 Gate 4]
+Gate Start=4.0
+Gate Start with Interface Tracking=4.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.0
+Gate Level=15
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 23 Gate 4]
+Gate Start=4.0
+Gate Start with Interface Tracking=4.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.0
+Gate Level=15
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 24 Gate 4]
+Gate Start=4.0
+Gate Start with Interface Tracking=4.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.0
+Gate Level=15
+Gate Hit Count=1
+Gate Miss Count=1
+[Channel 1 DAC Gate 1]
+Gate Start=0.02857142857142857
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.0
+Gate Level=39
+Gate is Active=true
+[Channel 1 DAC Gate 2]
+Gate Start=1.0285714285714285
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=29
+Gate is Active=true
+[Channel 1 DAC Gate 3]
+Gate Start=3.0285714285714285
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.0
+Gate Level=45
+Gate is Active=true
+[Channel 1 DAC Gate 4]
+Gate Start=4.0285714285714285
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.0
+Gate Level=27
+Gate is Active=true
+[Channel 1 DAC Gate 5]
+Gate Start=5.0285714285714285
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.0
+Gate Level=63
+Gate is Active=true
+[Channel 1 DAC Gate 6]
+Gate Start=5.0285714285714285
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.0
+Gate Level=63
+Gate is Active=false
+[Channel 1 DAC Gate 7]
+Gate Start=5.0285714285714285
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.0
+Gate Level=63
+Gate is Active=false
+[Channel 1 DAC Gate 8]
+Gate Start=8.114285714285714
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.0
+Gate Level=47
+Gate is Active=false
+[Channel 1 DAC Gate 9]
+Gate Start=8.114285714285714
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.0
+Gate Level=47
+Gate is Active=false
+[Channel 1 DAC Gate 10]
+Gate Start=8.114285714285714
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.0
+Gate Level=47
+Gate is Active=false
