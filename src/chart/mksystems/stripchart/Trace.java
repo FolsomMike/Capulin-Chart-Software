@@ -18,20 +18,19 @@
 
 package chart.mksystems.stripchart;
 
-import java.io.*;
-import javax.swing.*;
+import chart.Viewer;
+import chart.Xfer;
+import chart.mksystems.hardware.Hardware;
+import chart.mksystems.inifile.IniFile;
+import chart.mksystems.settings.Settings;
 import java.awt.*;
-import java.util.HashMap;
+import java.awt.font.FontRenderContext;
 import java.awt.font.TextAttribute;
 import java.awt.font.TextLayout;
 import java.awt.geom.Rectangle2D;
-import java.awt.font.FontRenderContext;
-
-import chart.mksystems.settings.Settings;
-import chart.mksystems.inifile.IniFile;
-import chart.mksystems.hardware.Hardware;
-import chart.Viewer;
-import chart.Xfer;
+import java.io.*;
+import java.util.HashMap;
+import javax.swing.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -166,9 +165,10 @@ public void init()
     //link the trace to the appropriate channel as specified in the config file
     //hardware may be null if this object is used for viewing only, so skip this
     //step if so
-    if (hardware != null)
+    if (hardware != null) {
         hardware.linkTraces(chartGroup, chartIndex, traceIndex, dataBuffer1,
                     dataBuffer2, flagBuffer, thresholds, hdwVs.plotStyle, this);
+    }
 
 }//end of Trace::init
 //-----------------------------------------------------------------------------
@@ -230,14 +230,15 @@ private void configure(IniFile pConfigFile)
                      pConfigFile.readInt(section, "Simulation Data Type", 0));
 
     //create the arrays to hold data points and flag/decoration info
-    if (sizeOfDataBuffer > 100000) sizeOfDataBuffer = 100000;
+    if (sizeOfDataBuffer > 100000) {sizeOfDataBuffer = 100000;}
 
     dataBuffer1 = new int[sizeOfDataBuffer];
     flagBuffer = new int[sizeOfDataBuffer];
 
     //for span mode, a second array is necessary - min/max data is plotted
-    if (hdwVs.plotStyle == TraceHdwVars.SPAN)
+    if (hdwVs.plotStyle == TraceHdwVars.SPAN) {
         dataBuffer2 = new int[sizeOfDataBuffer];
+    }
 
 }//end of Trace::configure
 //-----------------------------------------------------------------------------
@@ -282,7 +283,7 @@ public void handleSizeChanges()
 public void drawKeyLabel(Graphics2D pG2)
 {
 
-    if (keyLabel.compareTo("<not visible>") == 0) return;
+    if (keyLabel.compareTo("<not visible>") == 0) {return;}
 
     //set the background color for the text to white so that most colors are
     //more visible
@@ -359,10 +360,11 @@ public void resetTrace()
 
     //set all data points to the maximum integer value - this value is used to
     //determine if a data point has been filled with data
-    if (dataBuffer1 != null)
+    if (dataBuffer1 != null) {
         for (int i = 0; i < dataBuffer1.length; i++){
             dataBuffer1[i] = Integer.MAX_VALUE;
             flagBuffer[i] = 0;
+        }
     }
 
     //set the position where the pointers start to non-default -- this is the
@@ -372,9 +374,11 @@ public void resetTrace()
     dataBuffer1[1] = 0;
 
     //used in span mode
-    if (dataBuffer2 != null)
-        for (int i = 0; i < dataBuffer1.length; i++)
+    if (dataBuffer2 != null) {
+        for (int i = 0; i < dataBuffer1.length; i++) {
             dataBuffer2[i] = Integer.MAX_VALUE;
+        }
+    }
 
 }//end of Trace::resetTrace
 //-----------------------------------------------------------------------------
@@ -399,7 +403,7 @@ public void markSegmentStart()
 
     int index = plotVs.bufPtr + 1;
     //the buffer is circular - start over at beginning
-    if (index == sizeOfDataBuffer) index = 0;
+    if (index == sizeOfDataBuffer) {index = 0;}
 
     //set flag to display a separator bar at the start of the segment
     flagBuffer[index] |= 1 << 17;
@@ -434,7 +438,7 @@ public void markSegmentEnd()
 
     int index = plotVs.bufPtr + 1;
     //the buffer is circular - start over at beginning
-    if (index == sizeOfDataBuffer) index = 0;
+    if (index == sizeOfDataBuffer) {index = 0;}
 
     //set flag to display a separator bar at the end of the segment
     flagBuffer[index] |= 1 << 18;
@@ -515,7 +519,7 @@ public void saveSegment(BufferedWriter pOut) throws IOException
         pOut.write(Integer.toString(dataBuffer1[i])); //save the data set 1
         pOut.newLine();
         //increment to next buffer slot, wrap around because buffer is circular
-        if (++i == sizeOfDataBuffer) i = 0;
+        if (++i == sizeOfDataBuffer) {i = 0;}
     }
 
     pOut.write("[End of Set]"); pOut.newLine();
@@ -533,7 +537,7 @@ public void saveSegment(BufferedWriter pOut) throws IOException
             pOut.write(Integer.toString(dataBuffer2[i])); //save the data set 2
             pOut.newLine();
             //increment to next buffer slot, wrap around as buffer is circular
-            if (++i == sizeOfDataBuffer) i = 0;
+            if (++i == sizeOfDataBuffer) {i = 0;}
         }
 
         pOut.write("[End of Set]"); pOut.newLine();
@@ -548,7 +552,7 @@ public void saveSegment(BufferedWriter pOut) throws IOException
         pOut.write(Integer.toString(flagBuffer[i])); //save the flags
         pOut.newLine();
         //increment to next buffer slot, wrap around because buffer is circular
-        if (++i == sizeOfDataBuffer) i = 0;
+        if (++i == sizeOfDataBuffer) {i = 0;}
     }
 
     pOut.write("[End of Set]"); pOut.newLine();
@@ -571,7 +575,11 @@ public void saveSegment(BufferedWriter pOut) throws IOException
 public boolean segmentStarted()
 {
 
-    if (segmentStartCounter >= 10) return true; else return false;
+    if (segmentStartCounter >= 10) {
+        return true;
+    } else {
+        return false;
+    }
 
 }//end of Trace::segmentStarted
 //-----------------------------------------------------------------------------
@@ -601,8 +609,9 @@ public String loadSegment(BufferedReader pIn, String pLastLine)
     line = processDataSeries(pIn, line, "[Data Set 1]", dataBuffer1);
 
     //if "Data Set 2" is in use, read it in
-    if (dataBuffer2 != null)
+    if (dataBuffer2 != null) {
         line = processDataSeries(pIn, line, "[Data Set 2]", dataBuffer2);
+    }
 
     //read in "Flags"
     line = processDataSeries(pIn, line, "[Flags]", flagBuffer);
@@ -637,18 +646,22 @@ private String processTraceEntries(BufferedReader pIn, String pLastLine)
     //if pLastLine contains the [Trace] tag, then skip ahead else read until
     // end of file reached or "[Trace]" section tag reached
 
-    if (Viewer.matchAndParseString(pLastLine, "[Trace]", "",  matchSet))
+    if (Viewer.matchAndParseString(pLastLine, "[Trace]", "",  matchSet)) {
         success = true; //tag already found
-    else
+    }
+    else {
         while ((line = pIn.readLine()) != null){  //search for tag
             if (Viewer.matchAndParseString(line, "[Trace]", "",  matchSet)){
                 success = true; break;
             }
         }//while
+    }//else
 
-    if (!success) throw new IOException(
-           "The file could not be read - section not found for Chart Group "
-               + chartGroup + " Chart " + chartIndex + " Trace " + traceIndex);
+    if (!success) {
+        throw new IOException(
+            "The file could not be read - section not found for Chart Group "
+            + chartGroup + " Chart " + chartIndex + " Trace " + traceIndex);
+    }
 
     //set defaults
     int traceIndexRead = -1;
@@ -666,32 +679,40 @@ private String processTraceEntries(BufferedReader pIn, String pLastLine)
         }
 
         //read the "Trace Index" entry - if not found, default to -1
-        if (Viewer.matchAndParseInt(line, "Trace Index", -1, matchSet))
+        if (Viewer.matchAndParseInt(line, "Trace Index", -1, matchSet)) {
             traceIndexRead = matchSet.rInt1;
+        }
 
         //read the "Trace Title" entry - if not found, default to ""
-        if (Viewer.matchAndParseString(line, "Trace Title", "", matchSet))
+        if (Viewer.matchAndParseString(line, "Trace Title", "", matchSet)) {
             titleRead = matchSet.rString1;
+        }
 
         //read the "Trace Short Title" entry - if not found, default to ""
-        if (Viewer.matchAndParseString(line, "Trace Short Title", "", matchSet))
+        if (Viewer.matchAndParseString(
+                                    line, "Trace Short Title", "", matchSet)) {
             shortTitleRead = matchSet.rString1;
+        }
 
     }
 
     //apply settings
     title = titleRead; shortTitle = shortTitleRead;
 
-    if (!success) throw new IOException(
+    if (!success) {
+        throw new IOException(
         "The file could not be read - missing end of section for Chart Group "
                 + chartGroup + " Chart " + chartIndex + " Trace " + traceIndex);
+    }
 
     //if the index number in the file does not match the index number for this
     //threshold, abort the file read
 
-    if (traceIndexRead != traceIndex) throw new IOException(
+    if (traceIndexRead != traceIndex) {
+        throw new IOException(
             "The file could not be read - section not found for Chart Group "
                 + chartGroup + " Chart " + chartIndex + " Trace " + traceIndex);
+    }
 
     return(line); //should be "[xxxx]" tag on success, unknown value if not
 
@@ -727,19 +748,23 @@ private String processDataSeries(BufferedReader pIn, String pLastLine,
     //if pLastLine contains the [xxx] tag, then skip ahead else read until
     // end of file reached or "[xxx]" section tag reached
 
-    if (Viewer.matchAndParseString(pLastLine, pStartTag, "",  matchSet))
-        success = true; //tag already found
-    else
+    if (Viewer.matchAndParseString(pLastLine, pStartTag, "",  matchSet)) {
+        success = true;  //tag already found
+    }
+    else {
         while ((line = pIn.readLine()) != null){  //search for tag
             if (Viewer.matchAndParseString(line, pStartTag, "",  matchSet)){
                 success = true; break;
             }
         }//while
+    }//else
 
-    if (!success) throw new IOException(
+    if (!success) {
+        throw new IOException(
            "The file could not be read - section not found for Chart Group "
                 + chartGroup + " Chart " + chartIndex + " Trace " + traceIndex
                 + " for " + pStartTag);
+    }
 
     //scan the first part of the section and parse its entries
     //these entries apply to the chart group itself
@@ -760,11 +785,12 @@ private String processDataSeries(BufferedReader pIn, String pLastLine,
             pBuffer[i++] = data;
 
             //catch buffer overflow
-            if (i == pBuffer.length)
+            if (i == pBuffer.length) {
                 throw new IOException(
-                    "The file could not be read - too much data for Chart Group "
-                    + chartGroup + " Chart " + chartIndex + " Trace " + traceIndex
-                    + " for " + pStartTag + " at data point " + i);
+                 "The file could not be read - too much data for Chart Group "
+                    + chartGroup + " Chart " + chartIndex + " Trace " +
+                    traceIndex + " for " + pStartTag + " at data point " + i);
+            }
 
         }
         catch(NumberFormatException e){
@@ -777,10 +803,12 @@ private String processDataSeries(BufferedReader pIn, String pLastLine,
 
     }//while ((line = pIn.readLine()) != null)
 
-    if (!success) throw new IOException(
+    if (!success) {
+        throw new IOException(
          "The file could not be read - missing end of section for Chart Group "
                  + chartGroup + " Chart " + chartIndex + " Trace " + traceIndex
                     + " for " + pStartTag);
+    }
 
     return(line); //should be "[xxxx]" tag on success, unknown value if not
 
@@ -802,17 +830,17 @@ private String processDataSeries(BufferedReader pIn, String pLastLine,
 public int findMinValue(int pStart, int pEnd)
 {
 
-    if (pStart < 0) pStart = 0;
-    if (pStart >= dataBuffer1.length) pStart = dataBuffer1.length - 1;
+    if (pStart < 0) {pStart = 0;}
+    if (pStart >= dataBuffer1.length) {pStart = dataBuffer1.length - 1;}
 
-    if (pEnd < 0) pEnd = 0;
-    if (pEnd >= dataBuffer1.length) pEnd = dataBuffer1.length - 1;
+    if (pEnd < 0) {pEnd = 0;}
+    if (pEnd >= dataBuffer1.length) {pEnd = dataBuffer1.length - 1;}
 
     int peak = Integer.MAX_VALUE;
 
     for (int i = pStart; i < pEnd; i++){
 
-        if (dataBuffer1[i] < peak) peak = dataBuffer1[i];
+        if (dataBuffer1[i] < peak) {peak = dataBuffer1[i];}
 
     }
 
@@ -834,17 +862,17 @@ public int findMinValue(int pStart, int pEnd)
 public int findMaxValue(int pStart, int pEnd)
 {
 
-    if (pStart < 0) pStart = 0;
-    if (pStart >= dataBuffer1.length) pStart = dataBuffer1.length - 1;
+    if (pStart < 0) {pStart = 0;}
+    if (pStart >= dataBuffer1.length) {pStart = dataBuffer1.length - 1;}
 
-    if (pEnd < 0) pEnd = 0;
-    if (pEnd >= dataBuffer1.length) pEnd = dataBuffer1.length - 1;
+    if (pEnd < 0) {pEnd = 0;}
+    if (pEnd >= dataBuffer1.length) {pEnd = dataBuffer1.length - 1;}
 
     int peak = Integer.MIN_VALUE;
 
     for (int i = pStart; i < pEnd; i++){
 
-        if (dataBuffer1[i] > peak) peak = dataBuffer1[i];
+        if (dataBuffer1[i] > peak) {peak = dataBuffer1[i];}
 
     }
 
@@ -865,7 +893,7 @@ public boolean newDataReady()
 {
 
     //if pointer has not been moved, no data ready
-    if (plotVs.bufPtr == endPlotSlot) return false;
+    if (plotVs.bufPtr == endPlotSlot) {return false;}
 
     //new data is ready
     return true;
@@ -896,9 +924,12 @@ public int plotNewData(Graphics2D pG2)
     //plot the new point, using the plotVs variable set - this variable set
     //tracks new data to be plotted
 
-    if (endPlotSlot > plotVs.bufPtr) return plotPoint(pG2, plotVs);
+    if (endPlotSlot > plotVs.bufPtr) {return plotPoint(pG2, plotVs);}
 
-    if (endPlotSlot < plotVs.bufPtr) return erasePoint(pG2, plotVs);
+    if (endPlotSlot < plotVs.bufPtr) {
+
+        return erasePoint(pG2, plotVs);
+    }
 
     return(0);
 
@@ -927,13 +958,15 @@ public int plotPoint(Graphics2D pG2, PlotVars pVars)
     //of data can be recorded
 
     pVars.bufPtr++;
-    if (pVars.bufPtr == dataBuffer1.length) pVars.bufPtr = 0;
+    if (pVars.bufPtr == dataBuffer1.length) {pVars.bufPtr = 0;}
 
     //increment the pixel pointer until it reaches the right edge, then shift
     //the screen left and keep pointer the same to create scrolling effect
     //the scrolling starts at canvasXLimit-10 to allow room for flags
 
-    if (pVars.pixPtr < canvasXLimit-10) pVars.pixPtr++;
+    if (pVars.pixPtr < canvasXLimit-10) {
+        pVars.pixPtr++;
+    }
     else{
         //if this is the lead trace, shift the chart left and erase right slice
         if (leadTrace){
@@ -951,8 +984,9 @@ public int plotPoint(Graphics2D pG2, PlotVars pVars)
             //are shifted when trace 0 shifts the canvas
 
             traceGlobals.bufOffset++;
-            if (traceGlobals.bufOffset == dataBuffer1.length)
+            if (traceGlobals.bufOffset == dataBuffer1.length) {
                 traceGlobals.bufOffset = 0;
+            }
 
             //track the number of pixels the chart has been scrolled - this is
             //used to determine the proper location of grid marks and other
@@ -966,8 +1000,9 @@ public int plotPoint(Graphics2D pG2, PlotVars pVars)
 
     //if this is the lead trace draw the decorations
     if (leadTrace){
-        for (int j = 0; j < numberOfThresholds; j++)
+        for (int j = 0; j < numberOfThresholds; j++) {
             thresholds[j].drawSlice(pG2, pVars.pixPtr);
+        }
 
         if (pVars.gridCounter++ == gridXSpacingT){
             drawGrid(pG2, pVars.pixPtr, canvasYLimit);
@@ -1023,13 +1058,15 @@ public int plotPoint(Graphics2D pG2, PlotVars pVars)
     //allows the decorations to be drawn across the full chart even though the
     //data is not defined
 
-    if (dataBuffer1[pVars.bufPtr] == Integer.MAX_VALUE) pVars.drawTrace = false;
+    if (dataBuffer1[pVars.bufPtr] == Integer.MAX_VALUE) {
+        pVars.drawTrace = false;
+    }
 
     //if the drawTrace flag is false, exit without drawing them - this allows
     //the decorations to be drawn before data is available so the grid and
     //thresholds are displayed
 
-    if (!pVars.drawTrace) return(lastPlotted);
+    if (!pVars.drawTrace) {return(lastPlotted);}
 
     //prepare to draw the trace
 
@@ -1040,8 +1077,8 @@ public int plotPoint(Graphics2D pG2, PlotVars pVars)
     pVars.y1 += pixelOffset; pVars.y2 += pixelOffset;
 
     //apply limits
-    if (pVars.y1 > canvasYLimit) pVars.y1 = canvasYLimit;
-    if (pVars.y2 > canvasYLimit) pVars.y2 = canvasYLimit;
+    if (pVars.y1 > canvasYLimit) {pVars.y1 = canvasYLimit;}
+    if (pVars.y2 > canvasYLimit) {pVars.y2 = canvasYLimit;}
 
     //invert y value if specified
     if (invert) {
@@ -1062,16 +1099,20 @@ public int plotPoint(Graphics2D pG2, PlotVars pVars)
 
     pG2.setColor(traceColor);
 
-    if (hdwVs.plotStyle == TraceHdwVars.POINT_TO_POINT)
+    if (hdwVs.plotStyle == TraceHdwVars.POINT_TO_POINT) {
         pG2.drawLine(pVars.pixPtr-1, pVars.y1, pVars.pixPtr, pVars.y2);
+    }
     else
-    if (hdwVs.plotStyle == TraceHdwVars.STICK)
+    if (hdwVs.plotStyle == TraceHdwVars.STICK) {
         pG2.drawLine(pVars.pixPtr, canvasYLimit, pVars.pixPtr, pVars.y2);
+    }
     else
-    if (hdwVs.plotStyle == TraceHdwVars.SPAN)
+    if (hdwVs.plotStyle == TraceHdwVars.SPAN) {
         pG2.drawLine(pVars.pixPtr, pVars.y1, pVars.pixPtr, pVars.y2);
+    }
 
     //if there is a flag set for this data point then draw it - threshold
+
     //indices are shifted by two as 0 = no flag and 1 = user flag
     if ((flagThreshold =
                        ((flagBuffer[pVars.bufPtr] & 0x0000fe00) >> 9)-2) >= 0){
@@ -1080,13 +1121,13 @@ public int plotPoint(Graphics2D pG2, PlotVars pVars)
 
         //for span mode, draw flag at min or max depending on bit in flagBuffer
         if (hdwVs.plotStyle == TraceHdwVars.SPAN){
-            if ((flagBuffer[pVars.bufPtr] & 0x00010000) == 0) flagY = pVars.y1;
+            if ((flagBuffer[pVars.bufPtr] & 0x00010000) == 0){flagY = pVars.y1;}
         }//if (hdwVs.plotStyle ==
 
         thresholds[flagThreshold].drawFlag(pG2, pVars.pixPtr, flagY);
     }
     else
-        if (flagThreshold == -1) drawUserFlag(pG2, pVars.pixPtr, pVars.y2);
+        if (flagThreshold == -1) {drawUserFlag(pG2, pVars.pixPtr, pVars.y2);}
 
     return(lastPlotted);
 
@@ -1109,14 +1150,18 @@ public int erasePoint(Graphics2D pG2, PlotVars pVars)
     //if at the beginning of the buffer, wrap to the end
 
     pVars.bufPtr--;
-    if (pVars.bufPtr == -1) pVars.bufPtr = dataBuffer1.length-1;
+    if (pVars.bufPtr == -1) {pVars.bufPtr = dataBuffer1.length-1;}
 
     //debug mks -- next section for scrolling in reverse NOT tested well!
+    // in fact, it probably doesn't work well at all, but for now most
+    // reversing doesn't go far enough back to require reverse scroll
 
     //decrement the pixel pointer until it reaches the left edge, then shift the
     //screen right and keep pointer the same to create scrolling effect
 
-    if (pVars.pixPtr > 0) pVars.pixPtr--;
+    if (pVars.pixPtr > 0) {
+        pVars.pixPtr--;
+    }
     else{
         //if this is trailing trace, shift the chart right and erase left slice
         if (trailTrace){
@@ -1134,8 +1179,9 @@ public int erasePoint(Graphics2D pG2, PlotVars pVars)
             //are shifted when trace 0 shifts the canvas
 
             traceGlobals.bufOffset--;
-            if (traceGlobals.bufOffset == -1)
+            if (traceGlobals.bufOffset == -1) {
                 traceGlobals.bufOffset = dataBuffer1.length-1;
+            }
 
             //track the number of pixels the chart has been scrolled - this is
             //used to determine the proper location of grid marks and other

@@ -94,7 +94,6 @@ public CalFileSaver(Settings pSettings, Hardware pHardware,
 //
 // Initializes new objects. Should be called immediately after instantiation.
 //
-//
 
 public void init()
 {

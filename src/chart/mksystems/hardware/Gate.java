@@ -303,7 +303,8 @@ public void getAndClearAScanPeak(Xfer pAScanPeakInfo)
 // It is not a public method -- it is manipulated by calling other functions
 // to select the gate type and processing methods.
 //
-// Does not set the flag in the DSP.
+// Does not send the flag to the DSP, but the data changed flag for the value
+// will be set so the change can be sent later.
 //
 
 private void setFlags()
