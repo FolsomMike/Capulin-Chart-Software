@@ -928,6 +928,19 @@ public int plotNewData(Graphics2D pG2)
 
     if (endPlotSlot < plotVs.bufPtr) {
 
+        //debug mks -- this is a very crude fix for reversing code
+        //scan mode was restarting at left edge of screen when end of buffer
+        //wrapped around because endPlotSlot would be less than bufPtr which
+        //triggered the reverse function, calling erasePoint a bunch
+        //this was solved by ignoring the trace reverse near the beginning of
+        //the buffer -- now when reversed in inspect mode at the beginning,
+        //weird stuff happens so the ENTIRE foward/reverse logic needs to be
+        //re-thunk!!!
+
+        if (endPlotSlot < 5){
+            return plotPoint(pG2, plotVs);
+        }
+
         return erasePoint(pG2, plotVs);
     }
 
