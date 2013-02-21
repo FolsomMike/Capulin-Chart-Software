@@ -233,6 +233,7 @@ public class UTControls extends JTabbedPane
     JRadioButton timeRadioButton, distanceRadioButton;
     JRadioButton markerPulseButton, markerContinuousButton;
     JButton resetChannelButton;
+    JCheckBox distanceAdjustedForReturnTripCheckBox;
 
     //end of components on Configuration tab
 
@@ -337,6 +338,14 @@ public void setChannel(StripChart pChart, Channel pChannel)
     }
     else {
         timeDistMult = hardware.hdwVs.velocityShearUS;
+
+        //if one-way distance is to be displayed, divide by 2
+        //(for pulse-echo modes, the sound actually travels twice as far due to
+        //  the return trip time; this option displays distance as to ignore
+        //  the doubling effect; for pitch-catch no adjustment is necessary)
+
+        if (hardware.distanceAdjustedForReturnTrip) timeDistMult /= 2;
+
         timeDistDecimalPlaces = "#0.000"; //three decimal places for distances
         timeDistIncrement = .01;
         timeDistMax = 15.0;
@@ -1347,12 +1356,15 @@ void setupConfigTab()
     JPanel timeDistancePanel = new JPanel();
     setSizes(timeDistancePanel, 140, 23);
     timeDistancePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
     timeRadioButton = new JRadioButton("time");
     timeRadioButton.setToolTipText("Values displayed in time.");
     timeRadioButton.addActionListener(this);
+
     distanceRadioButton = new JRadioButton("distance");
     distanceRadioButton.setToolTipText("Values displayed as distance.");
     distanceRadioButton.addActionListener(this);
+
     ButtonGroup timeDistanceGroup = new ButtonGroup();
     timeDistanceGroup.add(timeRadioButton);
     timeDistanceGroup.add(distanceRadioButton);
@@ -1367,6 +1379,18 @@ void setupConfigTab()
     else {
         distanceRadioButton.setSelected(true);
     }
+
+    topRightPanel.add(Box.createRigidArea(new Dimension(0,7))); //vertical spacer
+
+    distanceAdjustedForReturnTripCheckBox = new JCheckBox(
+                                                "Distance ignores return trip");
+    distanceAdjustedForReturnTripCheckBox.setToolTipText(
+            "Adjusts distance displays to account for the return trip -- " +
+            "typically used for Pulse-Echo.");
+    distanceAdjustedForReturnTripCheckBox.addActionListener(this);
+    distanceAdjustedForReturnTripCheckBox.setSelected(
+                                        hardware.distanceAdjustedForReturnTrip);
+    topRightPanel.add(distanceAdjustedForReturnTripCheckBox);
 
     topRightPanel.add(Box.createRigidArea(new Dimension(0,7))); //vertical spacer
 
@@ -1865,6 +1889,9 @@ public void updateAllSettings(boolean pForceUpdate)
     if (distanceRadioButton.isSelected()){
         hardware.unitsTimeDistance = Hardware.DISTANCE;
     }
+
+    hardware.distanceAdjustedForReturnTrip =
+                             distanceAdjustedForReturnTripCheckBox.isSelected();
 
     if (markerPulseButton.isSelected()) {
         hardware.markerMode = Hardware.PULSE;

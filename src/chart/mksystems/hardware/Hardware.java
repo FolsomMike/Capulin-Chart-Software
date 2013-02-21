@@ -109,6 +109,8 @@ public class Hardware extends Object implements TraceValueCalculator, Runnable,
     public static int TIME = 0, DISTANCE = 1;
     public int unitsTimeDistance = TIME;
 
+    public boolean distanceAdjustedForReturnTrip = false;
+
     public static int PULSE = 0, CONTINUOUS = 1;
     public int markerMode = PULSE;
 
@@ -379,6 +381,9 @@ public void loadCalFile(IniFile pCalFile)
     unitsTimeDistance = pCalFile.readInt("Hardware",
            "Units are in Time(" + TIME + ") or Distance(" + DISTANCE + ")", 0);
 
+    distanceAdjustedForReturnTrip = pCalFile.readBoolean("Hardware",
+                      "Distance displays adjusted for round trip time", false);
+
     markerMode = pCalFile.readInt("Hardware",
        "Marker pulses once for each threshold violation (" + PULSE +
        ") or fires continuously during the violation (" + CONTINUOUS + ")", 0);
@@ -423,6 +428,9 @@ public void saveCalFile(IniFile pCalFile)
     pCalFile.writeInt("Hardware",
     "Units are in Time(" + TIME + ") or Distance(" + DISTANCE + ")",
                                                             unitsTimeDistance);
+    pCalFile.writeBoolean("Hardware",
+             "Distance displays adjusted for round trip time",
+             distanceAdjustedForReturnTrip);
 
     pCalFile.writeInt("Hardware",
        "Marker pulses once for each threshold violation (" + PULSE +
