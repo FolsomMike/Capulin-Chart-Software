@@ -19,15 +19,14 @@
 
 package chart;
 
-import javax.swing.*;
+import chart.mksystems.hardware.Channel;
+import chart.mksystems.settings.Settings;
 import java.awt.*;
-import javax.swing.border.*;
-import java.awt.image.BufferedImage;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-
-import chart.mksystems.settings.Settings;
-import chart.mksystems.hardware.Channel;
+import java.awt.image.BufferedImage;
+import javax.swing.*;
+import javax.swing.border.*;
 
 //-----------------------------------------------------------------------------
 
@@ -202,8 +201,8 @@ public void createImageBuffer()
     //avoid runtime errors but this seems pointless as the cast MUST work for
     //the program to work so it will crash regardless if the cast is bad
 
-    int width = getWidth(); if (width == 0) width = 1;
-    int height = getHeight(); if (height == 0) height = 1;
+    int width = getWidth(); if (width == 0) {width = 1;}
+    int height = getHeight(); if (height == 0) {height = 1;}
 
     //create an image to store the plot on so it can be copied to the screen
     //during repaint
@@ -266,9 +265,9 @@ public void displayData(int pRange, int pInterfaceCrossingPosition,
          yPos = pData[i] + vertOffset;
 
         //limit y before inverse to prevent problems
-         if (yPos < 0) yPos = 0;
+         if (yPos < 0) {yPos = 0;}
          else
-         if (yPos > maxY) yPos = maxY;
+         if (yPos > maxY) {yPos = maxY;}
 
          //invert y value so 0,0 is at bottom left, then shift by vertOffset
          int yInv = maxY - yPos;
@@ -280,7 +279,7 @@ public void displayData(int pRange, int pInterfaceCrossingPosition,
         //stop drawing when right edge of canvas reached
         //pData.length will often be larger than this because it may be
         //compressed, but no need to display past the edge of the canvas
-        if (scaledI > getWidth()-3) break;
+        if (scaledI > getWidth()-3) {break;}
 
         //debug mks
         // The getWidth()-3 is used above as a quick fix to get rid of the
@@ -307,7 +306,7 @@ public void displayData(int pRange, int pInterfaceCrossingPosition,
 
     //draw the DAC gates on the scope, use g2 graphics object as it is for
     //buffered image
-    if (dacEnabled) drawDACGates(channel, g2, pInterfaceCrossingPosition);
+    if (dacEnabled) {drawDACGates(channel, g2, pInterfaceCrossingPosition);}
 
     //display the image buffer on the screen
     //NOTE - need to get a graphics object for the canvas - don't use g2 from
@@ -350,7 +349,7 @@ public void drawGates(Channel pChannel, Graphics2D pG2,
 
         //invert level so 0,0 is at bottom left
 
-        if (peak < 0) peak = 0; if (peak > maxY) peak = maxY;
+        if (peak < 0) {peak = 0;} if (peak > maxY) {peak = maxY;}
         peak = maxY - peak;
 
         flightTime -= pChannel.getSoftwareDelay();
@@ -390,13 +389,14 @@ public void drawGates(Channel pChannel, Graphics2D pG2,
 
     //if interface tracking is on, mark the point where the interface has
     //crossed the interface gate - the interface gate is always gate 0
-    if (pInterfaceCrossingPosition > -1)
+    if (pInterfaceCrossingPosition > -1){
         pG2.drawLine(
                 pInterfaceCrossingPosition,
                 pChannel.gates[0].gatePixLevel - 10,
                 pInterfaceCrossingPosition,
                 pChannel.gates[0].gatePixLevel + 10
                 );
+    }
 
 }//end of OscopeCanvas::drawGates
 //-----------------------------------------------------------------------------
@@ -417,16 +417,19 @@ public void drawDACGates(Channel pChannel, Graphics2D pG2,
 
         if (pChannel.dacGates[i].getActive()){
 
-            if (pChannel.dacGates[i].getSelected())
+            if (pChannel.dacGates[i].getSelected()) {
                 pG2.setColor(Color.WHITE);
-            else
+            }
+            else {
                 pG2.setColor(Color.BLUE);
+            }
 
             //when DAC is unlocked and can be modified, draw selection circles
-            if (!dacLocked)
+            if (!dacLocked) {
                 pG2.drawOval(pChannel.dacGates[i].gatePixStartAdjusted - 5,
                              pChannel.dacGates[i].gatePixLevel - 5,
                              10, 10);
+            }
 
             //draw the gate
             pG2.drawLine(
@@ -441,7 +444,7 @@ public void drawDACGates(Channel pChannel, Graphics2D pG2,
             //draw the gate
 
             if ( (i+1) < pChannel.numberOfDACGates
-                     && pChannel.dacGates[i+1].getActive())
+                     && pChannel.dacGates[i+1].getActive()) {
 
                 pG2.drawLine(
                     pChannel.dacGates[i].gatePixEndAdjusted,
@@ -449,6 +452,7 @@ public void drawDACGates(Channel pChannel, Graphics2D pG2,
                     pChannel.dacGates[i+1].gatePixStartAdjusted,
                     pChannel.dacGates[i+1].gatePixLevel
                     );
+            }
         }
     }// for (int i = 0; i < pChannel.numberOfDACGates; i++)
 
@@ -553,7 +557,7 @@ public void setChannel(Channel pChannel, String pGroupTitle)
 
     channel = pChannel;
 
-    if (channel == null) return;
+    if (channel == null) {return;}
 
     canvas.setChannel(channel);
 
