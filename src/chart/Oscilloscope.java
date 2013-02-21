@@ -47,7 +47,7 @@ class OscopeCanvas extends JPanel {
     double uSPerDataPoint;
     boolean dacEnabled = false;
     boolean dacLocked = true;
-    int maxY;
+    int maxX, maxY;
     Xfer aScanPeakInfo;
     Color bgColor;
 
@@ -60,13 +60,13 @@ class OscopeCanvas extends JPanel {
 // the scope is allowed to update.
 //
 
-public OscopeCanvas(double pUSPerDataPoint, MouseListener pMouseListener,
-                  MouseMotionListener pMouseMotionListener, Settings pSettings)
+public OscopeCanvas(int pMaxX, int pMaxY, double pUSPerDataPoint,
+        MouseListener pMouseListener, MouseMotionListener pMouseMotionListener,
+                                                             Settings pSettings)
 {
 
+    maxX = pMaxX; maxY = pMaxY;
     uSPerDataPoint = pUSPerDataPoint; settings = pSettings;
-
-    maxY = 350;
 
     bgColor = new Color(153, 204, 0);
 
@@ -75,9 +75,9 @@ public OscopeCanvas(double pUSPerDataPoint, MouseListener pMouseListener,
     //we will handle drawing the background
     setOpaque(false);
 
-    setMinimumSize(new Dimension(350,maxY));
-    setPreferredSize(new Dimension(350,maxY));
-    setMaximumSize(new Dimension(350,maxY));
+    setMinimumSize(new Dimension(maxX,maxY));
+    setPreferredSize(new Dimension(maxX,maxY));
+    setMaximumSize(new Dimension(maxX,maxY));
 
     setBackground(bgColor);
 
@@ -490,7 +490,79 @@ public void drawGrid(Graphics2D pG2)
 //-----------------------------------------------------------------------------
 
 
-}//end of class Canvas
+}//end of class OScopeCanvas
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// class HorizontalGridLabels
+//
+// This panel draws grid labels for the horizontal axis of the scope.
+//
+
+class HorizontalGridLabels extends JPanel {
+
+    int width, height;
+
+//-----------------------------------------------------------------------------
+// HorizontalGridLabels::HorizontalGridLabels (constructor)
+//
+//
+
+public HorizontalGridLabels(int pWidth)
+{
+
+    width = pWidth; height = 13;
+
+}//end of HorizontalGridLabels::HorizontalGridLabels (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// HorizontalGridLabels::init
+//
+// Initializes new objects. Should be called immediately after instantiation.
+//
+
+public void init()
+{
+
+    //we will handle drawing the background
+    setOpaque(false);
+
+    setMinimumSize(new Dimension(width, height));
+    setPreferredSize(new Dimension(width, height));
+    setMaximumSize(new Dimension(width, height));
+
+}//end of HorizontalGridLabels::HorizontalGridLabels (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// HorizontalGridLabels::paintComponent
+//
+
+@Override
+public void paintComponent(Graphics g)
+
+{
+
+    Graphics2D g2 = (Graphics2D) g;
+
+    super.paintComponent(g2); //paint background
+
+    //calculate spacing between grids
+    int division = width / 10;
+
+    //draw number under each vertical grid line
+
+    for (int i = 1; i < 10; i++){
+        g2.drawString("" + i, (i*division)-3, 12);
+    }
+
+}//end of HorizontalGridLabels::paintComponent
+//-----------------------------------------------------------------------------
+
+}//end of class HorizontalGridLabels
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
@@ -508,6 +580,9 @@ public class Oscilloscope extends JPanel {
     OscopeCanvas canvas;
     Settings settings;
     Color bgColor;
+
+    HorizontalGridLabels horizontalGridLabels;
+    boolean displayHorizontalGridlabels = true;
 
 //-----------------------------------------------------------------------------
 // Oscilloscope::Oscilloscope (constructor)
@@ -530,17 +605,26 @@ public Oscilloscope(String pTitle, double pUSPerDataPoint,
     setOpaque(true);
 
     //change the layout manager
-    setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+    setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 
     setBorder(BorderFactory.createTitledBorder(pTitle));
+
+    int scopeWidth = 350, scopeHeight = 350;
 
     //create a Canvas object to be placed on the main panel - the Canvas object
     //provides a panel and methods for drawing data - all the work is actually
     //done by the Canvas object
-    canvas = new OscopeCanvas(pUSPerDataPoint, pMouseListener,
-                                               pMouseMotionListener, settings);
+    canvas = new OscopeCanvas(scopeWidth, scopeHeight, pUSPerDataPoint,
+                                pMouseListener, pMouseMotionListener, settings);
 
     add(canvas);
+
+    //if enabled, add a panel with labels for the horizontal axis
+    if (displayHorizontalGridlabels){
+        horizontalGridLabels = new HorizontalGridLabels(scopeWidth);
+        horizontalGridLabels.init();
+        add(horizontalGridLabels);
+    }
 
 }//end of Oscilloscope::Oscilloscope (constructor)
 //-----------------------------------------------------------------------------
