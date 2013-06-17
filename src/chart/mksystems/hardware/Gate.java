@@ -445,9 +445,9 @@ public void getNewData(HardwareVars hdwVs)
         //remove this later when better processing added to DSP code
 
         //for 2-3/8 tube -- if (wallThickness > .220) wallThickness = .220;
-        if (wallThickness > .900) wallThickness = .900;
+//        if (wallThickness > .900) wallThickness = .900;
 
-        //debug mks
+        //end debug mks
 
         //convert distance to a chart height position
         dataPeak = (int)((wallThickness - hdwVs.nominalWall)
