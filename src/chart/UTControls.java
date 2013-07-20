@@ -22,7 +22,7 @@ package chart;
 
 import chart.mksystems.hardware.Channel;
 import chart.mksystems.hardware.DACGate;
-import chart.mksystems.hardware.Gate;
+import chart.mksystems.hardware.UTGate;
 import chart.mksystems.hardware.Hardware;
 import chart.mksystems.hardware.UTBoard;
 import chart.mksystems.mswing.MFloatSpinner;
@@ -1110,7 +1110,7 @@ void setupProcessTab()
     JLabel label;
     JComboBox jcb;
     SpinnerPanel sp;
-    Gate gate;
+    UTGate gate;
 
     int numberOfGates = currentChannel.getNumberOfGates();
 
@@ -1807,7 +1807,7 @@ public void updateAllSettings(boolean pForceUpdate)
     Channel ch = currentChannel; //use a short name
 
     int numberOfGates = ch.getNumberOfGates();
-    Gate gate;
+    UTGate gate;
 
     for (int i=0; i < numberOfGates; i++){
 
@@ -2015,7 +2015,7 @@ public void calculateGatePixelLocation()
     //the pixel values are used by the display function to avoid having to waste
     //time recomputing them each time
     int numberOfGates = currentChannel.getNumberOfGates();
-    Gate gate;
+    UTGate gate;
     for (int i=0; i < numberOfGates; i++){
 
         gate = currentChannel.getGate(i);

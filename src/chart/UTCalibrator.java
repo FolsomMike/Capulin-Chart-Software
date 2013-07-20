@@ -28,7 +28,7 @@ import chart.mksystems.settings.Settings;
 import chart.mksystems.stripchart.StripChart;
 import chart.mksystems.hardware.Hardware;
 import chart.mksystems.hardware.Channel;
-import chart.mksystems.hardware.Gate;
+import chart.mksystems.hardware.UTGate;
 import chart.mksystems.hardware.UTBoard;
 
 //-----------------------------------------------------------------------------
@@ -56,7 +56,7 @@ public class UTCalibrator extends JDialog implements ActionListener,
     Hardware hardware;
     public Channel[] channels; //channels in the current group (chart)
     public Channel[] allChannels; //all channels in the system
-    Gate gate;
+    UTGate gate;
     UTControls utControls;
     JButton copyButton, copyToAllButton;
     JButton allOnButton, allOffButton;
@@ -296,7 +296,7 @@ public void setChannels(int pNumberOfChannels, Channel[] pChannels,
     chart = pChart;
 
     //set the current channel to that last viewed for the current chart
-    //the first time, through the value will be 0, the first channel
+    //the first time the value will be 0, the first channel
 
     currentChannelIndex = chart.lastAScanChannel;
 
@@ -340,6 +340,9 @@ public void setupChannelSelectorPanel()
     allSelectors.setLayout(new BoxLayout(allSelectors, BoxLayout.Y_AXIS));
     allSelectors.setAlignmentX(Component.LEFT_ALIGNMENT);
     channelSelector.add(allSelectors); //add the sub-panel to the parent
+
+
+
 
     for (int i=0; i < numberOfChannels; i++){
 
@@ -594,7 +597,7 @@ numberOfDACGates = pSource.getNumberOfDACGates();
 // since each part of a gate can be selected for copying, each part is
 // copied seperately here
 
-Gate sGate;
+UTGate sGate;
 
 //copy the gate info for all gates of the channels
 for (int g = 0; g < numberOfGates; g++){
@@ -1081,7 +1084,10 @@ if (channels[currentChannelIndex] != null)
 //enable Ascan fast buffer processing in the DSP
 //this will result in missed data sets and missed peaks due to the extensive
 //processing required, so should only be used for setup, not inspection
-channels[currentChannelIndex].setAScanFastEnabled(true, false);
+
+if (channels[currentChannelIndex] != null){
+    channels[currentChannelIndex].setAScanFastEnabled(true, false);
+}
 
 }//end of UTCalibrator::windowActivated
 //-----------------------------------------------------------------------------
@@ -1107,7 +1113,10 @@ for (int i=0; i<numberOfChannels; i++)
 // it is running.  This is okay for setting up in a static situation, but
 // the AScan must be disabled during inspection.  The OScope screen will thus
 // be frozen during inspection.
-channels[currentChannelIndex].setAScanFastEnabled(false, false);
+
+if (channels[currentChannelIndex] != null){
+    channels[currentChannelIndex].setAScanFastEnabled(false, false);
+}
 
 }//end of UTCalibrator::windowDeactivated
 //-----------------------------------------------------------------------------
