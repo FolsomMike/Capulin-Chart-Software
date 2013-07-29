@@ -346,7 +346,7 @@ public void plotData()
     //while there is data to be plotted for the leading trace, plot data for all
     //traces which have data
 
-    while (traces[leadingTrace].newDataReady()){
+    while (traces[leadingTrace].newDataIsReady()){
 
         //find the hardware channel which produced the worst case value - this
         //requires that the worst case trace be found - it is assumed that all
@@ -363,7 +363,7 @@ public void plotData()
         //check for new data on each trace because delayed traces might not have
         //data at the same time
         for (int i = 0; i < numberOfTraces; i++)
-            if (traces[i].newDataReady()){
+            if (traces[i].newDataIsReady()){
                 lastValue = traces[i].plotNewData((Graphics2D)getGraphics());
 
                 //catch the trace with the worst value and record its channel
@@ -649,7 +649,9 @@ private void configure(IniFile pConfigFile)
     //if flag is true, make chart wide enough to hold all data in the trace
     // see header notes in constructor for more info
 
-    if (chartSizeEqualsBufferSize) chartWidth = traces[0].sizeOfDataBuffer;
+    if (chartSizeEqualsBufferSize) {
+        chartWidth = traces[0].traceData.sizeOfDataBuffer;
+    }
 
     //create a Canvas object to be placed on the main panel - the Canvas object
     //provides a panel and methods for drawing data - all the work is actually
@@ -978,7 +980,8 @@ public void resetChart()
 public void markSegmentStart()
 {
 
-    for (int i = 0; i < numberOfTraces; i++) traces[i].markSegmentStart();
+    for (int i = 0; i < numberOfTraces; i++)
+        traces[i].traceData.markSegmentStart();
 
 }//end of StripChart::markSegmentStart
 //-----------------------------------------------------------------------------
@@ -998,7 +1001,8 @@ public void markSegmentStart()
 public void markSegmentEnd()
 {
 
-    for (int i = 0; i < numberOfTraces; i++) traces[i].markSegmentEnd();
+    for (int i = 0; i < numberOfTraces; i++)
+        traces[i].traceData.markSegmentEnd();
 
 }//end of StripChart::markSegmentEnd
 //-----------------------------------------------------------------------------
@@ -1055,7 +1059,7 @@ public boolean segmentStarted()
 {
 
     for (int i = 0; i < numberOfTraces; i++)
-        if (traces[i].segmentStarted()) return(true);
+        if (traces[i].traceData.segmentStarted()) return(true);
 
     return(false);
 

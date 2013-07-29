@@ -937,9 +937,17 @@ public void getPeakData4()
 
             short wall;
 
-            wall = (short)(120 + (Math.random()*10));
+            wall = (short)(170 + (Math.random()*10));
 
+            //debug mks sendShortInt(wall);  //wall max peak uS distance
+
+            //debug mks
+            if (ch==0){
             sendShortInt(wall);  //wall max peak uS distance
+            }
+            else
+            sendShortInt(500);  //wall max peak uS distance
+            //debug mks
 
             sendShortInt((short)0);  //start fractional distance numerator
 
@@ -953,14 +961,23 @@ public void getPeakData4()
 
             //minimum wall values
 
-            wall = (short)(95 + (Math.random()*10));
+            wall = (short)(145 + (Math.random()*10));
 
             //occasional peak
             if(((int)(Math.random()*200)) == 1) {
                 wall -= (int)(Math.random()*30);
             }
 
-            sendShortInt(wall);  //wall min peak uS distance
+            //debug mks sendShortInt(wall);  //wall min peak uS distance
+
+            //debug mks
+            if (ch==0){
+            sendShortInt(wall);  //wall max peak uS distance
+            }
+            else
+            sendShortInt(0);  //wall max peak uS distance
+            //debug mks
+
 
             sendShortInt((short)0);  //start fractional distance numerator
 

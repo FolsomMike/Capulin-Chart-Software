@@ -22,6 +22,7 @@ import chart.mksystems.inifile.IniFile;
 import chart.mksystems.settings.Settings;
 import chart.mksystems.stripchart.Threshold;
 import chart.mksystems.stripchart.Trace;
+import chart.mksystems.stripchart.TraceData;
 import chart.mksystems.threadsafe.*;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -52,7 +53,7 @@ public class Channel extends Object{
     public UTBoard utBoard;
 
     public int channelIndex;
-    public Gate[] gates;
+    public UTGate[] gates;
     public int numberOfGates;
 
     public DACGate[] dacGates;
@@ -650,7 +651,7 @@ public int getNumberOfGates()
 // Returns a reference to the specified gate.
 //
 
-public Gate getGate(int pGate)
+public UTGate getGate(int pGate)
 {
 
     return gates[pGate];
@@ -664,8 +665,11 @@ public Gate getGate(int pGate)
 // Calls the getNewData function for the specified gate.  See the gate
 // class for more info.
 //
-// Returns true if the channel On and Not Masked.  Returns false otherwise so
-// so its data won't be used.
+// Returns true if the channel On and Not Masked.  Returns false otherwise and
+// data which will always be overridden by other channels which are active.
+//
+// Thus, for an inactive gate for which higher values are the peaks, the data
+// returned will be a minimum value and vice versa.
 //
 
 public boolean getNewData(int pGate, HardwareVars hdwVs)
@@ -676,7 +680,7 @@ public boolean getNewData(int pGate, HardwareVars hdwVs)
         return(true);
     }
     else{
-        gates[pGate].getNewData(hdwVs);
+        gates[pGate].getInactiveData(hdwVs);
         return(false);
     }
 
@@ -1948,14 +1952,14 @@ void setTransducer(boolean pChannelOn, int pPulseBank, int pPulseChannel,
 // channels/gates and give a link back to variables in the Trace object.
 //
 
-public void linkTraces(int pChartGroup, int pChart, int pTrace, int[] pDBuffer,
-   int[] pDBuffer2, int[] pFBuffer, Threshold[] pThresholds, int pPlotStyle,
-   Trace pTracePtr)
+public void linkTraces(int pChartGroup, int pChart, int pTrace,
+        TraceData pTraceData, Threshold[] pThresholds, int pPlotStyle,
+                                                            Trace pTracePtr)
 {
 
     for (int i = 0; i < numberOfGates; i++) {
-        gates[i].linkTraces(pChartGroup, pChart, pTrace, pDBuffer, pDBuffer2,
-                         pFBuffer, pThresholds, pPlotStyle, pTracePtr);
+        gates[i].linkTraces(pChartGroup, pChart, pTrace, pTraceData,
+                                        pThresholds, pPlotStyle, pTracePtr);
     }
 
 }//end of Channel::linkTraces
@@ -2032,10 +2036,12 @@ private void configureGates()
         //protect against too many
         if (numberOfGates > 20) {numberOfGates = 20;}
 
-        gates = new Gate[numberOfGates];
+        gates = new UTGate[numberOfGates];
 
         for (int i = 0; i < numberOfGates; i++) {
-            gates[i] = new Gate(configFile, channelIndex, i, syncedVarMgr);
+            gates[i] =
+                    new UTGate(configFile, channelIndex, i, syncedVarMgr);
+            gates[i].init();
         }
 
     }//if (numberOfGates > 0)
@@ -2064,6 +2070,7 @@ private void configureDACGates()
         for (int i = 0; i < numberOfDACGates; i++) {
             dacGates[i] = new DACGate(configFile, channelIndex, i,
                                                     syncedVarMgr, scopeMax);
+            dacGates[i].init();
         }
 
     }//if (numberOfDACGates > 0)

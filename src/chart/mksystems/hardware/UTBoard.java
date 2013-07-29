@@ -248,7 +248,7 @@ public class UTBoard extends Board{
         byte bufStart0, bufStart1, bufStart2;
 
         int numberOfGates = 0;
-        Gate[] gates;
+        UTGate[] gates;
 
         int aScanSmoothing = 1;
         int rejectLevel;
@@ -2628,7 +2628,7 @@ void sendHitMissCounts(int pChannel, int pGate, int pHitCount, int pMissCount)
 // Sets a link to the gates for the channel pChannel.
 //
 
-public void linkGates(int pChannel, Gate[] pGates, int pNumberOfGates)
+public void linkGates(int pChannel, UTGate[] pGates, int pNumberOfGates)
 {
 
     bdChs[pChannel].numberOfGates = pNumberOfGates;

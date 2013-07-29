@@ -17,10 +17,9 @@
 //-----------------------------------------------------------------------------
 
 package chart.mksystems.hardware;
-import java.text.DecimalFormat;
-
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.threadsafe.*;
+import java.text.DecimalFormat;
 
 
 //-----------------------------------------------------------------------------
@@ -126,6 +125,19 @@ public BasicGate(SyncedVariableSet pSyncedVarMgr)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// BasicGate::init
+//
+// Initializes the object.  MUST be called by sub classes after instantiation.
+//
+
+public void init()
+{
+
+
+}//end of BasicGate::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // BasicGate::calculateGatePixelLocation
 //
 // Calculates the pixel locations for a gate from its time locations and
@@ -166,8 +178,8 @@ public boolean calculateGatePixelLocation(double pUSPerPixel, int pDelayPix,
     nGatePixLevel += pVertOffset;
 
     //invert level so 0,0 is at bottom left
-    if (nGatePixLevel < 0) nGatePixLevel = 0;
-    if (nGatePixLevel > pCanvasHeight) nGatePixLevel = pCanvasHeight;
+    if (nGatePixLevel < 0) {nGatePixLevel = 0;}
+    if (nGatePixLevel > pCanvasHeight) {nGatePixLevel = pCanvasHeight;}
     nGatePixLevel = pCanvasHeight - nGatePixLevel;
 
     if (gatePixLevel != nGatePixLevel){
@@ -201,8 +213,8 @@ public void calculateGateTimeLocation(double pUSPerPixel, int pDelayPix,
     int nPixLevel = gatePixLevel; //use a temp variable - don't modify original
 
     //invert level so 0,0 is back at top left
-    if (nPixLevel < 0) nPixLevel = 0;
-    if (nPixLevel > pCanvasHeight) nPixLevel = pCanvasHeight;
+    if (nPixLevel < 0) {nPixLevel = 0;}
+    if (nPixLevel > pCanvasHeight) {nPixLevel = pCanvasHeight;}
     nPixLevel = pCanvasHeight - nPixLevel;
 
     //remove the current vertical offset
@@ -280,11 +292,13 @@ public boolean isPositionChanged()
 
     if (     gateStart.getDataChangedFlag()
           || gateWidth.getDataChangedFlag()
-          || gateLevel.getDataChangedFlag())
+          || gateLevel.getDataChangedFlag()) {
 
         return(true);
-    else
+    }
+    else {
         return(false);
+    }
 
 }//end of BasicGate::isPositionChanged
 //-----------------------------------------------------------------------------
@@ -298,10 +312,12 @@ public boolean isPositionChanged()
 public boolean isFlagsChanged()
 {
 
-    if ( gateFlags.getDataChangedFlag())
+    if ( gateFlags.getDataChangedFlag()) {
         return(true);
-    else
+    }
+    else {
         return(false);
+    }
 
 }//end of BasicGate::isFlagsChanged
 //-----------------------------------------------------------------------------

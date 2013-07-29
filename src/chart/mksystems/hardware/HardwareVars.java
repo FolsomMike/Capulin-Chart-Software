@@ -20,9 +20,9 @@ package chart.mksystems.hardware;
 
 import chart.mksystems.stripchart.ChartGroup;
 import chart.mksystems.stripchart.StripChart;
+import chart.mksystems.stripchart.Threshold;
 import chart.mksystems.stripchart.Trace;
 import chart.mksystems.stripchart.TraceHdwVars;
-import chart.mksystems.stripchart.Threshold;
 
 //-----------------------------------------------------------------------------
 // class HardwareVars
@@ -35,7 +35,7 @@ public class HardwareVars extends Object{
     TraceHdwVars hdwVs;
     Threshold[] thresholds;
 
-    Gate gatePtr;
+    UTGate gatePtr;
 
     double nSPerDataPoint, uSPerDataPoint;
 

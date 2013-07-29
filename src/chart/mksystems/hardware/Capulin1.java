@@ -18,20 +18,19 @@
 
 package chart.mksystems.hardware;
 
-import java.io.*;
-import java.net.*;
-import javax.swing.*;
-import java.io.IOException;
-
-import chart.mksystems.settings.Settings;
+import chart.Log;
 import chart.MessageLink;
 import chart.ThreadSafeLogger;
 import chart.mksystems.inifile.IniFile;
+import chart.mksystems.settings.Settings;
 import chart.mksystems.stripchart.Threshold;
 import chart.mksystems.stripchart.Trace;
-import chart.mksystems.threadsafe.SyncedVariableSet;
+import chart.mksystems.stripchart.TraceData;
 import chart.mksystems.threadsafe.SyncedInteger;
-import chart.Log;
+import chart.mksystems.threadsafe.SyncedVariableSet;
+import java.io.*;
+import java.net.*;
+import javax.swing.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -1300,7 +1299,7 @@ public Channel[] getChannels()
 //
 
 @Override
-public Gate getGate(int pChannel, int pGate)
+public UTGate getGate(int pChannel, int pGate)
 {
 
     return channels[pChannel].getGate(pGate);
@@ -1323,7 +1322,7 @@ public int getNumberOfGates(int pChannel)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::getNewData
+// UTGate::getNewData
 //
 // Calls the getNewData function for the specified channel and gate.  See the
 // channel and gate classes for more info.
@@ -1335,11 +1334,11 @@ public boolean getNewData(int pChannel, int pGate, HardwareVars hdwVs)
 
     return channels[pChannel].getNewData(pGate, hdwVs);
 
-}//end of Gate::getNewData
+}//end of UTGate::getNewData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::getTrace
+// UTGate::getTrace
 //
 // Calls the getTrace function for the specified channel and gate.  See the
 // channel and gate classes for more info.
@@ -1351,7 +1350,7 @@ public Trace getTrace(int pChannel, int pGate)
 
     return channels[pChannel].getTrace(pGate);
 
-}//end of Gate::getTrace
+}//end of UTGate::getTrace
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1362,14 +1361,15 @@ public Trace getTrace(int pChannel, int pGate)
 //
 
 @Override
-public void linkTraces(int pChartGroup, int pChart, int pTrace, int[] pDBuffer,
-   int[] pDBuffer2, int[] pFBuffer, Threshold[] pThresholds, int pPlotStyle,
-   Trace pTracePtr)
+public void linkTraces(int pChartGroup, int pChart, int pTrace,
+            TraceData pTraceData, Threshold[] pThresholds, int pPlotStyle,
+                                                               Trace pTracePtr)
 {
 
-    for (int i = 0; i < numberOfChannels; i++)
-        channels[i].linkTraces(pChartGroup, pChart, pTrace, pDBuffer, pDBuffer2,
-                          pFBuffer, pThresholds, pPlotStyle, pTracePtr);
+    for (int i = 0; i < numberOfChannels; i++) {
+        channels[i].linkTraces(pChartGroup, pChart, pTrace, pTraceData,
+                                        pThresholds, pPlotStyle, pTracePtr);
+    }
 
 }//end of Capulin1::linkTraces
 //-----------------------------------------------------------------------------

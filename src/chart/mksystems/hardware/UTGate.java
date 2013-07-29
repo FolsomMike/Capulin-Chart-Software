@@ -1,11 +1,11 @@
 /******************************************************************************
-* Title: Gate.java
+* Title: UTGate.java
 * Author: Mike Schoonover
 * Date: 4/26/09
 *
 * Purpose:
 *
-* This class handles a gate.
+* This class handles an ultrasonic gate.
 *
 * Open Source Policy:
 *
@@ -18,25 +18,25 @@
 
 package chart.mksystems.hardware;
 
-import java.util.*;
-import java.io.BufferedWriter;
-import java.io.IOException;
-
-import chart.mksystems.settings.Settings;
+import chart.Xfer;
 import chart.mksystems.inifile.IniFile;
+import chart.mksystems.settings.Settings;
 import chart.mksystems.stripchart.Threshold;
 import chart.mksystems.stripchart.Trace;
-import chart.Xfer;
+import chart.mksystems.stripchart.TraceData;
 import chart.mksystems.threadsafe.*;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.util.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-// class Gate
+// class UTGate
 //
 // This class handles an input gate.
 //
 
-public class Gate extends BasicGate{
+public class UTGate extends BasicGate{
 
     // Variable triggerDirection = 0 if the data is to be flagged if it goes
     // over the gate, 1 if data is flagged for going below the gate
@@ -46,6 +46,12 @@ public class Gate extends BasicGate{
     // is up, the worst case values are considered to be the higher ones and
     // vice versa.
     int peakDirection;
+
+    //the peak value and the opposite depending on the type of gate
+    //for a MAX gate, the peak value is Integer.MAX_VALUE, for a MIN gate
+    //the peak value is Integer.MIN_VALUE. These are set when the gates MIN/MAX
+    //flag is set.
+    int peakValue = 0, antiPeakValue = 0;
 
     boolean isInterfaceGate = false;
     boolean isWallStartGate = false;
@@ -80,9 +86,7 @@ public class Gate extends BasicGate{
 
     Trace tracePtr; //a pointer to the trace attached to this gate
 
-    public int[] dBuffer1;
-    public int[] dBuffer2;
-    public int[] fBuffer;
+    TraceData traceData;
     public Threshold[] thresholds;
     public int plotStyle;
     public int clockPos;
@@ -133,8 +137,13 @@ public class Gate extends BasicGate{
     public Object processSelector;
     public Object thresholdAdjuster;
 
+    //constants
+
+    static int MAX = 0;
+    static int MIN = 1;
+
 //-----------------------------------------------------------------------------
-// Gate::Gate (constructor)
+// UTGate::UTGate (constructor)
 //
 // The parameter configFile is used to load configuration data.  The IniFile
 // should already be opened and ready to access.
@@ -144,14 +153,27 @@ public class Gate extends BasicGate{
 // remotes so that they will be managed in a threadsafe manner.
 //
 
-public Gate(IniFile pConfigFile, int pChannelIndex, int pGateIndex,
-                                            SyncedVariableSet pSyncedVarMgr)
+public UTGate(IniFile pConfigFile, int pChannelIndex,
+                            int pGateIndex, SyncedVariableSet pSyncedVarMgr)
 {
 
     super(pSyncedVarMgr);
 
-    configFile = pConfigFile; channelIndex = pChannelIndex;
-    gateIndex = pGateIndex;
+    configFile = pConfigFile;
+    channelIndex = pChannelIndex; gateIndex = pGateIndex;
+
+}//end of UTGate::UTGate (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTGate::init
+//
+// Initializes the object.  MUST be called by sub classes after instantiation.
+//
+
+@Override
+public void init()
+{
 
     gateHitCount = new SyncedInteger(syncedVarMgr); gateHitCount.init();
     gateMissCount = new SyncedInteger(syncedVarMgr); gateMissCount.init();
@@ -187,11 +209,11 @@ public Gate(IniFile pConfigFile, int pChannelIndex, int pGateIndex,
     //set the gate active flag for each gate
     setActive(true);
 
-}//end of Gate::Gate (constructor)
+}//end of UTGate::init
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::storeNewData
+// UTGate::storeNewData
 //
 // Stores the new data value and sets the newDataReadyFlag true.
 //
@@ -228,11 +250,11 @@ public void storeNewData(int pDataPeak, int pDataMaxPeak, int pDataMinPeak,
 
     newDataReady = true;
 
-}//end of Gate::storeNewData
+}//end of UTGate::storeNewData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::storeNewDataD
+// UTGate::storeNewDataD
 //
 // Stores the new data value and sets the newDataReadyFlag true.
 //
@@ -250,11 +272,11 @@ public void storeNewDataD(double pDataPeakD, int dPeakTrack, int pClockPos)
 
     newDataReady = true;
 
-}//end of Gate::storeNewDataD
+}//end of UTGate::storeNewDataD
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::storeNewAScanPeak
+// UTGate::storeNewAScanPeak
 //
 // If pPeak is higher than the peak value already stored, pPeak will replace
 // that value in aScanPeak and the flight time (time after the initial pulse
@@ -269,11 +291,11 @@ public void storeNewAScanPeak(int pPeak, int pAScanPeakFlightTime)
         aScanPeakFlightTime = pAScanPeakFlightTime;
     }
 
-}//end of Gate::storeNewAScanPeak
+}//end of UTGate::storeNewAScanPeak
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::getAndClearAScanPeak()
+// UTGate::getAndClearAScanPeak()
 //
 // Returns aScanPeak and resets it to its minimum so the next peak can be
 // captured.  The peak's flight time (time after the initial pulse
@@ -291,11 +313,11 @@ public void getAndClearAScanPeak(Xfer pAScanPeakInfo)
 
     aScanPeak = Integer.MIN_VALUE;
 
-}//end of Gate::getAndClearAScanPeak
+}//end of UTGate::getAndClearAScanPeak
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::setFlags
+// UTGate::setFlags
 //
 // Sets the various bits in gateFlags to match the gate type (INTERFACE, FLAW,
 // ETC.) and current processing modes.
@@ -314,70 +336,96 @@ private void setFlags()
 
     //set the bits common to all gate types
 
-    if (gateActive)
+    if (gateActive) {
         flags |= GATE_ACTIVE;
-    else
+    }
+    else {
         flags &= (~GATE_ACTIVE);
+    }
 
-    if (doFindPeak)
+    if (doFindPeak) {
         flags |= GATE_FIND_PEAK;
-    else
+    }
+    else {
         flags &= (~GATE_FIND_PEAK);
+    }
 
-    if (doIntegrateAboveGate)
+    if (doIntegrateAboveGate) {
         flags |= GATE_INTEGRATE_ABOVE_PEAK;
-    else
+    }
+    else {
         flags &= (~GATE_INTEGRATE_ABOVE_PEAK);
+    }
 
-    if (maxMin)
-        flags &= (~GATE_MAX_MIN); //b = 0 for max gate
-    else
-        flags |= GATE_MAX_MIN; //b = 1 for min gate
+    if (maxMin) {
+        flags &= (~GATE_MAX_MIN);
+    } //b = 0 for max gate
+    else {
+        flags |= GATE_MAX_MIN;
+    } //b = 1 for min gate
 
-    if (isWallStartGate)
+    if (isWallStartGate) {
         flags |= GATE_WALL_START;
-    else
+    }
+    else {
         flags &= (~GATE_WALL_START);
+    }
 
-    if (isWallEndGate)
+    if (isWallEndGate) {
         flags |= GATE_WALL_END;
-    else
+    }
+    else {
         flags &= (~GATE_WALL_END);
+    }
 
-    if (doCrossingSearch)
+    if (doCrossingSearch) {
         flags |= GATE_FIND_CROSSING;
-    else
+    }
+    else {
         flags &= (~GATE_FIND_CROSSING);
+    }
 
-    if (isInterfaceGate)
+    if (isInterfaceGate) {
         flags |= GATE_FOR_INTERFACE;
-    else
+    }
+    else {
         flags &= (~GATE_FOR_INTERFACE);
+    }
 
-    if (reportNotExceeding)
+    if (reportNotExceeding) {
         flags |= GATE_REPORT_NOT_EXCEED;
-    else
+    }
+    else {
         flags &= (~GATE_REPORT_NOT_EXCEED);
+    }
 
-    if (doInterfaceTracking)
+    if (doInterfaceTracking) {
         flags |= GATE_USES_TRACKING;
-    else
+    }
+    else {
         flags &= (~GATE_USES_TRACKING);
+    }
 
-    if (doQuenchOnOverLimit)
+    if (doQuenchOnOverLimit) {
         flags |= GATE_QUENCH_IF_OVERLIMIT;
-    else
+    }
+    else {
         flags &= (~GATE_QUENCH_IF_OVERLIMIT);
+    }
 
-    if (isAScanTriggerGate)
+    if (isAScanTriggerGate) {
         flags |= GATE_TRIGGER_ASCAN_SAVE;
-    else
+    }
+    else {
         flags &= (~GATE_TRIGGER_ASCAN_SAVE);
+    }
 
-    if (doSubsequentShotDifferential)
+    if (doSubsequentShotDifferential) {
         flags |= SUBSEQUENT_SHOT_DIFFERENTIAL;
-    else
+    }
+    else {
         flags &= (~SUBSEQUENT_SHOT_DIFFERENTIAL);
+    }
 
     //insert the AScan averaging value into the flags
 
@@ -386,8 +434,8 @@ private void setFlags()
     //aScanSmoothing can be higher
 
     int averaging = aScanSmoothing;
-    if (averaging > 4) averaging = 4;
-    if (averaging < 1) averaging = 1;
+    if (averaging > 4) {averaging = 4;}
+    if (averaging < 1) {averaging = 1;}
     //shift down ~ 1-4 -> 0-3
     averaging--;
     //merge into bits 15,14 of flags value
@@ -395,11 +443,11 @@ private void setFlags()
 
     gateFlags.setValue(flags, true);
 
-}//end of Gate::setFlags
+}//end of UTGate::setFlags
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::getFlags
+// UTGate::getFlags
 //
 // Returns the gate's flags.
 //
@@ -409,11 +457,11 @@ public SyncedInteger getFlags()
 
     return (gateFlags);
 
-}//end of Gate::getFlags
+}//end of UTGate::getFlags
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::getNewData
+// UTGate::getNewData
 //
 // This function prepares data for access. The data value(s) can be accessed in
 // public member variables in this class.  The pointer gatePtr in hdwVs will be
@@ -455,11 +503,37 @@ public void getNewData(HardwareVars hdwVs)
 
     }
 
-}//end of Gate::getNewData
+}//end of UTGate::getNewData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::getDefaultData
+// UTGate::getInactiveData
+//
+// Sets all data to the opposite of the peak value so that it will be
+// overridden by data from any other active channel -- this is because the
+// peak data is kept from all channels tied to any one trace.
+//
+// This method should be called to get data when the owning channel is
+// inactive.
+//
+
+public void getInactiveData(HardwareVars hdwVs)
+{
+
+    newDataReady = false; // clear the flag until new data is available
+
+    hdwVs.gatePtr = this; // pass back a pointer to this instance
+
+    dataPeak = antiPeakValue;
+    dataMaxPeak = antiPeakValue;
+    dataMinPeak = peakValue;
+    dataPeakD = antiPeakValue;
+
+}//end of UTGate::getInactiveData
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTGate::getDefaultData
 //
 // Returns whatever data is stored.  Use this when the channel is off or masked
 // to return a dummy value and set the necessary pointers in hdwVs.
@@ -470,11 +544,11 @@ public void getDefaultData(HardwareVars hdwVs)
 
     hdwVs.gatePtr = this; // pass back a pointer to this instance
 
-}//end of Gate::getDefaultData
+}//end of UTGate::getDefaultData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::getTrace
+// UTGate::getTrace
 //
 // Returns a pointer to the trace attached to this gate.
 //
@@ -485,11 +559,11 @@ public Trace getTrace()
 
     return tracePtr;
 
-}//end of Gate::getTrace
+}//end of UTGate::getTrace
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::setSignalProcessing
+// UTGate::setSignalProcessing
 //
 // Sets the signal processing mode.  If the mode is not a valid selection for
 // the gate type, the mode is forced to the first valid mode listed for the
@@ -506,7 +580,7 @@ public void setSignalProcessing(String pMode)
 
     //if the selection is not in the valid list for the gate type, reset it to
     //the first entry in that valid list
-    if (!pl.contains(pMode)) pMode = pl.get(0);
+    if (!pl.contains(pMode)) {pMode = pl.get(0);}
 
     signalProcessing = pMode;
 
@@ -572,11 +646,11 @@ public void setSignalProcessing(String pMode)
     //update the flags to reflect the change
     setFlags();
 
-}//end of Gate::setSignalProcessing
+}//end of UTGate::setSignalProcessing
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::getSignalProcessing
+// UTGate::getSignalProcessing
 //
 // Returns the string containing the current signal processing mode.
 // To get the index of the mode in the list appropriate for the gate type, use
@@ -588,11 +662,11 @@ public String getSignalProcessing()
 
     return signalProcessing;
 
-}//end of Gate::getSignalProcessing
+}//end of UTGate::getSignalProcessing
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::getSigProcIndex
+// UTGate::getSigProcIndex
 //
 // Returns the index in the appropriate list of the current signal processing
 // mode.
@@ -607,15 +681,15 @@ public int getSigProcIndex()
     int index = pl.indexOf(signalProcessing);
 
     //if not found, index will be -1, set to 0 (the first item in the list
-    if (index == -1) index = 0;
+    if (index == -1) {index = 0;}
 
     return(index);
 
-}//end of Gate::getSigProcIndex
+}//end of UTGate::getSigProcIndex
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::getSigProcList
+// UTGate::getSigProcList
 //
 // Returns the list of signal processing modes which is valid for the gate's
 // type.
@@ -628,21 +702,26 @@ public ArrayList<String> getSigProcList()
     ArrayList<String> pl = flawGateProcessList;
 
     //choose the appropriate list for the gate type
-    if (isInterfaceGate) pl = iFaceProcessList;
-    else
-    if (isFlawGate) pl = flawGateProcessList;
-    else
-    if (isWallStartGate) pl = wallGateProcessList;
-    else
-    if (isWallEndGate) pl = wallGateProcessList;
+    if (isInterfaceGate) {
+        pl = iFaceProcessList;
+    }
+    else if (isFlawGate) {
+        pl = flawGateProcessList;
+    }
+    else if (isWallStartGate) {
+        pl = wallGateProcessList;
+    }
+    else if (isWallEndGate) {
+        pl = wallGateProcessList;
+    }
 
     return(pl);
 
-}//end of Gate::getSigProcList
+}//end of UTGate::getSigProcList
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::setActive
+// UTGate::setActive
 //
 // Turns the gate active flag on or off.
 //
@@ -657,11 +736,11 @@ public final void setActive(boolean pValue)
     //update the flags to reflect the change
     setFlags();
 
-}//end of Gate::setActive
+}//end of UTGate::setActive
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::setAScanSmoothing
+// UTGate::setAScanSmoothing
 //
 // Sets the AScan smoothing averaging value.  This value is stored in bits
 // in the flags.
@@ -677,15 +756,18 @@ public final void setAScanSmoothing(int pAScanSmoothing)
     //update the flags to reflect the change
     setFlags();
 
-}//end of Gate::setAScanSmoothing
+}//end of UTGate::setAScanSmoothing
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::setMaxMin
+// UTGate::setMaxMin
 //
 // Turns the gate max/min peak search flag on or off.  If pOn is true, the gate
 // will be set up as a max peak catching gate.  If pOn is false, the gate
 // will be set up as a min peak catching gate.
+//
+// Sets the values for the maximum peak and its opposite depending on the state
+// of maxMin.
 //
 // Does not set the flag in the DSP.
 //
@@ -695,14 +777,23 @@ public void setMaxMin(boolean pOn)
 
     maxMin = pOn;
 
+    if (maxMin){
+        peakValue = Integer.MAX_VALUE;
+        antiPeakValue = Integer.MIN_VALUE;
+    }
+    else{
+        peakValue = Integer.MIN_VALUE;
+        antiPeakValue = Integer.MAX_VALUE;
+    }
+
     //update the flags to reflect the change
     setFlags();
 
-}//end of Gate::setMaxMin
+}//end of UTGate::setMaxMin
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::setWallStart
+// UTGate::setWallStart
 //
 // Turns the gate wall start flag on or off.  If pOn is true, the gate will be
 // used as the first gate for measuring wall thickness.
@@ -721,11 +812,11 @@ public void setWallStart(boolean pOn)
     //update the flags to reflect the change
     setFlags();
 
-}//end of Gate::setWallStart
+}//end of UTGate::setWallStart
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::getWallStart
+// UTGate::getWallStart
 //
 // Returns the isWallStartGate flag - true if the gate is designated as a wall
 // start gate false if not.
@@ -736,11 +827,11 @@ public boolean getWallStart()
 
     return isWallStartGate;
 
-}//end of Gate::getWallStart
+}//end of UTGate::getWallStart
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::setWallEnd
+// UTGate::setWallEnd
 //
 // Turns the gate wall end flag on or off.  If pOn is true, the gate will be
 // used as the second gate for measuring wall thickness.
@@ -759,11 +850,11 @@ public void setWallEnd(boolean pOn)
     //update the flags to reflect the change
     setFlags();
 
-}//end of Gate::setWallEnd
+}//end of UTGate::setWallEnd
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::getWallEnd
+// UTGate::getWallEnd
 //
 // Returns the isWallEndGate flag - true if the gate is designated as a wall
 // start gate false if not.
@@ -774,11 +865,11 @@ public boolean getWallEnd()
 
     return isWallEndGate;
 
-}//end of Gate::getWallEnd
+}//end of UTGate::getWallEnd
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::setCrossingSearch
+// UTGate::setCrossingSearch
 //
 // Turns the gate signal crossing search function flag on or off.  If pOn is
 // true, the gate will be scanned for the point where the signal exceeds the
@@ -795,11 +886,11 @@ public void setCrossingSearch(boolean pOn)
     //update the flags to reflect the change
     setFlags();
 
-}//end of Gate::setCrossingSearch
+}//end of UTGate::setCrossingSearch
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::setInterfaceGate
+// UTGate::setInterfaceGate
 //
 // Designates the gate for use in tracking the interface and updating the
 // positions of the other gates if interface tracking is on.
@@ -818,11 +909,11 @@ public void setInterfaceGate(boolean pOn)
     //update the flags to reflect the change
     setFlags();
 
-}//end of Gate::setInterfaceGate
+}//end of UTGate::setInterfaceGate
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::getInterfaceGate
+// UTGate::getInterfaceGate
 //
 // Returns the isInterfaceGate flag - true if the gate is designated as the
 // interface gate, false if not.
@@ -833,11 +924,11 @@ public boolean getInterfaceGate()
 
     return isInterfaceGate;
 
-}//end of Gate::getInterfaceGate
+}//end of UTGate::getInterfaceGate
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::setFlawGate
+// UTGate::setFlawGate
 //
 //
 // Turns the gate flaw type flag on or off.
@@ -853,11 +944,11 @@ public void setFlawGate(boolean pOn)
     //update the flags to reflect the change
     setFlags();
 
-}//end of Gate::setFlawGate
+}//end of UTGate::setFlawGate
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::getFlawGate
+// UTGate::getFlawGate
 //
 // Returns the isFlawGate flag - true if the gate is designated as a flaw gate
 // false if not.
@@ -868,11 +959,11 @@ public boolean getFlawGate()
 
     return isFlawGate;
 
-}//end of Gate::getFlawGate
+}//end of UTGate::getFlawGate
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::setFindPeak
+// UTGate::setFindPeak
 //
 // Turns the gate signal peak search function flag on or off.  If pOn is
 // true, the gate will be scanned for the greatest signal in the min or max
@@ -889,11 +980,11 @@ public void setFindPeak(boolean pOn)
     //update the flags to reflect the change
     setFlags();
 
-}//end of Gate::setFindPeak
+}//end of UTGate::setFindPeak
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::setIntegrateAboveGate
+// UTGate::setIntegrateAboveGate
 //
 // Turns the integrate above gate flag on or off.  If pOn is true, the data
 // above the gate level will be integrated for the result.
@@ -909,11 +1000,11 @@ public void setIntegrateAboveGate(boolean pOn)
     //update the flags to reflect the change
     setFlags();
 
-}//end of Gate::setIntegrateAboveGate
+}//end of UTGate::setIntegrateAboveGate
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::setSubsequentShotDifferential
+// UTGate::setSubsequentShotDifferential
 //
 // Turns the subsequent shot differential noise cancelling algorithm on or off.
 // If pState is true, the data above the gate level will be integrated for the
@@ -930,11 +1021,11 @@ public void setSubsequentShotDifferential(boolean pState)
     //update the flags to reflect the change
     setFlags();
 
-}//end of Gate::setSubsequentShotDifferential
+}//end of UTGate::setSubsequentShotDifferential
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::setQuenchOnOverLimit
+// UTGate::setQuenchOnOverLimit
 //
 // Turns the flag on or off for the set quench on over limit.  If pOn is
 // true, all gates after this one will be ignored if the value obtained from
@@ -951,11 +1042,11 @@ public void setQuenchOnOverLimit(boolean pOn)
     //update the flags to reflect the change
     setFlags();
 
-}//end of Gate::setQuenchOnOverLimit
+}//end of UTGate::setQuenchOnOverLimit
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::setAScanTriggerGate
+// UTGate::setAScanTriggerGate
 //
 // Turns the isAScanTriggerGate flag on or off.
 //
@@ -970,11 +1061,11 @@ public final void setAScanTriggerGate(boolean pValue)
     //update the flags to reflect the change
     setFlags();
 
-}//end of Gate::setAScanTriggerGate
+}//end of UTGate::setAScanTriggerGate
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::getIsAScanTriggerGate
+// UTGate::getIsAScanTriggerGate
 //
 // Returns the isAScanTriggerGate flag - true if the gate is designated as a
 // trigger for an AScan capture, false if not.
@@ -985,11 +1076,11 @@ public boolean getIsAScanTriggerGate()
 
     return (isAScanTriggerGate);
 
-}//end of Gate::getIsAScanTriggerGate
+}//end of UTGate::getIsAScanTriggerGate
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::setInterfaceTracking
+// UTGate::setInterfaceTracking
 //
 // Turns the interface tracking flag on or off.
 //
@@ -1004,11 +1095,11 @@ public void setInterfaceTracking(boolean pOn)
     //update the flags to reflect the change
     setFlags();
 
-}//end of Gate::setInterfaceTracking
+}//end of UTGate::setInterfaceTracking
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::linkTraces
+// UTGate::linkTraces
 //
 // This function is called by traces to link their buffers to specific hardware
 // channels/gates and give a link back to variables in the Trace object.
@@ -1017,15 +1108,15 @@ public void setInterfaceTracking(boolean pOn)
 // match those loaded for this gate from the config file.
 //
 
-public void linkTraces(int pChartGroup, int pChart, int pTrace, int[] pDBuffer,
-   int[] pDBuffer2, int[] pFBuffer, Threshold[] pThresholds, int pPlotStyle,
-   Trace pTracePtr)
+public void linkTraces(int pChartGroup, int pChart, int pTrace,
+        TraceData pTraceData, Threshold[] pThresholds, int pPlotStyle,
+                                                                Trace pTracePtr)
 {
 
     if (pChartGroup == chartGroup && pChart == chart && pTrace == trace){
 
         //store the buffer references in the specified channel to link the trace
-        dBuffer1 = pDBuffer; dBuffer2 = pDBuffer2; fBuffer = pFBuffer;
+        traceData = pTraceData;
 
         thresholds = pThresholds;
 
@@ -1035,11 +1126,11 @@ public void linkTraces(int pChartGroup, int pChart, int pTrace, int[] pDBuffer,
 
     }
 
-}//end of Gate::linkTraces
+}//end of UTGate::linkTraces
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::configure
+// UTGate::configure
 //
 // Loads configuration settings from the configuration.ini file.
 // The various child objects are then created as specified by the config data.
@@ -1068,7 +1159,7 @@ private void configure(IniFile pConfigFile)
     triggerDirection = pConfigFile.readInt(whichGate, "Trigger Direction", 0);
 
     peakDirection = pConfigFile.readInt(whichGate, "Peak Direction", 0);
-    setMaxMin(peakDirection == 0 ? true : false);
+    setMaxMin(peakDirection == MAX ? true : false);
 
     chartGroup = pConfigFile.readInt(whichGate, "Chart Group", 0) - 1;
 
@@ -1076,11 +1167,11 @@ private void configure(IniFile pConfigFile)
 
     trace = pConfigFile.readInt(whichGate, "Trace", 0) -1;
 
-}//end of Gate::configure
+}//end of UTGate::configure
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::loadCalFile
+// UTGate::loadCalFile
 //
 // This loads the file used for storing calibration information pertinent to a
 // job, such as gains, offsets, thresholds, etc.
@@ -1112,11 +1203,11 @@ public void loadCalFile(IniFile pCalFile)
     setSignalProcessing(
        pCalFile.readString(section, "Signal Processing Function", "undefined"));
 
-}//end of Gate::loadCalFile
+}//end of UTGate::loadCalFile
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::saveCalFile
+// UTGate::saveCalFile
 //
 // This saves the file used for storing calibration information pertinent to a
 // job, such as gains, offsets, thresholds, etc.
@@ -1148,11 +1239,11 @@ public void saveCalFile(IniFile pCalFile)
     pCalFile.writeString(section, "Signal Processing Function",
                                                         getSignalProcessing());
 
-}//end of Gate::saveCalFile
+}//end of UTGate::saveCalFile
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Gate::saveCalFileHumanReadable
+// UTGate::saveCalFileHumanReadable
 //
 // This saves a subset of the calibration data, the values of which affect
 // the inspection process.
@@ -1182,9 +1273,9 @@ public void saveCalFileHumanReadable(BufferedWriter pOut) throws IOException
 
     pOut.newLine();
 
-}//end of Gate::saveCalFileHumanReadable
+}//end of UTGate::saveCalFileHumanReadable
 //-----------------------------------------------------------------------------
 
-}//end of class Gate
+}//end of class UTGate
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

@@ -578,7 +578,7 @@ public void printReportForPiece(String pReportsPrimaryPath, int pPiece)
     }
 
     int traceLength =
-                chartGroups[0].getStripChart(0).getTrace(0).flagBuffer.length;
+        chartGroups[0].getStripChart(0).getTrace(0).traceData.flagBuffer.length;
 
     for (int i = 0; i < traceLength; i++){
         for (int j = 0; j < numberOfChartGroups; j++){
@@ -638,7 +638,7 @@ public void printFlagForTrace(PrintWriter pFile, StripChart pChart,
     //extract the flag threshold -- if greater than 0, then a flag
     //is set at this position (note that threshold 1 denotes a user
     //set flag)
-    if (((pTrace.flagBuffer[pDataIndex] & 0x0000fe00) >> 9) > 0){
+    if (((pTrace.traceData.flagBuffer[pDataIndex] & 0x0000fe00) >> 9) > 0){
 
         //debug mks -- pixelsPerInch needs to be read from the joint
         //file, not config file as it may change
@@ -651,7 +651,7 @@ public void printFlagForTrace(PrintWriter pFile, StripChart pChart,
                                             hdwVs.pixelsPerInch / 12.0), 5);
 
         //convert and format the amplitude depending on chart type
-        int amplitude = pTrace.dataBuffer1[pDataIndex];
+        int amplitude = pTrace.traceData.getDataBuffer1()[pDataIndex];
         double wall;
         if (isWallChart){
             wall = calculateComputedValue1(amplitude);
@@ -664,7 +664,7 @@ public void printFlagForTrace(PrintWriter pFile, StripChart pChart,
         }
 
         //extract the clock position from the flag
-        clockPos = pTrace.flagBuffer[pDataIndex] & 0x1ff;
+        clockPos = pTrace.traceData.flagBuffer[pDataIndex] & 0x1ff;
 
         //if the Report All Flags option is off, don't print duplicate flags:
         //if the flag is in the same linear and clock position as the

@@ -17,12 +17,11 @@
 //-----------------------------------------------------------------------------
 
 package chart.mksystems.hardware;
+import chart.mksystems.inifile.IniFile;
+import chart.mksystems.settings.Settings;
+import chart.mksystems.threadsafe.*;
 import java.io.BufferedWriter;
 import java.io.IOException;
-
-import chart.mksystems.settings.Settings;
-import chart.mksystems.inifile.IniFile;
-import chart.mksystems.threadsafe.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -38,7 +37,7 @@ public class DACGate extends BasicGate{
 
     int scopeMax;
     double softwareGain;
-    final SyncedInteger gainForRemote;
+    SyncedInteger gainForRemote;
 
 //-----------------------------------------------------------------------------
 // DACGate::DACGate (constructor)
@@ -56,6 +55,19 @@ public DACGate(IniFile pConfigFile, int pChannelIndex, int pGateIndex,
     configFile = pConfigFile; channelIndex = pChannelIndex;
     gateIndex = pGateIndex; scopeMax = pScopeMax;
 
+}//end of DACGate::DACGate (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// DACGate::init
+//
+// Initializes the object.  MUST be called by sub classes after instantiation.
+//
+
+@Override
+public void init()
+{
+
     gainForRemote = new SyncedInteger(syncedVarMgr); gainForRemote.init();
 
     //read the configuration file and create/setup the charting/control elements
@@ -64,7 +76,7 @@ public DACGate(IniFile pConfigFile, int pChannelIndex, int pGateIndex,
     //unlike flaw/wall gates, DAC gates are not set active until the user
     //explicitly sets them active
 
-}//end of DACGate::DACGate (constructor)
+}//end of DACGate::init
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -86,14 +98,14 @@ void setFlags()
     //set the bits common to all gate types
 
     if (gateActive)
-        flags |= GATE_ACTIVE;
+        {flags |= GATE_ACTIVE;}
     else
-        flags &= (~GATE_ACTIVE);
+        {flags &= (~GATE_ACTIVE);}
 
     if (doInterfaceTracking)
-        flags |= GATE_USES_TRACKING;
+        {flags |= GATE_USES_TRACKING;}
     else
-        flags &= (~GATE_USES_TRACKING);
+        {flags &= (~GATE_USES_TRACKING);}
 
     gateFlags.setValue(flags, true);
 
@@ -221,9 +233,9 @@ public void calculateDACGain(boolean pForceUpdate)
 
     int roundedGain = (int)Math.round(gain);
 
-    if (roundedGain != gainForRemote.getValue()) pForceUpdate = true;
+    if (roundedGain != gainForRemote.getValue()) {pForceUpdate = true;}
 
-    if (!pForceUpdate) return; //do nothing unless value change or forced
+    if (!pForceUpdate) {return;} //do nothing unless value change or forced
 
     gainForRemote.setValue(roundedGain, pForceUpdate);
 
@@ -362,9 +374,9 @@ public boolean isPositionChanged()
           || gateWidth.getDataChangedFlag()
           || gainForRemote.getDataChangedFlag())
 
-        return(true);
+        {return(true);}
     else
-        return(false);
+        {return(false);}
 
 }//end of DACGate::isPositionChanged
 //-----------------------------------------------------------------------------

@@ -19,13 +19,13 @@
 
 package chart.mksystems.hardware;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-
+import chart.Log;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.stripchart.Threshold;
 import chart.mksystems.stripchart.Trace;
-import chart.Log;
+import chart.mksystems.stripchart.TraceData;
+import java.io.BufferedWriter;
+import java.io.IOException;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -49,7 +49,7 @@ int getChannelData(int _pChannel, int pSimDataType);
 
 Channel[] getChannels();
 
-Gate getGate(int pChannel, int pGate);
+UTGate getGate(int pChannel, int pGate);
 
 void connect();
 
@@ -83,9 +83,9 @@ public void requestPeakData(int pChannel);
 
 public void requestPeakDataForAllBoards();
 
-public void linkTraces(int pChartGroup, int pChart, int pTrace, int[] pDBuffer,
-   int[] pDBuffer2, int[] pFBuffer, Threshold[] pThresholds, int pPlotStyle,
-   Trace pTracePtr);
+public void linkTraces(int pChartGroup, int pChart, int pTrace,
+        TraceData pTraceData, Threshold[] pThresholds, int pPlotStyle,
+        Trace pTracePtr);
 
 boolean prepareAnalogData();
 

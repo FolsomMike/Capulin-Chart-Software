@@ -19,18 +19,18 @@
 
 package chart.mksystems.hardware;
 
-import javax.swing.*;
-import java.io.BufferedWriter;
-import java.io.IOException;
-
-import chart.MessageLink;
 import chart.Log;
-import chart.mksystems.settings.Settings;
-import chart.mksystems.inifile.IniFile;
+import chart.MessageLink;
 import chart.ThreadSafeLogger;
+import chart.mksystems.inifile.IniFile;
+import chart.mksystems.settings.Settings;
+import chart.mksystems.stripchart.ChartGroup;
 import chart.mksystems.stripchart.Threshold;
 import chart.mksystems.stripchart.Trace;
-import chart.mksystems.stripchart.ChartGroup;
+import chart.mksystems.stripchart.TraceData;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import javax.swing.*;
 
 //-----------------------------------------------------------------------------
 
@@ -219,7 +219,7 @@ private void configure(IniFile pConfigFile)
     manualInspectControl = pConfigFile.readBoolean(
                     "Hardware", "Manual Inspection Start/Stop Control", false);
 
-    if (numberOfAnalogChannels > 100) numberOfAnalogChannels = 100;
+    if (numberOfAnalogChannels > 100) {numberOfAnalogChannels = 100;}
 
     createAnalogDriver(analogDriverName);
 
@@ -237,12 +237,16 @@ private void configure(IniFile pConfigFile)
 private void createAnalogDriver(String pDriverName)
 {
 
-    if (pDriverName.equalsIgnoreCase("PCI-DAS6023")) analogDriver =
-          new AnalogPCIDAS6023(configFile, true, numberOfAnalogChannels, hdwVs);
+    if (pDriverName.equalsIgnoreCase("PCI-DAS6023")) {
+        analogDriver =
+        new AnalogPCIDAS6023(configFile, true, numberOfAnalogChannels, hdwVs);
+    }
 
-    if (pDriverName.equalsIgnoreCase("Capulin 1")) analogDriver =
+    if (pDriverName.equalsIgnoreCase("Capulin 1")) {
+        analogDriver =
         new Capulin1(configFile, settings, true, numberOfAnalogChannels, hdwVs,
-                        log, settings.jobFileFormat, Settings.mainFileFormat);
+                          log, settings.jobFileFormat, Settings.mainFileFormat);
+    }
 
 }//end of Hardware::createAnalogDriver
 //-----------------------------------------------------------------------------
@@ -524,7 +528,7 @@ public Channel[] getChannels()
 // Returns a reference to the specified gate.
 //
 
-public Gate getGate(int pChannel, int pGate)
+public UTGate getGate(int pChannel, int pGate)
 {
 
     return analogDriver.getGate(pChannel, pGate);
@@ -687,8 +691,9 @@ public void requestPeakData(int pChannel)
 {
 
     if (opMode == INSPECT || opMode == INSPECT_WITH_TIMER_TRACKING
-                                                            || opMode == SCAN)
+                                                            || opMode == SCAN) {
         analogDriver.requestPeakData(pChannel);
+    }
 
 }//end of Hardware::requestPeakData
 //-----------------------------------------------------------------------------
@@ -778,18 +783,19 @@ public void collectData()
     //collect analog data if new peak data is available
     //This MUST be done every time prepareAnalogData is called as this function
     //records the peaks.
-    if (peakDataAvailable) collectAnalogData();
+    if (peakDataAvailable) {collectAnalogData();}
 
     boolean controlDataAvailable = analogDriver.prepareControlData();
 
     //check if other threads are already accessing data from the remotes
-    if (!collectDataEnabled) return;
+    if (!collectDataEnabled) {return;}
 
-    if (opMode == SCAN || opMode == INSPECT_WITH_TIMER_TRACKING)
+    if (opMode == SCAN || opMode == INSPECT_WITH_TIMER_TRACKING) {
         collectDataForScanOrTimerMode();
-    else
-    if (opMode == INSPECT)
+    }
+    else if (opMode == INSPECT) {
         collectDataForInspectMode();
+    }
 
 }//end of Hardware::collectData
 //-----------------------------------------------------------------------------
@@ -826,7 +832,9 @@ public void collectDataForScanOrTimerMode()
     if (scanRateCounter-- == 0){
         scanRateCounter = 10 - settings.scanSpeed;
     }
-    else return;
+    else {
+        return;
+    }
 
     //retrieve timer driven position updates for scanning or for systems
     //which don't have hardware encoders
@@ -837,7 +845,7 @@ public void collectDataForScanOrTimerMode()
     //this makes sure the new position in the buffer is filled with something --
     //the position will usually be overwritten by the next peak data
 
-    if (newPositionData) collectAnalogData();
+    if (newPositionData) {collectAnalogData();}
 
 }//end of Hardware::collectDataForScanOrTimerMode
 //-----------------------------------------------------------------------------
@@ -888,17 +896,9 @@ public void collectDataForInspectMode()
 // Collects analog data from all channels and stores it in the appropriate trace
 // buffers.
 //
-// Note:
+// wipmks --
 // Originally, this function only transferred data to the trace buffers if new
-// data was available from analogDriver.getNewData - this caused a problem
-// because the trace pointer might be updated twice or more before new data
-// became available.  If new data was not available, then the data for that
-// slot would be undefined, left as the default.  This could cause a glitch in
-// the trace or other problems, especially if the tracing code uses the default
-// values to determine where the new trace data ends. Now, the old data is used
-// if no new data has replaced it: if the trace pointer has not moved then the
-// slot will be overwritten with the same value, if it has moved then the new
-// slot will be written with the same data as the previous slot.
+// data was available from analogDriver.getNewData - return to this?
 //
 
 public void collectAnalogData()
@@ -919,41 +919,12 @@ public void collectAnalogData()
             //retrieve data for the gate
             boolean channelActive = analogDriver.getNewData(ch, g, hdwVs);
 
-            if (hdwVs.gatePtr.tracePtr != null)
-                do{
-                    //debug mks -- following code won't work if data starts over
-                    //in circular buffer -- check of filledSlot > inProcessSlot
-                    //will fail even though the former is ahead of the latter.
-                    //need to track data position with a variable which never
-                    //restarts even when end of buffer is reached -- buffer
-                    //position would then be calculated by dividing that
-                    //variable by the size of the buffer
+            if (hdwVs.gatePtr.tracePtr != null) {
 
-                    //NOTE: The check for SCAN mode is a quick fix to make this
-                    //work.  Since SCAN is the only mode which wraps around in
-                    //the buffer and also never reverses, this fix works.
-                    //However, some inspection modes will use wrap around and
-                    //won't work because they do reverse.
-                    //FIX THIS!!!!
+                collectAnalogDataMinOrMax(hdwVs.gatePtr, channelActive);
 
-
-                    //collect new data and move trace forward or back it up as
-                    //required by movement of inspection head -- use >= because
-                    //collectAnalogDataMinOrMax must be called even if the
-                    //pointers haven't moved to collect peak data which will
-                    //then be written over old data in the pointer positions
-
-                    if (opMode == SCAN ||
-                            (hdwVs.gatePtr.tracePtr.beingFilledSlot >=
-                                        hdwVs.gatePtr.tracePtr.inProcessSlot))
-                        collectAnalogDataMinOrMax(hdwVs.gatePtr, channelActive);
-                    else
-                        backUpTraces(hdwVs.gatePtr, channelActive);
-
-                }while(hdwVs.gatePtr.tracePtr.inProcessSlot !=
-                                       hdwVs.gatePtr.tracePtr.beingFilledSlot);
+            }// if (hdwVs.gatePtr.tracePtr != null)
         }// for (int g = 0; g < numberOfGates; g++)
-
     }// for (int ch = 0; ch < numberOfChannels; ch++)
 
 }//end of Hardware::collectAnalogData
@@ -988,81 +959,17 @@ public void collectAnalogData()
 // more than one position.
 //
 
-void collectAnalogDataMinOrMax(Gate gatePtr, boolean pChannelActive)
+void collectAnalogDataMinOrMax(UTGate gatePtr, boolean pChannelActive)
 {
 
     Trace trace = gatePtr.tracePtr;
-
-    //only move forward if the position pointer has moved
-    if(trace.inProcessSlot != trace.beingFilledSlot) trace.inProcessSlot++;
-
-    //the buffer is circular - start over at beginning
-    if (trace.inProcessSlot == trace.sizeOfDataBuffer) trace.inProcessSlot = 0;
-
-    int nextIndex = trace.inProcessSlot; //use shorter name
-
-    boolean dataStored = false;
+    TraceData traceData = trace.traceData;
 
     //get the clock and data for this channel
     int clockPos = gatePtr.clockPos;
     int newData = gatePtr.dataPeak;
 
-    //if the channel is off or masked, set the newData value such that it will
-    //not override any existing data and thus will be overwritten by an active
-    //channel's peak except when no channel is active
-    //without changing the data, a trace won't move if all channels for that
-    //trace are turned off -- when a channel is turned back on the trace will
-    //never start again or takes a long time
-
-    //if the flaggingEnabled flag is false and suppressTraceInEndMasks is true,
-    //then traces are also suppressed -- assumed to be in the end mask area,
-    //this is useful when end mask areas are not being marked by vertical
-    //separators
-
-    //debug mks -- when code gets changed to use a flag to show valid data in
-    //array rather than the fact that the data is changed from the default,
-    //next part only needed for when flagging not enabled to display the traces
-    //in a conspicuous height so they can be seen moving -- no longer necessary
-    //to set the value when not active to get traces to move -- need to set the
-    //flag instead????
-
-    if (!pChannelActive
-            || (trace.suppressTraceInEndMasks && !trace.flaggingEnabled )){
-        if (gatePtr.peakDirection == 0) //0 means higher data more severe
-            newData = Integer.MIN_VALUE;
-        else
-            //can't use MAX_VALUE -- that is default
-            newData = Integer.MAX_VALUE-1;
-    }
-
-    //if the array value is still default, replace with the new data
-    if (gatePtr.dBuffer1[nextIndex] == Integer.MAX_VALUE){
-        gatePtr.dBuffer1[nextIndex] = newData;
-        dataStored = true;
-    }
-    else{
-        //if the array value already has data, only overwrite it if the new
-        //data is more severe than what is already stored there - whether
-        //more severe is greater or smaller is decided by an option in the
-        //configuration file and passed in via the method linkTraces
-
-        // peakDirection == 0 means higher data is more severe
-        if (gatePtr.peakDirection == 0){
-            //higher values are more severe - keep highest value
-            if (newData > gatePtr.dBuffer1[nextIndex]){
-                gatePtr.dBuffer1[nextIndex] = newData;
-                dataStored = true;
-                }//if (newData >...
-        }//gatePtr.peakDirection...
-        else{
-            //lower values are more severe - keep lowest value
-            if (newData < gatePtr.dBuffer1[nextIndex]){
-                gatePtr.dBuffer1[nextIndex] = newData;
-                dataStored = true;
-            }//if (newData <...
-        }//else if (gatePtr.peakDirection...
-    }//else if (gatePtr.dBuffer1[nextIndex]...
-
+    boolean dataStored = traceData.storeDataAtInsertionPoint(newData);
 
     //check for threshold violations and store flags as necessary
     //this must be done in this thread because the flags are used to fire
@@ -1081,21 +988,17 @@ void collectAnalogDataMinOrMax(Gate gatePtr, boolean pChannelActive)
         //store the wall thickness for display as a number
         trace.wallThickness = gatePtr.wallThickness;
 
-        //store the clock position for the data in bits 8-0
-        gatePtr.fBuffer[nextIndex] &= 0xfffffe00; //erase old
-        //mask top bits to protect against invalid clockPos
-        gatePtr.fBuffer[nextIndex] += (clockPos & 0x1ff);
+        traceData.storeClockAtInsertionPoint(clockPos);
 
         //check thresholds and store flag if violation - shift threshold
         //index by 2 as 0 = no flag and 1 = user flag
 
-        for (int j = 0; j < gatePtr.thresholds.length; j++)
+        for (int j = 0; j < gatePtr.thresholds.length; j++) {
             if (trace.flaggingEnabled &&
                                 gatePtr.thresholds[j].checkViolation(newData)){
 
-                //store the index of threshold violated in byte 1
-                gatePtr.fBuffer[nextIndex] &= 0xffff01ff; //erase old
-                gatePtr.fBuffer[nextIndex] += (j+2) << 9; //store new flag
+                traceData.storeThresholdAtInsertionPoint(j);
+
                 //store this channel as the most recent flagged for the trace
                 trace.setLastFlagged(gatePtr.channelIndex, clockPos);
                 startMarker(gatePtr, j); //handle marking the violation
@@ -1104,65 +1007,12 @@ void collectAnalogDataMinOrMax(Gate gatePtr, boolean pChannelActive)
             else{
                 //no flagging, so reset marking system so it can mark again
                 endMarker(gatePtr, j);
-            }//if (chInfo[pCh].thresholds[j]...
+            }
+        }//for (int j = 0; j < gatePtr.thresholds.length; j++)
 
     }//if (datastored)...
 
-    //reset the data point just ahead - wrap around to beginning
-    if (nextIndex < gatePtr.dBuffer1.length-1){
-                gatePtr.dBuffer1[nextIndex+1] = Integer.MAX_VALUE;
-                gatePtr.fBuffer[nextIndex+1] = 0;
-    }
-    else{
-        gatePtr.dBuffer1[0] = Integer.MAX_VALUE;
-        gatePtr.fBuffer[0] = 0;
-    }
-
-    //endPlotSlot is always one spot behind the one being filled with data
-    //adjusting it allows the plot functions to plot up to that point
-
-    if (trace.inProcessSlot == 0)
-        trace.endPlotSlot = trace.sizeOfDataBuffer-1;
-    else
-        trace.endPlotSlot = trace.inProcessSlot-1;
-
 }//end of Hardware::collectAnalogDataMinOrMax
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Hardware::backUpTraces
-//
-// Handles case where system has been reversed to re-inspect a segment.
-// Trace pointers are decremented and buffers set back to default value.
-//
-// Only call this function if beingFilledSlot is less than inProcessSlot.
-//
-
-void backUpTraces(Gate gatePtr, boolean pChannelActive)
-{
-
-    Trace trace = gatePtr.tracePtr;
-
-    //erase data stored in the current position
-    gatePtr.dBuffer1[trace.inProcessSlot] = Integer.MAX_VALUE;
-    gatePtr.fBuffer[trace.inProcessSlot] = 0;
-
-    //move backward one slot
-    trace.inProcessSlot--;
-
-    //the buffer is circular - start over at beginning
-    if (trace.inProcessSlot == -1)
-        trace.inProcessSlot = trace.sizeOfDataBuffer-1;
-
-    //endPlotSlot is always one spot behind the one being filled with data
-    //adjusting it allows the plot functions to plot up to that point
-
-    if (trace.inProcessSlot == 0)
-        trace.endPlotSlot = trace.sizeOfDataBuffer-1;
-    else
-        trace.endPlotSlot = trace.inProcessSlot-1;
-
-}//end of Hardware::backUpTraces
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1172,20 +1022,15 @@ void backUpTraces(Gate gatePtr, boolean pChannelActive)
 //
 // Returns true if new data has been processed.
 //
-// If the encoder has reached the next array position, chInfo[?].nextIndex++
-// is updated so that data will be placed in the next position.  It takes
-// a set amount of encoder counts to reach the next array position as specified
-// by the calibration value in the configuration file.
-//
 // This function is used for SCAN or INSPECT_WITH_TIMER_TRACKING mode: the
-// nextIndex pointer is incremented with each call forcing the traces to
+// data buffer pointer is advanced with each call forcing the traces to
 // "free run" across the screen regardless of encoder data input.
 //
 
 boolean collectEncoderDataTimerMode()
 {
 
-    boolean newPositionData = false;
+    boolean newPositionData;
     Trace tracePtr;
 
     newPositionData = true; //signal that position has been changed
@@ -1204,11 +1049,12 @@ boolean collectEncoderDataTimerMode()
     //are tied to flags but not traces.
 
     //set all flags to false before starting
-    for (int ch = 0; ch < numberOfChannels; ch++)
+    for (int ch = 0; ch < numberOfChannels; ch++) {
         for (int g = 0; g < analogDriver.getNumberOfGates(ch); g++){
             tracePtr = analogDriver.getTrace(ch,g);
-            if (tracePtr != null) tracePtr.nextIndexUpdated = false;
+            if (tracePtr != null) {tracePtr.positionAdvanced = false;}
         }
+    }
 
     for (int ch = 0; ch < numberOfChannels; ch++){
 
@@ -1219,16 +1065,12 @@ boolean collectEncoderDataTimerMode()
 
             tracePtr = analogDriver.getTrace(ch,g);
 
-            if (tracePtr != null && tracePtr.nextIndexUpdated == false){
+            if (tracePtr != null && tracePtr.positionAdvanced == false){
 
                 //set flag so this index won't be updated again
-                tracePtr.nextIndexUpdated = true;
+                tracePtr.positionAdvanced = true;
 
-                tracePtr.beingFilledSlot++;
-
-                //the buffer is circular - start over at beginning
-                if (tracePtr.beingFilledSlot == tracePtr.sizeOfDataBuffer)
-                    tracePtr.beingFilledSlot = 0;
+                tracePtr.traceData.advanceInsertionPoint();
 
             }
         }// for (int g = 0; g < numberOfGates; g++)
@@ -1256,7 +1098,7 @@ boolean collectEncoderDataInspectMode()
 {
 
     //do nothing until a new Inspect packet is ready
-    if (!analogDriver.getNewInspectPacketReady()) return false;
+    if (!analogDriver.getNewInspectPacketReady()) {return false;}
 
 
     //debug mks -- could a new packet be received between the above line and the
@@ -1283,9 +1125,9 @@ boolean collectEncoderDataInspectMode()
     //if waiting for piece clear of system, do nothing until flag says true
     if (hdwVs.waitForOffPipe){
 
-        if (manualInspectControl) inspectCtrlVars.onPipeFlag = false;
+        if (manualInspectControl) {inspectCtrlVars.onPipeFlag = false;}
 
-        if (inspectCtrlVars.onPipeFlag) return false;
+        if (inspectCtrlVars.onPipeFlag) {return false;}
         else {
             hdwVs.waitForOffPipe = false;
             hdwVs.waitForOnPipe = true;
@@ -1296,12 +1138,12 @@ boolean collectEncoderDataInspectMode()
             }
         }
 
-    if (manualInspectControl) inspectCtrlVars.onPipeFlag = true;
+    if (manualInspectControl) {inspectCtrlVars.onPipeFlag = true;}
 
     //if waiting for piece to enter the head, do nothing until flag says true
     if (hdwVs.waitForOnPipe){
 
-        if (!inspectCtrlVars.onPipeFlag) return false;
+        if (!inspectCtrlVars.onPipeFlag) {return false;}
         else {
             hdwVs.waitForOnPipe = false; hdwVs.watchForOffPipe = true;
             initializeTraceOffsetDelays(inspectCtrlVars.encoder2Dir);
@@ -1316,10 +1158,12 @@ boolean collectEncoderDataInspectMode()
             hdwVs.head2Down = false; enableHeadTraceFlagging(2, false);
 
             //set the text description for the direction of inspection
-            if (inspectCtrlVars.encoder2FwdDir == AwayDirection)
+            if (inspectCtrlVars.encoder2FwdDir == AwayDirection) {
                 inspectionDirectionDescription = awayFromHome;
-            else
+            }
+            else {
                 inspectionDirectionDescription = towardsHome;
+            }
 
             //record the value of linear encoder at start of inspection
             //(this needs so be changed to store the value with each piece for
@@ -1448,7 +1292,7 @@ void moveEncoders()
     int pixelsMoved = pixPosition - prevPixPosition;
 
     //do nothing if encoders haven't moved enough to reach the next pixel
-    if (pixelsMoved == 0) return;
+    if (pixelsMoved == 0) {return;}
 
     prevPixPosition = pixPosition;
 
@@ -1476,11 +1320,12 @@ void moveEncoders()
     //are tied to flags but not traces.
 
     //set all flags to false before starting
-    for (int ch = 0; ch < numberOfChannels; ch++)
+    for (int ch = 0; ch < numberOfChannels; ch++) {
         for (int g = 0; g < analogDriver.getNumberOfGates(ch); g++){
             tracePtr = analogDriver.getTrace(ch,g);
-            if (tracePtr != null) tracePtr.nextIndexUpdated = false;
+            if (tracePtr != null) {tracePtr.positionAdvanced = false;}
         }
+    }
 
     for (int ch = 0; ch < numberOfChannels; ch++){
 
@@ -1491,12 +1336,14 @@ void moveEncoders()
 
             tracePtr = analogDriver.getTrace(ch,g);
 
-            if (tracePtr != null && tracePtr.nextIndexUpdated == false){
+            if (tracePtr != null && tracePtr.positionAdvanced == false){
 
-                if (pixelsMoved > 0)
+                if (pixelsMoved > 0) {
                     moveTracesForward(tracePtr, pixelsMoved, position);
-                else
+                }
+                else {
                     moveTracesBackward(tracePtr,Math.abs(pixelsMoved),position);
+                }
 
             }//if (tracePtr != null...
         }// for (int g = 0; g < numberOfGates; g++)
@@ -1523,19 +1370,15 @@ void moveTracesForward(Trace pTrace, int pPixelsMoved, double pPosition)
 
     //set flag so this trace's index won't be updated again by
     //another gate tied to this same trace
-    pTrace.nextIndexUpdated = true;
+    pTrace.positionAdvanced = true;
 
     //the trace does not start until its associated sensor(s) have
     //reached the pipe after the photo eye has detected it
-    if (pTrace.delayDistance > pPosition )return;
+    if (pTrace.delayDistance > pPosition ) {return;}
 
     for (int x = 0; x < pPixelsMoved; x++){
 
-        pTrace.beingFilledSlot++;
-
-        //the buffer is circular - start over at beginning
-        if (pTrace.beingFilledSlot == pTrace.sizeOfDataBuffer)
-            pTrace.beingFilledSlot = 0;
+        pTrace.traceData.advanceInsertionPoint();
 
         //debug mks
         //the end of piece, near start of piece, and near endof piece
@@ -1600,19 +1443,16 @@ void moveTracesBackward(Trace pTrace, int pPixelsMoved, double pPosition)
 
     //set flag so this trace's index won't be updated again by
     //another gate tied to this same trace
-    pTrace.nextIndexUpdated = true;
+    pTrace.positionAdvanced = true;
 
     //the trace does not start until its associated sensor(s) have
-    //reached the pipe after the photo eye has detected it
-    if (pTrace.delayDistance > pPosition )return;
+    //reached the pipe after the photo eye has detected it, so don't reverse
+    //past that point
+    if (pTrace.delayDistance > pPosition ){return;}
 
     for (int x = 0; x < pPixelsMoved; x++){
 
-        pTrace.beingFilledSlot--;
-
-        //the buffer is circular - start over at end
-        if (pTrace.beingFilledSlot == -1)
-            pTrace.beingFilledSlot = pTrace.sizeOfDataBuffer - 1;
+        pTrace.traceData.eraseDataAtInsertionPoint();
 
         //currently, the nearStartOfPiece and nearEndOfPiece conditions are not
         //tracked in reverse -- should probably be fixed just in case reversing
@@ -1664,7 +1504,7 @@ void enableHeadTraceFlagging(int pHead, boolean pEnable)
                     tracePtr.flaggingEnabled = pEnable;
 
                     //set flag bit to draw a vertical bar to show the mask point
-                    tracePtr.flagBuffer[tracePtr.beingFilledSlot] |= 1 << 19;
+                    tracePtr.traceData.placeEndMaskMarker();
 
                 }//if ((tracePtr != null) && (tracePtr.head == pHead))
             }//for (int tr = 0; tr < nTr; tr++)
@@ -1737,10 +1577,12 @@ public void initializeTraceOffsetDelays(int pDirection)
                     //start with all false, one will be set true
                     tracePtr.leadTrace = false;
 
-                    if (pDirection == AwayDirection)
+                    if (pDirection == AwayDirection) {
                         tracePtr.delayDistance = tracePtr.startFwdDelayDistance;
-                    else
+                    }
+                    else {
                         tracePtr.delayDistance = tracePtr.startRevDelayDistance;
+                    }
 
                     //find the leading and trailing traces
                     if (tracePtr.delayDistance < leadingTraceCatch)
@@ -1777,7 +1619,7 @@ public void initializeTraceOffsetDelays(int pDirection)
 // are closely spaced.
 //
 
-public void startMarker(Gate pGatePtr, int pWhichThreshold)
+public void startMarker(UTGate pGatePtr, int pWhichThreshold)
 {
 
     if (pGatePtr.thresholds[pWhichThreshold].okToMark
@@ -1797,7 +1639,7 @@ public void startMarker(Gate pGatePtr, int pWhichThreshold)
 // For continuous mode, the marker is turned off if it was on.
 //
 
-public void endMarker(Gate pGatePtr, int pWhichThreshold)
+public void endMarker(UTGate pGatePtr, int pWhichThreshold)
 {
 
     pGatePtr.thresholds[pWhichThreshold].okToMark = true;
@@ -2056,13 +1898,13 @@ public void shutDown()
 // channels/gates and give a link back to variables in the Trace object.
 //
 
-public void linkTraces(int pChartGroup, int pChart, int pTrace, int[] pDBuffer,
-  int[] pDBuffer2, int[] pFBuffer, Threshold[] pThresholds, int pPlotStyle,
+public void linkTraces(int pChartGroup, int pChart, int pTrace,
+        TraceData pTraceData, Threshold[] pThresholds, int pPlotStyle,
                                                             Trace pTracePtr)
 {
 
-    analogDriver.linkTraces(pChartGroup, pChart, pTrace, pDBuffer, pDBuffer2,
-                         pFBuffer, pThresholds, pPlotStyle, pTracePtr);
+    analogDriver.linkTraces(pChartGroup, pChart, pTrace, pTraceData,
+                                        pThresholds, pPlotStyle, pTracePtr);
 
 }//end of Hardware::linkTraces
 //-----------------------------------------------------------------------------

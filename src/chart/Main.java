@@ -20,33 +20,29 @@
 
 package chart;
 
-import java.awt.*;
-import javax.swing.*;
-import java.io.*;
-import java.text.DecimalFormat;
-import java.awt.event.WindowListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.ComponentListener;
-import java.awt.event.ComponentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.ChangeEvent;
-import javax.swing.JOptionPane;
-import javax.swing.JDialog;
-import java.io.FileNotFoundException;
-import java.util.Date;
-
-import chart.mksystems.settings.Link;
-import chart.mksystems.settings.Settings;
+import chart.mksystems.hardware.AScan;
+import chart.mksystems.hardware.Channel;
+import chart.mksystems.hardware.Hardware;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.menu.MainMenu;
+import chart.mksystems.settings.Link;
+import chart.mksystems.settings.Settings;
 import chart.mksystems.stripchart.ChartGroup;
-import chart.mksystems.hardware.Hardware;
-import chart.mksystems.hardware.Channel;
-import chart.mksystems.hardware.AScan;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.io.*;
+import java.text.DecimalFormat;
+import java.util.Date;
+import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 //-----------------------------------------------------------------------------
 

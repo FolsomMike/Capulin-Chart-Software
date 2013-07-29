@@ -29,8 +29,6 @@ public class PlotVars{
 
     int x1, x2;
     int y1, y2;
-    int bufPtr;
-    int prevPtr;
     int pixPtr;
     int gridCounter;
     boolean drawTrace;

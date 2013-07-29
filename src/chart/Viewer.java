@@ -1123,8 +1123,7 @@ public void printChartGroup(Graphics g, PageFormat pPF, int pPage,
             //all traces should have the same amount of data, so use one trace
             //to determine the width for all
 
-            int dataWidth =
-                    chartGroups[0].getStripChart(0).getTrace(0).getDataWidth();
+            int dataWidth = getDataWidth();
 
             //if no data was found, use the entire group width
             if (dataWidth == -1)
@@ -1174,6 +1173,23 @@ public void printChartGroup(Graphics g, PageFormat pPF, int pPage,
     printRunnable.unPauseThread(); //release the print thread if it is waiting
 
 }//end of Viewer::printChartGroup
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Viewer::getDataWidth
+//
+// Returns the index of the last valid data point in the buffer.
+//
+// Returns -1 if no data found.
+//
+
+public int getDataWidth()
+{
+
+    return(
+         chartGroups[0].getStripChart(0).getTrace(0).traceData.getDataWidth());
+
+}//end of Viewer::getDataWidth
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

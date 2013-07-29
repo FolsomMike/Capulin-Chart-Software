@@ -19,14 +19,13 @@
 
 package chart.mksystems.hardware;
 
-import javax.swing.*;
-import java.io.BufferedWriter;
-import java.io.IOException;
-
+import chart.Log;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.stripchart.Threshold;
 import chart.mksystems.stripchart.Trace;
-import chart.Log;
+import chart.mksystems.stripchart.TraceData;
+import java.io.BufferedWriter;
+import java.io.IOException;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -66,7 +65,7 @@ AnalogPCIDAS6023(IniFile pConfigFile, boolean pSimulationMode,
     hdwVs = pHdwVs;
 
     simData = new int[numberOfAnalogChannels];
-    for(int i=0; i<simData.length; i++) simData[i] = -1;
+    for(int i=0; i<simData.length; i++) {simData[i] = -1;}
 
     //load configuration settings
     configure(configFile);
@@ -362,9 +361,9 @@ return true;
 //
 
 @Override
-public void linkTraces(int pChartGroup, int pChart, int pTrace, int[] pDBuffer,
-   int[] pDBuffer2, int[] pFBuffer, Threshold[] pThresholds, int pPlotStyle,
-   Trace pTracePtr)
+public void linkTraces(int pChartGroup, int pChart, int pTrace,
+            TraceData pTraceData, Threshold[] pThresholds, int pPlotStyle,
+                                                                Trace pTracePtr)
 {
 
     Trace tracePtr; //wip mks - remove this - only need something to return
@@ -426,7 +425,7 @@ public Channel[] getChannels()
 //
 
 @Override
-public Gate getGate(int pChannel, int pGate)
+public UTGate getGate(int pChannel, int pGate)
 {
 
 return null;
@@ -489,7 +488,7 @@ public int getChannelData(int pChannel, int pSimDataType)
 {
 
     //if in simulation mode, return simulated data
-    if(simulationMode) return(simulateChannelData(pChannel, pSimDataType));
+    if(simulationMode) {return(simulateChannelData(pChannel, pSimDataType));}
 
     return(50);
 
@@ -516,8 +515,9 @@ public int simulateChannelData(int pChannel, int pSimDataType)
         simData[pChannel] = 3 + (int)random; //baseline noise
 
         //add occasional spikes
-        if ( (int)(Math.random() * 80) == 1)
+        if ( (int)(Math.random() * 80) == 1) {
             simData[pChannel] += (int)(Math.random() * 100);
+        }
 
         //set a random clock position for this data point
         clockPos = (int)(Math.random() * 12) + 1; //1 to 12
@@ -532,7 +532,7 @@ public int simulateChannelData(int pChannel, int pSimDataType)
 
     if (pSimDataType == 1){
 
-        if (simData[pChannel] == 100) simData[pChannel] = -1;
+        if (simData[pChannel] == 100) {simData[pChannel] = -1;}
 
         //set a random clock position for this data point
         clockPos = (int)(Math.random() * 12) + 1; //1 to 12
@@ -556,8 +556,9 @@ public int simulateChannelData(int pChannel, int pSimDataType)
         simData[pChannel] = 47 + (int)random; //baseline noise
 
         //add occasional downward spikes
-        if ( (int)(Math.random() * 80) == 1)
+        if ( (int)(Math.random() * 80) == 1) {
             simData[pChannel] -= (int)(Math.random() * 40);
+        }
 
         dataMinPeak = simData[pChannel];
 
@@ -568,8 +569,9 @@ public int simulateChannelData(int pChannel, int pSimDataType)
         simData[pChannel] = 53 + (int)random; //baseline noise
 
         //add occasional upward spikes
-        if ( (int)(Math.random() * 80) == 1)
+        if ( (int)(Math.random() * 80) == 1) {
             simData[pChannel] += (int)(Math.random() * 40);
+        }
 
         dataMaxPeak = simData[pChannel];
 
