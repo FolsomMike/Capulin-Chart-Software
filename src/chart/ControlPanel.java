@@ -18,23 +18,20 @@
 
 package chart;
 
-import javax.swing.*;
-import java.awt.*;
-import java.io.*;
-import javax.swing.border.*;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.ItemEvent;
-
-import javax.swing.event.ChangeListener;
-import javax.swing.event.ChangeEvent;
-import javax.swing.ImageIcon;
-
-import chart.mksystems.settings.Settings;
-import chart.mksystems.inifile.IniFile;
 import chart.mksystems.hardware.Hardware;
+import chart.mksystems.inifile.IniFile;
 import chart.mksystems.mswing.MFloatSpinner;
+import chart.mksystems.settings.Settings;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.io.*;
+import javax.swing.*;
+import javax.swing.border.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -158,8 +155,8 @@ private void configure(IniFile pConfigFile)
     add(statusPanel = new StatusPanel(settings, this, this));
     add(infoPanel = new InfoPanel(this, jobName));
     add(scanSpeedPanel = new ScanSpeedPanel(settings, this, this));
-    if (simulateMechanical) add(demoPanel = new DemoPanel(mechSimulator));
-    if (demoPanel != null) demoPanel.init();
+    if (simulateMechanical) {add(demoPanel = new DemoPanel(mechSimulator));}
+    if (demoPanel != null) {demoPanel.init();}
     add(Box.createHorizontalGlue()); //force manual control to the right side
     if (timerDrivenTracking){
         add(manualControlPanel =
@@ -281,7 +278,7 @@ public void actionPerformed(ActionEvent e)
 
         //if the screen is paused, then don't update previousMode as it will
         //hold the proper mode ~ if it is -1, then store the mode for later use
-        if (previousMode == -1) previousMode = hardware.getMode();
+        if (previousMode == -1) {previousMode = hardware.getMode();}
 
         hardware.setMode(Hardware.STOPPED); //stop the traces
         finishPiece();
@@ -332,8 +329,9 @@ public void itemStateChanged(ItemEvent e)
             //copy the opposite variable to the control (must cast to double)
             statusPanel.pieceNumberEditor.setValue((double)nextCalPieceNumber);
 
-            if (timerDrivenTracking)
+            if (timerDrivenTracking){
                 manualControlPanel.calModeWarning.setVisible(true);
+            }
                //add an else here - add warning label to info panel, set it
                //visible if there is no manualControlPanel
 
@@ -345,8 +343,9 @@ public void itemStateChanged(ItemEvent e)
             //copy the opposite variable to the control (must cast to double)
             statusPanel.pieceNumberEditor.setValue((double)nextPieceNumber);
 
-            if (timerDrivenTracking)
+            if (timerDrivenTracking) {
                 manualControlPanel.calModeWarning.setVisible(false);
+            }
             //add an else here - add warning label to info panel, set it
             //visible if there is no manualControlPanel
 
@@ -496,7 +495,7 @@ static public JButton addButtonToJPanel(JPanel pPanel, String pLabel,
 private void loadSettings()
 {
 
-    IniFile settingsFile = null;
+    IniFile settingsFile;
 
     //if the ini file cannot be opened and loaded, exit without action
     try {
@@ -511,12 +510,12 @@ private void loadSettings()
     nextPieceNumber = settingsFile.readInt(
                                  "General", "Next Inspection Piece Number", 1);
 
-    if (nextPieceNumber < 1) nextPieceNumber = 1;
+    if (nextPieceNumber < 1) {nextPieceNumber = 1;}
 
     nextCalPieceNumber = settingsFile.readInt(
                                 "General", "Next Calibration Piece Number", 1);
 
-    if (nextCalPieceNumber < 1) nextCalPieceNumber = 1;
+    if (nextCalPieceNumber < 1) {nextCalPieceNumber = 1;}
 
 }//end of ControlPanel::loadSettings
 //-----------------------------------------------------------------------------
@@ -536,10 +535,12 @@ public void saveSettings()
     //mode setting - this makes sure the value gets saved in case it was changed
     //manually by the user
 
-    if (statusPanel.calModeCheckBox.isSelected())
+    if (statusPanel.calModeCheckBox.isSelected()) {
         nextCalPieceNumber = statusPanel.pieceNumberEditor.getIntValue();
-    else
+    }
+    else {
         nextPieceNumber = statusPanel.pieceNumberEditor.getIntValue();
+    }
 
     saveSettingsHelper(currentJobPrimaryPath, jobName,
                   nextPieceNumber, nextCalPieceNumber, settings.jobFileFormat);
@@ -569,9 +570,9 @@ static void saveSettingsHelper(String pJobPath, String pJobName,
     //int the program root folder -- this occurs when the current job path
     //specified in the Main Settings.ini
 
-    if (pJobPath.equals("")) return;
+    if (pJobPath.equals("")) {return;}
 
-    IniFile settingsFile = null;
+    IniFile settingsFile;
 
     //if the ini file cannot be opened and loaded, exit without action
     try {

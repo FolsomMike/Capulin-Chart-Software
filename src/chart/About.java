@@ -18,10 +18,9 @@
 
 package chart;
 
-import javax.swing.*;
-import java.awt.*;
-
 import chart.mksystems.settings.Settings;
+import java.awt.*;
+import javax.swing.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

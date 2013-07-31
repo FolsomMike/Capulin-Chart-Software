@@ -260,10 +260,10 @@ public synchronized void setDataChangedFlags(boolean pState)
 
     //set all other flags which tell outside objects that data has changed
 
-    if (dataChanged1 != null) dataChanged1.flag = pState;
-    if (dataChanged2 != null) dataChanged2.flag = pState;
-    if (dataChanged3 != null) dataChanged3.flag = pState;
-    if (dataChanged4 != null) dataChanged4.flag = pState;
+    if (dataChanged1 != null) {dataChanged1.flag = pState;}
+    if (dataChanged2 != null) {dataChanged2.flag = pState;}
+    if (dataChanged3 != null) {dataChanged3.flag = pState;}
+    if (dataChanged4 != null) {dataChanged4.flag = pState;}
 
 }//end of RemoteParam::setChangedFlags
 //-----------------------------------------------------------------------------

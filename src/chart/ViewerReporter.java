@@ -19,20 +19,19 @@
 
 package chart;
 
-import javax.swing.*;
-import java.io.*;
-import java.text.DecimalFormat;
-import java.awt.print.*;
-import javax.print.attribute.PrintRequestAttributeSet;
-import java.awt.Dimension;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
+import chart.mksystems.hardware.HardwareVars;
 import chart.mksystems.hardware.TraceValueCalculator;
-
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.settings.Settings;
 import chart.mksystems.stripchart.ChartGroup;
-import chart.mksystems.hardware.HardwareVars;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.print.*;
+import java.io.*;
+import java.text.DecimalFormat;
+import javax.print.attribute.PrintRequestAttributeSet;
+import javax.swing.*;
 
 
 
@@ -137,7 +136,7 @@ public void run() {
 
             //if the thread was interrupted while in the job.print method, kill
             //the thread immediately
-            if (Thread.interrupted()) return;
+            if (Thread.interrupted()) {return;}
 
             //set label to default and close the printProgress window
             printProgress.setLabel("Printing...");
@@ -310,8 +309,9 @@ public void init()
 void resetChartGroups()
 {
 
-    for (int i = 0; i < numberOfChartGroups; i++)
+    for (int i = 0; i < numberOfChartGroups; i++) {
         chartGroups[i].resetChartGroup();
+    }
 
 }//end of ViewerReporter::resetChartGroups
 //-----------------------------------------------------------------------------
@@ -403,7 +403,6 @@ private String loadSegmentHelper(String pFilename)
         fileInputStream = new FileInputStream(pFilename);
         inputStreamReader = new InputStreamReader(fileInputStream,
                                                        settings.jobFileFormat);
-        in = new BufferedReader(inputStreamReader);
 
         in = new BufferedReader(inputStreamReader);
 
@@ -415,8 +414,9 @@ private String loadSegmentHelper(String pFilename)
         //thereafter it will contain the last line read from the call to
         //loadSegment and will be passed on to the following call
 
-        for (int i = 0; i < numberOfChartGroups; i++)
+        for (int i = 0; i < numberOfChartGroups; i++) {
             line = chartGroups[i].loadSegment(in, line);
+        }
 
         }// try
     catch (FileNotFoundException e){
@@ -426,11 +426,11 @@ private String loadSegmentHelper(String pFilename)
         return(e.getMessage());
         }
     finally{
-        try{if (in != null) in.close();}
+        try{if (in != null) {in.close();}}
         catch(IOException e){}
-        try{if (inputStreamReader != null) inputStreamReader.close();}
+        try{if (inputStreamReader != null) {inputStreamReader.close();}}
         catch(IOException e){}
-        try{if (fileInputStream != null) fileInputStream.close();}
+        try{if (fileInputStream != null) {fileInputStream.close();}}
         catch(IOException e){}
         }
 
@@ -480,8 +480,10 @@ private String processHeader(BufferedReader pIn) throws IOException
             }
         }
 
-    if (!success) throw new IOException(
-                               "The file could not be read - missing header.");
+    if (!success) {
+        throw new IOException(
+                     "The file could not be read - missing header.");
+    }
 
     //scan the header section and parse its entries
 
@@ -503,8 +505,9 @@ private String processHeader(BufferedReader pIn) throws IOException
         //for this to work -- needs to only set variable if line matches
 
         //read the "Segment Data Version" entry
-        if (matchAndParseString(line, "Segment Data Version", "0.0", matchSet))
+        if (matchAndParseString(line, "Segment Data Version", "0.0", matchSet)) {
             segmentDataVersion = matchSet.rString1;
+        }
 
         //read the "Measured Length" entry
         if (matchAndParseString(line, "Measured Length", "0.0", matchSet)){
@@ -516,14 +519,17 @@ private String processHeader(BufferedReader pIn) throws IOException
 
         //read the "Inspection Direction" entry
         if (matchAndParseString(
-                           line, "Inspection Direction", "Unknown", matchSet))
+                           line, "Inspection Direction", "Unknown", matchSet)) {
             inspectionDirection = matchSet.rString1;
+        }
 
     }//while ((line = pIn.readLine()) != null)
 
 
-    if (!success) throw new IOException(
-                        "The file could not be read - missing end of header.");
+    if (!success) {
+        throw new IOException(
+              "The file could not be read - missing end of header.");
+    }
 
     return(line); //should be "[Header End]" tag on success, unknown value if not
 
@@ -616,7 +622,7 @@ static public boolean matchAndParseString(String pString, String pKey,
     //return the part of the line after the '=' sign - on error return default
     try{
         pMatchVars.rString1 = pString.substring(indexOfEqual + 1);
-        if (pMatchVars.rString1.equals("")) pMatchVars.rString1 = pDefault;
+        if (pMatchVars.rString1.equals("")) {pMatchVars.rString1 = pDefault;}
         return(true); //key matched, parse valid
         }
     catch(StringIndexOutOfBoundsException e){
@@ -669,13 +675,16 @@ static public boolean matchAndParseBoolean(String pString, String pKey,
         pMatchVars.rString1 = pString.substring(indexOfEqual + 1);
 
         //return boolean value for the value - default for any invalid value
-        if (pMatchVars.rString1.equalsIgnoreCase("true"))
+        if (pMatchVars.rString1.equalsIgnoreCase("true")) {
             pMatchVars.rBoolean1 = true;
+        }
         else
-        if (pMatchVars.rString1.equalsIgnoreCase("false"))
+        if (pMatchVars.rString1.equalsIgnoreCase("false")) {
             pMatchVars.rBoolean1 = false;
-        else
+        }
+        else {
             pMatchVars.rBoolean1 = pDefault;
+        }
 
         return(true); //key matched, parse valid
         }
@@ -700,7 +709,7 @@ static public boolean matchAndParseBoolean(String pString, String pKey,
 public void loadCalFile()
 {
 
-    IniFile calFile = null;
+    IniFile calFile;
 
     //if the ini file cannot be opened and loaded, exit without action
     try {
@@ -738,8 +747,9 @@ public void loadCalFile()
     // the settings are already loaded by the main program
 
     //load info for all charts
-    for (int i=0; i < numberOfChartGroups; i++)
-                                            chartGroups[i].loadCalFile(calFile);
+    for (int i=0; i < numberOfChartGroups; i++) {
+        chartGroups[i].loadCalFile(calFile);
+    }
 
 }//end of ViewerReporter::loadCalFile
 //-----------------------------------------------------------------------------
@@ -804,7 +814,7 @@ public void displayErrorMessage(String pMessage)
 public void configure()
 {
 
-    IniFile configFile = null;
+    IniFile configFile;
 
     //if the ini file cannot be opened and loaded, exit without action
     try {
@@ -828,7 +838,7 @@ public void configure()
     if (numberOfChartGroups > 0){
 
         //protect against too many groups
-        if (numberOfChartGroups > 10) numberOfChartGroups = 10;
+        if (numberOfChartGroups > 10) {numberOfChartGroups = 10;}
 
         chartGroups = new ChartGroup[numberOfChartGroups];
 

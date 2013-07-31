@@ -18,14 +18,13 @@
 
 package chart.mksystems.stripchart;
 
-import java.io.*;
-import javax.swing.*;
-import java.awt.*;
-
-import chart.mksystems.settings.Settings;
-import chart.mksystems.inifile.IniFile;
 import chart.Viewer;
 import chart.Xfer;
+import chart.mksystems.inifile.IniFile;
+import chart.mksystems.settings.Settings;
+import java.awt.*;
+import java.io.*;
+import javax.swing.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -225,8 +224,8 @@ public void setThresholdLevel( int pLevel)
     thresholdLevel = pLevel;
 
     plotThresholdLevel = thresholdLevel;
-    if(plotThresholdLevel < 0) plotThresholdLevel = 0;
-    if(plotThresholdLevel > canvasYLimit) plotThresholdLevel = canvasYLimit;
+    if(plotThresholdLevel < 0) {plotThresholdLevel = 0;}
+    if(plotThresholdLevel > canvasYLimit) {plotThresholdLevel = canvasYLimit;}
 
     //invert the y position if specified
     if (invert){
@@ -293,15 +292,15 @@ public boolean checkViolation(int pSigHeight)
 {
 
     //if the threshold is non-flagging, return without action
-    if (doNotFlag) return(false);
+    if (doNotFlag) {return(false);}
 
     //if the signal level exceeds the threshold, draw a flag - if flagOnOver is
     //true check for signal above, if false check for signal below
     if (flagOnOver){
-        if (pSigHeight >= thresholdLevel) return(true);
+        if (pSigHeight >= thresholdLevel) {return(true);}
     }
     else{
-        if (pSigHeight <= thresholdLevel) return(true);
+        if (pSigHeight <= thresholdLevel) {return(true);}
     }
 
     return(false); //no flag set
@@ -319,8 +318,8 @@ public void drawFlag(Graphics2D pPG2, int pXPos, int pYPos)
 {
 
     //if flag would be drawn above or below the screen, force on screen
-    if (pYPos < 0) pYPos = 0;
-    if (pYPos > canvasYLimit) pYPos = canvasYLimit - flagHeight;
+    if (pYPos < 0) {pYPos = 0;}
+    if (pYPos > canvasYLimit) {pYPos = canvasYLimit - flagHeight;}
 
     //add 1 to xPos so flag is drawn to the right of the peak
 
@@ -402,19 +401,23 @@ private String processThresholdEntries(BufferedReader pIn, String pLastLine)
     //if pLastLine contains the [Threshold] tag, then skip ahead else read until
     // end of file reached or "[Threshold]" section tag reached
 
-    if (Viewer.matchAndParseString(pLastLine, "[Threshold]", "",  matchSet))
+    if (Viewer.matchAndParseString(pLastLine, "[Threshold]", "",  matchSet)) {
         success = true; //tag already found
-    else
+    }
+    else {
         while ((line = pIn.readLine()) != null){  //search for tag
             if (Viewer.matchAndParseString(line, "[Threshold]", "",  matchSet)){
                 success = true; break;
             }
         }//while
+    }
 
-    if (!success) throw new IOException(
-           "The file could not be read - section not found for Chart Group "
-            + chartGroup + " Chart " + chartIndex + " Threshold " +
-            thresholdIndex);
+    if (!success) {
+        throw new IOException(
+        "The file could not be read - section not found for Chart Group "
+        + chartGroup + " Chart " + chartIndex + " Threshold " +
+        thresholdIndex);
+    }
 
     //set defaults
     int thresholdIndexRead = -1;
@@ -433,28 +436,33 @@ private String processThresholdEntries(BufferedReader pIn, String pLastLine)
         }
 
         //read the "Threshold Index" entry - if not found, default to -1
-        if (Viewer.matchAndParseInt(line, "Threshold Index", -1, matchSet))
+        if (Viewer.matchAndParseInt(line, "Threshold Index", -1, matchSet)) {
             thresholdIndexRead = matchSet.rInt1;
+        }
 
         //NOTE: this match is due to a bug in segments saved under
         // Segment Data Version 1.0 - the tag was misspelled - can be removed
         // eventually - only one job run with that version
         //read the "Theshold Index" entry - if not found, default to -1
-        if (Viewer.matchAndParseInt(line, "Theshold Index", -1, matchSet))
+        if (Viewer.matchAndParseInt(line, "Theshold Index", -1, matchSet)) {
             thresholdIndexRead = matchSet.rInt1;
+        }
 
         //read the "Threshold Title" entry - if not found, default to ""
-        if (Viewer.matchAndParseString(line, "Threshold Title", "", matchSet))
+        if (Viewer.matchAndParseString(line, "Threshold Title", "", matchSet)){
             titleRead = matchSet.rString1;
+        }
 
         //read the "Threshold Short Title" entry - if not found, default to ""
         if (Viewer.matchAndParseString(
-                                line, "Threshold Short Title", "", matchSet))
+                                line, "Threshold Short Title", "", matchSet)) {
             shortTitleRead = matchSet.rString1;
+        }
 
         //read the "Threshold Level" entry - if not found, default to 100
-        if (Viewer.matchAndParseInt(line, "Threshold Level", 100, matchSet))
+        if (Viewer.matchAndParseInt(line, "Threshold Level", 100, matchSet)) {
             levelRead = matchSet.rInt1;
+        }
 
     }//while ((line = pIn.readLine()) != null)
 
@@ -462,18 +470,20 @@ private String processThresholdEntries(BufferedReader pIn, String pLastLine)
     title = titleRead; shortTitle = shortTitleRead;
     setThresholdLevel(levelRead);
 
-    if (!success)
+    if (!success) {
         throw new IOException(
         "The file could not be read - missing end of section for Chart Group "
         + chartGroup + " Chart " + chartIndex + " Threshold " + thresholdIndex);
+    }
 
     //if the index number in the file does not match the index number for this
     //threshold, abort the file read
 
-    if (thresholdIndexRead != thresholdIndex)
+    if (thresholdIndexRead != thresholdIndex) {
         throw new IOException(
         "The file could not be read - section not found for Chart Group "
         + chartGroup + " Chart " + chartIndex + " Threshold " + thresholdIndex);
+    }
 
     return(line); //should be "[xxxx]" tag on success, unknown value if not
 

@@ -32,9 +32,9 @@
 
 package chart;
 
+import java.io.*;
 import java.util.Date;
 import javax.swing.*;
-import java.io.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -85,7 +85,7 @@ public void logMessage(String pMessage)
     //store the message in a buffer where the helper can find it
 
     messages[messagePtr++] = pMessage;
-    if (messagePtr == NUMBER_THREADSAFE_MESSAGES) messagePtr = 0;
+    if (messagePtr == NUMBER_THREADSAFE_MESSAGES) {messagePtr = 0;}
 
     //schedule a job for the event-dispatching thread to add the message to log
 
@@ -117,8 +117,9 @@ public void logMessageThreadSafe()
     //display the next message stored in the array
     log.append(messages[mainThreadMessagePtr++]);
 
-    if (mainThreadMessagePtr == NUMBER_THREADSAFE_MESSAGES)
+    if (mainThreadMessagePtr == NUMBER_THREADSAFE_MESSAGES) {
         mainThreadMessagePtr = 0;
+    }
 
 }//end of ThreadSafeLogger::logMessageThreadSafe
 //-----------------------------------------------------------------------------
@@ -226,12 +227,12 @@ public void saveToFileThreadSafe()
 
         file.println(log.getText().replace("\n", lineSeparator));
 
-        if (file != null) file.close();
+        if (file != null) {file.close();}
 
     }
     catch(IOException e){
         System.err.println(getClass().getName() + " - Error: 233");
-        if (file != null) file.close();
+        if (file != null) {file.close();}
     }
 
 }//end of ThreadSafeLogger::saveToFileThreadSafe

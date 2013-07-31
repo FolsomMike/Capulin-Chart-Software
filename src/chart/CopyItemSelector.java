@@ -20,9 +20,9 @@
 
 package chart;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import javax.swing.*;
 
 
 //-----------------------------------------------------------------------------
@@ -103,10 +103,12 @@ public boolean getItemState(String pItemName)
 
     JCheckBox cb = getItemWithName(pItemName);
 
-    if (cb != null)
+    if (cb != null) {
         return cb.isSelected();
-    else
+    }
+    else {
         return(false);
+    }
 
 }//end of CopyItemSelector::getItemState
 //-----------------------------------------------------------------------------
@@ -167,10 +169,13 @@ public void addItem(String pItemName)
 JCheckBox getItemWithName(String pItemName)
 {
 
-    for (Component child : panel.getComponents())
-        if (child instanceof JCheckBox)
-            if (((JCheckBox)child).getText().equals(pItemName))
+    for (Component child : panel.getComponents()) {
+        if (child instanceof JCheckBox) {
+            if (((JCheckBox)child).getText().equals(pItemName)) {
                 return((JCheckBox)child);
+            }
+        }
+    }
 
     return(null);
 
@@ -232,7 +237,7 @@ public void actionPerformed(ActionEvent e)
 {
 
     //trap "Help" button
-    if (e.getActionCommand().equals("Help")) displayHelp();
+    if (e.getActionCommand().equals("Help")) {displayHelp();}
 
 }//end of CopyItemSelector::actionPerformed
 //-----------------------------------------------------------------------------

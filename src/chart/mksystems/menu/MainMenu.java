@@ -19,13 +19,12 @@
 
 package chart.mksystems.menu;
 
-import javax.swing.*;
-import java.awt.event.*;
-import java.io.*;
-import java.awt.image.BufferedImage;
-
-import chart.mksystems.settings.Settings;
 import chart.mksystems.inifile.IniFile;
+import chart.mksystems.settings.Settings;
+import java.awt.event.*;
+import java.awt.image.BufferedImage;
+import java.io.*;
+import javax.swing.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -575,8 +574,9 @@ public boolean isSelected()
     //return true if any top level menu item is selected
 
     if (fileMenu.isSelected() || printMenu.isSelected()
-        || helpMenu.isSelected())
+        || helpMenu.isSelected()) {
         return(true);
+    }
 
     return false;
 
@@ -598,7 +598,7 @@ public final void loadLanguage(String pLanguage)
 
     language = pLanguage;
 
-    IniFile ini = null;
+    IniFile ini;
 
     //if the ini file cannot be opened and loaded, exit without action
     try {ini = new IniFile("language\\Main Menu - Capulin UT.language",

@@ -195,8 +195,8 @@ public void connectControlBoard()
     //debug mks - need separate variable for simulated control boards ~ UTSimulator.instanceCounter = 0; //reset simulated board counter
 
     try{
-        if (!simulateControlBoards) socket = new DatagramSocket(4445);
-        else socket = new UDPSimulator(4445, "Control Board present...");
+        if (!simulateControlBoards) {socket = new DatagramSocket(4445);}
+        else {socket = new UDPSimulator(4445, "Control Board present...");}
 
     }
     catch (IOException e) {
@@ -207,7 +207,7 @@ public void connectControlBoard()
 
     int loopCount = 0;
     String castMsg = "Control Board Roll Call";
-    byte[] outBuf = new byte[256];
+    byte[] outBuf;
     outBuf = castMsg.getBytes();
     InetAddress group;
     DatagramPacket outPacket;
@@ -304,7 +304,7 @@ public void connectControlBoard()
     socket.close();
 
     //bail out if no Control boards responded
-    if (responseCount == 0) return;
+    if (responseCount == 0) {return;}
 
     //start the run method of each ControlBoard thread class - the run method
     //makes the TCP/IP connections and uploads FPGA and DSP code simultaneously
@@ -325,8 +325,9 @@ public void connectControlBoard()
     //waitForconnectCompletion until controlBoard.connect completes because
     //connect is also synchronized
 
-    for (int i = 0; i < numberOfControlBoards; i++)
+    for (int i = 0; i < numberOfControlBoards; i++) {
         controlBoards[i].waitForConnectCompletion();
+    }
 
     logger.logMessage("All Control boards ready.\n");
 
@@ -359,10 +360,12 @@ public synchronized void connectUTBoards()
     // up response string expected
 
     try{
-        if (!simulateUTBoards)
+        if (!simulateUTBoards) {
             socket = new DatagramSocket(4445);
-        else
+        }
+        else {
             socket = new UDPSimulator(4445, "UT board present, FPGA loaded...");
+        }
     }
     catch (IOException e) {
         System.err.println(getClass().getName() + " - Error: 351");
@@ -373,7 +376,7 @@ public synchronized void connectUTBoards()
 
     int loopCount = 0;
     String castMsg = "UT Board Roll Call";
-    byte[] outBuf = new byte[256];
+    byte[] outBuf;
     outBuf = castMsg.getBytes();
     InetAddress group;
     DatagramPacket outPacket;
@@ -453,7 +456,9 @@ public synchronized void connectUTBoards()
                                 inPacket.getData(), 0, inPacket.getLength());
 
                         //count number of boards already having loaded FPGA's
-                        if (response.contains("FPGA loaded")) fpgaLoadedCount++;
+                        if (response.contains("FPGA loaded")){
+                            fpgaLoadedCount++;
+                        }
 
                         //display the greeting string from the remote
                         logger.logMessage(
@@ -506,8 +511,9 @@ public synchronized void connectUTBoards()
     //waitForconnectCompletion until utBoard.connect completes because connect
     //is also synchronized
 
-    for (int i = 0; i < numberOfUTBoards; i++)
+    for (int i = 0; i < numberOfUTBoards; i++) {
         utBoards[i].waitForConnectCompletion();
+    }
 
     logger.logMessage("All UT boards connected...\n");
 
@@ -528,14 +534,17 @@ public synchronized void connectUTBoards()
 
     for (int i = 0; i < numberOfUTBoards; i++){
         if (utBoards[i].ready){
-            for (int j = 0; j < numberOfChannels; j++)
+            for (int j = 0; j < numberOfChannels; j++) {
                 if (channels[j].chassisAddr == utBoards[i].chassisAddr
-                        && channels[j].slotAddr == utBoards[i].slotAddr)
+                        && channels[j].slotAddr == utBoards[i].slotAddr) {
                     channels[j].utBoard = utBoards[i];
+                }
+            }
         }
-        else
+        else {
             System.out.println("UT Board " + i
                                  + " not ready at time of channel assignment");
+        }
 
     }//for (int i = 0;...
 
@@ -571,8 +580,11 @@ public synchronized void connectUTBoards()
 public void initializeUTBoards()
 {
 
-    for (int j = 0; j < numberOfUTBoards; j++)
-        if (utBoards[j] != null) utBoards[j].initialize();
+    for (int j = 0; j < numberOfUTBoards; j++) {
+        if (utBoards[j] != null) {
+            utBoards[j].initialize();
+        }
+    }
 
 }//end of Capulin1::initializeUTBoards
 //-----------------------------------------------------------------------------
@@ -586,8 +598,11 @@ public void initializeUTBoards()
 public void initializeControlBoards()
 {
 
-    for (int j = 0; j < numberOfControlBoards; j++)
-        if (controlBoards[j] != null) controlBoards[j].initialize();
+    for (int j = 0; j < numberOfControlBoards; j++) {
+        if (controlBoards[j] != null) {
+            controlBoards[j].initialize();
+        }
+    }
 
 }//end of Capulin1::initializeControlBoards
 //-----------------------------------------------------------------------------
@@ -605,8 +620,11 @@ public void initializeControlBoards()
 public void verifyAllDSPCode2()
 {
 
-    for (int j = 0; j < numberOfUTBoards; j++)
-        if (utBoards[j] != null) utBoards[j].verifyAllDSPCode2();
+    for (int j = 0; j < numberOfUTBoards; j++) {
+        if (utBoards[j] != null) {
+            utBoards[j].verifyAllDSPCode2();
+        }
+    }
 
 }//end of Capulin1::verifyAllDSPCode2
 //-----------------------------------------------------------------------------
@@ -620,7 +638,9 @@ public void verifyAllDSPCode2()
 public void initializeChannels()
 {
 
-    for (int i = 0; i < numberOfChannels; i++) channels[i].initialize();
+    for (int i = 0; i < numberOfChannels; i++) {
+        channels[i].initialize();
+    }
 
 }//end of Capulin1::initializeChannels
 //-----------------------------------------------------------------------------
@@ -639,14 +659,15 @@ public void sendDataChangesToRemotes()
 
     if (!syncedVarMgr.getDataChangedMaster()){
 
-        if (repRateInHertz.getDataChangedFlag()) sendRepRate();
+        if (repRateInHertz.getDataChangedFlag()) {sendRepRate();}
 
     }//if (!syncedVarMgr.getDataChangedMaster())
 
     //handle data changes in all the channels
 
-    for (int i = 0; i < numberOfChannels; i++)
+    for (int i = 0; i < numberOfChannels; i++) {
         channels[i].sendDataChangesToRemotes();
+    }
 
 }//end of Capulin1::sendDataChangesToRemotes
 //-----------------------------------------------------------------------------
@@ -662,13 +683,17 @@ public void sendDataChangesToRemotes()
 public void driveSimulation()
 {
 
-    if (simulateControlBoards)
-        for (int i = 0; i < numberOfControlBoards; i++)
+    if (simulateControlBoards) {
+        for (int i = 0; i < numberOfControlBoards; i++) {
             controlBoards[i].driveSimulation();
+        }
+    }
 
-    if (simulateUTBoards)
-        for (int i = 0; i < numberOfUTBoards; i++)
+    if (simulateUTBoards) {
+        for (int i = 0; i < numberOfUTBoards; i++) {
             utBoards[i].driveSimulation();
+        }
+    }
 
 }//end of Capulin1::driveSimulation
 //-----------------------------------------------------------------------------
@@ -683,8 +708,11 @@ public void driveSimulation()
 public void logStatus(Log pLogWindow)
 {
 
-    for (int i = 0; i < numberOfUTBoards; i++)
-        if (utBoards[i]!= null) utBoards[i].logStatus(pLogWindow);
+    for (int i = 0; i < numberOfUTBoards; i++) {
+        if (utBoards[i]!= null) {
+        utBoards[i].logStatus(pLogWindow);
+        }
+    }
 
 }//end of Capulin1::logStatus
 //-----------------------------------------------------------------------------
@@ -701,11 +729,17 @@ public void logStatus(Log pLogWindow)
 public void shutDown()
 {
 
-    for (int i = 0; i < numberOfControlBoards; i++)
-        if (controlBoards[i]!= null) controlBoards[i].shutDown();
+    for (int i = 0; i < numberOfControlBoards; i++) {
+        if (controlBoards[i]!= null) {
+            controlBoards[i].shutDown();
+        }
+    }
 
-    for (int i = 0; i < numberOfUTBoards; i++)
-        if (utBoards[i]!= null) utBoards[i].shutDown();
+    for (int i = 0; i < numberOfUTBoards; i++) {
+        if (utBoards[i]!= null) {
+            utBoards[i].shutDown();
+        }
+    }
 
 }//end of Capulin1::shutDown
 //-----------------------------------------------------------------------------
@@ -728,8 +762,9 @@ public void loadCalFile(IniFile pCalFile)
           pCalFile.readInt("Hardware", "Pulse Rep Rate in Hertz", 2000), true);
 
     // call each channel to load its data
-    for (int i = 0; i < numberOfChannels; i++)
+    for (int i = 0; i < numberOfChannels; i++) {
         channels[i].loadCalFile(pCalFile);
+    }
 
 }//end of Capulin1::loadCalFile
 //-----------------------------------------------------------------------------
@@ -752,8 +787,9 @@ public void saveCalFile(IniFile pCalFile)
             "Hardware", "Pulse Rep Rate in Hertz", repRateInHertz.getValue());
 
     // call each channel to save its data
-    for (int i = 0; i < numberOfChannels; i++)
+    for (int i = 0; i < numberOfChannels; i++) {
         channels[i].saveCalFile(pCalFile);
+    }
 
 }//end of Capulin1::saveCalFile
 //-----------------------------------------------------------------------------
@@ -780,8 +816,9 @@ public void saveCalFileHumanReadable(BufferedWriter pOut) throws IOException
     pOut.newLine(); pOut.newLine();
 
     // call each channel to save its data
-    for (int i = 0; i < numberOfChannels; i++)
+    for (int i = 0; i < numberOfChannels; i++) {
         channels[i].saveCalFileHumanReadable(pOut);
+    }
 
 }//end of Capulin1::saveCalFileHumanReadable
 //-----------------------------------------------------------------------------
@@ -800,7 +837,7 @@ public void displayMessages()
 {
 
     //if another function is using the socket, don't read messages from it
-    if (!logEnabled) return;
+    if (!logEnabled) {return;}
 
 }//end of Capulin1::displayMessages
 //-----------------------------------------------------------------------------
@@ -821,15 +858,18 @@ public void updateRabbitCode(int pWhichRabbits)
 
     if (pWhichRabbits == Hardware.UT_RABBITS
             || pWhichRabbits == Hardware.ALL_RABBITS){
-        for (int j = 0; j < numberOfUTBoards; j++)
-            if (utBoards[j] != null) utBoards[j].installNewRabbitFirmware();
+        for (int j = 0; j < numberOfUTBoards; j++) {
+            if (utBoards[j] != null) {utBoards[j].installNewRabbitFirmware();}
+        }
     }
 
     if (pWhichRabbits == Hardware.CONTROL_RABBITS
-            || pWhichRabbits == Hardware.ALL_RABBITS){
-        for (int j = 0; j < numberOfControlBoards; j++)
-            if (controlBoards[j] != null)
+                                || pWhichRabbits == Hardware.ALL_RABBITS){
+        for (int j = 0; j < numberOfControlBoards; j++) {
+            if (controlBoards[j] != null) {
                 controlBoards[j].installNewRabbitFirmware();
+            }
+        }
     }
 
     logger.logMessage("\n");
@@ -913,7 +953,7 @@ public void setMode(int pOpMode)
     if (opMode == Hardware.STOPPED){
 
         //deactivate inspect mode in the control board(s)
-        if (controlBoardInspectMode) controlBoards[0].stopInspect();
+        if (controlBoardInspectMode) {controlBoards[0].stopInspect();}
 
     }
 
@@ -1091,9 +1131,11 @@ public void requestPeakData(int pChannel)
 public void requestPeakDataForAllBoards()
 {
 
-    for (int i = 0; i < numberOfUTBoards; i++)
-        if (utBoards[i] != null)
+    for (int i = 0; i < numberOfUTBoards; i++) {
+        if (utBoards[i] != null) {
             utBoards[i].requestPeakData4(0, 1, 2, 3);
+        }
+    }
 
 }//end of Hardware::requestPeakDataForAllBoards
 //-----------------------------------------------------------------------------
@@ -1169,8 +1211,9 @@ public boolean prepareAnalogData()
         //there are no packets waiting.  Also, any other packet types waiting
         //will be processed even if there is no peak data packet in the queue.
 
-        if (utBoards[i].processDataPacketsUntilPeakPacket() == 1)
+        if (utBoards[i].processDataPacketsUntilPeakPacket() == 1) {
             atLeastOnePeakDataPacketProcessed = true;
+        }
 
     }
 
@@ -1237,10 +1280,11 @@ public boolean prepareControlData()
         //there are no packets waiting.  Also, any other packet types waiting
         //will be processed even if there is no encoder packet in the queue.
 
-        if (controlBoards[i].processDataPacketsUntilEncoderPacket() == 1)
+        if (controlBoards[i].processDataPacketsUntilEncoderPacket() == 1) {
             atLeastOneEncoderPacketProcessed = true;
-
         }
+
+    }
 
     return atLeastOneEncoderPacketProcessed;
 
@@ -1392,12 +1436,12 @@ private void configure(IniFile pConfigFile)
             pConfigFile.readBoolean("Hardware", "Simulate UT Boards", false);
 
     //if any simulation is active, set the simulate flag true
-    if (simulateControlBoards || simulateUTBoards) simulate = true;
+    if (simulateControlBoards || simulateUTBoards) {simulate = true;}
 
     numberOfUTBoards =
                      pConfigFile.readInt("Hardware", "Number of UT Boards", 1);
 
-    if (numberOfUTBoards > 255) numberOfUTBoards = 255;
+    if (numberOfUTBoards > 255) {numberOfUTBoards = 255;}
 
     numberOfChannels =
                 pConfigFile.readInt("Hardware", "Number of Analog Channels", 1);
@@ -1408,7 +1452,7 @@ private void configure(IniFile pConfigFile)
     fpgaCodeFilename = pConfigFile.readString(
                         "Hardware", "UT FPGA Code Filename", "not specified");
 
-    if (numberOfChannels > 1500) numberOfUTBoards = 1500;
+    if (numberOfChannels > 1500) {numberOfUTBoards = 1500;}
 
     //create and setup the Control boards
     configureControlBoards();
@@ -1442,10 +1486,11 @@ private void configureControlBoards()
         //the config file because they each have threads and iniFile is not
         //threadsafe
 
-        for (int i = 0; i < numberOfControlBoards; i++)
+        for (int i = 0; i < numberOfControlBoards; i++) {
             controlBoards[i] = new ControlBoard(configFile, "Control " + (i+1),
                     i, RUNTIME_PACKET_SIZE, simulateControlBoards, log,
                                                                 mainFileFormat);
+        }
 
     }//if (numberOfControlBoards > 0)
 
@@ -1472,10 +1517,11 @@ private void configureUTBoards()
         //the config file because they each have threads and iniFile is not
         //threadsafe
 
-        for (int i = 0; i < numberOfUTBoards; i++)
-           utBoards[i] = new UTBoard(configFile.filename,
-                 "UT "+ (i+1), i, simulateUTBoards, log, hdwVs, jobFileFormat,
-                                                                mainFileFormat);
+        for (int i = 0; i < numberOfUTBoards; i++) {
+            utBoards[i] = new UTBoard(configFile.filename,
+                  "UT "+ (i+1), i, simulateUTBoards, log, hdwVs, jobFileFormat,
+                                                                 mainFileFormat);
+        }
 
     }//if (numberOfUTBoards > 0)
 
@@ -1497,8 +1543,9 @@ private void configureChannels()
 
         channels = new Channel[numberOfChannels];
 
-        for (int i = 0; i < numberOfChannels; i++)
-           channels[i] = new Channel(configFile, settings, i, null);
+        for (int i = 0; i < numberOfChannels; i++) {
+            channels[i] = new Channel(configFile, settings, i, null);
+        }
 
     }//if (numberOfChannels > 0)
 
@@ -1517,11 +1564,14 @@ private void configureChannels()
 int findBoard(int pChassis, int pSlot)
 {
 
-    for (int i = 0; i < numberOfUTBoards; i++)
-        if (utBoards[i] != null && utBoards[i].ready)
+    for (int i = 0; i < numberOfUTBoards; i++) {
+        if (utBoards[i] != null && utBoards[i].ready) {
             if (pChassis == utBoards[i].chassisAddr
-                                              && pSlot == utBoards[i].slotAddr)
+                                            && pSlot == utBoards[i].slotAddr) {
                 return (i);
+            }
+        }
+    }
 
     return(-1);
 
@@ -1544,9 +1594,10 @@ public void readRAM(int pChassis, int pSlot, int pDSPChip, int pDSPCore,
 
     int board = findBoard(pChassis, pSlot);
 
-    if (board != -1)
+    if (board != -1) {
         utBoards[board].readRAM(pDSPChip, pDSPCore, pRAMType,
                                            pPage, pAddress, pCount, dataBlock);
+    }
 
 }//end of Capulin1::getRAM
 //-----------------------------------------------------------------------------
@@ -1565,9 +1616,10 @@ public void writeRAM(int pChassis, int pSlot, int pDSPChip, int pDSPCore,
 
     int board = findBoard(pChassis, pSlot);
 
-    if (board != -1)
+    if (board != -1) {
         utBoards[board].writeDSPRam(pDSPChip, pDSPCore, pRAMType,
                                                      pPage, pAddress, pValue);
+    }
 
 }//end of Capulin1::writeRAM
 //-----------------------------------------------------------------------------
@@ -1585,9 +1637,10 @@ public void fillRAM(int pChassis, int pSlot, int pDSPChip, int pDSPCore,
 
     int board = findBoard(pChassis, pSlot);
 
-    if (board != -1)
+    if (board != -1) {
         utBoards[board].fillRAM(pDSPChip, pDSPCore,
                                 pRAMType, pPage, pAddress, pBlockSize, pValue);
+    }
 
 }//end of Capulin1::fillRAM
 //-----------------------------------------------------------------------------
@@ -1607,10 +1660,12 @@ public int getState(int pChassis, int pSlot, int pWhich)
 
     int board = findBoard(pChassis, pSlot);
 
-    if (board != -1)
+    if (board != -1) {
         return utBoards[board].getState(pWhich);
-    else
-        return(0); //board not found
+    }
+    else {
+        return(0);
+    } //board not found
 
 }//end of Capulin1::getState
 //-----------------------------------------------------------------------------
@@ -1629,8 +1684,9 @@ public void setState(int pChassis, int pSlot, int pWhich, int pValue)
 
     int board = findBoard(pChassis, pSlot);
 
-    if (board != -1)
+    if (board != -1) {
         utBoards[board].setState(pWhich, pValue);
+    }
 
 }//end of Capulin1::setState
 //-----------------------------------------------------------------------------
@@ -1738,7 +1794,7 @@ public void loadFPGAViaUDP(DatagramSocket pSocket)
 {
 
     // don't attempt to load the FPGA if UDP socket is not open
-    if (pSocket == null) return;
+    if (pSocket == null) {return;}
 
     fpgaLoaded = false;
 
@@ -1771,7 +1827,7 @@ public void loadFPGAViaUDP(DatagramSocket pSocket)
 
     boolean fileDone = false;
 
-    FileInputStream inFile = null;
+    FileInputStream inFile;
 
     try {
 
@@ -1814,7 +1870,7 @@ public void loadFPGAViaUDP(DatagramSocket pSocket)
 
                 }//while (bufPtr...
 
-                if (c == -1) fileDone = true; //send no more packets after this
+                if (c == -1) {fileDone = true;}//send no more packets after this
 
                 //send packet to remote
                 pSocket.send(codePacket);
@@ -1865,8 +1921,9 @@ int getFPGALoadResponse(DatagramSocket pSocket, DatagramPacket pInPacket)
     int fpgaConfigGoodCount = 0;
 
     //clear all the response flags
-    for (int i = 0; i < numberOfUTBoards; i++)
+    for (int i = 0; i < numberOfUTBoards; i++) {
         utBoards[i].udpResponseFlag = false;
+    }
 
     while(!timeOut){
 
@@ -1888,7 +1945,9 @@ int getFPGALoadResponse(DatagramSocket pSocket, DatagramPacket pInPacket)
                 return(-1);
             }
         }//if (pSocket != null)
-        else return(-1);
+        else {
+            return(-1);
+        }
 
         //if a packet was received, get the packet's sending IP address
         if (pInPacket.getAddress() != null){
@@ -1922,7 +1981,7 @@ int getFPGALoadResponse(DatagramSocket pSocket, DatagramPacket pInPacket)
             //count boards which return good code
             fpgaConfigGoodCount++;
             //exit when all boards return good
-            if (fpgaConfigGoodCount == numberOfUTBoards) return(2);
+            if (fpgaConfigGoodCount == numberOfUTBoards) {return(2);}
         }
 
         //send data packet when requested by remote
@@ -1930,7 +1989,7 @@ int getFPGALoadResponse(DatagramSocket pSocket, DatagramPacket pInPacket)
             //count boards which return data request code
             sendDataCmdCount++;
             //exit when all boards return data request code
-            if (sendDataCmdCount == numberOfUTBoards) return(1);
+            if (sendDataCmdCount == numberOfUTBoards) {return(1);}
         }//if (inBuffer[0] == SEND_DATA)
 
     }// while(!timeOut)
@@ -1959,9 +2018,11 @@ void setUDPResponseFlag(String pIPAddress)
 {
 
     //set the flag in the utBoard with the matching IP address
-    for (int i = 0; i < numberOfUTBoards; i++)
-        if (utBoards[i].ipAddrS.equals(pIPAddress))
+    for (int i = 0; i < numberOfUTBoards; i++) {
+        if (utBoards[i].ipAddrS.equals(pIPAddress)) {
             utBoards[i].udpResponseFlag = true;
+        }
+    }
 
 }//end of Capulin1::setUDPResponseFlag
 //-----------------------------------------------------------------------------
@@ -1978,9 +2039,11 @@ void displayUnresponsiveIPAddresses()
 {
 
     //set the flag in the utBoard with the matching IP address
-    for (int i = 0; i < numberOfUTBoards; i++)
-        if (!utBoards[i].udpResponseFlag)
+    for (int i = 0; i < numberOfUTBoards; i++) {
+        if (!utBoards[i].udpResponseFlag) {
             logger.logMessage("UT " + utBoards[i].ipAddrS + "\n");
+        }
+    }
 
 }//end of Capulin1::displayUnresponsiveIPAddresses
 //-----------------------------------------------------------------------------

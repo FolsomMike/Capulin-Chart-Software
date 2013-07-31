@@ -21,11 +21,10 @@
 
 package chart.mksystems.hardware;
 
-import java.net.*;
-import java.io.*;
-
 import chart.MessageLink;
 import chart.mksystems.inifile.IniFile;
+import java.io.*;
+import java.net.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -139,10 +138,12 @@ public int processDataPackets(boolean pWaitForPkt)
     // will ever be coming because this same thread which is now blocked is
     // sometimes the one requesting data
 
-    if (pWaitForPkt)
+    if (pWaitForPkt) {
         return processDataPacketsHelper(pWaitForPkt);
-    else
+    }
+    else {
         while ((x = processDataPacketsHelper(pWaitForPkt)) != -1){}
+    }
 
     return x;
 
@@ -159,10 +160,10 @@ public int processDataPackets(boolean pWaitForPkt)
 public int processDataPacketsHelper(boolean pWaitForPkt)
 {
 
-    if (byteIn == null) return 0;  //do nothing if the port is closed
+    if (byteIn == null) {return 0;}  //do nothing if the port is closed
 
     //simulate the inspection signals and send back packets to the host
-    if (inspectMode == true) simulateInspection();
+    if (inspectMode == true) {simulateInspection();}
 
     try{
 
@@ -170,7 +171,7 @@ public int processDataPacketsHelper(boolean pWaitForPkt)
 
         //wait until 5 bytes are available - this should be the 4 header bytes,
         //and the packet identifier/command
-        if ((x = byteIn.available()) < 5) return -1;
+        if ((x = byteIn.available()) < 5) {return -1;}
 
         //read the bytes in one at a time so that if an invalid byte is
         //encountered it won't corrupt the next valid sequence in the case
@@ -190,7 +191,9 @@ public int processDataPacketsHelper(boolean pWaitForPkt)
             byteIn.read(inBuffer, 0, 1);
             if (inBuffer[0] != (byte)0xaa) {reSync(); return 0;}
         }
-        else reSynced = false;
+        else {
+            reSynced = false;
+        }
 
         byteIn.read(inBuffer, 0, 1);
         if (inBuffer[0] != (byte)0x55) {reSync(); return 0;}
@@ -204,17 +207,17 @@ public int processDataPacketsHelper(boolean pWaitForPkt)
 
         byte pktID = inBuffer[0];
 
-        if (pktID == ControlBoard.GET_STATUS_CMD) getStatus();
+        if (pktID == ControlBoard.GET_STATUS_CMD) {getStatus();}
         else
         if (pktID == ControlBoard.SET_ENCODERS_DELTA_TRIGGER_CMD)
-            setEncodersDeltaTrigger(pktID);
+            {setEncodersDeltaTrigger(pktID);}
         else
-        if (pktID == ControlBoard.START_INSPECT_CMD) startInspect(pktID);
+        if (pktID == ControlBoard.START_INSPECT_CMD) {startInspect(pktID);}
         else
-        if (pktID == ControlBoard.STOP_INSPECT_CMD) stopInspect(pktID);
+        if (pktID == ControlBoard.STOP_INSPECT_CMD) {stopInspect(pktID);}
         else
         if (pktID == ControlBoard.GET_CHASSIS_SLOT_ADDRESS_CMD)
-            getChassisSlotAddress();
+            {getChassisSlotAddress();}
 
         return 0;
 
@@ -262,7 +265,7 @@ int setEncodersDeltaTrigger(byte pPktID)
     //read the databytes and checksum
     int bytesRead = readBlockAndVerify(5, pPktID);
 
-    if (bytesRead < 0) return(bytesRead); //bail out if error
+    if (bytesRead < 0) {return(bytesRead);} //bail out if error
 
     encoder1DeltaTrigger =
                    (int)((inBuffer[0]<<8) & 0xff00) + (int)(inBuffer[1] & 0xff);
@@ -292,7 +295,7 @@ int setEncodersDeltaTrigger(byte pPktID)
 int readBlockAndVerify(int pNumberOfBytes, byte pPktID)
 {
 
-    int bytesRead = 0;
+    int bytesRead;
 
     try{
         bytesRead = byteIn.read(inBuffer, 0, pNumberOfBytes);
@@ -305,10 +308,10 @@ int readBlockAndVerify(int pNumberOfBytes, byte pPktID)
     if (bytesRead == pNumberOfBytes){
 
         byte sum = 0;
-        for(int i = 0; i < pNumberOfBytes; i++) sum += inBuffer[i];
+        for(int i = 0; i < pNumberOfBytes; i++) {sum += inBuffer[i];}
 
         //calculate checksum to check validity of the packet
-        if ( (pPktID + sum & (byte)0xff) != 0) return(-1);
+        if ( (pPktID + sum & (byte)0xff) != 0) {return(-1);}
     }
     else{
         //error -- not enough bytes could be read
@@ -364,7 +367,9 @@ int startInspect(byte pPktID)
     if (bytesRead == 2){
 
         //calculate checksum to check validity of the packet
-        if ( (pPktID + inBuffer[0] + inBuffer[1] & (byte)0xff) != 0) return(-1);
+        if ( (pPktID + inBuffer[0] + inBuffer[1] & (byte)0xff) != 0) {
+            return(-1);
+        }
     }
     else{
         //("Error - Wrong sized packet header for startInspect!\n");
@@ -421,7 +426,9 @@ int stopInspect(byte pPktID)
     if (bytesRead == 2){
 
         //calculate checksum to check validity of the packet
-        if ( (pPktID + inBuffer[0] + inBuffer[1] & (byte)0xff) != 0) return(-1);
+        if ( (pPktID + inBuffer[0] + inBuffer[1] & (byte)0xff) != 0) {
+            return(-1);
+        }
     }
     else{
         //("Error - Wrong sized packet header for startInspect!\n");
@@ -445,10 +452,10 @@ void simulateInspection()
 {
 
     //do nothing if in STOP mode
-    if (simulationMode == MessageLink.STOP) return;
+    if (simulationMode == MessageLink.STOP) {return;}
 
     //delay between sending inspect packets to the host
-    if (delayBetweenPackets-- != 0) return;
+    if (delayBetweenPackets-- != 0) {return;}
     //restart time for next packet send
     delayBetweenPackets = DELAY_BETWEEN_INSPECT_PACKETS;
 
@@ -470,25 +477,25 @@ void simulateInspection()
     int triggerTrack = Math.abs(positionTrack);
 
     //after photo eye reaches piece, give "on pipe" signal
-    if (triggerTrack >= 10) onPipeFlag = true; else onPipeFlag = false;
+    if (triggerTrack >= 10) {onPipeFlag = true;} else {onPipeFlag = false;}
 
     //after head 1 reaches position, give head 1 down signal
-    if (triggerTrack >= 200) head1Down = true; else head1Down = false;
+    if (triggerTrack >= 200) {head1Down = true;} else {head1Down = false;}
 
     //after head 2 reaches position, give head 2 down signal
-    if (triggerTrack >= 250) head2Down = true; else head2Down = false;
+    if (triggerTrack >= 250) {head2Down = true;} else {head2Down = false;}
 
     //after head 1 reaches pick up position, give head 1 up signal
-    if (triggerTrack >= LENGTH_OF_JOINT_IN_PACKETS-100) head1Down = false;
+    if (triggerTrack >= LENGTH_OF_JOINT_IN_PACKETS-100) {head1Down = false;}
 
     //after head 2 reaches pick up position, give head 2 up signal
-    if (triggerTrack >= LENGTH_OF_JOINT_IN_PACKETS-50) head2Down = false;
+    if (triggerTrack >= LENGTH_OF_JOINT_IN_PACKETS-50) {head2Down = false;}
 
     //after photo eye reaches end of piece, turn off "on pipe" signal
-    if (triggerTrack >= LENGTH_OF_JOINT_IN_PACKETS) onPipeFlag = false;
+    if (triggerTrack >= LENGTH_OF_JOINT_IN_PACKETS) {onPipeFlag = false;}
 
     //wait a bit after head has passed the end and prepare for the next piece
-    if (triggerTrack >= LENGTH_OF_JOINT_IN_PACKETS + 10) resetAll();
+    if (triggerTrack >= LENGTH_OF_JOINT_IN_PACKETS + 10) {resetAll();}
 
     //start with all control flags set to 0
     controlFlags = (byte)0x00;
@@ -497,11 +504,11 @@ void simulateInspection()
 
     //set appropriate bit high for each flag which is active low
     if (onPipeFlag)
-        controlFlags = (byte)(controlFlags | ControlBoard.ON_PIPE_CTRL);
+        {controlFlags = (byte)(controlFlags | ControlBoard.ON_PIPE_CTRL);}
     if (head1Down)
-        controlFlags = (byte)(controlFlags | ControlBoard.HEAD1_DOWN_CTRL);
+        {controlFlags = (byte)(controlFlags | ControlBoard.HEAD1_DOWN_CTRL);}
     if (head2Down)
-        controlFlags = (byte)(controlFlags | ControlBoard.HEAD2_DOWN_CTRL);
+        {controlFlags = (byte)(controlFlags | ControlBoard.HEAD2_DOWN_CTRL);}
 
     //move the encoders the forward or backward the amount expected by the host
     if (simulationMode == MessageLink.FORWARD){
@@ -541,13 +548,14 @@ void simulateInspection()
     outBuffer[x++] = portE;
 
     //send packet to the host
-    if (byteOut != null)
+    if (byteOut != null) {
         try{
             byteOut.write(outBuffer, 0 /*offset*/, pktSize);
         }
         catch (IOException e) {
             System.err.println(getClass().getName() + " - Error: 546");
         }
+    }
 
 }//end of ControlSimulator::simulateInspection
 //-----------------------------------------------------------------------------
@@ -568,13 +576,14 @@ void sendPacketHeader(byte pPacketID)
     outBuffer[4] = (byte)pPacketID;
 
     //send packet to remote
-    if (byteOut != null)
+    if (byteOut != null) {
         try{
             byteOut.write(outBuffer, 0 /*offset*/, 5);
         }
         catch (IOException e) {
             System.err.println(getClass().getName() + " - Error: 573");
         }
+    }
 
 }//end of ControlSimulator::sendPacketHeader
 //----------------------------------------------------------------------------

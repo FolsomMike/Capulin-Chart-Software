@@ -20,37 +20,34 @@
 
 package chart;
 
-import javax.swing.*;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Toolkit;
-import java.io.*;
-import java.text.DecimalFormat;
-import java.awt.event.ItemListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.ComponentListener;
-import java.awt.event.ComponentEvent;
-import java.awt.event.WindowListener;
-import java.awt.event.WindowEvent;
-import java.util.*;
-import java.awt.Rectangle;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.print.*;
-import javax.print.attribute.standard.PrinterResolution;
-import javax.print.attribute.standard.PrintQuality;
-import javax.print.attribute.HashPrintRequestAttributeSet;
-import javax.print.attribute.standard.MediaSizeName;
-import javax.print.attribute.standard.OrientationRequested;
-import javax.print.attribute.standard.MediaPrintableArea;
-import javax.print.attribute.standard.PageRanges;
-import java.awt.geom.AffineTransform;
-
 import chart.mksystems.settings.Settings;
 import chart.mksystems.stripchart.ChartGroup;
-import chart.mksystems.stripchart.StripChart;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.awt.geom.AffineTransform;
+import java.awt.print.*;
+import java.io.*;
+import java.util.*;
+import javax.print.attribute.HashPrintRequestAttributeSet;
+import javax.print.attribute.standard.MediaPrintableArea;
+import javax.print.attribute.standard.MediaSizeName;
+import javax.print.attribute.standard.OrientationRequested;
+import javax.print.attribute.standard.PageRanges;
+import javax.print.attribute.standard.PrintQuality;
+import javax.print.attribute.standard.PrinterResolution;
+import javax.swing.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -160,8 +157,8 @@ public void resetMainFrameAndSetUp()
     //remove all children components
     //cannot use removeAll on a JFrame as it causes strange behavior, probably
     //because this may remove contentPane, which is an illegal action
-    if(scrollPane != null) mainFrame.remove(scrollPane);
-    if(controlPanel != null) mainFrame.remove(controlPanel);
+    if(scrollPane != null) {mainFrame.remove(scrollPane);}
+    if(controlPanel != null) {mainFrame.remove(controlPanel);}
 
     //clear out any presets so the JFrame will size itself to its contents
     mainFrame.setMinimumSize(null);
@@ -186,11 +183,13 @@ public void resetMainFrameAndSetUp()
     double w = mainFrame.getWidth();
     double h = mainFrame.getHeight();
 
-    if(chartGroups[0].viewerWindowWidth != -1)
+    if(chartGroups[0].viewerWindowWidth != -1) {
         w = chartGroups[0].viewerWindowWidth;
+    }
 
-    if(chartGroups[0].viewerWindowHeight != -1)
+    if(chartGroups[0].viewerWindowHeight != -1) {
         h = chartGroups[0].viewerWindowHeight;
+    }
 
     setSizes(mainFrame, (int)w, (int)h);
     mainFrame.pack();
@@ -342,7 +341,7 @@ public void loadSegmentList()
     for (int i=0; i<segmentList.size(); i++){
         s = (String)segmentList.get(i);
         segNum = parseFilenameToSegmentNumber(s);
-        if (segNum != Integer.MIN_VALUE) segmentList.set(i, "" + segNum);
+        if (segNum != Integer.MIN_VALUE) {segmentList.set(i, "" + segNum);}
     }
 
 }//end of Viewer::loadSegmentList
@@ -358,8 +357,9 @@ public void loadSegmentList()
 public void handleSizeChanges()
 {
 
-    for (int i = 0; i < numberOfChartGroups; i++)
-                                            chartGroups[i].handleSizeChanges();
+    for (int i = 0; i < numberOfChartGroups; i++) {
+        chartGroups[i].handleSizeChanges();
+    }
 
 }//end of Viewer::handleSizeChanges
 //-----------------------------------------------------------------------------
@@ -415,14 +415,16 @@ int getFirstOrLastAvailableSegmentNumber(int pWhich)
     //load the list of available segment numbers / files
     loadSegmentList();
 
-    if (segmentList.isEmpty()) return(-2);  //no files found
+    if (segmentList.isEmpty()) {return(-2);}  //no files found
 
     //attempt to convert the first or last entry in the list
     try{
-        if (pWhich == FIRST)
+        if (pWhich == FIRST) {
             return(Integer.valueOf(segmentList.get(0)));
-        else
+        }
+        else {
             return(Integer.valueOf(segmentList.get(segmentList.size()-1)));
+        }
     }
     catch(NumberFormatException nfe){
         return(-1);
@@ -457,10 +459,12 @@ String trimNonNumeric(String pString)
     }
 
     //if no numeric character found, return empty string else trim non-numeric
-    if (trimPoint == -1)
+    if (trimPoint == -1) {
         return("");
-    else
+    }
+    else {
         s = s.substring(trimPoint, s.length());
+    }
 
 
     //look for first numeric character from the end
@@ -470,10 +474,12 @@ String trimNonNumeric(String pString)
     }
 
     //if no numeric character found, return empty string else trim non-numeric
-    if (trimPoint == -1)
+    if (trimPoint == -1) {
         return("");
-    else
+    }
+    else {
         s = s.substring(0, trimPoint+1);
+    }
 
     return(s);
 
@@ -490,16 +496,16 @@ boolean isNumeric(char pChar)
 {
 
     //check each possible number
-    if (pChar == '0') return true;
-    if (pChar == '1') return true;
-    if (pChar == '2') return true;
-    if (pChar == '3') return true;
-    if (pChar == '4') return true;
-    if (pChar == '5') return true;
-    if (pChar == '6') return true;
-    if (pChar == '7') return true;
-    if (pChar == '8') return true;
-    if (pChar == '9') return true;
+    if (pChar == '0') {return true;}
+    if (pChar == '1') {return true;}
+    if (pChar == '2') {return true;}
+    if (pChar == '3') {return true;}
+    if (pChar == '4') {return true;}
+    if (pChar == '5') {return true;}
+    if (pChar == '6') {return true;}
+    if (pChar == '7') {return true;}
+    if (pChar == '8') {return true;}
+    if (pChar == '9') {return true;}
 
     return false; //not numeric
 
@@ -623,9 +629,9 @@ void startPrint()
     //some attributes cannot be instantiated as their constructors are protected
     //or abstract - these are used by adding their static member variables
 
-    if(settings.printQuality.contains("Draft")) aset.add(PrintQuality.DRAFT);
-    if(settings.printQuality.contains("Normal")) aset.add(PrintQuality.NORMAL);
-    if(settings.printQuality.contains("High")) aset.add(PrintQuality.HIGH);
+    if(settings.printQuality.contains("Draft")) {aset.add(PrintQuality.DRAFT);}
+    if(settings.printQuality.contains("Normal")){aset.add(PrintQuality.NORMAL);}
+    if(settings.printQuality.contains("High")) {aset.add(PrintQuality.HIGH);}
 
     aset.add(OrientationRequested.LANDSCAPE);
 
@@ -683,7 +689,7 @@ void startPrint()
         //See notes at the top of the print method for details on how the
         //program uses piece ranges and page ranges specified by the user.
 
-        PageRanges pageRanges = null;
+        PageRanges pageRanges;
         try{
             pageRanges = (PageRanges) aset.get(Class.forName(
                                 "javax.print.attribute.standard.PageRanges"));
@@ -768,7 +774,7 @@ public int print(Graphics g, PageFormat pPF, int pPage) throws
                                                             PrinterException {
 
     //cease printing if user has pressed Cancel button on print progress dialog
-    if (printProgress.userCancel) return(NO_SUCH_PAGE);
+    if (printProgress.userCancel) {return(NO_SUCH_PAGE);}
 
     //NOTE: for some reason, the Java print system calls this function twice
     //(or perhaps more in some cases?) for each page to be printed.  This is not
@@ -805,7 +811,7 @@ public int print(Graphics g, PageFormat pPF, int pPage) throws
         //only check if at end of print if the page number has changed -- this
         //ensures that the second call for that last piece has been made
 
-        if (pieceTrack > endPiece) return(NO_SUCH_PAGE);
+        if (pieceTrack > endPiece) {return(NO_SUCH_PAGE);}
 
         //if startPiece is -1, don't load a new piece as the user only wants
         //to print the currently displayed piece
@@ -829,7 +835,7 @@ public int print(Graphics g, PageFormat pPF, int pPage) throws
             }
 
             //if missing segments skipped until endPiece reached, halt printing
-            if (pieceTrack > endPiece) return(NO_SUCH_PAGE);
+            if (pieceTrack > endPiece) {return(NO_SUCH_PAGE);}
 
             //update the progress window to show the current piece
             printProgress.setLabel(currentSegmentNumber);
@@ -1057,12 +1063,20 @@ public void printChartGroup(Graphics g, PageFormat pPF, int pPage,
 
     double scaleX, scaleY;
 
-    if (gAT.getScaleX() != 0) scaleX = gAT.getScaleX();
-    else scaleX = gAT.getShearX();
+    if (gAT.getScaleX() != 0) {
+        scaleX = gAT.getScaleX();
+    }
+    else {
+        scaleX = gAT.getShearX();
+    }
     scaleX = Math.abs(scaleX);
 
-    if (gAT.getScaleY() != 0) scaleY = gAT.getScaleY();
-    else scaleY = gAT.getShearY();
+    if (gAT.getScaleY() != 0) {
+        scaleY = gAT.getScaleY();
+    }
+    else {
+        scaleY = gAT.getShearY();
+    }
     scaleY = Math.abs(scaleY);
 
     //With no scaling, scaleX or shearX would be 1.0 depending on the paper
@@ -1126,15 +1140,18 @@ public void printChartGroup(Graphics g, PageFormat pPF, int pPage,
             int dataWidth = getDataWidth();
 
             //if no data was found, use the entire group width
-            if (dataWidth == -1)
+            if (dataWidth == -1) {
                 dataWidth = groupWidth;
-            else
-                dataWidth += 30; //add room for the chart border
+            }
+            else {
+                dataWidth += 30;
+            } //add room for the chart border
 
             //prevent short data widths from blowing the vertical up too much
             //allow width to be no less than half the group width
-            if (((double)groupWidth / ((double)dataWidth)) > 2)
+            if (((double)groupWidth / ((double)dataWidth)) > 2) {
                 dataWidth = groupWidth / 2;
+            }
 
             scaleX = paperX / dataWidth;
             scaleY = scaleX; //fix this - scaleY reflect possibly different DPI?
@@ -1256,14 +1273,16 @@ public String formatPieceIDEntriesForPrinting()
     KeyValue keyValue = new KeyValue();
 
     //if nothing to print, bail out
-    if (!pieceIDInfo.getFirstToPrint(keyValue)) return(result);
+    if (!pieceIDInfo.getFirstToPrint(keyValue)) {return(result);}
 
     //add first entry to the footer string
     result = keyValue.keyString + ": " + keyValue.valueString + "    ";
 
     //add remaining printable entries to the string
-    while(pieceIDInfo.getNextToPrint(keyValue)) result =
+    while(pieceIDInfo.getNextToPrint(keyValue)) {
+        result =
             result + keyValue.keyString + ": " + keyValue.valueString + "    ";
+    }
 
     return(result);
 
@@ -1282,7 +1301,7 @@ public String formatPieceIDEntriesForPrinting()
 public String formatAndLabelWallMinMaxForPrinting()
 {
 
-    String result = "", wallText;
+    String result, wallText;
 
 
     //check all chart groups for a Wall Max trace -- if there are more than one,
@@ -1367,7 +1386,7 @@ public void actionPerformed(ActionEvent e)
     if ("Load".equals(e.getActionCommand())) {
 
         //parse the user entry and bail if invalid
-        if (!parseSegmentNumberEntry()) return;
+        if (!parseSegmentNumberEntry()) {return;}
 
         //load the specified data file
         loadSegment(false);
@@ -1391,7 +1410,7 @@ public void actionPerformed(ActionEvent e)
         //clear the list to conserve resources
         segmentList.clear();
         //parse the user entry and bail if invalid
-        if (!parseSegmentNumberEntry()) return;
+        if (!parseSegmentNumberEntry()) {return;}
         //load the specified data file
         loadSegment(false);
 
@@ -1405,14 +1424,14 @@ public void actionPerformed(ActionEvent e)
     if ("Load Previous".equals(e.getActionCommand())) {
         //load the segment previous to the current one (numerically)
         currentSegmentNumber--;
-        if (currentSegmentNumber < 1) currentSegmentNumber = 1;
+        if (currentSegmentNumber < 1) {currentSegmentNumber = 1;}
         loadSegment(false);
     }
 
     if ("Load Next".equals(e.getActionCommand())) {
         //load the segment after the current one (numerically)
         currentSegmentNumber++;
-        if (currentSegmentNumber > 1000000) currentSegmentNumber = 1000000;
+        if (currentSegmentNumber > 1000000) {currentSegmentNumber = 1000000;}
         loadSegment(false);
     }
 
@@ -1455,10 +1474,12 @@ public void displayPrintRangeWindow()
     PrintRange dialog;
 
     //choose the proper dialog window depending on the state of the Cal switch
-    if (!controlPanel.calModeCheckBox.isSelected())
+    if (!controlPanel.calModeCheckBox.isSelected()) {
         dialog = printRange;
-    else
+    }
+    else {
         dialog = printCalsRange;
+    }
 
     //position the dialog near the "Print Multiple" button
     int x = mainFrame.getX() + controlPanel.getX()
@@ -1475,10 +1496,10 @@ public void displayPrintRangeWindow()
             && dialog.endPiece.getText().isEmpty() ){
         //get the first piece file in the folder -- on error default to 1
         int first = getFirstOrLastAvailableSegmentNumber(FIRST);
-        if (first < 1) first = 1;
+        if (first < 1) {first = 1;}
         //get the last piece file in the folder -- on error default to 1
         int last = getFirstOrLastAvailableSegmentNumber(LAST);
-        if (last < 1) last = 1;
+        if (last < 1) {last = 1;}
 
         //preset with a range including all non-calibration pieces
         dialog.startPiece.setText(first + "");
@@ -1620,7 +1641,7 @@ String loadSegment(boolean pQuietMode)
 
     //on error, display the message, repaint with empty chart, and exit
     if (result.startsWith("Error")){
-        if(!pQuietMode)displayErrorMessage(result);
+        if(!pQuietMode){displayErrorMessage(result);}
         mainFrame.repaint();
         printRunnable.unPauseThread(); //release the print thread if waiting
         return(result);
@@ -1892,9 +1913,11 @@ private void configure(/*IniFile pConfigFile*/)
     panel1.add(layoutSelector);
     //figure out which string index matches, use first one (0) if no match
     int selected = 0;
-    for (int i = 0; i < layouts.length; i++)
-        if (settings.graphPrintLayout.equalsIgnoreCase(layouts[i]))
+    for (int i = 0; i < layouts.length; i++) {
+        if (settings.graphPrintLayout.equalsIgnoreCase(layouts[i])) {
             selected = i;
+        }
+    }
     layoutSelector.setSelectedIndex(selected);
     layoutSelector.setActionCommand("Select Graph Print Layout");
     layoutSelector.addActionListener(this);
@@ -1909,9 +1932,11 @@ private void configure(/*IniFile pConfigFile*/)
     layoutSelector.setToolTipText("Select magnification.");
     panel1.add(userMagnifySelector);
     selected = 0;
-    for (int i = 0; i < magnifyValues.length; i++)
-        if (settings.userPrintMagnify.equalsIgnoreCase(magnifyValues[i]))
+    for (int i = 0; i < magnifyValues.length; i++) {
+        if (settings.userPrintMagnify.equalsIgnoreCase(magnifyValues[i])) {
             selected = i;
+        }
+    }
     userMagnifySelector.setSelectedIndex(selected);
     userMagnifySelector.setActionCommand("Select Magnification");
     userMagnifySelector.addActionListener(this);
@@ -2070,7 +2095,11 @@ public boolean accept(File dir, String name)
 {
 
     //the file satisfies the filter if it ends with the extension value
-    if (name.endsWith(extension)) return(true); else return(false);
+    if (name.endsWith(extension)) {
+        return(true);
+    } else {
+        return(false);
+    }
 
 }//end of SegmentFileFilter::accept
 //-----------------------------------------------------------------------------

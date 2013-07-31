@@ -22,13 +22,11 @@
 
 package chart;
 
-import javax.swing.*;
+import chart.mksystems.inifile.IniFile;
 import java.awt.*;
-
 import java.awt.event.*;
 import java.io.*;
-
-import chart.mksystems.inifile.IniFile;
+import javax.swing.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -202,7 +200,7 @@ private void configure(String pConfigFilename)
             items[i].clearedInNewJob =
                   configFile.readBoolean(section, "Cleared in a New Job", true);
 
-            if (items[i].width < 1) items[i].width = 1; //range check
+            if (items[i].width < 1) {items[i].width = 1;} //range check
 
             //add each label/field pair to a panel
             itemPanel = new JPanel();
@@ -224,8 +222,9 @@ private void configure(String pConfigFilename)
             //store the maximum width of any label for use in setting all label
             //widths the same - Java seems to set Min/Preferred/Max to the same
             //so use the Preferred size for this purpose
-            if (items[i].label.getPreferredSize().width > maxLabelWidth)
+            if (items[i].label.getPreferredSize().width > maxLabelWidth) {
                 maxLabelWidth = items[i].label.getPreferredSize().width;
+            }
 
         }// if (text.equalsIgnoreCase("blank"))
 
@@ -276,12 +275,11 @@ public void prepareForNewJob(String pPrimaryDataPath, String pBackupDataPath,
     //clear all items which have been defined and specified for clearing for a
     //new job
 
-    for (int i=0; i < NUMBER_OF_ITEMS; i++)
+    for (int i=0; i < NUMBER_OF_ITEMS; i++) {
         if (items[i] != null && items[i].clearedInNewJob){
-
             items[i].textField.setText("");
-
-        }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
+        }
+    }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
 
     //save the file to both data folders
     saveData(primaryDataPath);
@@ -303,14 +301,16 @@ public void prepareForNewJob(String pPrimaryDataPath, String pBackupDataPath,
 public String getValue(String pKey)
 {
 
-    for (int i=0; i < NUMBER_OF_ITEMS; i++)
+    for (int i=0; i < NUMBER_OF_ITEMS; i++) {
         if (items[i] != null){
 
             //look in each Item.label for the matching key, return the value
-            if (pKey.equals(items[i].labelText))
+            if (pKey.equals(items[i].labelText)) {
                 return (items[i].textField.getText());
+            }
 
-        }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
+        }
+    }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
 
     return(""); //key not found, return empty string
 
@@ -342,14 +342,15 @@ public void loadData()
 
     //load all items which have been defined
 
-    for (int i=0; i < NUMBER_OF_ITEMS; i++)
+    for (int i=0; i < NUMBER_OF_ITEMS; i++) {
         if (items[i] != null){
 
             //use the label text as the key, the value is the text in the box
             items[i].textField.setText(
                       jobInfoFile.readString(section, items[i].labelText, ""));
 
-        }// if (items[i] != null)
+        }
+    }// if (items[i] != null)
 
 }//end of JobInfo::loadData
 //-----------------------------------------------------------------------------
@@ -379,14 +380,15 @@ public void saveData(String pDataPath)
 
     //save all items which have been defined
 
-    for (int i=0; i < NUMBER_OF_ITEMS; i++)
+    for (int i=0; i < NUMBER_OF_ITEMS; i++) {
         if (items[i] != null){
 
             //use the label text as the key, the value is the text in the box
             jobInfoFile.writeString(section, items[i].labelText,
                                                   items[i].textField.getText());
 
-            }// if (items[i] != null)
+            }
+    }// if (items[i] != null)
 
     jobInfoFile.save();  //save to disk
 

@@ -220,7 +220,7 @@ public JobValidator(String pPrimaryDataPath, String pBackupDataPath,
         System.err.println(getClass().getName() + " - Error: 213");
     }
     finally{
-        if (logFile != null) logFile.close();
+        if (logFile != null) {logFile.close();}
     }
 
 }//end of JobValidator::JobValidator (constructor)
@@ -244,12 +244,12 @@ private boolean validateEitherPath()
 {
 
     //if the jobName is empty, validation fails
-    if (jobName.equals("")) return(false);
+    if (jobName.equals("")) {return(false);}
 
     //verify that the job folder exists in at least one path
     File folder1 = new File(currentJobPrimaryPath);
     File folder2 = new File(currentJobBackupPath);
-    if (folder1.exists() || folder2.exists()) return(true);
+    if (folder1.exists() || folder2.exists()) {return(true);}
 
     return(false);
 
@@ -280,7 +280,7 @@ private boolean validatePathAndRepair(String pPath, String pIdentifier,
     File folder = new File(pPath);
 
     //all good
-    if (folder.exists()) return(true);
+    if (folder.exists()) {return(true);}
 
     //path bad, don't repair if pRepair is false
     if (!pRepair) {
@@ -338,7 +338,9 @@ private void validate(String pPrefix, String pFilename, int pFileType,
 
     File file = new File(filename);
 
-    if (!file.exists()) handleMissingFile(filenameBackup, filename, pFileType);
+    if (!file.exists()) {
+        handleMissingFile(filenameBackup, filename, pFileType);
+    }
 
 }//end of JobValidator::validate
 //-----------------------------------------------------------------------------
@@ -370,24 +372,28 @@ public boolean handleMissingFile(String pSource, String pDestination,
 
     //display the appropriate success or failure message for the file type
 
-    if (success)
+    if (success) {
         displayErrorMessage(SuccessMsgs[pFileType]);
+    }
     else{
         //display the error message for the file type if message is not blank
-        if (!FailureMsgs[pFileType].equals(""))
+        if (!FailureMsgs[pFileType].equals("")) {
             displayErrorMessage(FailureMsgs[pFileType]);
+        }
     }
 
     //if the job info configuration file could not be restored from the backup
     //version, copy the default version to both directories
-    if (!success && pFileType == JOB_INFO_CONFIG_FILE)
+    if (!success && pFileType == JOB_INFO_CONFIG_FILE) {
         success =
              handleJobInfoConfigFileBackupRestoreFailure(pSource, pDestination);
+    }
 
     //if the job configuration file could not be restored from the backup
     //version, allow the user to select appropriate file from list of defaults
-    if (!success && pFileType == CONFIG_FILE)
+    if (!success && pFileType == CONFIG_FILE) {
         success = handleConfigFileBackupRestoreFailure();
+    }
 
     return success;
 
@@ -408,10 +414,11 @@ public boolean handleConfigFileBackupRestoreFailure()
 
 {
 
-    new LoadConfiguration(null, currentJobPrimaryPath, currentJobBackupPath,
-                                                                jobName, xfer);
+    LoadConfiguration loadConfiguration =
+       new LoadConfiguration(null, currentJobPrimaryPath, currentJobBackupPath,
+                                                                 jobName, xfer);
 
-return true;
+    return true;
 
 }//end of JobValidator::handleConfigFileBackupRestoreFailure
 //-----------------------------------------------------------------------------
@@ -435,7 +442,7 @@ public boolean handleJobInfoConfigFileBackupRestoreFailure(
     //note that the "04 - " prefix is to force the file near the top of the
     //explorer window when the files are alphabetized to make it easier to find
 
-    boolean successP = false, successB = false;
+    boolean successP, successB = false;
 
     if (!(successP =
              copyFile("Configuration - Job Info Window.ini", pFilenamePrimary))
@@ -454,10 +461,12 @@ public boolean handleJobInfoConfigFileBackupRestoreFailure(
     }
 
     //if file could not be copied to either directory, return error
-    if (!successP || !successB)
+    if (!successP || !successB) {
         return false;
-    else
+    }
+    else {
         return true;
+    }
 
 }//end of JobValidator::handleJobInfoConfigFileBackupRestoreFailure
 //-----------------------------------------------------------------------------
@@ -480,8 +489,9 @@ public boolean copyFileFromBackup(String pSource, String pDestination)
 
     boolean success;
 
-    if (!(success = copyFile(pSource, pDestination)))
+    if (!(success = copyFile(pSource, pDestination))) {
         logMessage("Error - cannot copy from backup folder: " + pSource);
+    }
 
     return success;
 
@@ -502,7 +512,7 @@ public boolean copyFileFromBackup(String pSource, String pDestination)
 private void logMessage(String pMessage, boolean pLogDate)
 {
 
-    if (pLogDate) logFile.println(new Date().toString());
+    if (pLogDate) {logFile.println(new Date().toString());}
 
     logFile.println(pMessage);
 
@@ -555,8 +565,8 @@ boolean copyFile(String pSource, String pDest)
     }
     finally {
         try{
-            if (in != null) in.close();
-            if (out != null) out.close();
+            if (in != null) {in.close();}
+            if (out != null) {out.close();}
         }
         catch(IOException e){
             System.err.println(getClass().getName() + " - Error: 554");

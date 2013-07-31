@@ -22,9 +22,9 @@ package chart;
 
 import chart.mksystems.hardware.Channel;
 import chart.mksystems.hardware.DACGate;
-import chart.mksystems.hardware.UTGate;
 import chart.mksystems.hardware.Hardware;
 import chart.mksystems.hardware.UTBoard;
+import chart.mksystems.hardware.UTGate;
 import chart.mksystems.mswing.MFloatSpinner;
 import chart.mksystems.stripchart.StripChart;
 import java.awt.*;
@@ -344,7 +344,7 @@ public void setChannel(StripChart pChart, Channel pChannel)
         //  the return trip time; this option displays distance as to ignore
         //  the doubling effect; for pitch-catch no adjustment is necessary)
 
-        if (hardware.distanceAdjustedForReturnTrip) timeDistMult /= 2;
+        if (hardware.distanceAdjustedForReturnTrip) {timeDistMult /= 2;}
 
         timeDistDecimalPlaces = "#0.000"; //three decimal places for distances
         timeDistIncrement = .01;

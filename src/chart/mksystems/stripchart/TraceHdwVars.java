@@ -57,7 +57,7 @@ public class TraceHdwVars{
 public void setSimDataType(int pType)
 {
 
-    if (pType > MAX_SIM_TYPE) pType = 0;
+    if (pType > MAX_SIM_TYPE) {pType = 0;}
 
     simDataType = pType;
 
@@ -74,7 +74,7 @@ public void setSimDataType(int pType)
 public void setPlotStyle(int pStyle)
 {
 
-    if (pStyle > MAX_PLOT_STYLE) pStyle = 0;
+    if (pStyle > MAX_PLOT_STYLE) {pStyle = 0;}
 
     plotStyle = pStyle;
 

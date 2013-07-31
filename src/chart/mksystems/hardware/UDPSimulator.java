@@ -22,9 +22,8 @@
 
 package chart.mksystems.hardware;
 
-import java.net.*;
-
 import chart.mksystems.inifile.IniFile;
+import java.net.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

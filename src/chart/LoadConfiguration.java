@@ -23,11 +23,11 @@
 
 package chart;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;
+import javax.swing.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -131,8 +131,7 @@ final void loadConfigList()
 
     //create a list to hold the configuration filenames
     configList = new Vector<String>();
-    //put the array of configurations into the vector
-    for (int i=0; i<configs.length; i++) configList.add(configs[i]);
+    configList.addAll(Arrays.asList(configs));
     //sort the configurations alphabetically
     Collections.sort(configList);
 
@@ -157,7 +156,7 @@ public void actionPerformed(ActionEvent e)
 
     if (source.getActionCommand().equalsIgnoreCase("Load")){
         boolean finished = loadSelectedConfiguration();
-        if (!finished) return;
+        if (!finished) {return;}
         setVisible(false);
         dispose();  //destroy the dialog window
         return;
@@ -194,8 +193,9 @@ boolean loadSelectedConfiguration()
         "Error", JOptionPane.ERROR_MESSAGE);
         return(false);
     }
-    else
+    else {
         configSelected = true;
+    }
 
     int n = JOptionPane.showConfirmDialog(
       frame,
@@ -204,7 +204,7 @@ boolean loadSelectedConfiguration()
       "Confirm",
       JOptionPane.YES_NO_OPTION);
 
-    if (n != JOptionPane.YES_OPTION) return(false);  //bail out if user cancels
+    if (n != JOptionPane.YES_OPTION){return(false);} //bail out if user cancels
 
     String configName = (String)configSelect.getSelectedItem();
 
@@ -268,8 +268,8 @@ boolean copyFile(String pSource, String pDest)
     }
     finally {
         try{
-            if (in != null) in.close();
-            if (out != null) out.close();
+            if (in != null) {in.close();}
+            if (out != null) {out.close();}
             }
         catch(IOException e){
             System.err.println(getClass().getName() + " - Error: 275");

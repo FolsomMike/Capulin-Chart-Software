@@ -33,16 +33,14 @@
 
 package chart;
 
-import javax.swing.*;
-import java.io.*;
-import java.util.Date;
-import javax.swing.JOptionPane;
 import java.awt.event.WindowEvent;
-
+import java.io.*;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.Date;
+import javax.swing.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -89,11 +87,11 @@ public void validateLicense()
 
     //if the license file does not exist then, request renewal code
     // the program will be aborted if proper renewal code is not supplied
-    if (!license.exists()) requestLicenseRenewal(true);
+    if (!license.exists()) {requestLicenseRenewal(true);}
 
     //if the license file is invalid or the date has expired, request renewal
     //code the program will be aborted if proper renewal code is not supplied
-    if (!validateLicenseFile()) requestLicenseRenewal(true);
+    if (!validateLicenseFile()) {requestLicenseRenewal(true);}
 
 }//end of LicenseValidator::validateLicense
 //-----------------------------------------------------------------------------
@@ -120,7 +118,7 @@ public void requestLicenseRenewal(boolean pExitProgramOnFail)
     //try random numbers until one above 1000 is generated to ensure 4 digit
     //code
     int cipher = 0;
-    while (cipher < 1000) cipher = (int)(Math.random() * 10000);
+    while (cipher < 1000) {cipher = (int)(Math.random() * 10000);}
 
     //NOTE: createRenewalCode function is called for testing only - the
     //      programmer can set a breakpoint to catch the generated code and
@@ -137,14 +135,17 @@ public void requestLicenseRenewal(boolean pExitProgramOnFail)
 
     long renewalDate = -1;
 
-    if ((renewalCode != null) && (renewalCode.length() > 0))
+    if ((renewalCode != null) && (renewalCode.length() > 0)) {
         renewalDate = verifyRenewalCode(cipher, renewalCode);
+    }
 
     if (renewalDate == -1){
 
         //if flag set, exit program on fail
-        if (pExitProgramOnFail) mainFrame.dispatchEvent(
-                       new WindowEvent(mainFrame, WindowEvent.WINDOW_CLOSING));
+        if (pExitProgramOnFail) {
+            mainFrame.dispatchEvent(
+                    new WindowEvent(mainFrame, WindowEvent.WINDOW_CLOSING));
+        }
 
         return; //exit on failure no matter what - don't save license file
         }
@@ -185,7 +186,7 @@ private boolean validateLicenseFile()
         //read in the encoded version of the expiration date
         String encodedExpiryDateS = in.readLine();
         //fail if lines were not read
-        if (expiryDateS == null || encodedExpiryDateS == null) return(false);
+        if (expiryDateS == null || encodedExpiryDateS == null) {return(false);}
 
         long expiryDate, encodedExpiryDate;
         try{
@@ -197,7 +198,7 @@ private boolean validateLicenseFile()
         }
 
         //if the unencoded value does not match the encoded value, fail
-        if (expiryDate != encodeDecode(encodedExpiryDate)) return(false);
+        if (expiryDate != encodeDecode(encodedExpiryDate)) {return(false);}
 
         Date now = new Date(); //get the current date
         Date expire = new Date(expiryDate); //create the expiry date
@@ -218,11 +219,11 @@ private boolean validateLicenseFile()
     }
     finally{
 
-        try{if (in != null) in.close();}
+        try{if (in != null) {in.close();}}
         catch(IOException e){}
-        try{if (inputStreamReader != null) inputStreamReader.close();}
+        try{if (inputStreamReader != null) {inputStreamReader.close();}}
         catch(IOException e){}
-        try{if (fileInputStream != null) fileInputStream.close();}
+        try{if (fileInputStream != null) {fileInputStream.close();}}
         catch(IOException e){}
     }
 
@@ -264,7 +265,7 @@ private void saveLicenseFile(long renewalDate, boolean pBogus)
 
         //if the number is to purposely invalid, add junk to the encoded value
         int bogusModifier = 0;
-        if (pBogus) bogusModifier = 249872349;
+        if (pBogus) {bogusModifier = 249872349;}
 
         //save the renewal date followed by the same value encoded
 
@@ -278,11 +279,11 @@ private void saveLicenseFile(long renewalDate, boolean pBogus)
     }
     finally{
 
-        try{if (out != null) out.close();}
+        try{if (out != null) {out.close();}}
         catch(IOException e){}
-        try{if (outputStreamWriter != null) outputStreamWriter.close();}
+        try{if (outputStreamWriter != null) {outputStreamWriter.close();}}
         catch(IOException e){}
-        try{if (fileOutputStream != null) fileOutputStream.close();}
+        try{if (fileOutputStream != null) {fileOutputStream.close();}}
         catch(IOException e){}
     }
 
@@ -307,9 +308,11 @@ private long verifyRenewalCode(int pCipher, String pRenewalCode)
     //to enter the number with separator spaces, dashes, etc.
 
     String stripped = "";
-    for (int i = 0; i < pRenewalCode.length(); i++)
-        if (isNumeric(pRenewalCode.charAt(i)))
+    for (int i = 0; i < pRenewalCode.length(); i++) {
+        if (isNumeric(pRenewalCode.charAt(i))) {
             stripped += pRenewalCode.charAt(i);
+        }
+    }
 
     //convert to an integer ~ set to -1 if invalid to force failure
     long renewalCode;
@@ -323,8 +326,9 @@ private long verifyRenewalCode(int pCipher, String pRenewalCode)
     //seven, i.e. adding all the bytes together should equal 0x100
 
     int checksum = 0;
-    for (int i=0; i<8; i++)
+    for (int i=0; i<8; i++) {
         checksum += (renewalCode>>(i*8)) & 0xff;
+    }
 
     checksum &= 0xff; //mask off upper bits
 
@@ -398,7 +402,7 @@ private String createRenewalCode(int pCipher, int pDays)
     //about the sign
 
     int checksum = 0;
-    for (int i=0; i<8; i++) checksum += (code>>(i*8)) & 0xff;
+    for (int i=0; i<8; i++) {checksum += (code>>(i*8)) & 0xff;}
 
     //concatenate with the checksum, adjusting with 0x100 so that the lsb of the
     //sum total of the bytes will be 0x00
@@ -470,16 +474,16 @@ boolean isNumeric(char pChar)
 {
 
     //check each possible number
-    if (pChar == '0') return true;
-    if (pChar == '1') return true;
-    if (pChar == '2') return true;
-    if (pChar == '3') return true;
-    if (pChar == '4') return true;
-    if (pChar == '5') return true;
-    if (pChar == '6') return true;
-    if (pChar == '7') return true;
-    if (pChar == '8') return true;
-    if (pChar == '9') return true;
+    if (pChar == '0') {return true;}
+    if (pChar == '1') {return true;}
+    if (pChar == '2') {return true;}
+    if (pChar == '3') {return true;}
+    if (pChar == '4') {return true;}
+    if (pChar == '5') {return true;}
+    if (pChar == '6') {return true;}
+    if (pChar == '7') {return true;}
+    if (pChar == '8') {return true;}
+    if (pChar == '9') {return true;}
 
     return false; //not numeric
 

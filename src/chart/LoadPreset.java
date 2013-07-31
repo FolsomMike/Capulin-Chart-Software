@@ -18,11 +18,11 @@
 
 package chart;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;
+import javax.swing.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -160,7 +160,7 @@ public void actionPerformed(ActionEvent e)
 
     if (source.getActionCommand().equalsIgnoreCase("Load")){
         boolean finished = loadSelectedPreset();
-        if (!finished) return;
+        if (!finished) {return;}
         setVisible(false);
         dispose();  //destroy the dialog window
         return;
@@ -197,8 +197,9 @@ boolean loadSelectedPreset()
         "Error", JOptionPane.ERROR_MESSAGE);
         return(false);
         }
-    else
+    else {
         presetSelected = true;
+    }
 
     int n = JOptionPane.showConfirmDialog(
         frame,
@@ -207,7 +208,7 @@ boolean loadSelectedPreset()
         "Confirm",
         JOptionPane.YES_NO_OPTION);
 
-    if (n != JOptionPane.YES_OPTION) return(false);  //bail out if user cancels
+    if (n != JOptionPane.YES_OPTION){return(false);} //bail out if user cancels
 
     File primaryFolder = new File (primaryDataPath + currentJobName);
     File backupFolder  = new File (backupDataPath + currentJobName);
@@ -274,8 +275,8 @@ boolean copyFile(String pSource, String pDest)
     }
     finally {
         try{
-            if (in != null) in.close();
-            if (out != null) out.close();
+            if (in != null) {in.close();}
+            if (out != null) {out.close();}
         }
         catch(IOException e){
             System.err.println(getClass().getName() + " - Error: 280");

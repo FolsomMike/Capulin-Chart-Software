@@ -21,21 +21,20 @@
 
 package chart.mksystems.stripchart;
 
-import java.io.*;
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseEvent;
-import java.text.DecimalFormat;
-
-import chart.mksystems.settings.Settings;
-import chart.mksystems.inifile.IniFile;
-import chart.mksystems.hardware.Hardware;
-import chart.mksystems.hardware.TraceValueCalculator;
 import chart.Viewer;
 import chart.Xfer;
+import chart.mksystems.hardware.Hardware;
 import chart.mksystems.hardware.HardwareVars;
+import chart.mksystems.hardware.TraceValueCalculator;
+import chart.mksystems.inifile.IniFile;
+import chart.mksystems.settings.Settings;
+import java.awt.*;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.io.*;
+import java.text.DecimalFormat;
+import javax.swing.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -132,10 +131,12 @@ private void configure(IniFile pConfigFile)
 
     //if config file specifies a single column, use BoxLayout to force a single
     //column else use FlowLayout to allow multiple columns
-    if (singleColumn)
+    if (singleColumn) {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-    else
+    }
+    else {
         setLayout(new FlowLayout());
+    }
 
     //read values used by the Viewer window to set the size of the scroll pane
     //this pane contains the charts to be viewed - where possible, the height
@@ -152,7 +153,7 @@ private void configure(IniFile pConfigFile)
     if (numberOfStripCharts > 0){
 
         //protect against too many groups
-        if (numberOfStripCharts > 100) numberOfStripCharts = 100;
+        if (numberOfStripCharts > 100) {numberOfStripCharts = 100;}
 
         stripCharts = new StripChart[numberOfStripCharts];
 
@@ -188,8 +189,9 @@ public void loadCalFile(IniFile pCalFile)
     windowYPos = pCalFile.readInt(section, "Window Y Position", 0);
 
     // call each chart to load its data
-    for (int i = 0; i < numberOfStripCharts; i++)
-                                          stripCharts[i].loadCalFile(pCalFile);
+    for (int i = 0; i < numberOfStripCharts; i++) {
+        stripCharts[i].loadCalFile(pCalFile);
+    }
 
 }//end of ChartGroup::loadCalFile
 //-----------------------------------------------------------------------------
@@ -213,8 +215,9 @@ public void saveCalFile(IniFile pCalFile)
     pCalFile.writeInt(section, "Window Y Position", windowYPos);
 
     // call each chart to save its data
-    for (int i = 0; i < numberOfStripCharts; i++)
-                                          stripCharts[i].saveCalFile(pCalFile);
+    for (int i = 0; i < numberOfStripCharts; i++) {
+        stripCharts[i].saveCalFile(pCalFile);
+    }
 
 }//end of ChartGroup::saveCalFile
 //-----------------------------------------------------------------------------
@@ -285,7 +288,7 @@ public int getNumberOfStripCharts()
 public void resetChartGroup()
 {
 
-    for (int i = 0; i < numberOfStripCharts; i++) stripCharts[i].resetChart();
+    for (int i = 0; i < numberOfStripCharts; i++) {stripCharts[i].resetChart();}
 
 }//end of ChartGroup::resetChartGroup
 //-----------------------------------------------------------------------------
@@ -303,8 +306,9 @@ public void resetChartGroup()
 public void markSegmentStart()
 {
 
-    for (int i = 0; i < numberOfStripCharts; i++)
+    for (int i = 0; i < numberOfStripCharts; i++) {
         stripCharts[i].markSegmentStart();
+    }
 
 }//end of ChartGroup::markSegmentStart
 //-----------------------------------------------------------------------------
@@ -324,8 +328,9 @@ public void markSegmentStart()
 public void markSegmentEnd()
 {
 
-    for (int i = 0; i < numberOfStripCharts; i++)
+    for (int i = 0; i < numberOfStripCharts; i++) {
         stripCharts[i].markSegmentEnd();
+    }
 
 }//end of ChartGroup::markSegmentEnd
 //-----------------------------------------------------------------------------
@@ -350,8 +355,9 @@ public void saveSegment(BufferedWriter pOut) throws IOException
     pOut.write("Chart Group Index=" + chartGroupIndex); pOut.newLine();
     pOut.newLine();
 
-    for (int i = 0; i < numberOfStripCharts; i++)
+    for (int i = 0; i < numberOfStripCharts; i++) {
         stripCharts[i].saveSegment(pOut);
+    }
 
 }//end of ChartGroup::saveSegment
 //-----------------------------------------------------------------------------
@@ -366,8 +372,11 @@ public void saveSegment(BufferedWriter pOut) throws IOException
 public boolean segmentStarted()
 {
 
-    for (int i = 0; i < numberOfStripCharts; i++)
-        if (stripCharts[i].segmentStarted()) return(true);
+    for (int i = 0; i < numberOfStripCharts; i++) {
+        if (stripCharts[i].segmentStarted()) {
+            return(true);
+        }
+    }
 
     return(false);
 
@@ -398,8 +407,9 @@ public String loadSegment(BufferedReader pIn, String pLastLine)
     //allow each strip chart to load data, passing the last line read to the
     //next call each time
 
-    for (int i = 0; i < numberOfStripCharts; i++)
+    for (int i = 0; i < numberOfStripCharts; i++) {
         line = stripCharts[i].loadSegment(pIn, line);
+    }
 
     return(line);
 
@@ -431,19 +441,23 @@ private String processChartGroupEntries(BufferedReader pIn, String pLastLine)
     //if pLastLine contains the [Chart Group] tag, then skip ahead else read
     //until end of file reached or "[Chart Group]" section tag reached
 
-    if (Viewer.matchAndParseString(pLastLine, "[Chart Group]", "", matchSet))
-        success = true; //tag already found
-    else
+    if (Viewer.matchAndParseString(pLastLine, "[Chart Group]", "", matchSet)) {
+        success = true;
+    } //tag already found
+    else {
         while ((line = pIn.readLine()) != null){  //search for tag
             if (Viewer.matchAndParseString(
                                         line, "[Chart Group]", "", matchSet)){
                 success = true; break;
             }
         }//while
+    }//else
 
-    if (!success) throw new IOException(
-           "The file could not be read - section not found for Chart Group "
-                                                             + chartGroupIndex);
+    if (!success) {
+        throw new IOException(
+            "The file could not be read - section not found for Chart Group "
+                                                            + chartGroupIndex);
+    }
 
     //set defaults
     int chartGroupIndexRead = -1;
@@ -460,21 +474,26 @@ private String processChartGroupEntries(BufferedReader pIn, String pLastLine)
         }
 
         //catch the "Chart Group Index" entry - if not found, default to -1
-        if (Viewer.matchAndParseInt(line, "Chart Group Index", -1,  matchSet))
+        if (Viewer.matchAndParseInt(line, "Chart Group Index", -1,  matchSet)) {
             chartGroupIndexRead = matchSet.rInt1;
+        }
 
     }// while ((line = pIn.readLine()) != null)
 
-    if (!success) throw new IOException(
-          "The file could not be read - missing end of section for Chart Group "
-                                                             + chartGroupIndex);
+    if (!success) {
+        throw new IOException(
+        "The file could not be read - missing end of section for Chart Group "
+                                                           + chartGroupIndex);
+    }
 
     //if the index number in the file does not match the index number for this
     //chart group, abort the file read
 
-    if (chartGroupIndexRead != chartGroupIndex) throw new IOException(
+    if (chartGroupIndexRead != chartGroupIndex) {
+        throw new IOException(
             "The file could not be read - section not found for Chart Group "
                                                              + chartGroupIndex);
+    }
 
     return(line); //should be "[xxxx]" tag on success, unknown value if not
 
@@ -491,8 +510,9 @@ private String processChartGroupEntries(BufferedReader pIn, String pLastLine)
 public void handleSizeChanges()
 {
 
-    for (int i = 0; i < numberOfStripCharts; i++)
-                                             stripCharts[i].handleSizeChanges();
+    for (int i = 0; i < numberOfStripCharts; i++) {
+        stripCharts[i].handleSizeChanges();
+    }
 
 }//end of ChartGroup::handleSizeChanges
 //-----------------------------------------------------------------------------
@@ -506,7 +526,7 @@ public void handleSizeChanges()
 public void plotData()
 {
 
-    for (int i = 0; i < numberOfStripCharts; i++) stripCharts[i].plotData();
+    for (int i = 0; i < numberOfStripCharts; i++) {stripCharts[i].plotData();}
 
 }//end of ChartGroup::plotData
 //-----------------------------------------------------------------------------
@@ -588,7 +608,7 @@ public String getWallMinOrMaxText(boolean pFindMin, HardwareVars pHdwVs)
     }
 
     //if no "Wall" chart found, exit with empty string
-    if (stripChart == null) return(result);
+    if (stripChart == null) {return(result);}
 
     Trace trace = null;
 
@@ -604,9 +624,9 @@ public String getWallMinOrMaxText(boolean pFindMin, HardwareVars pHdwVs)
     }
 
     //if no matching chart found, exit with empty string
-    if (trace == null) return(result);
+    if (trace == null) {return(result);}
 
-    int wall = 0;
+    int wall;
 
     //calculate the buffer index of the positions of the leading and trailing
     //end masks -- use the calculated length of the piece for determining the
@@ -622,18 +642,20 @@ public String getWallMinOrMaxText(boolean pFindMin, HardwareVars pHdwVs)
     wall = stripChart.findMinOrMaxValueOfTrace(
                                 trace, pFindMin, lLeadMaskPos, lTrailMaskPos);
 
-    if (wall < 0) wall = 0;
-    if (wall > stripChart.chartHeight) wall = stripChart.chartHeight;
+    if (wall < 0) {wall = 0;}
+    if (wall > stripChart.chartHeight) {wall = stripChart.chartHeight;}
 
     DecimalFormat decimalFormat = new DecimalFormat("0.000");
 
     double processedValue = calculateInvertedComputedValue1(wall, pHdwVs);
 
     //store the numeric value so it can be accessed by caller
-    if (pFindMin)
+    if (pFindMin) {
         pHdwVs.minWall = processedValue;
-    else
+    }
+    else {
         pHdwVs.maxWall = processedValue;
+    }
 
     result = decimalFormat.format(processedValue);
 

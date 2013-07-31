@@ -38,9 +38,8 @@
 
 package chart;
 
-import java.io.*;
-
 import chart.mksystems.inifile.IniFile;
+import java.io.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -133,14 +132,15 @@ protected boolean convertFile(String pOldFile, String pTempFile)
 
     //if the file is not a UTF-16LE file saved by this program, skip it
     //this is not an error, so return true
-    if(!IniFile.detectUTF16LEFormat(pOldFile)) return(convertGood);
+    if(!IniFile.detectUTF16LEFormat(pOldFile)) {return(convertGood);}
 
     boolean addFormatTypeEntry = false;
 
     //for config files, add a line specifying the new format of UTF-8 when
     //the proper section is reached
-    if (pOldFile.contains("configurations") && pOldFile.endsWith("config"))
+    if (pOldFile.contains("configurations") && pOldFile.endsWith("config")) {
         addFormatTypeEntry = true;
+    }
 
     FileInputStream fileInputStream = null;
     InputStreamReader inputStreamReader = null;
@@ -174,14 +174,14 @@ protected boolean convertFile(String pOldFile, String pTempFile)
             //set flag when first non-blank line reached (the first blank line
             //actually contains a code byte left over from the UTF-16LE format
             //so look for a line with length > 1)
-            if(line.length() > 1) firstNonBlankLineReached = true;
+            if(line.length() > 1) {firstNonBlankLineReached = true;}
 
             //toss all blank lines and the explanation lines at the beginning
             //the old UTF-16LE files had an explanation header -- not needed now
 
-            if (!firstNonBlankLineReached) continue;
-            if (line.startsWith(";Do not erase")) continue;
-            if (line.startsWith(";To make a new")) continue;
+            if (!firstNonBlankLineReached) {continue;}
+            if (line.startsWith(";Do not erase")) {continue;}
+            if (line.startsWith(";To make a new")) {continue;}
 
             //write each line to the new UTF-8 file
             out.write(line); out.newLine();
@@ -208,24 +208,26 @@ protected boolean convertFile(String pOldFile, String pTempFile)
     }//catch...
     finally{
 
-        try{if (in != null) in.close();}
+        try{if (in != null) {in.close();}}
             catch(IOException e){convertGood = false;}
-        try{if (inputStreamReader != null) inputStreamReader.close();}
+        try{if (inputStreamReader != null) {inputStreamReader.close();}}
             catch(IOException e){convertGood = false;}
-        try{if (fileInputStream != null) fileInputStream.close();}
-            catch(IOException e){convertGood = false;}
-
-        try{if (out != null) out.close();}
-            catch(IOException e){convertGood = false;}
-        try{if (outputStreamWriter != null) outputStreamWriter.close();}
-            catch(IOException e){convertGood = false;}
-        try{if (fileOutputStream != null) fileOutputStream.close();}
+        try{if (fileInputStream != null) {fileInputStream.close();}}
             catch(IOException e){convertGood = false;}
 
-        if(convertGood)
+        try{if (out != null) {out.close();}}
+            catch(IOException e){convertGood = false;}
+        try{if (outputStreamWriter != null) {outputStreamWriter.close();}}
+            catch(IOException e){convertGood = false;}
+        try{if (fileOutputStream != null) {fileOutputStream.close();}}
+            catch(IOException e){convertGood = false;}
+
+        if(convertGood) {
             logFile.log("File converted: " + oldFile);
-        else
+        }
+        else {
             logFile.log("Error during conversion: " + oldFile);
+        }
 
         return(convertGood);
 
@@ -302,8 +304,9 @@ protected boolean compareFile(String pOldFile, String pTempFile)
 
     //for config files, add a line specifying the new format of UTF-8 when
     //the proper section is reached
-    if (pOldFile.contains("configurations") && pOldFile.endsWith("config"))
+    if (pOldFile.contains("configurations") && pOldFile.endsWith("config")) {
         ignoreFormatTypeEntry = true;
+    }
 
     FileInputStream oldInputStream = null;
     InputStreamReader oldInputStreamReader = null;
@@ -336,15 +339,15 @@ protected boolean compareFile(String pOldFile, String pTempFile)
             //set flag when first non-blank line reached (the first blank line
             //actually contains a code byte left over from the UTF-16LE format
             //so look for a line with length > 1)
-            if(oldLine.length() > 1) firstNonBlankLineReached = true;
+            if(oldLine.length() > 1) {firstNonBlankLineReached = true;}
 
             //toss all blank lines and the explanation lines at the beginning
             //the old UTF-16LE files had an explanation header -- these will
             //not be present in the new UTF-8 file
 
-            if (!firstNonBlankLineReached) continue;
-            if (oldLine.startsWith(";Do not erase")) continue;
-            if (oldLine.startsWith(";To make a new")) continue;
+            if (!firstNonBlankLineReached) {continue;}
+            if (oldLine.startsWith(";Do not erase")) {continue;}
+            if (oldLine.startsWith(";To make a new")) {continue;}
 
             //read line from the new version to compare
             newLine = newIn.readLine();
@@ -393,27 +396,29 @@ protected boolean compareFile(String pOldFile, String pTempFile)
     }//catch...
     finally{
 
-        try{if (newIn != null) newIn.close();}
+        try{if (newIn != null) {newIn.close();}}
             catch(IOException e){compareGood = false;}
-        try{if (newInputStreamReader != null) newInputStreamReader.close();}
+        try{if (newInputStreamReader != null) {newInputStreamReader.close();}}
             catch(IOException e){compareGood = false;}
-        try{if (newInputStream != null) newInputStream.close();}
+        try{if (newInputStream != null) {newInputStream.close();}}
             catch(IOException e){compareGood = false;}
 
-        try{if (oldIn != null) oldIn.close();}
+        try{if (oldIn != null) {oldIn.close();}}
             catch(IOException e){compareGood = false;}
-        try{if (oldInputStreamReader != null) oldInputStreamReader.close();}
+        try{if (oldInputStreamReader != null) {oldInputStreamReader.close();}}
             catch(IOException e){compareGood = false;}
-        try{if (oldInputStream != null) oldInputStream.close();}
+        try{if (oldInputStream != null) {oldInputStream.close();}}
             catch(IOException e){compareGood = false;}
 
         //if there was any error closing either file, fail the compare to be
         //on the safe side
 
-        if(compareGood)
+        if(compareGood) {
             logFile.log("Files are identical: " + oldFile);
-        else
+        }
+        else {
             logFile.log("Compare fail: " + oldFile);
+        }
 
         return(compareGood);
 

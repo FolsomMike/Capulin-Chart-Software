@@ -64,7 +64,7 @@ public void init(String pFilename)
     }
     catch(IOException e){
         System.err.println(getClass().getName() + " - Error: 66");
-        if (file != null) file.close();
+        if (file != null) {file.close();}
     }
 
 }//end of LogFile::init
@@ -79,7 +79,7 @@ public void init(String pFilename)
 public void close()
 {
 
-    if (file != null) file.close();
+    if (file != null) {file.close();}
 
 }//end of LogFile::close
 //-----------------------------------------------------------------------------
@@ -93,7 +93,7 @@ public void close()
 public void log(String pLine)
 {
 
-    if (file != null) file.println(pLine);
+    if (file != null) {file.println(pLine);}
 
 }//end of LogFile::log
 //-----------------------------------------------------------------------------
@@ -107,8 +107,10 @@ public void log(String pLine)
 public void separate()
 {
 
-    if (file != null) file.println(
+    if (file != null) {
+        file.println(
      "---------------------------------------------------------------------");
+    }
 
 }//end of LogFile::separator
 //-----------------------------------------------------------------------------
@@ -122,7 +124,7 @@ public void separate()
 public void date()
 {
 
-    if (file != null) file.println(new Date().toString());
+    if (file != null) {file.println(new Date().toString());}
 
 }//end of LogFile::date
 //-----------------------------------------------------------------------------

@@ -19,18 +19,18 @@
 
 package chart;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.io.*;
+import chart.mksystems.hardware.Hardware;
+import chart.mksystems.inifile.IniFile;
 
 import chart.mksystems.settings.Settings;
 import chart.mksystems.stripchart.ChartGroup;
 import chart.mksystems.stripchart.StripChart;
 import chart.mksystems.stripchart.Trace;
-import chart.mksystems.hardware.Hardware;
-import chart.mksystems.inifile.IniFile;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.*;
+import javax.swing.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -125,10 +125,12 @@ public void init()
 
     //if pieceToPrint is -1, then setup the GUI so user can enter print range
     //otherwise, just print the report for pieceToPrint and display a message
-    if (pieceToPrint == -1)
+    if (pieceToPrint == -1) {
         setUpForUserEntry(panel);
-    else
+    }
+    else {
         setUpForNoUserEntry(panel);
+    }
 
     dialog.pack();
 
@@ -136,7 +138,7 @@ public void init()
 
     //if the print range already specified without need for user input,
     //print that range
-    if (pieceToPrint != -1) printReportForSinglePiece(pieceToPrint);
+    if (pieceToPrint != -1) {printReportForSinglePiece(pieceToPrint);}
 
 }//end of FlagReportPrinter::init
 //-----------------------------------------------------------------------------
@@ -307,10 +309,12 @@ public void configure()
 public boolean isCalSelected()
 {
 
-    if (calModeCheckBox != null)
+    if (calModeCheckBox != null) {
         return(calModeCheckBox.isSelected());
-    else
+    }
+    else {
         return(isCalPiece);
+    }
 
 }//end of FlagReportPrinter::isCalSelected
 //-----------------------------------------------------------------------------
@@ -344,10 +348,12 @@ public void printReportForEnteredRange()
         startPiece = Integer.valueOf(startPieceBox.getText());
 
         //if no value supplied for the ending piece, set it to the start piece
-        if(endPieceBox.getText().isEmpty())
+        if(endPieceBox.getText().isEmpty()) {
             endPiece = startPiece;
-        else
+        }
+        else {
             endPiece = Integer.valueOf(endPieceBox.getText());
+        }
 
         pieceTrack = startPiece;
         startPrint();
@@ -404,7 +410,7 @@ String loadSegment(boolean pQuietMode)
 
     //on error, display the message, repaint with empty chart, and exit
     if (result.startsWith("Error")){
-        if(!pQuietMode)displayErrorMessage(result);
+        if(!pQuietMode) {displayErrorMessage(result);}
     }
 
     return(result);
@@ -425,7 +431,7 @@ public void startPrint()
     String lReportsPath = createFolder();
 
     //don't print if the path could not be created
-    if (lReportsPath.isEmpty()) return;
+    if (lReportsPath.isEmpty()) {return;}
 
     //print a report for each piece in the range
 
@@ -457,8 +463,9 @@ public String createFolder()
 
     if(!reportsPath.isEmpty()){
         lReportsPath = reportsPath;
-        if (lReportsPath.endsWith(File.separator))
-        lReportsPath = lReportsPath.substring(0, lReportsPath.length()-1);
+        if (lReportsPath.endsWith(File.separator)) {
+            lReportsPath = lReportsPath.substring(0, lReportsPath.length()-1);
+        }
 
         //create a folder using the job name to hold the reports
         folder = new File(lReportsPath);
@@ -475,10 +482,12 @@ public String createFolder()
    //so we can make a new folder name
 
     String lJobPrimaryPath = jobPrimaryPath;
-    if (lJobPrimaryPath.endsWith(File.separator))
-    lJobPrimaryPath = lJobPrimaryPath.substring(0, lJobPrimaryPath.length()-1);
+    if (lJobPrimaryPath.endsWith(File.separator)) {
+        lJobPrimaryPath =
+                    lJobPrimaryPath.substring(0, lJobPrimaryPath.length()-1);
+    }
 
-    String finalReportsPath = "";
+    String finalReportsPath;
 
     //if a specific folder has been specified to hold reports, then place
     //the new folder there -- if not, then place the folder in the primary
@@ -539,7 +548,7 @@ public void printReportForPiece(String pReportsPrimaryPath, int pPiece)
         //critical error and should happen rarely
 
         displayErrorMessage("Could not create report file.");
-        if (file != null) file.close();
+        if (file != null) {file.close();}
         return;
 
     }
@@ -629,11 +638,11 @@ public void printFlagForTrace(PrintWriter pFile, StripChart pChart,
 {
 
     boolean isWallChart = false;
-    if (pChart.shortTitle.contains("Wall")) isWallChart = true;
+    if (pChart.shortTitle.contains("Wall")) {isWallChart = true;}
 
-    String linearPos = "";
-    String amplitudeText = "";
-    int clockPos = -1;
+    String linearPos;
+    String amplitudeText;
+    int clockPos;
 
     //extract the flag threshold -- if greater than 0, then a flag
     //is set at this position (note that threshold 1 denotes a user
@@ -659,7 +668,7 @@ public void printFlagForTrace(PrintWriter pFile, StripChart pChart,
             amplitudeText = prePad(amplitudeText, 5);
         }
         else{
-            if (amplitude > 100) amplitude = 100;
+            if (amplitude > 100) {amplitude = 100;}
             amplitudeText = prePad("" + amplitude, 5);
         }
 
@@ -852,8 +861,9 @@ public void printSeparator(PrintWriter pFile)
 String prePad(String pSource, int pLength)
 {
 
-   while(pSource.length() < pLength)
-       pSource = " " + pSource;
+   while(pSource.length() < pLength) {
+        pSource = " " + pSource;
+    }
 
    return(pSource);
 
@@ -870,8 +880,9 @@ String prePad(String pSource, int pLength)
 String postPad(String pSource, int pLength)
 {
 
-   while(pSource.length() < pLength)
-       pSource = pSource + " ";
+   while(pSource.length() < pLength) {
+        pSource = pSource + " ";
+    }
 
    return(pSource);
 
@@ -887,10 +898,12 @@ String postPad(String pSource, int pLength)
 String truncate(String pSource, int pLength)
 {
 
-    if(pSource.length() > pLength)
-       return (pSource.substring(0, pLength));
-    else
-       return(pSource);
+    if(pSource.length() > pLength) {
+        return (pSource.substring(0, pLength));
+    }
+    else {
+        return(pSource);
+    }
 
 }//end of FlagReportPrinter::truncate
 //-----------------------------------------------------------------------------
@@ -957,8 +970,9 @@ public double parseWallRejectPercentage(String pInput)
 
     for(int i=0; i< pInput.length(); i++){
 
-        if (isNumerical(pInput.charAt(i)))
+        if (isNumerical(pInput.charAt(i))) {
             s = s + pInput.charAt(i);
+        }
 
     }
 
@@ -1000,7 +1014,7 @@ public boolean isNumerical(char pInput)
         || (pInput == '7')
         || (pInput == '8')
         || (pInput == '9')
-        || (pInput == '.') ) return(true);
+        || (pInput == '.') ) {return(true);}
 
     return(false); //not a numerical type character
 

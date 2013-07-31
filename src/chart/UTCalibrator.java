@@ -18,18 +18,17 @@
 
 package chart;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
-import java.awt.font.TextAttribute;
-
+import chart.mksystems.hardware.Channel;
+import chart.mksystems.hardware.Hardware;
+import chart.mksystems.hardware.UTBoard;
+import chart.mksystems.hardware.UTGate;
 import chart.mksystems.settings.Settings;
 import chart.mksystems.stripchart.StripChart;
-import chart.mksystems.hardware.Hardware;
-import chart.mksystems.hardware.Channel;
-import chart.mksystems.hardware.UTGate;
-import chart.mksystems.hardware.UTBoard;
+import java.awt.*;
+import java.awt.event.*;
+import java.awt.font.TextAttribute;
+import java.util.*;
+import javax.swing.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -230,9 +229,11 @@ void displayData(int pRange, int pInterfaceCrossingPosition, int[] pUTAscanData)
             ch.gates[0].interfaceCrossingPixAdjusted = -1;
             }
 
-        for (int i=0; i < ch.getNumberOfDACGates(); i++)
-            if (ch.dacGates[i].getActive())
+        for (int i=0; i < ch.getNumberOfDACGates(); i++) {
+            if (ch.dacGates[i].getActive()) {
                 ch.dacGates[i].adjustPositionsNoTracking();
+            }
+        }
 
     }//if (!channels[currentChannelIndex].getInterfaceTracking())
     else{
@@ -254,22 +255,26 @@ void displayData(int pRange, int pInterfaceCrossingPosition, int[] pUTAscanData)
         // absolutely
         //interface gate MUST be gate 0 for compatibility with DSP code
 
-        for (int i = 1; i < ch.getNumberOfGates(); i++)
+        for (int i = 1; i < ch.getNumberOfGates(); i++) {
             ch.gates[i].adjustPositionsWithTracking(offset);
+        }
 
         //interface gate does not track the interface
         ch.gates[0].adjustPositionsNoTracking();
 
         //translate the positions for the DAC gates
-        for (int i=0; i < ch.getNumberOfDACGates(); i++)
-            if (ch.dacGates[i].getActive())
+        for (int i=0; i < ch.getNumberOfDACGates(); i++) {
+            if (ch.dacGates[i].getActive()) {
                 ch.dacGates[i].adjustPositionsWithTracking(offset);
+            }
+        }
 
     }// else of if (!ch.getInterfaceTracking())
 
-    if (pUTAscanData != null && scope1 != null)
+    if (pUTAscanData != null && scope1 != null) {
         scope1.displayData(pRange, ch.gates[0].interfaceCrossingPixAdjusted,
                                                                  pUTAscanData);
+    }
 
 }//end of UTCalibrator::displayData
 //-----------------------------------------------------------------------------
@@ -325,8 +330,9 @@ public void setupChannelSelectorPanel()
 
     //if channelSelectorGroup is not null, then this function has already been
     //called so remove previous components before installing new ones
-    if (channelSelectorGroup != null)
+    if (channelSelectorGroup != null) {
         channelSelector.removeAll();
+    }
 
     //setting the pointer to a new object will release the old one if this
     //function has been called before
@@ -365,7 +371,7 @@ public void setupChannelSelectorPanel()
         rb.setActionCommand(Integer.toString(i));
 
         // select the currently active channel
-        if (i == currentChannelIndex) rb.setSelected(true);
+        if (i == currentChannelIndex) {rb.setSelected(true);}
 
         channelSelectorGroup.add(rb); //group the radio buttons
 
@@ -571,8 +577,9 @@ public void copyChannel(Channel pSource, Channel pDestination,
 {
 
 //if the user has selected to copy everything, then force pCopyAll to true
-if(copyItemSelector.getItemState("Copy All Parameters"))
-    pCopyAll = true;
+if(copyItemSelector.getItemState("Copy All Parameters")) {
+        pCopyAll = true;
+    }
 
 int numberOfGates, numberOfDACGates;
 
@@ -612,14 +619,18 @@ for (int g = 0; g < numberOfGates; g++){
                                         g, pSource.getGateStartTrackingOff(g));
     }
 
-    if(pCopyAll || itemCopySelected(sGate.gateWidthAdjuster))
+    if(pCopyAll || itemCopySelected(sGate.gateWidthAdjuster)) {
         pDestination.setGateWidth(g, pSource.getGateWidth(g), false);
-    if(pCopyAll || itemCopySelected(sGate.gateLevelAdjuster))
+    }
+    if(pCopyAll || itemCopySelected(sGate.gateLevelAdjuster)) {
         pDestination.setGateLevel(g, pSource.getGateLevel(g), false);
-    if(pCopyAll || itemCopySelected(sGate.gateHitCountAdjuster))
+    }
+    if(pCopyAll || itemCopySelected(sGate.gateHitCountAdjuster)) {
         pDestination.setGateHitCount(g, pSource.getGateHitCount(g), false);
-    if(pCopyAll || itemCopySelected(sGate.gateMissCountAdjuster))
+    }
+    if(pCopyAll || itemCopySelected(sGate.gateMissCountAdjuster)) {
         pDestination.setGateMissCount(g, pSource.getGateMissCount(g), false);
+    }
     }
 
 //copy the DAC gate info
@@ -629,8 +640,9 @@ for (int g = 0; g < numberOfGates; g++){
 //copy section used above for the regular gates
 
 if(pCopyAll || copyItemSelector.getItemState("DAC")){
-    for (int dg = 0; dg < numberOfDACGates; dg++)
+    for (int dg = 0; dg < numberOfDACGates; dg++) {
         pDestination.copyGate(dg, pSource.dacGates[dg]);
+    }
     pDestination.setDACEnabled(pSource.getDACEnabled(), false);
     }
 
@@ -641,33 +653,43 @@ if(pCopyAll || copyItemSelector.getItemState("DAC")){
 
 //wip mks -- need to convert into synced functions
 
-if(pCopyAll || copyItemSelector.getItemState("Gain"))
-    pDestination.setSoftwareGain(pSource.getSoftwareGain(), false);
-if(pCopyAll || copyItemSelector.getItemState("Delay"))
-    pDestination.setDelay(pSource.getDelay(), false);
-if(pCopyAll || copyItemSelector.getItemState("Range"))
-    pDestination.setRange(pSource.getRange(), false);
-if(pCopyAll || copyItemSelector.getItemState("Interface Tracking"))
-    pDestination.setInterfaceTracking(pSource.getInterfaceTracking(), false);
-if(pCopyAll || copyItemSelector.getItemState("Signal Mode / Off"))
-    pDestination.setMode(pSource.getMode(), false);
-if(pCopyAll || copyItemSelector.getItemState("Hardware Gain"))
-    pDestination.setHardwareGain(pSource.getHardwareGain1(),
-                                        pSource.getHardwareGain2(), false);
+if(pCopyAll || copyItemSelector.getItemState("Gain")) {
+        pDestination.setSoftwareGain(pSource.getSoftwareGain(), false);
+    }
+if(pCopyAll || copyItemSelector.getItemState("Delay")) {
+        pDestination.setDelay(pSource.getDelay(), false);
+    }
+if(pCopyAll || copyItemSelector.getItemState("Range")) {
+        pDestination.setRange(pSource.getRange(), false);
+    }
+if(pCopyAll || copyItemSelector.getItemState("Interface Tracking")) {
+        pDestination.setInterfaceTracking(pSource.getInterfaceTracking(), false);
+    }
+if(pCopyAll || copyItemSelector.getItemState("Signal Mode / Off")) {
+        pDestination.setMode(pSource.getMode(), false);
+    }
+if(pCopyAll || copyItemSelector.getItemState("Hardware Gain")) {
+        pDestination.setHardwareGain(pSource.getHardwareGain1(),
+                                            pSource.getHardwareGain2(), false);
+    }
 
-if(pCopyAll || copyItemSelector.getItemState("Reject Level"))
-    pDestination.setRejectLevel(pSource.getRejectLevel(), false);
-if(pCopyAll || copyItemSelector.getItemState("AScan Smoothing"))
-    pDestination.setAScanSmoothing(pSource.getAScanSmoothing(), false);
-if(pCopyAll || copyItemSelector.getItemState("DC Offset"))
-    pDestination.setDCOffset(pSource.getDCOffset(), false);
+if(pCopyAll || copyItemSelector.getItemState("Reject Level")) {
+        pDestination.setRejectLevel(pSource.getRejectLevel(), false);
+    }
+if(pCopyAll || copyItemSelector.getItemState("AScan Smoothing")) {
+        pDestination.setAScanSmoothing(pSource.getAScanSmoothing(), false);
+    }
+if(pCopyAll || copyItemSelector.getItemState("DC Offset")) {
+        pDestination.setDCOffset(pSource.getDCOffset(), false);
+    }
 
 //updates the channel number color to match the channel's on/off state
 //if all system channels are being copied, not all of those channels will
 //be in the group currently being displayed by the Calibrator window, those
 //not in the group will not have a radio button to set so skip them
-if (pDestination.calRadioButton != null)
-    setChannelSelectorColor(pDestination);
+if (pDestination.calRadioButton != null) {
+        setChannelSelectorColor(pDestination);
+    }
 
 }//end of UTCalibrator::copyChannel
 //-----------------------------------------------------------------------------
@@ -686,10 +708,12 @@ boolean itemCopySelected(Object pObject)
 {
 
 if ((pObject != null) &&
-        copyItemSelector.getItemState(((Component)pObject).getName()))
-    return(true);
-else
-    return(false);
+        copyItemSelector.getItemState(((Component)pObject).getName())) {
+        return(true);
+    }
+else {
+        return(false);
+    }
 
 }//end of UTCalibrator::itemCopySelected
 //-----------------------------------------------------------------------------
@@ -746,8 +770,9 @@ for (int ch = 0; ch < numberOfChannels; ch++){
         //store current mode, but only if it is not the "Off" mode or this will
         //set the previous mode to "Off" also if the "All Off" button is hit
         //twice and the real previous mode will be lost
-        if (channels[ch].getMode() != UTBoard.CHANNEL_OFF)
+        if (channels[ch].getMode() != UTBoard.CHANNEL_OFF) {
             channels[ch].previousMode = channels[ch].getMode();
+        }
         //turn the channel off
         channels[ch].setMode(UTBoard.CHANNEL_OFF, false);
     }
@@ -756,8 +781,9 @@ for (int ch = 0; ch < numberOfChannels; ch++){
     //if all system channels are being copied, not all of those channels will
     //be in the group currently being displayed by the Calibrator window, those
     //not in the group will not have a radio button to set so skip them
-    if (channels[ch].calRadioButton != null)
+    if (channels[ch].calRadioButton != null) {
         setChannelSelectorColor(channels[ch]);
+    }
 
 }// for (int ch = 0; ch < pNumDestChannels; ch++)
 
@@ -785,7 +811,7 @@ Channel currentCh = channels[currentChannelIndex];
 //catch null - this can happen if not enough channels are installed in the
 //chassis or a mistake is made in the config file assigning channels to
 //traces
-if (currentCh == null) return;
+if (currentCh == null) {return;}
 
 //store the current delay value so it can be restored
 previousDelay = currentCh.getDelay();
@@ -847,7 +873,7 @@ Channel currentCh = channels[currentChannelIndex];
 //catch null - this can happen if not enough channels are installed in the
 //chassis or a mistake is made in the config file assigning channels to
 //traces
-if (currentCh == null) return;
+if (currentCh == null) {return;}
 
 //set the delay back to the value before viewIP
 currentCh.setDelay(previousDelay, false);
@@ -976,11 +1002,15 @@ if (e.getActionCommand().equals("Copy to All")){
     "Are you sure you want to copy to all channels?",
     "Confirm",
     JOptionPane.YES_NO_OPTION);
-    if (n != JOptionPane.YES_OPTION) return;  //bail out if user cancels
+    if (n != JOptionPane.YES_OPTION) {return;}  //bail out if user cancels
 
-    if (settings.copyToAllMode == 0) copyToAllChannelsForCurrentChart();
+    if (settings.copyToAllMode == 0) {
+        copyToAllChannelsForCurrentChart();
+    }
     else
-    if (settings.copyToAllMode == 1) copyToAllChannelsForAllCharts();
+    if (settings.copyToAllMode == 1) {
+        copyToAllChannelsForAllCharts();
+    }
 
     return;
     }
@@ -1032,11 +1062,13 @@ utControls.setChannel(chart, channels[Integer.valueOf(e.getActionCommand())]);
 //mask all channels except the selected one when the window is active so only
 //the data from the selected channel is applied to the trace(s)
 
-for (int i=0; i<numberOfChannels; i++)
-    if (channels[i] != null) channels[i].setMasked(true);
+for (int i=0; i<numberOfChannels; i++) {
+    if (channels[i] != null) {channels[i].setMasked(true);}
+}
 
-if (channels[currentChannelIndex] != null)
-    channels[currentChannelIndex].setMasked(false);
+if (channels[currentChannelIndex] != null) {
+        channels[currentChannelIndex].setMasked(false);
+}
 
 pack();
 
@@ -1075,11 +1107,15 @@ public void windowActivated(WindowEvent e)
 //mask all channels except the selected one when the window is active so only
 //the data from the selected channel is applied to the trace(s)
 
-for (int i=0; i<numberOfChannels; i++)
-    if (channels[i] != null) channels[i].setMasked(true);
+for (int i=0; i<numberOfChannels; i++) {
+        if (channels[i] != null) {
+            channels[i].setMasked(true);
+        }
+    }
 
-if (channels[currentChannelIndex] != null)
-    channels[currentChannelIndex].setMasked(false);
+if (channels[currentChannelIndex] != null) {
+        channels[currentChannelIndex].setMasked(false);
+    }
 
 //enable Ascan fast buffer processing in the DSP
 //this will result in missed data sets and missed peaks due to the extensive
@@ -1105,8 +1141,11 @@ public void windowDeactivated(WindowEvent e)
 //unmask all channels when the window is not active so all their data is
 //applied to the trace(s)
 
-for (int i=0; i<numberOfChannels; i++)
-    if (channels[i] != null) channels[i].setMasked(false);
+for (int i=0; i<numberOfChannels; i++) {
+        if (channels[i] != null) {
+            channels[i].setMasked(false);
+        }
+    }
 
 //disable Ascan processing in the DSP
 // This processing takes too much time and some samples will be missed when
@@ -1152,10 +1191,11 @@ public void windowDeiconified(WindowEvent e){}
 public void mousePressed(MouseEvent e)
 {
 
-if (e.getComponent().getName().equals("View IP")) viewIP();
+if (e.getComponent().getName().equals("View IP")) {viewIP();}
 
-if (e.getComponent().getName().equals("Oscope Canvas"))
-    utControls.mousePressedOnScope(e);
+if (e.getComponent().getName().equals("Oscope Canvas")) {
+        utControls.mousePressedOnScope(e);
+    }
 
 }//end of UTCalibrator::mousePressed
 //-----------------------------------------------------------------------------
@@ -1171,10 +1211,11 @@ if (e.getComponent().getName().equals("Oscope Canvas"))
 public void mouseReleased(MouseEvent e)
 {
 
-if (e.getComponent().getName().equals("View IP")) unViewIP();
+if (e.getComponent().getName().equals("View IP")) {unViewIP();}
 
-if (e.getComponent().getName().equals("Oscope Canvas"))
-    utControls.mouseReleasedOnScope(e);
+if (e.getComponent().getName().equals("Oscope Canvas")) {
+        utControls.mouseReleasedOnScope(e);
+    }
 
 }//end of UTCalibrator::mouseReleased
 //-----------------------------------------------------------------------------
@@ -1270,7 +1311,7 @@ public void componentHidden(ComponentEvent e)
 {
 
 //close the copy item selector window in case is was open
-if (copyItemSelector != null) copyItemSelector.setVisible(false);
+if (copyItemSelector != null) {copyItemSelector.setVisible(false);}
 
 }//end of UTCalibrator::componentHidden
 //-----------------------------------------------------------------------------

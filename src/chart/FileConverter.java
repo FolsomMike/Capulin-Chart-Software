@@ -112,10 +112,12 @@ public boolean accept(File dir, String name)
 
     //the file satisfies the filter if it ends with the extension value,
     //ignoring case
-    if (name.toUpperCase().endsWith(extensionUC))
+    if (name.toUpperCase().endsWith(extensionUC)) {
         return(true);
-    else
+    }
+    else {
         return(false);
+    }
 
 }//end of MKSFilenameFilter::accept
 //-----------------------------------------------------------------------------
@@ -177,7 +179,7 @@ protected void init()
     //files have already been converted
 
     File file = new File(conversionCompletedFlagFileName);
-    if (file.exists()) return;
+    if (file.exists()) {return;}
 
     //track all changes in a log file
     logFile = new LogFile();
@@ -189,7 +191,7 @@ protected void init()
     logFile.log(""); // blank line
 
     for (int x = 0; x < pathList.length; x++){
-        if (!convertFiles(extList[x], pathList[x])) processGood = false;
+        if (!convertFiles(extList[x], pathList[x])) {processGood = false;}
         logFile.log(""); //log a blank line between each path/ext group
     }
 
@@ -198,8 +200,9 @@ protected void init()
     logFile.log(""); // blank line
 
     for (int x = 0; x < pathList.length; x++){
-        if (!compareFilesAndCleanUp(extList[x], pathList[x]))
+        if (!compareFilesAndCleanUp(extList[x], pathList[x])) {
             processGood = false;
+        }
         logFile.log(""); //log a blank line between each path/ext group
     }
 
@@ -215,8 +218,9 @@ protected void init()
     logFile.log(""); // blank line
 
     for (int x = 0; x < pathList.length; x++){
-        if (!compareFilesAndCleanUp(extList[x] + tempFileSuffix, pathList[x]))
+        if (!compareFilesAndCleanUp(extList[x] + tempFileSuffix, pathList[x])) {
             processGood = false;
+        }
         logFile.log(""); //log a blank line between each path/ext group
     }
 
@@ -278,9 +282,11 @@ private boolean convertFiles(String pExtension, String pPath)
 
         //convert only normal files -- ignore directories -- if an error occurs
         //with any file, record the error
-        if (file.isFile())
-            if (convertFile(filename, filename + tempFileSuffix) == false)
+        if (file.isFile()) {
+            if (convertFile(filename, filename + tempFileSuffix) == false) {
                 convertFilesGood = false;
+            }
+        }
 
     }//for (int i = 0...
 
@@ -344,8 +350,9 @@ private boolean compareFilesAndCleanUp(String pExtension, String pPath)
         //version and rename the new version with the old filename
 
         if (compareFile(oldFile, tempFile)){
-            if (deleteOldRenameNew(oldFile, tempFile) == false)
+            if (deleteOldRenameNew(oldFile, tempFile) == false) {
                 compareFilesGood = false;
+            }
         }//if (compareFile(filename))
         else{
             //any compare error prevents the flag file from being created so
@@ -393,12 +400,13 @@ protected boolean deleteOldRenameNew(String pOldFile, String pTempFile)
     }
 
     //if the old file exists, delete it -- bail out on error
-    if (oldFile.exists())
+    if (oldFile.exists()) {
         if(!oldFile.delete()){
             logFile.log("Error - could not delete: " + oldFile);
             cleanUpGood = false;
             return(cleanUpGood);
         }
+    }
 
     //if old file successfully deleted, rename new file to old name
     if (tempFile.renameTo(oldFile)){

@@ -41,15 +41,14 @@
 
 package chart;
 
-import javax.swing.JFrame;
-import java.util.Date;
-import java.io.*;
-import java.text.DecimalFormat;
-
-import chart.mksystems.settings.Settings;
 import chart.mksystems.hardware.Hardware;
 import chart.mksystems.hardware.HardwareVars;
 import chart.mksystems.inifile.IniFile;
+import chart.mksystems.settings.Settings;
+import java.io.*;
+import java.text.DecimalFormat;
+import java.util.Date;
+import javax.swing.JFrame;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -126,10 +125,12 @@ public void run() {
             createMessageWindow("Saving data to primary folder...");}});
 
     //begin saving the data to the primary path
-    if (!humanReadable)
+    if (!humanReadable) {
         saveFile(settings.currentJobPrimaryPath);
-    else
+    }
+    else {
         saveFileHumanReadable(settings.currentJobPrimaryPath);
+    }
 
     //tell the GUI to update the status message
     javax.swing.SwingUtilities.invokeLater(
@@ -139,10 +140,12 @@ public void run() {
            messageWindow.message.setText("Saving data to backup folder...");}});
 
     //begin saving the data to the backup path
-    if (!humanReadable)
+    if (!humanReadable) {
         saveFile(settings.currentJobBackupPath);
-    else
+    }
+    else {
         saveFileHumanReadable(settings.currentJobBackupPath);
+    }
 
     //tell the GUI to dispose of the message window
     javax.swing.SwingUtilities.invokeLater(
@@ -176,9 +179,9 @@ protected void saveFile(String pJobPath)
     //the program root folder -- this occurs when the current job path specified in
     //the Main Settings.ini is blank
 
-    if (pJobPath.equals("")) return;
+    if (pJobPath.equals("")) {return;}
 
-    IniFile calFile = null;
+    IniFile calFile;
 
     //if the ini file cannot be opened and loaded, exit without action
     try {
@@ -218,8 +221,9 @@ protected void saveFile(String pJobPath)
                                                     settings.userPrintMagnify);
 
     //save info for all charts
-    for (int i=0; i < settings.numberOfChartGroups; i++)
+    for (int i=0; i < settings.numberOfChartGroups; i++) {
         settings.chartGroups[i].saveCalFile(calFile);
+    }
 
     hardware.saveCalFile(calFile);
 
@@ -249,7 +253,7 @@ protected void saveFileHumanReadable(String pJobPath)
     //in the program root folder -- this occurs when the current job path
     //specified in the Main Settings.ini is blank
 
-    if (pJobPath.equals("")) return;
+    if (pJobPath.equals("")) {return;}
 
     String date = new Date().toString();
 
@@ -280,11 +284,11 @@ protected void saveFileHumanReadable(String pJobPath)
     }
     finally{
 
-        try{if (out != null) out.close();}
+        try{if (out != null) {out.close();}}
         catch(IOException e){}
-        try{if (outputStreamWriter != null) outputStreamWriter.close();}
+        try{if (outputStreamWriter != null) {outputStreamWriter.close();}}
         catch(IOException e){}
-        try{if (fileOutputStream != null) fileOutputStream.close();}
+        try{if (fileOutputStream != null) {fileOutputStream.close();}}
         catch(IOException e){}
     }
 
@@ -346,8 +350,9 @@ protected void saveFileHumanReadableHelper(BufferedWriter pOut)
     pOut.newLine(); pOut.newLine();
 
     //save info for all charts
-    for (int i=0; i < settings.numberOfChartGroups; i++)
+    for (int i=0; i < settings.numberOfChartGroups; i++) {
         settings.chartGroups[i].saveCalFileHumanReadable(pOut);
+    }
 
     //save all channel settings
     hardware.saveCalFileHumanReadable(pOut);

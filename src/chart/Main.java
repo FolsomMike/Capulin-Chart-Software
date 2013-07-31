@@ -85,7 +85,7 @@ public void run() {
         while (true){
 
             //if connection has not been made to the remotes, do so
-            if (!hardware.connected) hardware.connect();
+            if (!hardware.connected) {hardware.connect();}
 
             //run any miscellaneous background processes
             hardware.runBackgroundProcesses();
@@ -314,7 +314,7 @@ public MainWindow()
 private void loadMainStaticSettings()
 {
 
-    IniFile configFile = null;
+    IniFile configFile;
 
     //if the ini file cannot be opened and loaded, exit without action
     try {configFile = new IniFile("Main Static Settings.ini",
@@ -349,8 +349,9 @@ private void loadMainStaticSettings()
 
 private String formatPath (String pPath){
 
-    if (!pPath.equals("") && !pPath.endsWith(File.separator))
+    if (!pPath.equals("") && !pPath.endsWith(File.separator)) {
         pPath += File.separator;
+    }
 
     return(pPath);
 
@@ -368,7 +369,7 @@ private String formatPath (String pPath){
 private void saveMainStaticSettings()
 {
 
-    IniFile configFile = null;
+    IniFile configFile;
 
     //if the ini file cannot be opened and loaded, exit without action
     try {configFile = new IniFile("Main Static Settings.ini",
@@ -399,7 +400,7 @@ private void saveMainStaticSettings()
 private void loadGeneralConfiguration()
 {
 
-    IniFile configFile = null;
+    IniFile configFile;
 
     //if the ini file cannot be opened and loaded, exit without action
     try {configFile = new IniFile(
@@ -429,12 +430,14 @@ private void loadGeneralConfiguration()
 
     //if there is a separator at the end, remove for consistency with later code
     String t = settings.primaryFolderName;
-    if (t.endsWith(sep))
+    if (t.endsWith(sep)) {
         settings.primaryFolderName = t.substring(0, t.length()-1);
+    }
 
     t = settings.backupFolderName;
-    if (t.endsWith(sep))
+    if (t.endsWith(sep)) {
         settings.backupFolderName = t.substring(0, t.length()-1);
+    }
 
 
     settings.printResolutionX = configFile.readInt(
@@ -459,10 +462,11 @@ private void loadGeneralConfiguration()
 private void loadMainSettings()
 {
 
-    IniFile configFile = null;
+    IniFile configFile;
 
     //if the ini file cannot be opened and loaded, exit without action
-    try {configFile = new IniFile("Main Settings.ini", Settings.mainFileFormat);
+    try {
+        configFile = new IniFile("Main Settings.ini", Settings.mainFileFormat);
     }
     catch(IOException e){
         System.err.println(getClass().getName() + " - Error: 467");
@@ -480,23 +484,25 @@ private void loadMainSettings()
     if (xfer.rBoolean2){
         settings.primaryDataPath = ""; settings.backupDataPath = "";
         settings.currentJobName = "";
-        }
+    }
 
     //if flag returns true, the root folders exist but the job name cannot be
     //found in either - assume that it no longer exists and set the name empty
-    if (xfer.rBoolean3) settings.currentJobName = "";
+    if (xfer.rBoolean3) {settings.currentJobName = "";}
 
     settings.currentJobPrimaryPath = ""; settings.currentJobBackupPath = "";
 
     //if the root paths and the job name are valid, create the full paths
     if(!settings.currentJobName.equals("")){
-        if(!settings.primaryDataPath.equals(""))
+        if(!settings.primaryDataPath.equals("")) {
             settings.currentJobPrimaryPath = settings.primaryDataPath +
                                     settings.currentJobName + File.separator;
-        if(!settings.backupDataPath.equals(""))
+        }
+        if(!settings.backupDataPath.equals("")) {
             settings.currentJobBackupPath = settings.backupDataPath +
                                     settings.currentJobName + File.separator;
         }
+    }
 
     settings.mainWindowLocationX = configFile.readInt(
                             "Main Configuration", "Main Window Location X", 0);
@@ -523,7 +529,7 @@ private void loadMainSettings()
 private void saveMainSettings()
 {
 
-    IniFile configFile = null;
+    IniFile configFile;
 
     //if the ini file cannot be opened and loaded, exit without action
     try {
@@ -561,12 +567,14 @@ private void configure()
     String configFilename = settings.currentJobPrimaryPath + "01 - " +
                                 settings.currentJobName + " Configuration.ini";
 
-    if(IniFile.detectUTF16LEFormat(configFilename))
+    if(IniFile.detectUTF16LEFormat(configFilename)) {
         settings.jobFileFormat = "UTF-16LE";
-    else
+    }
+    else {
         settings.jobFileFormat = "UTF-8";
+    }
 
-    IniFile configFile = null;
+    IniFile configFile;
 
     //if the ini file cannot be opened and loaded, exit without action
     try {
@@ -654,8 +662,9 @@ private void configure()
     if (settings.numberOfChartGroups > 0){
 
         //protect against too many groups
-        if (settings.numberOfChartGroups > 10)
+        if (settings.numberOfChartGroups > 10) {
             settings.numberOfChartGroups = 10;
+        }
 
         settings.chartGroups = new ChartGroup[settings.numberOfChartGroups];
 
@@ -701,7 +710,7 @@ private void configure()
 private void loadCalFile()
 {
 
-    IniFile calFile = null;
+    IniFile calFile;
 
     //if the ini file cannot be opened and loaded, exit without action
     try {
@@ -732,8 +741,9 @@ private void loadCalFile()
     settings.scanSpeed =
                 calFile.readInt("General", "Scanning and Inspecting Speed", 10);
 
-    if (settings.scanSpeed < 0 || settings.scanSpeed > 10)
+    if (settings.scanSpeed < 0 || settings.scanSpeed > 10) {
         settings.scanSpeed = 10;
+    }
 
     settings.graphPrintLayout = calFile.readString(
                     "General", "Graph Print Layout", "8-1/2 x 11 : Fit Height");
@@ -744,15 +754,17 @@ private void loadCalFile()
        && !settings.graphPrintLayout.equalsIgnoreCase("8-1/2 x 14 : Fit Height")
        && !settings.graphPrintLayout.equalsIgnoreCase("8-1/2 x 14 : Fit Width")
        && !settings.graphPrintLayout.equalsIgnoreCase("A4 : Fit Height")
-       && !settings.graphPrintLayout.equalsIgnoreCase("A4 : Fit Width"))
+       && !settings.graphPrintLayout.equalsIgnoreCase("A4 : Fit Width")) {
         settings.graphPrintLayout = "8-1/2 x 11 : Fit Height";
+    }
 
     settings.userPrintMagnify = calFile.readString(
                               "General", "Graph Print Magnify", "Magnify 1.0");
 
     //load info for all charts
-    for (int i=0; i < settings.numberOfChartGroups; i++)
+    for (int i=0; i < settings.numberOfChartGroups; i++) {
         settings.chartGroups[i].loadCalFile(calFile);
+    }
 
     hardware.loadCalFile(calFile);
 
@@ -806,8 +818,9 @@ private void saveEverything()
 private void resetChartGroups()
 {
 
-    for (int i = 0; i < settings.numberOfChartGroups; i++)
+    for (int i = 0; i < settings.numberOfChartGroups; i++) {
         settings.chartGroups[i].resetChartGroup();
+    }
 
 }//end of MainWindow::resetChartGroups
 //-----------------------------------------------------------------------------
@@ -827,8 +840,9 @@ private void resetChartGroups()
 public void markSegmentStart()
 {
 
-    for (int i = 0; i < settings.numberOfChartGroups; i++)
+    for (int i = 0; i < settings.numberOfChartGroups; i++) {
         settings.chartGroups[i].markSegmentStart();
+    }
 
 }//end of MainWindow::markSegmentStart
 //-----------------------------------------------------------------------------
@@ -848,8 +862,9 @@ public void markSegmentStart()
 public void markSegmentEnd()
 {
 
-    for (int i = 0; i < settings.numberOfChartGroups; i++)
+    for (int i = 0; i < settings.numberOfChartGroups; i++) {
         settings.chartGroups[i].markSegmentEnd();
+    }
 
 }//end of MainWindow::markSegmentEnd
 //-----------------------------------------------------------------------------
@@ -864,8 +879,11 @@ public void markSegmentEnd()
 boolean segmentStarted()
 {
 
-    for (int i = 0; i < settings.numberOfChartGroups; i++)
-        if (settings.chartGroups[i].segmentStarted()) return(true);
+    for (int i = 0; i < settings.numberOfChartGroups; i++) {
+        if (settings.chartGroups[i].segmentStarted()) {
+            return(true);
+        }
+    }
 
     return(false);
 
@@ -917,12 +935,14 @@ private void saveSegment()
     //save the info file for each segment
     //info which can be modified later such as heat, lot, id number, etc.
 
-    if (!controlPanel.calMode)
+    if (!controlPanel.calMode) {
         segmentFilename = "20 - " +
               decimalFormats[0].format(controlPanel.nextPieceNumber) + ".info";
-    else
+    }
+    else {
         segmentFilename =  "30 - " +
         decimalFormats[0].format(controlPanel.nextCalPieceNumber) + ".cal info";
+    }
 
     saveSegmentInfoHelper(settings.currentJobPrimaryPath + segmentFilename);
     saveSegmentInfoHelper(settings.currentJobBackupPath + segmentFilename);
@@ -969,18 +989,19 @@ private void saveSegmentHelper(String pFilename)
         out.newLine();
         out.write("[Header End]"); out.newLine(); out.newLine();
 
-        for (int i = 0; i < settings.numberOfChartGroups; i++)
+        for (int i = 0; i < settings.numberOfChartGroups; i++) {
             settings.chartGroups[i].saveSegment(out);
         }
+    }
     catch(IOException e){
         System.err.println(getClass().getName() + " - Error: 967");
     }
     finally{
-        try{if (out != null) out.close();}
+        try{if (out != null) {out.close();}}
         catch(IOException e){}
-        try{if (outputStreamWriter != null) outputStreamWriter.close();}
+        try{if (outputStreamWriter != null) {outputStreamWriter.close();}}
         catch(IOException e){}
-        try{if (fileOutputStream != null) fileOutputStream.close();}
+        try{if (fileOutputStream != null) {fileOutputStream.close();}}
         catch(IOException e){}
     }
 
@@ -1048,11 +1069,11 @@ private void saveSegmentInfoHelper(String pFilename)
         System.err.println(getClass().getName() + " - Error: 1039");
     }
     finally{
-        try{if (out != null) out.close();}
+        try{if (out != null) {out.close();}}
         catch(IOException e){}
-        try{if (outputStreamWriter != null) outputStreamWriter.close();}
+        try{if (outputStreamWriter != null) {outputStreamWriter.close();}}
         catch(IOException e){}
-        try{if (fileOutputStream != null) fileOutputStream.close();}
+        try{if (fileOutputStream != null) {fileOutputStream.close();}}
         catch(IOException e){}
     }
 
@@ -1069,8 +1090,9 @@ private void saveSegmentInfoHelper(String pFilename)
 public final void handleSizeChanges()
 {
 
-    for (int i = 0; i < settings.numberOfChartGroups; i++)
+    for (int i = 0; i < settings.numberOfChartGroups; i++) {
         settings.chartGroups[i].handleSizeChanges();
+    }
 
 }//end of MainWindow::handleSizeChanges
 //-----------------------------------------------------------------------------
@@ -1087,25 +1109,25 @@ public void actionPerformed(ActionEvent e)
 
     //this part handles saving all data
     if ("Save".equals(e.getActionCommand())) {
-        if(isConfigGoodA()) saveEverything();
+        if(isConfigGoodA()) {saveEverything();}
         return;
     }
 
     //this part handles creating a new job
     if ("New Job".equals(e.getActionCommand())) {
-        if(isConfigGoodB()) createNewJob();
+        if(isConfigGoodB()) {createNewJob();}
         return;
     }
 
     //this part handles switching to a different job
     if ("Change Job".equals(e.getActionCommand())) {
-        if(isConfigGoodB()) changeJob();
+        if(isConfigGoodB()) {changeJob();}
         return;
     }
 
     //this part handles saving current settings to a preset
     if ("Copy Preset From Job".equals(e.getActionCommand())) {
-        if(isConfigGoodA()) copyPreset();
+        if(isConfigGoodA()) {copyPreset();}
         return;
     }
 
@@ -1120,7 +1142,7 @@ public void actionPerformed(ActionEvent e)
 
     //this part handles switching to a different preset
     if ("Change Preset".equals(e.getActionCommand())) {
-        if(isConfigGoodA()) changePreset();
+        if(isConfigGoodA()) {changePreset();}
         return;
     }
 
@@ -1147,7 +1169,7 @@ public void actionPerformed(ActionEvent e)
     }
 
     //this part writes various status and error messages to the log window
-    if ("Status".equals(e.getActionCommand())) logStatus();
+    if ("Status".equals(e.getActionCommand())) {logStatus();}
 
     //this part opens a viewer window for viewing saved segments
     if ("Open Viewer".equals(e.getActionCommand())) {
@@ -1201,13 +1223,13 @@ public void actionPerformed(ActionEvent e)
 
     //this part handles opening the Job Info window
     if ("Job Info".equals(e.getActionCommand())) {
-        if(isConfigGoodA()) jobInfo.setVisible(true);
+        if(isConfigGoodA()) {jobInfo.setVisible(true);}
         return;
     }
 
     //this part handles opening the piece Identifier Info window
     if ("Show ID Info Window".equals(e.getActionCommand())) {
-        if(isConfigGoodA()) pieceIDInfo.setVisible(true);
+        if(isConfigGoodA()) {pieceIDInfo.setVisible(true);}
         return;
     }
 
@@ -1226,7 +1248,7 @@ public void actionPerformed(ActionEvent e)
     //this part handles repairing a job
     if ("Repair Job".equals(e.getActionCommand())) {
 
-        if(!isConfigGoodA()) return;
+        if(!isConfigGoodA()) {return;}
 
         //create with pRobust set true so paths will be recreated if necessary
         JobValidator jobValidator = new JobValidator(
@@ -1309,7 +1331,7 @@ public void actionPerformed(ActionEvent e)
     }
 
     //handle timer calls
-    if ("Timer".equals(e.getActionCommand())) processMainTimerEvent();
+    if ("Timer".equals(e.getActionCommand())) {processMainTimerEvent();}
 
 }//end of MainWindow::actionPerformed
 //-----------------------------------------------------------------------------
@@ -1327,18 +1349,18 @@ public void startRabbitUpdater(int pWhichRabbits)
 
     String which = "";
 
-    if (pWhichRabbits == Hardware.ALL_RABBITS) which = "all";
+    if (pWhichRabbits == Hardware.ALL_RABBITS) {which = "all";}
     else
-    if (pWhichRabbits == Hardware.UT_RABBITS) which = "the UT";
+    if (pWhichRabbits == Hardware.UT_RABBITS) {which = "the UT";}
     else
-    if (pWhichRabbits == Hardware.CONTROL_RABBITS) which = "the Control";
+    if (pWhichRabbits == Hardware.CONTROL_RABBITS) {which = "the Control";}
 
     int n = JOptionPane.showConfirmDialog( null,
     "Update " + which + " Rabbit micro-controllers?",
     "Warning", JOptionPane.YES_NO_OPTION);
 
     //bail out if user does not click yes
-    if (n != JOptionPane.YES_OPTION) return;
+    if (n != JOptionPane.YES_OPTION) {return;}
 
     if (pWhichRabbits == Hardware.UT_RABBITS
             || pWhichRabbits == Hardware.ALL_RABBITS){
@@ -1413,7 +1435,7 @@ public void processFinishedPiece()
         markSegmentEnd();  //mark the buffer location of the end of the segment
 
         //if data paths are good, save the data for the segment
-        if(isConfigGoodA()) saveSegment();
+        if(isConfigGoodA()) {saveSegment();}
 
         //increment the next piece or next cal piece number
         controlPanel.incrementPieceNumber();
@@ -1439,7 +1461,7 @@ public void prepareForNextPiece()
     // otherwise new piece will be appended to right end of traces and the chart
     // will scroll to display new data
 
-    if (settings.restartNewPieceAtLeftEdge) resetChartGroups();
+    if (settings.restartNewPieceAtLeftEdge) {resetChartGroups();}
 
     //mark the starting point of a new piece in the data buffers
     markSegmentStart();
@@ -1507,7 +1529,7 @@ public void logStatus()
 public String updatePrevMinWallDisplay()
 {
 
-    String result = "", wallText;
+    String result, wallText;
     hardware.hdwVs.chartGroup = null;
     hardware.hdwVs.chart = null;
     hardware.hdwVs.trace = null;
@@ -1527,8 +1549,9 @@ public String updatePrevMinWallDisplay()
         }
     }//for (int i = 0; i < numberOfChartGroups; i++)
 
-    if(hardware.hdwVs.chart != null)
+    if(hardware.hdwVs.chart != null) {
         hardware.hdwVs.chart.updatePreviousMinWallValue(hardware.hdwVs.minWall);
+    }
 
     return(result);
 
@@ -1549,7 +1572,7 @@ public boolean isConfigGoodA()
 {
 
     //verify the data folder paths
-    if (!isConfigGoodB()) return(false);
+    if (!isConfigGoodB()) {return(false);}
 
     //verify the job name
     if (settings.currentJobName.equals("")){
@@ -1781,7 +1804,7 @@ public void setupSystem()
         "Warning", JOptionPane.YES_NO_OPTION);
 
     //bail out if user does not click yes
-    if (n != JOptionPane.YES_OPTION) return;
+    if (n != JOptionPane.YES_OPTION) {return;}
 
     //create and display a file chooser
     final JFileChooser fc = new JFileChooser();
@@ -1804,7 +1827,7 @@ public void setupSystem()
     //if one of the folder names is part of the selected folder and truncate the
     //selected folder so that the parent folder is used instead.
 
-    int p = -1;
+    int p;
 
     if ((p = targetDir.indexOf(settings.primaryFolderName)) != -1){
         //chop off all after the offending directory
@@ -1817,7 +1840,7 @@ public void setupSystem()
     }
 
     //add a separator if not one already at the end
-    if (!targetDir.endsWith(File.separator)) targetDir += File.separator;
+    if (!targetDir.endsWith(File.separator)) {targetDir += File.separator;}
 
     //create the primary data directory
     //note the extra space before "Primary" in the path name - this forces the
@@ -1869,7 +1892,7 @@ public void displayCalWindow(String pActionCommand)
                  pActionCommand.substring(pActionCommand.lastIndexOf('~')+1));
 
     //clear out the list of channels assigned to the chart
-    for (int i = 0; i < numberOfChannels; i++) calChannels[i] = null;
+    for (int i = 0; i < numberOfChannels; i++) {calChannels[i] = null;}
 
     //For UT, clicking either trace labeled ID or OD brings up all channels
     //for the chart regardless of trace - this is because ID/OD is tied to all
@@ -1877,7 +1900,7 @@ public void displayCalWindow(String pActionCommand)
     //that clicking on one trace only brings up the channels tied to that trace.
 
     //used to calculate number of channels tied to the invoking chart
-    int i = 0, numberOfChartChannels = 0;
+    int i = 0, numberOfChartChannels;
 
     //scan through all channels and their gates, processing data from any that
     //match the current graph and trace number - see note above for future mods
@@ -1948,7 +1971,7 @@ public void processMainTimerEvent()
 
     if (settings.exitProgram) {
 
-        if (settings.fileSaver != null) return; //wait until saving is done
+        if (settings.fileSaver != null) {return;} //wait until saving is done
 
         //stop calling this timer during shutdown
         mainTimer.stop();
@@ -1965,10 +1988,12 @@ public void processMainTimerEvent()
         MainWindow mainWindow;
 
         //if a restart was requested, make a new main frame and start over
-        if (settings.restartProgram)
+        if (settings.restartProgram) {
             mainWindow = new MainWindow();
-        else
+        }
+        else {
             System.exit(0);
+        }
 
     }
 
@@ -2011,9 +2036,10 @@ public void processMainTimerEvent()
             aScan = hardware.getAScan(
                 calWindow.channels[calWindow.currentChannelIndex].channelIndex);
 
-            if (aScan != null)
+            if (aScan != null) {
                 calWindow.displayData(aScan.range,
                         aScan.interfaceCrossingPosition, aScan.buffer);
+            }
         }
     }// if (calWindow.isVisible())
 
@@ -2038,8 +2064,9 @@ public void processMainTimerEvent()
 public void doScan()
 {
 
-    for (int i = 0; i < settings.numberOfChartGroups; i++)
+    for (int i = 0; i < settings.numberOfChartGroups; i++) {
         settings.chartGroups[i].plotData();
+    }
 
 }//end of MainWindow::doScan
 //-----------------------------------------------------------------------------
@@ -2227,7 +2254,7 @@ public void prepareToExitProgram(boolean pSave)
     //if flag is true, save all data
     //the timer function should monitor conditions to make sure save is
     //completed before exiting since the save is handled by a separate thread
-    if (pSave) saveEverything();
+    if (pSave) {saveEverything();}
 
 }//end of MainWindow::prepareToExitProgram
 //-----------------------------------------------------------------------------

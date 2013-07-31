@@ -27,17 +27,15 @@
 
 package chart.mksystems.settings;
 
-import javax.swing.*;
-import java.awt.event.*;
-import java.io.*;
-import java.awt.Color;
-import java.util.*;
-import java.io.FileInputStream;
-
 import chart.CalFileSaver;
+import chart.mksystems.hardware.Hardware;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.stripchart.ChartGroup;
-import chart.mksystems.hardware.Hardware;
+import java.awt.Color;
+import java.awt.event.*;
+import java.io.*;
+import java.util.*;
+import javax.swing.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -295,12 +293,15 @@ public void actionPerformed(ActionEvent e)
 
     JMenuItem source = (JMenuItem)(e.getSource());
 
-    if (source.getToolTipText().equalsIgnoreCase("English"))
+    if (source.getToolTipText().equalsIgnoreCase("English")) {
         setLanguage("English");
-    if (source.getToolTipText().equalsIgnoreCase("Chinese"))
+    }
+    if (source.getToolTipText().equalsIgnoreCase("Chinese")) {
         setLanguage("Chinese");
-    if (source.getToolTipText().equalsIgnoreCase("Spanish"))
+    }
+    if (source.getToolTipText().equalsIgnoreCase("Spanish")) {
         setLanguage("Spanish");
+    }
 
     //calls function in Main
     if (source.getToolTipText().equalsIgnoreCase("Job Info")){
@@ -636,8 +637,11 @@ public String dBColorsToText(Color pColor)
 {
 
     //scan the color array looking for match
-    for(int i = 0; i < colorArray.length; i++ )
-                       if (pColor == colorArray[i]) return colorNamesArray[i];
+    for(int i = 0; i < colorArray.length; i++ ) {
+        if (pColor == colorArray[i]) {
+            return colorNamesArray[i];
+        }
+    }
 
     //if color not found, return "Undefined"
     return("Undefined");
@@ -655,8 +659,11 @@ public Color textToDBColors(int pIndex, String pColor)
 {
 
     //scan the color array looking for match
-    for(int i = 0; i < colorNamesArray.length; i++ )
-         if (pColor.equalsIgnoreCase(colorNamesArray[i])) return colorArray[i];
+    for(int i = 0; i < colorNamesArray.length; i++ ) {
+        if (pColor.equalsIgnoreCase(colorNamesArray[i])) {
+            return colorArray[i];
+        }
+    }
 
     //if color not found, return the original default color already in the
     //array slot
@@ -683,7 +690,7 @@ public void configure(IniFile pConfigFile)
     //get the number of lines in the description, bail out if illegal value
 
     int lineCount = pConfigFile.readInt(section, "Number of Lines", 0);
-    if (lineCount == 0 || lineCount > 100) return;
+    if (lineCount == 0 || lineCount > 100) {return;}
 
     //create a vector to hold the lines of text read from the file
     configInfo = new ArrayList<String>(lineCount);
@@ -696,15 +703,13 @@ public void configure(IniFile pConfigFile)
         //the numbers are all 3 characters long and right justified with blanks
         //prepended for padding -- add the necessary space padding here
         number = Integer.toString(i+1);
-        if (number.length() == 1) number = "  " + number;
+        if (number.length() == 1) {number = "  " + number;}
         else
-        if (number.length() == 2) number = " " + number;
+        if (number.length() == 2) {number = " " + number;}
 
         line = pConfigFile.readString(section, "Line " + number, "");
         configInfo.add(line);
     }
-
-    section = "Main Configuration";
 
 }//end of Settings::configure
 //-----------------------------------------------------------------------------
@@ -746,8 +751,9 @@ public void displayConfigInfo(JTextArea pTextArea)
 public static String prePad(String pSource, int pLength)
 {
 
-   while(pSource.length() < pLength)
-       pSource = " " + pSource;
+   while(pSource.length() < pLength) {
+        pSource = " " + pSource;
+    }
 
    return(pSource);
 
@@ -764,8 +770,9 @@ public static String prePad(String pSource, int pLength)
 public static String postPad(String pSource, int pLength)
 {
 
-   while(pSource.length() < pLength)
-       pSource = pSource + " ";
+   while(pSource.length() < pLength) {
+        pSource = pSource + " ";
+    }
 
    return(pSource);
 
@@ -781,10 +788,12 @@ public static String postPad(String pSource, int pLength)
 public static String truncate(String pSource, int pLength)
 {
 
-    if(pSource.length() > pLength)
-       return (pSource.substring(0, pLength));
-    else
-       return(pSource);
+    if(pSource.length() > pLength) {
+        return (pSource.substring(0, pLength));
+    }
+    else {
+        return(pSource);
+    }
 
 }//end of Settings::truncate
 //-----------------------------------------------------------------------------
@@ -810,7 +819,7 @@ public static void appendSecurityHash(String pFilename)
     String hash = calculateSecurityHash(pFilename);
 
     //bail out if error during hash calculation
-    if(hash.length() <= 0) return;
+    if(hash.length() <= 0) {return;}
 
     //append the hash code to the file
 
@@ -826,7 +835,7 @@ public static void appendSecurityHash(String pFilename)
         System.err.println(Settings.class.getName() + " - Error: 816");
     }
     finally{
-        if (file != null) file.close();
+        if (file != null) {file.close();}
     }
 
 }//end of Settings::appendSecurityHash
@@ -846,7 +855,7 @@ public static String calculateSecurityHash(String pFilename)
     long sum = calculateSumOfFileData(pFilename);
 
     //bail out if there was an error calculating the sum
-    if (sum < 0) return("");
+    if (sum < 0) {return("");}
 
     //get an encrypted string from the number
     String hash = encrypt(sum);
@@ -896,7 +905,7 @@ static String encrypt(long pSum)
         seed += 48; //shift to ASCII code for zero
         //if value is above the numerical characters, shift up to the lower
         //case alphabet
-        if (seed > 57) seed += 39;
+        if (seed > 57) {seed += 39;}
         flipped = (char)seed + flipped;
 
     }
@@ -908,7 +917,7 @@ static String encrypt(long pSum)
         seed += 48; //shift to ASCII code for zero
         //if value is above the numerical characters, shift up to the lower
         //case alphabet
-        if (seed > 57) seed += 39;
+        if (seed > 57) {seed += 39;}
         flipped = flipped + (char)seed;
 
     }
@@ -957,7 +966,7 @@ public static long calculateSumOfFileData(String pFilename)
         sum = -1;
     }
     finally{
-        try{if (in != null) in.close();}
+        try{if (in != null) {in.close();}}
         catch(IOException e){}
 
         return(sum);

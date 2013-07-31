@@ -945,8 +945,9 @@ public void getPeakData4()
             if (ch==0){
             sendShortInt(wall);  //wall max peak uS distance
             }
-            else
-            sendShortInt(500);  //wall max peak uS distance
+            else {
+                sendShortInt(500);
+            }  //wall max peak uS distance
             //debug mks
 
             sendShortInt((short)0);  //start fractional distance numerator
@@ -974,8 +975,9 @@ public void getPeakData4()
             if (ch==0){
             sendShortInt(wall);  //wall max peak uS distance
             }
-            else
-            sendShortInt(0);  //wall max peak uS distance
+            else {
+                sendShortInt(0);
+            }  //wall max peak uS distance
             //debug mks
 
 

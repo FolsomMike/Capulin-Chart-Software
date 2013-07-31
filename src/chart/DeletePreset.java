@@ -18,11 +18,11 @@
 
 package chart;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;
+import javax.swing.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -158,7 +158,7 @@ public void actionPerformed(ActionEvent e)
 
     if (source.getActionCommand().equalsIgnoreCase("Delete")){
         boolean finished = deletePreset();
-        if (!finished) return;
+        if (!finished) {return;}
         setVisible(false);
         dispose();  //destroy the dialog window
         return;
@@ -200,7 +200,7 @@ boolean deletePreset()
         "Confirm",
         JOptionPane.YES_NO_OPTION);
 
-    if (n != JOptionPane.YES_OPTION) return(false);  //bail out if user cancels
+    if (n != JOptionPane.YES_OPTION) {return(false);}//bail out if user cancels
 
     String presetName = (String)presetSelect.getSelectedItem();
 

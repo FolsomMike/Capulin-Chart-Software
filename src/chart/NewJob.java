@@ -18,11 +18,11 @@
 
 package chart;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;
+import javax.swing.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -425,11 +425,13 @@ boolean validateFilename(String pString)
         pString.contains("\"") ||
         pString.contains("\\") ||
         pString.contains("|")  ||
-        pString.contains("*") )
+        pString.contains("*") ) {
 
         return false;
-    else
+    }
+    else {
         return true;
+    }
 
 }//end of NewJob::validateFilename
 //-----------------------------------------------------------------------------
@@ -464,8 +466,8 @@ boolean copyFile(String pSource, String pDest)
     }
     finally {
         try{
-            if (in != null) in.close();
-            if (out != null) out.close();
+            if (in != null) {in.close();}
+            if (out != null) {out.close();}
             }
         catch(IOException e){
             System.err.println(getClass().getName() + " - Error: 470");

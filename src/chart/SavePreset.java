@@ -18,11 +18,11 @@
 
 package chart;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;
+import javax.swing.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -161,7 +161,7 @@ public void actionPerformed(ActionEvent e)
 
     if (source.getActionCommand().equalsIgnoreCase("Save")){
         boolean finished = savePreset();
-        if (!finished) return;
+        if (!finished) {return;}
         setVisible(false);
         dispose();  //destroy the dialog window
         return;
@@ -198,8 +198,9 @@ boolean savePreset()
         "Error", JOptionPane.ERROR_MESSAGE);
         return(false);
     }
-    else
+    else {
         presetSelected = true;
+    }
 
     //if the user has entered an illegal character, display an error
     //illegal characters    <>/?:"\|*
@@ -214,8 +215,9 @@ boolean savePreset()
 
     //if the name to be used for the preset does not end with ".preset" then add it
     //as a suffix to make the presets more identifiable
-    if (!selectedItemName.toLowerCase().endsWith(".preset"))
+    if (!selectedItemName.toLowerCase().endsWith(".preset")) {
         selectedItemName += ".preset";
+    }
 
     File presetFile = new File ("presets/" + selectedItemName);
 
@@ -229,7 +231,7 @@ boolean savePreset()
             "Confirm Overwrite",
             JOptionPane.YES_NO_OPTION);
 
-        if (n != JOptionPane.YES_OPTION) return(false);  //bail out if user cancels
+        if (n != JOptionPane.YES_OPTION){return(false);} //bail out if user cancels
 
     }
 
@@ -287,11 +289,13 @@ boolean validateFilename(String pString)
         pString.contains("\"") ||
         pString.contains("\\") ||
         pString.contains("|")  ||
-        pString.contains("*") )
+        pString.contains("*") ) {
 
         return false;
-    else
+    }
+    else {
         return true;
+    }
 
 }//end of SavePreset::validateFilename
 //-----------------------------------------------------------------------------
@@ -327,8 +331,8 @@ boolean copyFile(String pSource, String pDest)
     }
     finally {
         try{
-            if (in != null) in.close();
-            if (out != null) out.close();
+            if (in != null) {in.close();}
+            if (out != null) {out.close();}
         }
         catch(IOException e){
             System.err.println(getClass().getName() + " - Error: 334");

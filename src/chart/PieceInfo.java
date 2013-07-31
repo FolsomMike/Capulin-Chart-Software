@@ -19,13 +19,11 @@
 
 package chart;
 
-import javax.swing.*;
+import chart.mksystems.inifile.IniFile;
 import java.awt.*;
-
 import java.awt.event.*;
 import java.io.*;
-
-import chart.mksystems.inifile.IniFile;
+import javax.swing.*;
 
 
 //-----------------------------------------------------------------------------
@@ -162,7 +160,7 @@ private void configure(String pConfigFilename)
                                 configFile.readInt(section, "Print Order", -1);
 
             //range check -- is this used any more?
-            if (items[i].width < 1) items[i].width = 1;
+            if (items[i].width < 1) {items[i].width = 1;}
 
             //add each label/field pair to a panel
             itemPanel = new JPanel();
@@ -185,8 +183,9 @@ private void configure(String pConfigFilename)
             //store the maximum width of any label for use in setting all label
             //widths the same - Java seems to set Min/Preferred/Max to the same
             //so use the Preferred size for this purpose
-            if (items[i].label.getPreferredSize().width > maxLabelWidth)
+            if (items[i].label.getPreferredSize().width > maxLabelWidth) {
                 maxLabelWidth = items[i].label.getPreferredSize().width;
+            }
 
         }// if (text.equalsIgnoreCase("blank"))
 
@@ -258,12 +257,13 @@ public void prepareForNewJob(String pPrimaryDataPath, String pBackupDataPath,
     //clear all items which have been defined and specified for clearing for a
     //new job
 
-    for (int i=0; i < NUMBER_OF_ITEMS; i++)
+    for (int i=0; i < NUMBER_OF_ITEMS; i++) {
         if (items[i] != null && items[i].clearedInNewJob){
 
             items[i].textField.setText("");
 
-        }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
+        }
+    }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
 
 }//end of PieceInfo::prepareForNewJob
 //-----------------------------------------------------------------------------
@@ -281,14 +281,16 @@ public void prepareForNewJob(String pPrimaryDataPath, String pBackupDataPath,
 public String getValue(String pKey)
 {
 
-    for (int i=0; i < NUMBER_OF_ITEMS; i++)
+    for (int i=0; i < NUMBER_OF_ITEMS; i++) {
         if (items[i] != null){
 
             //look in each Item.label for the matching key, return the value
-            if (pKey.equals(items[i].labelText))
+            if (pKey.equals(items[i].labelText)) {
                 return (items[i].textField.getText());
+            }
 
-        }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
+        }
+    }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
 
     return(""); //key not found, return empty string
 
@@ -330,8 +332,9 @@ public boolean getFirstToPrint(KeyValue pKeyValue)
 
     //preset values and flags to begin printing
 
-    for (int i=0; i < NUMBER_OF_ITEMS; i++)
-        if (items[i] != null) items[i].printed = false;
+    for (int i=0; i < NUMBER_OF_ITEMS; i++) {
+        if (items[i] != null) {items[i].printed = false;}
+    }
 
     //make first call to getNextToPrint
     // subsequent calls should call that function directly instead of this one
@@ -374,7 +377,7 @@ public boolean getFirstToPrint(KeyValue pKeyValue)
 public boolean getNextToPrint(KeyValue pKeyValue)
 {
 
-    int order = 0;
+    int order;
     prevPrintedPosition = -1;
     prevOrderedLow = Integer.MAX_VALUE;
 
@@ -460,17 +463,18 @@ public void loadData(String pFilename)
 
     //load all items which have been defined
 
-    for (int i=0; i < NUMBER_OF_ITEMS; i++)
+    for (int i=0; i < NUMBER_OF_ITEMS; i++) {
         if (items[i] != null){
 
             //use the label text as the key, the value is the text in the box
             items[i].textField.setText(
                       jobInfoFile.readString(section, items[i].labelText, ""));
 
-            }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
+            }
+    }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
 
     //disable the update button -- will be re-enabled when user clicks in a box
-    if (updateButton != null) updateButton.setEnabled(false);
+    if (updateButton != null) {updateButton.setEnabled(false);}
 
 }//end of PieceInfo::loadData
 //-----------------------------------------------------------------------------
@@ -512,14 +516,15 @@ public void saveData(String pFilename)
 
     //save all items which have been defined
 
-    for (int i=0; i < NUMBER_OF_ITEMS; i++)
+    for (int i=0; i < NUMBER_OF_ITEMS; i++) {
         if (items[i] != null){
 
             //use the label text as the key, the value is the text in the box
             jobInfoFile.writeString(section, items[i].labelText,
                                                  items[i].textField.getText());
 
-        }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
+        }
+    }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
 
     jobInfoFile.save();  //save to disk
 
@@ -543,12 +548,13 @@ public void saveDataToStream(BufferedWriter pOut) throws IOException
 
     //save all items which have been defined
 
-    for (int i=0; i < NUMBER_OF_ITEMS; i++)
+    for (int i=0; i < NUMBER_OF_ITEMS; i++) {
         if (items[i] != null){
 
         pOut.write(items[i].labelText + "=" + items[i].textField.getText());
         pOut.newLine();
 
+    }
     }// for (int i=0; i < NUMBER_OF_ITEMS; i++)
 
 }//end of PieceInfo::saveDataToStream
@@ -566,7 +572,7 @@ public void actionPerformed(ActionEvent e)
 {
 
     if ("Update Info".equals(e.getActionCommand())) {
-        if (updateButton != null) updateButton.setEnabled(false);
+        if (updateButton != null) {updateButton.setEnabled(false);}
         saveData(filename);
         }
 
@@ -590,7 +596,7 @@ public void focusGained(FocusEvent e)
     //a visual clue that data has been modified
 
     if (e.getComponent().getName().equals("Value Text Field"))
-        if (updateButton != null) updateButton.setEnabled(true);
+        if (updateButton != null) {updateButton.setEnabled(true);}
 
 }//end of PieceInfo::focusGained
 //-----------------------------------------------------------------------------

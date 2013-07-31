@@ -18,13 +18,12 @@
 
 package chart;
 
-import javax.swing.*;
+import chart.mksystems.inifile.IniFile;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.*;
 import java.awt.font.TextAttribute;
-
-import chart.mksystems.inifile.IniFile;
+import java.util.*;
+import javax.swing.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -214,35 +213,37 @@ public void updateStatus(byte[] pMonitorBuffer)
 
     int x = 0;
 
-    if (pMonitorBuffer[x++] == 0) input1Label.setText(input1Text + " : Off");
-    else input1Label.setText(input1Text + " : On");
+    if (pMonitorBuffer[x++] == 0) {input1Label.setText(input1Text + " : Off");}
+    else {input1Label.setText(input1Text + " : On");}
 
-    if (pMonitorBuffer[x++] == 0) input2Label.setText(input2Text + " : Off");
-    else input2Label.setText(input2Text + " : On");
+    if (pMonitorBuffer[x++] == 0) {input2Label.setText(input2Text + " : Off");}
+    else {input2Label.setText(input2Text + " : On");}
 
-    if (pMonitorBuffer[x++] == 0) input3Label.setText(input3Text + " : Off");
-    else input3Label.setText(input3Text + " : On");
+    if (pMonitorBuffer[x++] == 0) {input3Label.setText(input3Text + " : Off");}
+    else {input3Label.setText(input3Text + " : On");}
 
-    if (pMonitorBuffer[x++] == 0) input4Label.setText(input4Text + " : Off");
-    else input4Label.setText(input4Text + " : On");
+    if (pMonitorBuffer[x++] == 0) {input4Label.setText(input4Text + " : Off");}
+    else {input4Label.setText(input4Text + " : On");}
 
-    if (pMonitorBuffer[x++] == 0) input5Label.setText(input5Text + " : Off");
-    else input5Label.setText(input5Text + " : On");
+    if (pMonitorBuffer[x++] == 0) {input5Label.setText(input5Text + " : Off");}
+    else {input5Label.setText(input5Text + " : On");}
 
-    if (pMonitorBuffer[x++] == 0) input6Label.setText(input6Text + " : Off");
-    else input6Label.setText(input6Text + " : On");
+    if (pMonitorBuffer[x++] == 0) {input6Label.setText(input6Text + " : Off");}
+    else {input6Label.setText(input6Text + " : On");}
 
-    if (pMonitorBuffer[x++] == 0) input7Label.setText(input7Text + " : Off");
-    else input7Label.setText(input7Text + " : On");
+    if (pMonitorBuffer[x++] == 0) {input7Label.setText(input7Text + " : Off");}
+    else {input7Label.setText(input7Text + " : On");}
 
-    if (pMonitorBuffer[x++] == 0) input8Label.setText(input8Text + " : Off");
-    else input8Label.setText(input8Text + " : On");
+    if (pMonitorBuffer[x++] == 0) {input8Label.setText(input8Text + " : Off");}
+    else {input8Label.setText(input8Text + " : On");}
 
-    if (pMonitorBuffer[x++] == 0) setLabelOnOff(input9Label, input9Text, false);
-    else setLabelOnOff(input9Label, input9Text, true);
+    if (pMonitorBuffer[x++] == 0) {
+        setLabelOnOff(input9Label, input9Text, false);}
+    else {setLabelOnOff(input9Label, input9Text, true);}
 
-    if (pMonitorBuffer[x++] == 0) input10Label.setText(input10Text + " : Off");
-    else input10Label.setText(input10Text + " : On");
+    if (pMonitorBuffer[x++] == 0) {
+        input10Label.setText(input10Text + " : Off");}
+    else {input10Label.setText(input10Text + " : On");}
 
     chassisNumLabel.setText("Chassis Number : " + pMonitorBuffer[x++]);
 
@@ -263,7 +264,7 @@ public void updateStatus(byte[] pMonitorBuffer)
 
     // combine four bytes each to make the encoder counts
 
-    int Encoder1Count = 0, Encoder2Count = 0;
+    int Encoder1Count, Encoder2Count;
 
     // create integer from four bytes in buffer
     Encoder1Count = ((pMonitorBuffer[x++] << 24));
