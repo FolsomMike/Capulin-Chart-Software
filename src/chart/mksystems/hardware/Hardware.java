@@ -1152,7 +1152,7 @@ boolean collectEncoderDataInspectMode()
             //count)
             inspectCtrlVars.encoder2FwdDir = inspectCtrlVars.encoder2Dir;
 
-            //heads are up, flagging disabled upont start
+            //heads are up, flagging disabled upon start
             flaggingEnableDelay1 = 0; flaggingEnableDelay2 = 0;
             hdwVs.head1Down = false; enableHeadTraceFlagging(1, false);
             hdwVs.head2Down = false; enableHeadTraceFlagging(2, false);

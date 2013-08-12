@@ -204,7 +204,6 @@ public void init()
     wallGateProcessList = new ArrayList<String>();
     wallGateProcessList.add("first crossing");
     wallGateProcessList.add("peak");
-    wallGateProcessList.add("midpoint");
 
     //set the gate active flag for each gate
     setActive(true);
@@ -587,6 +586,16 @@ public void setSignalProcessing(String pMode)
     if (signalProcessing.equals("peak")){
         //option to use unprocessed peak in the gate
         setFindPeak(true);
+        setCrossingSearch(false);
+        setIntegrateAboveGate(false);
+        setSubsequentShotDifferential(false);
+        return;
+    }
+
+    if (signalProcessing.equals("first crossing")){
+        //option to find first crossing point in gate
+        setFindPeak(false);
+        setCrossingSearch(true);
         setIntegrateAboveGate(false);
         setSubsequentShotDifferential(false);
         return;
@@ -594,8 +603,9 @@ public void setSignalProcessing(String pMode)
 
     if (signalProcessing.equals("enhance above gate")){
         //option to integrate signal above the gate
-        setIntegrateAboveGate(true);
         setFindPeak(false);
+        setCrossingSearch(false);
+        setIntegrateAboveGate(true);
         setSubsequentShotDifferential(false);
         return;
     }
@@ -603,9 +613,10 @@ public void setSignalProcessing(String pMode)
     if (signalProcessing.equals("enhance above/trim baseline")){
         //option to integrate signal above the gate, subtract value of each shot
         //from recent previous shot
-        setSubsequentShotDifferential(true);
-        setIntegrateAboveGate(true);
         setFindPeak(false);
+        setCrossingSearch(false);
+        setIntegrateAboveGate(true);
+        setSubsequentShotDifferential(true);
         return;
     }
 
@@ -635,13 +646,6 @@ public void setSignalProcessing(String pMode)
         setIntegrateAboveGate(true);
         return;
     }
-
-    //add the following later when needed for wall gates -- currently wall gate
-    //is handled by DSP with "first crossing" as the default
-    //processing options for a wall start/end gate
-    //wallGateProcessList.add("first crossing");
-    //wallGateProcessList.add("peak");
-    //wallGateProcessList.add("midpoint");
 
     //update the flags to reflect the change
     setFlags();
