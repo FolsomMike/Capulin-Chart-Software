@@ -732,12 +732,14 @@ public void copyToAllHelper(Channel pSource, Channel[] pDestChannels,
                                                           int pNumDestChannels)
 {
 
-//scan through all channels and copy info from currently selected channel
-//to all other channels
+    //scan through all channels and copy info from currently selected channel
+    //to all other channels
 
-for (int ch = 0; ch < pNumDestChannels; ch++){
+    for (int ch = 0; ch < pNumDestChannels; ch++){
 
-    copyChannel(pSource, pDestChannels[ch], false);
+        if (pDestChannels[ch].isEnabled()){
+            copyChannel(pSource, pDestChannels[ch], false);
+        }
 
     }// for (int ch = 0; ch < pNumDestChannels; ch++)
 
