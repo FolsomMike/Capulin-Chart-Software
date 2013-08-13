@@ -1102,7 +1102,7 @@ public AScan getAScan(int pChannel)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Hardware::requestPeakData
+// Capulin1::requestPeakData
 //
 // Sends a request to the remote device for a peak data packet for the
 // specified channel.
@@ -1114,13 +1114,13 @@ public void requestPeakData(int pChannel)
 
     channels[pChannel].requestPeakData();
 
-}//end of Hardware::requestPeakData
+}//end of Capulin1::requestPeakData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Hardware::requestPeakDataForAllBoards
+// Capulin1::requestPeakDataForAllBoards
 //
-// Requests peak data for all channels on all UT boards.
+// Requests peak data for all channels on all enabled UT boards.
 //
 // The channel numbers sent to requestPeakData4 refer to the four analog
 // channels on each board.  The utBoard objects have links back to the logical
@@ -1132,12 +1132,12 @@ public void requestPeakDataForAllBoards()
 {
 
     for (int i = 0; i < numberOfUTBoards; i++) {
-        if (utBoards[i] != null) {
+        if (utBoards[i] != null && utBoards[i].isEnabled()) {
             utBoards[i].requestPeakData4(0, 1, 2, 3);
         }
     }
 
-}//end of Hardware::requestPeakDataForAllBoards
+}//end of Capulin1::requestPeakDataForAllBoards
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1162,7 +1162,7 @@ public int getChannelData(int pChannel, int pSimDataType)
 //-----------------------------------------------------------------------------
 // Capulin1::prepareAnalogData
 //
-// Allows each UT board to process any available data packets until it
+// Allows each enabled UT board to process any available data packets until it
 // processes its first Peak Data packet.
 //
 // If any UT board encounters and processes a Peak Data packet, this function
@@ -1177,7 +1177,7 @@ public int getChannelData(int pChannel, int pSimDataType)
 //  for each board is encountered.  If the data is being pushed faster than
 //  this functions is called, the incoming data packets will accumulate.  This
 //  function needs to be changed to process data until all waiting packets are
-//  processed.
+//  processed -- but that will require peaks to be stored.
 //
 
 @Override
@@ -1211,7 +1211,8 @@ public boolean prepareAnalogData()
         //there are no packets waiting.  Also, any other packet types waiting
         //will be processed even if there is no peak data packet in the queue.
 
-        if (utBoards[i].processDataPacketsUntilPeakPacket() == 1) {
+        if (utBoards[i].isEnabled() &&
+                    utBoards[i].processDataPacketsUntilPeakPacket() == 1) {
             atLeastOnePeakDataPacketProcessed = true;
         }
 

@@ -133,6 +133,20 @@ void configureExtended(IniFile pConfigFile)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Board::isEnabled
+//
+// Returns true if the channel is enabled, false otherwise.
+//
+
+public boolean isEnabled()
+{
+
+    return(enabled);
+
+}//end of Board::isEnabled
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Board::setIPAddr
 //
 // Sets the IP address for this board.

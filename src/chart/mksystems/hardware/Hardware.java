@@ -874,6 +874,8 @@ public void collectDataForInspectMode()
     //call collectAnalogData again if new position data has been received --
     //this makes sure the new position in the buffer is filled with something --
     //the position will usually be overwritten by the next peak data
+    //wip mks -- not required to call collectAnalogData any more since
+    // the new TraceData class fills empty buffer spaces with previous data?
 
     //also send a request to the remote device(s) for a peak data packet
     //the returned data packet will be processed on subsequent calls to
@@ -910,6 +912,8 @@ public void collectAnalogData()
     //have new data available
 
     for (int ch = 0; ch < numberOfChannels; ch++){
+
+        if(!analogDriver.getChannels()[ch].isEnabled()) continue;
 
         //get the number of gates for the currently selected channel
         numberOfGates = analogDriver.getNumberOfGates(ch);
