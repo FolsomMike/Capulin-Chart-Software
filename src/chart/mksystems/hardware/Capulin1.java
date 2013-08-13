@@ -1205,7 +1205,7 @@ public boolean prepareAnalogData()
         //briefly when a peak data packet is encountered so that the peak may
         //be handled
 
-        //NOTE: The processDataPacketsUntiPeakPacket function returns
+        //NOTE: The processDataPacketsUntilPeakPacket function returns
         //immediately if no packets are available, so the name is not entirely
         //accurate - it will not wait until the first packet is encountered if
         //there are no packets waiting.  Also, any other packet types waiting
@@ -1490,6 +1490,7 @@ private void configureControlBoards()
             controlBoards[i] = new ControlBoard(configFile, "Control " + (i+1),
                     i, RUNTIME_PACKET_SIZE, simulateControlBoards, log,
                                                                 mainFileFormat);
+            controlBoards[i].init();
         }
 
     }//if (numberOfControlBoards > 0)
@@ -1520,7 +1521,8 @@ private void configureUTBoards()
         for (int i = 0; i < numberOfUTBoards; i++) {
             utBoards[i] = new UTBoard(configFile.filename,
                   "UT "+ (i+1), i, simulateUTBoards, log, hdwVs, jobFileFormat,
-                                                                 mainFileFormat);
+                                                               mainFileFormat);
+            utBoards[i].init();
         }
 
     }//if (numberOfUTBoards > 0)

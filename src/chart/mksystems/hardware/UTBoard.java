@@ -522,16 +522,27 @@ public UTBoard(String pConfigFilename, String pBoardName, int pBoardIndex,
     configFilename = pConfigFilename;
     hdwVs = pHdwVs;
     jobFileFormat = pJobFileFormat; mainFileFormat = pMainFileFormat;
+    boardName = pBoardName;
+    boardIndex = pBoardIndex;
+    simulate = pSimulate;
+
+}//end of UTBoard::UTBoard (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::init
+//
+// Initializes new objects. Should be called immediately after instantiation.
+//
+
+public void init()
+{
 
     //if the ini file cannot be loaded, continue on - values will default
     try {configFile = new IniFile(configFilename, jobFileFormat);}
     catch(IOException e){
         System.err.println(getClass().getName() + " - Error: 531");
     }
-
-    boardName = pBoardName;
-    boardIndex = pBoardIndex;
-    simulate = pSimulate;
 
     //FIR filter buffer -- same length as number of filter taps
     firBuf = new int[firCoef.length];
@@ -558,7 +569,7 @@ public UTBoard(String pConfigFilename, String pBoardName, int pBoardIndex,
     //read the configuration file and create/setup the charting/control elements
     configure(configFile);
 
-}//end of UTBoard::UTBoard (constructor)
+}//end of UTBoard::init
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -3301,8 +3312,11 @@ public void driveSimulation()
 // The various child objects are then created as specified by the config data.
 //
 
-private void configure(IniFile pConfigFile)
+@Override
+void configure(IniFile pConfigFile)
 {
+
+    super.configure(pConfigFile);
 
     inBuffer = new byte[RUNTIME_PACKET_SIZE];
     outBuffer = new byte[RUNTIME_PACKET_SIZE];
@@ -3324,10 +3338,12 @@ private void configure(IniFile pConfigFile)
 // they cannot be loaded until after the host has uploaded the FPGA code to the
 // board.
 //
-//
 
-private void configureExtended(IniFile pConfigFile)
+@Override
+void configureExtended(IniFile pConfigFile)
 {
+
+    super.configureExtended(pConfigFile);
 
     String section = "UT Board in Chassis " + chassisAddr + " Slot " + slotAddr;
 
@@ -4108,7 +4124,7 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
             //end debug mks
 
             //protect against corrupt values
-            if(peakTrack < 0) peakTrack = 0;
+            if(peakTrack < 0) {peakTrack = 0;}
 
             //Add in the clock position adjustment to account for offset sensor
             //positions and timing errors.  Wraparound past the max clock
@@ -4196,7 +4212,7 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
             }
 
             //see notes above for peakTrack -- make this into a function?
-            if(wallMaxTrack < 0) wallMaxTrack = 0;
+            if(wallMaxTrack < 0) {wallMaxTrack = 0;}
             wallMaxTrack += CLOCK_OFFSET;
             if (wallMaxTrack > MAX_CLOCK_POSITION) {
                 wallMaxTrack = wallMaxTrack % (MAX_CLOCK_POSITION + 1);
@@ -4256,7 +4272,7 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
                 }
 
             //see notes above for peakTrack -- make this into a function?
-            if(wallMinTrack < 0) wallMinTrack = 0;
+            if(wallMinTrack < 0) {wallMinTrack = 0;}
             wallMinTrack += CLOCK_OFFSET;
             if (wallMinTrack > MAX_CLOCK_POSITION) {
                 wallMinTrack = wallMinTrack % (MAX_CLOCK_POSITION + 1);

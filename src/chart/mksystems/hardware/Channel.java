@@ -70,7 +70,7 @@ public class Channel extends Object{
     boolean channelOn;  //true: pulsed/displayed, off: not pulsed/displayed
     boolean channelMasked; //true: pulsed/not display, off: pulsed/displayed
 
-    boolean disabled = true; //overrides mode -- always off if true
+    boolean enabled; //overrides mode -- channel always off if false
     SyncedInteger mode;
     public int previousMode;
     boolean interfaceTracking = false;
@@ -226,6 +226,20 @@ public void initialize()
     sendDataChangesToRemotes();
 
 }//end of Channel::initialize
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::isEnabled
+//
+// Returns true if the channel is enabled, false otherwise.
+//
+
+public boolean isEnabled()
+{
+    
+    return(enabled);
+
+}//end of Channel::isEnabled
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -757,9 +771,6 @@ public void sendSetFlags1()
     if (utBoard != null) {
         utBoard.sendSetFlags1(boardChannel, flags1SetMask.applyValue());
     }
-    else {
-        System.out.println("UT Board not assigned to channel " + channelIndex);
-    }
 
 }//end of Channel::sendSetFlags1
 //-----------------------------------------------------------------------------
@@ -815,7 +826,9 @@ public void clearFlags1(int pClearMask, boolean pForceUpdate)
 public void sendClearFlags1()
 {
 
-    utBoard.sendClearFlags1(boardChannel, flags1ClearMask.applyValue());
+    if (utBoard != null){
+        utBoard.sendClearFlags1(boardChannel, flags1ClearMask.applyValue());
+    }
 
 }//end of Channel::sendClearFlags1
 //-----------------------------------------------------------------------------
@@ -1480,7 +1493,7 @@ public void setMode(int pMode, boolean pForceUpdate)
 {
 
     //if the channel is disabled in the configuration file, mode is always off
-    if (disabled) {pMode = UTBoard.CHANNEL_OFF;}
+    if (!enabled) {pMode = UTBoard.CHANNEL_OFF;}
 
     if (pMode != mode.getValue()) {pForceUpdate = true;}
 
@@ -2002,7 +2015,7 @@ private void configure(IniFile pConfigFile)
 
     pulseBank = pConfigFile.readInt(whichChannel, "Pulse Bank", 1) - 1;
 
-    disabled = pConfigFile.readBoolean(whichChannel, "Disabled", false);
+    enabled = pConfigFile.readBoolean(whichChannel, "Enabled", true);
 
     type = pConfigFile.readString(whichChannel, "Type", "Other");
 

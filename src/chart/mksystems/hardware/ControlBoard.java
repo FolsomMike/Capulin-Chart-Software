@@ -144,12 +144,25 @@ public ControlBoard(IniFile pConfigFile, String pBoardName, int pBoardIndex,
     simulate = pSimulate;
     fileFormat = pFileFormat;
 
+}//end of UTBoard::UTBoard (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlBoard::init
+//
+// Initializes new objects. Should be called immediately after instantiation.
+//
+
+public void init()
+{
+
     monitorBuffer = new byte[MONITOR_PACKET_SIZE];
 
     //read the configuration file and create/setup the charting/control elements
     configure(configFile);
 
-}//end of UTBoard::UTBoard (constructor)
+
+}//end of ControlBoard::init
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1004,8 +1017,11 @@ public void setNewInspectPacketReady(boolean pValue)
 // The various child objects are then created as specified by the config data.
 //
 
-private void configure(IniFile pConfigFile)
+@Override
+void configure(IniFile pConfigFile)
 {
+
+    super.configure(pConfigFile);
 
     inBuffer = new byte[RUNTIME_PACKET_SIZE];
     outBuffer = new byte[RUNTIME_PACKET_SIZE];

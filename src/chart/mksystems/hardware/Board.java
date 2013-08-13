@@ -55,6 +55,7 @@ class InstallFirmwareSettings extends Object{
 
 public abstract class Board extends Object implements Runnable{
 
+    Boolean enabled;
     String configFilename;
     IniFile configFile;
     String boardName;
@@ -97,6 +98,38 @@ public Board(JTextArea pLog)
     logger = new ThreadSafeLogger(log);
 
 }//end of Board::Board (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Board::configure
+//
+// Loads configuration settings from the configuration.ini file.
+//
+
+void configure(IniFile pConfigFile)
+{
+
+
+}//end of Board::configure
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Board::configureExtended
+//
+// Loads further configuration settings from the configuration.ini file.
+// These settings are stored using the boards chassis and slot addresses, so
+// they cannot be loaded until after the host has uploaded the FPGA code to the
+// board.
+//
+
+void configureExtended(IniFile pConfigFile)
+{
+
+    String section = "UT Board in Chassis " + chassisAddr + " Slot " + slotAddr;
+
+    enabled = pConfigFile.readBoolean(section, "Enabled", true);
+
+}//end of Board::configureExtended
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
