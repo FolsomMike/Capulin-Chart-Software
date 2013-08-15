@@ -77,7 +77,8 @@ public class Channel extends Object{
     boolean dacEnabled = false, aScanSlowEnabled = false;
     boolean aScanFastEnabled = false, aScanFreeRun = true;
     double aScanDelay = 0;
-    int hardwareDelay, softwareDelay;
+    public SyncedInteger hardwareDelayFPGA, hardwareDelayDSP;
+    public SyncedInteger softwareDelay;
     public int delayPix = 0;
     double aScanRange = 0;
     public SyncedInteger hardwareRange;
@@ -132,6 +133,11 @@ public Channel(IniFile pConfigFile, Settings pSettings, int pChannelIndex,
     flags1ClearMask = new SyncedInteger(syncedVarMgr); flags1ClearMask.init();
     mode = new SyncedInteger(syncedVarMgr); mode.init();
     mode.setValue((int)UTBoard.POSITIVE_HALF, true);
+    hardwareDelayFPGA =
+                new SyncedInteger(syncedVarMgr); hardwareDelayFPGA.init();
+    hardwareDelayDSP =
+                new SyncedInteger(syncedVarMgr); hardwareDelayDSP.init();
+    softwareDelay = new SyncedInteger(syncedVarMgr); softwareDelay.init();
     hardwareRange = new SyncedInteger(syncedVarMgr); hardwareRange.init();
     aScanScale = new SyncedInteger(syncedVarMgr); aScanScale.init();
 
@@ -187,7 +193,7 @@ public void initialize()
     if (wallStartGateSet && wallEndGateSet){
         isWallChannel = true;
         if (utBoard != null) {
-            utBoard.sendWallChannelFlag(boardChannel, isWallChannel);
+            utBoard.setWallChannelFlag(boardChannel, isWallChannel);
         }
     }
 
@@ -236,7 +242,7 @@ public void initialize()
 
 public boolean isEnabled()
 {
-    
+
     return(enabled);
 
 }//end of Channel::isEnabled
@@ -1210,7 +1216,7 @@ void calculateGateSpan()
 //
 // The delay in the FPGA before samples are stored is hardwareDelay while
 // the delay in the DSP software for the positioning of the start of the AScan
-// data is software delay.  The AScan delay equals hardware delay plus
+// data is softwareDelay.  The AScan delay equals hardware delay plus
 // software delay.
 //
 // The hardwareDelay and softwareDelay values represent one sample period for
@@ -1226,14 +1232,13 @@ void calculateGateSpan()
 public void setDelay(double pDelay, boolean pForceUpdate)
 {
 
-    int oldHardwareDelay = hardwareDelay;
-    int oldSoftwareDelay = softwareDelay;
+    int newHardwareDelay, newSoftwareDelay;
 
     aScanDelay = pDelay;
 
     //calculate the number of samples to skip based on the delay in microseconds
-    hardwareDelay = (int)(aScanDelay / uSPerDataPoint);
-    int totalDelayCount = hardwareDelay;
+    newHardwareDelay = (int)(aScanDelay / uSPerDataPoint);
+    int totalDelayCount = newHardwareDelay;
 
     //the FPGA sample delay CANNOT be later than the delay to the earliest gate
     //because the gate cannot be processed if samples aren't taken for it
@@ -1241,24 +1246,21 @@ public void setDelay(double pDelay, boolean pForceUpdate)
     //delay - the remaining delay for an AScan will be accounted for by setting
     //a the aScanDelay in the DSP
 
-    if (firstGateEdgePos < hardwareDelay) {hardwareDelay = firstGateEdgePos;}
-
-    if (hardwareDelay != oldHardwareDelay) {pForceUpdate = true;}
-
-    if (utBoard != null && pForceUpdate) {
-        utBoard.sendHardwareDelay(boardChannel, hardwareDelay);
+    if (firstGateEdgePos < newHardwareDelay) {
+        newHardwareDelay = firstGateEdgePos;
     }
 
-    //calculate and set the remaining delay left over required to positon the
+    //one copy is sent to the FPGA, the other to the DSP
+    //separate objects used for easy thread synchronizing
+    hardwareDelayFPGA.setValue(newHardwareDelay, pForceUpdate);
+    hardwareDelayDSP.setValue(newHardwareDelay, pForceUpdate);
+
+    //calculate and set the remaining delay left over required to position the
     //AScan correctly after taking into account the FPGA sample delay
 
-    softwareDelay = totalDelayCount - hardwareDelay;
+    newSoftwareDelay = totalDelayCount - newHardwareDelay;
 
-    if (softwareDelay != oldSoftwareDelay) {pForceUpdate = true;}
-
-    if (utBoard != null && pForceUpdate) {
-        utBoard.sendSoftwareDelay(boardChannel, softwareDelay, hardwareDelay);
-    }
+    softwareDelay.setValue(newSoftwareDelay, pForceUpdate);
 
 }//end of Channel::setDelay
 //-----------------------------------------------------------------------------
@@ -1318,7 +1320,7 @@ public double getDelay()
 public int getDelayInSamplePeriods()
 {
 
-    return hardwareDelay + softwareDelay;
+    return hardwareDelayFPGA.getValue() + softwareDelay.getValue();
 
 }//end of Channel::getDelayInSamplePeriods
 //-----------------------------------------------------------------------------
@@ -1336,7 +1338,7 @@ public int getDelayInSamplePeriods()
 public int getSoftwareDelay()
 {
 
-    return softwareDelay;
+    return softwareDelay.getValue();
 
 }//end of Channel::getSoftwareDelay
 //-----------------------------------------------------------------------------
@@ -1539,6 +1541,41 @@ public int getMode()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Channel::sendHardwareDelayToFPGA
+//
+// Sends the hardware delay used in the FPGA to the remote so it can be
+// stored in the FPGA registers.
+//
+
+private void sendHardwareDelayToFPGA()
+{
+
+    if (utBoard != null) {
+        utBoard.sendHardwareDelay(boardChannel, hardwareDelayFPGA.applyValue());
+    }
+
+}//end of Channel::sendHardwareDelayToFPGA
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::sendSoftwareDelay
+//
+// Sends the software delay to the DSP. A copy of the hardware delay being
+// used in the FPGA is also sent so that the DSP can use it in calculations.
+//
+
+private void sendSoftwareDelay()
+{
+
+    if (utBoard != null) {
+        utBoard.sendSoftwareDelay(boardChannel,
+                    softwareDelay.applyValue(), hardwareDelayDSP.applyValue());
+    }
+
+}//end of Channel::sendSoftwareDelay
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Channel::setRange
 //
 // Sets the range for the AScan. This is the amount of signal displayed in one
@@ -1593,7 +1630,7 @@ public void setRange(double pRange, boolean pForceUpdate)
     aScanRange = pRange;
 
     //calculate the position of the left edge of the AScan in sample counts
-    int leftEdgeAScan = hardwareDelay + softwareDelay;
+    int leftEdgeAScan = hardwareDelayFPGA.getValue() + softwareDelay.getValue();
 
     //calculate the position of the right edge of the AScan in sample counts
 
@@ -2105,7 +2142,7 @@ public void requestAScan()
     //with this channel object - it is read from the configuration file
 
     if (utBoard != null) {
-        utBoard.requestAScan(boardChannel, hardwareDelay);
+        utBoard.requestAScan(boardChannel, hardwareDelayFPGA.getValue());
     }
 
 }//end of Channel::requestAScan
@@ -2861,12 +2898,20 @@ public void calculateDACGateTimeLocation(int pDACGate,
 //
 // If any data has been changed, sends the changes to the remotes.
 //
+// If pWaitForAcks is true, this method will force the processing of any Ack
+// packets returned by the DSPs and check to see if each message was
+// acknowledged. This is usually done when the channels are first set up or
+// copied as a lot of data is sent at that time and it is good to verify
+// receipt.
+//
 
 public void sendDataChangesToRemotes()
 {
 
     //do nothing if no data changed for any synced variables
     if (!syncedVarMgr.getDataChangedMaster()) {return;}
+
+    utBoard.clearDSPMessageAndAckCounters();
 
     if (flags1SetMask.getDataChangedFlag()) {sendSetFlags1();}
 
@@ -2881,6 +2926,11 @@ public void sendDataChangesToRemotes()
     if (aScanSmoothing.getDataChangedFlag()) {sendAScanSmoothing();}
 
     if (mode.getDataChangedFlag()) {sendMode();}
+
+    if (hardwareDelayFPGA.getDataChangedFlag()) {sendHardwareDelayToFPGA();}
+
+    if (softwareDelay.getDataChangedFlag() ||
+                hardwareDelayDSP.getDataChangedFlag()) {sendSoftwareDelay();}
 
     if (hardwareRange.getDataChangedFlag() || aScanScale.getDataChangedFlag()) {
         sendRange();
@@ -2897,6 +2947,18 @@ public void sendDataChangesToRemotes()
     if (isAnyDACGatePositionChanged()) {sendDACGateParameters();}
 
     if (isAnyDACGateFlagsChanged()) {sendDACGateFlags();}
+
+    //wait one time to allow the DSPs to send the response ACK packets rather
+    //than having processAllAvailableDataPackets wait between each packet as
+    //this way is much faster
+
+    utBoard.waitSleep(100);
+
+    //process the expected DSP ACK packets
+    utBoard.processAllAvailableDataPackets(false);
+
+    //check to see if each message received and ACK
+    utBoard.compareDSPAckCountToMessageCount();
 
 }//end of Channel::sendDataChangesToRemotes
 //-----------------------------------------------------------------------------
