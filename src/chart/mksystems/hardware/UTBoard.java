@@ -3441,7 +3441,7 @@ void configure(IniFile pConfigFile)
 
     inBuffer = new byte[RUNTIME_PACKET_SIZE];
     outBuffer = new byte[RUNTIME_PACKET_SIZE];
-    
+
 }//end of UTBoard::configure
 //-----------------------------------------------------------------------------
 
@@ -4260,17 +4260,22 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
                 peak %= 10;
             }
 
-            peakFlightTime =
-               (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
-
             //the flight time value is the memory address of the peak in the DSP
             //the data buffer starts at 0x8000 in memory, so subtracting 0x8000
             //from the flight time value gives the time position in relation to
             //the time the FPGA began recording data after the hardware delay
             //NOTE: the FPGA should really subtract the 0x8000 instead of doing
             //it here!
+            
+            peakFlightTime =
+               (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
             peakFlightTime -= 0x8000;
+
+            //peakTrack is the angular and/or linear position of the indication
+            //on the test piece -- most systems use peakTrack to track angular
+            //position while linear position is read from the control board
+            //encoder data
 
             peakTrack =
                (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
