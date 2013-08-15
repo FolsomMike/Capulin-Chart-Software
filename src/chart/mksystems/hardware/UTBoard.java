@@ -55,6 +55,8 @@ public class UTBoard extends Board{
     HardwareVars hdwVs;
     String jobFileFormat, mainFileFormat;
 
+    int dspMessageSentCounter = 0, dspMessageAckCounter = 0;
+
     //ASCAN_MAX_HEIGHT and SIGNAL_SCALE should be changed to variables
     //which can be initialized and or adjusted
     static int ASCAN_MAX_HEIGHT = 350;
@@ -291,18 +293,30 @@ public class UTBoard extends Board{
     public static byte RF_WAVE = 3;
     public static byte CHANNEL_OFF = 4;
 
+    // values for the board's type variable
+
+    static int BASIC_PEAK_COLLECTOR = 1;
+    static int WALL_MAPPER = 2;
+
+    // values for the Rabbits control flag - only lower 16 bits are used
+    // as the corresponding variable in the Rabbit is an unsigned int
+
+    static int RABBIT_FLAW_WALL_MODE = 0x0001;	//board is a basic flaw or wall module
+    static int RABBIT_WALL_MAP_MODE = 0x0002;	//board is a wall mapping module
+
     // bits for flag1 variable in DSP's
-    //The TRANSMITTER_ACTIVE bit should usually not be modified by the host.
     //The GATES_ENABLED, DAC_ENABLED, and ASCAN_ENABLED flags can be cleared
     //before requesting a processing time calculation to use as a baseline as
     //this results in the least amount of processing.
 
-    static byte TRANSMITTER_ACTIVE = 0x0001; //transmitter active flag (set by DSP)
-    static byte GATES_ENABLED = 0x0002;      //gates enabled flag
-    static byte DAC_ENABLED = 0x0004;        //DAC enabled flag
-    static byte ASCAN_FAST_ENABLED = 0x0008; //fast AScan enabled flag
-    static byte ASCAN_SLOW_ENABLED = 0x0010; //slow AScan enabled flag
-    static byte ASCAN_FREE_RUN = 0X0020;    //AScan free run, not triggered by gate
+    static int unused_flags1 = 0x0001; //transmitter active flag (set by DSP)
+    static int GATES_ENABLED = 0x0002;      //gates enabled flag
+    static int DAC_ENABLED = 0x0004;        //DAC enabled flag
+    static int ASCAN_FAST_ENABLED = 0x0008; //fast AScan enabled flag
+    static int ASCAN_SLOW_ENABLED = 0x0010; //slow AScan enabled flag
+    static int ASCAN_FREE_RUN = 0x0020;    //AScan free run, not triggered by gate
+    static int FLAW_WALL_MODE = 0x0040;    //DSP is a basic flaw/wall peak processor
+    static int WALL_MAP_MODE = 0x0080;     //DSP is a wall mapping processor
 
     //Messages for DSPs
     //These should match the values in the code for those DSPs
@@ -355,6 +369,7 @@ public class UTBoard extends Board{
     static byte GET_DSP_RAM_BLOCK_CHECKSUM = 21;
     static byte LOAD_FIRMWARE_CMD = 22;     //loads new Rabbit software
     static byte SET_REP_RATE_CMD = 23;
+    static byte SET_CONTROL_FLAGS_CMD = 24;
 
     static byte ERROR = 125;
     static byte DEBUG_CMD = 126;
@@ -1107,6 +1122,8 @@ public void initialize()
 
     configureExtended(configFile);
 
+    sendRabbitControlFlags();
+
     //destroy the configFile object to release resources
     //debug -- mks -- this was removed because the warmStart needs to reload resources
     // probably doesn't need to reload them as the originals are probably still good?
@@ -1265,6 +1282,23 @@ void getChassisSlotAddressOverride()
     }
 
 }//end of UTBoard::getChassisSlotAddressOverride
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::sendRabbitControlFlags
+//
+//
+//
+
+public void sendRabbitControlFlags()
+{
+
+    sendBytes(SET_CONTROL_FLAGS_CMD,
+                (byte) ((controlFlags >> 8) & 0xff),
+                (byte) (controlFlags & 0xff)
+                );
+
+}//end of UTBoard::sendRabbitControlFlags
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1706,10 +1740,16 @@ public void readRAM(int pDSPChip, int pDSPCore, int pRAMType,
 //
 // The word is returned as two bytes via the array pRetBuffer, MSB first.
 //
-// If pForceProcessDataPackets is true, then the ForceProcessDataPackets will
-// be called to wait for a packet to be returned.  This is necessary for cases
-// when another thread is not already calling pForceProcessDataPackets, such
-// as during startup.
+// If pForceProcessDataPackets is true, then processDataPackets will be called
+// to wait for a packet to be returned.  This is necessary for cases when
+// another thread is not already calling processDataPackets, such as
+// during startup.
+//
+// If pForceProcessDataPackets is false, it is assume some other thread is
+// calling processDataPackets. In that case, this method will wait a bit of
+// time until readDSPDone flag is set true by processDataPackets upon receipt
+// of the return packet (with processDataPackets being called by some other
+// thread).
 //
 
 void readRAMDSP(int pDSPChip, int pDSPCore, int pRAMType,
@@ -2527,7 +2567,7 @@ public void sendGateFlags(int pChannel, int pGate, int pFlags)
                (byte)(pFlags & 0xff),
                (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0);
 
-}//end of Channel::sendGateFlags
+}//end of UTBoard::sendGateFlags
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -2545,7 +2585,7 @@ public void sendGateSigProcThreshold(int pChannel, int pGate, int pThreshold)
                (byte)(pThreshold & 0xff),
                (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0);
 
-}//end of Channel::sendGateSigProcThreshold
+}//end of UTBoard::sendGateSigProcThreshold
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -2591,23 +2631,23 @@ public void sendDACGateFlags(int pChannel, int pGate, int pFlags)
                (byte)(pFlags & 0xff),
                (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0);
 
-}//end of Channel::sendDACGateFlags
+}//end of UTBoard::sendDACGateFlags
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTBoard::sendWallChannelFlag
+// UTBoard::setWallChannelFlag
 //
-// Sends the flags which specifies the channel as being used for wall
+// Sets the flag which specifies the channel as being used for wall
 // measurement.  Extra data will then be expected to be appended to peak data
 // packets sent by the remote devices.
 //
 
-public void sendWallChannelFlag(int pChannel, boolean pIsWallChannel)
+public void setWallChannelFlag(int pChannel, boolean pIsWallChannel)
 {
 
     bdChs[pChannel].isWallChannel = pIsWallChannel;
 
-}//end of Channel::sendWallChannelFlag
+}//end of UTBoard::setWallChannelFlag
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -2646,7 +2686,7 @@ public void linkGates(int pChannel, UTGate[] pGates, int pNumberOfGates)
 
     bdChs[pChannel].gates = pGates;
 
-}//end of Channel::linkGates
+}//end of UTBoard::linkGates
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -2728,25 +2768,7 @@ public void setState(int pWhich, int pValue)
         }
         else{
 
-            //If entering run mode, always read a word from the DSP RAM page
-            //where the A/D values are to be stored by the FPGA.  The FPGA does
-            //not set the upper bits of the HPIA register - reading from the
-            //desired page here first will set the bits properly.  This must be
-            //done for each DSP core.
-
-            byte[] buffer = new byte[2];
-
-            //read from local data memory page 0 for all cores
-
-            readRAMDSP(1, 1, 0, 0, 0000, buffer, false); //DSP1, Core A
-            readRAMDSP(1, 2, 0, 0, 0000, buffer, false); //DSP1, Core B
-            readRAMDSP(1, 3, 0, 0, 0000, buffer, false); //DSP1, Core C
-            readRAMDSP(1, 4, 0, 0, 0000, buffer, false); //DSP1, Core D
-
-            readRAMDSP(2, 1, 0, 0, 0000, buffer, false); //DSP2, Core A
-            readRAMDSP(2, 2, 0, 0, 0000, buffer, false); //DSP2, Core B
-            readRAMDSP(2, 3, 0, 0, 0000, buffer, false); //DSP2, Core C
-            readRAMDSP(2, 4, 0, 0, 0000, buffer, false); //DSP2, Core D
+            prepareHPIARegistersForFPGAToDSPCommunications();
 
             masterControlShadow |= SETUP_RUN_MODE;    //set the flag (run mode)
         }
@@ -2796,6 +2818,40 @@ public void setState(int pWhich, int pValue)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// UTBoard::prepareHPIARegistersForFPGAToDSPCommunications
+//
+// If entering run mode in which the FPGA has control of the DSP HPIA bus,
+// always read a word from the DSP RAM page where the A/D values are to be
+// stored by the FPGA.  The FPGA does not set the upper bits of the HPIA
+// register - reading from the desired page here first will set the bits
+// properly.  This must be done for each DSP core.
+//
+// All calls to readRAMDSP are made with the pForceProcessDataPackets parameter
+// set true so the method will wait for the return packet and clear it from
+// the buffer even though it is not used.
+//
+
+public void prepareHPIARegistersForFPGAToDSPCommunications()
+{
+
+    byte[] buffer = new byte[2];
+
+    //read from local data memory page 0 for all cores
+
+    readRAMDSP(1, 1, 0, 0, 0000, buffer, true); //DSP1, Core A
+    readRAMDSP(1, 2, 0, 0, 0000, buffer, true); //DSP1, Core B
+    readRAMDSP(1, 3, 0, 0, 0000, buffer, true); //DSP1, Core C
+    readRAMDSP(1, 4, 0, 0, 0000, buffer, true); //DSP1, Core D
+
+    readRAMDSP(2, 1, 0, 0, 0000, buffer, true); //DSP2, Core A
+    readRAMDSP(2, 2, 0, 0, 0000, buffer, true); //DSP2, Core B
+    readRAMDSP(2, 3, 0, 0, 0000, buffer, true); //DSP2, Core C
+    readRAMDSP(2, 4, 0, 0, 0000, buffer, true); //DSP2, Core D
+
+}//end of UTBoard::prepareHPIARegistersForFPGAToDSPCommunications
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // UTBoard::sendSoftwareGain
 //
 // Sends the software gain applied by the DSP software for pChannel.  The
@@ -2825,7 +2881,7 @@ public void sendSoftwareGain(int pChannel, double pSoftwareGain)
                (byte)(roundedGain & 0xff),
                (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0);
 
-}//end of Channel::sendSoftwareGain
+}//end of UTBoard::sendSoftwareGain
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -2844,7 +2900,7 @@ public void sendSetFlags1(int pChannel, int pSetMask)
                (byte)(pSetMask & 0xff),
                (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0);
 
-}//end of Channel::sendSetFlags1
+}//end of UTBoard::sendSetFlags1
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -2863,7 +2919,7 @@ public void sendClearFlags1(int pChannel, int pClearMask)
                (byte)(pClearMask & 0xff),
                (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0);
 
-}//end of Channel::sendClearFlags1
+}//end of UTBoard::sendClearFlags1
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -2890,7 +2946,7 @@ public void logDSPStatus(int pDSPChip, int pDSPCore,
         return;
     }
 
-}//end of Channel::logDSPStatus
+}//end of UTBoard::logDSPStatus
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -2949,7 +3005,66 @@ public boolean logDSPStatusHelper(int pDSPChip, int pDSPCore,
 
     }
 
-}//end of Channel::logDSPStatusHelper
+}//end of UTBoard::logDSPStatusHelper
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::sendMessageToDSP
+//
+// Sends a message to a DSP core via the Rabbit on the board. Counts the number
+// of messages sent to be compared later with the number of DSP acknowledments
+// received.
+//
+// Can actually send anything to the Rabbit, but specifically meant to send
+// a DSP message as those are counted here for later comparison with the
+// number of acknowledgments received.
+//
+
+public void sendMessageToDSP(byte... pBytes)
+{
+
+    sendBytes(pBytes);
+
+    dspMessageSentCounter++;
+
+}//end of UTBoard::sendMessageToDSP
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::clearDSPMessageAndAckCounters
+//
+// Zeroes the counters used to track messages sent to DSPs and the ACK
+// packets received back.
+//
+
+public void clearDSPMessageAndAckCounters()
+{
+
+    dspMessageSentCounter = 0; dspMessageAckCounter = 0;
+
+}//end of UTBoard::clearDSPMessageAndAckCounters
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::compareDSPAckCountToMessageCount
+//
+// Compares the number of DSP messages to the number of DSP ack packets
+// received and logs an error if they differ. Resets both counts.
+//
+
+public void compareDSPAckCountToMessageCount()
+{
+
+    if(dspMessageSentCounter != dspMessageAckCounter) {
+        logger.logMessage(
+              "UT " + chassisSlotAddr + " ~ " + ipAddrS + " has sent "
+            + dspMessageSentCounter + " DSP messages but has received " +
+              dspMessageAckCounter + " ACK packets.\n");
+    }
+
+    dspMessageSentCounter = 0; dspMessageAckCounter = 0;
+
+}//end of UTBoard::compareDSPAckCountToMessageCount
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -2962,7 +3077,7 @@ public boolean logDSPStatusHelper(int pDSPChip, int pDSPCore,
 public void readDSPStatus(int pDSPChip, int pDSPCore)
 {
 
-    sendBytes(MESSAGE_DSP_CMD,
+    sendMessageToDSP(MESSAGE_DSP_CMD,
            (byte)pDSPChip, (byte)pDSPCore,
            (byte) DSP_GET_STATUS_CMD, // DSP message type id
            (byte) 2, //return packet size expected
@@ -2971,7 +3086,7 @@ public void readDSPStatus(int pDSPChip, int pDSPCore)
            (byte) 0, (byte)0, (byte)0
            );
 
-}//end of Channel::readDSPStatus
+}//end of UTBoard::readDSPStatus
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -2997,7 +3112,7 @@ public void sendChannelParam(int pChannel, byte pMsgID,
 
     // 1st Core handling the channel
 
-    sendBytes(MESSAGE_DSP_CMD, bdChs[pChannel].dspChip,
+    sendMessageToDSP(MESSAGE_DSP_CMD, bdChs[pChannel].dspChip,
            bdChs[pChannel].dspCore1,
            pMsgID, // DSP message type id
            (byte) 1, //return packet size expected (expects an ACK packet)
@@ -3008,7 +3123,7 @@ public void sendChannelParam(int pChannel, byte pMsgID,
 
     // 2nd Core handling the channel
 
-    sendBytes(MESSAGE_DSP_CMD, bdChs[pChannel].dspChip,
+    sendMessageToDSP(MESSAGE_DSP_CMD, bdChs[pChannel].dspChip,
                bdChs[pChannel].dspCore2,
                pMsgID, // DSP message type id
                (byte) 1, //return packet size expected (expects an ACK packet)
@@ -3017,7 +3132,7 @@ public void sendChannelParam(int pChannel, byte pMsgID,
                pByte5, pByte6, pByte7, pByte8, pByte9
                );
 
-}//end of Channel::sendChannelParam
+}//end of UTBoard::sendChannelParam
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -3038,7 +3153,7 @@ public void sendDSPSampleSize(int pChannel, int pSampleSize)
                (byte)((pSampleSize >> 8) & 0xff), (byte)(pSampleSize & 0xff),
                (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0);
 
-}//end of Channel::sendDSPSampleSize
+}//end of UTBoard::sendDSPSampleSize
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -3189,7 +3304,7 @@ public void requestPeakData(int pChannel)
     //packet from the previous request
     peakDataRcvd = false;
 
-}//end of Channel::requestPeakData
+}//end of UTBoard::requestPeakData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -3247,7 +3362,7 @@ public void requestPeakData4(int pChannel0, int pChannel1, int pChannel2,
     //packet from the previous request
     peakDataRcvd = false;
 
-}//end of Channel::requestPeakData4
+}//end of UTBoard::requestPeakData4
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -3275,7 +3390,7 @@ public void getPeakDataFromDSP(int pChannel)
     int numberReturnBytes =
         bdChs[pChannel].numberOfGates * PEAK_DATA_BYTES_PER_GATE;
 
-    sendBytes(MESSAGE_DSP_CMD,
+    sendMessageToDSP(MESSAGE_DSP_CMD,
            (byte)bdChs[pChannel].dspChip,
            (byte)bdChs[pChannel].dspCore1,
            (byte) DSP_GET_PEAK_DATA, // DSP message type id
@@ -3285,7 +3400,7 @@ public void getPeakDataFromDSP(int pChannel)
            (byte) 0, (byte)0, (byte)0
            );
 
-}//end of Channel::getPeakDataFromDSP
+}//end of UTBoard::getPeakDataFromDSP
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -3318,15 +3433,15 @@ void configure(IniFile pConfigFile)
 
     super.configure(pConfigFile);
 
-    inBuffer = new byte[RUNTIME_PACKET_SIZE];
-    outBuffer = new byte[RUNTIME_PACKET_SIZE];
-
     fpgaCodeFilename = pConfigFile.readString(
                         "Hardware", "UT FPGA Code Filename", "not specified");
 
     dspCodeFilename = pConfigFile.readString(
                         "Hardware", "UT DSP Code Filename", "not specified");
 
+    inBuffer = new byte[RUNTIME_PACKET_SIZE];
+    outBuffer = new byte[RUNTIME_PACKET_SIZE];
+    
 }//end of UTBoard::configure
 //-----------------------------------------------------------------------------
 
@@ -3345,7 +3460,13 @@ void configureExtended(IniFile pConfigFile)
 
     super.configureExtended(pConfigFile);
 
+    String value;
+
     String section = "UT Board in Chassis " + chassisAddr + " Slot " + slotAddr;
+
+    value = pConfigFile.readString(section, "Type", "Basic Peak Collector");
+
+    parseBoardType(value);
 
     nSPerDataPoint = pConfigFile.readDouble(section, "nS per Data Point", 15.0);
     uSPerDataPoint = nSPerDataPoint / 1000;
@@ -3377,6 +3498,29 @@ void configureExtended(IniFile pConfigFile)
                                 section, "Board is Pulse Sync Source", false);
 
 }//end of UTBoard::configureExtended
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::parseBoardType
+//
+// Sets various flags and variables appropriate to the type of board specified
+// by pValue.
+//
+
+void parseBoardType(String pValue)
+{
+
+    if (pValue.equals("Basic Peak Collector")) {
+        type = BASIC_PEAK_COLLECTOR;
+        controlFlags |= RABBIT_FLAW_WALL_MODE;
+    }
+    else
+    if (pValue.equals("Wall Mapper")) {
+        type = WALL_MAPPER;
+        controlFlags |= RABBIT_WALL_MAP_MODE;
+    }
+
+}//end of UTBoard::parseBoardType
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -3503,7 +3647,7 @@ public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
 //-----------------------------------------------------------------------------
 // UTBoard::processDataPacketsUntilPeakPacket
 //
-// Processes incoming data packets until aPeak Data packet has been processed.
+// Processes incoming data packets until a Peak Data packet has been processed.
 //
 // Returns 1 if an Encoder data packet has been processed, -1 if all available
 // packets have been processed but no peak data packet was present.
@@ -3530,6 +3674,28 @@ public int processDataPacketsUntilPeakPacket()
     else {return -1;}
 
 }//end of UTBoard::processDataPacketsUntilPeakPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::processAllAvailableDataPackets
+//
+// Processes all available data packets in the receive buffer.
+//
+// if pWaitForPkt is true, then the method will wait a bit for each packet
+// if necessary. This can slow the method quite a bit if a lot of packets are
+// expected.
+//
+// See processOneDataPacket notes for more info.
+//
+
+public void processAllAvailableDataPackets(boolean pWaitForPkt)
+{
+
+    //process packets until there is no more data available
+
+    while ((processOneDataPacket(pWaitForPkt, TIMEOUT)) > 0){}
+
+}//end of UTBoard::processAllAvailableDataPackets
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -3815,6 +3981,8 @@ private int processGetDSPRamChecksumPacket()
 // transmitted by the host.  Another function should then be added to this
 // module to catch those packets and perform the verification.
 //
+// Increments dspMessageAckCounter for each ACK packet received.
+//
 // Returns number of bytes retrieved from the socket.
 //
 
@@ -3831,7 +3999,10 @@ private int processDSPAckMessage()
             if (byteIn.available() >= 2) {break;}
             waitSleep(10);
             }
-        if (byteIn.available() >= 2) {return byteIn.read(inBuffer, 0, 2);}
+        if (byteIn.available() >= 2) {
+            dspMessageAckCounter++;
+            return byteIn.read(inBuffer, 0, 2);
+        }
         }// try
     catch(IOException e){
         System.err.println(getClass().getName() + " - Error: 3795");
@@ -4523,6 +4694,29 @@ public void logStatus(Log pLogWindow)
     }
 
 }//end of UTBoard::logStatus
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::logStatistics
+//
+// Displays various statistics in the log window.
+//
+
+public void logStatistics()
+{
+
+
+    try{
+    int bCount = byteIn.available();
+    logger.logMessage(
+              "UT " + chassisSlotAddr + " ~ " + ipAddrS + " has "
+            + bCount + " bytes in the receive buffer." + "\n");
+
+    //debug mks if (bCount > 0) {byteIn.read(inBuffer, 0, inBuffer.length);}
+    }
+    catch(IOException e){}
+
+}//end of UTBoard::logStatistics
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
