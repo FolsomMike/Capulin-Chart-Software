@@ -66,7 +66,7 @@ public class ControlBoard extends Board implements MessageLink{
     boolean unused2Flag = false;
     boolean unused3Flag = false;
     byte controlPortA, controlPortE;
-    byte controlFlags;
+    byte processControlFlags;
 
     //number of counts each encoder moves to trigger an inspection data packet
     //these values are read later from the config file
@@ -505,25 +505,25 @@ public int processInspectPacket()
         prevEncoder1 = encoder1; prevEncoder2 = encoder2;
 
         //transfer the status of the Control board input ports
-        controlFlags = inBuffer[x++];
+        processControlFlags = inBuffer[x++];
         controlPortE = inBuffer[x++];
 
         //control flags are active high
 
-        if ((controlFlags & ON_PIPE_CTRL) != 0) {
+        if ((processControlFlags & ON_PIPE_CTRL) != 0) {
             onPipeFlag = true;
         }
         else {
             onPipeFlag = false;
         }
 
-        if ((controlFlags & HEAD1_DOWN_CTRL) != 0) {
+        if ((processControlFlags & HEAD1_DOWN_CTRL) != 0) {
             head1Down = true;
         } else {
             head1Down = false;
         }
 
-        if ((controlFlags & HEAD2_DOWN_CTRL) != 0) {
+        if ((processControlFlags & HEAD2_DOWN_CTRL) != 0) {
             head2Down = true;
         } else {
             head2Down = false;

@@ -56,6 +56,8 @@ class InstallFirmwareSettings extends Object{
 public abstract class Board extends Object implements Runnable{
 
     Boolean enabled;
+    int type;
+    int controlFlags = 0;
     String configFilename;
     IniFile configFile;
     String boardName;
