@@ -1248,6 +1248,11 @@ boolean collectEncoderDataInspectMode()
             //because the belt gets lifted off the encoder
             //previously this flag would only be set if the encoder turned a bit
 
+            //wip mks -- isn't this a problem? Saves data immediately after
+            // photo eye clears instead of waiting until lifted ducer reaches
+            // end of pipe? Does it mess up length measurement or is that
+            // done some other way?
+
             //set flag to force preparation for a new piece
             prepareForNewPiece = true;
 
@@ -1417,6 +1422,8 @@ void moveTracesForward(Trace pTrace, int pPixelsMoved, double pPosition)
                 hdwVs.endOfPieceTracker--;
             }
             else{
+                hdwVs.trackToEndOfPiece = false;
+
                 //set flag to force preparation for a new piece
                 prepareForNewPiece = true;
             }
@@ -1464,8 +1471,9 @@ void moveTracesBackward(Trace pTrace, int pPixelsMoved, double pPosition)
         //tracked in reverse -- should probably be fixed just in case reversing
         //occurs in these areas
 
-        //if tracking to the end of the piece after end of piece photo eye signal,
-        //reverse this process
+        //if tracking to the end of the piece after end of piece photo eye
+        // signal, reverse this process -- the tracker normally counts down
+        // from endOfPiecePosition to zero, so count up when reversing
 
         if (hdwVs.trackToEndOfPiece){
             if (hdwVs.endOfPieceTracker != hdwVs.endOfPiecePosition){
