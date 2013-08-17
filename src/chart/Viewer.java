@@ -1204,7 +1204,7 @@ public int getDataWidth()
 {
 
     return(
-         chartGroups[0].getStripChart(0).getTrace(0).traceData.getDataWidth());
+         chartGroups[0].getStripChart(0).getPlotter(0).getDataWidth());
 
 }//end of Viewer::getDataWidth
 //-----------------------------------------------------------------------------

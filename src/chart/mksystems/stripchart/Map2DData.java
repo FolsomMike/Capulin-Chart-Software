@@ -1,11 +1,11 @@
 /******************************************************************************
-* Title: TraceData.java
+* Title: Map2DData.java
 * Author: Mike Schoonover
-* Date: 7/1/13
+* Date: 8/15/13
 *
 * Purpose:
 *
-* This class handles data for a trace. It has synchronized functions (or other
+* This class handles data for a 2D map. It has synchronized functions (or other
 * protection mechanisms) to allow data to be inserted by one thread and read
 * for display by a different thread.
 *
@@ -36,12 +36,12 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 
 //-----------------------------------------------------------------------------
-// class TraceData
+// class Map2DData
 //
-// This class creates and controls a data set for a trace.
+// This class creates and controls a data set for a 2D map.
 //
 
-public class TraceData extends PlotterData{
+public class Map2DData extends PlotterData{
 
     //int bufferSize;
     int plotStyle;
@@ -123,22 +123,22 @@ public class TraceData extends PlotterData{
     static final int REVERSE = 2;
 
 //-----------------------------------------------------------------------------
-// TraceData::DataTrace (constructor)
+// Map2DData::Map2DData (constructor)
 //
 //
 
-public TraceData(final int pBufferSize, final int pPlotStyle,
+public Map2DData(final int pBufferSize, final int pPlotStyle,
                                                         int pPeakDirection)
 {
 
     sizeOfDataBuffer = pBufferSize; plotStyle = pPlotStyle;
     peakDirection = pPeakDirection;
 
-}//end of TraceData::TraceData (constructor)
+}//end of Map2DData::Map2DData (constructor)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceData::init
+// Map2DData::init
 //
 // Initializes the object.  MUST be called by sub classes after instantiation.
 //
@@ -155,11 +155,11 @@ public void init()
         dataBuffer2 = new int[sizeOfDataBuffer];
     }
 
-}//end of TraceData::init
+}//end of Map2DData::init
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceData::totalReset
+// Map2DData::totalReset
 //
 // Resets everything back to default values.
 //
@@ -197,11 +197,11 @@ synchronized public void totalReset()
         }
     }
 
-}//end of TraceData::totalReset
+}//end of Map2DData::totalReset
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceData::storeDataAtInsertionPoint
+// Map2DData::storeDataAtInsertionPoint
 //
 // Stores pData in dataBuffer1 at the current insertion point.
 //
@@ -250,11 +250,11 @@ public boolean storeDataAtInsertionPoint(int pData)
 
     return(dataStored);
 
-}//end of TraceData::storeDataAtInsertionPoint
+}//end of Map2DData::storeDataAtInsertionPoint
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceData::setFlags
+// Map2DData::setFlags
 //
 // The value in flagBuffer at pPosition is ORed with pMask to set one or more
 // flags.
@@ -269,7 +269,7 @@ synchronized void setFlags(int pPosition, int pMask)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceData::clearFlags
+// Map2DData::clearFlags
 //
 // The value in flagBuffer at pPosition is ANDed with pMask to clear one or more
 // flags.
@@ -280,11 +280,11 @@ synchronized void clearFlags(int pPosition, int pMask)
 
     flagBuffer[pPosition] &= pMask;
 
-}//end of TraceData::clearFlags
+}//end of Map2DData::clearFlags
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceData::newDataIsReady
+// Map2DData::newDataIsReady
 //
 // Checks to see if any new data is ready to be plotted or erased.
 //
@@ -304,11 +304,11 @@ public boolean newDataIsReady()
         return (false);
     }
 
-}//end of TraceData::newDataIsReady
+}//end of Map2DData::newDataIsReady
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceData::getNewData
+// Map2DData::getNewData
 //
 // If the DATA_ERASED flag for the current extractionPoint data position is
 // set, the extractionPoint is decremented and the data at that position is
@@ -358,7 +358,7 @@ synchronized public int getNewData(TraceDatum pDatum)
 
         retractExtractionPoint();
 
-        segmentLength--;
+        segmentLength++;
 
         pDatum.newData1 = dataBuffer1[extractionPoint];
 
@@ -382,7 +382,7 @@ synchronized public int getNewData(TraceDatum pDatum)
 
         advanceExtractionPoint();
 
-        segmentLength++;
+        segmentLength--;
 
         pDatum.newData1 = dataBuffer1[extractionPoint];
 
@@ -398,11 +398,11 @@ synchronized public int getNewData(TraceDatum pDatum)
 
     return(NO_NEW_DATA);
 
-}//end of TraceData::getNewData
+}//end of Map2DData::Map2DData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceData::storeClockAtInsertionPoint
+// Map2DData::storeClockAtInsertionPoint
 //
 // Stores the clock value in the flag buffer at the current insertion point.
 // Only the lower 9 bits are stored.
@@ -419,11 +419,11 @@ synchronized public void storeClockAtInsertionPoint(int pClock)
     //mask top bits to protect against invalid value
     flagBuffer[insertionPoint] += (pClock & TRIM_CLOCK_MASK);
 
-}//end of TraceData::storeClockAtInsertionPoint
+}//end of Map2DData::storeClockAtInsertionPoint
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceData::storeThresholdAtInsertionPoint
+// Map2DData::storeThresholdAtInsertionPoint
 //
 // Stores the number of the threshold violated by the datapoint at the current
 // insertion point.
@@ -445,11 +445,11 @@ synchronized public void storeThresholdAtInsertionPoint(int pThreshold)
     pThreshold &= TRIM_THRESHOLD_MASK;
     flagBuffer[insertionPoint] += pThreshold << 9; //store new flag
 
-}//end of TraceData::storeThresholdAtInsertionPoint
+}//end of Map2DData::storeThresholdAtInsertionPoint
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceData::placeEndMaskMarker
+// Map2DData::placeEndMaskMarker
 //
 // Causes a vertical bar to be drawn at the data location specified by
 // beingFilledSlot.
@@ -476,11 +476,11 @@ synchronized public void placeEndMaskMarker()
 
     flagBuffer[insertionPoint] |= END_MASK_MARK;
 
-}//end of TraceData::placeEndMaskMarker
+}//end of Map2DData::placeEndMaskMarker
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceData::markSegmentStart
+// Map2DData::markSegmentStart
 //
 // Resets the segmentLength variable and records the current buffer location.
 //
@@ -499,11 +499,11 @@ synchronized public void markSegmentStart()
     //record the buffer start position of the last segment
     lastSegmentStartIndex = insertionPoint;
 
-}//end of Trace::markSegmentStart
+}//end of Map2DData::markSegmentStart
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceData::markSegmentEnd
+// Map2DData::markSegmentEnd
 //
 // Records the current buffer position as the point where the current segment
 // ends.  If the segment is to be saved, the save should occur after this
@@ -528,11 +528,11 @@ synchronized public void markSegmentEnd()
     //record the buffer end position of the last segment
     lastSegmentEndIndex = insertionPoint;
 
-}//end of TraceData::markSegmentEnd
+}//end of Map2DData::markSegmentEnd
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceData::segmentStarted
+// Map2DData::segmentStarted
 //
 // Checks to see if a segment has been started.  If the trace has moved
 // a predetermined amount after the current segment was initiated, it is assumed
@@ -551,11 +551,11 @@ public boolean segmentStarted()
         return false;
     }
 
-}//end of TraceData::segmentStarted
+}//end of Map2DData::segmentStarted
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceData::advanceInsertionPoint
+// Map2DData::advanceInsertionPoint
 //
 // Moves the insertion point forward one buffer position and makes the
 // necessary preparations to the previous and new locations.
@@ -598,11 +598,11 @@ synchronized public void advanceInsertionPoint()
 
     flagBuffer[insertionPoint] &= DATA_ERASED;
 
-}//end of TraceData::advanceInsertionPoint
+}//end of Map2DData::advanceInsertionPoint
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceData::advanceExtractionPoint
+// Map2DData::advanceExtractionPoint
 //
 // Moves the extractionPoint, lookAhead, and lookBehind pointers forward one
 // buffer position.
@@ -622,11 +622,11 @@ private void advanceExtractionPoint()
     lookAhead++;
     if (lookAhead == sizeOfDataBuffer) {lookAhead = 0;}
 
-}//end of TraceData::advanceExtractionPoint
+}//end of Map2DData::advanceExtractionPoint
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceData::retractExtractionPoint
+// Map2DData::retractExtractionPoint
 //
 // Moves the extractionPoint, lookAhead, and lookBehind pointers back one
 // buffer position.
@@ -646,11 +646,11 @@ private void retractExtractionPoint()
     lookBehind--;
     if (lookBehind < 0) {lookBehind = sizeOfDataBuffer - 1;}
 
-}//end of TraceData::retractExtractionPoint
+}//end of Map2DData::retractExtractionPoint
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceData::eraseDataAtInsertionPoint
+// Map2DData::eraseDataAtInsertionPoint
 //
 // This is the functional opposite of the advanceInsertionPoint method.
 //
@@ -679,11 +679,11 @@ synchronized public void eraseDataAtInsertionPoint()
     //clearing the IN_PROCESS flag will force the old data to be overwritten
     flagBuffer[insertionPoint] = DATA_ERASED;
 
-}//end of TraceData::eraseDataAtInsertionPoint
+}//end of Map2DData::eraseDataAtInsertionPoint
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceData::getDataWidth
+// Map2DData::getDataWidth
 //
 // Returns the index of the last valid data point.
 //
@@ -710,11 +710,11 @@ public int getDataWidth()
 
     return(endOfData);
 
-}//end of TraceData::getDataWidth
+}//end of Map2DData::getDataWidth
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceData::getDataBuffer1
+// Map2DData::getDataBuffer1
 //
 // Returns a reference to dataBuffer1.
 //
@@ -724,11 +724,11 @@ public int[] getDataBuffer1()
 
     return(dataBuffer1);
 
-}//end of TraceData::getDataBuffer1
+}//end of Map2DData::getDataBuffer1
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceData::getDataBuffer2
+// Map2DData::getDataBuffer2
 //
 // Returns a reference to dataBuffer2.
 //
@@ -738,11 +738,11 @@ public int[] getDataBuffer2()
 
     return(dataBuffer2);
 
-}//end of TraceData::getDataBuffer2
+}//end of Map2DData::getDataBuffer2
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceData::findMinValue
+// Map2DData::findMinValue
 //
 // Finds the minimum value in dataBuffer1.
 //
@@ -772,11 +772,11 @@ public int findMinValue(int pStart, int pEnd)
 
     return(peak);
 
-}//end of TraceData::findMinValue
+}//end of Map2DData::findMinValue
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceData::findMaxValue
+// Map2DData::findMaxValue
 //
 // Finds the maximum value in dataBuffer1.  Search begins at pStart position
 // in the array and ends at pEnd.
@@ -802,11 +802,11 @@ public int findMaxValue(int pStart, int pEnd)
 
     return(peak);
 
-}//end of TraceData::findMaxValue
+}//end of Map2DData::findMaxValue
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceData::saveSegment
+// Map2DData::saveSegment
 //
 // Saves the data for a segment to the open file pOut.
 //
@@ -878,11 +878,11 @@ public void saveSegment(BufferedWriter pOut) throws IOException
 
     pOut.newLine(); //blank line
 
-}//end of TraceData::saveSegment
+}//end of Map2DData::saveSegment
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceData::loadSegment
+// Map2DData::loadSegment
 //
 // Loads the data points and flags for a segment from pIn.  It is expected that
 // the Trace tag and meta data has already been read.
@@ -909,11 +909,11 @@ public String loadSegment(BufferedReader pIn, String pLastLine)
 
     return(line);
 
-}//end of TraceData::loadSegment
+}//end of Map2DData::loadSegment
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceData::processDataSeries
+// Map2DData::processDataSeries
 //
 // Processes a data series from pIn.  The series could be "Data Set 1",
 // "Data Set 2", or "Flags" depending on the parameters passed in.
@@ -1000,11 +1000,11 @@ private String processDataSeries(BufferedReader pIn, String pLastLine,
 
     return(line); //should be "[xxxx]" tag on success, unknown value if not
 
-}//end of TraceData::processDataSeries
+}//end of Map2DData::processDataSeries
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceData::prepareForRepaint
+// Map2DData::prepareForRepaint
 //
 // Sets up variable(s) in preparation to extract data to repaint the trace.
 //
@@ -1015,11 +1015,11 @@ public void prepareForRepaint(int pStart){
 
     repaintPoint = pStart;
 
-}//end of TraceData::prepareForRepaint
+}//end of Map2DData::prepareForRepaint
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceData::getDataAtRepaintPoint
+// Map2DData::getDataAtRepaintPoint
 //
 // Returns the data and flags at the buffer location of repaintPoint. Advances
 // repaintPoint to the next position.
@@ -1046,11 +1046,11 @@ public int getDataAtRepaintPoint(TraceDatum pDatum){
 
     return(FORWARD);
 
-}//end of TraceData::getDataAtRepaintPoint
+}//end of Map2DData::getDataAtRepaintPoint
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceData::advanceRepaintPoint
+// Map2DData::advanceRepaintPoint
 //
 // Moves the repaintPoint pointer forward one buffer position.
 //
@@ -1062,10 +1062,10 @@ private void advanceRepaintPoint()
     repaintPoint++;
     if (repaintPoint == sizeOfDataBuffer) {repaintPoint = 0;}
 
-}//end of TraceData::advanceRepaintPoint
+}//end of Map2DData::advanceRepaintPoint
 //-----------------------------------------------------------------------------
 
 
-}//end of class TraceData
+}//end of class Map2DData
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

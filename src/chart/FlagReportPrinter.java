@@ -25,6 +25,7 @@ import chart.mksystems.inifile.IniFile;
 import chart.mksystems.settings.Settings;
 import chart.mksystems.stripchart.ChartGroup;
 import chart.mksystems.stripchart.StripChart;
+import chart.mksystems.stripchart.Plotter;
 import chart.mksystems.stripchart.Trace;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -582,21 +583,21 @@ public void printReportForPiece(String pReportsPrimaryPath, int pPiece)
 
     if( (numberOfChartGroups == 0)
          || (chartGroups[0].getNumberOfStripCharts() == 0)
-            || (chartGroups[0].getStripChart(0).getNumberOfTraces() == 0)){
+            || (chartGroups[0].getStripChart(0).getNumberOfPlotters() == 0)){
         return;
     }
 
     int traceLength =
-        chartGroups[0].getStripChart(0).getTrace(0).traceData.flagBuffer.length;
+        chartGroups[0].getStripChart(0).getPlotter(0).getDataBufferWidth();
 
     for (int i = 0; i < traceLength; i++){
         for (int j = 0; j < numberOfChartGroups; j++){
             ChartGroup cGroup = chartGroups[j];
             for (int k = 0; k < cGroup.getNumberOfStripCharts(); k++){
                 StripChart chart = cGroup.getStripChart(k);
-                for (int l = 0; l < chart.getNumberOfTraces(); l++){
+                for (int l = 0; l < chart.getNumberOfPlotters(); l++){
 
-                printFlagForTrace(file, chart, chart.getTrace(l), i);
+                printFlagForPlotter(file, chart, chart.getPlotter(l), i);
 
                 }//for (int l = 0; l < chart.getNumberOfTraces()
             }//for (int k = 0; k < numberOfStripCharts;...
@@ -609,9 +610,9 @@ public void printReportForPiece(String pReportsPrimaryPath, int pPiece)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// FlagReportPrinter::printFlagForTrace
+// FlagReportPrinter::printFlagForPlotter
 //
-// Prints the flag at buffer index pDataIndex for trace pTrace.
+// Prints the flag at buffer index pDataIndex for plotter pPlotter.
 //
 // If multiple flags from the same flaw trace are located at the same tenth of a
 // foot (or equivalent for metric) and clock position, the first flag is always
@@ -633,8 +634,8 @@ public void printReportForPiece(String pReportsPrimaryPath, int pPiece)
 // option is ever implemented.
 //
 
-public void printFlagForTrace(PrintWriter pFile, StripChart pChart,
-                                                Trace pTrace, int pDataIndex)
+public void printFlagForPlotter(PrintWriter pFile, StripChart pChart,
+                                              Plotter pPlotter, int pDataIndex)
 {
 
     boolean isWallChart = false;
@@ -647,7 +648,7 @@ public void printFlagForTrace(PrintWriter pFile, StripChart pChart,
     //extract the flag threshold -- if greater than 0, then a flag
     //is set at this position (note that threshold 1 denotes a user
     //set flag)
-    if (((pTrace.traceData.flagBuffer[pDataIndex] & 0x0000fe00) >> 9) > 0){
+    if (((pPlotter.getFlagBuffer()[pDataIndex] & 0x0000fe00) >> 9) > 0){
 
         //debug mks -- pixelsPerInch needs to be read from the joint
         //file, not config file as it may change
@@ -660,7 +661,7 @@ public void printFlagForTrace(PrintWriter pFile, StripChart pChart,
                                             hdwVs.pixelsPerInch / 12.0), 5);
 
         //convert and format the amplitude depending on chart type
-        int amplitude = pTrace.traceData.getDataBuffer1()[pDataIndex];
+        int amplitude = pPlotter.getDataBuffer1()[pDataIndex];
         double wall;
         if (isWallChart){
             wall = calculateComputedValue1(amplitude);
@@ -673,21 +674,21 @@ public void printFlagForTrace(PrintWriter pFile, StripChart pChart,
         }
 
         //extract the clock position from the flag
-        clockPos = pTrace.traceData.flagBuffer[pDataIndex] & 0x1ff;
+        clockPos = pPlotter.getFlagBuffer()[pDataIndex] & 0x1ff;
 
         //if the Report All Flags option is off, don't print duplicate flags:
         //if the flag is in the same linear and clock position as the
         //previous flag printed for this trace and has the same amplitude, then
         //the flag is not printed (see notes in function header)
-        if (!settings.reportAllFlags && linearPos.equals(pTrace.prevLinearPos)
-                && amplitudeText.equals(pTrace.prevAmplitudeText)
-                                    && clockPos == pTrace.prevClockPos){
+        if (!settings.reportAllFlags && linearPos.equals(pPlotter.prevLinearPos)
+                && amplitudeText.equals(pPlotter.prevAmplitudeText)
+                                    && clockPos == pPlotter.prevClockPos){
             return;
         }
 
-        pTrace.prevLinearPos = linearPos;
-        pTrace.prevAmplitudeText = amplitudeText;
-        pTrace.prevClockPos = clockPos;
+        pPlotter.prevLinearPos = linearPos;
+        pPlotter.prevAmplitudeText = amplitudeText;
+        pPlotter.prevClockPos = clockPos;
 
         pFile.print(linearPos + "\t");
 
@@ -696,7 +697,7 @@ public void printFlagForTrace(PrintWriter pFile, StripChart pChart,
         //print the short title of trace which should have
         //been set up in the config file to describe some or all of
         //orientation, ID/OD designation, and channel number
-        pFile.print(postPad(pTrace.shortTitle, 10) + "\t");
+        pFile.print(postPad(pPlotter.shortTitle, 10) + "\t");
 
         pFile.print(amplitudeText + "\t"); //amplitude
 
@@ -723,12 +724,12 @@ public void resetTracePreviousFlagVariables()
         ChartGroup cGroup = chartGroups[j];
         for (int k = 0; k < cGroup.getNumberOfStripCharts(); k++){
             StripChart chart = cGroup.getStripChart(k);
-            for (int l = 0; l < chart.getNumberOfTraces(); l++){
+            for (int l = 0; l < chart.getNumberOfPlotters(); l++){
 
-                Trace trace = chart.getTrace(l);
-                trace.prevLinearPos = "";
-                trace.prevAmplitudeText = "";
-                trace.prevClockPos = -1;
+                Plotter plotter = chart.getPlotter(l);
+                plotter.prevLinearPos = "";
+                plotter.prevAmplitudeText = "";
+                plotter.prevClockPos = -1;
 
             }//for (int l = 0; l < chart.getNumberOfTraces()
         }//for (int k = 0; k < numberOfStripCharts;...

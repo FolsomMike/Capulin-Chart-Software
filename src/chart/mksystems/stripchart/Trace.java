@@ -27,7 +27,6 @@ import java.awt.*;
 import java.awt.font.FontRenderContext;
 import java.awt.font.TextAttribute;
 import java.awt.font.TextLayout;
-import java.awt.geom.Rectangle2D;
 import java.io.*;
 import java.util.HashMap;
 import javax.swing.*;
@@ -39,67 +38,23 @@ import javax.swing.*;
 // This class creates and controls a trace.
 //
 
-public class Trace extends Object{
+public class Trace extends Plotter{
 
-    Settings settings;
-    IniFile configFile;
     TraceGlobals traceGlobals;
-    int chartGroup;
-    public int chartIndex;
-    public StripChart chart;
-    int traceIndex;
-    Hardware hardware;
-    JPanel canvas;
-    int canvasXLimit;
-    int canvasYLimit;
     PlotVars plotVs, repaintVs;
-    TraceHdwVars hdwVs;
-    int gridXSpacing, gridXSpacingT;
-    public boolean leadTrace = false;
-    public boolean trailTrace = false;
-
-    String title;
-    public String shortTitle;
-    public String keyLabel;
-    int keyXPosition, keyYPosition;
-    public Rectangle2D keyBounds;
-    Color traceColor;
-    public int head;
-    public boolean flaggingEnabled = false;
-    public boolean useVerticalBarToMarkEndMasks = false;
-    public boolean suppressTraceInEndMasks = false;
-    public double distanceSensorToFrontEdgeOfHead;
-    public double delayDistance;
-    public double startFwdDelayDistance;
-    public double startRevDelayDistance;
 
     public TraceData traceData;
     TraceDatum traceDatum;
 
     boolean invert;
-    int pixelOffset;
-    double pixelScaling;
-    double preScaling;
-    double preOffset;
-    boolean higherMoreSevere;
 
-    public String prevLinearPos = "";
-    public String prevAmplitudeText = "";
-    public int prevClockPos = -1;
-
-    Color backgroundColor;
-    Color gridColor;
     Threshold[] thresholds;
     int numberOfThresholds;
     int flagThreshold;
-    //hardware channel of the last value to be stored as a peak
-    public int peakChannel;
     //hardware channel of the last flag
     public int lastFlaggedChannel;
     //clock position of the last flag
     public int lastFlaggedClockPos;
-    //wall thickness value - used by wall traces
-    public double wallThickness;
 
     public boolean positionAdvanced;  //used by external class
 
@@ -120,7 +75,8 @@ public Trace(Settings pSettings, IniFile pConfigFile, int pChartGroup,
     settings = pSettings; configFile = pConfigFile;
     chartGroup = pChartGroup;
     chart = pChart;
-    chartIndex = pChartIndex; traceIndex = pTraceIndex; gridColor = pGridColor;
+    chartIndex = pChartIndex; plotterIndex = pTraceIndex;
+    gridColor = pGridColor;
     traceGlobals = pTraceGlobals;
     gridXSpacing = pGridXSpacing ;
     //some of the code is more efficient with a variable of gridXSpacing-1
@@ -128,8 +84,7 @@ public Trace(Settings pSettings, IniFile pConfigFile, int pChartGroup,
     backgroundColor = pBackgroundColor; hardware = pHardware;
     thresholds = pThresholds; numberOfThresholds = thresholds.length;
 
-    plotVs = new PlotVars(); repaintVs = new PlotVars();
-    hdwVs = new TraceHdwVars();
+    typeDescriptor = "Trace";
 
 }//end of Trace::Trace (constructor)
 //-----------------------------------------------------------------------------
@@ -140,8 +95,14 @@ public Trace(Settings pSettings, IniFile pConfigFile, int pChartGroup,
 // Initializes the object.  MUST be called by sub classes after instantiation.
 //
 
+@Override
 public void init()
 {
+
+    super.init();
+
+    plotVs = new PlotVars(); repaintVs = new PlotVars();
+    hdwVs = new TraceHdwVars();
 
     //read the configuration file and create/setup the charting/control elements
     configure(configFile);
@@ -150,7 +111,7 @@ public void init()
     //hardware may be null if this object is used for viewing only, so skip this
     //step if so
     if (hardware != null) {
-        hardware.linkTraces(chartGroup, chartIndex, traceIndex, traceData,
+        hardware.linkTraces(chartGroup, chartIndex, plotterIndex, traceData,
                                             thresholds, hdwVs.plotStyle, this);
     }
 
@@ -163,55 +124,18 @@ public void init()
 // Loads configuration settings from the configuration.ini file.
 //
 
-private void configure(IniFile pConfigFile)
+@Override
+void configure(IniFile pConfigFile)
 {
 
-    String section = "Chart Group " + (chartGroup + 1)
-             + " Strip Chart " + (chartIndex + 1) + " Trace " + (traceIndex+1);
+    super.configure(pConfigFile);
 
-    title = pConfigFile.readString(section, "Title", "*");
-
-    shortTitle = pConfigFile.readString(section, "Short Title", "*");
-
-    keyLabel = pConfigFile.readString(section, "Key Label", "*");
-
-    keyXPosition = pConfigFile.readInt(section, "Key X Position", 100);
-
-    keyYPosition = pConfigFile.readInt(section, "Key Y Position", 23);
-
-    traceColor = pConfigFile.readColor(section, "Color", Color.BLACK);
-
-    head = pConfigFile.readInt(section, "Head", 1);
-
-    distanceSensorToFrontEdgeOfHead = pConfigFile.readDouble(section,
-                             "Distance From Sensor to Front Edge of Head", 0.0);
-
-    int sizeOfDataBuffer = pConfigFile.readInt(
-                                        section, "Number of Data Points", 1200);
+    String section = configFileSection;
 
     invert = pConfigFile.readBoolean(section, "Invert Trace", false);
 
-    pixelOffset = pConfigFile.readInt(section, "Pixel Offset", 0);
-
-    pixelScaling = pConfigFile.readDouble(section, "Pixel Scaling", 1.0);
-
-    preScaling = pConfigFile.readDouble(section, "PreScaling", 1.0);
-
-    preOffset = pConfigFile.readDouble(section, "PreOffset", 0.0);
-
-    higherMoreSevere = pConfigFile.readBoolean(
-                                 section, "Higher Signal is More Severe", true);
-
-    useVerticalBarToMarkEndMasks = pConfigFile.readBoolean(
-                          section, "Use Vertical Bar to Mark End Masks", false);
-
-    suppressTraceInEndMasks = pConfigFile.readBoolean(
-                                 section, "Suppress Traces in End Masks", true);
-
-    hdwVs.setPlotStyle(pConfigFile.readInt(section, "Plot Style", 0));
-
-    hdwVs.setSimDataType(
-                     pConfigFile.readInt(section, "Simulation Data Type", 0));
+    int sizeOfDataBuffer = pConfigFile.readInt(
+                                        section, "Number of Data Points", 1200);
 
     //create the arrays to hold data points and flag/decoration info
     if (sizeOfDataBuffer > 100000) {sizeOfDataBuffer = 100000;}
@@ -226,86 +150,7 @@ private void configure(IniFile pConfigFile)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Trace::setCanvas
-//
-// Stores a pointer to the canvas on which the traces are drawn.
-//
-
-public void setCanvas(JPanel pCanvas)
-{
-
-    canvas = pCanvas;
-
-}//end of Trace::setCanvas
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Trace::handleSizeChanges
-//
-// Updates any values related to the size of display objects.  Called after
-// the display has been set and any time a size may have changed.
-//
-
-public void handleSizeChanges()
-{
-
-    canvasXLimit = canvas.getWidth() - 1;
-    canvasYLimit = canvas.getHeight() - 1;
-
-}//end of Trace::handleSizeChanges
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Trace::drawKeyLabel
-//
-// Draws the key label on the graphics device pG2.  The key label describes
-// the trace and is drawn in the color of the trace.
-//
-
-public void drawKeyLabel(Graphics2D pG2)
-{
-
-    if (keyLabel.compareTo("<not visible>") == 0) {return;}
-
-    //set the background color for the text to white so that most colors are
-    //more visible
-
-    HashMap<TextAttribute, Object> map = new HashMap<TextAttribute, Object>();
-
-    Font font = new Font(Font.SERIF, Font.PLAIN, 12);
-
-    map.put(TextAttribute.BACKGROUND, Color.WHITE);
-    font = font.deriveFont(map);
-    pG2.setFont(font);
-
-    String keyString = " " + keyLabel + " ";
-
-    pG2.setColor(traceColor);
-
-    //draw the key text, outline it with a black rectangle, and store the
-    //dimensions of the text so mouse clicks on the key can be detected
-
-    //draw the text
-    FontRenderContext frc = pG2.getFontRenderContext();
-    TextLayout layout = new TextLayout(keyString, font, frc);
-    layout.draw(pG2, keyXPosition, keyYPosition);
-
-    //get the boundaries of the text
-    keyBounds = layout.getBounds();
-    keyBounds.setRect(keyBounds.getX() + keyXPosition,
-                      keyBounds.getY() + keyYPosition,
-                      keyBounds.getWidth(),
-                      keyBounds.getHeight());
-
-    //outline the text with a rectangle
-    pG2.setColor(Color.BLACK);
-    pG2.draw(keyBounds);
-
-}//end of Trace::drawKeyLabel
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Trace::resetTrace
+// Trace::reset
 //
 // Clears all data.
 //
@@ -313,7 +158,7 @@ public void drawKeyLabel(Graphics2D pG2)
 // available at that time.
 //
 
-public void resetTrace()
+public void reset()
 {
 
     plotVs.gridCounter = 0; //used to place grid marks
@@ -329,7 +174,41 @@ public void resetTrace()
 
     traceData.totalReset();
 
-}//end of Trace::resetTrace
+}//end of Trace::reset
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Trace::getDataBufferWidth
+//
+// Returns the length of the data buffer.
+//
+// Should be overridden by subclasses.
+//
+
+@Override
+public int getDataBufferWidth()
+{
+
+    return(traceData.sizeOfDataBuffer);
+
+}//end of Trace::getDataBufferWidth
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Trace::getDataWidth
+//
+// Returns the index of the last valid data point.
+//
+// Returns -1 if no data found.
+//
+
+@Override
+public int getDataWidth()
+{
+
+    return(traceData.getDataWidth());
+
+}//end of Trace::getDataWidth
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -349,7 +228,7 @@ public void saveSegment(BufferedWriter pOut) throws IOException
 {
 
     pOut.write("[Trace]"); pOut.newLine();
-    pOut.write("Trace Index=" + traceIndex); pOut.newLine();
+    pOut.write("Trace Index=" + plotterIndex); pOut.newLine();
     pOut.write("Trace Title=" + title); pOut.newLine();
     pOut.write("Trace Short Title=" + shortTitle); pOut.newLine();
     pOut.newLine();
@@ -373,6 +252,7 @@ public void saveSegment(BufferedWriter pOut) throws IOException
 // been read, the line containing the tag should be passed in via pLastLine.
 //
 
+@Override
 public String loadSegment(BufferedReader pIn, String pLastLine)
                                                             throws IOException
 {
@@ -388,7 +268,7 @@ public String loadSegment(BufferedReader pIn, String pLastLine)
 
         //add identifying details to the error message and pass it on
         throw new IOException(e.getMessage() + " of Chart Group "
-                + chartGroup + " Chart " + chartIndex + " Trace " + traceIndex);
+              + chartGroup + " Chart " + chartIndex + " Trace " + plotterIndex);
     }
 
     return(line);
@@ -435,7 +315,7 @@ private String processTraceMetaData(BufferedReader pIn, String pLastLine)
     if (!success) {
         throw new IOException(
             "The file could not be read - section not found for Chart Group "
-            + chartGroup + " Chart " + chartIndex + " Trace " + traceIndex);
+            + chartGroup + " Chart " + chartIndex + " Trace " + plotterIndex);
     }
 
     //set defaults
@@ -477,16 +357,16 @@ private String processTraceMetaData(BufferedReader pIn, String pLastLine)
     if (!success) {
         throw new IOException(
         "The file could not be read - missing end of section for Chart Group "
-                + chartGroup + " Chart " + chartIndex + " Trace " + traceIndex);
+              + chartGroup + " Chart " + chartIndex + " Trace " + plotterIndex);
     }
 
     //if the index number in the file does not match the index number for this
     //threshold, abort the file read
 
-    if (traceIndexRead != traceIndex) {
+    if (traceIndexRead != plotterIndex) {
         throw new IOException(
             "The file could not be read - section not found for Chart Group "
-                + chartGroup + " Chart " + chartIndex + " Trace " + traceIndex);
+              + chartGroup + " Chart " + chartIndex + " Trace " + plotterIndex);
     }
 
     return(line); //should be "[xxxx]" tag on success, unknown value if not
@@ -566,7 +446,7 @@ public int plotPoint(Graphics2D pG2, PlotVars pVars, TraceDatum pTraceDatum)
     }
     else{
         //if this is the lead trace, shift the chart left and erase right slice
-        if (leadTrace){
+        if (leadPlotter){
             //scroll the screen 1 pixel to the left
             pG2.copyArea(1, 0, canvas.getWidth(), canvas.getHeight(), -1, 0);
             //erase the line at the far right
@@ -596,7 +476,7 @@ public int plotPoint(Graphics2D pG2, PlotVars pVars, TraceDatum pTraceDatum)
     }//else if (pVars.pixPtr...
 
     //if this is the lead trace draw the decorations
-    if (leadTrace){
+    if (leadPlotter){
         for (int j = 0; j < numberOfThresholds; j++) {
             thresholds[j].drawSlice(pG2, pVars.pixPtr);
         }
@@ -745,7 +625,7 @@ public int erasePoint(Graphics2D pG2, PlotVars pVars, TraceDatum pTraceDatum)
     }
     else{
         //if this is trailing trace, shift the chart right and erase left slice
-        if (trailTrace){
+        if (trailPlotter){
             //scroll the screen 1 pixel to the left
             pG2.copyArea(0, 0, canvas.getWidth(), canvas.getHeight(), 1, 0);
             //erase the line at the far right
@@ -829,31 +709,33 @@ void drawGrid(Graphics2D pG2, int pXPos, int pCanvasYLimit)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Trace::getTitle
-//
-// Returns the trace title.
-//
-
-public String getTitle()
-{
-
-    return (title);
-
-}//end of Trace::getTitle
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // Trace::getDataBuffer1
 //
 // Returns a reference to dataBuffer1.
 //
 
+@Override
 public int[] getDataBuffer1()
 {
 
     return(traceData.getDataBuffer1());
 
 }//end of Trace::getDataBuffer1
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Trace::getFlagBuffer
+//
+// Returns a reference to flagBuffer.
+//
+
+@Override
+public int[] getFlagBuffer()
+{
+
+    return(traceData.flagBuffer);
+
+}//end of Trace::getFlagBuffer
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -873,15 +755,14 @@ void getPixXY(PlotVars pVs)
 //-----------------------------------------------------------------------------
 // Trace::findMinValue
 //
-// Finds the minimum value in dataBuffer1.
+// Finds the minimum value of data in the buffer.  Search begins at pStart
+// position in the array and ends at pEnd.
 //
-// Finds the minimum value in dataBuffer1.  Search begins at pStart position
-// in the array and ends at pEnd.
-//
-// Values of pStart and pEnd will be forced between 0 and dataBuffer1.length
+// Values of pStart and pEnd will be forced between 0 and the buffer length
 // to avoid errors.
 //
 
+@Override
 public int findMinValue(int pStart, int pEnd)
 {
 
@@ -893,13 +774,14 @@ public int findMinValue(int pStart, int pEnd)
 //-----------------------------------------------------------------------------
 // Trace::findMaxValue
 //
-// Finds the maximum value in dataBuffer1.  Search begins at pStart position
-// in the array and ends at pEnd.
+// Finds the maximum value of data in the buffer.  Search begins at pStart
+// position in the array and ends at pEnd.
 //
-// Values of pStart and pEnd will be forced between 0 and dataBuffer1.length
+// Values of pStart and pEnd will be forced between 0 and the buffer length
 // to avoid errors.
 //
 
+@Override
 public int findMaxValue(int pStart, int pEnd)
 {
 
@@ -928,6 +810,77 @@ public void setLastFlagged(int pChannel, int pClock)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Trace::markSegmentStart
+//
+// Resets the counter which is used to determine if a new segment has begun
+// and records the start position.
+//
+// This function should be called whenever a new segment is to start - each
+// segment could represent a piece being monitored, a time period, etc.
+//
+
+@Override
+public void markSegmentStart()
+{
+
+    traceData.markSegmentStart();
+
+}//end of Trace::markSegmentStart
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Trace::markSegmentEnd
+//
+// Marks the buffer location of the end of the current segment.
+//
+// This function should be called whenever a new segment is to end - each
+// segment could represent a piece being monitored, a time period, etc.
+//
+// This function should be called before saving the data so the end points
+// of the data to be saved are known.
+//
+
+@Override
+public void markSegmentEnd()
+{
+
+    traceData.markSegmentEnd();
+
+}//end of Trace::markSegmentEnd
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// Plotter::segmentStarted
+//
+// Returns true if a segment has been started by having had data added to it,
+// returns false otherwise.
+//
+
+@Override
+public boolean segmentStarted()
+{
+
+    return(traceData.segmentStarted());
+
+}//end of Plotter::segmentStarted
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Plotter::placeEndMaskMarker
+//
+// Marks the current buffer location to signal that an end mask mark should
+// be drawn at that position.
+//
+
+@Override
+public void placeEndMaskMarker()
+{
+
+    traceData.placeEndMaskMarker();
+
+}//end of Plotter::placeEndMaskMarker
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Trace::paintComponent
 //
 // Refreshes the canvas using the data in the buffers.
@@ -938,6 +891,7 @@ public void setLastFlagged(int pChannel, int pClock)
 // undefined trace data.
 //
 
+@Override
 public void paintComponent(Graphics2D pG2)
 {
 

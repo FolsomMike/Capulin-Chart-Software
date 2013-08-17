@@ -19,9 +19,9 @@
 package chart.mksystems.hardware;
 
 import chart.mksystems.stripchart.ChartGroup;
+import chart.mksystems.stripchart.Plotter;
 import chart.mksystems.stripchart.StripChart;
 import chart.mksystems.stripchart.Threshold;
-import chart.mksystems.stripchart.Trace;
 import chart.mksystems.stripchart.TraceHdwVars;
 
 //-----------------------------------------------------------------------------
@@ -57,7 +57,7 @@ public class HardwareVars extends Object{
     public double maxWall;
     public ChartGroup chartGroup;
     public StripChart chart;
-    public Trace trace;
+    public Plotter plotter;
 
     boolean waitForOffPipe = false;
     boolean waitForOnPipe = false;

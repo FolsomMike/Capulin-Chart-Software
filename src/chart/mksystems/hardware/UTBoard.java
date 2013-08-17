@@ -35,6 +35,8 @@ public class UTBoard extends Board{
 
     int debug = 0; //debug mks
 
+    int rabbitControlFlags;
+
     boolean fpgaLoaded = false;
     String fpgaCodeFilename;
     String dspCodeFilename;
@@ -676,7 +678,7 @@ private void setupBoardChannels() {
 @Override
 public void run() {
 
-    //link with all the remotes
+    //make connection with all the remotes
     connect();
 
     //Since the sockets and associated streams were created by this
@@ -1294,8 +1296,8 @@ public void sendRabbitControlFlags()
 {
 
     sendBytes(SET_CONTROL_FLAGS_CMD,
-                (byte) ((controlFlags >> 8) & 0xff),
-                (byte) (controlFlags & 0xff)
+                (byte) ((rabbitControlFlags >> 8) & 0xff),
+                (byte) (rabbitControlFlags & 0xff)
                 );
 
 }//end of UTBoard::sendRabbitControlFlags
@@ -3512,12 +3514,12 @@ void parseBoardType(String pValue)
 
     if (pValue.equals("Basic Peak Collector")) {
         type = BASIC_PEAK_COLLECTOR;
-        controlFlags |= RABBIT_FLAW_WALL_MODE;
+        rabbitControlFlags |= RABBIT_FLAW_WALL_MODE;
     }
     else
     if (pValue.equals("Wall Mapper")) {
         type = WALL_MAPPER;
-        controlFlags |= RABBIT_WALL_MAP_MODE;
+        rabbitControlFlags |= RABBIT_WALL_MAP_MODE;
     }
 
 }//end of UTBoard::parseBoardType
@@ -4266,7 +4268,7 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
             //the time the FPGA began recording data after the hardware delay
             //NOTE: the FPGA should really subtract the 0x8000 instead of doing
             //it here!
-            
+
             peakFlightTime =
                (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
 
@@ -4533,91 +4535,22 @@ public int processPeakDataPacket(int pNumberOfChannels)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTBoard::processPeakDataPacketX
+// UTBoard::processWallMapPacket
 //
-// Handles data from a peak data packet.  This type of packet is used to
-// transfer the peak inspection data from the remote devices.
+// Handles data from a wall map packet.  This type of packet is used to
+// transfer the wall mapping data from the remote devices.
 //
 // Returns number of bytes retrieved from the socket.
 //
 
-// WIP MKS -- this function is not used -- DELETE
-
-public int processPeakDataPacketX()
+public int processWallMapPacket()
 {
 
-    int x;
 
-    //the number of data bytes expected in the return packet is determined by
-    //the number of gates for the channel
-    int numberReturnBytes = bdChs[0].numberOfGates * PEAK_DATA_BYTES_PER_GATE;
+    return(0);
+//    return(numberReturnBytes); //number of bytes read from the socket
 
-    //add one for the DSP core identifier at the beginning of the data packet
-    numberReturnBytes++;
-
-    //above uses channel 0 - need to match channel being returned
-    //Rabbit will return all channels in one packet - need to compute packet
-    //size using all channels when this is fixed.
-
-    try{
-        timeOutProcess = 0;
-        while(timeOutProcess++ < TIMEOUT){
-            if (byteIn.available() >= numberReturnBytes) {break;}
-            waitSleep(10);
-            }
-        if ((byteIn.available()) >= numberReturnBytes) {
-            byteIn.read(inBuffer, 0, numberReturnBytes);
-        }
-        else
-        {   return 0;}
-    }// try
-    catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 4364");
-    }
-
-    x = 0;
-
-    int dspCoreFromPkt = (int)inBuffer[x++];
-
-    int flags1 =
-            (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
-
-    int peak1 =
-            (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
-
-    int peakLoc1 =
-            (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
-
-    int peakTrk1 =
-            (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
-
-    int flags2 =
-            (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
-
-    int peak2 =
-            (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
-
-    int peakLoc2 =
-            (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
-
-    int peakTrk2 =
-            (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
-
-    int flags3 =
-            (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
-
-    int peak3 =
-            (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
-
-    int peakLoc3 =
-            (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
-
-    int peakTrk3 =
-            (int)((inBuffer[x++]<<8) & 0xff00) + (int)(inBuffer[x++] & 0xff);
-
-    return(numberReturnBytes); //number of bytes read from the socket
-
-}//end of UTBoard::processPeakDataPacketX
+}//end of UTBoard::processWallMapPacket
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

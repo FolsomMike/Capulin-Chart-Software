@@ -25,6 +25,7 @@ import chart.ThreadSafeLogger;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.settings.Settings;
 import chart.mksystems.stripchart.ChartGroup;
+import chart.mksystems.stripchart.Plotter;
 import chart.mksystems.stripchart.Threshold;
 import chart.mksystems.stripchart.Trace;
 import chart.mksystems.stripchart.TraceData;
@@ -299,7 +300,7 @@ public void connect()
 void calculateTraceOffsetDelays()
 {
 
-    Trace tracePtr;
+    Plotter plotterPtr;
 
     for (int cg = 0; cg < chartGroups.length; cg++){
 
@@ -307,32 +308,32 @@ void calculateTraceOffsetDelays()
 
         for (int sc = 0; sc < nSC; sc++){
 
-            int nTr = chartGroups[cg].getStripChart(sc).getNumberOfTraces();
+            int nTr = chartGroups[cg].getStripChart(sc).getNumberOfPlotters();
 
             for (int tr = 0; tr < nTr; tr++){
 
-                tracePtr = chartGroups[cg].getStripChart(sc).getTrace(tr);
+                plotterPtr = chartGroups[cg].getStripChart(sc).getPlotter(tr);
 
 
-                if ((tracePtr != null) && (tracePtr.head == 1)){
-                    tracePtr.startFwdDelayDistance =
+                if ((plotterPtr != null) && (plotterPtr.head == 1)){
+                    plotterPtr.startFwdDelayDistance =
                             photoEye1DistanceFrontOfHead1
-                                    + tracePtr.distanceSensorToFrontEdgeOfHead;
+                                  + plotterPtr.distanceSensorToFrontEdgeOfHead;
 
-                    tracePtr.startRevDelayDistance =
+                    plotterPtr.startRevDelayDistance =
                             photoEye2DistanceFrontOfHead1 -
-                                      tracePtr.distanceSensorToFrontEdgeOfHead;
+                                    plotterPtr.distanceSensorToFrontEdgeOfHead;
 
                 }//if ((tracePtr != null) && (tracePtr.head == 1))
 
-                if ((tracePtr != null) && (tracePtr.head == 2)){
-                    tracePtr.startFwdDelayDistance =
+                if ((plotterPtr != null) && (plotterPtr.head == 2)){
+                    plotterPtr.startFwdDelayDistance =
                             photoEye1DistanceFrontOfHead2
-                                    + tracePtr.distanceSensorToFrontEdgeOfHead;
+                                  + plotterPtr.distanceSensorToFrontEdgeOfHead;
 
-                    tracePtr.startRevDelayDistance =
+                    plotterPtr.startRevDelayDistance =
                             photoEye2DistanceFrontOfHead2 -
-                                      tracePtr.distanceSensorToFrontEdgeOfHead;
+                                    plotterPtr.distanceSensorToFrontEdgeOfHead;
 
                 }//if ((tracePtr != null) && (tracePtr.head == 2))
             }//for (int tr = 0; tr < nTr; tr++)
@@ -913,7 +914,7 @@ public void collectAnalogData()
 
     for (int ch = 0; ch < numberOfChannels; ch++){
 
-        if(!analogDriver.getChannels()[ch].isEnabled()) continue;
+        if(!analogDriver.getChannels()[ch].isEnabled()) {continue;}
 
         //get the number of gates for the currently selected channel
         numberOfGates = analogDriver.getNumberOfGates(ch);
@@ -1242,8 +1243,9 @@ boolean collectEncoderDataInspectMode()
 
             hdwVs.watchForOffPipe = false;
 
-            //debug mks -- next flag added because the Belle Chasse unit does
-            //not turn the encoder after the home end of the pipe is passed
+            //debug mks -- next flag set added because the Belle Chasse unit
+            //does not turn the encoder after the home end of the pipe is passed
+            //because the belt gets lifted off the encoder
             //previously this flag would only be set if the encoder turned a bit
 
             //set flag to force preparation for a new piece
@@ -1489,7 +1491,7 @@ void moveTracesBackward(Trace pTrace, int pPixelsMoved, double pPosition)
 void enableHeadTraceFlagging(int pHead, boolean pEnable)
 {
 
-    Trace tracePtr;
+    Plotter plotterPtr;
 
     for (int cg = 0; cg < chartGroups.length; cg++){
 
@@ -1497,18 +1499,18 @@ void enableHeadTraceFlagging(int pHead, boolean pEnable)
 
         for (int sc = 0; sc < nSC; sc++){
 
-            int nTr = chartGroups[cg].getStripChart(sc).getNumberOfTraces();
+            int nTr = chartGroups[cg].getStripChart(sc).getNumberOfPlotters();
 
             for (int tr = 0; tr < nTr; tr++){
 
-                tracePtr = chartGroups[cg].getStripChart(sc).getTrace(tr);
+                plotterPtr = chartGroups[cg].getStripChart(sc).getPlotter(tr);
 
-                if ((tracePtr != null) && (tracePtr.head == pHead)){
+                if ((plotterPtr != null) && (plotterPtr.head == pHead)){
 
-                    tracePtr.flaggingEnabled = pEnable;
+                    plotterPtr.flaggingEnabled = pEnable;
 
                     //set flag bit to draw a vertical bar to show the mask point
-                    tracePtr.traceData.placeEndMaskMarker();
+                    plotterPtr.placeEndMaskMarker();
 
                 }//if ((tracePtr != null) && (tracePtr.head == pHead))
             }//for (int tr = 0; tr < nTr; tr++)
@@ -1549,7 +1551,7 @@ void enableHeadTraceFlagging(int pHead, boolean pEnable)
 public void initializeTraceOffsetDelays(int pDirection)
 {
 
-    Trace tracePtr;
+    Plotter plotterPtr;
 
     double leadingTraceCatch, trailingTraceCatch;
     int lead = 0, trail = 0;
@@ -1560,7 +1562,7 @@ public void initializeTraceOffsetDelays(int pDirection)
 
         for (int sc = 0; sc < nSC; sc++){
 
-            int nTr = chartGroups[cg].getStripChart(sc).getNumberOfTraces();
+            int nTr = chartGroups[cg].getStripChart(sc).getNumberOfPlotters();
 
             //these used to find the leading trace (smallest offset) and the
             //trailing trace (greatest offset) for each chart
@@ -1569,39 +1571,43 @@ public void initializeTraceOffsetDelays(int pDirection)
 
             for (int tr = 0; tr < nTr; tr++){
 
-                tracePtr = chartGroups[cg].getStripChart(sc).getTrace(tr);
+                plotterPtr = chartGroups[cg].getStripChart(sc).getPlotter(tr);
 
                 //if the current direction is the "Away" direction, then set
                 //the offsets properly for the carriage moving away from the
                 //operator otherwise set them for the carriage moving towards
                 //the operator see more notes in this method's header
 
-                if (tracePtr != null){
+                if (plotterPtr != null){
 
                     //start with all false, one will be set true
-                    tracePtr.leadTrace = false;
+                    plotterPtr.leadPlotter = false;
 
                     if (pDirection == AwayDirection) {
-                        tracePtr.delayDistance = tracePtr.startFwdDelayDistance;
+                        plotterPtr.delayDistance =
+                                            plotterPtr.startFwdDelayDistance;
                     }
                     else {
-                        tracePtr.delayDistance = tracePtr.startRevDelayDistance;
+                        plotterPtr.delayDistance =
+                                            plotterPtr.startRevDelayDistance;
                     }
 
                     //find the leading and trailing traces
-                    if (tracePtr.delayDistance < leadingTraceCatch)
-                        {lead = tr; leadingTraceCatch = tracePtr.delayDistance;}
-                    if (tracePtr.delayDistance > trailingTraceCatch)
-                        {trail = tr; trailingTraceCatch=tracePtr.delayDistance;}
+                    if (plotterPtr.delayDistance < leadingTraceCatch){
+                        lead = tr; leadingTraceCatch = plotterPtr.delayDistance;
+                    }
+                    if (plotterPtr.delayDistance > trailingTraceCatch){
+                        trail = tr; trailingTraceCatch=plotterPtr.delayDistance;
+                    }
 
                 }//if (tracePtr != null)
 
             }//for (int tr = 0; tr < nTr; tr++)
 
                 chartGroups[cg].
-                        getStripChart(sc).getTrace(lead).leadTrace = true;
+                        getStripChart(sc).getPlotter(lead).leadPlotter = true;
                 chartGroups[cg].
-                        getStripChart(sc).getTrace(trail).trailTrace = true;
+                        getStripChart(sc).getPlotter(trail).trailPlotter = true;
                 chartGroups[cg].
                         getStripChart(sc).setLeadTrailTraces(lead, trail);
 

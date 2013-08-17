@@ -158,10 +158,11 @@ private void configure(IniFile pConfigFile)
         stripCharts = new StripChart[numberOfStripCharts];
 
         for (int i = 0; i < numberOfStripCharts; i++){
-           stripCharts[i] =
+            stripCharts[i] =
                    new StripChart(settings, configFile, chartGroupIndex, i,
                             hardware, actionListener, chartSizeEqualsBufferSize,
                             traceValueCalculator);
+            stripCharts[i].init();
             add(stripCharts[i]);
             }
 
@@ -610,21 +611,21 @@ public String getWallMinOrMaxText(boolean pFindMin, HardwareVars pHdwVs)
     //if no "Wall" chart found, exit with empty string
     if (stripChart == null) {return(result);}
 
-    Trace trace = null;
+    Plotter plotter = null;
 
     //scan through all traces to find the one with the title containing "Max"
     //and "Min", depending on the search phrase
 
-    for (int i = 0; i < stripChart.getNumberOfTraces(); i++){
-        if(stripChart.getTrace(i).getTitle().contains(traceSearchPhrase)){
-            trace = stripChart.getTrace(i);
-            pHdwVs.trace = trace;
+    for (int i = 0; i < stripChart.getNumberOfPlotters(); i++){
+        if(stripChart.getPlotter(i).getTitle().contains(traceSearchPhrase)){
+            plotter = stripChart.getPlotter(i);
+            pHdwVs.plotter = plotter;
             break;
         }
     }
 
     //if no matching chart found, exit with empty string
-    if (trace == null) {return(result);}
+    if (plotter == null) {return(result);}
 
     int wall;
 
@@ -639,8 +640,8 @@ public String getWallMinOrMaxText(boolean pFindMin, HardwareVars pHdwVs)
     lTrailMaskPos =
             (int)(length - (stripChart.trailMaskPos * pHdwVs.pixelsPerInch));
 
-    wall = stripChart.findMinOrMaxValueOfTrace(
-                                trace, pFindMin, lLeadMaskPos, lTrailMaskPos);
+    wall = stripChart.findMinOrMaxValueOfPlotter(
+                                plotter, pFindMin, lLeadMaskPos, lTrailMaskPos);
 
     if (wall < 0) {wall = 0;}
     if (wall > stripChart.chartHeight) {wall = stripChart.chartHeight;}

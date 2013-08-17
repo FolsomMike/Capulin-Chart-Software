@@ -5,7 +5,8 @@
 *
 * Purpose:
 *
-* This class creates and handles a strip chart.
+* This class creates and handles a strip chart. Each strip chart can handle
+* multiple Plotter objects which can be Traces, Map2D's, Map3D's, etc.
 *
 * Open Source Policy:
 *
@@ -221,9 +222,9 @@ class ChartCanvas extends JPanel {
     Color gridColor;
     int width, height;
 
-    int numberOfTraces;
-    Trace traces[];
-    public int leadingTrace, trailingTrace;
+    int numberOfPlotters;
+    Plotter plotters[];
+    public int leadingPlotter, trailingPlotter;
     int numberOfThresholds;
     Threshold thresholds[];
 
@@ -240,7 +241,7 @@ class ChartCanvas extends JPanel {
 
 public ChartCanvas(Settings pSettings, int pWidth, int pHeight,
                                Color pBackgroundColor, Color pGridColor,
-                               int pNumberOfTraces, Trace[] pTraces,
+                               int pNumberOfPlotters, Plotter[] pPlotters,
                                int pNumberOfThresholds, Threshold[] pThresholds,
                                MouseMotionListener pMouseMotionListener)
 {
@@ -249,7 +250,7 @@ public ChartCanvas(Settings pSettings, int pWidth, int pHeight,
     width = pWidth; height = pHeight;
 
     backgroundColor = pBackgroundColor; gridColor = pGridColor;
-    numberOfTraces = pNumberOfTraces; traces = pTraces;
+    numberOfPlotters = pNumberOfPlotters; plotters = pPlotters;
     numberOfThresholds = pNumberOfThresholds; thresholds = pThresholds;
     mouseMotionListener = pMouseMotionListener;
     addMouseMotionListener(mouseMotionListener);
@@ -287,7 +288,7 @@ private void setSizes(int pWidth, int pHeight)
 public void resetCanvas()
 {
 
-    for (int i = 0; i < numberOfTraces; i++) {traces[i].resetTrace();}
+    for (int i = 0; i < numberOfPlotters; i++) {plotters[i].reset();}
 
 }//end of ChartCanvas::resetCanvas
 //-----------------------------------------------------------------------------
@@ -314,7 +315,9 @@ public void paintCanvas(Graphics2D pG2)
     }
 
     //paint all the traces
-    for (int i = 0; i < numberOfTraces; i++) {traces[i].paintComponent(pG2);}
+    for (int i = 0; i < numberOfPlotters; i++) {
+        plotters[i].paintComponent(pG2);
+    }
 
 }//end of ChartCanvas::paintCanvas
 //-----------------------------------------------------------------------------
@@ -342,7 +345,7 @@ public void plotData()
     //while there is data to be plotted for the leading trace, plot data for all
     //traces which have data
 
-    while (traces[leadingTrace].newDataIsReady()){
+    while (plotters[leadingPlotter].newDataIsReady()){
 
         //find the hardware channel which produced the worst case value - this
         //requires that the worst case trace be found - it is assumed that all
@@ -351,33 +354,33 @@ public void plotData()
         //look at trace 0 setting to determine which direction is more severe
         int peak;
         peak =
-           (traces[0].higherMoreSevere) ? Integer.MIN_VALUE : Integer.MAX_VALUE;
+         (plotters[0].higherMoreSevere) ? Integer.MIN_VALUE : Integer.MAX_VALUE;
 
         int lastValue;
 
         //plot any new data in the traces
         //check for new data on each trace because delayed traces might not have
         //data at the same time
-        for (int i = 0; i < numberOfTraces; i++) {
-            if (traces[i].newDataIsReady()){
-                lastValue = traces[i].plotNewData((Graphics2D)getGraphics());
+        for (int i = 0; i < numberOfPlotters; i++) {
+            if (plotters[i].newDataIsReady()){
+                lastValue = plotters[i].plotNewData((Graphics2D)getGraphics());
 
                 //catch the trace with the worst value and record its channel
-                if (traces[0].higherMoreSevere) {
+                if (plotters[0].higherMoreSevere) {
                     if (lastValue > peak){
-                        peak = lastValue; peakChannel = traces[i].peakChannel;
+                        peak = lastValue; peakChannel = plotters[i].peakChannel;
                     }
                     else
                     if (lastValue < peak){
-                        peak = lastValue; peakChannel = traces[i].peakChannel;
+                        peak = lastValue; peakChannel = plotters[i].peakChannel;
                     }
                 }
 
                 //store the wall thickness reading
-                runningValue = traces[i].wallThickness;
+                runningValue = plotters[i].wallThickness;
 
             }// if (traces[i].newDataReady())
-        }// for (int i = 0; i < numberOfTraces; i++)
+        }// for (int i = 0; i < numberOfPlotters; i++)
     }//while (traces[leadingTrace].newDataReady())
 
 }//end of ChartCanvas::plotData
@@ -470,8 +473,9 @@ public class StripChart extends JPanel implements MouseListener,
     ValueDisplay linearPositionAtCursorDisplay;
 
     public String title, shortTitle;
-    int numberOfTraces;
-    Trace[] traces;
+    int numberOfPlotters;
+    int typeOfPlotters;
+    Plotter[] plotters;
     int numberOfThresholds;
     Threshold[] thresholds;
     Color backgroundColor;
@@ -511,6 +515,18 @@ public StripChart(Settings pSettings, IniFile pConfigFile, int pChartGroup,
     traceValueCalculator = pTraceValueCalculator;
     traceGlobals = new TraceGlobals();
     chartSizeEqualsBufferSize = pChartSizeEqualsBufferSize;
+
+}//end of StripChart::StripChart (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// StripChart::init
+//
+// Initializes the object.  MUST be called by sub classes after instantiation.
+//
+
+public void init()
+{
 
     //set up the main panel - this panel does nothing more than provide a title
     //border and a spacing border
@@ -567,8 +583,9 @@ public StripChart(Settings pSettings, IniFile pConfigFile, int pChartGroup,
                         "Linear Position:", "0.0", Color.BLACK, borderColor);
     }
 
-}//end of StripChart::StripChart (constructor)
+}//end of StripChart::init
 //-----------------------------------------------------------------------------
+
 
 //-----------------------------------------------------------------------------
 // StripChart::configure
@@ -639,10 +656,15 @@ private void configure(IniFile pConfigFile)
     //read the configuration file and create/setup the thresholds
     configureThresholds(configFile);
 
-    numberOfTraces = pConfigFile.readInt(section, "Number of Traces", 1);
+    numberOfPlotters = pConfigFile.readInt(section, "Number of Plotters", 1);
 
-    //read the configuration file and create/setup the traces
-    configureTraces(configFile);
+    String typeOfPlottersText =
+            pConfigFile.readString(section, "Type of Plotters", "Trace");
+
+    parseTypeOfPlotters(typeOfPlottersText);
+
+    //read the configuration file and create/setup the plotters
+    configurePlotters(configFile);
 
     setBorder(titledBorder = BorderFactory.createTitledBorder(title));
 
@@ -654,26 +676,26 @@ private void configure(IniFile pConfigFile)
     // see header notes in constructor for more info
 
     if (chartSizeEqualsBufferSize) {
-        chartWidth = traces[0].traceData.sizeOfDataBuffer;
+        chartWidth = plotters[0].getDataBufferWidth();
     }
 
     //create a Canvas object to be placed on the main panel - the Canvas object
     //provides a panel and methods for drawing data - all the work is actually
     //done by the Canvas object
     canvas = new ChartCanvas(settings, chartWidth, chartHeight,
-                     backgroundColor, gridColor, numberOfTraces, traces,
+                     backgroundColor, gridColor, numberOfPlotters, plotters,
                      numberOfThresholds, thresholds, this);
 
-    //default to trace 0 as the leading trace for now so the chart decorations
-    //will be drawn
-    canvas.leadingTrace = 0;
+    //default to plotter 0 as the leading plotter for now so the chart
+    //decorations will be drawn
+    canvas.leadingPlotter = 0;
 
     //listen for mouse events on the canvas
     canvas.addMouseListener(this);
     add(canvas);
 
     //give all traces a link to their canvas
-    for (int i = 0; i < numberOfTraces; i++) {traces[i].setCanvas(canvas);}
+    for (int i = 0; i < numberOfPlotters; i++) {plotters[i].setCanvas(canvas);}
 
     //give all thresholds a link to their canvas
     for (int i = 0; i < numberOfThresholds; i++) {
@@ -684,37 +706,102 @@ private void configure(IniFile pConfigFile)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// StripChart::configureTraces
+// StripChart::parseTypeOfPlotters
 //
-// Loads configuration settings from the configuration.ini file relating to
-// the traces and creates/sets them up.
+// Sets the typeOfPlotters variable base on the value of pTypeOfPlottersText.
 //
 
-private void configureTraces(IniFile pConfigFile)
+private void parseTypeOfPlotters(String pTypeOfPlottersText)
+{
+
+    if(pTypeOfPlottersText.equalsIgnoreCase("Trace")){
+        typeOfPlotters = Plotter.TRACE;
+    }
+    else
+    if(pTypeOfPlottersText.equalsIgnoreCase("2D Map")){
+        typeOfPlotters = Plotter.MAP_2D;
+    }
+    else
+    if(pTypeOfPlottersText.equalsIgnoreCase("3D Map")){
+        typeOfPlotters = Plotter.MAP_3D;
+    }
+
+}//end of StripChart::configure
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// StripChart::configurePlotters
+//
+// Loads configuration settings from the configuration.ini file relating to
+// the plotters and creates/sets them up.
+//
+
+private void configurePlotters(IniFile pConfigFile)
 {
 
     //create an array of traces per the config file setting
-    if (numberOfTraces > 0){
+    if (numberOfPlotters > 0){
 
         //protect against too many items
-        if (numberOfTraces > 100) {numberOfTraces = 100;}
+        if (numberOfPlotters > 100) {numberOfPlotters = 100;}
 
-        traces = new Trace[numberOfTraces];
+        plotters = new Plotter[numberOfPlotters];
 
-        for (int i = 0; i < numberOfTraces; i++){ traces[i] =
-           new Trace(settings, configFile, chartGroup, this, chartIndex, i,
-                 traceGlobals, backgroundColor, gridColor, gridXSpacing,
-                                                        thresholds, hardware);
-           traces[i].init();
+        for (int i = 0; i < numberOfPlotters; i++){
+           plotters[i] = createPlotter(i);
+           plotters[i].init();
         }
 
         //default to trace 0 as the leading trace for now so the chart
         //decorations will be drawn
-        traces[0].leadTrace = true;
+        plotters[0].leadPlotter = true;
 
     }//if (numberOfTraces > 0)
 
-}//end of StripChart::configureTraces
+}//end of StripChart::configurePlotters
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// StripChart::createPlotter
+//
+// Creates the appropriate type of plotter base on the value of typeOfPlotters.
+//
+// The parameter pIndex is passed to the new object so it knows its index
+// position in the array containing it.
+//
+// Returns a pointer to the newly created Plotter subclass.
+//
+
+private Plotter createPlotter(int pIndex)
+{
+
+    Plotter plotter = null;
+
+    if(typeOfPlotters == Plotter.TRACE){
+
+        plotter = new Trace(settings, configFile, chartGroup, this, chartIndex,
+           pIndex, traceGlobals, backgroundColor, gridColor, gridXSpacing,
+                                                        thresholds, hardware);
+    }
+
+    if(typeOfPlotters == Plotter.MAP_2D){
+
+        plotter = new Map2D(settings, configFile, chartGroup, this, chartIndex,
+           pIndex, traceGlobals, backgroundColor, gridColor, gridXSpacing,
+                                                        thresholds, hardware);
+
+    }
+
+
+    if(typeOfPlotters == Plotter.MAP_3D){
+
+        plotter = null;
+
+    }
+
+    return(plotter);
+
+}//end of StripChart::createPlotter
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -827,7 +914,9 @@ public Color getThresholdColor(int pWhich)
 public void handleSizeChanges()
 {
 
-    for (int i = 0; i < numberOfTraces; i++) {traces[i].handleSizeChanges();}
+    for (int i = 0; i < numberOfPlotters; i++) {
+        plotters[i].handleSizeChanges();
+    }
 
     for (int i = 0; i < numberOfThresholds; i++) {
         thresholds[i].handleSizeChanges();
@@ -876,7 +965,7 @@ public void paintComponent(Graphics g)
 
     //draw the keys for the different traces to show which trace is what - each
     //key is a label describing the trace and drawn in the color of the trace
-    for (int i = 0; i < numberOfTraces; i++) {traces[i].drawKeyLabel(g2);}
+    for (int i = 0; i < numberOfPlotters; i++) {plotters[i].drawKeyLabel(g2);}
 
 }//end of StripChart::paintComponent
 //-----------------------------------------------------------------------------
@@ -998,8 +1087,8 @@ public void resetChart()
 public void markSegmentStart()
 {
 
-    for (int i = 0; i < numberOfTraces; i++) {
-        traces[i].traceData.markSegmentStart();
+    for (int i = 0; i < numberOfPlotters; i++) {
+        plotters[i].markSegmentStart();
     }
 
 }//end of StripChart::markSegmentStart
@@ -1020,8 +1109,8 @@ public void markSegmentStart()
 public void markSegmentEnd()
 {
 
-    for (int i = 0; i < numberOfTraces; i++) {
-        traces[i].traceData.markSegmentEnd();
+    for (int i = 0; i < numberOfPlotters; i++) {
+        plotters[i].markSegmentEnd();
     }
 
 }//end of StripChart::markSegmentEnd
@@ -1064,7 +1153,9 @@ public void saveSegment(BufferedWriter pOut) throws IOException
         thresholds[i].saveSegment(pOut);
     }
 
-    for (int i = 0; i < numberOfTraces; i++) {traces[i].saveSegment(pOut);}
+    for (int i = 0; i < numberOfPlotters; i++) {
+        plotters[i].saveSegment(pOut);
+    }
 
 }//end of StripChart::saveSegment
 //-----------------------------------------------------------------------------
@@ -1079,8 +1170,8 @@ public void saveSegment(BufferedWriter pOut) throws IOException
 public boolean segmentStarted()
 {
 
-    for (int i = 0; i < numberOfTraces; i++) {
-        if (traces[i].traceData.segmentStarted()) {
+    for (int i = 0; i < numberOfPlotters; i++) {
+        if (plotters[i].segmentStarted()) {
             return(true);
         }
     }
@@ -1118,8 +1209,8 @@ public String loadSegment(BufferedReader pIn, String pLastLine)
         line = thresholds[i].loadSegment(pIn, line);
     }
 
-    for (int i = 0; i < numberOfTraces; i++) {
-        line = traces[i].loadSegment(pIn, line);
+    for (int i = 0; i < numberOfPlotters; i++) {
+        line = plotters[i].loadSegment(pIn, line);
     }
 
     return(line);
@@ -1508,41 +1599,41 @@ public double convertToYAbsLocation(double pPixY)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// StripChart::getTrace
+// StripChart::getPlotter
 //
-// Returns a pointer to the trace specified by pWhich.
+// Returns a pointer to the plotter (Trace, Map2D, Map3D) specified by pWhich.
 //
 
-public Trace getTrace(int pWhich)
+public Plotter getPlotter(int pWhich)
 {
 
-    return traces[pWhich];
+    return plotters[pWhich];
 
-}//end of StripChart::getTrace
+}//end of StripChart::getPlotter
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// StripChart::findMinOrMaxValueOfTrace
+// StripChart::findMinOrMaxValueOfPlotter
 //
-// Finds the minimum or maximum value in dataBuffer1 of trace specified by
-// pTrace.  If pFindMin is true, then the minimum is found else the maximum
+// Finds the minimum or maximum value of data in plotter specified by
+// pPlotter.  If pFindMin is true, then the minimum is found else the maximum
 // is found.
 //
 // Search begins at pStart position in the array and ends at pEnd.
 //
 
-public int findMinOrMaxValueOfTrace(Trace pTrace, boolean pFindMin,
+public int findMinOrMaxValueOfPlotter(Plotter pPlotter, boolean pFindMin,
                                                         int pStart, int pEnd)
 {
 
     if(pFindMin) {
-        return(pTrace.findMinValue(pStart, pEnd));
+        return(pPlotter.findMinValue(pStart, pEnd));
     }
     else {
-        return(pTrace.findMaxValue(pStart, pEnd));
+        return(pPlotter.findMaxValue(pStart, pEnd));
     }
 
-}//end of StripChart::findMinOrMaxValueOfTrace
+}//end of StripChart::findMinOrMaxValueOfPlotter
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1563,8 +1654,8 @@ public int createArtificialLeadMask()
 
     //if a straight line section is found, start at the end of it plus 30 points
 
-    int buffer0[] = traces[0].getDataBuffer1();
-    int buffer1[] = traces[1].getDataBuffer1();
+    int buffer0[] = plotters[0].getDataBuffer1();
+    int buffer1[] = plotters[1].getDataBuffer1();
 
     //look for end of flat line sections near the beginning of both traces
     int endOfFlatline0 = findEndOfFlatlineSectionNearTraceStart(buffer0);
@@ -1668,8 +1759,8 @@ public int createArtificialTrailMask()
 
     //if a straight line section is found, end at start of it minus 30 points
 
-    int buffer0[] = traces[0].getDataBuffer1();
-    int buffer1[] = traces[1].getDataBuffer1();
+    int buffer0[] = plotters[0].getDataBuffer1();
+    int buffer1[] = plotters[1].getDataBuffer1();
 
     //look for end of flat line sections near the end of both traces
     int endOfFlatline0 = findEndOfFlatlineSectionNearTraceEnd(buffer0);
@@ -1809,15 +1900,15 @@ public int findEndOfData(int[] pBuffer)
 //-----------------------------------------------------------------------------
 // StripChart::getNumberOfTraces
 //
-// Returns the number of traces in the strip chart.
+// Returns the number of plotters (Traces, Map2Ds, Map3Ds) in the strip chart.
 //
 
-public int getNumberOfTraces()
+public int getNumberOfPlotters()
 {
 
-    return numberOfTraces;
+    return (numberOfPlotters);
 
-}//end of StripChart::getNumberOfTraces
+}//end of StripChart::getNumberOfPlotters
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1830,7 +1921,7 @@ public int getNumberOfTraces()
 public void setLeadTrailTraces(int pLead, int pTrail)
 {
 
-    canvas.leadingTrace = pLead; canvas.trailingTrace = pTrail;
+    canvas.leadingPlotter = pLead; canvas.trailingPlotter = pTrail;
 
 }//end of StripChart::setLeadTrailTraces
 //-----------------------------------------------------------------------------
@@ -1864,8 +1955,9 @@ public void mouseClicked(MouseEvent e)
         //check if click in on a trace's key label
         //if clicked, call the parent listener with the command string and the
         //chart's group and index numbers appended
-        for (int i = 0; i < numberOfTraces; i++) {
-            if ((traces[i].keyBounds != null) && traces[i].keyBounds.contains(x,y)){
+        for (int i = 0; i < numberOfPlotters; i++) {
+            if ((plotters[i].keyBounds != null)
+                                && plotters[i].keyBounds.contains(x,y)){
                 // trigger event to open the calibration window
                 actionListener.actionPerformed(new ActionEvent(this,
                                          ActionEvent.ACTION_PERFORMED,

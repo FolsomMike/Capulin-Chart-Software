@@ -1532,7 +1532,7 @@ public String updatePrevMinWallDisplay()
     String result, wallText;
     hardware.hdwVs.chartGroup = null;
     hardware.hdwVs.chart = null;
-    hardware.hdwVs.trace = null;
+    hardware.hdwVs.plotter = null;
 
     //check all chart groups for a Wall Max trace -- if there are more than one,
     //the value from the first one found will be used

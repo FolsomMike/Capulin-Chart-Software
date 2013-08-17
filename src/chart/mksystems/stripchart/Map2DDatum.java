@@ -1,12 +1,12 @@
 /******************************************************************************
-* Title: TraceDatum.java
+* Title: Map2DDatum.java
 * Author: Mike Schoonover
-* Date: 7/9/13
+* Date: 8/15/13
 *
 * Purpose:
 *
-* This class handles data from a single buffer position. It includes the
-* data point itself and other related information such as clock position and
+* This class handles data from a single buffer position of a 2D map. It includes
+* the data points and other related information such as clock position and
 * flags.
 *
 * Open Source Policy:
@@ -22,12 +22,12 @@ package chart.mksystems.stripchart;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-// class TraceDatum
+// class Map2DDatum
 //
 // This class handles data from a single buffer position.
 //
 
-public class TraceDatum extends PlotterDatum{
+public class Map2DDatum extends PlotterDatum{
 
     public int newData1;
     public int newData2;
@@ -35,6 +35,6 @@ public class TraceDatum extends PlotterDatum{
     public int prevData2;
     public int flags;
 
-}//end of class TraceDatum
+}//end of class Map2DDatum
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

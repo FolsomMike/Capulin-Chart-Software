@@ -1,13 +1,13 @@
 /******************************************************************************
-* Title: TraceDatum.java
+* Title: PlotterDatum.java
 * Author: Mike Schoonover
-* Date: 7/9/13
+* Date: 8/15/13
 *
 * Purpose:
 *
-* This class handles data from a single buffer position. It includes the
-* data point itself and other related information such as clock position and
-* flags.
+* This is the parent class for classes which handle data from a single buffer
+* position. It includes the data point(s) and other related information such as
+* clock position and flags.
 *
 * Open Source Policy:
 *
@@ -22,19 +22,15 @@ package chart.mksystems.stripchart;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-// class TraceDatum
+// class PlotterDatum
 //
-// This class handles data from a single buffer position.
+// This is the parent class for classes which handle data from a single buffer
+// position.
 //
 
-public class TraceDatum extends PlotterDatum{
+public class PlotterDatum extends Object{
 
-    public int newData1;
-    public int newData2;
-    public int prevData1;
-    public int prevData2;
-    public int flags;
 
-}//end of class TraceDatum
+}//end of class PlotterDatum
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
