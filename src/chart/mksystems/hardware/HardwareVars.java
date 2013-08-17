@@ -22,7 +22,7 @@ import chart.mksystems.stripchart.ChartGroup;
 import chart.mksystems.stripchart.Plotter;
 import chart.mksystems.stripchart.StripChart;
 import chart.mksystems.stripchart.Threshold;
-import chart.mksystems.stripchart.TraceHdwVars;
+import chart.mksystems.stripchart.PlotterHdwVars;
 
 //-----------------------------------------------------------------------------
 // class HardwareVars
@@ -32,7 +32,7 @@ import chart.mksystems.stripchart.TraceHdwVars;
 public class HardwareVars extends Object{
 
     int nextIndex;
-    TraceHdwVars hdwVs;
+    PlotterHdwVars hdwVs;
     Threshold[] thresholds;
 
     UTGate gatePtr;

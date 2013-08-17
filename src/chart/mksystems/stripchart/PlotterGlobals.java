@@ -1,11 +1,12 @@
 /******************************************************************************
-* Title: TraceGlobals.java
+* Title: PlotterGlobals.java
 * Author: Mike Schoonover
 * Date: 1/19/10
 *
 * Purpose:
 *
-* This class encapsulates variables shared among the traces of a chart.
+* This class encapsulates variables shared among the Plotter objects of a
+* chart such as Traces, Map2D's, Map3D's, etc.
 *
 * Open Source Policy:
 *
@@ -20,16 +21,17 @@ package chart.mksystems.stripchart;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-// class TraceGlobals
+// class PlotterGlobals
 //
-// This class encapsulates variables shared among the traces of a chart.
+// This class encapsulates variables shared among the Plotter objects of a
+// chart such as Traces, Map2D's, Map3D's, etc.
 //
 
-public class TraceGlobals{
+public class PlotterGlobals{
 
     int bufOffset;
     int scrollCount;
 
-}//end of class TraceGlobals
+}//end of class PlotterGlobals
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

@@ -82,7 +82,9 @@ public class Plotter extends Object{
     public String prevAmplitudeText = "";
     public int prevClockPos = -1;
 
-    TraceHdwVars hdwVs;
+    PlotterHdwVars hdwVs;
+    PlotterGlobals plotterGlobals;
+    PlotVars plotVs, repaintVs;
 
     //wall thickness value - used by wall traces
     public double wallThickness;
@@ -97,6 +99,8 @@ public class Plotter extends Object{
     Color gridColor;
 
     ColorMapper colorMapper = null;
+
+    public boolean positionAdvanced;  //used by external class
 
     //types of plotter objects
 
@@ -551,6 +555,23 @@ public void placeEndMaskMarker()
 {
 
 }//end of Plotter::placeEndMaskMarker
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Plotter::advanceInsertionPoint
+//
+// Moves the insertion point forward one buffer position and makes the
+// necessary preparations to the previous and new locations.
+//
+// This method should only be called by the producer thread.
+//
+// Should be overridden by subclasses.
+//
+
+public void advanceInsertionPoint()
+{
+
+}//end of Plotter::advanceInsertionPoint
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

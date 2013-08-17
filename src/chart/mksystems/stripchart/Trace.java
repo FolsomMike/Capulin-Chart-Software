@@ -24,12 +24,7 @@ import chart.mksystems.hardware.Hardware;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.settings.Settings;
 import java.awt.*;
-import java.awt.font.FontRenderContext;
-import java.awt.font.TextAttribute;
-import java.awt.font.TextLayout;
 import java.io.*;
-import java.util.HashMap;
-import javax.swing.*;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -39,9 +34,6 @@ import javax.swing.*;
 //
 
 public class Trace extends Plotter{
-
-    TraceGlobals traceGlobals;
-    PlotVars plotVs, repaintVs;
 
     public TraceData traceData;
     TraceDatum traceDatum;
@@ -56,8 +48,6 @@ public class Trace extends Plotter{
     //clock position of the last flag
     public int lastFlaggedClockPos;
 
-    public boolean positionAdvanced;  //used by external class
-
 //-----------------------------------------------------------------------------
 // Trace::Trace (constructor)
 //
@@ -67,7 +57,7 @@ public class Trace extends Plotter{
 
 public Trace(Settings pSettings, IniFile pConfigFile, int pChartGroup,
             StripChart pChart,
-            int pChartIndex, int pTraceIndex, TraceGlobals pTraceGlobals,
+            int pChartIndex, int pTraceIndex, PlotterGlobals pPlotterGlobals,
             Color pBackgroundColor, Color pGridColor, int pGridXSpacing,
                 Threshold[] pThresholds, Hardware pHardware)
 {
@@ -77,7 +67,7 @@ public Trace(Settings pSettings, IniFile pConfigFile, int pChartGroup,
     chart = pChart;
     chartIndex = pChartIndex; plotterIndex = pTraceIndex;
     gridColor = pGridColor;
-    traceGlobals = pTraceGlobals;
+    plotterGlobals = pPlotterGlobals;
     gridXSpacing = pGridXSpacing ;
     //some of the code is more efficient with a variable of gridXSpacing-1
     gridXSpacingT = pGridXSpacing - 1;
@@ -102,7 +92,7 @@ public void init()
     super.init();
 
     plotVs = new PlotVars(); repaintVs = new PlotVars();
-    hdwVs = new TraceHdwVars();
+    hdwVs = new PlotterHdwVars();
 
     //read the configuration file and create/setup the charting/control elements
     configure(configFile);
@@ -158,16 +148,17 @@ void configure(IniFile pConfigFile)
 // available at that time.
 //
 
+@Override
 public void reset()
 {
 
     plotVs.gridCounter = 0; //used to place grid marks
 
-    plotVs.drawTrace = true; //draw trace when plotting data
+    plotVs.drawData = true; //draw trace when plotting data
 
-    traceGlobals.bufOffset = 0; //left edge of screen starts at position 0
+    plotterGlobals.bufOffset = 0; //left edge of screen starts at position 0
 
-    traceGlobals.scrollCount = 0; //number of pixels chart has been scrolled
+    plotterGlobals.scrollCount = 0; //number of pixels chart has been scrolled
 
     //pixel position on the screen where data is being plotted
     plotVs.pixPtr = -1;
@@ -224,6 +215,8 @@ public int getDataWidth()
 // of the data to be saved are known.
 //
 
+
+@Override
 public void saveSegment(BufferedWriter pOut) throws IOException
 {
 
@@ -382,6 +375,7 @@ private String processTraceMetaData(BufferedReader pIn, String pLastLine)
 // Returns true if new data is ready, false if not.
 //
 
+@Override
 public boolean newDataIsReady()
 {
 
@@ -400,6 +394,7 @@ public boolean newDataIsReady()
 // from the second data set.
 //
 
+@Override
 public int plotNewData(Graphics2D pG2)
 {
 
@@ -445,7 +440,7 @@ public int plotPoint(Graphics2D pG2, PlotVars pVars, TraceDatum pTraceDatum)
         pVars.pixPtr++;
     }
     else{
-        //if this is the lead trace, shift the chart left and erase right slice
+        //if this is lead Plotter object, shift chart left and erase right slice
         if (leadPlotter){
             //scroll the screen 1 pixel to the left
             pG2.copyArea(1, 0, canvas.getWidth(), canvas.getHeight(), -1, 0);
@@ -460,22 +455,22 @@ public int plotPoint(Graphics2D pG2, PlotVars pVars, TraceDatum pTraceDatum)
             //the counter is global for all traces on a chart because they all
             //are shifted when trace 0 shifts the canvas
 
-            traceGlobals.bufOffset++;
-            if (traceGlobals.bufOffset == getDataBuffer1().length) {
-                traceGlobals.bufOffset = 0;
+            plotterGlobals.bufOffset++;
+            if (plotterGlobals.bufOffset == traceData.sizeOfDataBuffer) {
+                plotterGlobals.bufOffset = 0;
             }
 
             //track the number of pixels the chart has been scrolled - this is
             //used to determine the proper location of grid marks and other
             //decorations when the screen is repainted
 
-            traceGlobals.scrollCount++;
+            plotterGlobals.scrollCount++;
 
         }//if (traceIndex == 0)
 
     }//else if (pVars.pixPtr...
 
-    //if this is the lead trace draw the decorations
+    //if this is the lead Plotter object draw the decorations
     if (leadPlotter){
         for (int j = 0; j < numberOfThresholds; j++) {
             thresholds[j].drawSlice(pG2, pVars.pixPtr);
@@ -505,21 +500,21 @@ public int plotPoint(Graphics2D pG2, PlotVars pVars, TraceDatum pTraceDatum)
             pG2.drawLine(pVars.pixPtr, canvasYLimit, pVars.pixPtr, 0);
         }
 
-    }// if (leadTrace)
+    }// if (leadPlotter)
 
     //apply offset, scaling, limits to y value
     //for span style, the high peaks and low peaks are in separate buffers in
     //the same index position
 
-    if (hdwVs.plotStyle == TraceHdwVars.POINT_TO_POINT){
+    if (hdwVs.plotStyle == PlotterHdwVars.POINT_TO_POINT){
         pVars.y1 = pTraceDatum.prevData1;
         pVars.y2 = pTraceDatum.newData1;
     }
-    else if (hdwVs.plotStyle == TraceHdwVars.STICK){
+    else if (hdwVs.plotStyle == PlotterHdwVars.STICK){
         pVars.y1 = 0;
         pVars.y2 = pTraceDatum.newData1;
     }
-    else if (hdwVs.plotStyle == TraceHdwVars.SPAN){
+    else if (hdwVs.plotStyle == PlotterHdwVars.SPAN){
         pVars.y1 = pTraceDatum.newData1;
         pVars.y2 = pTraceDatum.newData2;
     }
@@ -527,8 +522,8 @@ public int plotPoint(Graphics2D pG2, PlotVars pVars, TraceDatum pTraceDatum)
     //save the value plotted so it can be returned on exit
     int lastPlotted = pVars.y2;
 
-    //if the drawTrace flag is false, exit having only drawn decorations
-    if (!pVars.drawTrace) {return(lastPlotted);}
+    //if the drawData flag is false, exit having only drawn decorations
+    if (!pVars.drawData) {return(lastPlotted);}
 
     //prepare to draw the trace
 
@@ -561,15 +556,15 @@ public int plotPoint(Graphics2D pG2, PlotVars pVars, TraceDatum pTraceDatum)
 
     pG2.setColor(traceColor);
 
-    if (hdwVs.plotStyle == TraceHdwVars.POINT_TO_POINT) {
+    if (hdwVs.plotStyle == PlotterHdwVars.POINT_TO_POINT) {
         pG2.drawLine(pVars.pixPtr-1, pVars.y1, pVars.pixPtr, pVars.y2);
     }
     else
-    if (hdwVs.plotStyle == TraceHdwVars.STICK) {
+    if (hdwVs.plotStyle == PlotterHdwVars.STICK) {
         pG2.drawLine(pVars.pixPtr, pVars.y1, pVars.pixPtr, pVars.y2);
     }
     else
-    if (hdwVs.plotStyle == TraceHdwVars.SPAN) {
+    if (hdwVs.plotStyle == PlotterHdwVars.SPAN) {
         pG2.drawLine(pVars.pixPtr, pVars.y1, pVars.pixPtr, pVars.y2);
     }
 
@@ -582,7 +577,7 @@ public int plotPoint(Graphics2D pG2, PlotVars pVars, TraceDatum pTraceDatum)
         int flagY = pVars.y2; //draw flag at height of peak for non-SPAN styles
 
         //for span mode, draw flag at min or max depending on bit in flagBuffer
-        if (hdwVs.plotStyle == TraceHdwVars.SPAN){
+        if (hdwVs.plotStyle == PlotterHdwVars.SPAN){
             if ((pTraceDatum.flags & TraceData.MIN_MAX_FLAGGED) == 0){
                 flagY = pVars.y1;
             }
@@ -639,16 +634,16 @@ public int erasePoint(Graphics2D pG2, PlotVars pVars, TraceDatum pTraceDatum)
             //the counter is global for all traces on a chart because they all
             //are shifted when trace 0 shifts the canvas
 
-            traceGlobals.bufOffset--;
-            if (traceGlobals.bufOffset == -1) {
-                traceGlobals.bufOffset = traceData.getDataBuffer1().length-1;
+            plotterGlobals.bufOffset--;
+            if (plotterGlobals.bufOffset == -1) {
+                plotterGlobals.bufOffset = traceData.getDataBuffer1().length-1;
             }
 
             //track the number of pixels the chart has been scrolled - this is
             //used to determine the proper location of grid marks and other
             //decorations when the screen is repainted
 
-            traceGlobals.scrollCount--;
+            plotterGlobals.scrollCount--;
 
         }//if (traceIndex == 0)
 
@@ -881,12 +876,30 @@ public void placeEndMaskMarker()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Trace::advanceInsertionPoint
+//
+// Moves the insertion point forward one buffer position and makes the
+// necessary preparations to the previous and new locations.
+//
+// This method should only be called by the producer thread.
+//
+
+@Override
+public void advanceInsertionPoint()
+{
+
+    traceData.advanceInsertionPoint();
+
+}//end of Trace::advanceInsertionPoint
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Trace::paintComponent
 //
 // Refreshes the canvas using the data in the buffers.
 //
 // If the end of valid data is reached in the buffer before the full chart is
-// redrawn, the repaintVs.drawTrace flag is set false so that plotPoint can
+// redrawn, the repaintVs.drawData flag is set false so that plotPoint can
 // still be called to draw decorations across the entire chart without drawing
 // undefined trace data.
 //
@@ -897,7 +910,7 @@ public void paintComponent(Graphics2D pG2)
 
     //set starting point to the current buffer offset of the screen display
 
-    traceData.prepareForRepaint(traceGlobals.bufOffset);
+    traceData.prepareForRepaint(plotterGlobals.bufOffset);
 
     // the repaintVS object is used here to avoid conflict with the
     // plotVs object which tracks plotting of new data
@@ -907,12 +920,12 @@ public void paintComponent(Graphics2D pG2)
     //for repainting, the gridCounter starts at one to sync up with drawing by
     //the plotNewData code
 
-    repaintVs.gridCounter = traceGlobals.scrollCount % gridXSpacing;
+    repaintVs.gridCounter = plotterGlobals.scrollCount % gridXSpacing;
 
     //start with drawing trace allowed - will be set false by plotPoint when
     //an undefined data point reached which signifies the end of valid data
 
-    repaintVs.drawTrace = true;
+    repaintVs.drawData = true;
 
     //stop short of the end of the screen to avoid triggering chart scroll
     //in the plotPoint function
@@ -925,7 +938,7 @@ public void paintComponent(Graphics2D pG2)
 
         //stop tracing at end of valid data -- see notes in method header
         if ((traceDatum.flags & TraceData.DATA_VALID) == 0) {
-            repaintVs.drawTrace = false;
+            repaintVs.drawData = false;
         }
 
         plotPoint(pG2, repaintVs, traceDatum);

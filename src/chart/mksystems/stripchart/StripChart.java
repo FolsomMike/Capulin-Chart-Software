@@ -449,7 +449,7 @@ public class StripChart extends JPanel implements MouseListener,
     TraceValueCalculator traceValueCalculator;
     Hardware hardware;
     Color borderColor;
-    TraceGlobals traceGlobals;
+    PlotterGlobals traceGlobals;
     public int chartHeight;
 
     boolean displayPeakChannel;
@@ -513,7 +513,7 @@ public StripChart(Settings pSettings, IniFile pConfigFile, int pChartGroup,
     chartGroup = pChartGroup;
     hardware = pHardware; actionListener = pActionListener;
     traceValueCalculator = pTraceValueCalculator;
-    traceGlobals = new TraceGlobals();
+    traceGlobals = new PlotterGlobals();
     chartSizeEqualsBufferSize = pChartSizeEqualsBufferSize;
 
 }//end of StripChart::StripChart (constructor)

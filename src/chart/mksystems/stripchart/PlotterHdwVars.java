@@ -1,12 +1,12 @@
 /******************************************************************************
-* Title: TraceHdwVars.java
+* Title: PlotterHdwVars.java
 * Author: Mike Schoonover
 * Date: 3/17/08
 *
 * Purpose:
 *
 * This class encapsulates variables passed between the Hardware class and the
-* Trace class.
+* Plotter classes such as Trace, Map2D, Map3D.
 *
 * Open Source Policy:
 *
@@ -21,13 +21,13 @@ package chart.mksystems.stripchart;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-// class TraceHdwVars
+// class PlotterHdwVars
 //
 // This class encapsulates variables passed between the Hardware class and the
-// Trace class.
+// Plotter classes such as Trace, Map2D, Map3D.
 //
 
-public class TraceHdwVars{
+public class PlotterHdwVars{
 
     //public int bufPtr;
     public int separatorPos;
@@ -48,7 +48,7 @@ public class TraceHdwVars{
 
 
 //-----------------------------------------------------------------------------
-// TraceHdwVars::setSimDataType
+// PlotterHdwVars::setSimDataType
 //
 // Sets the simulation data type to pType.  If pType is illegal, type is set
 // to 0.
@@ -61,11 +61,11 @@ public void setSimDataType(int pType)
 
     simDataType = pType;
 
-}//end of class TraceHdwVars::setSimDataType
+}//end of class PlotterHdwVars::setSimDataType
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceHdwVars::setPlotStyle
+// PlotterHdwVars::setPlotStyle
 //
 // Sets the plot style to pStyle.  If pType is illegal, style is set to
 // to 0.
@@ -78,10 +78,10 @@ public void setPlotStyle(int pStyle)
 
     plotStyle = pStyle;
 
-}//end of class TraceHdwVars::setPlotStyle
+}//end of class PlotterHdwVars::setPlotStyle
 //-----------------------------------------------------------------------------
 
 
-}//end of class TraceHdwVars
+}//end of class PlotterHdwVars
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

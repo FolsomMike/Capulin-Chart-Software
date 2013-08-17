@@ -1036,7 +1036,7 @@ boolean collectEncoderDataTimerMode()
 {
 
     boolean newPositionData;
-    Trace tracePtr;
+    Plotter plotterPtr;
 
     newPositionData = true; //signal that position has been changed
 
@@ -1056,8 +1056,8 @@ boolean collectEncoderDataTimerMode()
     //set all flags to false before starting
     for (int ch = 0; ch < numberOfChannels; ch++) {
         for (int g = 0; g < analogDriver.getNumberOfGates(ch); g++){
-            tracePtr = analogDriver.getTrace(ch,g);
-            if (tracePtr != null) {tracePtr.positionAdvanced = false;}
+            plotterPtr = analogDriver.getTrace(ch,g);
+            if (plotterPtr != null) {plotterPtr.positionAdvanced = false;}
         }
     }
 
@@ -1068,18 +1068,28 @@ boolean collectEncoderDataTimerMode()
 
         for (int g = 0; g < numberOfGates; g++){
 
-            tracePtr = analogDriver.getTrace(ch,g);
+            plotterPtr = analogDriver.getTrace(ch,g);
 
-            if (tracePtr != null && tracePtr.positionAdvanced == false){
+            if (plotterPtr != null && plotterPtr.positionAdvanced == false){
 
                 //set flag so this index won't be updated again
-                tracePtr.positionAdvanced = true;
+                plotterPtr.positionAdvanced = true;
 
-                tracePtr.traceData.advanceInsertionPoint();
+                plotterPtr.advanceInsertionPoint();
 
             }
         }// for (int g = 0; g < numberOfGates; g++)
     }// for (int ch = 0; ch < numberOfChannels; ch++)
+
+
+    //debug mks
+
+    //replace this with a list of Plotters which need auto advance????
+
+    chartGroups[0].getStripChart(4).getPlotter(0).advanceInsertionPoint();
+
+    //debug mks
+
 
     return(newPositionData);
 

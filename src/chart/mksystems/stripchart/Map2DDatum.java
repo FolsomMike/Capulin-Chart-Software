@@ -29,10 +29,8 @@ package chart.mksystems.stripchart;
 
 public class Map2DDatum extends PlotterDatum{
 
-    public int newData1;
-    public int newData2;
-    public int prevData1;
-    public int prevData2;
+    public int [] newDataColumn;
+    public int [] prevDataColumn;
     public int flags;
 
 }//end of class Map2DDatum

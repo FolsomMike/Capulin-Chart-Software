@@ -31,7 +31,7 @@ public class PlotVars{
     int y1, y2;
     int pixPtr;
     int gridCounter;
-    boolean drawTrace;
+    boolean drawData;
 
 }//end of class PlotVars
 //-----------------------------------------------------------------------------
