@@ -2911,7 +2911,7 @@ public void sendDataChangesToRemotes()
     //do nothing if no data changed for any synced variables
     if (!syncedVarMgr.getDataChangedMaster()) {return;}
 
-    utBoard.clearDSPMessageAndAckCounters();
+    if (utBoard != null) {utBoard.clearDSPMessageAndAckCounters();}
 
     if (flags1SetMask.getDataChangedFlag()) {sendSetFlags1();}
 
@@ -2952,13 +2952,13 @@ public void sendDataChangesToRemotes()
     //than having processAllAvailableDataPackets wait between each packet as
     //this way is much faster
 
-    utBoard.waitSleep(100);
+    if (utBoard != null) {utBoard.waitSleep(100);}
 
     //process the expected DSP ACK packets
-    utBoard.processAllAvailableDataPackets(false);
+    if (utBoard != null) {utBoard.processAllAvailableDataPackets(false);}
 
     //check to see if each message received and ACK
-    utBoard.compareDSPAckCountToMessageCount();
+    if (utBoard != null) {utBoard.compareDSPAckCountToMessageCount();}
 
 }//end of Channel::sendDataChangesToRemotes
 //-----------------------------------------------------------------------------
