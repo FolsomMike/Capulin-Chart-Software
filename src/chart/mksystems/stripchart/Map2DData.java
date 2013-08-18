@@ -78,7 +78,7 @@ public void init()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Map2DData::totalReset
+// Map2DData::resetAll
 //
 // Resets everything back to default values.
 //
@@ -91,10 +91,10 @@ public void init()
 //
 
 @Override
-synchronized public void totalReset()
+synchronized public void resetAll()
 {
 
-    super.totalReset();
+    super.resetAll();
 
     if (mapDataBuffer != null) {
         for (int i = 0; i < sizeOfDataBuffer; i++){
@@ -109,13 +109,14 @@ synchronized public void totalReset()
         }
     }
 
-}//end of Map2DData::totalReset
+}//end of Map2DData::resetAll
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // Map2DData::storeDataAtInsertionPoint
 //
-// Stores pData in dataBuffer1 at the current insertion point.
+// Stores data in pData array in mapDataBuffer column at the current insertion
+// point.
 //
 // If no data has already been stored at that point, pData is stored without
 // comparison.
@@ -129,10 +130,8 @@ synchronized public void totalReset()
 // to not being greater or less than the existing data point.
 //
 
-public boolean storeDataAtInsertionPoint(int pData)
+public boolean storeDataAtInsertionPoint(int pData[])
 {
-
-/*
 
     boolean dataStored = false;
 
@@ -141,34 +140,32 @@ public boolean storeDataAtInsertionPoint(int pData)
 
     if ((flagBuffer[insertionPoint] & IN_PROCESS) == 0){
         setFlags(insertionPoint, IN_PROCESS);
-        dataBuffer1[insertionPoint] = pData;
+        System.arraycopy(
+              pData, 0, mapDataBuffer[insertionPoint], 0, widthOfDataBuffer);
         dataStored = true;
     }
     else{
-
         //only store if new data is greater than old data
         if (peakDirection == MAX){
-            if (pData > dataBuffer1[insertionPoint]){
-                dataBuffer1[insertionPoint] = pData;
-                dataStored = true;
+            for(int i = 0; i < widthOfDataBuffer; i++){
+                if (pData[i] > mapDataBuffer[insertionPoint][i]){
+                    mapDataBuffer[insertionPoint][i] = pData[i];
+                    dataStored = true;
                 }
+            }
         }
         else{
             //only store if new data is less than old data
-            if (pData < dataBuffer1[insertionPoint]){
-                dataBuffer1[insertionPoint] = pData;
-                dataStored = true;
+            for(int i = 0; i < widthOfDataBuffer; i++){
+                if (pData[i] < mapDataBuffer[insertionPoint][i]){
+                    mapDataBuffer[insertionPoint][i] = pData[i];
+                    dataStored = true;
+                }
             }
         }
     }
 
-
     return(dataStored);
-
-*
-*/
-
-    return(false); //debug mks -- remove this
 
 }//end of Map2DData::storeDataAtInsertionPoint
 //-----------------------------------------------------------------------------
@@ -180,6 +177,7 @@ public boolean storeDataAtInsertionPoint(int pData)
 // flags.
 //
 
+@Override
 synchronized void setFlags(int pPosition, int pMask)
 {
 
@@ -195,6 +193,7 @@ synchronized void setFlags(int pPosition, int pMask)
 // flags.
 //
 
+@Override
 synchronized void clearFlags(int pPosition, int pMask)
 {
 
@@ -240,7 +239,6 @@ synchronized void clearFlags(int pPosition, int pMask)
 
 synchronized public int getNewData(Map2DDatum pDatum)
 {
-
 
     if ((flagBuffer[extractionPoint] & DATA_ERASED) != 0){
 
@@ -311,21 +309,11 @@ synchronized public int getNewData(Map2DDatum pDatum)
     System.arraycopy(mapDataBuffer[prevInsertionPoint], 0,
                         mapDataBuffer[insertionPoint], 0, widthOfDataBuffer);
 
-    //debug mks
-
-    for (int i = 0; i < widthOfDataBuffer; i++){
-        mapDataBuffer[prevInsertionPoint][i] =
-                (int)(300 - 175 * Math.random());
-    }
-
-    //debug mks end
-
-
 }//end of Map2DData::advanceInsertionPoint
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Map2DData::getMapDataBuffer
+// Map2DData::get
 //
 // Returns a reference to mapDataBuffer.
 //

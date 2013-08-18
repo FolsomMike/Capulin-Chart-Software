@@ -142,7 +142,7 @@ public void init()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// PlotterData::totalReset
+// PlotterData::resetAll
 //
 // Resets everything back to default values.
 //
@@ -154,7 +154,7 @@ public void init()
 // index 1.
 //
 
-synchronized public void totalReset()
+synchronized public void resetAll()
 {
 
     insertionPoint = 0;
@@ -166,7 +166,7 @@ synchronized public void totalReset()
     //reset segment end pointers
     lastSegmentStartIndex = -1; lastSegmentEndIndex = -1;
 
-}//end of PlotterData::totalReset
+}//end of PlotterData::ResetAll
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -525,6 +525,21 @@ public int getDataWidth()
     return(endOfData);
 
 }//end of Plotter::getDataWidth
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Plotter::getDataBufferWidth
+//
+// Gets the width of the data buffer. This is the second size of a multi-
+// dimensional array used for mapping.
+//
+
+public int getDataBufferWidth()
+{
+
+    return(widthOfDataBuffer);
+
+}//end of Plotter::getDataBufferWidth
 //-----------------------------------------------------------------------------
 
 }//end of class PlotterData

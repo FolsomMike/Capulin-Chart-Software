@@ -21,7 +21,6 @@ package chart.mksystems.stripchart;
 //-----------------------------------------------------------------------------
 
 import chart.mksystems.hardware.Hardware;
-import chart.mksystems.hardware.WallMap2DColorMapper;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.settings.Settings;
 import java.awt.Color;
@@ -43,6 +42,8 @@ public class Map2D extends Plotter{
     int verticalOffset, verticalSize;
     int minY, maxY;
 
+    int dataSourceBoard;
+
 //-----------------------------------------------------------------------------
 // Map2D::Map2D (constructor)
 //
@@ -52,7 +53,7 @@ public class Map2D extends Plotter{
 
 public Map2D(Settings pSettings, IniFile pConfigFile, int pChartGroup,
             StripChart pChart,
-            int pChartIndex, int pMap2DIndex, PlotterGlobals pTraceGlobals,
+            int pChartIndex, int pMap2DIndex, PlotterGlobals pPlotterGlobals,
             Color pBackgroundColor, Color pGridColor, int pGridXSpacing,
                 Threshold[] pThresholds, Hardware pHardware)
 {
@@ -62,6 +63,7 @@ public Map2D(Settings pSettings, IniFile pConfigFile, int pChartGroup,
     chart = pChart;
     chartIndex = pChartIndex; plotterIndex = pMap2DIndex;
     gridColor = pGridColor;
+    plotterGlobals = pPlotterGlobals;
 
     gridXSpacing = pGridXSpacing ;
     //some of the code is more efficient with a variable of gridXSpacing-1
@@ -92,32 +94,13 @@ public void init()
     //read the configuration file and create/setup the charting/control elements
     configure(configFile);
 
-    //debug mks
-
-    //this should be done in Main, Hardware, Capulin 1 based on settings
-    //read from config file so the colorMapper is customized to the config
-
-    //test pipe .707 wall, 13-3/4 dia.
-
-    // .707 wall, use range of +20% to -50%
-
-    // hue base of 0.0 is Red
-    // hue base of .6666666667 is Blue
-
-    //for simulation using .250 wall:
-    // +20% = .30    -50% = .125, range is .175
-
-    //public WallMap2DColorMapper(int pValueBase, int pValueRange, float pHueBase,
-    //       float pHueRange, float pHue, float pSaturation, float pBrightness,
-    //      boolean pInvertHue)
-
-
-    setColorMapper(new WallMap2DColorMapper(
-            125, 175, (float)0.0, (float).6666666667,
-            (float)1.0, (float)1.0, (float)1.0, false));
-
-
-    //debug mks
+    //link the map data object to the appropriate source board as specified in
+    //config file
+    //hardware may be null if this object is used for viewing only, so skip this
+    //step if so
+    if (hardware != null) {
+        hardware.linkMapToSourceBoard(dataSourceBoard, this);
+    }
 
 }//end of Map2D::init
 //-----------------------------------------------------------------------------
@@ -135,6 +118,8 @@ void configure(IniFile pConfigFile)
     super.configure(pConfigFile);
 
     String section = configFileSection;
+
+    dataSourceBoard = pConfigFile.readInt(section, "Data Source Board", -1);
 
     verticalSize = pConfigFile.readInt(section, "Vertical Size", 100);
 
@@ -163,6 +148,40 @@ void configure(IniFile pConfigFile)
     map2DDatum = new Map2DDatum();
 
 }//end of Map2D::configure
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map2D::resetAll
+//
+// Clears all data.
+//
+// Do not call from the constructor because all data may not be available at
+// that time.
+//
+
+@Override
+public void resetAll()
+{
+
+    super.resetAll();
+
+    map2DData.resetAll();
+
+}//end of Map2D::resetAll
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map2D::getDataHandler
+//
+// Returns a pointer to the data handling object.
+//
+
+public Map2DData getDataHandler()
+{
+
+    return (map2DData);
+
+}//end of Map2D::getDataHandler
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

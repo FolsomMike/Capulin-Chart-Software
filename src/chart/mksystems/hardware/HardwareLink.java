@@ -21,6 +21,7 @@ package chart.mksystems.hardware;
 
 import chart.Log;
 import chart.mksystems.inifile.IniFile;
+import chart.mksystems.stripchart.Map2D;
 import chart.mksystems.stripchart.Threshold;
 import chart.mksystems.stripchart.Trace;
 import chart.mksystems.stripchart.TraceData;
@@ -83,9 +84,11 @@ public void requestPeakData(int pChannel);
 
 public void requestPeakDataForAllBoards();
 
-public void linkTraces(int pChartGroup, int pChart, int pTrace,
+public void linkPlotters(int pChartGroup, int pChart, int pTrace,
         TraceData pTraceData, Threshold[] pThresholds, int pPlotStyle,
         Trace pTracePtr);
+
+public void linkMapToSourceBoard(int pWhichBoard, Map2D pMap2D);
 
 boolean prepareAnalogData();
 

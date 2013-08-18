@@ -1996,23 +1996,24 @@ void setTransducer(boolean pChannelOn, int pPulseBank, int pPulseChannel,
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Channel::linkTraces
+// Channel::linkPlotters
 //
-// This function is called by traces to link their buffers to specific hardware
-// channels/gates and give a link back to variables in the Trace object.
+// This function is called by Plotters (Traces, etc.) to link their buffers to
+// specific hardware channels/gates and give a link back to variables in the
+// Plotter object.
 //
 
-public void linkTraces(int pChartGroup, int pChart, int pTrace,
+public void linkPlotters(int pChartGroup, int pChart, int pTrace,
         TraceData pTraceData, Threshold[] pThresholds, int pPlotStyle,
                                                             Trace pTracePtr)
 {
 
     for (int i = 0; i < numberOfGates; i++) {
-        gates[i].linkTraces(pChartGroup, pChart, pTrace, pTraceData,
+        gates[i].linkPlotters(pChartGroup, pChart, pTrace, pTraceData,
                                         pThresholds, pPlotStyle, pTracePtr);
     }
 
-}//end of Channel::linkTraces
+}//end of Channel::linkPlotters
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -2897,6 +2898,11 @@ public void calculateDACGateTimeLocation(int pDACGate,
 // Channel::sendDataChangesToRemotes
 //
 // If any data has been changed, sends the changes to the remotes.
+//
+// These values are often changed by the user clicking on controls which are
+// handled in the main GUI thread. Synced variables are used to avoid
+// collisions with the thread handling the UTBoards which also calls this
+// function.
 //
 // If pWaitForAcks is true, this method will force the processing of any Ack
 // packets returned by the DSPs and check to see if each message was

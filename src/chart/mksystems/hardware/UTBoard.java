@@ -20,6 +20,8 @@ package chart.mksystems.hardware;
 
 import chart.Log;
 import chart.mksystems.inifile.IniFile;
+import chart.mksystems.stripchart.Map2D;
+import chart.mksystems.stripchart.Map2DData;
 import java.io.*;
 import java.net.*;
 import javax.swing.*;
@@ -41,6 +43,16 @@ public class UTBoard extends Board{
     String fpgaCodeFilename;
     String dspCodeFilename;
     double nSPerDataPoint, uSPerDataPoint;
+
+    int packetCount = Integer.MAX_VALUE;
+    int dataBufferIndex = 0;
+    int dataBufferSize;
+    short dataBuffer[];
+    Map2D map2D = null;
+    Map2DData map2DData = null;
+    int map2DDataColumn[] = null;
+    int prevTDCCodePosition = 0;
+    int prevLinearAdvanceCodePosition = 0;
 
         //on startup, the UT boards each load a default rep rate from the
         //configuration file, but that is often overriden by the owner class
@@ -270,7 +282,9 @@ public class UTBoard extends Board{
     //A/D data
     static int AD_RAW_DATA_BUFFER_ADDRESS = 0x4000;
 
-    static int RUNTIME_PACKET_SIZE = 2048;
+    static final int RUNTIME_PACKET_SIZE = 2048;
+    static final int WALL_MAP_PACKET_SIZE = 4002;
+    static final int WALL_MAP_PACKET_SIZE_INTS = 2001;
 
     //the hardware uses a 4 byte unsigned integer for MAX_DELAY_COUNT - Java
     //doesn't do unsigned easily, so the max value is limited to the maximum
@@ -303,8 +317,9 @@ public class UTBoard extends Board{
     // values for the Rabbits control flag - only lower 16 bits are used
     // as the corresponding variable in the Rabbit is an unsigned int
 
-    static int RABBIT_FLAW_WALL_MODE = 0x0001;	//board is a basic flaw or wall module
-    static int RABBIT_WALL_MAP_MODE = 0x0002;	//board is a wall mapping module
+    static final int RABBIT_FLAW_WALL_MODE = 0x0001;	//board is a basic flaw or wall module
+    static final int RABBIT_WALL_MAP_MODE = 0x0002;	//board is a wall mapping module
+    static final int RABBIT_SEND_DATA_ASYNC = 0x004;    //send data packets without being requested
 
     // bits for flag1 variable in DSP's
     //The GATES_ENABLED, DAC_ENABLED, and ASCAN_ENABLED flags can be cleared
@@ -372,6 +387,7 @@ public class UTBoard extends Board{
     static byte LOAD_FIRMWARE_CMD = 22;     //loads new Rabbit software
     static byte SET_REP_RATE_CMD = 23;
     static byte SET_CONTROL_FLAGS_CMD = 24;
+    static byte GET_WALL_MAP_CMD = 25;
 
     static byte ERROR = 125;
     static byte DEBUG_CMD = 126;
@@ -728,7 +744,15 @@ public synchronized void connect()
         logger.logMessage("Connecting to UT board " + ipAddrS + "...\n");
 
         if (!simulate) {socket = new Socket(ipAddr, 23);}
-        else {socket = new UTSimulator(ipAddr, 23, mainFileFormat);}
+        else {
+            UTSimulator utSimulator =
+                                new UTSimulator(ipAddr, 23, mainFileFormat);
+            utSimulator.init();
+
+            socket = utSimulator;
+        }
+
+
 
         //set amount of time in milliseconds that a read from the socket will
         //wait for data - this prevents program lock up when no data is ready
@@ -858,6 +882,54 @@ public synchronized void connect()
     */
 
 }//end of UTBoard::connect
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::enableWallMapPackets
+//
+// If the board's type is WALL_MAPPER, the RABBIT_SEND_DATA_ASYNC flag is
+// set/unset in rabbitControlFlags and the flags are sent to the remote.
+//
+// If set, the remote will then begin sending wall mapping packets back
+// asynchronously without request from the host.
+//
+// If unset, the remote will not send packets.
+//
+// If the board's type is not WALL_MAPPER, nothing is done.
+//
+
+public void enableWallMapPackets(boolean pState)
+{
+
+    if(type != WALL_MAPPER) {return;}
+
+    if (pState){
+        rabbitControlFlags |= RABBIT_SEND_DATA_ASYNC;
+    }
+    else{
+        rabbitControlFlags &= (~RABBIT_SEND_DATA_ASYNC);
+    }
+
+    sendRabbitControlFlags();
+
+}//end of UTBoard::enableWallMapPackets
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::resetForNextRun
+//
+// Resets all buffer pointers and such in preparation for the next run.
+//
+
+public void resetForNextRun()
+{
+
+    dataBufferIndex = 0;
+    prevTDCCodePosition = -1;
+    prevLinearAdvanceCodePosition = -1;
+    if(map2D != null) { map2D.resetAll(); }
+
+}//end of UTBoard::resetForNextRun
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1289,7 +1361,8 @@ void getChassisSlotAddressOverride()
 //-----------------------------------------------------------------------------
 // UTBoard::sendRabbitControlFlags
 //
-//
+// Sends the rabbitControlFlags value to the remotes. These flags control
+// the functionality of the remotes.
 //
 
 public void sendRabbitControlFlags()
@@ -2692,6 +2765,43 @@ public void linkGates(int pChannel, UTGate[] pGates, int pNumberOfGates)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// UTBoard::setMap2DData
+//
+// Sets pointer to a Map2D object in which the board can send mapping data.
+//
+
+public void setMap2DData(Map2D pMap2D)
+{
+
+    map2D = pMap2D;
+    map2DData = map2D.getDataHandler();
+
+    map2DDataColumn = new int[map2DData.getDataBufferWidth()];
+
+    //these notes can be deleted
+    //test pipe .707 wall, 13-3/4 dia.
+
+    // .707 wall, use range of +20% to -50%
+
+    // hue base of 0.0 is Red
+    // hue base of .6666666667 is Blue
+
+    //for simulation using .250 wall:
+    // +20% = .30    -50% = .125, range is .175
+
+    //public WallMap2DColorMapper(int pValueBase, int pValueRange, float pHueBase,
+    //       float pHueRange, float pHue, float pSaturation, float pBrightness,
+    //      boolean pInvertHue)
+    //these notes can be deleted -- end
+
+    map2D.setColorMapper(new WallMap2DColorMapper(
+            200, 100, (float)0.0, (float)0.5,
+            (float)1.0, (float)1.0, (float)1.0, false));
+
+}//end of UTBoard::setMap2DData
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // UTBoard::sendMode
 //
 // Sends the signal mode to one of the following:
@@ -3470,6 +3580,12 @@ void configureExtended(IniFile pConfigFile)
 
     parseBoardType(value);
 
+    dataBufferSize = pConfigFile.readInt(section, "Data Buffer Size", 0);
+
+    if(dataBufferSize > 100000000){ dataBufferSize = 100000000; }
+
+    if(dataBufferSize > 0){ dataBuffer = new short[dataBufferSize]; }
+
     nSPerDataPoint = pConfigFile.readDouble(section, "nS per Data Point", 15.0);
     uSPerDataPoint = nSPerDataPoint / 1000;
 
@@ -3547,6 +3663,9 @@ void parseBoardType(String pValue)
 // is returned, some bytes may have been read but a packet was not successfully
 // processed due to missing bytes or header corruption.
 // A return value of -1 means that the buffer does not contain a packet.
+//
+// Currently, packets from the Rabbit and DSP do not have checksums. Data
+// integrity is left to the TCP/IP protocol.
 //
 
 @Override
@@ -3631,6 +3750,8 @@ public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
         if ( pktID == GET_PEAK_DATA_CMD) {return processPeakDataPacket(1);}
 
         if ( pktID == GET_PEAK_DATA4_CMD) {return processPeakDataPacket(4);}
+
+        if ( pktID == GET_WALL_MAP_CMD) {return processWallMapPacket();}
 
         if ( pktID == GET_DSP_RAM_BLOCK_CHECKSUM) {
             return processGetDSPRamChecksumPacket();
@@ -3752,8 +3873,8 @@ private int processDSPMessage()
 //
 // There is a special case where a 0xaa is found just before the valid 0xaa
 // which starts a new packet - the first 0xaa is the last byte of the previous
-// packet (usually the checksum).  In this case, the next packet will be lost
-// as well.  This should happen rarely.
+// packet.  In this case, the next packet will be lost as well.  This should
+// happen rarely.
 //
 
 public void reSync()
@@ -4546,15 +4667,193 @@ public int processPeakDataPacket(int pNumberOfChannels)
 public int processWallMapPacket()
 {
 
+    try{
 
-    return(0);
-//    return(numberReturnBytes); //number of bytes read from the socket
+        //wait a bit for the full packet, bail out if it times out
+        //that will cause a resync and a tossed packet
+        if (!waitForNumberOfBytes(WALL_MAP_PACKET_SIZE)){
+            return(0);
+        }
+
+        //System.out.println("Map Packet Processed - " + boardIndex); //debug mks
+
+        //read in the packet count and the status byte
+        byteIn.read(inBuffer, 0, 2);
+
+        packetCount = inBuffer[0];
+
+        for (int i = 0; i < (WALL_MAP_PACKET_SIZE_INTS - 1); i++){
+
+            byteIn.read(inBuffer, 0, 2);
+
+            int value =
+              (int)((inBuffer[0]<<8) & 0xff00) + (int)(inBuffer[1] & 0xff);
+
+            dataBuffer[dataBufferIndex++] = (short)value;
+
+            //handle control codes and mapping if map is present
+            if((map2D != null) &&(value & 0x8000) != 0)
+            { handleMapDataControlCode(value); }
+
+        }
+
+    }//try
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 4674");
+    }
+
+    return(WALL_MAP_PACKET_SIZE); //number of bytes read from the socket
 
 }//end of UTBoard::processWallMapPacket
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Capulin1::installNewRabbitFirmware
+// Capulin1::handleMapDataControlCode
+//
+// Handles control codes embedded in the map data from the remotes.
+//
+// Examples are top-dead-center markers for rotary position and linear
+// advance markers for linear position.
+//
+// The code will be reset to 0 each time the test piece or heads move the linear
+// advance increment amount.
+// The code will be incremented each time the test piece or heads rotate to
+// the top-dead-center position.
+//
+
+private void handleMapDataControlCode(int pCode)
+{
+
+    int code = pCode & 0x007f;
+
+    if (code > 0) { handleMapDataTDCCode(); }
+
+    if (code == 0) { handleMapDataLinearAdvanceCode(); }
+
+}//end of UTBoard::handleMapDataControlCode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::handleMapDataTDCCode
+//
+// Handles top-dead-center marker control code for map data.
+//
+// This code specifies that the top-dead-center signal has been detected. That
+// signal occurs once per revolution and is used to align the data in its
+// angular position around the test piece.
+//
+// Each time this code is detected, the data since the last TDC code is
+// considered to be one helical revolution of data. It is compressed/expanded
+// to fit a single column of the 2D map.
+//
+
+// NOTE NOTE!!!!
+// debug mks
+// This code leaves the control codes in the plot as well!! So they get
+// plotted as a wandering line of red dots. Need to remove them. Scan data
+// rev first to get number of actual data samples before transferring to
+// plotter?
+
+private void handleMapDataTDCCode()
+{
+
+    int defaultValue;
+    boolean maxMode;
+
+    //prepare variables based on whether maximum or minimum peaks are to be
+    //captured for mapping
+
+    if (map2D.isMaxCaptureMode()){
+        maxMode = true; defaultValue = Integer.MIN_VALUE;
+    }else{
+        maxMode = false; defaultValue = Integer.MAX_VALUE;
+    }
+
+    //initialize the array with default value so comparisons work first time
+    for(int i = 0; i < map2DDataColumn.length; i++){
+        map2DDataColumn[i] = defaultValue;
+    }
+
+    //dataBufferIndex will be one past the code position, adjust for use
+    int codePosition = dataBufferIndex - 1;
+    //get number of samples in this revolution
+    //this code also works fine first time through when prevCodePostion is -1,
+    //but that first revolution will be partial and unusable
+
+    int numSamplesInRev = codePosition - prevTDCCodePosition - 1;
+
+    //first data point for the revolution in dataBuffer
+    int xfrSourceIndex = prevTDCCodePosition + 1;
+
+    //keep current code position for next time
+    prevTDCCodePosition = codePosition;
+
+    //determine the scale to shrink/stretch the samples to fit the map column
+    double scale = (double)map2DDataColumn.length / (double)numSamplesInRev;
+
+    int scaledPosition;
+
+    for (int i = 0; i < numSamplesInRev; i++){
+
+        int value = dataBuffer[xfrSourceIndex++];
+
+        //adjust the position of each sample so the range fits the column
+        scaledPosition = (int)(i * scale);
+
+        //protect against round off error going past end of array
+        if (scaledPosition >= map2DDataColumn.length)
+        { scaledPosition = map2DDataColumn.length - 1; }
+
+        //store the max or min peak depending on the mode
+        if(maxMode) {
+            if (value > map2DDataColumn[scaledPosition])
+            { map2DDataColumn[scaledPosition] = value; }
+        }else{
+            if (value < map2DDataColumn[scaledPosition])
+            { map2DDataColumn[scaledPosition] = value; }
+        }
+    }//for (int i = 0; i < numSamplesInRev; i++)
+
+    //check for any elements skipped from stretching data to fit and fill
+    //with the data next to it -- probably faster to do it like this (as a
+    //separate loop) than to add code to the loop above -- note that element
+    //0 will never have been skipped due to scaling so it is bypassed here
+    for(int i = 1; i < map2DDataColumn.length; i++){
+        if (map2DDataColumn[i] == defaultValue){
+            map2DDataColumn[i] = map2DDataColumn[i-1];
+        }
+    }
+
+    //store the revolution of data points in the map
+    map2DData.storeDataAtInsertionPoint(map2DDataColumn);
+
+}//end of UTBoard::handleMapDataTDCCode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::handleMapDataLinearAdvanceCode
+//
+// Handles linear-advance marker control code for map data.
+//
+// This code specifies that the test piece has moved an incremental amount
+// through the system (or the test heads have moved). It is used to determine
+// if the map should also be advanced.
+//
+// Currently, the map is advanced one position each time the control code is
+// received. It is up to the remotes to ensure that the increments are
+// accurate over the full length of the test.
+//
+
+private void handleMapDataLinearAdvanceCode()
+{
+
+    map2D.advanceInsertionPoint();
+
+}//end of UTBoard::handleMapDataLinearAdvanceCode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::installNewRabbitFirmware
 //
 // Transmits the Rabbit firmware image to the UT board to replace the existing
 // code.
@@ -4579,7 +4878,7 @@ public void installNewRabbitFirmware()
     super.installNewRabbitFirmware(
                                "UT", "Rabbit\\CAPULIN UT BOARD.bin", settings);
 
-}//end of Capulin1::installNewRabbitFirmware
+}//end of UTBoard::installNewRabbitFirmware
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

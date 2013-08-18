@@ -21,6 +21,7 @@ package chart.mksystems.hardware;
 
 import chart.Log;
 import chart.mksystems.inifile.IniFile;
+import chart.mksystems.stripchart.Map2D;
 import chart.mksystems.stripchart.Threshold;
 import chart.mksystems.stripchart.Trace;
 import chart.mksystems.stripchart.TraceData;
@@ -354,22 +355,34 @@ return true;
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// AnalogPCIDAS6023::linkTraces
+// AnalogPCIDAS6023::linkPlotters
 //
-// This function is called by traces to link their buffers to specific hardware
-// channels/gates and give a link back to variables in the Trace object.
+// This function is called by Plotters (Traces, etc.) to link their buffers to
+// specific hardware channels/gates and give a link back to variables in the
+// Plotter object.
 //
 
 @Override
-public void linkTraces(int pChartGroup, int pChart, int pTrace,
+public void linkPlotters(int pChartGroup, int pChart, int pTrace,
             TraceData pTraceData, Threshold[] pThresholds, int pPlotStyle,
                                                                 Trace pTracePtr)
 {
 
-    Trace tracePtr; //wip mks - remove this - only need something to return
-    tracePtr = pTracePtr; //wip mks - remove this - only needed for getTrace function
+}//end of AnalogPCIDAS6023::linkPlotters
+//-----------------------------------------------------------------------------
 
-}//end of AnalogPCIDAS6023::linkTraces
+//-----------------------------------------------------------------------------
+// AnalogPCIDAS6023::linkMapToSourceBoard
+//
+// This function is called by Plotters (Map2D, Map3D, etc.) to link their data
+// objects to specific boards so those boards can feed data to the map.
+//
+
+@Override
+public void linkMapToSourceBoard(int pWhichBoard, Map2D pMap2D)
+{
+
+}//end of AnalogPCIDAS6023::linkMapToSourceBoard
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

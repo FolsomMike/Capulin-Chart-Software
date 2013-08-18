@@ -76,7 +76,7 @@ public Color mapIntegerToColor(int pValue)
     //calculate where the value falls on the scale based on the base
     //value and the value range as a percentage of full scale
 
-    float ratio = ((pValue - valueBase) / valueRange);
+    float ratio = (((float)pValue - (float)valueBase) / (float)valueRange);
 
     //calculate a hue percentage of full scale based on the value's percentage
 

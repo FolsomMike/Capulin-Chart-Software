@@ -25,6 +25,7 @@ import chart.ThreadSafeLogger;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.settings.Settings;
 import chart.mksystems.stripchart.ChartGroup;
+import chart.mksystems.stripchart.Map2D;
 import chart.mksystems.stripchart.Plotter;
 import chart.mksystems.stripchart.Threshold;
 import chart.mksystems.stripchart.Trace;
@@ -32,7 +33,6 @@ import chart.mksystems.stripchart.TraceData;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import javax.swing.*;
-
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1081,16 +1081,6 @@ boolean collectEncoderDataTimerMode()
         }// for (int g = 0; g < numberOfGates; g++)
     }// for (int ch = 0; ch < numberOfChannels; ch++)
 
-
-    //debug mks
-
-    //replace this with a list of Plotters which need auto advance????
-
-    chartGroups[0].getStripChart(4).getPlotter(0).advanceInsertionPoint();
-
-    //debug mks
-
-
     return(newPositionData);
 
 }//end of Hardware::collectEncoderDataTimerMode
@@ -1920,21 +1910,37 @@ public void shutDown()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Hardware::linkTraces
+// Hardware::linkPlotters
 //
-// This function is called by traces to link their buffers to specific hardware
-// channels/gates and give a link back to variables in the Trace object.
+// This function is called by Plotters (Traces, etc.) to link their buffers to
+// specific hardware channels/gates and give a link back to variables in the
+// Plotter object.
 //
 
-public void linkTraces(int pChartGroup, int pChart, int pTrace,
+public void linkPlotters(int pChartGroup, int pChart, int pTrace,
         TraceData pTraceData, Threshold[] pThresholds, int pPlotStyle,
                                                             Trace pTracePtr)
 {
 
-    analogDriver.linkTraces(pChartGroup, pChart, pTrace, pTraceData,
+    analogDriver.linkPlotters(pChartGroup, pChart, pTrace, pTraceData,
                                         pThresholds, pPlotStyle, pTracePtr);
 
-}//end of Hardware::linkTraces
+}//end of Hardware::linkPlotters
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::linkMapToSourceBoard
+//
+// This function is called by Plotters (Map2D, Map3D, etc.) to link their data
+// objects to specific boards so those boards can feed data to the map.
+//
+
+public void linkMapToSourceBoard(int pWhichBoard, Map2D pMap2D)
+{
+
+    analogDriver.linkMapToSourceBoard(pWhichBoard, pMap2D);
+
+}//end of Hardware::linkMapToSourceBoard
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

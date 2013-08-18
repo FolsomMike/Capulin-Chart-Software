@@ -23,9 +23,11 @@ import chart.MessageLink;
 import chart.ThreadSafeLogger;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.settings.Settings;
+import chart.mksystems.stripchart.Map2D;
 import chart.mksystems.stripchart.Threshold;
 import chart.mksystems.stripchart.Trace;
 import chart.mksystems.stripchart.TraceData;
+import chart.mksystems.threadsafe.SyncedBoolean;
 import chart.mksystems.threadsafe.SyncedInteger;
 import chart.mksystems.threadsafe.SyncedVariableSet;
 import java.io.*;
@@ -94,6 +96,9 @@ public class Capulin1 extends Object implements HardwareLink, MessageLink{
     boolean controlBoardInspectMode = false;
 
     SyncedVariableSet syncedVarMgr;
+
+    SyncedBoolean wallMapPacketsEnabled;
+
     //all boards (and thus all channels) must have the same rep rate
     //on startup, the UT boards each load a default rep rate from the
     //configuration file, but that can be overridden by the value in this
@@ -122,7 +127,10 @@ Capulin1(IniFile pConfigFile, Settings pSettings, boolean pSimulationMode,
     mainFileFormat = pMainFileFormat;
 
     syncedVarMgr = new SyncedVariableSet();
-    repRateInHertz = new SyncedInteger(syncedVarMgr); repRateInHertz.init();
+    wallMapPacketsEnabled = new SyncedBoolean(syncedVarMgr);
+    wallMapPacketsEnabled.init();
+    repRateInHertz = new SyncedInteger(syncedVarMgr);
+    repRateInHertz.init();
 
     logger = new ThreadSafeLogger(pLog);
 
@@ -580,11 +588,12 @@ public synchronized void connectUTBoards()
 public void initializeUTBoards()
 {
 
-    for (int j = 0; j < numberOfUTBoards; j++) {
-        if (utBoards[j] != null) {
-            utBoards[j].initialize();
-        }
+    for (int i = 0; i < numberOfUTBoards; i++) {
+        if (utBoards[i] != null) { utBoards[i].initialize();}
     }
+
+    //disable async sending of wall map data packets by the UTBoards
+    wallMapPacketsEnabled.setValue(false, true);
 
 }//end of Capulin1::initializeUTBoards
 //-----------------------------------------------------------------------------
@@ -648,26 +657,32 @@ public void initializeChannels()
 //-----------------------------------------------------------------------------
 // Capulin1:sendDataChangesToRemotes
 //
-// If any channel data has been changed, sends the changes to the remotes.
+// If any synced data has been changed, sends the changes to the remotes.
+//
+// These values are often changed by the user clicking on controls which are
+// handled in the main GUI thread. Synced variables are used to avoid
+// collisions with the thread handling the UTBoards which also calls this
+// function.
 //
 
 @Override
 public void sendDataChangesToRemotes()
 {
 
-    //handle data changes in this class
-
-    if (!syncedVarMgr.getDataChangedMaster()){
-
-        if (repRateInHertz.getDataChangedFlag()) {sendRepRate();}
-
-    }//if (!syncedVarMgr.getDataChangedMaster())
-
     //handle data changes in all the channels
 
     for (int i = 0; i < numberOfChannels; i++) {
         channels[i].sendDataChangesToRemotes();
     }
+
+
+    //handle data changes in this class
+
+    if (!syncedVarMgr.getDataChangedMaster()) {return;}
+
+    if (wallMapPacketsEnabled.getDataChangedFlag()){enableWallMapPackets();}
+
+    if (repRateInHertz.getDataChangedFlag()) {sendRepRate();}
 
 }//end of Capulin1::sendDataChangesToRemotes
 //-----------------------------------------------------------------------------
@@ -918,6 +933,9 @@ public void setMode(int pOpMode)
 
     opMode = pOpMode;
 
+    if (opMode == Hardware.SCAN){
+
+    }
 
     //for INSPECT mode, which uses hardware encoder and control signals, perform
     //initialization
@@ -948,11 +966,21 @@ public void setMode(int pOpMode)
         controlBoards[0].startInspect();
         controlBoardInspectMode = true; //flag that board is in inspect mode
 
+        //prepare the UTBoards for a new run
+        resetUTBoardsForNextRun();
+
+        //enable async sending of wall map data packets by the UTBoards
+        wallMapPacketsEnabled.setValue(true, false);
+
     }
 
     if (opMode == Hardware.STOPPED){
 
+        //disable async sending of wall map data packets by the UTBoards
+        wallMapPacketsEnabled.setValue(false, false);
+
         //deactivate inspect mode in the control board(s)
+        //wip mks -- should this be a synced variable?
         if (controlBoardInspectMode) {controlBoards[0].stopInspect();}
 
     }
@@ -1399,24 +1427,41 @@ public Trace getTrace(int pChannel, int pGate)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Capulin1::linkTraces
+// Capulin1::linkPlotters
 //
-// This function is called by traces to link their buffers to specific hardware
-// channels/gates and give a link back to variables in the Trace object.
+// This function is called by Plotters (Traces, etc.) to link their buffers to
+// specific hardware channels/gates and give a link back to variables in the
+// Plotter object.
 //
 
 @Override
-public void linkTraces(int pChartGroup, int pChart, int pTrace,
+public void linkPlotters(int pChartGroup, int pChart, int pTrace,
             TraceData pTraceData, Threshold[] pThresholds, int pPlotStyle,
                                                                Trace pTracePtr)
 {
 
     for (int i = 0; i < numberOfChannels; i++) {
-        channels[i].linkTraces(pChartGroup, pChart, pTrace, pTraceData,
+        channels[i].linkPlotters(pChartGroup, pChart, pTrace, pTraceData,
                                         pThresholds, pPlotStyle, pTracePtr);
     }
 
-}//end of Capulin1::linkTraces
+}//end of Capulin1::linkPlotters
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::linkMapToSourceBoard
+//
+// This function is called by Plotters (Map2D, Map3D, etc.) to link their data
+// objects to specific boards so those boards can feed data to the map.
+//
+
+@Override
+public void linkMapToSourceBoard(int pWhichBoard, Map2D pMap2D)
+{
+
+    utBoards[pWhichBoard].setMap2DData(pMap2D);
+
+}//end of Capulin1::linkMapToSourceBoard
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -2060,9 +2105,7 @@ void displayUnresponsiveIPAddresses()
 void sendByteUDP(DatagramSocket pSocket, DatagramPacket pOutPacket, byte pByte)
 {
 
-    byte outBuffer[] = pOutPacket.getData(); //get point to data buffer in use
-
-    outBuffer[0] = pByte; //store the byte in the buffer
+    pOutPacket.getData()[0] = pByte; //store the byte in the buffer
 
     pOutPacket.setLength(1); //send one byte
 
@@ -2074,6 +2117,45 @@ void sendByteUDP(DatagramSocket pSocket, DatagramPacket pOutPacket, byte pByte)
     }
 
 }//end of Capulin1::sendByteUDP
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::resetUTBoardsForNextRun
+//
+// Resets all buffer pointers and such in each UTBoard in preparation for the
+// next run.
+//
+
+void resetUTBoardsForNextRun()
+{
+
+    for (int i = 0; i < numberOfUTBoards; i++){
+        if (utBoards[i] != null){ utBoards[i].resetForNextRun(); }
+    }
+
+}//end of Capulin1::resetUTBoardsForNextRun
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::enableWallMapPackets
+//
+// Enables or disables the asynchronous sending of wall map data packets by
+// UTBoards of type WALL_MAPPING.
+//
+// Any boards of other type will ignore the call.
+//
+
+void enableWallMapPackets()
+{
+
+    //lock in the synced value since it is used multiple times here
+    boolean enable = wallMapPacketsEnabled.applyValue();
+
+    for (int i = 0; i < numberOfUTBoards; i++){
+        if (utBoards[i] != null){ utBoards[i].enableWallMapPackets(enable); }
+    }
+
+}//end of Capulin1::enableWallMapPackets
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

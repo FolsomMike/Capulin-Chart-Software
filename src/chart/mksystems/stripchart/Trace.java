@@ -101,7 +101,7 @@ public void init()
     //hardware may be null if this object is used for viewing only, so skip this
     //step if so
     if (hardware != null) {
-        hardware.linkTraces(chartGroup, chartIndex, plotterIndex, traceData,
+        hardware.linkPlotters(chartGroup, chartIndex, plotterIndex, traceData,
                                             thresholds, hdwVs.plotStyle, this);
     }
 
@@ -140,32 +140,23 @@ void configure(IniFile pConfigFile)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Trace::reset
+// Trace::resetAll
 //
 // Clears all data.
 //
-// Do not call resetTrace from the constructor because all data may not be
-// available at that time.
+// Do not call from the constructor because all data may not be available at
+// that time.
 //
 
 @Override
-public void reset()
+public void resetAll()
 {
 
-    plotVs.gridCounter = 0; //used to place grid marks
+    super.resetAll();
 
-    plotVs.drawData = true; //draw trace when plotting data
+    traceData.resetAll();
 
-    plotterGlobals.bufOffset = 0; //left edge of screen starts at position 0
-
-    plotterGlobals.scrollCount = 0; //number of pixels chart has been scrolled
-
-    //pixel position on the screen where data is being plotted
-    plotVs.pixPtr = -1;
-
-    traceData.totalReset();
-
-}//end of Trace::reset
+}//end of Trace::resetAll
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

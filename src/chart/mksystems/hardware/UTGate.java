@@ -1103,16 +1103,17 @@ public void setInterfaceTracking(boolean pOn)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTGate::linkTraces
+// UTGate::linkPlotters
 //
-// This function is called by traces to link their buffers to specific hardware
-// channels/gates and give a link back to variables in the Trace object.
+// This function is called by Plotters (Traces, etc.) to link their buffers to
+// specific hardware channels/gates and give a link back to variables in the
+// Plotter object.
 //
 // The values are only stored if the pChartGroup, pChart, and pTrace parameters
 // match those loaded for this gate from the config file.
 //
 
-public void linkTraces(int pChartGroup, int pChart, int pTrace,
+public void linkPlotters(int pChartGroup, int pChart, int pTrace,
         TraceData pTraceData, Threshold[] pThresholds, int pPlotStyle,
                                                                 Trace pTracePtr)
 {
@@ -1130,7 +1131,7 @@ public void linkTraces(int pChartGroup, int pChart, int pTrace,
 
     }
 
-}//end of UTGate::linkTraces
+}//end of UTGate::linkPlotters
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

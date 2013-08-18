@@ -210,6 +210,8 @@ public class UTSimulator extends Simulator{
 
 public UTSimulator() throws SocketException{}; //default constructor - not used
 
+    short rabbitControlFlags = 0;
+
     static int MAX_BOARD_CHANNELS = 4;
     BoardChannel[] boardChannels;
     String mainFileFormat;
@@ -276,6 +278,18 @@ public UTSimulator() throws SocketException{}; //default constructor - not used
     public byte prevPage = -1;
     public int prevAddress = -2;
 
+    short trackByte = 0;
+    int tdcTracker = 0;
+    int helixAdvanceTracker = 0;
+    static final int SAMPLES_PER_REV = 500;
+    static final int SAMPLES_PER_ADVANCE = 500;
+    static final int SAMPLE_COUNT_VARIATION = 30;
+
+    static final int MAP_BUFFER_SIZE = 2000;
+    int mapDataBuffer[];
+    int mapHelicalAdvanceTimer = 0;
+    static final int MAP_HELICAL_ADVANCE_TICK = 20;
+
 //-----------------------------------------------------------------------------
 // UTSimulator::UTSimulator (constructor)
 //
@@ -289,6 +303,18 @@ public UTSimulator(InetAddress pIPAddress, int pPort, String pMainFileFormat)
 
     mainFileFormat = pMainFileFormat;
 
+}//end of UTSimulator::UTSimulator (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTSimulator::init
+//
+// Initializes the object.  MUST be called by sub classes after instantiation.
+//
+
+public void init()
+{
+
     //give each UT board a unique number so it can load data from the
     //simulation.ini file and such
     //as that number is distributed across all sub classes -- UT boards,
@@ -296,6 +322,12 @@ public UTSimulator(InetAddress pIPAddress, int pPort, String pMainFileFormat)
     utBoardNumber = utBoardCounter++;
 
     status = UTBoard.FPGA_LOADED_FLAG;
+
+    mapDataBuffer = new int[MAP_BUFFER_SIZE];
+
+    tdcTracker = resetTDCAdvanceCount(SAMPLES_PER_REV);
+    helixAdvanceTracker = resetTDCAdvanceCount(SAMPLES_PER_ADVANCE);
+    mapHelicalAdvanceTimer = MAP_HELICAL_ADVANCE_TICK;
 
     //create an array of channel variables
     boardChannels = new BoardChannel[MAX_BOARD_CHANNELS];
@@ -326,7 +358,7 @@ public UTSimulator(InetAddress pIPAddress, int pPort, String pMainFileFormat)
     PrintWriter out = new PrintWriter(localOutStream, true);
     out.println("Hello from UT Board!");
 
-}//end of UTSimulator::UTSimulator (constructor)
+}//end of UTSimulator::init
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -354,9 +386,43 @@ public int processDataPackets(boolean pWaitForPkt)
         while ((x = processDataPacketsHelper(pWaitForPkt)) != -1){}
     }
 
+    //the wall map data packet is not requested by the host, it is sent
+    //asynchronously and continuously
+
+    if (mapHelicalAdvanceTimer-- == 0){
+        mapHelicalAdvanceTimer = MAP_HELICAL_ADVANCE_TICK;
+        if (isWallMapPacketSendEnabled()){
+            //System.out.println("Map Packet Sent - " + index);
+            sendWallMapPacket();
+        }
+    }
+
     return x;
 
 }//end of UTSimulator::processDataPackets
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTSimulator::isWallMapPacketSendEnabled
+//
+// Returns true if the Rabbit is in wall mapping mode and async data sending
+// is enabled, false otherwise.
+//
+
+private boolean isWallMapPacketSendEnabled()
+{
+
+    if(((rabbitControlFlags & UTBoard.RABBIT_WALL_MAP_MODE) != 0)
+         && ((rabbitControlFlags & UTBoard.RABBIT_SEND_DATA_ASYNC) != 0)){
+
+        return(true);
+    }
+    else{
+        return(false);
+    }
+
+
+}//end of UTSimulator::isWallMapPacketSendEnabled
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -433,6 +499,9 @@ public int processDataPacketsHelper(boolean pWaitForPkt)
         if (inBuffer[0] == UTBoard.GET_ASCAN_CMD) {getAScan();}
         else
         if (inBuffer[0] == UTBoard.MESSAGE_DSP_CMD) {processDSPMessage();}
+        else
+        if (inBuffer[0] == UTBoard.SET_CONTROL_FLAGS_CMD)
+        {   setRabbitControlFlags();}
 
         return 0;
 
@@ -447,6 +516,31 @@ public int processDataPacketsHelper(boolean pWaitForPkt)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// UTSimulator::readBytes
+//
+// Reads pNumBytes from byteIn into inBuffer. Returns the number of bytes
+// read or -1 on error.
+//
+// Waits until the specified number of bytes are available.
+//
+
+private int readBytes(int pNumBytes)
+{
+
+    try{
+        while(byteIn.available() < pNumBytes){}
+        byteIn.read(inBuffer, 0, pNumBytes);
+        return(pNumBytes);
+    }// try
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 452");
+        return(-1);
+    }
+
+}//end of UTBoard::readBytes
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // UTSimulator::processDSPMessage
 //
 // Processes a message to a DSP.
@@ -455,13 +549,7 @@ public int processDataPacketsHelper(boolean pWaitForPkt)
 private int processDSPMessage()
 {
 
-    try{
-        while(byteIn.available() < 3){}
-        byteIn.read(inBuffer, 0, 3);
-    }// try
-    catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 452");
-    }
+    readBytes(3); //read in the rest of the packet
 
     int dspChip = inBuffer[0];
     int dspCore = inBuffer[1];
@@ -474,9 +562,28 @@ private int processDSPMessage()
     //clear out the remaining bytes of any unhandled DSP message
     tossDSPMessageRemainder();
 
-    return 0;
+    return(0);
 
 }//end of UTBoard::processDSPMessage
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTSimulator::setRabbitControlFlags
+//
+// Sets the rabbitControlFlags to the short integer in the packet.
+//
+
+private int setRabbitControlFlags()
+{
+
+    readBytes(2); //read in the rest of the packet
+
+    rabbitControlFlags = (short) (((((short)inBuffer[0])<<8) & 0xff00)
+                                                + ((short)inBuffer[1]) & 0xff);
+
+    return(2);
+
+}//end of UTBoard::setRabbitControlFlags
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -489,13 +596,7 @@ private int processDSPMessage()
 public void tossDSPMessageRemainder()
 {
 
-    try{
-        while(byteIn.available() < 12){}
-        byteIn.read(inBuffer, 0, 12);
-    }// try
-    catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 485");
-    }
+    readBytes(12); //read in the rest of the packet
 
 }//end of UTBoard::tossDSPMessageRemainder
 //-----------------------------------------------------------------------------
@@ -509,13 +610,7 @@ public void tossDSPMessageRemainder()
 int readDSPStatus(int pDSPChip, int pDSPCore)
 {
 
-    try{
-        while(byteIn.available() < 12){}
-        byteIn.read(inBuffer, 0, 12);
-    }// try
-    catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 505");
-    }
+    readBytes(12); //read in the rest of the packet
 
     //send standard packet header
     sendPacketHeader(UTBoard.MESSAGE_DSP_CMD, (byte)0, (byte)0);
@@ -538,10 +633,7 @@ int readDSPStatus(int pDSPChip, int pDSPCore)
 void setDSPGain()
 {
 
-    try{byteIn.read(inBuffer, 0, 3);}
-    catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 531");
-    }
+    readBytes(3); //read in the rest of the packet
 
     boardChannels[inBuffer[0]].dspGain = inBuffer[1];
 
@@ -557,10 +649,7 @@ void setDSPGain()
 void writeFPGA()
 {
 
-    try{byteIn.read(inBuffer, 0, 2);}
-    catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 550");
-    }
+    readBytes(2); //read in the rest of the packet
 
     //set delay count and sample count registers if applicable
 
@@ -581,10 +670,7 @@ void writeFPGA()
 void readFPGA()
 {
 
-    try{byteIn.read(inBuffer, 0, 1);}
-    catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 574");
-    }
+    readBytes(1); //read in the rest of the packet
 
     if (inBuffer[0] == UTBoard.CHASSIS_SLOT_ADDRESS) {getChassisSlotAddress();}
 
@@ -621,10 +707,7 @@ void getStatus()
 void getDSPRamBlockChecksum()
 {
 
-    try{byteIn.read(inBuffer, 0, 8);}
-    catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 614");
-    }
+    readBytes(8); //read in the rest of the packet
 
     int checksum = 0;
     int x = 0;
@@ -711,10 +794,7 @@ void loadFPGA()
 void writeDSP()
 {
 
-    try{byteIn.read(inBuffer, 0, 8);}
-    catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 704");
-    }
+    readBytes(8); //read in the rest of the packet
 
     int x = 0;
     byte chip = inBuffer[x++];
@@ -783,10 +863,7 @@ void writeDSP()
 void writeNextDSP()
 {
 
-    try{byteIn.read(inBuffer, 0, 4);}
-    catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 776");
-    }
+    readBytes(4); //read in the rest of the packet
 
 }//end of UTSimulator::writeNextDSP
 //-----------------------------------------------------------------------------
@@ -800,10 +877,7 @@ void writeNextDSP()
 void readDSP()
 {
 
-    try{byteIn.read(inBuffer, 0, 6);}
-    catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 793");
-    }
+    readBytes(6); //read in the rest of the packet
 
     //send standard packet header
     sendPacketHeader(UTBoard.READ_DSP_CMD, (byte)0, (byte)0);
@@ -999,10 +1073,113 @@ public void getPeakData4()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// UTSimulator::sendWallMapPacket
+//
+// Returns simulated wall mapping data. This packet type is not requested by
+// the host but is sent asynchronously. The transmittal is triggered by a
+// specified number of samples being read by the Rabbit from the DSP.
+//
+
+public void sendWallMapPacket()
+{
+
+    boolean insertControlByte = false;
+    boolean tdc = false, advance = false;
+
+    //send standard packet header
+    //use1 for DSP chip and 0 for core because the data is from cores A & B
+    sendPacketHeader(UTBoard.GET_WALL_MAP_CMD, (byte)1, (byte)0);
+
+    //count packets sent -- this is sent to the host to detect missed packets
+    peakDataPktCounter++;
+    if (peakDataPktCounter > 255){peakDataPktCounter = 0;}
+
+    //send packet count and status
+    sendBytes((byte)peakDataPktCounter, (byte)(0));
+
+    //simulate and send the wall data points
+    for (int i=0; i < MAP_BUFFER_SIZE; i++){
+
+        //periodically, the tracking byte gets incremented by TDC signal
+        //that value gets passed in with the samples
+
+        if (tdcTracker-- == 0){
+            tdcTracker = resetTDCAdvanceCount(SAMPLES_PER_REV);
+            tdc = true; insertControlByte = true;
+        }
+
+        //periodically, the tracking byte gets zeroed by helical advance signal
+        //that value gets passed in with the samples
+
+        if (helixAdvanceTracker-- == 0){
+            helixAdvanceTracker = resetTDCAdvanceCount(SAMPLES_PER_ADVANCE);
+            advance = true; insertControlByte = true;
+        }
+
+        //sometimes the TDC and Advance signal might occur at the same sample
+        //in that case, it is random whether the track byte will be incremented
+        //or zeroed; here that case is simulated by doing one or the other
+        //based on the odd/even value of trackByte
+
+        if (tdc && advance){
+            if ((trackByte % 2) == 0){trackByte++;}
+            else {trackByte = 0;}
+        }
+        else if (tdc){
+            trackByte++;
+        }
+        else if (advance){
+            trackByte = 0;
+        }
+
+        //send a control byte if needed or a data sample
+        //control bytes have bit 15 set to distinguish from a data byte
+
+        if (insertControlByte){
+            sendShortInt(trackByte | 0x8000);
+        }
+        else {
+            short wallDataPoint = (short)(250 - 5 * Math.random());
+
+            //wallDataPoint = 250; //debug mks
+
+            if ((int)(200 * Math.random()) == 1){
+                wallDataPoint = (short)(wallDataPoint - (30 * Math.random()));
+            }
+            sendShortInt(wallDataPoint);
+        }
+
+
+        tdc = advance = insertControlByte = false;
+
+    }
+
+}//end of UTSimulator::sendWallMapPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTSimulator::resetTDCAdvanceCount
+//
+// Returns a number for resetting tdcTracker or helixAdvanceTracker which is
+// a small variation of pTypicalCount by a random amount determined by
+// SAMPLE_COUNT_VARIATION.
+//
+
+private int resetTDCAdvanceCount(int pTypicalCount)
+{
+
+    return(pTypicalCount
+        - (int)(SAMPLE_COUNT_VARIATION / 2)
+        + (int)(SAMPLE_COUNT_VARIATION * Math.random()));
+
+}//end of UTSimulator::resetTDCAdvanceCount
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // UTSimulator::getAScan()
 //
 
-public void getAScan()
+private void getAScan()
 {
 
     //next byte is the DSP chip to be read from
