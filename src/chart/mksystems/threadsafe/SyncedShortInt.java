@@ -1,7 +1,7 @@
 /******************************************************************************
-* Title: SyncedDouble.java
+* Title: SyncedShortInt.java
 * Author: Mike Schoonover
-* Date: 8/25/12
+* Date: 8/19/13
 *
 * Purpose:
 *
@@ -29,32 +29,32 @@ package chart.mksystems.threadsafe;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-// class SyncedDouble
+// class SyncedShortInt
 //
 
-public class SyncedDouble extends SyncedVariable{
+public class SyncedShortInt extends SyncedVariable{
 
 
-    private double value;
+    private short value;
 
 //-----------------------------------------------------------------------------
-// SyncedDouble::SyncedDouble (constructor)
+// SyncedShortInt::SyncedShortInt (constructor)
 //
 // If the object is to be managed by a SyncedVariableSet object, a pointer to
 // that manager should be passed via pSyncedVariableSet.  If no manager, then
 // pass that parameter as null.
 //
 
-public SyncedDouble(SyncedVariableSet pSyncedVariableSet)
+public SyncedShortInt(SyncedVariableSet pSyncedVariableSet)
 {
 
     super(pSyncedVariableSet);
 
-}//end of SyncedDouble::SyncedDouble (constructor)
+}//end of SyncedShortInt::SyncedShortInt (constructor)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SyncedDouble::setValue
+// SyncedShortInt::setValue
 //
 // Sets the value to pValue, sets the dataChangedFlag, and notifies the
 // manager of the change.
@@ -65,7 +65,7 @@ public SyncedDouble(SyncedVariableSet pSyncedVariableSet)
 // to be forcibly set.
 //
 
-public synchronized void setValue(double pValue, boolean pForceUpdate)
+public synchronized void setValue(short pValue, boolean pForceUpdate)
 {
 
     if (pForceUpdate || value != pValue){
@@ -75,11 +75,82 @@ public synchronized void setValue(double pValue, boolean pForceUpdate)
 
     }
 
-}//end of SyncedDouble::setValue
+}//end of SyncedShortInt::setValue
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SyncedDouble::applyValue
+// SyncedShortInt::increment
+//
+// Adds one to pValue, sets the dataChangedFlag, and notifies the
+// manager of the change.
+//
+// This method should be used by the controlling object.  The responding
+// object should use getPosition to determine if the value is non-zero and
+// increment/decrement it at the same time in order to be thread safe.
+//
+
+public synchronized void increment()
+{
+
+    value++;
+    setDataChangedTrue();
+
+}//end of SyncedShortInt::increment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SyncedShortInt::decrement
+//
+// Subtracts one from pValue, sets the dataChangedFlag, and notifies the
+// manager of the change.
+//
+// This method should be used by the controlling object.  The responding
+// object should use getPosition to determine if the value is non-zero and
+// increment/decrement it at the same time in order to be thread safe.
+//
+
+public synchronized void decrement()
+{
+
+    value--;
+    setDataChangedTrue();
+
+}//end of SyncedShortInt::decrement
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SyncedShortInt::getPosition
+//
+// This method is for use by the responding object to check if the value has
+// been changed from zero.  It returns the value and then increments or
+// decrements it as necessary to adjust it towards zero.
+//
+// If the value is changed, sets the dataChangedFlag and notifies the
+// manager of the change.
+//
+
+public synchronized int getPosition()
+{
+
+    int lValue = value;
+
+    if (value > 0){
+        value--;
+        setDataChangedTrue();
+    }
+
+    if (value < 0){
+        value++;
+        setDataChangedTrue();
+    }
+
+    return(lValue);
+
+}//end of SyncedShortInt::getPosition
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SyncedShortInt::applyValue
 //
 // Returns the value, clears the dataChanged flag, and notifies the manager
 // object.
@@ -89,17 +160,17 @@ public synchronized void setValue(double pValue, boolean pForceUpdate)
 // dataChanged flag, use getValue instead.
 //
 
-public synchronized double applyValue()
+public synchronized short applyValue()
 {
 
     setDataChangedFalse();
     return(value);
 
-}//end of SyncedDouble::applyValue
+}//end of SyncedShortInt::applyValue
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SyncedDouble::getValue
+// SyncedShortInt::getValue
 //
 // Returns the value BUT DOES NOT clear the dataChanged flag or notify the
 // manager object.  If the receive object wishes to get the value and apply it
@@ -110,15 +181,14 @@ public synchronized double applyValue()
 // object obtains the value.
 //
 
-public synchronized double getValue()
+public synchronized short getValue()
 {
 
     return(value);
 
-}//end of SyncedDouble::getValue
+}//end of SyncedShortInt::getValue
 //-----------------------------------------------------------------------------
 
-
-}//end of class SyncedDouble
+}//end of class SyncedShortInt
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

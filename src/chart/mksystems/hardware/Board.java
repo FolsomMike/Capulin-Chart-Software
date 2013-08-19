@@ -226,6 +226,35 @@ void sendHeader()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Board::waitForNumberOfBytes
+//
+// Waits until pNumBytes number of data bytes are available in the socket.
+//
+// Returns true if the bytes become available before timing out, false
+// otherwise.
+//
+
+boolean waitForNumberOfBytes(int pNumBytes)
+{
+
+    try{
+        timeOutProcess = 0;
+        while(timeOutProcess++ < TIMEOUT){
+            if (byteIn.available() >= pNumBytes) {return(true);}
+            waitSleep(10);
+        }
+    }// try
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 595");
+        return(false);
+    }
+
+    return(false);
+
+}//end of Board::readBytes
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Board::readBytes
 //
 // Retrieves pNumBytes number of data bytes from the packet and stores them

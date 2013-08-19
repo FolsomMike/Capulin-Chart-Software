@@ -84,7 +84,7 @@ public void init()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceData::totalReset
+// TraceData::resetAll
 //
 // Resets everything back to default values.
 //
@@ -97,10 +97,10 @@ public void init()
 //
 
 @Override
-synchronized public void totalReset()
+synchronized public void resetAll()
 {
 
-    super.totalReset();
+    super.resetAll();
 
     if (dataBuffer1 != null) {
         for (int i = 0; i < dataBuffer1.length; i++){
@@ -116,7 +116,7 @@ synchronized public void totalReset()
         }
     }
 
-}//end of TraceData::totalReset
+}//end of TraceData::resetAll
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

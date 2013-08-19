@@ -44,7 +44,7 @@ public class Channel extends Object{
 
     public boolean gateSigProcThresholdChanged;
 
-    SyncedInteger flags1SetMask, flags1ClearMask;
+    SyncedShortInt dspControlFlags;
 
     int chassisAddr, slotAddr, boardChannel;
 
@@ -129,8 +129,7 @@ public Channel(IniFile pConfigFile, Settings pSettings, int pChannelIndex,
     hardwareGain1 = new SyncedInteger(syncedVarMgr); hardwareGain1.init();
     hardwareGain2 = new SyncedInteger(syncedVarMgr); hardwareGain2.init();
     aScanSmoothing = new SyncedInteger(syncedVarMgr); aScanSmoothing.init();
-    flags1SetMask = new SyncedInteger(syncedVarMgr); flags1SetMask.init();
-    flags1ClearMask = new SyncedInteger(syncedVarMgr); flags1ClearMask.init();
+    dspControlFlags = new SyncedShortInt(syncedVarMgr); dspControlFlags.init();
     mode = new SyncedInteger(syncedVarMgr); mode.init();
     mode.setValue((int)UTBoard.POSITIVE_HALF, true);
     hardwareDelayFPGA =
@@ -208,14 +207,23 @@ public void initialize()
 
     if (!interfaceGatePresent) {interfaceTracking = false;}
 
-    //set bits in flags1 variable
-    //all flags1 variables should be set at once in the init to avoid conflicts
-    //due to all flag1 setting functions using the same mask storage variables
-    int flags1Mask = UTBoard.GATES_ENABLED;
-    if (dacEnabled) {flags1Mask |= UTBoard.DAC_ENABLED;}
-    flags1Mask |= UTBoard.ASCAN_FREE_RUN;
+    //set bits in dspControlFlags
 
-    setFlags1(flags1Mask, true);
+    short lDSPControlFlags = 0;
+
+    lDSPControlFlags |= UTBoard.GATES_ENABLED;
+    if (dacEnabled) {lDSPControlFlags |= UTBoard.DAC_ENABLED;}
+    lDSPControlFlags |= UTBoard.ASCAN_FREE_RUN;
+
+    if (utBoard.getType() == UTBoard.RABBIT_FLAW_WALL_MODE){
+        lDSPControlFlags |= UTBoard.DSP_FLAW_WALL_MODE;
+    }
+    else
+    if (utBoard.getType() == UTBoard.RABBIT_WALL_MAP_MODE){
+        lDSPControlFlags |= UTBoard.DSP_WALL_MAP_MODE;
+    }
+
+    dspControlFlags.setValue(lDSPControlFlags, true);
 
     //setup various things
     setAScanSmoothing(aScanSmoothing.getValue(), true);
@@ -724,119 +732,19 @@ public Trace getTrace(int pGate)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Channel::setFlags1
+// Channel::sendDSPControlFlags
 //
-// Sets mask word to set one or more bits in the DSP's flags1 variable.
-// To set a particular bit in the flag, the corresponding bit in pSetMask
-// should be set to a 1.  Any bit in pSetMask which is a 0 is ignored.
-//
-// The command is always sent to the DSP regardless of it being a new value as
-// it does not require much overhead and is infrequently used.
-//
-// NOTE: A delay should be inserted between consecutive calls to setFlags1
-// as they are actually sent to the remotes by another thread.  The delay
-// should be long enough to ensure that the other thread has had time to send
-// the first command before the mask is overwritten by the second change.
-//
-// NOTE: This functionality should be replaced.  The DSP currently stores
-// flags from the host in the same word as status flags it updates.  Thus it
-// is necessary for the host to send flag masks to alter only specific bits
-// to avoid overwriting the flags the DSP is tracking itself.  The DSP should
-// keep its flags in a separate word to avoid overlap
-// Then, flags here can be handled as they are in the Channel class.
-//
-// If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
-// the flag is false, the value(s) will be sent only if they have changed.
+// Sends the dspControlFlags to the remotes.
 //
 
-public void setFlags1(int pSetMask, boolean pForceUpdate)
-{
-
-    flags1SetMask.setValue(pSetMask, pForceUpdate);
-
-}//end of Channel::setFlags1
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Channel::sendSetFlags1
-//
-// Sends the flags1SetMask to the remotes to set bits in variable flags1.
-// See setFlags1 function for more info.
-//
-// NOTE: This functionality should be replaced.  The DSP currently stores
-// flags from the host in the same word as status flags it updates.  Thus it
-// is necessary for the host to send flag masks to alter only specific bits
-// to avoid overwriting the flags the DSP is tracking itself.  The DSP should
-// keep its flags in a separate word to avoid overlap
-// Then, flags here can be handled as they are in the Channel class.
-//
-
-public void sendSetFlags1()
+public void sendDSPControlFlags()
 {
 
     if (utBoard != null) {
-        utBoard.sendSetFlags1(boardChannel, flags1SetMask.applyValue());
+        utBoard.sendDSPControlFlags(boardChannel, dspControlFlags.applyValue());
     }
 
-}//end of Channel::sendSetFlags1
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Channel::clearFlags1
-//
-// Sets mask word to clear one or more bits in the DSP's flags1 variable.
-// To clear a particular bit in the flag, the corresponding bit in pSetMask
-// should be set to a 0.  Any bit in pSetMask which is a 1 is ignored.
-//
-// NOTE: A delay should be inserted between consecutive calls to clearFlags1
-// as they are actually sent to the remotes by another thread.  The delay
-// should be long enough to ensure that the other thread has had time to send
-// the first command before the mask is overwritten by the second change.
-//
-// The command is always sent to the DSP regardless of it being a new value as
-// it does not require much overhead and is infrequently used.
-//
-// NOTE: This functionality should be replaced.  The DSP currently stores
-// flags from the host in the same word as status flags it updates.  Thus it
-// is necessary for the host to send flag masks to alter only specific bits
-// to avoid overwriting the flags the DSP is tracking itself.  The DSP should
-// keep its flags in a separate word to avoid overlap
-// Then, flags here can be handled as they are in the Channel class.
-//
-// If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
-// the flag is false, the value(s) will be sent only if they have changed.
-//
-
-public void clearFlags1(int pClearMask, boolean pForceUpdate)
-{
-
-    flags1ClearMask.setValue(pClearMask, pForceUpdate);
-
-}//end of Channel::clearFlags1
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Channel::sendClearFlags1
-//
-// Sends the flags1ClearMask to the remotes to clear bits in variable flags1.
-// See clearFlags1 function for more info.
-//
-// NOTE: This functionality should be replaced.  The DSP currently stores
-// flags from the host in the same word as status flags it updates.  Thus it
-// is necessary for the host to send flag masks to alter only specific bits
-// to avoid overwriting the flags the DSP is tracking itself.  The DSP should
-// keep its flags in a separate word to avoid overlap
-// Then, flags here can be handled as they are in the Channel class.
-//
-
-public void sendClearFlags1()
-{
-
-    if (utBoard != null){
-        utBoard.sendClearFlags1(boardChannel, flags1ClearMask.applyValue());
-    }
-
-}//end of Channel::sendClearFlags1
+}//end of Channel::sendDSPControlFlags
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -864,10 +772,14 @@ public void setDACEnabled(boolean pEnable, boolean pForceUpdate)
     dacEnabled = pEnable;
 
     if (dacEnabled) {
-        flags1SetMask.setValue((int)UTBoard.DAC_ENABLED, pForceUpdate);
+        dspControlFlags.setValue(
+         (short)(dspControlFlags.getValue() | (short)UTBoard.DAC_ENABLED),
+         pForceUpdate);
     }
     else {
-        flags1ClearMask.setValue((int)~UTBoard.DAC_ENABLED, pForceUpdate);
+        dspControlFlags.setValue(
+         (short)(dspControlFlags.getValue() & (short)~UTBoard.DAC_ENABLED),
+         pForceUpdate);
     }
 
 }//end of Channel::setDACEnabled
@@ -924,12 +836,14 @@ public void setAScanFastEnabled(boolean pEnable,
     //flag that new data needs to be sent to remotes
     if (pForceUpdate){
         if (aScanFastEnabled){
-            flags1SetMask.setValue(
-                                (int)UTBoard.ASCAN_FAST_ENABLED, pForceUpdate);
+            dspControlFlags.setValue(
+             (short)(dspControlFlags.getValue() |
+                            (short)UTBoard.ASCAN_FAST_ENABLED), pForceUpdate);
         }
         else{
-            flags1ClearMask.setValue(
-                               (int)~UTBoard.ASCAN_FAST_ENABLED, pForceUpdate);
+            dspControlFlags.setValue(
+             (short)(dspControlFlags.getValue() &
+                            (short)~UTBoard.ASCAN_FAST_ENABLED), pForceUpdate);
         }
     }//if (pForceUpdate)
 
@@ -986,12 +900,12 @@ public void setAScanSlowEnabled(boolean pEnable,
     aScanSlowEnabled = pEnable;
 
     if (aScanSlowEnabled) {
-        flags1SetMask.setValue(
-                                (int)UTBoard.ASCAN_SLOW_ENABLED, pForceUpdate);
+        dspControlFlags.setValue((short)(dspControlFlags.getValue() |
+                             (short)UTBoard.ASCAN_SLOW_ENABLED), pForceUpdate);
     }
     else {
-        flags1ClearMask.setValue(
-                                (int)~UTBoard.ASCAN_SLOW_ENABLED, pForceUpdate);
+        dspControlFlags.setValue((short)(dspControlFlags.getValue() &
+                            (short)~UTBoard.ASCAN_SLOW_ENABLED), pForceUpdate);
     }
 
 }//end of Channel::setAScanSlowEnabled
@@ -1039,10 +953,12 @@ public void setAScanFreeRun(boolean pEnable, boolean pForceUpdate)
     aScanFreeRun = pEnable;
 
     if (aScanFreeRun) {
-        flags1SetMask.setValue((int)UTBoard.ASCAN_FREE_RUN, pForceUpdate);
+        dspControlFlags.setValue((short)(dspControlFlags.getValue() |
+                                 (short)UTBoard.ASCAN_FREE_RUN), pForceUpdate);
     }
     else {
-        flags1ClearMask.setValue((int)~UTBoard.ASCAN_FREE_RUN, pForceUpdate);
+        dspControlFlags.setValue((short)(dspControlFlags.getValue() &
+                                (short)~UTBoard.ASCAN_FREE_RUN), pForceUpdate);
     }
 
 }//end of Channel::setAScanFreeRun
@@ -2919,9 +2835,7 @@ public void sendDataChangesToRemotes()
 
     if (utBoard != null) {utBoard.clearDSPMessageAndAckCounters();}
 
-    if (flags1SetMask.getDataChangedFlag()) {sendSetFlags1();}
-
-    if (flags1ClearMask.getDataChangedFlag()) {sendClearFlags1();}
+    if (dspControlFlags.getDataChangedFlag()) {sendDSPControlFlags();}
 
     if (softwareGain.getDataChangedFlag()) {sendSoftwareGain();}
 

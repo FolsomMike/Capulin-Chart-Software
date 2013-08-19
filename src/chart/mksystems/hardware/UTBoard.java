@@ -37,7 +37,7 @@ public class UTBoard extends Board{
 
     int debug = 0; //debug mks
 
-    int rabbitControlFlags;
+    short rabbitControlFlags = 0;
 
     boolean fpgaLoaded = false;
     String fpgaCodeFilename;
@@ -283,8 +283,8 @@ public class UTBoard extends Board{
     static int AD_RAW_DATA_BUFFER_ADDRESS = 0x4000;
 
     static final int RUNTIME_PACKET_SIZE = 2048;
-    static final int WALL_MAP_PACKET_SIZE = 4002;
-    static final int WALL_MAP_PACKET_SIZE_INTS = 2001;
+    static final int WALL_MAP_PACKET_DATA_SIZE = 4002;
+    static final int WALL_MAP_PACKET_DATA_SIZE_INTS = 2001;
 
     //the hardware uses a 4 byte unsigned integer for MAX_DELAY_COUNT - Java
     //doesn't do unsigned easily, so the max value is limited to the maximum
@@ -319,7 +319,7 @@ public class UTBoard extends Board{
 
     static final int RABBIT_FLAW_WALL_MODE = 0x0001;	//board is a basic flaw or wall module
     static final int RABBIT_WALL_MAP_MODE = 0x0002;	//board is a wall mapping module
-    static final int RABBIT_SEND_DATA_ASYNC = 0x004;    //send data packets without being requested
+    static final int RABBIT_SEND_DATA_ASYNC = 0x0004;    //send data packets without being requested
 
     // bits for flag1 variable in DSP's
     //The GATES_ENABLED, DAC_ENABLED, and ASCAN_ENABLED flags can be cleared
@@ -332,8 +332,8 @@ public class UTBoard extends Board{
     static int ASCAN_FAST_ENABLED = 0x0008; //fast AScan enabled flag
     static int ASCAN_SLOW_ENABLED = 0x0010; //slow AScan enabled flag
     static int ASCAN_FREE_RUN = 0x0020;    //AScan free run, not triggered by gate
-    static int FLAW_WALL_MODE = 0x0040;    //DSP is a basic flaw/wall peak processor
-    static int WALL_MAP_MODE = 0x0080;     //DSP is a wall mapping processor
+    static int DSP_FLAW_WALL_MODE = 0x0040;    //DSP is a basic flaw/wall peak processor
+    static int DSP_WALL_MAP_MODE = 0x0080;     //DSP is a wall mapping processor
 
     //Messages for DSPs
     //These should match the values in the code for those DSPs
@@ -356,6 +356,7 @@ public class UTBoard extends Board{
     static byte DSP_SET_FLAGS1 = 15;
     static byte DSP_CLEAR_FLAGS1 = 16;
     static byte DSP_SET_GATE_SIG_PROC_THRESHOLD = 17;
+    static byte DSP_GET_MAP_BLOCK = 18;
 
     static byte DSP_ACKNOWLEDGE = 127;
 
@@ -388,6 +389,7 @@ public class UTBoard extends Board{
     static byte SET_REP_RATE_CMD = 23;
     static byte SET_CONTROL_FLAGS_CMD = 24;
     static byte GET_WALL_MAP_CMD = 25;
+    static byte RESET_FOR_NEXT_RUN_CMD = 26;
 
     static byte ERROR = 125;
     static byte DEBUG_CMD = 126;
@@ -919,6 +921,10 @@ public void enableWallMapPackets(boolean pState)
 // UTBoard::resetForNextRun
 //
 // Resets all buffer pointers and such in preparation for the next run.
+// Sends a reset code to the remote so it can prepare as well.
+//
+// Should be called from "Main Thread" and not the GUI thread to avoid
+// collisions in accessing the socket.
 //
 
 public void resetForNextRun()
@@ -928,6 +934,9 @@ public void resetForNextRun()
     prevTDCCodePosition = -1;
     prevLinearAdvanceCodePosition = -1;
     if(map2D != null) { map2D.resetAll(); }
+
+    //send reset command to the remote
+    sendResetForNextRunCmd();
 
 }//end of UTBoard::resetForNextRun
 //-----------------------------------------------------------------------------
@@ -1374,6 +1383,20 @@ public void sendRabbitControlFlags()
                 );
 
 }//end of UTBoard::sendRabbitControlFlags
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::sendResetForNextRunCmd
+//
+// Sends to the remote the command to reset for the next run.
+//
+
+public void sendResetForNextRunCmd()
+{
+
+    sendBytes(RESET_FOR_NEXT_RUN_CMD, (byte) (0), (byte) (0));
+
+}//end of UTBoard::sendResetForNextRunCmd
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -2997,41 +3020,20 @@ public void sendSoftwareGain(int pChannel, double pSoftwareGain)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTBoard::sendSetFlags1
+// UTBoard::sendDSPControlFlags
 //
-// Sends mask word to set one or more bits in the DSP's flags1 variable.
-// To set a particular bit in the flag, the corresponding bit in pSetMask
-// should be set to a 1.  Any bit in pSetMask which is a 0 is ignored.
+// Sends the dspControlFlags to the DSP.
 //
 
-public void sendSetFlags1(int pChannel, int pSetMask)
+public void sendDSPControlFlags(int pChannel, int pFlags)
 {
 
     sendChannelParam(pChannel, (byte) DSP_SET_FLAGS1,
-               (byte)((pSetMask >> 8) & 0xff),
-               (byte)(pSetMask & 0xff),
+               (byte)((pFlags >> 8) & 0xff),
+               (byte)(pFlags & 0xff),
                (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0);
 
-}//end of UTBoard::sendSetFlags1
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// UTBoard::sendClearFlags1
-//
-// Sends mask word to clear one or more bits in the DSP's flags1 variable.
-// To clear a particular bit in the flag, the corresponding bit in pSetMask
-// should be set to a 0.  Any bit in pSetMask which is a 1 is ignored.
-//
-
-public void sendClearFlags1(int pChannel, int pClearMask)
-{
-
-    sendChannelParam(pChannel, (byte) DSP_CLEAR_FLAGS1,
-               (byte)((pClearMask >> 8) & 0xff),
-               (byte)(pClearMask & 0xff),
-               (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0);
-
-}//end of UTBoard::sendClearFlags1
+}//end of UTBoard::sendDSPControlFlags
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -3321,6 +3323,8 @@ public void requestAScan(int pChannel, int pHardwareDelay)
     //if a request is not still pending, send request for new aScan data packet
     if (aScanRcvd){
 
+        //each channel is handled by two cores processing alternating shots
+        //alternate between the two cores to verify that both are working
         if (aScanCoreSelector == 1) {aScanCoreSelector = 2;}
         else {aScanCoreSelector = 1;}
 
@@ -3639,6 +3643,21 @@ void parseBoardType(String pValue)
     }
 
 }//end of UTBoard::parseBoardType
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::getType
+//
+// Returns the board type -- i.e. the type of data processor the board is
+// set up to do: peak detection, wall mapping, etc.
+//
+
+public int getType()
+{
+
+    return(type);
+
+}//end of UTBoard::getType
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -4671,7 +4690,7 @@ public int processWallMapPacket()
 
         //wait a bit for the full packet, bail out if it times out
         //that will cause a resync and a tossed packet
-        if (!waitForNumberOfBytes(WALL_MAP_PACKET_SIZE)){
+        if (!waitForNumberOfBytes(WALL_MAP_PACKET_DATA_SIZE)){
             return(0);
         }
 
@@ -4682,7 +4701,7 @@ public int processWallMapPacket()
 
         packetCount = inBuffer[0];
 
-        for (int i = 0; i < (WALL_MAP_PACKET_SIZE_INTS - 1); i++){
+        for (int i = 0; i < (WALL_MAP_PACKET_DATA_SIZE_INTS - 1); i++){
 
             byteIn.read(inBuffer, 0, 2);
 
@@ -4702,7 +4721,7 @@ public int processWallMapPacket()
         System.err.println(getClass().getName() + " - Error: 4674");
     }
 
-    return(WALL_MAP_PACKET_SIZE); //number of bytes read from the socket
+    return(WALL_MAP_PACKET_DATA_SIZE); //number of bytes read from the socket
 
 }//end of UTBoard::processWallMapPacket
 //-----------------------------------------------------------------------------

@@ -281,17 +281,17 @@ public int getNumberOfStripCharts()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// ChartGroup::resetChartGroup
+// ChartGroup::resetAll
 //
 // Erases the charts and clears all data.
 //
 
-public void resetChartGroup()
+public void resetAll()
 {
 
-    for (int i = 0; i < numberOfStripCharts; i++) {stripCharts[i].resetChart();}
+    for (int i = 0; i < numberOfStripCharts; i++) {stripCharts[i].resetAll();}
 
-}//end of ChartGroup::resetChartGroup
+}//end of ChartGroup::resetAll
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

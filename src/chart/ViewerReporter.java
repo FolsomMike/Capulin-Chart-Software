@@ -310,7 +310,7 @@ void resetChartGroups()
 {
 
     for (int i = 0; i < numberOfChartGroups; i++) {
-        chartGroups[i].resetChartGroup();
+        chartGroups[i].resetAll();
     }
 
 }//end of ViewerReporter::resetChartGroups

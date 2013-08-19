@@ -54,7 +54,7 @@ public SyncedInteger(SyncedVariableSet pSyncedVariableSet)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SyncedVariable::setValue
+// SyncedInteger::setValue
 //
 // Sets the value to pValue, sets the dataChangedFlag, and notifies the
 // manager of the change.
@@ -65,7 +65,7 @@ public SyncedInteger(SyncedVariableSet pSyncedVariableSet)
 // to be forcibly set.
 //
 
-public synchronized void setValue(Integer pValue, boolean pForceUpdate)
+public synchronized void setValue(int pValue, boolean pForceUpdate)
 {
 
     if (pForceUpdate || value != pValue){
@@ -79,7 +79,7 @@ public synchronized void setValue(Integer pValue, boolean pForceUpdate)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SyncedVariable::increment
+// SyncedInteger::increment
 //
 // Adds one to pValue, sets the dataChangedFlag, and notifies the
 // manager of the change.
@@ -99,7 +99,7 @@ public synchronized void increment()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SyncedVariable::decrement
+// SyncedInteger::decrement
 //
 // Subtracts one from pValue, sets the dataChangedFlag, and notifies the
 // manager of the change.
@@ -119,7 +119,7 @@ public synchronized void decrement()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SyncedVariable::getPosition
+// SyncedInteger::getPosition
 //
 // This method is for use by the responding object to check if the value has
 // been changed from zero.  It returns the value and then increments or
@@ -150,7 +150,7 @@ public synchronized int getPosition()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SyncedVariable::applyValue
+// SyncedInteger::applyValue
 //
 // Returns the value, clears the dataChanged flag, and notifies the manager
 // object.
@@ -160,7 +160,7 @@ public synchronized int getPosition()
 // dataChanged flag, use getValue instead.
 //
 
-public synchronized Integer applyValue()
+public synchronized int applyValue()
 {
 
     setDataChangedFalse();
@@ -170,7 +170,7 @@ public synchronized Integer applyValue()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SyncedVariable::getValue
+// SyncedInteger::getValue
 //
 // Returns the value BUT DOES NOT clear the dataChanged flag or notify the
 // manager object.  If the receive object wishes to get the value and apply it
@@ -181,7 +181,7 @@ public synchronized Integer applyValue()
 // object obtains the value.
 //
 
-public synchronized Integer getValue()
+public synchronized int getValue()
 {
 
     return(value);

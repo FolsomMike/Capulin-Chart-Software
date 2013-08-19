@@ -819,7 +819,7 @@ private void resetChartGroups()
 {
 
     for (int i = 0; i < settings.numberOfChartGroups; i++) {
-        settings.chartGroups[i].resetChartGroup();
+        settings.chartGroups[i].resetAll();
     }
 
 }//end of MainWindow::resetChartGroups

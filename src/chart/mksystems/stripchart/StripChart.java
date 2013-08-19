@@ -280,17 +280,17 @@ private void setSizes(int pWidth, int pHeight)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// ChartCanvas::resetCanvas
+// ChartCanvas::resetAll
 //
 // Erases the chart area and clears all data in the trace buffers.
 //
 
-public void resetCanvas()
+public void resetAll()
 {
 
-    for (int i = 0; i < numberOfPlotters; i++) {plotters[i].reset();}
+    for (int i = 0; i < numberOfPlotters; i++) {plotters[i].resetAll();}
 
-}//end of ChartCanvas::resetCanvas
+}//end of ChartCanvas::resetAll
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1056,22 +1056,22 @@ public void updatePreviousMinWallValue(double pMinWall)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// StripChart::resetChart
+// StripChart::resetAll
 //
 // Erases the chart area and clears all data.
 //
 
-public void resetChart()
+public void resetAll()
 {
 
     Graphics2D g2 = (Graphics2D) canvas.getGraphics();
 
     //reset all chart and trace data
-    canvas.resetCanvas();
+    canvas.resetAll();
 
     repaint();
 
-}//end of StripChart::resetChart
+}//end of StripChart::resetAll
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

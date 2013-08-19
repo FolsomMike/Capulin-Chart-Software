@@ -192,6 +192,32 @@ void configure(IniFile pConfigFile)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Plotter::resetAll
+//
+// Clears all data.
+//
+// Do not call from the constructor because all data may not be available at
+// that time.
+//
+
+public void resetAll()
+{
+
+    plotVs.gridCounter = 0; //used to place grid marks
+
+    plotVs.drawData = true; //draw trace when plotting data
+
+    plotterGlobals.bufOffset = 0; //left edge of screen starts at position 0
+
+    plotterGlobals.scrollCount = 0; //number of pixels chart has been scrolled
+
+    //pixel position on the screen where data is being plotted
+    plotVs.pixPtr = -1;
+
+}//end of Plotter::resetAll
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Plotter::setCanvas
 //
 // Stores a pointer to the canvas on which the data is drawn.
@@ -218,20 +244,6 @@ public void setColorMapper(ColorMapper pColorMapper)
     colorMapper = pColorMapper;
 
 }//end of Plotter::setColorMapper
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Plotter::reset
-//
-// Clears all data.
-//
-// Should be overridden by subclasses.
-//
-
-public void reset()
-{
-
-}//end of Plotter::reset
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -572,6 +584,21 @@ public void advanceInsertionPoint()
 {
 
 }//end of Plotter::advanceInsertionPoint
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Plotter::isMaxCaptureMode
+//
+// Returns true if this plotter is configured to capture maximum peak values;
+// return false if configured to capture minimum peak values.
+//
+
+public boolean isMaxCaptureMode()
+{
+
+    return(higherMoreSevere);
+
+}//end of Plotter::isMaxCaptureMode
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

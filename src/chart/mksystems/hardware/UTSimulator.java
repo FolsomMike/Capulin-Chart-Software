@@ -287,8 +287,8 @@ public UTSimulator() throws SocketException{}; //default constructor - not used
 
     static final int MAP_BUFFER_SIZE = 2000;
     int mapDataBuffer[];
-    int mapHelicalAdvanceTimer = 0;
-    static final int MAP_HELICAL_ADVANCE_TICK = 20;
+    int wallMapPacketSendTimer = 0;
+    static final int WALL_MAP_PACKET_SEND_RELOAD = 20;
 
 //-----------------------------------------------------------------------------
 // UTSimulator::UTSimulator (constructor)
@@ -327,7 +327,7 @@ public void init()
 
     tdcTracker = resetTDCAdvanceCount(SAMPLES_PER_REV);
     helixAdvanceTracker = resetTDCAdvanceCount(SAMPLES_PER_ADVANCE);
-    mapHelicalAdvanceTimer = MAP_HELICAL_ADVANCE_TICK;
+    wallMapPacketSendTimer = WALL_MAP_PACKET_SEND_RELOAD;
 
     //create an array of channel variables
     boardChannels = new BoardChannel[MAX_BOARD_CHANNELS];
@@ -389,8 +389,8 @@ public int processDataPackets(boolean pWaitForPkt)
     //the wall map data packet is not requested by the host, it is sent
     //asynchronously and continuously
 
-    if (mapHelicalAdvanceTimer-- == 0){
-        mapHelicalAdvanceTimer = MAP_HELICAL_ADVANCE_TICK;
+    if (wallMapPacketSendTimer-- == 0){
+        wallMapPacketSendTimer = WALL_MAP_PACKET_SEND_RELOAD;
         if (isWallMapPacketSendEnabled()){
             //System.out.println("Map Packet Sent - " + index);
             sendWallMapPacket();

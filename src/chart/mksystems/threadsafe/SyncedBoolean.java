@@ -54,7 +54,7 @@ public SyncedBoolean(SyncedVariableSet pSyncedVariableSet)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SyncedVariable::setValue
+// SyncedBoolean::setValue
 //
 // Sets the value to pValue, sets the dataChangedFlag, and notifies the
 // manager of the change.
@@ -65,7 +65,7 @@ public SyncedBoolean(SyncedVariableSet pSyncedVariableSet)
 // to be forcibly set.
 //
 
-public synchronized void setValue(Boolean pValue, boolean pForceUpdate)
+public synchronized void setValue(boolean pValue, boolean pForceUpdate)
 {
 
     if (pForceUpdate || value != pValue){
@@ -79,7 +79,7 @@ public synchronized void setValue(Boolean pValue, boolean pForceUpdate)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SyncedVariable::applyValue
+// SyncedBoolean::applyValue
 //
 // Returns the value, clears the dataChanged flag, and notifies the manager
 // object.
@@ -89,7 +89,7 @@ public synchronized void setValue(Boolean pValue, boolean pForceUpdate)
 // dataChanged flag, use getValue instead.
 //
 
-public synchronized Boolean applyValue()
+public synchronized boolean applyValue()
 {
 
     setDataChangedFalse();
@@ -99,7 +99,7 @@ public synchronized Boolean applyValue()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// SyncedVariable::getValue
+// SyncedBoolean::getValue
 //
 // Returns the value BUT DOES NOT clear the dataChanged flag or notify the
 // manager object.  If the receive object wishes to get the value and apply it
@@ -110,7 +110,7 @@ public synchronized Boolean applyValue()
 // object obtains the value.
 //
 
-public synchronized Boolean getValue()
+public synchronized boolean getValue()
 {
 
     return(value);

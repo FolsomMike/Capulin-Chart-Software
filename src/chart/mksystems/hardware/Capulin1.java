@@ -95,6 +95,12 @@ public class Capulin1 extends Object implements HardwareLink, MessageLink{
     int opMode = Hardware.STOPPED;
     boolean controlBoardInspectMode = false;
 
+    //flags to signal "Main Thread" from the GUI thread to perform an action
+    //involving the socket -- used to prevent thread collisions
+
+    boolean performResetUTBoardsForNextRun = false;
+
+
     SyncedVariableSet syncedVarMgr;
 
     SyncedBoolean wallMapPacketsEnabled;
@@ -657,24 +663,29 @@ public void initializeChannels()
 //-----------------------------------------------------------------------------
 // Capulin1:sendDataChangesToRemotes
 //
-// If any synced data has been changed, sends the changes to the remotes.
+// If any synced data or command flag has been changed, sends the changes or
+// commands to the remotes.
 //
 // These values are often changed by the user clicking on controls which are
 // handled in the main GUI thread. Synced variables are used to avoid
 // collisions with the thread handling the UTBoards which also calls this
 // function.
 //
+// This method should only be invoked by the "Main Thread".
+//
 
 @Override
 public void sendDataChangesToRemotes()
 {
+
+    //perform any pending actions required by the "Main Thread"
+    handleSyncedCommands();
 
     //handle data changes in all the channels
 
     for (int i = 0; i < numberOfChannels; i++) {
         channels[i].sendDataChangesToRemotes();
     }
-
 
     //handle data changes in this class
 
@@ -685,6 +696,29 @@ public void sendDataChangesToRemotes()
     if (repRateInHertz.getDataChangedFlag()) {sendRepRate();}
 
 }//end of Capulin1::sendDataChangesToRemotes
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::handleSyncedCommands
+//
+// Perform any pending actions which are required for the "Main Thread". This
+// method should only be invoked by the "Main Thread".
+//
+// The GUI thread should not directly invoke methods which access the sockets
+// to the remotes. Instead, the GUI thread sets signal flags to trigger the
+// "Main Thread" to perform the action instead.
+//
+
+public void handleSyncedCommands()
+{
+
+    if(performResetUTBoardsForNextRun){
+        performResetUTBoardsForNextRun = false;
+        //prepare the UTBoards for a new run
+        resetUTBoardsForNextRun();
+    }
+
+}//end of Capulin1::handleSyncedCommands
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -966,8 +1000,8 @@ public void setMode(int pOpMode)
         controlBoards[0].startInspect();
         controlBoardInspectMode = true; //flag that board is in inspect mode
 
-        //prepare the UTBoards for a new run
-        resetUTBoardsForNextRun();
+        //signal "Main Thread" to reset
+        performResetUTBoardsForNextRun = true;
 
         //enable async sending of wall map data packets by the UTBoards
         wallMapPacketsEnabled.setValue(true, false);
@@ -980,7 +1014,10 @@ public void setMode(int pOpMode)
         wallMapPacketsEnabled.setValue(false, false);
 
         //deactivate inspect mode in the control board(s)
-        //wip mks -- should this be a synced variable?
+        //wip mks -- should this be a synced variable or use a flag to
+        // signal "Main Thread" to do this? see performResetUTBoardsForNextRun
+        // for an example
+
         if (controlBoardInspectMode) {controlBoards[0].stopInspect();}
 
     }
