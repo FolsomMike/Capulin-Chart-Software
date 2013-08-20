@@ -1368,21 +1368,21 @@ void getChassisSlotAddressOverride()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTBoard::sendRabbitControlFlags
+// Board::sendRabbitControlFlags
 //
 // Sends the rabbitControlFlags value to the remotes. These flags control
 // the functionality of the remotes.
+//
+// Note that the value of the CMD may different for each Board subclass which
+// is why each subclass calls the super method with its particular command.
 //
 
 public void sendRabbitControlFlags()
 {
 
-    sendBytes(SET_CONTROL_FLAGS_CMD,
-                (byte) ((rabbitControlFlags >> 8) & 0xff),
-                (byte) (rabbitControlFlags & 0xff)
-                );
+    super.sendRabbitControlFlags(SET_CONTROL_FLAGS_CMD);
 
-}//end of UTBoard::sendRabbitControlFlags
+}//end of Board::sendRabbitControlFlags
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

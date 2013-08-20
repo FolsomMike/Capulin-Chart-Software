@@ -55,6 +55,8 @@ class InstallFirmwareSettings extends Object{
 
 public abstract class Board extends Object implements Runnable{
 
+
+    short rabbitControlFlags = 0;
     Boolean enabled;
     int type;
     int controlFlags = 0;
@@ -132,6 +134,27 @@ void configureExtended(IniFile pConfigFile)
     enabled = pConfigFile.readBoolean(section, "Enabled", true);
 
 }//end of Board::configureExtended
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Board::sendRabbitControlFlags
+//
+// Sends the rabbitControlFlags value to the remotes. These flags control
+// the functionality of the remotes.
+//
+// The paramater pCommand is the command specific to the subclass for its
+// Rabbit remote.
+//
+
+public void sendRabbitControlFlags(final byte pCommand)
+{
+
+    sendBytes(pCommand,
+                (byte) ((rabbitControlFlags >> 8) & 0xff),
+                (byte) (rabbitControlFlags & 0xff)
+                );
+
+}//end of Board::sendRabbitControlFlags
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

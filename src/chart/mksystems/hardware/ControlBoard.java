@@ -72,6 +72,16 @@ public class ControlBoard extends Board implements MessageLink{
     //these values are read later from the config file
     int encoder1DeltaTrigger, encoder2DeltaTrigger;
 
+    // values for the Rabbits control flag - only lower 16 bits are used
+    // as the corresponding variable in the Rabbit is an unsigned int
+
+    // transmit tracking pulse to DSPs for every o'clock position and a reset
+    // pulse at every TDC
+    static final int RABBIT_SEND_CLOCK_MARKERS = 0x0001;
+    // transmit a single pulse at every TDC detection and a reset pulse for
+    // every linear advance of one step
+    static final int RABBIT_SEND_TDC_AND_LINEAR_MARKERS = 0x0002;
+
     //Commands for Control boards
     //These should match the values in the code for those boards.
 
@@ -92,6 +102,7 @@ public class ControlBoard extends Board implements MessageLink{
     static byte SEND_DATA_CMD = 14;
     static byte DATA_CMD = 15;
     static byte GET_CHASSIS_SLOT_ADDRESS_CMD = 16;
+    static byte SET_CONTROL_FLAGS_CMD = 17;
 
     static byte ERROR = 125;
     static byte DEBUG_CMD = 126;
@@ -163,6 +174,80 @@ public void init()
 
 
 }//end of ControlBoard::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlBoard::configure
+//
+// Loads configuration settings from the configuration.ini file.
+// The various child objects are then created as specified by the config data.
+//
+
+@Override
+void configure(IniFile pConfigFile)
+{
+
+    super.configure(pConfigFile);
+
+    inBuffer = new byte[RUNTIME_PACKET_SIZE];
+    outBuffer = new byte[RUNTIME_PACKET_SIZE];
+
+    //debug mks -- calculate this delta to give one packet per pixel????
+
+    encoder1DeltaTrigger =
+          pConfigFile.readInt("Hardware", "Encoder 1 Delta Count Trigger", 83);
+
+    encoder2DeltaTrigger =
+          pConfigFile.readInt("Hardware", "Encoder 2 Delta Count Trigger", 83);
+
+}//end of ControlBoard::configure
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlBoard::configureExtended
+//
+// Loads further configuration settings from the configuration.ini file.
+// These settings are stored using the boards chassis and slot addresses, so
+// they cannot be loaded until after the host has uploaded the FPGA code to the
+// board.
+//
+
+@Override
+void configureExtended(IniFile pConfigFile)
+{
+
+    super.configureExtended(pConfigFile);
+
+    String section = "Control Board in Chassis "
+                                        + chassisAddr + " Slot " + slotAddr;
+
+    String positionTrackingMode = pConfigFile.readString(
+                    section, "Position Tracking Mode", "Send Clock Markers");
+
+    parsePositionTrackingMode(positionTrackingMode);
+
+}//end of ControlBoard::configureExtended
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlBoard::parsePositionTrackingMode
+//
+// Sets various flags based on the type of angular and linear position tracking
+// specified in the config file.
+//
+
+void parsePositionTrackingMode(String pValue)
+{
+
+    if (pValue.equals("Send Clock Markers")) {
+        rabbitControlFlags |= RABBIT_SEND_CLOCK_MARKERS;
+    }
+    else
+    if (pValue.equals("Send TDC and Linear Markers")) {
+        rabbitControlFlags |= RABBIT_SEND_TDC_AND_LINEAR_MARKERS;
+    }
+
+}//end of ControlBoard::parsePositionTrackingMode
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -293,6 +378,14 @@ public synchronized void connect()
 
 public void initialize()
 {
+
+    // load values from the config file which can only be loaded after the
+    // board's chassis and slot addresses are known
+
+    configureExtended(configFile);
+
+
+    sendRabbitControlFlags();
 
     setEncodersDeltaTrigger();
 
@@ -659,6 +752,24 @@ public void setEncodersDeltaTrigger()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Board::sendRabbitControlFlags
+//
+// Sends the rabbitControlFlags value to the remotes. These flags control
+// the functionality of the remotes.
+//
+// Note that the value of the CMD may different for each Board subclass which
+// is why each subclass calls the super method with its particular command.
+//
+
+public void sendRabbitControlFlags()
+{
+
+    super.sendRabbitControlFlags(SET_CONTROL_FLAGS_CMD);
+
+}//end of Board::sendRabbitControlFlags
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ControlBoard::startInspect
 //
 // Puts Control board in the inspect mode.  In this mode the Control board
@@ -1008,33 +1119,6 @@ public void setNewInspectPacketReady(boolean pValue)
     {newInspectPacketReady = pValue;}
 
 //end of ControlBoard::various get/set functions
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// ControlBoard::configure
-//
-// Loads configuration settings from the configuration.ini file.
-// The various child objects are then created as specified by the config data.
-//
-
-@Override
-void configure(IniFile pConfigFile)
-{
-
-    super.configure(pConfigFile);
-
-    inBuffer = new byte[RUNTIME_PACKET_SIZE];
-    outBuffer = new byte[RUNTIME_PACKET_SIZE];
-
-    //debug mks -- calculate this delta to give one packet per pixel????
-
-    encoder1DeltaTrigger =
-          pConfigFile.readInt("Hardware", "Encoder 1 Delta Count Trigger", 83);
-
-    encoder2DeltaTrigger =
-          pConfigFile.readInt("Hardware", "Encoder 2 Delta Count Trigger", 83);
-
-}//end of ControlBoard::configure
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

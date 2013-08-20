@@ -215,11 +215,11 @@ public void initialize()
     if (dacEnabled) {lDSPControlFlags |= UTBoard.DAC_ENABLED;}
     lDSPControlFlags |= UTBoard.ASCAN_FREE_RUN;
 
-    if (utBoard.getType() == UTBoard.RABBIT_FLAW_WALL_MODE){
+    if (utBoard != null && utBoard.getType() == UTBoard.RABBIT_FLAW_WALL_MODE){
         lDSPControlFlags |= UTBoard.DSP_FLAW_WALL_MODE;
     }
     else
-    if (utBoard.getType() == UTBoard.RABBIT_WALL_MAP_MODE){
+    if (utBoard != null && utBoard.getType() == UTBoard.RABBIT_WALL_MAP_MODE){
         lDSPControlFlags |= UTBoard.DSP_WALL_MAP_MODE;
     }
 
