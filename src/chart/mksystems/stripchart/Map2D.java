@@ -42,8 +42,6 @@ public class Map2D extends Plotter{
     int verticalOffset, verticalSize;
     int minY, maxY;
 
-    int dataSourceBoard;
-
 //-----------------------------------------------------------------------------
 // Map2D::Map2D (constructor)
 //
@@ -94,14 +92,6 @@ public void init()
     //read the configuration file and create/setup the charting/control elements
     configure(configFile);
 
-    //link the map data object to the appropriate source board as specified in
-    //config file
-    //hardware may be null if this object is used for viewing only, so skip this
-    //step if so
-    if (hardware != null) {
-        hardware.linkMapToSourceBoard(dataSourceBoard, this);
-    }
-
 }//end of Map2D::init
 //-----------------------------------------------------------------------------
 
@@ -119,7 +109,11 @@ void configure(IniFile pConfigFile)
 
     String section = configFileSection;
 
-    dataSourceBoard = pConfigFile.readInt(section, "Data Source Board", -1);
+    dataSourceBoardChassis = pConfigFile.readInt(
+                                    section, "Data Source Board Chassis", -1);
+
+    dataSourceBoardSlot = pConfigFile.readInt(
+                                    section, "Data Source Board Slot", -1);
 
     verticalSize = pConfigFile.readInt(section, "Vertical Size", 100);
 

@@ -48,6 +48,8 @@ public class Plotter extends Object{
     Settings settings;
     Hardware hardware;
 
+    int dataSourceBoardChassis = -1, dataSourceBoardSlot = -1;
+
     String typeDescriptor;
     String configFileSection;
 
@@ -229,6 +231,34 @@ public void setCanvas(JPanel pCanvas)
     canvas = pCanvas;
 
 }//end of Plotter::setCanvas
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Plotter::getDataSourceBoardChassis
+//
+// Returns the chassis number of the board providing data.
+//
+
+public int getDataSourceBoardChassis()
+{
+
+    return(dataSourceBoardChassis);
+
+}//end of Plotter::getDataSourceBoardChassis
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Plotter::getDataSourceBoardSlot
+//
+// Returns the slot number of the board providing data.
+//
+
+public int getDataSourceBoardSlot()
+{
+
+    return(dataSourceBoardSlot);
+
+}//end of Plotter::getDataSourceBoardSlot
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

@@ -25,7 +25,6 @@ import chart.ThreadSafeLogger;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.settings.Settings;
 import chart.mksystems.stripchart.ChartGroup;
-import chart.mksystems.stripchart.Map2D;
 import chart.mksystems.stripchart.Plotter;
 import chart.mksystems.stripchart.Threshold;
 import chart.mksystems.stripchart.Trace;
@@ -74,7 +73,7 @@ public class Hardware extends Object implements TraceValueCalculator, Runnable,
     public String inspectionDirectionDescription;
 
     Settings settings;
-    public ChartGroup chartGroups[];
+    ChartGroup chartGroups[];
 
     public HardwareVars hdwVs;
     IniFile configFile;
@@ -225,6 +224,22 @@ private void configure(IniFile pConfigFile)
     createAnalogDriver(analogDriverName);
 
 }//end of Hardware::configure
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::setChartGroups
+//
+// Sets the chartGroups variable.
+//
+
+public void setChartGroups(ChartGroup pChartGroups [])
+{
+
+    chartGroups = pChartGroups;
+
+    analogDriver.setChartGroups(pChartGroups);
+
+}//end of Hardware::setChartGroups
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1926,21 +1941,6 @@ public void linkPlotters(int pChartGroup, int pChart, int pTrace,
                                         pThresholds, pPlotStyle, pTracePtr);
 
 }//end of Hardware::linkPlotters
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Hardware::linkMapToSourceBoard
-//
-// This function is called by Plotters (Map2D, Map3D, etc.) to link their data
-// objects to specific boards so those boards can feed data to the map.
-//
-
-public void linkMapToSourceBoard(int pWhichBoard, Map2D pMap2D)
-{
-
-    analogDriver.linkMapToSourceBoard(pWhichBoard, pMap2D);
-
-}//end of Hardware::linkMapToSourceBoard
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

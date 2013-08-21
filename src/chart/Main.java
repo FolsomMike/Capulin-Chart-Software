@@ -677,7 +677,7 @@ private void configure()
         }//if (numberOfChartGroups > 0)
 
     //give hardware a connection to the charts
-    hardware.chartGroups = settings.chartGroups;
+    hardware.setChartGroups(settings.chartGroups);
 
     //create a panel to hold user controls and status displays
     mainFrame.add(controlPanel =

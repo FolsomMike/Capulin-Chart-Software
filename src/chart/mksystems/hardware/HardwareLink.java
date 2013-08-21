@@ -21,6 +21,7 @@ package chart.mksystems.hardware;
 
 import chart.Log;
 import chart.mksystems.inifile.IniFile;
+import chart.mksystems.stripchart.ChartGroup;
 import chart.mksystems.stripchart.Map2D;
 import chart.mksystems.stripchart.Threshold;
 import chart.mksystems.stripchart.Trace;
@@ -88,8 +89,6 @@ public void linkPlotters(int pChartGroup, int pChart, int pTrace,
         TraceData pTraceData, Threshold[] pThresholds, int pPlotStyle,
         Trace pTracePtr);
 
-public void linkMapToSourceBoard(int pWhichBoard, Map2D pMap2D);
-
 boolean prepareAnalogData();
 
 boolean prepareControlData();
@@ -138,6 +137,8 @@ public void setNewInspectPacketReady(boolean pValue);
 public int xmtMessage(int pMessage, int pValue);
 
 public int getRepRateInHertz();
+
+public void setChartGroups(ChartGroup pChartGroups []);
 
 }//end of interface HardwareLink
 //-----------------------------------------------------------------------------

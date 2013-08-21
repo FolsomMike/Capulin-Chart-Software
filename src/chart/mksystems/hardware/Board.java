@@ -74,7 +74,7 @@ public abstract class Board extends Object implements Runnable{
 
     public InetAddress ipAddr;
     String ipAddrS;
-    public int chassisAddr, slotAddr;
+    public int chassisAddr = -1, slotAddr = -1;
     String chassisSlotAddr;
     static int FIRMWARE_LOAD_TIMEOUT = 999999;
 
@@ -155,6 +155,50 @@ public void sendRabbitControlFlags(final byte pCommand)
                 );
 
 }//end of Board::sendRabbitControlFlags
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Board::getChassisAddress
+//
+
+public int getChassisAddress()
+{
+
+    return(chassisAddr);
+
+}//end of Board::getChassisAddress
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Board::getSlotAddress
+//
+
+public int getSlotAddress()
+{
+
+    return(slotAddr);
+
+}//end of Board::getSlotAddress
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Board::compareChassisAndSlot
+//
+// Returns true if pChassis and pSlot match the boards chassis and slot address.
+//
+
+public boolean compareChassisAndSlot(int pChassis, int pSlot)
+{
+
+
+    if (pChassis == chassisAddr && pSlot == slotAddr){
+        return(true);
+    }
+    else{
+        return(false);
+    }
+
+}//end of Board::compareChassisAndSlot
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

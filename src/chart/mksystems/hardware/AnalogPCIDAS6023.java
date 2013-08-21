@@ -21,7 +21,7 @@ package chart.mksystems.hardware;
 
 import chart.Log;
 import chart.mksystems.inifile.IniFile;
-import chart.mksystems.stripchart.Map2D;
+import chart.mksystems.stripchart.ChartGroup;
 import chart.mksystems.stripchart.Threshold;
 import chart.mksystems.stripchart.Trace;
 import chart.mksystems.stripchart.TraceData;
@@ -369,20 +369,6 @@ public void linkPlotters(int pChartGroup, int pChart, int pTrace,
 {
 
 }//end of AnalogPCIDAS6023::linkPlotters
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// AnalogPCIDAS6023::linkMapToSourceBoard
-//
-// This function is called by Plotters (Map2D, Map3D, etc.) to link their data
-// objects to specific boards so those boards can feed data to the map.
-//
-
-@Override
-public void linkMapToSourceBoard(int pWhichBoard, Map2D pMap2D)
-{
-
-}//end of AnalogPCIDAS6023::linkMapToSourceBoard
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -852,6 +838,19 @@ public int getRepRateInHertz()
     return(0);
 
 }//end of AnalogPCIDAS6023::getRepRateInHertz
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// AnalogPCIDAS6023::setChartGroups
+//
+// Sets the chartGroups variable.
+//
+
+@Override
+public void setChartGroups(ChartGroup pChartGroups [])
+{
+
+}//end of AnalogPCIDAS6023::setChartGroups
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

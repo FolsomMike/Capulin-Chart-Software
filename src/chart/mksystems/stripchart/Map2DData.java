@@ -313,7 +313,7 @@ synchronized public int getNewData(Map2DDatum pDatum)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Map2DData::get
+// Map2DData::getMapDataBuffer
 //
 // Returns a reference to mapDataBuffer.
 //
@@ -323,7 +323,7 @@ public int[][] getMapDataBuffer()
 
     return(mapDataBuffer);
 
-}//end of Map2DData::getMapDataBuffer1
+}//end of Map2DData::getMapDataBuffer
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

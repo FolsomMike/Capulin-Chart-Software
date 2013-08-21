@@ -23,7 +23,10 @@ import chart.MessageLink;
 import chart.ThreadSafeLogger;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.settings.Settings;
+import chart.mksystems.stripchart.ChartGroup;
 import chart.mksystems.stripchart.Map2D;
+import chart.mksystems.stripchart.Plotter;
+import chart.mksystems.stripchart.StripChart;
 import chart.mksystems.stripchart.Threshold;
 import chart.mksystems.stripchart.Trace;
 import chart.mksystems.stripchart.TraceData;
@@ -44,6 +47,7 @@ import javax.swing.*;
 public class Capulin1 extends Object implements HardwareLink, MessageLink{
 
     Settings settings;
+    ChartGroup chartGroups[];
 
     //debug mks - this is only for demo - delete later
     static int MONITOR_PACKET_SIZE = 20;
@@ -598,6 +602,8 @@ public void initializeUTBoards()
         if (utBoards[i] != null) { utBoards[i].initialize();}
     }
 
+    linkPlottersToBoards();
+
     //disable async sending of wall map data packets by the UTBoards
     wallMapPacketsEnabled.setValue(false, true);
 
@@ -605,7 +611,79 @@ public void initializeUTBoards()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Capulin1:initializeControlBoards
+// Capulin1::linkPlottersToBoards
+//
+// Connect plotters to boards.
+//
+// Some plotters (Trace, Map2D, etc.) are connected to a board independent of
+// any channel connection. The board may use multiple channels to create a
+// data set for display.
+//
+// The plotter is connected to a board by specifying the board's slot address
+// in the plotter's config file section. The boards are randomly placed in the
+// board array based on which board answers roll call first, so the array must
+// be scanned looking for which boards have which slot numbers.
+//
+// wip mks -- move the loop stuff to ChartGroups then we don't need imports
+// for StripChart, Trace, etc. Make a function to iterate through all
+// plotters in ChartGroups.
+//
+
+private void linkPlottersToBoards()
+{
+
+    for (int i = 0; i < chartGroups.length; i++){
+
+        ChartGroup cg = chartGroups[i];
+
+        for (int j = 0; j < cg.getNumberOfStripCharts(); j++){
+
+            StripChart sc = cg.getStripChart(j);
+
+            for (int k = 0; k < sc.getNumberOfPlotters(); k++){
+
+                Plotter p = sc.getPlotter(k);
+
+               for (int l = 0; l < numberOfUTBoards; l++) {
+                   UTBoard utb = utBoards[l];
+                   if(isPlotterConnectedToBoard(p, utb)){
+                       utb.setMap2D((Map2D)p);
+                    }
+                }
+            }
+        }
+    }
+
+
+
+}//end of Capulin1::linkPlottersToBoards
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::isPlotterConnectedToBoard
+//
+// Returns true if the pPlotter data source board chassis and slot match
+// those of pBoard.
+//
+
+public boolean isPlotterConnectedToBoard(Plotter pPlotter, Board pBoard)
+{
+
+    if (pBoard.compareChassisAndSlot(
+        pPlotter.getDataSourceBoardChassis(),
+        pPlotter.getDataSourceBoardSlot())){
+
+        return(true);
+    }
+    else{
+        return(false);
+    }
+
+}//end of Capulin1::isPlotterConnectedToBoard
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::initializeControlBoards
 //
 // Sets up each Control board with various settings.
 //
@@ -1486,22 +1564,6 @@ public void linkPlotters(int pChartGroup, int pChart, int pTrace,
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Capulin1::linkMapToSourceBoard
-//
-// This function is called by Plotters (Map2D, Map3D, etc.) to link their data
-// objects to specific boards so those boards can feed data to the map.
-//
-
-@Override
-public void linkMapToSourceBoard(int pWhichBoard, Map2D pMap2D)
-{
-
-    utBoards[pWhichBoard].setMap2DData(pMap2D);
-
-}//end of Capulin1::linkMapToSourceBoard
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // Capulin1::configure
 //
 // Loads configuration settings from the configuration.ini file.  These set
@@ -1547,6 +1609,21 @@ private void configure(IniFile pConfigFile)
     configureChannels();
 
 }//end of Capulin1::configure
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::setChartGroups
+//
+// Sets the chartGroups variable.
+//
+
+@Override
+public void setChartGroups(ChartGroup pChartGroups [])
+{
+
+    chartGroups = pChartGroups;
+
+}//end of Capulin1::setChartGroups
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
