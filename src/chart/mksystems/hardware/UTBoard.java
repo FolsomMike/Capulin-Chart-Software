@@ -37,8 +37,6 @@ public class UTBoard extends Board{
 
     int debug = 0; //debug mks
 
-    short rabbitControlFlags = 0;
-
     boolean fpgaLoaded = false;
     String fpgaCodeFilename;
     String dspCodeFilename;
@@ -356,7 +354,8 @@ public class UTBoard extends Board{
     static byte DSP_SET_FLAGS1 = 15;
     static byte DSP_CLEAR_FLAGS1 = 16;
     static byte DSP_SET_GATE_SIG_PROC_THRESHOLD = 17;
-    static byte DSP_GET_MAP_BLOCK = 18;
+    static byte DSP_GET_MAP_BLOCK_CMD = 18;
+    static byte DSP_GET_MAP_COUNT_CMD = 19;
 
     static byte DSP_ACKNOWLEDGE = 127;
 
@@ -2788,12 +2787,12 @@ public void linkGates(int pChannel, UTGate[] pGates, int pNumberOfGates)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTBoard::setMap2DData
+// UTBoard::setMap2D
 //
 // Sets pointer to a Map2D object in which the board can send mapping data.
 //
 
-public void setMap2DData(Map2D pMap2D)
+public void setMap2D(Map2D pMap2D)
 {
 
     map2D = pMap2D;
@@ -2817,11 +2816,18 @@ public void setMap2DData(Map2D pMap2D)
     //      boolean pInvertHue)
     //these notes can be deleted -- end
 
-    map2D.setColorMapper(new WallMap2DColorMapper(
-            200, 100, (float)0.0, (float)0.5,
-            (float)1.0, (float)1.0, (float)1.0, false));
+// example for .250 wall
+//    map2D.setColorMapper(new WallMap2DColorMapper(
+//            200, 100, (float)0.0, (float)0.5,
+//            (float)1.0, (float)1.0, (float)1.0, false));
 
-}//end of UTBoard::setMap2DData
+    // example for .707 wall
+    map2D.setColorMapper(new WallMap2DColorMapper(
+                320, 160, (float)0.0, (float)0.5,
+                (float)1.0, (float)1.0, (float)1.0, false));
+
+
+}//end of UTBoard::setMap2D
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -3067,8 +3073,7 @@ public void logDSPStatus(int pDSPChip, int pDSPCore,
 // UTBoard::logDSPStatusHelper
 //
 // Requests and writes to the log window the status word from the specified
-// DSP chip and Core.  The returned packet will be handled by
-// processDataPackets.
+// DSP chip and Core.
 //
 // If pForceProcessDataPackets is true, the processDataPackets function will
 // be called.  This is for use when that function is not already being called
@@ -3083,6 +3088,57 @@ public boolean logDSPStatusHelper(int pDSPChip, int pDSPCore,
 
     readDSPStatus(pDSPChip, pDSPCore);
 
+    return (waitForPacketThenLogMessage(pDSPChip, pDSPCore,
+                                        "Status", pForceProcessDataPackets));
+
+}//end of UTBoard::logDSPStatusHelper
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::logDSPStatusHelper
+//
+// Requests and writes to the log window the number of bytes available for
+// extraction from the specified DSP chip and Core..
+//
+// If pForceProcessDataPackets is true, the processDataPackets function will
+// be called.  This is for use when that function is not already being called
+// by another thread.
+//
+// Returns true if the proper response is received, false otherwise.
+//
+
+public boolean logDSPMapBufferHelper(int pDSPChip, int pDSPCore,
+                                              boolean pForceProcessDataPackets)
+{
+
+    getMapBufferWordsAvailableCount(pDSPChip, pDSPCore);
+
+    return (waitForPacketThenLogMessage(pDSPChip, pDSPCore,
+                            "Bytes in Map Buffer", pForceProcessDataPackets));
+
+}//end of UTBoard::logDSPMapBufferHelper
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::waitForPacketThenLogMessage
+//
+// Waits for the next packet to be received from the remotes and then prints
+// a message with the phrase pMessagePhrase and the value in the returned
+// packet. It is assumed that the only packet expected to be returned matches
+// the last request, so this method is only useful when a specific packet has
+// been requested and no other packets are being returned.
+//
+// If pForceProcessDataPackets is true, the processDataPackets function will
+// be called.  This is for use when that function is not already being called
+// by another thread.
+//
+// Returns true if the proper response is received, false otherwise.
+//
+
+public boolean waitForPacketThenLogMessage(int pDSPChip, int pDSPCore,
+                    String pMessagePhrase, boolean pForceProcessDataPackets)
+{
+
     int bytesRead = 0;
 
     int wait = 0;
@@ -3090,8 +3146,7 @@ public boolean logDSPStatusHelper(int pDSPChip, int pDSPCore,
     //force waiting for and processing of receive packets
     //loop until a dsp status message received
     if (pForceProcessDataPackets){
-        dspStatusMessageRcvd = false;
-        while (!dspStatusMessageRcvd && wait++ < 10) {
+        while (bytesRead == 0 && wait++ < 100) { //debug  mks - was 10
             bytesRead = processDataPackets(true, TIMEOUT);
         }
     }
@@ -3101,25 +3156,25 @@ public boolean logDSPStatusHelper(int pDSPChip, int pDSPCore,
 
         int dspCoreFromPkt = (int)inBuffer[0];
 
-        int status =
+        int value =
                   (int)((inBuffer[1]<<8) & 0xff00) + (int)(inBuffer[2] & 0xff);
 
         //displays status code in log window
         logger.logMessage("UT " + chassisSlotAddr + " Chip: " + pDSPChip
-          + " Core: " + pDSPCore + " Status: " + dspCoreFromPkt + "-"
-          + status + "\n");
+          + " Core: " + pDSPCore + " " + pMessagePhrase + " "
+          + dspCoreFromPkt + "-" + value + "\n");
         return(true);
 
     }
     else{
 
         logger.logMessage("UT " + chassisSlotAddr + " Chip: " + pDSPChip
-                    + " Core: " + pDSPCore + " Status Packet Error" + "\n");
+                    + " Core: " + pDSPCore + " Packet Error" + "\n");
         return(false);
 
     }
 
-}//end of UTBoard::logDSPStatusHelper
+}//end of UTBoard::waitForPacketThenLogMessage
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -3201,6 +3256,29 @@ public void readDSPStatus(int pDSPChip, int pDSPCore)
            );
 
 }//end of UTBoard::readDSPStatus
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::getMapBufferWordsAvailableCount
+//
+// Requests the number of words available for extraction in the map buffer
+// from the specified DSP chip and Core.  The returned packet will be handled
+// by processDataPackets.
+//
+
+public void getMapBufferWordsAvailableCount(int pDSPChip, int pDSPCore)
+{
+
+    sendMessageToDSP(MESSAGE_DSP_CMD,
+           (byte)pDSPChip, (byte)pDSPCore,
+           (byte) DSP_GET_MAP_COUNT_CMD, // DSP message type id
+           (byte) 2, //return packet size expected
+           (byte) 9, //data packet size sent (DSP always expects 9)
+           (byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) 0 , (byte) 0,
+           (byte) 0, (byte)0, (byte)0
+           );
+
+}//end of UTBoard::getMapBufferWordsAvailableCount
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -3754,7 +3832,7 @@ public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
 
         dspMsgID = DSP_NULL_MSG_CMD;
 
-        if ( pktID == GET_STATUS_CMD) {return readBytes(2);}
+        if ( pktID == GET_STATUS_CMD) {return processRabbitStatusPacket();}
 
         if ( pktID == GET_ASCAN_CMD) {return processAScanPacket();}
 
@@ -3873,6 +3951,10 @@ private int processDSPMessage()
     if ( dspMsgID == DSP_GET_STATUS_CMD) {return processDSPStatusMessage();}
 
     if ( dspMsgID == DSP_ACKNOWLEDGE) {return processDSPAckMessage();}
+
+    if ( dspMsgID == DSP_GET_MAP_COUNT_CMD) {
+        return processMapBufferWordsAvailableCount();
+    }
 
     return 0;
 
@@ -4065,6 +4147,37 @@ private int processDSPStatusMessage()
     return 0; // failure - no bytes read
 
 }//end of UTBoard::processDSPStatusMessage
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::processMapBufferWordsAvailableCount
+//
+// Retrieves the number of words stored in the DSPs map buffer from the packet
+// and stores it in inBuffer.
+//
+// Returns number of bytes retrieved from the socket.
+//
+
+private int processMapBufferWordsAvailableCount()
+{
+
+    try{
+        timeOutProcess = 0;
+        while(timeOutProcess++ < TIMEOUT){
+            if (byteIn.available() >= 3) {break;}
+            waitSleep(10);}
+        if (byteIn.available() >= 3){
+            dspStatusMessageRcvd = true;
+            return byteIn.read(inBuffer, 0, 3);
+            }
+        }// try
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 3712");
+    }
+
+    return 0; // failure - no bytes read
+
+}//end of UTBoard::processMapBufferWordsAvailableCount
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -4675,6 +4788,23 @@ public int processPeakDataPacket(int pNumberOfChannels)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// UTBoard::processRabbitStatusPacket
+//
+// Handles data from a Rabbit status packet. Reads two bytes from socket into
+// buffer.
+//
+// Returns number of bytes retrieved from the socket.
+//
+
+public int processRabbitStatusPacket()
+{
+
+    return (readBytes(2));
+
+}//end of UTBoard::processRabbitStatusPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // UTBoard::processWallMapPacket
 //
 // Handles data from a wall map packet.  This type of packet is used to
@@ -4694,8 +4824,6 @@ public int processWallMapPacket()
             return(0);
         }
 
-        //System.out.println("Map Packet Processed - " + boardIndex); //debug mks
-
         //read in the packet count and the status byte
         byteIn.read(inBuffer, 0, 2);
 
@@ -4710,9 +4838,14 @@ public int processWallMapPacket()
 
             dataBuffer[dataBufferIndex++] = (short)value;
 
+            if (dataBufferIndex == dataBuffer.length){
+                dataBufferIndex = dataBuffer.length-1;
+            }
+
             //handle control codes and mapping if map is present
-            if((map2D != null) &&(value & 0x8000) != 0)
-            { handleMapDataControlCode(value); }
+            if((map2D != null) &&(value & 0x8000) != 0){
+                handleMapDataControlCode(value);
+            }
 
         }
 
@@ -4845,6 +4978,8 @@ private void handleMapDataTDCCode()
 
     //store the revolution of data points in the map
     map2DData.storeDataAtInsertionPoint(map2DDataColumn);
+
+    handleMapDataLinearAdvanceCode(); //debug mks
 
 }//end of UTBoard::handleMapDataTDCCode
 //-----------------------------------------------------------------------------
