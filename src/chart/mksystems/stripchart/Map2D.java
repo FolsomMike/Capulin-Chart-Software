@@ -135,7 +135,7 @@ void configure(IniFile pConfigFile)
     //create the arrays to hold data points and flag/decoration info
 
     map2DData = new Map2DData(sizeOfDataBuffer, widthOfDataBuffer,
-            hdwVs.plotStyle, higherMoreSevere ? TraceData.MAX : TraceData.MIN);
+       hdwVs.plotStyle, higherMoreSevere ? PlotterData.MAX : PlotterData.MIN);
 
     map2DData.init();
 
@@ -214,7 +214,7 @@ public int plotNewData(Graphics2D pG2)
 
     //plot new point
     if (dataReady == PlotterData.FORWARD) {
-        return plotPoint(pG2, plotVs, map2DDatum);
+        return plotColumn(pG2, plotVs, map2DDatum);
     }
 
     if (dataReady == PlotterData.REVERSE) {
@@ -229,16 +229,16 @@ public int plotNewData(Graphics2D pG2)
 //-----------------------------------------------------------------------------
 // Map2D::plotColumn
 //
-// Plots a single column of data points in the array.  Assumes new data has
-// been added to the next column slot in the buffer.
+// Plots a single column of data points in pMap2DDatum.
 //
-// All variables are passed via pVars and pTraceDatum, so different sets can be
-// used depending on the context.
+// All variables are passed via pVars and pMap2DDatum, so different sets can be
+// used depending on the context, such as drawing for the first time or
+// repainting.
 //
 // Returns the value last plotted.
 //
 
-public int plotPoint(Graphics2D pG2, PlotVars pVars, Map2DDatum pMap2DDatum)
+private int plotColumn(Graphics2D pG2, PlotVars pVars, Map2DDatum pMap2DDatum)
 {
 
     //increment the pixel pointer until it reaches the right edge, then shift
@@ -283,41 +283,25 @@ public int plotPoint(Graphics2D pG2, PlotVars pVars, Map2DDatum pMap2DDatum)
     if (leadPlotter){
 
         //if segment start flag set, draw a vertical separator bar
-        if ((pMap2DDatum.flags & TraceData.SEGMENT_START_SEPARATOR) != 0){
+        if ((pMap2DDatum.flags & PlotterData.SEGMENT_START_SEPARATOR) != 0){
             pG2.setColor(gridColor);
             pG2.drawLine(pVars.pixPtr, canvasYLimit, pVars.pixPtr, 0);
         }
 
         //if segment end flag set, draw a vertical separator bar
-        if ((pMap2DDatum.flags & TraceData.SEGMENT_END_SEPARATOR) != 0){
+        if ((pMap2DDatum.flags & PlotterData.SEGMENT_END_SEPARATOR) != 0){
             pG2.setColor(gridColor);
             pG2.drawLine(pVars.pixPtr, canvasYLimit, pVars.pixPtr, 0);
         }
 
         //if end mask flag set and option enabled, draw a vertical separator bar
         if (useVerticalBarToMarkEndMasks
-                        && (pMap2DDatum.flags & TraceData.END_MASK_MARK) != 0){
+                     && (pMap2DDatum.flags & PlotterData.END_MASK_MARK) != 0){
             pG2.setColor(Color.GREEN);
             pG2.drawLine(pVars.pixPtr, canvasYLimit, pVars.pixPtr, 0);
         }
 
     }// if (leadPlotter)
-
-    int y;
-
-    for (int i = 0; i < pMap2DDatum.newDataColumn.length; i++){
-
-        //translate data value to color
-        pG2.setColor(
-                colorMapper.mapIntegerToColor(pMap2DDatum.newDataColumn[i]));
-
-        //apply vertical offset
-        y = i + minY;
-
-        //draw each pixel of the column
-        pG2.drawLine(pVars.pixPtr, y, pVars.pixPtr, y);
-
-    }
 
     //save the value plotted so it can be returned on exit
     //it is assumed to be the bottom pixel of the column
@@ -327,11 +311,34 @@ public int plotPoint(Graphics2D pG2, PlotVars pVars, Map2DDatum pMap2DDatum)
     //if the drawData flag is false, exit having only drawn decorations
     if (!pVars.drawData) {return(lastPlotted);}
 
-    // can draw decorations here -- see Trace object for example
+    //draw the map data
+
+    int y;
+
+    for (int i = 0; i < pMap2DDatum.newDataColumn.length; i++){
+
+        //translate data value to color -- on program startup the colorMapper
+        //hasn't been set yet so just paint the background color
+
+        if(colorMapper != null){
+            pG2.setColor(
+                colorMapper.mapIntegerToColor(pMap2DDatum.newDataColumn[i]));
+        }
+        else{
+            pG2.setColor(backgroundColor);
+        }
+
+        //apply vertical offset
+        y = i + minY;
+
+        //draw each pixel of the column
+        pG2.drawLine(pVars.pixPtr, y, pVars.pixPtr, y);
+
+    }
 
     return(lastPlotted);
 
-}//end of Map2D::plotPoint
+}//end of Map2D::plotColumn
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -357,16 +364,19 @@ public void advanceInsertionPoint()
 //
 // Refreshes the canvas using the data in the buffers.
 //
+// If the end of valid data is reached in the buffer before the full chart is
+// redrawn, the repaintVs.drawData flag is set false so that plotPoint can
+// still be called to draw decorations across the entire chart without drawing
+// undefined trace data.
+//
 
 @Override
 public void paintComponent(Graphics2D pG2)
 {
 
-/*
-
     //set starting point to the current buffer offset of the screen display
 
-    traceData.prepareForRepaint(traceGlobals.bufOffset);
+    map2DData.prepareForRepaint(plotterGlobals.bufOffset);
 
     // the repaintVS object is used here to avoid conflict with the
     // plotVs object which tracks plotting of new data
@@ -376,12 +386,12 @@ public void paintComponent(Graphics2D pG2)
     //for repainting, the gridCounter starts at one to sync up with drawing by
     //the plotNewData code
 
-    repaintVs.gridCounter = traceGlobals.scrollCount % gridXSpacing;
+    repaintVs.gridCounter = plotterGlobals.scrollCount % gridXSpacing;
 
     //start with drawing trace allowed - will be set false by plotPoint when
     //an undefined data point reached which signifies the end of valid data
 
-    repaintVs.drawTrace = true;
+    repaintVs.drawData = true;
 
     //stop short of the end of the screen to avoid triggering chart scroll
     //in the plotPoint function
@@ -390,19 +400,15 @@ public void paintComponent(Graphics2D pG2)
 
     for (int i = 0; i < stop; i++){
 
-        traceData.getDataAtRepaintPoint(traceDatum);
+        map2DData.getDataAtRepaintPoint(map2DDatum);
 
         //stop tracing at end of valid data -- see notes in method header
-        if ((traceDatum.flags & TraceData.DATA_VALID) == 0) {
-            repaintVs.drawTrace = false;
+        if ((map2DDatum.flags & PlotterData.DATA_VALID) == 0) {
+            repaintVs.drawData = false;
         }
 
-        plotPoint(pG2, repaintVs, traceDatum);
+        plotColumn(pG2, repaintVs, map2DDatum);
     }
-
-*
-*/
-
 
 }//end of Map2D::paintComponent
 //-----------------------------------------------------------------------------

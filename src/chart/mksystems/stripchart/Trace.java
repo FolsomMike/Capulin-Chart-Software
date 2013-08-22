@@ -131,7 +131,7 @@ void configure(IniFile pConfigFile)
     if (sizeOfDataBuffer > 100000) {sizeOfDataBuffer = 100000;}
 
     traceData = new TraceData(sizeOfDataBuffer, hdwVs.plotStyle,
-                        higherMoreSevere ? TraceData.MAX : TraceData.MIN);
+                        higherMoreSevere ? PlotterData.MAX : PlotterData.MIN);
     traceData.init();
 
     traceDatum = new TraceDatum();
@@ -391,14 +391,14 @@ public int plotNewData(Graphics2D pG2)
 
     int dataReady = traceData.getNewData(traceDatum);
 
-    if (dataReady == TraceData.NO_NEW_DATA) {return(0);}
+    if (dataReady == PlotterData.NO_NEW_DATA) {return(0);}
 
     //plot new point
-    if (dataReady == TraceData.FORWARD) {
+    if (dataReady == PlotterData.FORWARD) {
         return plotPoint(pG2, plotVs, traceDatum);
     }
 
-    if (dataReady == TraceData.REVERSE) {
+    if (dataReady == PlotterData.REVERSE) {
         return erasePoint(pG2, plotVs, traceDatum);
     }
 
@@ -410,17 +410,18 @@ public int plotNewData(Graphics2D pG2)
 //-----------------------------------------------------------------------------
 // Trace::plotPoint
 //
-// Plots a single data point in the array.  Assumes new data has been added to
+// Plots a single data point in pTraceDatum.  Assumes new data has been added to
 // the next slot in the buffer.
 //
 // All variables are passed via pVars and pTraceDatum, so different sets can be
-// used depending on the context.
+// used depending on the context, such as drawing for the first time or
+// repainting.
 //
 // Returns the value last plotted.  If plot style is SPAN, this value will be
 // from the second data set.
 //
 
-public int plotPoint(Graphics2D pG2, PlotVars pVars, TraceDatum pTraceDatum)
+private int plotPoint(Graphics2D pG2, PlotVars pVars, TraceDatum pTraceDatum)
 {
 
     //increment the pixel pointer until it reaches the right edge, then shift
@@ -473,20 +474,20 @@ public int plotPoint(Graphics2D pG2, PlotVars pVars, TraceDatum pTraceDatum)
         }
 
         //if segment start flag set, draw a vertical separator bar
-        if ((pTraceDatum.flags & TraceData.SEGMENT_START_SEPARATOR) != 0){
+        if ((pTraceDatum.flags & PlotterData.SEGMENT_START_SEPARATOR) != 0){
             pG2.setColor(gridColor);
             pG2.drawLine(pVars.pixPtr, canvasYLimit, pVars.pixPtr, 0);
         }
 
         //if segment end flag set, draw a vertical separator bar
-        if ((pTraceDatum.flags & TraceData.SEGMENT_END_SEPARATOR) != 0){
+        if ((pTraceDatum.flags & PlotterData.SEGMENT_END_SEPARATOR) != 0){
             pG2.setColor(gridColor);
             pG2.drawLine(pVars.pixPtr, canvasYLimit, pVars.pixPtr, 0);
         }
 
         //if end mask flag set and option enabled, draw a vertical separator bar
         if (useVerticalBarToMarkEndMasks
-                        && (pTraceDatum.flags & TraceData.END_MASK_MARK) != 0){
+                      && (pTraceDatum.flags & PlotterData.END_MASK_MARK) != 0){
             pG2.setColor(Color.GREEN);
             pG2.drawLine(pVars.pixPtr, canvasYLimit, pVars.pixPtr, 0);
         }
@@ -563,13 +564,13 @@ public int plotPoint(Graphics2D pG2, PlotVars pVars, TraceDatum pTraceDatum)
 
     //indices are shifted by two as 0 = no flag and 1 = user flag
     if ((flagThreshold =
-                ((pTraceDatum.flags & TraceData.THRESHOLD_MASK) >> 9)-2) >= 0){
+              ((pTraceDatum.flags & PlotterData.THRESHOLD_MASK) >> 9)-2) >= 0){
 
         int flagY = pVars.y2; //draw flag at height of peak for non-SPAN styles
 
         //for span mode, draw flag at min or max depending on bit in flagBuffer
         if (hdwVs.plotStyle == PlotterHdwVars.SPAN){
-            if ((pTraceDatum.flags & TraceData.MIN_MAX_FLAGGED) == 0){
+            if ((pTraceDatum.flags & PlotterData.MIN_MAX_FLAGGED) == 0){
                 flagY = pVars.y1;
             }
             else{
@@ -928,7 +929,7 @@ public void paintComponent(Graphics2D pG2)
         traceData.getDataAtRepaintPoint(traceDatum);
 
         //stop tracing at end of valid data -- see notes in method header
-        if ((traceDatum.flags & TraceData.DATA_VALID) == 0) {
+        if ((traceDatum.flags & PlotterData.DATA_VALID) == 0) {
             repaintVs.drawData = false;
         }
 

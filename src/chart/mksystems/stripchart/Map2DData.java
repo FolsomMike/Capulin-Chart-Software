@@ -210,6 +210,9 @@ synchronized void clearFlags(int pPosition, int pMask)
 // position is returned as newDataColumn while the data at the previous position
 // is returned as prevDataClumn in pDatum.
 //
+// NOTE: The data column is not actually copied to pDatum -- the pointer in
+// pDatum is pointed at the column in the mapDataBuffer array. In general, the
+// data is meant to be read only -- care should be used in modifying it.
 //
 // NOTE: If the producer thread has added new data before the consumer thread
 // can respond to any data erasures, the newData* and prevData* may
@@ -561,28 +564,15 @@ public void prepareForRepaint(int pStart){
 // repaintPoint to the next position.
 //
 
-public int getDataAtRepaintPoint(TraceDatum pDatum){
+public int getDataAtRepaintPoint(Map2DDatum pDatum){
 
-/*
-    pDatum.prevData1 = dataBuffer1[repaintPoint];
-
-    if (dataBuffer2 != null){
-        pDatum.prevData2 = dataBuffer2[repaintPoint];
-    }
+    pDatum.prevDataColumn = mapDataBuffer[repaintPoint];
 
     advanceRepaintPoint();
 
-    pDatum.newData1 = dataBuffer1[repaintPoint];
-
-    if (dataBuffer2 != null){
-        pDatum.newData2 = dataBuffer2[repaintPoint];
-    }
-
+    pDatum.newDataColumn = mapDataBuffer[repaintPoint];
+    
     pDatum.flags = flagBuffer[repaintPoint];
-
-*
-*/
-
 
     return(FORWARD);
 
