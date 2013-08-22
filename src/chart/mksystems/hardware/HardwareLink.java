@@ -22,7 +22,6 @@ package chart.mksystems.hardware;
 import chart.Log;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.stripchart.ChartGroup;
-import chart.mksystems.stripchart.Map2D;
 import chart.mksystems.stripchart.Threshold;
 import chart.mksystems.stripchart.Trace;
 import chart.mksystems.stripchart.TraceData;
@@ -139,6 +138,20 @@ public int xmtMessage(int pMessage, int pValue);
 public int getRepRateInHertz();
 
 public void setChartGroups(ChartGroup pChartGroups []);
+
+public void triggerMapAdvance(double pPosition);
+
+public int getNumberOfUTBoards();
+
+public void calculateMapOffsetDelays(
+        double pPhotoEye1DistanceFrontOfHead1,
+        double pPhotoEye1DistanceFrontOfHead2,
+        double pPhotoEye2DistanceFrontOfHead1,
+        double pPhotoEye2DistanceFrontOfHead2
+        );
+
+public void initializeMapOffsetDelays(int pDirection, int pAwayDirection);
+
 
 }//end of interface HardwareLink
 //-----------------------------------------------------------------------------

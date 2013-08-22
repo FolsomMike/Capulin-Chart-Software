@@ -854,6 +854,69 @@ public void setChartGroups(ChartGroup pChartGroups [])
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// AnalogPCIDAS6023::triggerMapAdvance
+//
+// Advance the map for board with index pBoard.
+//
+// Any board without mapping or not in a mode allowing external control of
+// advance will ignore the request.
+//
+// Parameter pPosition is the position of the head or inspection piece as
+// measured from the point where the photo eye was blocked.
+//
+
+@Override
+public void triggerMapAdvance(double pPosition)
+{
+
+
+}//end of AnalogPCIDAS6023::triggerMapAdvance
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// AnalogPCIDAS6023::getNumberOfUTBoards
+//
+// Returns the number of UTBoards.
+//
+
+@Override
+public int getNumberOfUTBoards()
+{
+
+    return(0);
+
+}//end of AnalogPCIDAS6023::getNumberOfUTBoards
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// AnalogPCIDAS6023::getNumberOfUTBoards
+//
+
+@Override
+public void calculateMapOffsetDelays(
+        double pPhotoEye1DistanceFrontOfHead1,
+        double pPhotoEye1DistanceFrontOfHead2,
+        double pPhotoEye2DistanceFrontOfHead1,
+        double pPhotoEye2DistanceFrontOfHead2
+        )
+{
+
+}//end of AnalogPCIDAS6023::getNumberOfUTBoards
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// AnalogPCIDAS6023::initializeMapOffsetDelays
+//
+
+@Override
+public void initializeMapOffsetDelays(int pDirection, int pAwayDirection)
+{
+
+
+}//end of AnalogPCIDAS6023::initializeMapOffsetDelays
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // AnalogPCIDAS6023::shutDown
 //
 // This function should be called before exiting the program.  Overriding the
@@ -867,6 +930,7 @@ public void shutDown()
 
 }//end of AnalogPCIDAS6023::shutDown
 //-----------------------------------------------------------------------------
+
 
 }//end of class AnalogPCIDAS6023
 //-----------------------------------------------------------------------------

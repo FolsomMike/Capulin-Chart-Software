@@ -1522,7 +1522,22 @@ public int getNumberOfGates(int pChannel)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTGate::getNewData
+// Capulin1::getNumberOfUTBoards
+//
+// Returns the number of UTBoards.
+//
+
+@Override
+public int getNumberOfUTBoards()
+{
+
+    return(numberOfUTBoards);
+
+}//end of Capulin1::getNumberOfUTBoards
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::getNewData
 //
 // Calls the getNewData function for the specified channel and gate.  See the
 // channel and gate classes for more info.
@@ -1534,11 +1549,11 @@ public boolean getNewData(int pChannel, int pGate, HardwareVars hdwVs)
 
     return channels[pChannel].getNewData(pGate, hdwVs);
 
-}//end of UTGate::getNewData
+}//end of Capulin1::getNewData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTGate::getTrace
+// Capulin1::getTrace
 //
 // Calls the getTrace function for the specified channel and gate.  See the
 // channel and gate classes for more info.
@@ -1550,7 +1565,7 @@ public Trace getTrace(int pChannel, int pGate)
 
     return channels[pChannel].getTrace(pGate);
 
-}//end of UTGate::getTrace
+}//end of Capulin1::getTrace
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -2300,6 +2315,154 @@ void setMapAdvanceModes(int pMode)
     }
 
 }//end of Capulin1::setMapAdvanceModes
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::triggerMapAdvance
+//
+// Advance the maps for boards with map plotters. Parameter pPosition is the
+// encoder position. It must be greater than the plotter's delayDistance for
+// the plotter to advance.
+//
+// Any board without mapping or not in a mode allowing external control of
+// advance will ignore the request.
+//
+// Parameter pPosition is the position of the head or inspection piece as
+// measured from the point where the photo eye was blocked.
+//
+
+@Override
+public void triggerMapAdvance(double pPosition)
+{
+
+    for (int i = 0; i < getNumberOfUTBoards(); i++){
+
+        if (utBoards[i] != null && utBoards[i].getMap2D() != null){
+            if (utBoards[i].getMap2D().delayDistance > pPosition ) {
+                continue;
+            }
+            else{
+                utBoards[i].triggerMapAdvance();
+            }
+        }
+    }
+
+}//end of Capulin1::triggerMapAdvance
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::calculateMapOffsetDelays
+//
+// Adds the appropriate photo eye distance to the front of each head to each
+// plotter's distance from the front edge of its head.
+//
+// These offsets are used to delay the plotter after the photo eye detects the
+// pipe until the sensor(s) associated to that plotter reach the pipe.
+//
+//
+
+@Override
+public void calculateMapOffsetDelays(
+        double pPhotoEye1DistanceFrontOfHead1,
+        double pPhotoEye1DistanceFrontOfHead2,
+        double pPhotoEye2DistanceFrontOfHead1,
+        double pPhotoEye2DistanceFrontOfHead2
+        )
+{
+
+    for (int i = 0; i < getNumberOfUTBoards(); i++){
+
+        if (utBoards[i] != null){
+
+            Plotter plotterPtr = utBoards[i].getMap2D();
+
+            if ((plotterPtr != null) && (plotterPtr.head == 1)){
+                plotterPtr.startFwdDelayDistance =
+                        pPhotoEye1DistanceFrontOfHead1
+                              + plotterPtr.distanceSensorToFrontEdgeOfHead;
+
+                plotterPtr.startRevDelayDistance =
+                        pPhotoEye2DistanceFrontOfHead1 -
+                                plotterPtr.distanceSensorToFrontEdgeOfHead;
+
+            }//if ((tracePtr != null) && (tracePtr.head == 1))
+
+            if ((plotterPtr != null) && (plotterPtr.head == 2)){
+                plotterPtr.startFwdDelayDistance =
+                        pPhotoEye1DistanceFrontOfHead2
+                              + plotterPtr.distanceSensorToFrontEdgeOfHead;
+
+                plotterPtr.startRevDelayDistance =
+                        pPhotoEye2DistanceFrontOfHead2 -
+                                plotterPtr.distanceSensorToFrontEdgeOfHead;
+
+            }//if ((plotterPtr != null) && (tracePtr.head == 2))
+        }
+    }
+
+}//end of Capulin1::calculateMapOffsetDelays();
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::initializeMapOffsetDelays
+//
+// Sets the map start delays so the maps don't start until their associated
+// sensors reach the pipe.
+//
+// The distance is set depending on the direction of inspection.  Some systems
+// have different photo eye to sensor distances depending on the direction
+// of travel.
+//
+// The delay is necessary because each sensor may be a different distance from
+// the photo-eye which detects the start of the pipe.
+//
+// Two sets of values are stored:
+//
+// The distance of each sensor from the front edge of its head.
+// The front edge of the head is the edge which reaches the inspection piece
+// first when the carriage is moving away from the operator's station
+// (the "forward" direction).
+//
+// The distances of Photo Eye 1 and Photo Eye 2 to the front edge of each
+// head.
+//
+// Photo Eye 1 is the photo eye which reaches the inspection piece first when
+// the carriage is moving away from the operator's station (the "forward"
+// direction).
+//
+
+@Override
+public void initializeMapOffsetDelays(int pDirection, int pAwayDirection)
+{
+
+    for (int i = 0; i < getNumberOfUTBoards(); i++){
+
+        if (utBoards[i] != null){
+
+            Plotter plotterPtr = utBoards[i].getMap2D();
+            //if the current direction is the "Away" direction, then set
+            //the offsets properly for the carriage moving away from the
+            //operator otherwise set them for the carriage moving towards
+            //the operator see more notes in this method's header
+
+            if (plotterPtr != null){
+
+                //start with all false, one will be set true
+                plotterPtr.leadPlotter = false;
+
+                if (pDirection == pAwayDirection) {
+                    plotterPtr.delayDistance =
+                                        plotterPtr.startFwdDelayDistance;
+                }
+                else {
+                    plotterPtr.delayDistance =
+                                        plotterPtr.startRevDelayDistance;
+                }
+            }
+        }
+    }
+
+}//end of Hardware::initializeMapOffsetDelays
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

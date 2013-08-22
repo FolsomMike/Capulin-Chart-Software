@@ -54,7 +54,7 @@ public class Hardware extends Object implements TraceValueCalculator, Runnable,
 
     //debug mks -- needs to be loaded from config file -- specifies if carriage
     //moving away is increasing or decreasing encoder counts
-    int AwayDirection = 0;
+    int awayDirection = 0;
 
     double encoder1InchesPerCount;
     double encoder2InchesPerCount;
@@ -354,6 +354,12 @@ void calculateTraceOffsetDelays()
             }//for (int tr = 0; tr < nTr; tr++)
         }//for (int sc = 0; sc < nSC; sc++)
     }//for (int cg = 0; cg < chartGroups.length; cg++)
+
+
+    //calculate offset delays for maps not associated with a channel
+    analogDriver.calculateMapOffsetDelays(
+                photoEye1DistanceFrontOfHead1, photoEye1DistanceFrontOfHead2,
+                photoEye2DistanceFrontOfHead1, photoEye2DistanceFrontOfHead2);
 
 }//end of Hardware::calculateTraceOffsetDelays
 //-----------------------------------------------------------------------------
@@ -1178,7 +1184,7 @@ boolean collectEncoderDataInspectMode()
             hdwVs.head2Down = false; enableHeadTraceFlagging(2, false);
 
             //set the text description for the direction of inspection
-            if (inspectCtrlVars.encoder2FwdDir == AwayDirection) {
+            if (inspectCtrlVars.encoder2FwdDir == awayDirection) {
                 inspectionDirectionDescription = awayFromHome;
             }
             else {
@@ -1375,7 +1381,33 @@ void moveEncoders()
         }// for (int g = 0; g < numberOfGates; g++)
     }// for (int ch = 0; ch < numberOfChannels; ch++)
 
+
+    // advance all maps not linked to specific channels
+    if (pixelsMoved > 0) { handleMapsAdvance(position);}
+
+    //handle map reversing here!!!
+
 }//end of Hardware::moveEncoders
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::handleMapsAdvance
+//
+// Advance the map for all Boards with a map.
+//
+// Any boards without mapping or not in a mode allowing external control of
+// advance will ignore the request.
+//
+// Parameter pPosition is the position of the head or inspection piece as
+// measured from the point where the photo eye was blocked.
+//
+
+private void handleMapsAdvance(double pPosition)
+{
+
+    analogDriver.triggerMapAdvance(pPosition);
+
+}//end of Hardware::handleMapsAdvance
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1606,7 +1638,7 @@ public void initializeTraceOffsetDelays(int pDirection)
                     //start with all false, one will be set true
                     plotterPtr.leadPlotter = false;
 
-                    if (pDirection == AwayDirection) {
+                    if (pDirection == awayDirection) {
                         plotterPtr.delayDistance =
                                             plotterPtr.startFwdDelayDistance;
                     }
@@ -1637,6 +1669,9 @@ public void initializeTraceOffsetDelays(int pDirection)
         }//for (int sc = 0; sc < nSC; sc++)
     }//for (int cg = 0; cg < chartGroups.length; cg++)
 
+    //
+    analogDriver.initializeMapOffsetDelays(pDirection, awayDirection);
+    
 }//end of Hardware::initializeTraceOffsetDelays
 //-----------------------------------------------------------------------------
 

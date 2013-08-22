@@ -22,6 +22,8 @@ package chart.mksystems.hardware;
 import chart.Log;
 import chart.ThreadSafeLogger;
 import chart.mksystems.inifile.IniFile;
+import chart.mksystems.stripchart.Map2D;
+import chart.mksystems.stripchart.Map2DData;
 import java.io.*;
 import java.net.*;
 import javax.swing.*;
@@ -95,6 +97,11 @@ public abstract class Board extends Object implements Runnable{
     final static int ADVANCE_ON_ENCODER_CODE = 3;
 
     int mapAdvanceMode = ADVANCE_NEVER;
+
+    Map2D map2D = null;
+    Map2DData map2DData = null;
+    int map2DDataColumn[] = null;
+
 
 //-----------------------------------------------------------------------------
 // Board::Board (constructor)
@@ -590,6 +597,55 @@ public void setMapAdvanceMode(int pMode)
     mapAdvanceMode = pMode;
 
 }//end of Board::setMapAdvanceMode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Board::setMap2D
+//
+// Sets pointer to a Map2D object in which the board can send mapping data.
+//
+// Subclasses should override this method but always call this method.
+//
+
+public void setMap2D(Map2D pMap2D)
+{
+
+    map2D = pMap2D;
+    map2DData = map2D.getDataHandler();
+
+    map2DDataColumn = new int[map2DData.getDataBufferWidth()];
+
+}//end of Board::setMap2D
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Board::getMap2D
+//
+// Returns pointer to the map2D object.
+//
+
+public Map2D getMap2D()
+{
+
+    return(map2D);
+
+}//end of Board::getMap2D
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Board::triggerMapAdvance
+//
+// Advances the map if it exists and the current mode allows external control.
+//
+// This function should be overridden by sub-classes to provide specialized
+// functionality.
+//
+
+public void triggerMapAdvance()
+{
+
+
+}//end of Board::triggerMapAdvance
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

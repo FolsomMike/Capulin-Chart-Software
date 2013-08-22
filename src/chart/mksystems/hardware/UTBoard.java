@@ -46,9 +46,6 @@ public class UTBoard extends Board{
     int dataBufferIndex = 0;
     int dataBufferSize;
     short dataBuffer[];
-    Map2D map2D = null;
-    Map2DData map2DData = null;
-    int map2DDataColumn[] = null;
     int prevTDCCodePosition = 0;
     int prevLinearAdvanceCodePosition = 0;
 
@@ -2792,13 +2789,11 @@ public void linkGates(int pChannel, UTGate[] pGates, int pNumberOfGates)
 // Sets pointer to a Map2D object in which the board can send mapping data.
 //
 
+@Override
 public void setMap2D(Map2D pMap2D)
 {
 
-    map2D = pMap2D;
-    map2DData = map2D.getDataHandler();
-
-    map2DDataColumn = new int[map2DData.getDataBufferWidth()];
+    super.setMap2D(pMap2D);
 
     // hue base of 0.0 is Red
     // hue base of .6666666667 is Blue
@@ -4887,7 +4882,7 @@ private void handleMapDataControlCode(int pCode)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Capulin1::handleMapDataTDCCode
+// UTBoard::handleMapDataTDCCode
 //
 // Handles top-dead-center marker control code for map data.
 //
@@ -4990,7 +4985,7 @@ private void handleMapDataTDCCode()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Capulin1::handleMapDataLinearAdvanceCode
+// UTBoard::handleMapDataLinearAdvanceCode
 //
 // Handles linear-advance marker control code for map data.
 //
@@ -5009,6 +5004,24 @@ private void handleMapDataLinearAdvanceCode()
     map2D.advanceInsertionPoint();
 
 }//end of UTBoard::handleMapDataLinearAdvanceCode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::triggerMapAdvance
+//
+// If the board is a mapping type and the current mode allows for external
+// control of map advancement, the map is advanced one position.
+//
+
+@Override
+public void triggerMapAdvance()
+{
+
+    if(type == WALL_MAPPER && mapAdvanceMode == ADVANCE_BY_CONTROLLER){
+        if (map2D != null) {map2D.advanceInsertionPoint();}
+    }
+
+}//end of UTBoard::triggerMapAdvance
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
