@@ -89,6 +89,13 @@ public abstract class Board extends Object implements Runnable{
     int TIMEOUT = 50;
     int timeOutProcess = 0; //use this one in the packet process functions
 
+    final static int ADVANCE_NEVER = 0;
+    final static int ADVANCE_ON_TDC_CODE = 1;
+    final static int ADVANCE_BY_CONTROLLER = 2;
+    final static int ADVANCE_ON_ENCODER_CODE = 3;
+
+    int mapAdvanceMode = ADVANCE_NEVER;
+
 //-----------------------------------------------------------------------------
 // Board::Board (constructor)
 //
@@ -551,6 +558,38 @@ public synchronized void waitForConnectCompletion()
     }
 
 }//end of Board::waitForConnectCompletion
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Board::setMapAdvanceMode
+//
+// Sets the mapAdvanceMode which controls what triggers the map trace to
+// advance.
+//
+// Some options are:
+//
+//  0: no advance at all
+//  1: advance with every TDC control code in the DSP data (DSP control)
+//  2: advance on command from outside controller object (Encoder control)
+//  3: advance on encoder advance control code in the DSP data (DSP control)
+//
+// Option 4 was never finished as the outside controller object can more
+//  accurately monitor the encoder. See tag "setMapAdvanceMode Option 3 removed"
+//  in Git history. The code was entirely removed from the Java for simplicity.
+//  The code was never added to the Control Board Rabbit. The DSP code can
+//  handle the option fine as it simple transfers any change to the tracker
+//  variable to the data as a control code.
+//
+// For Scan mode, option 1 is used as it will cause the map to advance with
+// each revolution even if the encoders aren't moving.
+//
+
+public void setMapAdvanceMode(int pMode)
+{
+
+    mapAdvanceMode = pMode;
+
+}//end of Board::setMapAdvanceMode
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

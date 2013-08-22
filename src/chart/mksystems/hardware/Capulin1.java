@@ -1047,6 +1047,12 @@ public void setMode(int pOpMode)
 
     if (opMode == Hardware.SCAN){
 
+        //enable async sending of wall map data packets by the UTBoards
+        wallMapPacketsEnabled.setValue(true, false);
+
+        //set mode for Boards to advance map plotters they control -- map
+        //plotters will advance across screen with each revolution
+        setMapAdvanceModes(Board.ADVANCE_ON_TDC_CODE);
     }
 
     //for INSPECT mode, which uses hardware encoder and control signals, perform
@@ -1084,12 +1090,19 @@ public void setMode(int pOpMode)
         //enable async sending of wall map data packets by the UTBoards
         wallMapPacketsEnabled.setValue(true, false);
 
+        //set mode for Boards to advance map plotters they control
+        //map plotter advance controlled by this object monitoring encoder
+        setMapAdvanceModes(Board.ADVANCE_BY_CONTROLLER);
+
     }
 
     if (opMode == Hardware.STOPPED){
 
         //disable async sending of wall map data packets by the UTBoards
         wallMapPacketsEnabled.setValue(false, false);
+
+        //set mode for Boards to advance map plotters they control
+        setMapAdvanceModes(Board.ADVANCE_NEVER);
 
         //deactivate inspect mode in the control board(s)
         //wip mks -- should this be a synced variable or use a flag to
@@ -1099,7 +1112,6 @@ public void setMode(int pOpMode)
         if (controlBoardInspectMode) {controlBoards[0].stopInspect();}
 
     }
-
 
 }//end of Capulin1::setMode
 //-----------------------------------------------------------------------------
@@ -2270,6 +2282,24 @@ void enableWallMapPackets()
     }
 
 }//end of Capulin1::enableWallMapPackets
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::setMapAdvanceModes
+//
+// Sets the map advance mode for all UTBoards.
+//
+// Any boards without mapping will set the mode, but it will be ignored.
+//
+
+void setMapAdvanceModes(int pMode)
+{
+
+    for (int i = 0; i < numberOfUTBoards; i++){
+        if (utBoards[i] != null){ utBoards[i].setMapAdvanceMode(pMode); }
+    }
+
+}//end of Capulin1::setMapAdvanceModes
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

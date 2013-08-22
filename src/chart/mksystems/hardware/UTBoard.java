@@ -2803,16 +2803,18 @@ public void setMap2D(Map2D pMap2D)
     // hue base of 0.0 is Red
     // hue base of .6666666667 is Blue
 
-    double baseWall = hdwVs.nominalWall - (hdwVs.nominalWall * .20);
-    double topWall = hdwVs.nominalWall + (hdwVs.nominalWall * .20);
+    //convert nominal wall to sample periods as the round trip sample period
+    //value is stored in the buffer
+    double nominalWallTOF =
+                hdwVs.nominalWall / (hdwVs.nSPerDataPoint * hdwVs.velocityNS) *
+                (hdwVs.numberOfMultiples * 2);
+
+    double baseWall = nominalWallTOF - (nominalWallTOF * .20);
+    double topWall = nominalWallTOF + (nominalWallTOF * .20);
     double rangeWall = topWall - baseWall;
 
-    //convert from doubles to scaled integers
-    int baseWallInt = (int)(baseWall * 1000);
-    int rangeWallInt = (int)(rangeWall * 1000);
-
     map2D.setColorMapper(new WallMap2DColorMapper(
-                baseWallInt, rangeWallInt,
+                (int)baseWall, (int)rangeWall,
                 (float)0.0, (float)0.5,
                 (float)1.0, (float)1.0, (float)1.0, false));
 
@@ -4856,10 +4858,16 @@ public int processWallMapPacket()
 // Examples are top-dead-center markers for rotary position and linear
 // advance markers for linear position.
 //
-// The code will be reset to 0 each time the test piece or heads move the linear
-// advance increment amount.
 // The code will be incremented each time the test piece or heads rotate to
 // the top-dead-center position.
+//
+// One option is for the Rabbit to send track reset code for each incremental
+// advance of the encoder. Instead, a controller object which interfaces with
+// the encoders now handles map advance as it can do it more accurately.
+// This is an example of code if the Rabbit is to be modified to provide the
+// reset pulse:
+//  if (code > 0) { handleMapDataTDCCode(); }
+//  if (code == 0) { handleMapDataLinearAdvanceCode();
 //
 
 private void handleMapDataControlCode(int pCode)
@@ -4867,9 +4875,13 @@ private void handleMapDataControlCode(int pCode)
 
     int code = pCode & 0x007f;
 
-    if (code > 0) { handleMapDataTDCCode(); }
+    //since there is currently no Rabbit track reset pulse, the track will
+    //roll over periodically when incremented do to TDC trigger -- thus zero
+    //is a TDC code so treat it the same way unless Rabbit code changes
 
-    if (code == 0) { handleMapDataLinearAdvanceCode(); }
+    if (code > 0 ) { handleMapDataTDCCode(); }
+
+    if (code == 0) { handleMapDataTDCCode(); }
 
 }//end of UTBoard::handleMapDataControlCode
 //-----------------------------------------------------------------------------
@@ -4968,7 +4980,11 @@ private void handleMapDataTDCCode()
     //store the revolution of data points in the map
     map2DData.storeDataAtInsertionPoint(map2DDataColumn);
 
-    handleMapDataLinearAdvanceCode(); //debug mks
+    //if mode is appropriate, advance the map for each revolution
+    //(typically used for Scan mode)
+    if (mapAdvanceMode == Board.ADVANCE_ON_TDC_CODE){
+        handleMapDataLinearAdvanceCode();
+    }
 
 }//end of UTBoard::handleMapDataTDCCode
 //-----------------------------------------------------------------------------
