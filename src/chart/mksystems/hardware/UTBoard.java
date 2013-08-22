@@ -2800,32 +2800,21 @@ public void setMap2D(Map2D pMap2D)
 
     map2DDataColumn = new int[map2DData.getDataBufferWidth()];
 
-    //these notes can be deleted
-    //test pipe .707 wall, 13-3/4 dia.
-
-    // .707 wall, use range of +20% to -50%
-
     // hue base of 0.0 is Red
     // hue base of .6666666667 is Blue
 
-    //for simulation using .250 wall:
-    // +20% = .30    -50% = .125, range is .175
+    double baseWall = hdwVs.nominalWall - (hdwVs.nominalWall * .20);
+    double topWall = hdwVs.nominalWall + (hdwVs.nominalWall * .20);
+    double rangeWall = topWall - baseWall;
 
-    //public WallMap2DColorMapper(int pValueBase, int pValueRange, float pHueBase,
-    //       float pHueRange, float pHue, float pSaturation, float pBrightness,
-    //      boolean pInvertHue)
-    //these notes can be deleted -- end
+    //convert from doubles to scaled integers
+    int baseWallInt = (int)(baseWall * 1000);
+    int rangeWallInt = (int)(rangeWall * 1000);
 
-// example for .250 wall
-//    map2D.setColorMapper(new WallMap2DColorMapper(
-//            200, 100, (float)0.0, (float)0.5,
-//            (float)1.0, (float)1.0, (float)1.0, false));
-
-    // example for .707 wall
     map2D.setColorMapper(new WallMap2DColorMapper(
-                320, 160, (float)0.0, (float)0.5,
+                baseWallInt, rangeWallInt,
+                (float)0.0, (float)0.5,
                 (float)1.0, (float)1.0, (float)1.0, false));
-
 
 }//end of UTBoard::setMap2D
 //-----------------------------------------------------------------------------
