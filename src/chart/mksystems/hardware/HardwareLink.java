@@ -38,6 +38,8 @@ import java.io.IOException;
 
 public interface HardwareLink {
 
+void init();
+
 int getNumberOfChannels();
 
 int getNumberOfGates(int pChannel);
@@ -152,6 +154,9 @@ public void calculateMapOffsetDelays(
 
 public void initializeMapOffsetDelays(int pDirection, int pAwayDirection);
 
+public void saveAllMapDataSetsToTextFile(
+        String pFilename, String pJobFileFormat,
+        String pInspectionDirectionDescription);
 
 }//end of interface HardwareLink
 //-----------------------------------------------------------------------------

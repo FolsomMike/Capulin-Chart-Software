@@ -20,6 +20,7 @@ package chart.mksystems.hardware;
 
 import chart.Log;
 import chart.mksystems.inifile.IniFile;
+import chart.mksystems.settings.Settings;
 import chart.mksystems.stripchart.Map2D;
 import chart.mksystems.stripchart.Map2DData;
 import java.io.*;
@@ -45,7 +46,7 @@ public class UTBoard extends Board{
     int packetCount = Integer.MAX_VALUE;
     int dataBufferIndex = 0;
     int dataBufferSize;
-    short dataBuffer[];
+    short dataBuffer[] = null;
     int prevTDCCodePosition = 0;
     int prevLinearAdvanceCodePosition = 0;
 
@@ -1361,6 +1362,20 @@ void getChassisSlotAddressOverride()
     }
 
 }//end of UTBoard::getChassisSlotAddressOverride
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::getDataBuffer
+//
+// Returns a reference to dataBuffer.
+//
+
+short[] getDataBuffer()
+{
+
+    return(dataBuffer);
+
+}//end of UTBoard::getDataBuffer
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -5018,10 +5033,95 @@ public void triggerMapAdvance()
 {
 
     if(type == WALL_MAPPER && mapAdvanceMode == ADVANCE_BY_CONTROLLER){
-        if (map2D != null) {map2D.advanceInsertionPoint();}
+        if (map2D != null) {
+            //move to next buffer slot for storing data
+            map2D.advanceInsertionPoint();
+
+            //set bit 7 of the last code to signify that the slice after
+            //will be stored in the next map column -- this is done so that
+            //the raw data will have position information in the saved file
+
+            dataBuffer[prevTDCCodePosition] |= 0x4000;
+
+        }
     }
 
 }//end of UTBoard::triggerMapAdvance
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::saveDataBufferToTextFile
+//
+// Saves the data in dataBuffer to a text file. If board is not set up for
+// mapping or no data buffer has been created, nothing is done.
+//
+// NOTE: This saves from position zero to the end of data -- it does not
+//  understand segments like the trace saving function does which is necessary
+//  when the index restarts at 0 as required for end to end inspection. Fix
+//  this some day.
+//
+
+public void saveDataBufferToTextFile(String pFilename, String pJobFileFormat,
+                                         String pInspectionDirectionDescription)
+{
+
+    if(type != WALL_MAPPER || dataBuffer == null) {return;}
+
+    pFilename = pFilename + " ~ Wall Mapping Data ~ " + boardName;
+
+    //create a buffered writer stream
+
+    FileOutputStream fileOutputStream = null;
+    OutputStreamWriter outputStreamWriter = null;
+    BufferedWriter bwOut = null;
+
+    try{
+
+        fileOutputStream = new FileOutputStream(pFilename);
+        outputStreamWriter = new OutputStreamWriter(fileOutputStream,
+                                                                pJobFileFormat);
+        bwOut = new BufferedWriter(outputStreamWriter);
+
+        //write the header information - this portion can be read by the iniFile
+        //class which will only read up to the "[Header End]" tag - this allows
+        //simple parsing of the header information while ignoring the data
+        //stream which  follows the header
+
+        bwOut.write("[Header Start]"); bwOut.newLine();
+        bwOut.newLine();
+        bwOut.write("Segment Data Version=" + Settings.SEGMENT_DATA_VERSION);
+        bwOut.newLine();
+        bwOut.write("Measured Length=" + hdwVs.measuredLength);
+        bwOut.newLine();
+        bwOut.write("Inspection Direction="
+                                     + pInspectionDirectionDescription);
+        bwOut.newLine();
+        bwOut.write("[Header End]"); bwOut.newLine(); bwOut.newLine();
+
+        bwOut.write("[Data Set 1]"); bwOut.newLine(); //save the first data set
+
+        //save all data stored in the buffer
+        for(int i = 0; i < dataBufferIndex; i++){
+            bwOut.write(Integer.toString(dataBuffer[i]));
+            bwOut.newLine();
+        }
+
+        bwOut.write("[End of Set]"); bwOut.newLine();
+
+    }
+    catch(IOException e){
+        System.err.println(getClass().getName() + " - Error: 5080");
+    }
+    finally{
+        try{if (bwOut != null) {bwOut.close();}}
+        catch(IOException e){}
+        try{if (outputStreamWriter != null) {outputStreamWriter.close();}}
+        catch(IOException e){}
+        try{if (fileOutputStream != null) {fileOutputStream.close();}}
+        catch(IOException e){}
+    }
+
+}//end of UTBoard::saveDataBufferToTextFile
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

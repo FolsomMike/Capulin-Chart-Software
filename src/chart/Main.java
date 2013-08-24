@@ -947,6 +947,19 @@ private void saveSegment()
     saveSegmentInfoHelper(settings.currentJobPrimaryPath + segmentFilename);
     saveSegmentInfoHelper(settings.currentJobBackupPath + segmentFilename);
 
+    //save data buffers handled by any boards
+
+    segmentFilename =  "40 - " +
+        decimalFormats[0].format(controlPanel.nextCalPieceNumber) + ".wall map";
+
+    hardware.saveAllMapDataSetsToTextFile(
+        settings.currentJobPrimaryPath + segmentFilename,
+        settings.jobFileFormat, hardware.inspectionDirectionDescription);
+
+    hardware.saveAllMapDataSetsToTextFile(
+        settings.currentJobBackupPath + segmentFilename,
+        settings.jobFileFormat, hardware.inspectionDirectionDescription);
+
 }//end of MainWindow::saveSegment
 //-----------------------------------------------------------------------------
 

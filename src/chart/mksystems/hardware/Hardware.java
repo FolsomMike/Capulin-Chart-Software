@@ -256,12 +256,14 @@ private void createAnalogDriver(String pDriverName)
     if (pDriverName.equalsIgnoreCase("PCI-DAS6023")) {
         analogDriver =
         new AnalogPCIDAS6023(configFile, true, numberOfAnalogChannels, hdwVs);
+        analogDriver.init();
     }
 
     if (pDriverName.equalsIgnoreCase("Capulin 1")) {
         analogDriver =
         new Capulin1(configFile, settings, true, numberOfAnalogChannels, hdwVs,
                           log, settings.jobFileFormat, Settings.mainFileFormat);
+        analogDriver.init();
     }
 
 }//end of Hardware::createAnalogDriver
@@ -362,6 +364,26 @@ void calculateTraceOffsetDelays()
                 photoEye2DistanceFrontOfHead1, photoEye2DistanceFrontOfHead2);
 
 }//end of Hardware::calculateTraceOffsetDelays
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::saveAllMapDataSetsToTextFile
+//
+// Stores the map data stored in Boards set up for mapping to text file(s).
+// Each board will save its own file.
+//
+// Any boards without mapping will ignore the request.
+//
+
+public void saveAllMapDataSetsToTextFile(
+        String pFilename, String pJobFileFormat,
+        String pInspectionDirectionDescription)
+{
+
+    analogDriver.saveAllMapDataSetsToTextFile(
+                   pFilename, pJobFileFormat, pInspectionDirectionDescription);
+
+}//end of Hardware::saveAllMapDataSetsToTextFile
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1671,7 +1693,7 @@ public void initializeTraceOffsetDelays(int pDirection)
 
     //
     analogDriver.initializeMapOffsetDelays(pDirection, awayDirection);
-    
+
 }//end of Hardware::initializeTraceOffsetDelays
 //-----------------------------------------------------------------------------
 

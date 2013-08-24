@@ -75,6 +75,20 @@ AnalogPCIDAS6023(IniFile pConfigFile, boolean pSimulationMode,
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// AnalogPCIDAS6023::init
+//
+// Initializes the object.  MUST be called by sub classes after instantiation.
+//
+
+@Override
+public void init()
+{
+
+
+}//end of AnalogPCIDAS6023::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // AnalogPCIDAS6023::connect
 //
 // Initializes the hardware.
@@ -914,6 +928,24 @@ public void initializeMapOffsetDelays(int pDirection, int pAwayDirection)
 
 
 }//end of AnalogPCIDAS6023::initializeMapOffsetDelays
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// AnalogPCIDAS6023::saveAllMapDataSetsToTextFile
+//
+// Stores the map data stored in Boards set up for mapping to text file(s).
+// Each board will save its own file.
+//
+// Any boards without mapping will ignore the request.
+//
+
+@Override
+public void saveAllMapDataSetsToTextFile(
+        String pFilename, String pJobFileFormat,
+        String pInspectionDirectionDescription)
+{
+
+}//end of AnalogPCIDAS6023::saveAllMapDataSetsToTextFile
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

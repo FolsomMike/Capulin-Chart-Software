@@ -58,6 +58,8 @@ public class Capulin1 extends Object implements HardwareLink, MessageLink{
     int reflectionTimer = 0;
     //debug mks end  - this is only for demo - delete later
 
+    WallMapDataSaver wallMapDataSaver;
+
     ThreadSafeLogger logger;
 
     String jobFileFormat, mainFileFormat;
@@ -136,13 +138,26 @@ Capulin1(IniFile pConfigFile, Settings pSettings, boolean pSimulationMode,
     jobFileFormat = pJobFileFormat;
     mainFileFormat = pMainFileFormat;
 
+}//end of Capulin1::Capulin1 (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::init
+//
+// Initializes the object.  MUST be called by sub classes after instantiation.
+//
+
+@Override
+public void init()
+{
+
     syncedVarMgr = new SyncedVariableSet();
     wallMapPacketsEnabled = new SyncedBoolean(syncedVarMgr);
     wallMapPacketsEnabled.init();
     repRateInHertz = new SyncedInteger(syncedVarMgr);
     repRateInHertz.init();
 
-    logger = new ThreadSafeLogger(pLog);
+    logger = new ThreadSafeLogger(log);
 
     pktBuffer = new byte[RUNTIME_PACKET_SIZE];
 
@@ -151,7 +166,35 @@ Capulin1(IniFile pConfigFile, Settings pSettings, boolean pSimulationMode,
     //load configuration settings
     configure(configFile);
 
-}//end of Capulin1::Capulin1 (constructor)
+}//end of Capulin1::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::createWallMapDataSaver
+//
+// Creates and initializes an object to save map data from Board objects.
+//
+
+public void createWallMapDataSaver()
+{
+
+
+    //if a dataBuffer has been created, create a file saver for it
+    wallMapDataSaver = new WallMapDataSaver();
+
+    //debug mks -- read these slot and addresses from config file
+
+    //find the boards with the matching chassis/slot addresses
+    //(they are in random order in the array)
+    // debug mks add code to catch -1 from findBoard
+
+    wallMapDataSaver.init(
+          utBoards[findBoard(0, 0)],
+          utBoards[findBoard(0, 1)],
+          utBoards[findBoard(0, 2)],
+          utBoards[findBoard(0, 3)]);
+
+}//end of Capulin1::createWallMapDataSaver
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -606,6 +649,9 @@ public void initializeUTBoards()
 
     //disable async sending of wall map data packets by the UTBoards
     wallMapPacketsEnabled.setValue(false, true);
+
+    //create object to save map data collected by boards
+    createWallMapDataSaver();
 
 }//end of Capulin1::initializeUTBoards
 //-----------------------------------------------------------------------------
@@ -2351,7 +2397,40 @@ public void triggerMapAdvance(double pPosition)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Hardware::calculateMapOffsetDelays
+// Capulin1::saveAllMapDataSetsToTextFile
+//
+// Stores the map data stored in Boards set up for mapping to text file(s).
+// Each board will save its own file.
+//
+// Any boards without mapping will ignore the request.
+//
+
+@Override
+public void saveAllMapDataSetsToTextFile(
+        String pFilename, String pJobFileFormat,
+        String pInspectionDirectionDescription)
+{
+
+    wallMapDataSaver.saveToFile("test1.dat");
+
+/*
+
+    for (int i = 0; i < numberOfUTBoards; i++){
+        if (utBoards[i] != null){
+            utBoards[i]. saveDataBufferToTextFile(
+                   pFilename, pJobFileFormat, pInspectionDirectionDescription);
+        }
+    }
+
+*/
+
+
+
+}//end of Capulin1::saveAllMapDataSetsToTextFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::calculateMapOffsetDelays
 //
 // Adds the appropriate photo eye distance to the front of each head to each
 // plotter's distance from the front edge of its head.

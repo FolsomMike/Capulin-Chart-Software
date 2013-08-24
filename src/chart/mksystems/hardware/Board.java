@@ -59,7 +59,7 @@ public abstract class Board extends Object implements Runnable{
 
 
     short rabbitControlFlags = 0;
-    Boolean enabled;
+    boolean enabled = false;
     int type;
     int controlFlags = 0;
     String configFilename;
