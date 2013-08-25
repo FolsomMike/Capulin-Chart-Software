@@ -35,6 +35,7 @@ package MKSTools;
 
 //-----------------------------------------------------------------------------
 
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
@@ -74,6 +75,24 @@ public void write(DataOutputStream pFile) throws IOException
     pFile.writeByte((byte) ((value >> 24) & 0xff));
 
 }//end of DWORD::write
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// DWORD::read
+//
+// Reads four bytes from pFile, Little Endian order, reversing the order to
+// be Big Endian for Java compatibility.
+//
+
+public void read(DataInputStream pFile) throws IOException
+{
+
+    value =    (pFile.readByte() & 0xff)
+            + ((pFile.readByte() << 8)   & 0xff00)
+            + ((pFile.readByte() << 16)  & 0xff0000)
+            + ((pFile.readByte() << 24)  & 0xff000000);
+
+}//end of DWORD::read
 //-----------------------------------------------------------------------------
 
 }//end of class DWORD

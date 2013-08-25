@@ -178,9 +178,11 @@ public void init()
 public void createWallMapDataSaver()
 {
 
+    //debug mks -- read these parameters from config file
 
     //if a dataBuffer has been created, create a file saver for it
-    wallMapDataSaver = new WallMapDataSaver();
+    wallMapDataSaver = new WallMapDataSaverTuboBinary(
+                            WallMapDataSaver.TUBO_BINARY_FORMAT, 4 , 4, true);
 
     //debug mks -- read these slot and addresses from config file
 

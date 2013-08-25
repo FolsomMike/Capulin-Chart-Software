@@ -26,6 +26,7 @@ package MKSTools;
 
 //-----------------------------------------------------------------------------
 
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
@@ -65,7 +66,10 @@ public void set(String pString, int pMaxWrite)
 //-----------------------------------------------------------------------------
 // CharBuf::write
 //
-// Writes string to pFile as a character buffer, terminating
+// Writes string to pFile as a character buffer, adding a null terminator
+// and writing missing characters as zeroes to pad up to maxWrite number of
+// characters.
+//
 
 public void write(DataOutputStream pFile) throws IOException
 {
@@ -85,6 +89,29 @@ public void write(DataOutputStream pFile) throws IOException
 
 }//end of CharBuf::write
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// CharBuf::read
+//
+// Reads maxWrite characters from pFile as a character buffer, and converts
+// to a string.
+//
+
+public void read(DataInputStream pFile) throws IOException
+{
+
+    string = "";
+
+    //read maxWrite characters
+    for (int i = 0; i < maxWrite; i++){
+        string = string + (char)pFile.readByte();
+
+        //char c = (char)(((bytes[bpos]&0x00FF)<<8) + (bytes[bpos+1]&0x00FF));
+    }
+
+}//end of CharBuf::read
+//-----------------------------------------------------------------------------
+
 
 }//end of class CharBuf
 //-----------------------------------------------------------------------------

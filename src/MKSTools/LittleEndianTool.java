@@ -60,6 +60,7 @@ package MKSTools;
 
 //-----------------------------------------------------------------------------
 
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
@@ -100,6 +101,24 @@ public static void writeFloat(float pValue, DataOutputStream pFile)
     pFile.writeByte((byte) ((intValue >> 24) & 0xff));
 
 }//end of LittleEndianTool::writeFloat
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// LittleEndianTool::readFloat
+//
+// Reads pValue from pFile in Little Endian order.
+//
+
+public static float readFloat(DataInputStream pFile) throws IOException
+{
+
+    //load four bytes from the file as an int
+    int intValue = pFile.readInt();
+
+    //reverse the bytes, store as a Float (not the same as casting, return
+    return(Float.intBitsToFloat(Integer.reverseBytes(intValue)));
+
+}//end of LittleEndianTool::readFloat
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
