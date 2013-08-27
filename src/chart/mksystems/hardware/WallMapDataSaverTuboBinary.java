@@ -61,67 +61,6 @@ import java.io.OutputStreamWriter;
 
 
 //-----------------------------------------------------------------------------
-// class SourceBoard
-//
-// This class handles variables related to a source board -- a board designated
-// to provide data for mapping.
-//
-
-class SourceBoard extends Object{
-
-    UTBoard utBoard;
-    short dataBuffer[];
-
-    int revolutionStartIndex;
-    int revolutionEndIndex;
-
-//-----------------------------------------------------------------------------
-// SourceBoard::SourceBoard (constructor)
-//
-
-public void Sourceboard()
-{
-
-}//end of SourceBoard::SourceBoard (constructor)
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// SourceBoard::init
-//
-// Initializes the object.  MUST be called by sub classes after instantiation.
-//
-
-public void init(UTBoard pUTBoard)
-{
-
-    utBoard = pUTBoard;
-
-    dataBuffer = utBoard.getDataBuffer();
-
-}//end of SourceBoard::init
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// SourceBoard::setUpForSavingData
-//
-// Prepares variables for finding revolutions and anything require for
-// manipulating the data for saving.
-//
-
-public void setUpForSavingData()
-{
-
-    revolutionStartIndex = -1;
-    revolutionEndIndex = -1;
-
-}//end of SourceBoard::setUpForSavingData
-//-----------------------------------------------------------------------------
-
-}//end of class SourceBoard
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // class WallMapDataSaverTuboBinary
 //
 
@@ -133,8 +72,8 @@ public class WallMapDataSaverTuboBinary extends WallMapDataSaver{
 
     Settings settings;
 
-    SourceBoard sourceBoards[];
-    int numberOfSourceBoards;
+    MapSourceBoard mapSourceBoards[];
+    int numberOfMapSourceBoards;
     int numberOfHardwareChannels;
     int numberOfChannelsToStoreInFile;
     boolean copyChannelsToFillMissingChannels;
@@ -230,13 +169,13 @@ public class WallMapDataSaverTuboBinary extends WallMapDataSaver{
 //
 
 public WallMapDataSaverTuboBinary(Settings pSettings, int pFileFormat,
-        int pNumberOfSourceBoards, int pNumberOfHardwareChannels,
+        int pNumberOfMapSourceBoards, int pNumberOfHardwareChannels,
         boolean pCopyChannelsToFillMissingChannels)
 {
 
     settings = pSettings;
     fileFormat = pFileFormat;
-    numberOfSourceBoards = pNumberOfSourceBoards;
+    numberOfMapSourceBoards = pNumberOfMapSourceBoards;
     numberOfHardwareChannels = pNumberOfHardwareChannels;
     copyChannelsToFillMissingChannels = pCopyChannelsToFillMissingChannels;
 
@@ -257,14 +196,14 @@ public void init(UTBoard pBoard0, UTBoard pBoard1, UTBoard pBoard2,
     //number of channels in file depends on fileFormat
     determineNumberOfChannelToStoreInFile();
 
-    sourceBoards = new SourceBoard[numberOfSourceBoards];
+    mapSourceBoards = new MapSourceBoard[numberOfMapSourceBoards];
 
-    for (int i = 0; i < sourceBoards.length; i++){
-        sourceBoards[i] = new SourceBoard();
+    for (int i = 0; i < mapSourceBoards.length; i++){
+        mapSourceBoards[i] = new MapSourceBoard();
     }
 
-    sourceBoards[0].init(pBoard0); sourceBoards[1].init(pBoard1);
-    sourceBoards[2].init(pBoard2); sourceBoards[3].init(pBoard3);
+    mapSourceBoards[0].init(pBoard0); mapSourceBoards[1].init(pBoard1);
+    mapSourceBoards[2].init(pBoard2); mapSourceBoards[3].init(pBoard3);
 
     cfgFile = new CharBuf("", 128);
     WO = new CharBuf("", 10);
@@ -350,8 +289,8 @@ public void saveToFile(String pFilename, double pMeasuredLength,
     measuredLength = pMeasuredLength;
 
     //prepare to find revolutions and prepare data for saving
-    for (int i = 0; i < sourceBoards.length; i++){
-        sourceBoards[i].setUpForSavingData();
+    for (int i = 0; i < mapSourceBoards.length; i++){
+        mapSourceBoards[i].setUpForSavingData();
     }
 
     //debug mks -- remove this
@@ -825,7 +764,7 @@ public void saveAllDataBuffersToTextFile(String pFilename,
                  String pJobFileFormat, String pInspectionDirectionDescription)
 {
 
-    for (int i = 0; i < sourceBoards.length; i++){
+    for (int i = 0; i < mapSourceBoards.length; i++){
         saveDataBufferToTextFile(i,
            pFilename, settings.jobFileFormat, pInspectionDirectionDescription);
     }
@@ -883,11 +822,12 @@ public void saveDataBufferToTextFile(int pBoard,
         bwOut.write("[Data Set 1]"); bwOut.newLine(); //save the first data set
 
         int endOfData =
-             sourceBoards[pBoard].utBoard.getIndexOfLastDataPointInDataBuffer();
+          mapSourceBoards[pBoard].utBoard.getIndexOfLastDataPointInDataBuffer();
 
         //save all data stored in the buffer
         for(int i = 0; i < endOfData; i++){
-            bwOut.write(Integer.toString(sourceBoards[pBoard].dataBuffer[i]));
+            bwOut.write(
+                    Integer.toString(mapSourceBoards[pBoard].dataBuffer[i]));
             bwOut.newLine();
         }
 
@@ -919,7 +859,7 @@ public void loadAllDataBuffersFromTextFile(String pFilename,
                                                         String pJobFileFormat)
 {
 
-    for (int i = 0; i < sourceBoards.length; i++){
+    for (int i = 0; i < mapSourceBoards.length; i++){
         loadDataBufferFromTextFile(i, pFilename, settings.jobFileFormat);
     }
 
@@ -951,7 +891,7 @@ public String loadDataBufferFromTextFile(int pBoard,
     InputStreamReader inputStreamReader = null;
     BufferedReader brIn = null;
 
-    short dataBuffer[] = sourceBoards[pBoard].dataBuffer;
+    short dataBuffer[] = mapSourceBoards[pBoard].dataBuffer;
 
     String startTag = "[Data Set 1]";
     String startTagUC = startTag.toUpperCase();
@@ -1002,7 +942,7 @@ public String loadDataBufferFromTextFile(int pBoard,
         }//while ((line = pIn.readLine()) != null)
 
         //let the board know the position of the last data in the buffer
-        sourceBoards[pBoard].utBoard.setIndexOfLastDataPointInDataBuffer(i);
+        mapSourceBoards[pBoard].utBoard.setIndexOfLastDataPointInDataBuffer(i);
 
     }
     catch(NumberFormatException e){
