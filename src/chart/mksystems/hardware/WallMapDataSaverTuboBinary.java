@@ -883,7 +883,7 @@ public void saveDataBufferToTextFile(int pBoard,
         bwOut.write("[Data Set 1]"); bwOut.newLine(); //save the first data set
 
         int endOfData =
-             sourceBoards[pBoard].utBoard.getIndexOfLastDataPointinDataBuffer();
+             sourceBoards[pBoard].utBoard.getIndexOfLastDataPointInDataBuffer();
 
         //save all data stored in the buffer
         for(int i = 0; i < endOfData; i++){
@@ -1002,7 +1002,7 @@ public String loadDataBufferFromTextFile(int pBoard,
         }//while ((line = pIn.readLine()) != null)
 
         //let the board know the position of the last data in the buffer
-        sourceBoards[pBoard].utBoard.setIndexOfLastDataPointinDataBuffer(i);
+        sourceBoards[pBoard].utBoard.setIndexOfLastDataPointInDataBuffer(i);
 
     }
     catch(NumberFormatException e){

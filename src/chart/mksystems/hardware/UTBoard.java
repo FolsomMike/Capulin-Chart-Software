@@ -1392,21 +1392,21 @@ short[] getDataBuffer()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTBoard::getIndexOfLastDataPointinDataBuffer
+// UTBoard::getIndexOfLastDataPointInDataBuffer
 //
 // Returns the index of the last value stored in dataBuffer + 1.
 //
 
-public int getIndexOfLastDataPointinDataBuffer()
+public int getIndexOfLastDataPointInDataBuffer()
 {
 
     return(dataBufferIndex);
 
-}//end of UTBoard::getIndexOfLastDataPointinDataBuffer
+}//end of UTBoard::getIndexOfLastDataPointInDataBuffer
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTBoard::setIndexOfLastDataPointinDataBuffer
+// UTBoard::setIndexOfLastDataPointInDataBuffer
 //
 // Sets the index of the last value stored in dataBuffer + 1.
 //
@@ -1414,7 +1414,7 @@ public int getIndexOfLastDataPointinDataBuffer()
 // will be used to store the next data point.
 //
 
-public void setIndexOfLastDataPointinDataBuffer(int pIndex)
+public void setIndexOfLastDataPointInDataBuffer(int pIndex)
 {
 
     if (pIndex < 0) { pIndex = 0; }
@@ -1422,7 +1422,7 @@ public void setIndexOfLastDataPointinDataBuffer(int pIndex)
 
     dataBufferIndex = pIndex;
 
-}//end of UTBoard::setIndexOfLastDataPointinDataBuffer
+}//end of UTBoard::setIndexOfLastDataPointInDataBuffer
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
