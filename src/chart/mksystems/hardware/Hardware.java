@@ -367,9 +367,9 @@ void calculateTraceOffsetDelays()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Hardware::saveAllMapDataSetsToTextFile
+// Hardware::saveAllMapDataSetsToFile
 //
-// Stores the map data stored in Boards set up for mapping to text file(s).
+// Stores the map data stored in Boards set up for mapping to file(s).
 // Each board will save its own file.
 //
 // Any boards without mapping will ignore the request.
@@ -380,10 +380,10 @@ public void saveAllMapDataSetsToTextFile(
         String pInspectionDirectionDescription)
 {
 
-    analogDriver.saveAllMapDataSetsToTextFile(
+    analogDriver.saveAllMapDataSetsToFile(
                    pFilename, pJobFileFormat, pInspectionDirectionDescription);
 
-}//end of Hardware::saveAllMapDataSetsToTextFile
+}//end of Hardware::saveAllMapDataSetsToFile
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

@@ -22,7 +22,6 @@ import chart.Log;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.settings.Settings;
 import chart.mksystems.stripchart.Map2D;
-import chart.mksystems.stripchart.Map2DData;
 import java.io.*;
 import java.net.*;
 import javax.swing.*;
@@ -803,10 +802,10 @@ public synchronized void connect()
     initFPGA(); //setup the registers in the UT board FPGA
 
     //ask the board for its chassis and board address switch settngs
-    getChassisSlotAddress();
+    getChassisSlotAddressFromRemote();
 
     //check for an address override entry and use that if it exists
-    getChassisSlotAddressOverride();
+    getChassisSlotAddressOverrideFromFile();
 
     //NOTE: now that the chassis and slot addresses are known, display messages
     // using those to identify the board instead of the IP address so it is
@@ -1284,7 +1283,7 @@ public void warmReset()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTBoard::getChassisSlotAddress
+// UTBoard::getChassisSlotAddressFromRemote
 //
 // Retrieves the board's chassis and slot address settings.  This function
 // can only be called after the board's FPGA has been loaded because the
@@ -1293,7 +1292,7 @@ public void warmReset()
 // The switches are located on the motherboard.
 //
 
-void getChassisSlotAddress()
+void getChassisSlotAddressFromRemote()
 {
 
     //read the address from FPGA register connected to the switches
@@ -1308,11 +1307,11 @@ void getChassisSlotAddress()
     logger.logMessage("UT " + ipAddrS + " chassis & slot address: "
                                         + chassisAddr + "-" + slotAddr + "\n");
 
-}//end of UTBoard::getChassisSlotAddress
+}//end of UTBoard::getChassisSlotAddressFromRemote
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTBoard::getChassisSlotAddressOverride
+// UTBoard::getChassisSlotAddressOverrideFromFile
 //
 // Checks the "Board Slot Overrides.ini" file to see if there is a chassis
 // and slot address override for the board with this IP.
@@ -1325,7 +1324,7 @@ void getChassisSlotAddress()
 // to be thread safe.
 //
 
-void getChassisSlotAddressOverride()
+void getChassisSlotAddressOverrideFromFile()
 {
 
     //use integers with zeroing of upper bits to represent the bytes as unsigned
@@ -1361,7 +1360,21 @@ void getChassisSlotAddressOverride()
                                         + chassisAddr + "-" + slotAddr + "\n");
     }
 
-}//end of UTBoard::getChassisSlotAddressOverride
+}//end of UTBoard::getChassisSlotAddressOverrideFromFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::getTargetMapChannel
+//
+// Returns targetMapChannel.
+//
+
+int getTargetMapChannel()
+{
+
+    return(targetMapChannel);
+
+}//end of UTBoard::getTargetMapChannel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1376,6 +1389,40 @@ short[] getDataBuffer()
     return(dataBuffer);
 
 }//end of UTBoard::getDataBuffer
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::getIndexOfLastDataPointinDataBuffer
+//
+// Returns the index of the last value stored in dataBuffer + 1.
+//
+
+public int getIndexOfLastDataPointinDataBuffer()
+{
+
+    return(dataBufferIndex);
+
+}//end of UTBoard::getIndexOfLastDataPointinDataBuffer
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::setIndexOfLastDataPointinDataBuffer
+//
+// Sets the index of the last value stored in dataBuffer + 1.
+//
+// pIndex should actually point to the next location after the last value. It
+// will be used to store the next data point.
+//
+
+public void setIndexOfLastDataPointinDataBuffer(int pIndex)
+{
+
+    if (pIndex < 0) { pIndex = 0; }
+    if (pIndex >= dataBuffer.length) { pIndex = dataBuffer.length - 1; }
+
+    dataBufferIndex = pIndex;
+
+}//end of UTBoard::setIndexOfLastDataPointinDataBuffer
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -3663,6 +3710,13 @@ void configureExtended(IniFile pConfigFile)
 
     parseBoardType(value);
 
+    targetMapChannel =
+      pConfigFile.readInt(section, "This Board is Source for Map Channel", -1);
+
+    boardChannelForMapDataSource =
+         pConfigFile.readInt(section, "Board Channel for Map Data Source", -1);
+
+
     dataBufferSize = pConfigFile.readInt(section, "Data Buffer Size", 0);
 
     if(dataBufferSize > 100000000){ dataBufferSize = 100000000; }
@@ -3711,12 +3765,12 @@ void configureExtended(IniFile pConfigFile)
 void parseBoardType(String pValue)
 {
 
-    if (pValue.equals("Basic Peak Collector")) {
+    if (pValue.equalsIgnoreCase("Basic Peak Collector")) {
         type = BASIC_PEAK_COLLECTOR;
         rabbitControlFlags |= RABBIT_FLAW_WALL_MODE;
     }
     else
-    if (pValue.equals("Wall Mapper")) {
+    if (pValue.equalsIgnoreCase("Wall Mapper")) {
         type = WALL_MAPPER;
         rabbitControlFlags |= RABBIT_WALL_MAP_MODE;
     }
@@ -5041,87 +5095,14 @@ public void triggerMapAdvance()
             //will be stored in the next map column -- this is done so that
             //the raw data will have position information in the saved file
 
+            if (prevTDCCodePosition > 0 &&
+                                      prevTDCCodePosition < dataBuffer.length){
             dataBuffer[prevTDCCodePosition] |= 0x4000;
-
+            }
         }
     }
 
 }//end of UTBoard::triggerMapAdvance
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// UTBoard::saveDataBufferToTextFile
-//
-// Saves the data in dataBuffer to a text file. If board is not set up for
-// mapping or no data buffer has been created, nothing is done.
-//
-// NOTE: This saves from position zero to the end of data -- it does not
-//  understand segments like the trace saving function does which is necessary
-//  when the index restarts at 0 as required for end to end inspection. Fix
-//  this some day.
-//
-
-public void saveDataBufferToTextFile(String pFilename, String pJobFileFormat,
-                                         String pInspectionDirectionDescription)
-{
-
-    if(type != WALL_MAPPER || dataBuffer == null) {return;}
-
-    pFilename = pFilename + " ~ Wall Mapping Data ~ " + boardName;
-
-    //create a buffered writer stream
-
-    FileOutputStream fileOutputStream = null;
-    OutputStreamWriter outputStreamWriter = null;
-    BufferedWriter bwOut = null;
-
-    try{
-
-        fileOutputStream = new FileOutputStream(pFilename);
-        outputStreamWriter = new OutputStreamWriter(fileOutputStream,
-                                                                pJobFileFormat);
-        bwOut = new BufferedWriter(outputStreamWriter);
-
-        //write the header information - this portion can be read by the iniFile
-        //class which will only read up to the "[Header End]" tag - this allows
-        //simple parsing of the header information while ignoring the data
-        //stream which  follows the header
-
-        bwOut.write("[Header Start]"); bwOut.newLine();
-        bwOut.newLine();
-        bwOut.write("Segment Data Version=" + Settings.SEGMENT_DATA_VERSION);
-        bwOut.newLine();
-        bwOut.write("Measured Length=" + hdwVs.measuredLength);
-        bwOut.newLine();
-        bwOut.write("Inspection Direction="
-                                     + pInspectionDirectionDescription);
-        bwOut.newLine();
-        bwOut.write("[Header End]"); bwOut.newLine(); bwOut.newLine();
-
-        bwOut.write("[Data Set 1]"); bwOut.newLine(); //save the first data set
-
-        //save all data stored in the buffer
-        for(int i = 0; i < dataBufferIndex; i++){
-            bwOut.write(Integer.toString(dataBuffer[i]));
-            bwOut.newLine();
-        }
-
-        bwOut.write("[End of Set]"); bwOut.newLine();
-
-    }
-    catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 5080");
-    }
-    finally{
-        try{if (bwOut != null) {bwOut.close();}}
-        catch(IOException e){}
-        try{if (outputStreamWriter != null) {outputStreamWriter.close();}}
-        catch(IOException e){}
-        try{if (fileOutputStream != null) {fileOutputStream.close();}}
-        catch(IOException e){}
-    }
-
-}//end of UTBoard::saveDataBufferToTextFile
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

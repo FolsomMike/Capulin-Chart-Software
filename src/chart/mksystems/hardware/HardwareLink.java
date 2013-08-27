@@ -154,7 +154,7 @@ public void calculateMapOffsetDelays(
 
 public void initializeMapOffsetDelays(int pDirection, int pAwayDirection);
 
-public void saveAllMapDataSetsToTextFile(
+public void saveAllMapDataSetsToFile(
         String pFilename, String pJobFileFormat,
         String pInspectionDirectionDescription);
 

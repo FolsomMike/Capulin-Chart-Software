@@ -62,7 +62,8 @@ public void init(UTBoard pBoard0, UTBoard pBoard1, UTBoard pBoard2,
 // Subclasses should override this method to provide custom functionality
 //
 
-public void saveToFile(String pFilename)
+public void saveToFile(String pFilename, double pMeasuredLength,
+                                    String pInspectionDirectionDescription)
 {
 
 

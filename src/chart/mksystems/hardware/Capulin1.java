@@ -58,7 +58,9 @@ public class Capulin1 extends Object implements HardwareLink, MessageLink{
     int reflectionTimer = 0;
     //debug mks end  - this is only for demo - delete later
 
-    WallMapDataSaver wallMapDataSaver;
+    WallMapDataSaver wallMapDataSaver = null;
+
+    int wallMapFileFormat;
 
     ThreadSafeLogger logger;
 
@@ -170,6 +172,83 @@ public void init()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Capulin1::configure
+//
+// Loads configuration settings from the configuration.ini file.  These set
+// the number and style of channels, gates, etc.
+// The various child objects are then created as specified by the config data.
+//
+
+private void configure(IniFile pConfigFile)
+{
+
+    simulateControlBoards =
+       pConfigFile.readBoolean("Hardware", "Simulate Control Boards", false);
+
+    simulateUTBoards =
+            pConfigFile.readBoolean("Hardware", "Simulate UT Boards", false);
+
+    //if any simulation is active, set the simulate flag true
+    if (simulateControlBoards || simulateUTBoards) {simulate = true;}
+
+    numberOfUTBoards =
+                     pConfigFile.readInt("Hardware", "Number of UT Boards", 1);
+
+    if (numberOfUTBoards > 255) {numberOfUTBoards = 255;}
+
+    numberOfChannels =
+                pConfigFile.readInt("Hardware", "Number of Analog Channels", 1);
+
+    controlBoardIP = pConfigFile.readString(
+                      "Hardware", "Control Board IP Address", "169.254.56.11");
+
+    fpgaCodeFilename = pConfigFile.readString(
+                        "Hardware", "UT FPGA Code Filename", "not specified");
+
+    if (numberOfChannels > 1500) {numberOfUTBoards = 1500;}
+
+    String value = pConfigFile.readString(
+                         "Data Output", "Wall Map File Format", "IRNDT Text");
+
+    parseWallMapFileFormat(value);
+
+    //create and setup the Control boards
+    configureControlBoards();
+
+    //create and setup the UT boards
+    configureUTBoards();
+
+    //create and setup the channels
+    configureChannels();
+
+}//end of Capulin1::configure
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::parseWallMapFileFormat
+//
+// Parses the string read from the config file to set the map file format.
+//
+
+void parseWallMapFileFormat(String pValue)
+{
+
+    if (pValue.equalsIgnoreCase("IRNDT Binary")) {
+        wallMapFileFormat = WallMapDataSaver.IRNDT_BINARY_FORMAT;
+    }
+    else
+    if (pValue.equalsIgnoreCase("IRNDT Text")) {
+        wallMapFileFormat = WallMapDataSaver.IRNDT_TEXT_FORMAT;
+    }
+    else
+    if (pValue.equalsIgnoreCase("Tuboscope Binary")) {
+        wallMapFileFormat = WallMapDataSaver.TUBO_BINARY_FORMAT;
+    }
+
+}//end of Capulin1::parseWallMapFileFormat
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Capulin1::createWallMapDataSaver
 //
 // Creates and initializes an object to save map data from Board objects.
@@ -178,23 +257,28 @@ public void init()
 public void createWallMapDataSaver()
 {
 
-    //debug mks -- read these parameters from config file
+    int numberOfMapSourceBoards = countMapSourceBoards();
+
+    //if no boards are map sources, ignore map operations
+    if (numberOfMapSourceBoards == 0){ return; }
+
+    //currently, the system only handles a single mapping channel per board
+    //so the number of source boards is also the number of source channels
+
+    int numberOfMapSourceHardwareChannels = numberOfMapSourceBoards;
 
     //if a dataBuffer has been created, create a file saver for it
-    wallMapDataSaver = new WallMapDataSaverTuboBinary(
-                            WallMapDataSaver.TUBO_BINARY_FORMAT, 4 , 4, true);
+    wallMapDataSaver = new WallMapDataSaverTuboBinary(settings,
+                                  wallMapFileFormat, numberOfMapSourceBoards,
+                                  numberOfMapSourceHardwareChannels , true);
 
-    //debug mks -- read these slot and addresses from config file
+    //init data saver with the boards assigned to each map channel
+    //(they are in random order in the array so use findBoard to locate each)
 
-    //find the boards with the matching chassis/slot addresses
-    //(they are in random order in the array)
-    // debug mks add code to catch -1 from findBoard
-
-    wallMapDataSaver.init(
-          utBoards[findBoard(0, 0)],
-          utBoards[findBoard(0, 1)],
-          utBoards[findBoard(0, 2)],
-          utBoards[findBoard(0, 3)]);
+    wallMapDataSaver.init(findBoardByTargetMapChannel(0),
+                          findBoardByTargetMapChannel(1),
+                          findBoardByTargetMapChannel(2),
+                          findBoardByTargetMapChannel(3));
 
 }//end of Capulin1::createWallMapDataSaver
 //-----------------------------------------------------------------------------
@@ -1095,6 +1179,9 @@ public void setMode(int pOpMode)
 
     if (opMode == Hardware.SCAN){
 
+        //signal "Main Thread" to reset
+        performResetUTBoardsForNextRun = true;
+
         //enable async sending of wall map data packets by the UTBoards
         wallMapPacketsEnabled.setValue(true, false);
 
@@ -1639,54 +1726,6 @@ public void linkPlotters(int pChartGroup, int pChart, int pTrace,
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Capulin1::configure
-//
-// Loads configuration settings from the configuration.ini file.  These set
-// the number and style of channels, gates, etc.
-// The various child objects are then created as specified by the config data.
-//
-
-private void configure(IniFile pConfigFile)
-{
-
-    simulateControlBoards =
-       pConfigFile.readBoolean("Hardware", "Simulate Control Boards", false);
-
-    simulateUTBoards =
-            pConfigFile.readBoolean("Hardware", "Simulate UT Boards", false);
-
-    //if any simulation is active, set the simulate flag true
-    if (simulateControlBoards || simulateUTBoards) {simulate = true;}
-
-    numberOfUTBoards =
-                     pConfigFile.readInt("Hardware", "Number of UT Boards", 1);
-
-    if (numberOfUTBoards > 255) {numberOfUTBoards = 255;}
-
-    numberOfChannels =
-                pConfigFile.readInt("Hardware", "Number of Analog Channels", 1);
-
-    controlBoardIP = pConfigFile.readString(
-                      "Hardware", "Control Board IP Address", "169.254.56.11");
-
-    fpgaCodeFilename = pConfigFile.readString(
-                        "Hardware", "UT FPGA Code Filename", "not specified");
-
-    if (numberOfChannels > 1500) {numberOfUTBoards = 1500;}
-
-    //create and setup the Control boards
-    configureControlBoards();
-
-    //create and setup the UT boards
-    configureUTBoards();
-
-    //create and setup the channels
-    configureChannels();
-
-}//end of Capulin1::configure
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // Capulin1::setChartGroups
 //
 // Sets the chartGroups variable.
@@ -1790,15 +1829,15 @@ private void configureChannels()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Capulin1::findBoard
+// Capulin1::findBoardIndexByChassisAndSlotAddr
 //
 // Finds the UTBoard object in the array which has been assigned to the board
 // in pChassis and PSlot.
 //
-// Returns -1 if no board found.
+// Returns the board's index in the array or -1 if no board found.
 //
 
-int findBoard(int pChassis, int pSlot)
+int findBoardIndexByChassisAndSlotAddr(int pChassis, int pSlot)
 {
 
     for (int i = 0; i < numberOfUTBoards; i++) {
@@ -1812,7 +1851,80 @@ int findBoard(int pChassis, int pSlot)
 
     return(-1);
 
-}//end of Capulin1::findBoard
+}//end of Capulin1::findBoardIndexByChassisAndSlotAddr
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::findBoardIndexByTargetMapChannel
+//
+// Finds the UTBoard object in the array which has been designated as a
+// source for map channel pTargetMapChannel.
+//
+// Returns the board's index in the array or -1 if no board found.
+//
+
+int findBoardIndexByTargetMapChannel(int pTargetMapChannel)
+{
+
+    for (int i = 0; i < numberOfUTBoards; i++) {
+        if (utBoards[i] != null && utBoards[i].ready) {
+            if (pTargetMapChannel == utBoards[i].getTargetMapChannel()) {
+                return (i);
+            }
+        }
+    }
+
+    return(-1);
+
+}//end of Capulin1::findBoardIndexByTargetMapChannel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::findBoardByTargetMapChannel
+//
+// Finds the UTBoard object in the array which has been designated as a
+// source for map channel pTargetMapChannel.
+//
+// Returns reference to the board or null if no board found.
+//
+
+UTBoard findBoardByTargetMapChannel(int pTargetMapChannel)
+{
+
+    int target = findBoardIndexByTargetMapChannel(pTargetMapChannel);
+
+    if (target != -1){
+        return(utBoards[target]);
+    }
+    else{
+        return(null);
+    }
+
+}//end of Capulin1::findBoardByTargetMapChannel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::countMapSourceBoards
+//
+// Returns the number of boards configured to be map data sources.
+//
+
+int countMapSourceBoards()
+{
+
+    int count = 0;
+
+    for (int i = 0; i < numberOfUTBoards; i++) {
+        if (utBoards[i] != null && utBoards[i].ready) {
+            if (utBoards[i].getTargetMapChannel() != -1) {
+                count++;
+            }
+        }
+    }
+
+    return(count);
+
+}//end of Capulin1::countMapSourceBoards
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1829,7 +1941,7 @@ public void readRAM(int pChassis, int pSlot, int pDSPChip, int pDSPCore,
            int pRAMType, int pPage, int pAddress, int pCount, byte[] dataBlock)
 {
 
-    int board = findBoard(pChassis, pSlot);
+    int board = findBoardIndexByChassisAndSlotAddr(pChassis, pSlot);
 
     if (board != -1) {
         utBoards[board].readRAM(pDSPChip, pDSPCore, pRAMType,
@@ -1851,7 +1963,7 @@ public void writeRAM(int pChassis, int pSlot, int pDSPChip, int pDSPCore,
            int pRAMType, int pPage, int pAddress, int pValue)
 {
 
-    int board = findBoard(pChassis, pSlot);
+    int board = findBoardIndexByChassisAndSlotAddr(pChassis, pSlot);
 
     if (board != -1) {
         utBoards[board].writeDSPRam(pDSPChip, pDSPCore, pRAMType,
@@ -1872,7 +1984,7 @@ public void fillRAM(int pChassis, int pSlot, int pDSPChip, int pDSPCore,
            int pRAMType, int pPage, int pAddress, int pBlockSize, int pValue)
 {
 
-    int board = findBoard(pChassis, pSlot);
+    int board = findBoardIndexByChassisAndSlotAddr(pChassis, pSlot);
 
     if (board != -1) {
         utBoards[board].fillRAM(pDSPChip, pDSPCore,
@@ -1895,7 +2007,7 @@ public void fillRAM(int pChassis, int pSlot, int pDSPChip, int pDSPCore,
 public int getState(int pChassis, int pSlot, int pWhich)
 {
 
-    int board = findBoard(pChassis, pSlot);
+    int board = findBoardIndexByChassisAndSlotAddr(pChassis, pSlot);
 
     if (board != -1) {
         return utBoards[board].getState(pWhich);
@@ -1919,7 +2031,7 @@ public int getState(int pChassis, int pSlot, int pWhich)
 public void setState(int pChassis, int pSlot, int pWhich, int pValue)
 {
 
-    int board = findBoard(pChassis, pSlot);
+    int board = findBoardIndexByChassisAndSlotAddr(pChassis, pSlot);
 
     if (board != -1) {
         utBoards[board].setState(pWhich, pValue);
@@ -2399,36 +2511,26 @@ public void triggerMapAdvance(double pPosition)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Capulin1::saveAllMapDataSetsToTextFile
+// Capulin1::saveAllMapDataSetsToFile
 //
-// Stores the map data stored in Boards set up for mapping to text file(s).
-// Each board will save its own file.
-//
-// Any boards without mapping will ignore the request.
+// Stores the map data stored in Boards set up for mapping to file(s).
 //
 
 @Override
-public void saveAllMapDataSetsToTextFile(
+public void saveAllMapDataSetsToFile(
         String pFilename, String pJobFileFormat,
         String pInspectionDirectionDescription)
 {
 
-    wallMapDataSaver.saveToFile("test1.dat");
+    //debug mks -- add job settings, pInspectionDirectionDescription
+    //nominal wall
 
-/*
-
-    for (int i = 0; i < numberOfUTBoards; i++){
-        if (utBoards[i] != null){
-            utBoards[i]. saveDataBufferToTextFile(
-                   pFilename, pJobFileFormat, pInspectionDirectionDescription);
-        }
+    if (wallMapDataSaver != null) {
+        wallMapDataSaver.saveToFile(pFilename, hdwVs.measuredLength,
+                                            pInspectionDirectionDescription);
     }
 
-*/
-
-
-
-}//end of Capulin1::saveAllMapDataSetsToTextFile
+}//end of Capulin1::saveAllMapDataSetsToFile
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

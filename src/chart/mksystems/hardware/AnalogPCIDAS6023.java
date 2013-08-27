@@ -931,21 +931,21 @@ public void initializeMapOffsetDelays(int pDirection, int pAwayDirection)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// AnalogPCIDAS6023::saveAllMapDataSetsToTextFile
+// AnalogPCIDAS6023::saveAllMapDataSetsToFile
 //
-// Stores the map data stored in Boards set up for mapping to text file(s).
+// Stores the map data stored in Boards set up for mapping to file(s).
 // Each board will save its own file.
 //
 // Any boards without mapping will ignore the request.
 //
 
 @Override
-public void saveAllMapDataSetsToTextFile(
+public void saveAllMapDataSetsToFile(
         String pFilename, String pJobFileFormat,
         String pInspectionDirectionDescription)
 {
 
-}//end of AnalogPCIDAS6023::saveAllMapDataSetsToTextFile
+}//end of AnalogPCIDAS6023::saveAllMapDataSetsToFile
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
