@@ -25,7 +25,7 @@ package chart.mksystems.hardware;
 // to provide data for mapping.
 //
 
-class MapSourceBoard extends Object{
+public class MapSourceBoard extends Object{
 
     UTBoard utBoard;
     short dataBuffer[];

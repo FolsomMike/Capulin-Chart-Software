@@ -46,8 +46,7 @@ public WallMapDataSaver()
 // Initializes the object.  MUST be called by sub classes after instantiation.
 //
 
-public void init(UTBoard pBoard0, UTBoard pBoard1, UTBoard pBoard2,
-                                                            UTBoard pBoard3)
+public void init(MapSourceBoard pMapSourceBoards[])
 {
 
 

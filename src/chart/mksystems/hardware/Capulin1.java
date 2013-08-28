@@ -58,6 +58,8 @@ public class Capulin1 extends Object implements HardwareLink, MessageLink{
     int reflectionTimer = 0;
     //debug mks end  - this is only for demo - delete later
 
+    MapSourceBoard mapSourceBoards[] = null;
+    int numberOfMapSourceBoards = 0;
     WallMapDataSaver wallMapDataSaver = null;
 
     int wallMapFileFormat;
@@ -257,10 +259,24 @@ void parseWallMapFileFormat(String pValue)
 public void createWallMapDataSaver()
 {
 
-    int numberOfMapSourceBoards = countMapSourceBoards();
+    numberOfMapSourceBoards = countMapSourceBoards();
 
     //if no boards are map sources, ignore map operations
     if (numberOfMapSourceBoards == 0){ return; }
+
+    mapSourceBoards = new MapSourceBoard[numberOfMapSourceBoards];
+
+    for (int i = 0; i < mapSourceBoards.length; i++){
+        mapSourceBoards[i] = new MapSourceBoard();
+    }
+
+    //init map source objects with the boards assigned to each map channel;
+    //they are in random order in the array so use findBoard to locate each;
+    //they will then be in mapSoureBoards array in order of their map channel
+
+    for (int i = 0; i < mapSourceBoards.length; i++){
+        mapSourceBoards[i].init(findBoardByTargetMapChannel(i));
+    }
 
     //currently, the system only handles a single mapping channel per board
     //so the number of source boards is also the number of source channels
@@ -269,16 +285,10 @@ public void createWallMapDataSaver()
 
     //if a dataBuffer has been created, create a file saver for it
     wallMapDataSaver = new WallMapDataSaverTuboBinary(settings,
-                                  wallMapFileFormat, numberOfMapSourceBoards,
-                                  numberOfMapSourceHardwareChannels , true);
+                wallMapFileFormat, numberOfMapSourceHardwareChannels , true);
 
-    //init data saver with the boards assigned to each map channel
-    //(they are in random order in the array so use findBoard to locate each)
-
-    wallMapDataSaver.init(findBoardByTargetMapChannel(0),
-                          findBoardByTargetMapChannel(1),
-                          findBoardByTargetMapChannel(2),
-                          findBoardByTargetMapChannel(3));
+    //pass a reference to the source boards to the data saver
+    wallMapDataSaver.init(mapSourceBoards);
 
 }//end of Capulin1::createWallMapDataSaver
 //-----------------------------------------------------------------------------

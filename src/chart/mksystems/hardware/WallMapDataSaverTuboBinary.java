@@ -169,13 +169,11 @@ public class WallMapDataSaverTuboBinary extends WallMapDataSaver{
 //
 
 public WallMapDataSaverTuboBinary(Settings pSettings, int pFileFormat,
-        int pNumberOfMapSourceBoards, int pNumberOfHardwareChannels,
-        boolean pCopyChannelsToFillMissingChannels)
+     int pNumberOfHardwareChannels, boolean pCopyChannelsToFillMissingChannels)
 {
 
     settings = pSettings;
     fileFormat = pFileFormat;
-    numberOfMapSourceBoards = pNumberOfMapSourceBoards;
     numberOfHardwareChannels = pNumberOfHardwareChannels;
     copyChannelsToFillMissingChannels = pCopyChannelsToFillMissingChannels;
 
@@ -189,21 +187,14 @@ public WallMapDataSaverTuboBinary(Settings pSettings, int pFileFormat,
 //
 
 @Override
-public void init(UTBoard pBoard0, UTBoard pBoard1, UTBoard pBoard2,
-                                                            UTBoard pBoard3)
+public void init(MapSourceBoard pMapSourceBoards[])
 {
+
+    mapSourceBoards = pMapSourceBoards;
+    numberOfMapSourceBoards = mapSourceBoards.length;
 
     //number of channels in file depends on fileFormat
     determineNumberOfChannelToStoreInFile();
-
-    mapSourceBoards = new MapSourceBoard[numberOfMapSourceBoards];
-
-    for (int i = 0; i < mapSourceBoards.length; i++){
-        mapSourceBoards[i] = new MapSourceBoard();
-    }
-
-    mapSourceBoards[0].init(pBoard0); mapSourceBoards[1].init(pBoard1);
-    mapSourceBoards[2].init(pBoard2); mapSourceBoards[3].init(pBoard3);
 
     cfgFile = new CharBuf("", 128);
     WO = new CharBuf("", 10);
