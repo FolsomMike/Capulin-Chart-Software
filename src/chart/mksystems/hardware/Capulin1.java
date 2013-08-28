@@ -2462,8 +2462,10 @@ void enableWallMapPackets()
     //lock in the synced value since it is used multiple times here
     boolean enable = wallMapPacketsEnabled.applyValue();
 
-    for (int i = 0; i < numberOfUTBoards; i++){
-        if (utBoards[i] != null){ utBoards[i].enableWallMapPackets(enable); }
+    for (int i = 0; i < mapSourceBoards.length; i++){
+        if (mapSourceBoards[i].utBoard != null){
+            mapSourceBoards[i].utBoard.enableWallMapPackets(enable);
+        }
     }
 
 }//end of Capulin1::enableWallMapPackets
@@ -2480,8 +2482,10 @@ void enableWallMapPackets()
 void setMapAdvanceModes(int pMode)
 {
 
-    for (int i = 0; i < numberOfUTBoards; i++){
-        if (utBoards[i] != null){ utBoards[i].setMapAdvanceMode(pMode); }
+    for (int i = 0; i < mapSourceBoards.length; i++){
+        if (mapSourceBoards[i].utBoard != null){
+            mapSourceBoards[i].utBoard.setMapAdvanceMode(pMode);
+        }
     }
 
 }//end of Capulin1::setMapAdvanceModes
@@ -2505,14 +2509,16 @@ void setMapAdvanceModes(int pMode)
 public void triggerMapAdvance(double pPosition)
 {
 
-    for (int i = 0; i < getNumberOfUTBoards(); i++){
+    for (int i = 0; i < mapSourceBoards.length; i++){
 
-        if (utBoards[i] != null && utBoards[i].getMap2D() != null){
-            if (utBoards[i].getMap2D().delayDistance > pPosition ) {
+        UTBoard utBoard = mapSourceBoards[i].utBoard;
+
+        if (utBoard != null && utBoard.getMap2D() != null){
+            if (utBoard.getMap2D().delayDistance > pPosition ) {
                 continue;
             }
             else{
-                utBoards[i].triggerMapAdvance();
+                utBoard.triggerMapAdvance();
             }
         }
     }
@@ -2563,11 +2569,13 @@ public void calculateMapOffsetDelays(
         )
 {
 
-    for (int i = 0; i < getNumberOfUTBoards(); i++){
+    for (int i = 0; i < mapSourceBoards.length; i++){
 
-        if (utBoards[i] != null){
+        UTBoard utBoard = mapSourceBoards[i].utBoard;
 
-            Plotter plotterPtr = utBoards[i].getMap2D();
+        if (utBoard != null){
+
+            Plotter plotterPtr = utBoard.getMap2D();
 
             if ((plotterPtr != null) && (plotterPtr.head == 1)){
                 plotterPtr.startFwdDelayDistance =
@@ -2628,11 +2636,13 @@ public void calculateMapOffsetDelays(
 public void initializeMapOffsetDelays(int pDirection, int pAwayDirection)
 {
 
-    for (int i = 0; i < getNumberOfUTBoards(); i++){
+    for (int i = 0; i < mapSourceBoards.length; i++){
 
-        if (utBoards[i] != null){
+        UTBoard utBoard = mapSourceBoards[i].utBoard;
 
-            Plotter plotterPtr = utBoards[i].getMap2D();
+        if (utBoard != null){
+
+            Plotter plotterPtr = utBoard.getMap2D();
             //if the current direction is the "Away" direction, then set
             //the offsets properly for the carriage moving away from the
             //operator otherwise set them for the carriage moving towards
