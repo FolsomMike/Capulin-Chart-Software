@@ -66,6 +66,9 @@ public class WallMapDataSaverTuboBinary extends WallMapDataSaver{
     int numberOfChannelsToStoreInFile;
     boolean copyChannelsToFillMissingChannels;
 
+    int leastNumberOfRevs = 0;
+    int avgNumberOfRevs = 0;
+
     int fileFormat;
 
     DataOutputStream outFile;
@@ -286,6 +289,7 @@ public void saveToFile(String pFilename)
               new DataOutputStream(new BufferedOutputStream(
               new FileOutputStream(pFilename)));
 
+        //save all header information
         saveHeader();
 
         //save all data from all revolutions
@@ -301,64 +305,6 @@ public void saveToFile(String pFilename)
     }
 
 }//end of WallMapDataSaverTuboBinary::saveToFile
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// WallMapDataSaverTuboBinary::setUpTestData
-//
-// Set up all variables with test data.
-//
-
-public void setUpTestData()
-{
-
-    //set up test data
-
-    cfgFile.set("Config file - this is a test.", 128);
-    WO.set("1234567890", 10);
-    grade.set("Grade", 10);
-    lotNum.set("Lot Number Entry", 10);
-    heat.set("Heat", 34);
-    customer.set("Customer", 32);
-    operator.set("Operator", 10);
-    busUnit.set("Business Unit", 32);
-    comment.set("Comment", 80);
-    version.set("Version", 16);
-    verNum.value = 23;
-    nominalWall = (float)0.534;
-    OD = (float)11.75;
-    location.set("Location", 40);
-    wellName.set("Well Name", 40);
-    date.set("Date", 10);
-    range.set("Range", 8);
-    wellFoot.set("Well Foot", 12);
-    wallStatFlag = 0x01;
-    rbNum.set("RB Number", 10);
-    spare.set("", 75);
-
-    fMotionPulseLen = (float)1.0; //Tubo Map Viewer ignores this for display?
-                                  //See Note 1 at top of file.
-
-    fChnlOffset[0] = (float)0;
-    fChnlOffset[1] = (float)0.625;
-    fChnlOffset[2] = (float)1.25;
-    fChnlOffset[3] = (float)1.875;
-
-    nHomeXOffset = 0;
-    nAwayXOffset = 0;
-
-    nStopXloc = 372;
-
-    nJointNum.value = 1001;
-    fWall = (float)0.534;
-    fOD = (float)11.75;
-
-    nNumRev.value = 1000;
-
-    nMotionBus.value = TOWARD_HOME_DIRECTION_FLAG; // FROM_HOME_DIRECTION_FLAG;
-    nMotionBusNotUsed.value = 0;
-
-}//end of WallMapDataSaverTuboBinary::setUpTestData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -410,8 +356,6 @@ public void loadJobInfo()
 public void copyJobInfoToLocalVariables()
 {
 
-    //set up test data
-
     cfgFile.set("01 - " + settings.currentJobName + " Configuration.ini", 128);
     WO.set(retrieveJobInfoString("Work Order"), 10);
     grade.set(retrieveJobInfoString("Grade"), 10);
@@ -436,10 +380,12 @@ public void copyJobInfoToLocalVariables()
 
     fMotionPulseLen = (float)1.0;
 
+    // sensor position is already offset by the map source sensor delays
+    // so all values are zero here
     fChnlOffset[0] = (float)0;
-    fChnlOffset[1] = (float)0.625;
-    fChnlOffset[2] = (float)1.25;
-    fChnlOffset[3] = (float)1.875;
+    fChnlOffset[1] = (float)0;
+    fChnlOffset[2] = (float)0;
+    fChnlOffset[3] = (float)0;
 
     nHomeXOffset = 0;
     nAwayXOffset = 0;
@@ -642,7 +588,10 @@ private void saveHeader()throws IOException
 private void saveRevolutions() throws IOException
 {
 
-    for (int i = 0; i < nNumRev.value; i++){
+    //find start/stop, count revolutions, repair missing control codes, etc.
+    analyzeAndRepairData();
+
+    for (int i = 0; i < leastNumberOfRevs; i++){
         saveRevolution(i, 500, 500, 500, 500);
     }
 
@@ -754,6 +703,143 @@ private void writeWallReadingsForRevolution(int pRevolutionNumber)
     }//while
 
 }//end of WallMapDataSaverTuboBinary::writeWallReadingsForRevolution
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// WallMapDataSaverTuboBinary::analyzeAndRepairData
+//
+// Analyses the data in preparation for saving to file.
+//
+// Finds the start/stop inspection points, counts the revolutions, repairs
+// missing control codes, etc.
+//
+
+private void analyzeAndRepairData()
+{
+
+    //find start/stop indices for all map source boards
+    findStartStopInspectionIndices();
+
+    //compute rev count for each board and find the one with the least
+    calculateRevCount();
+
+}//end of WallMapDataSaverTuboBinary::analyzeAndRepairData
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// WallMapDataSaverTuboBinary::findStartStopInspectionIndices
+//
+// Finds the start/stop inspection points of all map source boards. The
+// results are stored in the mapSourceBoard objects.
+//
+
+private void findStartStopInspectionIndices()
+{
+
+    for (int i = 0; i < mapSourceBoards.length; i++){
+
+        int startIndex, stopIndex;
+
+        startIndex = findControlCode(i, UTBoard.MAP_START_CODE_FLAG,
+                                                        0, Integer.MIN_VALUE);
+
+        mapSourceBoards[i].inspectionStartIndex = startIndex;
+
+        stopIndex = findControlCode(i, UTBoard.MAP_STOP_CODE_FLAG,
+                                            startIndex + 1, Integer.MIN_VALUE);
+
+        mapSourceBoards[i].inspectionStopIndex = stopIndex;
+
+    }
+
+}//end of WallMapDataSaverTuboBinary::findStartStopInspectionIndices
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// WallMapDataSaverTuboBinary::calculateRevCount
+//
+// Calculates the number of revolutions for each board. Stores the value of
+// the least number of revs of any of the boards in leastNumberOfRevs and
+// the average number of revs in avgNumberOfRevs.
+//
+// Count drops one revolution -- don't want to use last rev as it may be corrupt
+// due to head liftoff. First rev should be good as its already delayed after
+// head drop
+//
+
+private void calculateRevCount()
+{
+
+    leastNumberOfRevs = Integer.MAX_VALUE;
+    avgNumberOfRevs = 0;
+    int index;
+
+    for (int i = 0; i < mapSourceBoards.length; i++){
+
+        int start = mapSourceBoards[i].inspectionStartIndex;
+        int stop = mapSourceBoards[i].inspectionStopIndex;
+        int revCount = 0;
+
+        //look for all control codes between the start and stop points
+
+        while((index = findControlCode(i, 0, start, stop)) != -1) {
+            revCount++;
+            start = index + 1;
+        }
+
+        //drop one from the count to ignore the last rev
+        if (revCount < 0) { revCount--; }
+
+         mapSourceBoards[i].numberOfRevs = revCount;
+
+        //trap value of the smallest rev count of all the boards
+        if (revCount < leastNumberOfRevs) { leastNumberOfRevs = revCount; }
+
+        avgNumberOfRevs += revCount;
+
+    }
+
+    avgNumberOfRevs = avgNumberOfRevs / mapSourceBoards.length;
+
+}//end of WallMapDataSaverTuboBinary::calculateRevCount
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// WallMapDataSaverTuboBinary::findControlCode
+//
+// Finds the next occurrance of the control code with pFlag set for board
+// pBoardIndex. Only control codes (those values with MAP_CONTROL_CODE_FLAG bit
+// set) will be checked.
+//
+// Searching will begin at pStart and end at pEnd - 1. If pEnd is set to
+// Integer.MIN_VALUE, the search will end at buffer end - 1.
+//
+// Returns index of first occurrance of pFlag between pStart and pEnd - 1.
+// Returns -1 if the code is not found.
+//
+
+private int findControlCode(int pBoardIndex, int pFlag, int pStart, int pEnd)
+{
+
+    short []dataBuffer = mapSourceBoards[pBoardIndex].utBoard.getDataBuffer();
+
+    //bail out for invalid pStart
+    if (pStart < 0 || pStart > dataBuffer.length) { return(-1); }
+
+    //catch MIN_VALUE -- special signal to search to end of buffer
+    if (pEnd == Integer.MIN_VALUE) { pEnd = dataBuffer.length; }
+
+    //only look at values with the MAP_CONTROL_CODE_FLAG bit set as well
+    int target = UTBoard.MAP_CONTROL_CODE_FLAG | pFlag;
+
+    for (int i = pStart; i < pEnd; i++){
+        if((dataBuffer[i] & target) == target) { return(i); }
+    }
+
+    //code not found
+    return(-1);
+
+}//end of WallMapDataSaverTuboBinary::findControlCode
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -950,6 +1036,69 @@ private void readWallReadingsForRevolution() throws IOException
     }//while
 
 }//end of WallMapDataSaverTuboBinary::readWallReadingsForRevolution
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// WallMapDataSaverTuboBinary::setUpTestData
+//
+// Set up all variables with test data for debugging purposes.
+//
+
+public void setUpTestData()
+{
+
+    cfgFile.set("Config file - this is a test.", 128);
+    WO.set("1234567890", 10);
+    grade.set("Grade", 10);
+    lotNum.set("Lot Number Entry", 10);
+    heat.set("Heat", 34);
+    customer.set("Customer", 32);
+    operator.set("Operator", 10);
+    busUnit.set("Business Unit", 32);
+    comment.set("Comment", 80);
+    version.set("Version", 16);
+    verNum.value = 23;
+    nominalWall = (float)0.534;
+    OD = (float)11.75;
+    location.set("Location", 40);
+    wellName.set("Well Name", 40);
+    date.set("Date", 10);
+    range.set("Range", 8);
+    wellFoot.set("Well Foot", 12);
+    wallStatFlag = 0x01;
+    rbNum.set("RB Number", 10);
+    spare.set("", 75);
+
+    fMotionPulseLen = (float)1.0; //Tubo Map Viewer ignores this for display?
+                                  //See Note 1 at top of file.
+
+    //fChnlOffset[0] = (float)0;
+    //fChnlOffset[1] = (float)0.625;
+    //fChnlOffset[2] = (float)1.25;
+    //fChnlOffset[3] = (float)1.875;
+
+    // sensor position is already offset by the map source sensor delays
+    fChnlOffset[0] = (float)0;
+    fChnlOffset[1] = (float)0;
+    fChnlOffset[2] = (float)0;
+    fChnlOffset[3] = (float)0;
+
+
+    nHomeXOffset = 0;
+    nAwayXOffset = 0;
+
+    nStopXloc = 372;
+
+    nJointNum.value = 1001;
+    fWall = (float)0.534;
+    fOD = (float)11.75;
+
+    nNumRev.value = 1000;
+
+    nMotionBus.value = TOWARD_HOME_DIRECTION_FLAG; // FROM_HOME_DIRECTION_FLAG;
+    nMotionBusNotUsed.value = 0;
+
+}//end of WallMapDataSaverTuboBinary::setUpTestData
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
