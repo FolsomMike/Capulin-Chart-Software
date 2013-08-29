@@ -2538,13 +2538,13 @@ public void saveAllMapDataSetsToFile(
         String pInspectionDirectionDescription)
 {
 
-    //debug mks -- add job settings, pInspectionDirectionDescription
-    //nominal wall
 
-    if (wallMapDataSaver != null) {
-        wallMapDataSaver.saveToFile(pFilename, hdwVs.measuredLength,
-                                            pInspectionDirectionDescription);
-    }
+    //update values in Settings object for others to access
+    settings.nominalWall = hdwVs.nominalWall;
+    settings.measuredPieceLength = hdwVs.measuredLength;
+    settings.inspectionDirectionDescription = pInspectionDirectionDescription;
+
+    if (wallMapDataSaver != null) {wallMapDataSaver.saveToFile(pFilename);}
 
 }//end of Capulin1::saveAllMapDataSetsToFile
 //-----------------------------------------------------------------------------

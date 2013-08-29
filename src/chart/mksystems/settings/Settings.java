@@ -87,6 +87,9 @@ public class Settings extends Object implements ActionListener, ItemListener {
 
     public static String mainFileFormat = "UTF-8";
 
+    public static String MAP_TUBO_BINARY_DATA_VERSION = "IRNDT 1.0";
+    public static double MAP_TUBO_BINARY_DATA_VERSION_NUMBER = 1.23;
+
     public String currentJobName;
     public String currentJobPrimaryPath, currentJobBackupPath, reportsPath;
     public String primaryDataPath;
@@ -205,6 +208,19 @@ public class Settings extends Object implements ActionListener, ItemListener {
     public boolean printMode = false;
 
     public ArrayList<String> configInfo;
+
+    public double nominalWall;
+    public double measuredPieceLength;
+
+    double outsideDiameter;
+
+    //these are the descriptions to be used for the direction the piece was
+    //inspected -- towards home is towards the operator's compartment, away from
+    //home is away from the operator's compartment -- these are loaded from the
+    //configuration file so that they can be customized
+    public String towardsHome, awayFromHome;
+    public String inspectionDirectionDescription;
+
 
 //-----------------------------------------------------------------------------
 // Settings::Settings (constructor)

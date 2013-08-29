@@ -21,12 +21,10 @@ package chart;
 
 import chart.mksystems.hardware.Hardware;
 import chart.mksystems.inifile.IniFile;
-
 import chart.mksystems.settings.Settings;
 import chart.mksystems.stripchart.ChartGroup;
-import chart.mksystems.stripchart.StripChart;
 import chart.mksystems.stripchart.Plotter;
-import chart.mksystems.stripchart.Trace;
+import chart.mksystems.stripchart.StripChart;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

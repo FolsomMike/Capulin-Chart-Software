@@ -954,11 +954,11 @@ private void saveSegment()
 
     hardware.saveAllMapDataSetsToTextFile(
         settings.currentJobPrimaryPath + segmentFilename,
-        settings.jobFileFormat, hardware.inspectionDirectionDescription);
+        settings.jobFileFormat, settings.inspectionDirectionDescription);
 
     hardware.saveAllMapDataSetsToTextFile(
         settings.currentJobBackupPath + segmentFilename,
-        settings.jobFileFormat, hardware.inspectionDirectionDescription);
+        settings.jobFileFormat, settings.inspectionDirectionDescription);
 
 }//end of MainWindow::saveSegment
 //-----------------------------------------------------------------------------
@@ -998,7 +998,7 @@ private void saveSegmentHelper(String pFilename)
         out.write("Measured Length=" + hardware.hdwVs.measuredLength);
         out.newLine();
         out.write("Inspection Direction="
-                                     + hardware.inspectionDirectionDescription);
+                                     + settings.inspectionDirectionDescription);
         out.newLine();
         out.write("[Header End]"); out.newLine(); out.newLine();
 

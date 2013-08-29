@@ -17,19 +17,6 @@
 * Author: Yanming Guo
 * Date: Dec. 12, 2011
 *
-* NOTE1
-*
-* According to the Tubo document listed above, fMotionPulseLen "inches per
-* motion pulse, needs to be 0.5". However, the program seems to force the value
-* to 1.0", regardless of the value stored in the data file. However the Tubo
-* data file seems to be based on a 0.5" fMotionPulseLen -- is the value set
-* by some other variable?
-*
-* Per the documentation, nXloc is "linear location for this revolution, in
-* motion pulses"
-*
-* For the IRNDT code to achieve a helix of
-*
 * Open Source Policy:
 *
 * This source code is Public Domain and free to any interested party.  Any
@@ -45,6 +32,7 @@ import MKSTools.CharBuf;
 import MKSTools.DWORD;
 import MKSTools.LittleEndianTool;
 import MKSTools.WORD;
+import chart.mksystems.inifile.IniFile;
 import chart.mksystems.settings.Settings;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -230,7 +218,7 @@ public void init(MapSourceBoard pMapSourceBoards[])
     nMotionBusNotUsed = new WORD(0);
     nJointNum = new DWORD(0);
 
-    setUpTestData(); //use this to create test data
+    //setUpTestData(); //use this to create test data for job info entries
 
     //saveToFile("test1.dat", 31.2, "unknown" ); //debug mks -- remove this
     //loadFromFile("OVALYTEST_10_2 - Copy.dat"); //debug mks -- remove this
@@ -272,12 +260,14 @@ private void determineNumberOfChannelToStoreInFile()
 //
 
 @Override
-public void saveToFile(String pFilename, double pMeasuredLength,
-                                    String pInspectionDirectionDescription)
+public void saveToFile(String pFilename)
 {
 
+
+    setUpJobInfo();
+
     //this is the measured length of the test piece
-    measuredLength = pMeasuredLength;
+    measuredLength = settings.measuredPieceLength;
 
     //prepare to find revolutions and prepare data for saving
     for (int i = 0; i < mapSourceBoards.length; i++){
@@ -369,10 +359,6 @@ public void setUpTestData()
 
     nNumRev.value = 1000;
 
-    //note if TOWARD_HOME is used, nStopLoc must be set to offset the entire
-    //tube or all locations will be negative numbers
-    //in that case, zero feet will be on the right of the screen
-
     nMotionBus.value = TOWARD_HOME_DIRECTION_FLAG; // FROM_HOME_DIRECTION_FLAG;
     nMotionBusNotUsed.value = 0;
 
@@ -380,12 +366,237 @@ public void setUpTestData()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// WallMapDataSaverTuboBinary::setUpJobInfo
+//
+// Loads the job information and transfers it to local variables.
+//
+
+public void setUpJobInfo()
+{
+
+    loadJobInfo();
+
+    copyJobInfoToLocalVariables();
+
+}//end of WallMapDataSaverTuboBinary::setUpJobInfo
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// WallMapDataSaverTuboBinary::loadJobInfo
+//
+// Loads the job information into an iniFile object.  No values are transferred
+// out -- they are extracted by other functions as needed.
+//
+
+public void loadJobInfo()
+{
+
+    //if the ini file cannot be opened and loaded, exit without action and
+    //default values will be used
+
+    try {
+        jobInfoFile = new IniFile(
+            settings.currentJobPrimaryPath + "03 - " + settings.currentJobName
+            + " Job Info.ini", settings.jobFileFormat);
+    }
+    catch(IOException e){return;}
+
+}//end of WallMapDataSaverTuboBinary::loadJobInfo
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// WallMapDataSaverTuboBinary::copyJobInfoToLocalVariables
+//
+// Copies information from jobInfo object to local variables used to save
+// that info to the data file
+//
+
+public void copyJobInfoToLocalVariables()
+{
+
+    //set up test data
+
+    cfgFile.set("01 - " + settings.currentJobName + " Configuration.ini", 128);
+    WO.set(retrieveJobInfoString("Work Order"), 10);
+    grade.set(retrieveJobInfoString("Grade"), 10);
+    lotNum.set(retrieveJobInfoString("Lot"), 10);
+    heat.set(retrieveJobInfoString("Heat"), 34);
+    customer.set(retrieveJobInfoString("Customer Name"), 32);
+    operator.set(retrieveJobInfoString("Unit Operator"), 10);
+    busUnit.set(retrieveJobInfoString("Business Unit"), 32);
+    comment.set(retrieveJobInfoString("Comment"), 80);
+    version.set(Settings.MAP_TUBO_BINARY_DATA_VERSION, 16);
+    verNum.value = (int)(Settings.MAP_TUBO_BINARY_DATA_VERSION_NUMBER * 100);
+    nominalWall = (float)settings.nominalWall;
+    OD = (float)parseDiameterFromJobInfoString();
+    location.set(retrieveJobInfoString("Job Location"), 40);
+    wellName.set(retrieveJobInfoString("Well Name"), 40);
+    date.set(retrieveJobInfoString("Date Job Started"), 10);
+    range.set(retrieveJobInfoString("Pipe Range"), 8);
+    wellFoot.set(retrieveJobInfoString("Well Footage"), 12);
+    wallStatFlag = 0x01;
+    rbNum.set(retrieveJobInfoString("RB Number"), 10);
+    spare.set("", 75);
+
+    fMotionPulseLen = (float)1.0;
+
+    fChnlOffset[0] = (float)0;
+    fChnlOffset[1] = (float)0.625;
+    fChnlOffset[2] = (float)1.25;
+    fChnlOffset[3] = (float)1.875;
+
+    nHomeXOffset = 0;
+    nAwayXOffset = 0;
+
+    nStopXloc = 0;
+
+    nJointNum.value = 1;
+    fWall = (float)settings.nominalWall;
+    fOD = (float)parseDiameterFromJobInfoString();
+
+    nNumRev.value = 0; //set later after revolutions are counted
+
+    nMotionBus.value = 0;
+
+    //set the inspection direction flag
+    nMotionBus.value |= parseInspectionDirectionFlagFromJobInfoString();
+
+    nMotionBusNotUsed.value = 0; //this value is stored with each revolution
+
+}//end of WallMapDataSaverTuboBinary::copyJobInfoToLocalVariables
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// WallMapDataSaverTuboBinary::retrieveJobInfoString
+//
+// Retrieves and returns the value from the jobInfoFile associated with pKey.
+// Returns empty string if pKey is not found.
+//
+
+private String retrieveJobInfoString(String pKey)
+{
+
+    return(jobInfoFile.readString("Job Info", pKey, ""));
+
+}//end of WallMapDataSaverTuboBinary::retrieveJobInfoString
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// WallMapDataSaverTuboBinary::parseDiameterFromJobInfoString
+//
+// Retrieves, parses, and returns the value from the jobInfoFile associated
+// with pKey.
+//
+// The diameter is stored as a string an can take many variations such as:
+//
+//  14.750, 14-3/4, 14 3/4
+//
+// This method attempts to convert the various formats to a double.
+//
+// Returns 0 if not found or format not supported.
+//
+// NOTE: currently on converts decimal format...13.75 and such -- need to add
+// ability to convert xx-y/z format
+//
+
+private double parseDiameterFromJobInfoString()
+{
+
+    String string = jobInfoFile.readString("Job Info", "Pipe Diameter", "");
+
+    String culled = "";
+
+    //strip out all characters except numbers and decimal points
+
+    //NOTE: when code for parsing of xx-y/z added, leave in dashes and slashes
+
+    for(int i=0; i < string.length(); i++){
+
+        if (isNumerical(string.charAt(i))) {
+            culled = culled + string.charAt(i);
+        }
+
+    }
+
+
+    double value;
+
+    try{
+
+        value = Double.valueOf(culled);
+
+    }
+    catch(NumberFormatException e){
+
+        value = 0;
+    }
+
+    return(value);
+
+}//end of WallMapDataSaverTuboBinary::parseDiameterFromJobInfoString
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// WallMapDataSaverTuboBinary::isNumerical
+//
+// Returns true if pInput is a number or a decimal point.
+//
+
+public boolean isNumerical(char pInput)
+{
+
+    if(    (pInput == '0')
+        || (pInput == '1')
+        || (pInput == '2')
+        || (pInput == '3')
+        || (pInput == '4')
+        || (pInput == '5')
+        || (pInput == '6')
+        || (pInput == '7')
+        || (pInput == '8')
+        || (pInput == '9')
+        || (pInput == '.') ) {return(true);}
+
+    return(false); //not a numerical type character
+
+}//end of WallMapDataSaverTuboBinary::isNumerical
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// WallMapDataSaverTuboBinary::parseInspectionDirectionFlagFromString
+//
+// Parses the string description from the jobInfo object of the inspection
+// direction into a value compatible with the flag in the Tubo binary file
+// format.
+//
+
+private int parseInspectionDirectionFlagFromJobInfoString()
+{
+
+    if (settings.inspectionDirectionDescription.equals(settings.awayFromHome)){
+
+        return(FROM_HOME_DIRECTION_FLAG);
+
+    }
+    else {
+
+        return(TOWARD_HOME_DIRECTION_FLAG);
+
+    }
+
+}//end of WallMapDataSaverTuboBinary::parseInspectionDirectionFlagFromString
+//-----------------------------------------------------------------------------
+
+
+
+
+//-----------------------------------------------------------------------------
 // WallMapDataSaverTuboBinary::saveHeader
 //
 // Saves the header to the file.
 //
 
-public void saveHeader()throws IOException
+private void saveHeader()throws IOException
 {
 
     cfgFile.write(outFile);
@@ -432,7 +643,7 @@ public void saveHeader()throws IOException
 // Saves all revolutions to the file.
 //
 
-public void saveRevolutions() throws IOException
+private void saveRevolutions() throws IOException
 {
 
     for (int i = 0; i < nNumRev.value; i++){
@@ -451,7 +662,7 @@ public void saveRevolutions() throws IOException
 // revolution.
 //
 
-public void saveRevolution(int pRevolutionNumber,
+private void saveRevolution(int pRevolutionNumber,
         int pNumSamples0, int pNumSamples1, int pNumSamples2, int pNumSamples3)
                                                             throws IOException
 {
@@ -496,7 +707,7 @@ public void saveRevolution(int pRevolutionNumber,
 // Saves data from one revolution all boards to the file.
 //
 
-public void writeWallReadingsForRevolution(int pRevolutionNumber)
+private void writeWallReadingsForRevolution(int pRevolutionNumber)
                                                             throws IOException
 {
 
@@ -561,7 +772,7 @@ public void writeWallReadingsForRevolution(int pRevolutionNumber)
 // should ignore any control codes between endpoints.
 //
 
-public void prepareToExtractNextRevolutionFromDataBuffer()
+private void prepareToExtractNextRevolutionFromDataBuffer()
 {
 
 
@@ -583,7 +794,7 @@ public void prepareToExtractNextRevolutionFromDataBuffer()
 //
 
 @Override
-public void loadFromFile(String pFilename)
+void loadFromFile(String pFilename)
 {
 
     try{
@@ -614,7 +825,7 @@ public void loadFromFile(String pFilename)
 // Reads the header from the file.
 //
 
-public void readHeader()throws IOException
+private void readHeader()throws IOException
 {
 
     cfgFile.read(inFile);
@@ -661,7 +872,7 @@ public void readHeader()throws IOException
 // Reads all revolutions from the file.
 //
 
-public void readRevolutions() throws IOException
+private void  readRevolutions() throws IOException
 {
 
     for (int i = 0; i < nNumRev.value; i++){
@@ -680,7 +891,7 @@ public void readRevolutions() throws IOException
 // revolution.
 //
 
-public void readRevolution(int pRevolutionNumber,
+private void readRevolution(int pRevolutionNumber,
         int pNumSamples0, int pNumSamples1, int pNumSamples2, int pNumSamples3)
                                                             throws IOException
 {
@@ -715,7 +926,7 @@ public void readRevolution(int pRevolutionNumber,
 // Reads data from one revolution from the file.
 //
 
-public void readWallReadingsForRevolution() throws IOException
+private void readWallReadingsForRevolution() throws IOException
 {
 
    //read all data -- TUBO_BINARY_FORMAT always stores the entire size of the
@@ -751,7 +962,7 @@ public void readWallReadingsForRevolution() throws IOException
 // Saves data buffers for all source boards to text files.
 //
 
-public void saveAllDataBuffersToTextFile(String pFilename,
+private void saveAllDataBuffersToTextFile(String pFilename,
                  String pJobFileFormat, String pInspectionDirectionDescription)
 {
 
@@ -774,7 +985,7 @@ public void saveAllDataBuffersToTextFile(String pFilename,
 //  this some day.
 //
 
-public void saveDataBufferToTextFile(int pBoard,
+private void saveDataBufferToTextFile(int pBoard,
                     String pFilename, String pJobFileFormat,
                                          String pInspectionDirectionDescription)
 {
@@ -846,7 +1057,7 @@ public void saveDataBufferToTextFile(int pBoard,
 // Loads data buffers for all source boards from text files.
 //
 
-public void loadAllDataBuffersFromTextFile(String pFilename,
+private void loadAllDataBuffersFromTextFile(String pFilename,
                                                         String pJobFileFormat)
 {
 
@@ -866,7 +1077,7 @@ public void loadAllDataBuffersFromTextFile(String pFilename,
 // Returns error messages on error, empty string on no error.
 //
 
-public String loadDataBufferFromTextFile(int pBoard,
+private String loadDataBufferFromTextFile(int pBoard,
                                     String pFilename, String pJobFileFormat)
 {
 

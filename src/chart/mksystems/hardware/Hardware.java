@@ -65,13 +65,6 @@ public class Hardware extends Object implements TraceValueCalculator, Runnable,
 
     public boolean prepareForNewPiece;
 
-    //these are the descriptions to be used for the direction the piece was
-    //inspected -- towards home is towards the operator's compartment, away from
-    //home is away from the operator's compartment -- these are loaded from the
-    //configuration file so that they can be customized
-    String towardsHome, awayFromHome;
-    public String inspectionDirectionDescription;
-
     Settings settings;
     ChartGroup chartGroups[];
 
@@ -188,13 +181,13 @@ private void configure(IniFile pConfigFile)
     photoEyeToPhotoEyeDistance = pConfigFile.readDouble("Hardware",
                          "Distance Between Perpendicular Photo Eyes", 53.4375);
 
-    awayFromHome =
+    settings.awayFromHome =
         pConfigFile.readString(
             "Hardware",
             "Description for inspecting in the direction leading away from the"
             + " operator's compartment", "Away From Home");
 
-    towardsHome =
+    settings.towardsHome =
         pConfigFile.readString(
             "Hardware",
             "Description for inspecting in the direction leading toward the"
@@ -1207,10 +1200,10 @@ boolean collectEncoderDataInspectMode()
 
             //set the text description for the direction of inspection
             if (inspectCtrlVars.encoder2FwdDir == awayDirection) {
-                inspectionDirectionDescription = awayFromHome;
+                settings.inspectionDirectionDescription = settings.awayFromHome;
             }
             else {
-                inspectionDirectionDescription = towardsHome;
+                settings.inspectionDirectionDescription = settings.towardsHome;
             }
 
             //record the value of linear encoder at start of inspection

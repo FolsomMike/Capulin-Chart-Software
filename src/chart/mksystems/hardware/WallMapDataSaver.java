@@ -20,6 +20,9 @@
 package chart.mksystems.hardware;
 
 //-----------------------------------------------------------------------------
+
+import chart.mksystems.inifile.IniFile;
+
 // class WallMapDataSaver
 
 public class WallMapDataSaver extends Object{
@@ -27,6 +30,8 @@ public class WallMapDataSaver extends Object{
     static final int IRNDT_TEXT_FORMAT = 1;
     static final int IRNDT_BINARY_FORMAT = 2;
     static final int TUBO_BINARY_FORMAT = 3;
+
+    IniFile jobInfoFile = null;
 
 //-----------------------------------------------------------------------------
 // WallMapDataSaver::WallMapDataSaver (constructor)
@@ -61,8 +66,7 @@ public void init(MapSourceBoard pMapSourceBoards[])
 // Subclasses should override this method to provide custom functionality
 //
 
-public void saveToFile(String pFilename, double pMeasuredLength,
-                                    String pInspectionDirectionDescription)
+public void saveToFile(String pFilename)
 {
 
 
@@ -77,7 +81,7 @@ public void saveToFile(String pFilename, double pMeasuredLength,
 // Subclasses should override this method to provide custom functionality
 //
 
-public void loadFromFile(String pFilename)
+void loadFromFile(String pFilename)
 {
 
 
