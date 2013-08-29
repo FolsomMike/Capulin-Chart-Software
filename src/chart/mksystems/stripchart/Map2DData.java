@@ -89,12 +89,21 @@ public void init()
 // the first time data is extracted it will have valid data in index 0 and
 // index 1.
 //
+// Note 1:
+// Resets everything back to default values. The first column of data is set
+// to the max value if peakDirection == MAX or the min value if peakDirection
+// == MIN. This means the least worst data is in the first column so if the
+// map is advanced before data is inserted, that data will be drawn until actual
+// data is inserted.
+//
 
 @Override
 synchronized public void resetAll()
 {
 
     super.resetAll();
+
+    //reset the entire buffer to DEFAULT_DATA
 
     if (mapDataBuffer != null) {
         for (int i = 0; i < sizeOfDataBuffer; i++){
@@ -107,6 +116,18 @@ synchronized public void resetAll()
 
             }
         }
+    }
+
+    //reset the first column to least worst value -- see Note 1 above
+
+    int firstColumnDefault = 0;
+
+    if (peakDirection == MAX) { firstColumnDefault = MAX_VALUE; }
+    else
+    if (peakDirection == MIN) { firstColumnDefault = MIN_VALUE; }
+
+    for (int i = 0; i < widthOfDataBuffer; i++){
+        mapDataBuffer[0][i] = firstColumnDefault;
     }
 
 }//end of Map2DData::resetAll
@@ -571,7 +592,7 @@ public int getDataAtRepaintPoint(Map2DDatum pDatum){
     advanceRepaintPoint();
 
     pDatum.newDataColumn = mapDataBuffer[repaintPoint];
-    
+
     pDatum.flags = flagBuffer[repaintPoint];
 
     return(FORWARD);

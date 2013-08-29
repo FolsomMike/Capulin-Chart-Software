@@ -1351,6 +1351,21 @@ void moveEncoders()
         enableHeadTraceFlagging(2, true);
     }
 
+    if (pixelsMoved > 0) { moveTraces(pixelsMoved, position); }
+
+    // advance all maps not linked to specific channels
+    if (pixelsMoved > 0) { moveMaps(pixelsMoved, position);}
+
+}//end of Hardware::moveEncoders
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::moveTraces
+//
+
+void moveTraces(int pPixelsMoved, double pPosition)
+{
+
     Trace tracePtr;
 
     numberOfChannels = analogDriver.getNumberOfChannels();
@@ -1385,30 +1400,25 @@ void moveEncoders()
 
             if (tracePtr != null && tracePtr.positionAdvanced == false){
 
-                if (pixelsMoved > 0) {
-                    moveTracesForward(tracePtr, pixelsMoved, position);
+                if (pPixelsMoved > 0) {
+                    moveTracesForward(tracePtr, pPixelsMoved, pPosition);
                 }
                 else {
-                    moveTracesBackward(tracePtr,Math.abs(pixelsMoved),position);
+                    moveTracesBackward(
+                                    tracePtr,Math.abs(pPixelsMoved),pPosition);
                 }
 
             }//if (tracePtr != null...
         }// for (int g = 0; g < numberOfGates; g++)
     }// for (int ch = 0; ch < numberOfChannels; ch++)
 
-
-    // advance all maps not linked to specific channels
-    if (pixelsMoved > 0) { handleMapsAdvance(position);}
-
-    //handle map reversing here!!!
-
-}//end of Hardware::moveEncoders
+}//end of Hardware::moveTraces
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Hardware::handleMapsAdvance
+// Hardware::moveMaps
 //
-// Advance the map for all Boards with a map.
+// Advance or retract the map for all Boards with a map.
 //
 // Any boards without mapping or not in a mode allowing external control of
 // advance will ignore the request.
@@ -1417,12 +1427,12 @@ void moveEncoders()
 // measured from the point where the photo eye was blocked.
 //
 
-private void handleMapsAdvance(double pPosition)
+private void moveMaps(int pixelsMoved, double pPosition)
 {
 
     analogDriver.triggerMapAdvance(pPosition);
 
-}//end of Hardware::handleMapsAdvance
+}//end of Hardware::moveMaps
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

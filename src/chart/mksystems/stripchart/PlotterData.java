@@ -36,7 +36,6 @@ package chart.mksystems.stripchart;
 
 public class PlotterData extends Object{
 
-
     //int bufferSize;
     int plotStyle;
 
@@ -108,6 +107,8 @@ public class PlotterData extends Object{
     // miscellaneous constants
 
     static final int DEFAULT_DATA = 0;
+    static final int MAX_VALUE = Integer.MAX_VALUE;
+    static final int MIN_VALUE = Integer.MIN_VALUE;
 
     // data return and direction
 
