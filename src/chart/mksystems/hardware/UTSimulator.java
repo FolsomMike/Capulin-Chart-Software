@@ -1111,10 +1111,21 @@ public void sendWallMapPacket()
         //periodically, the tracking byte gets zeroed by helical advance signal
         //that value gets passed in with the samples
 
+
+        /*
+        //wip mks
+        //if the chart program is set up for map advance to be controlled by
+        //encoders, inserting linear advance codes here cuases problems
+        //as for that mode the program starts a new revolution for ANY code
+        //and the advance code will cause an errant start of a new rev
+        //need to add an option to simulate to turn this on and off if it is
+        //ever needed.
+
         if (helixAdvanceTracker-- == 0){
             helixAdvanceTracker = resetTDCAdvanceCount(SAMPLES_PER_ADVANCE);
             advance = true; insertControlByte = true;
         }
+        */
 
         //sometimes the TDC and Advance signal might occur at the same sample
         //in that case, it is random whether the track byte will be incremented
@@ -1139,16 +1150,23 @@ public void sendWallMapPacket()
             sendShortInt(trackByte | 0x8000);
         }
         else {
-            short wallDataPoint = (short)(250 - 5 * Math.random());
 
-            //wallDataPoint = 250; //debug mks
+            // the data in the map is raw time-of-flight count (two way)
+            // speed of sound in steel = 0.233 inch/uS
+            // 15 nS per count
+
+            //convert wall in inches to number of samples
+            double wall = .250; //wall in inches
+            int tof = (int)(wall / .233 / 0.015) * 2;
+
+            short wallDataPoint = (short)(tof - (tof * .05 * Math.random()));
 
             if ((int)(200 * Math.random()) == 1){
-                wallDataPoint = (short)(wallDataPoint - (30 * Math.random()));
+                wallDataPoint = (short)(tof - (tof *.20 * Math.random()));
             }
+
             sendShortInt(wallDataPoint);
         }
-
 
         tdc = advance = insertControlByte = false;
 
