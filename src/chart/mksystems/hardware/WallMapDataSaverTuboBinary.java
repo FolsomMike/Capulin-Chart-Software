@@ -67,7 +67,6 @@ public class WallMapDataSaverTuboBinary extends WallMapDataSaver{
     boolean copyChannelsToFillMissingChannels;
 
     int fileFormat;
-    double measuredLength;
 
     DataOutputStream outFile;
     DataInputStream inFile;
@@ -266,9 +265,6 @@ public void saveToFile(String pFilename)
 
     setUpJobInfo();
 
-    //this is the measured length of the test piece
-    measuredLength = settings.measuredPieceLength;
-
     //prepare to find revolutions and prepare data for saving
     for (int i = 0; i < mapSourceBoards.length; i++){
         mapSourceBoards[i].setUpForSavingData();
@@ -277,7 +273,7 @@ public void saveToFile(String pFilename)
     //debug mks -- remove this
 
     //load the buffers from a text file to provide debugging data
-    loadAllDataBuffersFromTextFile(pFilename, settings.jobFileFormat);
+    //loadAllDataBuffersFromTextFile(pFilename, settings.jobFileFormat);
 
     //save the buffers to a text file for debugging
     //saveAllDataBuffersToTextFile(pFilename,
@@ -1014,7 +1010,7 @@ private void saveDataBufferToTextFile(int pBoard,
         bwOut.newLine();
         bwOut.write("Segment Data Version=" + Settings.SEGMENT_DATA_VERSION);
         bwOut.newLine();
-        bwOut.write("Measured Length=" + measuredLength);
+        bwOut.write("Measured Length=" + settings.measuredPieceLength);
         bwOut.newLine();
         bwOut.write("Inspection Direction="
                                      + pInspectionDirectionDescription);
