@@ -46,8 +46,10 @@ public class UTBoard extends Board{
     int dataBufferIndex = 0;
     int dataBufferSize;
     short dataBuffer[] = null;
-    int prevTDCCodePosition = 0;
-    int prevLinearAdvanceCodePosition = 0;
+    int prevCtrlCodeIndex = -1;
+    int mapTDCCodeIgnoreTimer = 0;
+
+    static final int MAP_TDC_IGNORE_TIMER_RESET = 50;
 
         //on startup, the UT boards each load a default rep rate from the
         //configuration file, but that is often overriden by the owner class
@@ -277,8 +279,12 @@ public class UTBoard extends Board{
     //A/D data
     static int AD_RAW_DATA_BUFFER_ADDRESS = 0x4000;
 
-    static final int MAP_CONTROL_CODE_FLAG = 0x8000;
-    static final int MAP_LINEAR_ADVANCE_FLAG = 0x4000;
+    static final int MAP_CONTROL_CODE_FLAG =    0x8000;
+    static final int MAP_LINEAR_ADVANCE_FLAG =  0x4000;
+    static final int MAP_IGNORE_CODE_FLAG =     0x2000;
+
+    static final int MAP_IGNORE_DETECTION =
+                                MAP_CONTROL_CODE_FLAG | MAP_IGNORE_CODE_FLAG;
 
     static final int RUNTIME_PACKET_SIZE = 2048;
     static final int WALL_MAP_PACKET_DATA_SIZE = 4002;
@@ -930,8 +936,7 @@ public void resetForNextRun()
 {
 
     dataBufferIndex = 0;
-    prevTDCCodePosition = -1;
-    prevLinearAdvanceCodePosition = -1;
+    prevCtrlCodeIndex = -1;
     if(map2D != null) { map2D.resetAll(); }
 
     //send reset command to the remote
@@ -4899,11 +4904,16 @@ public int processWallMapPacket()
                 value = handleMapDataControlCode(value);
             }
 
-            dataBuffer[dataBufferIndex++] = (short)value;
+            //only store if it is not an ignored control code
+            if((value & MAP_IGNORE_DETECTION) != MAP_IGNORE_DETECTION){
+                dataBuffer[dataBufferIndex++] = (short)value;
+            }
 
             if (dataBufferIndex == dataBuffer.length){
                 dataBufferIndex = dataBuffer.length-1;
             }
+
+            mapTDCCodeIgnoreTimer--; //don't care if goes negative
 
         }
     }//try
@@ -4927,13 +4937,10 @@ public int processWallMapPacket()
 // The code will be incremented each time the test piece or heads rotate to
 // the top-dead-center position.
 //
-// One option is for the Rabbit to send track reset code for each incremental
-// advance of the encoder. Instead, a controller object which interfaces with
-// the encoders now handles map advance as it can do it more accurately.
-// This is an example of code if the Rabbit is to be modified to provide the
-// reset pulse:
-//  if (code > 0) { handleMapDataTDCCode(); }
-//  if (code == 0) { handleMapDataLinearAdvanceCode();
+// In some modes, the count will be reset to zero when the Control board
+// signals a linear advance. In other modes, the Control board will not
+// reset the count and another software object will trigger the advance based
+// on encoder counts or some other mechanism. See Note 1 below.
 //
 // NOTE: The 14 lsb of control codes are cleared in the buffer so the
 // lower bits can be used as various control flags later in the processing
@@ -4941,9 +4948,31 @@ public int processWallMapPacket()
 // each occurrance as received from the remote, the incremented part must be
 // removed before the bits can be used later as flags.
 //
-// Returns the code with the lower 14 bits cleared.
+// Note 1:
 //
-// Returns modified pCode.
+// If mapAdvanceMode == ADVANCE_BY_CONTROLLER, the map advance is handled by
+// another object. In that case, it is assumed that all control codes from the
+// remotes are meant to be TDC codes. Since the Control board is not resetting
+// the TDC code count in the lower bits, it will roll over to zero and appear
+// to be a linear advance code -- in this mode it must be handled as a TDC
+// rather than a linear advance.
+//
+// Returns:
+//
+// If a TDC code, code returned with only MAP_CONTROL_CODE_FLAG flag bit set.
+//
+// If a TDC code received too soon after the previous TDC code, the code is
+// ignored and code is returned with MAP_CONTROL_CODE_FLAG and
+// MAP_IGNORE_CODE_FLAG set which signals that the code should not be stored in
+// the buffer.
+//
+// If Linear Advance code, previous control code in the buffer will have its
+// MAP_LINEAR_ADVANCE_FLAG bit set and the code code is returned with
+// MAP_CONTROL_CODE_FLAG and MAP_IGNORE_CODE_FLAG set which signals that the
+// code should not be stored in the buffer.
+//
+// Thus the only control codes left in the data will be TDC codes with some of
+// those also being linear advance codes.
 //
 
 private int handleMapDataControlCode(int pCode)
@@ -4956,9 +4985,23 @@ private int handleMapDataControlCode(int pCode)
     //roll over periodically when incremented due to TDC trigger -- thus zero
     //is a TDC code so treat it the same way unless Rabbit code changes
 
-    if (code > 0 ) { code = handleMapDataTDCCode(code);}
+    if (code > 0 ) {
+        code = handleMapDataTDCCode(code);
+        return(code);
+    }
 
-    if (code == 0) { code = handleMapDataTDCCode(code); }
+    //see Note 1 in method header
+    if (code == 0) {
+        if (mapAdvanceMode == ADVANCE_BY_CONTROLLER){
+            code = handleMapDataTDCCode(code);
+        }
+        else{
+            code = handleMapDataLinearAdvanceCode(code);
+        }
+
+        return(code);
+
+    }
 
     return(code);
 
@@ -4978,17 +5021,16 @@ private int handleMapDataControlCode(int pCode)
 // considered to be one helical revolution of data. It is compressed/expanded
 // to fit a single column of the 2D map.
 //
-// The control code is returned with only MAP_CONTROL_CODE_FLAG set so other
-// bits can be used as flags by later processes.
+// Returns:
 //
-// Returns modified pCode.
+// If a TDC code, code returned with only MAP_CONTROL_CODE_FLAG flag bit set
+// so the other bits can be used as flags by later processes.
 //
-
-// NOTE NOTE!!!!
-// debug mks
-// This code leaves the control codes in the plot as well!! So they get
-// plotted as a wandering line of red dots. Need to remove them when
-// transferring to the array sent to the map.
+// If a TDC code received too soon after the previous TDC code, the code is
+// ignored and code is returned with MAP_CONTROL_CODE_FLAG and
+// MAP_IGNORE_CODE_FLAG set which signals that the code should not be stored in
+// the buffer.
+//
 
 private int handleMapDataTDCCode(int pCode)
 {
@@ -4998,6 +5040,18 @@ private int handleMapDataTDCCode(int pCode)
 
     //set only the bit designating value as a control flag
     int code = MAP_CONTROL_CODE_FLAG;
+
+    //if the code is encountered too soon after the last code, assume that it
+    //is an erroneous multiple hit, ignore it and return last good value
+
+    if(mapTDCCodeIgnoreTimer > 0){
+        //restart timer to catch a possible next multiple hit
+        mapTDCCodeIgnoreTimer = MAP_TDC_IGNORE_TIMER_RESET;
+        return(code |= MAP_IGNORE_CODE_FLAG);
+    }
+
+    //ignore possible erroneous multiple hit
+    mapTDCCodeIgnoreTimer = MAP_TDC_IGNORE_TIMER_RESET;
 
     //if this board has no map or it has not been set yet, bail out
     if (map2D == null) { return(code); }
@@ -5017,17 +5071,18 @@ private int handleMapDataTDCCode(int pCode)
     }
 
     int codePosition = dataBufferIndex;
+
     //get number of samples in this revolution
     //this code also works fine first time through when prevCodePostion is -1,
     //but that first revolution will be partial and unusable
 
-    int numSamplesInRev = codePosition - prevTDCCodePosition - 1;
+    int numSamplesInRev = codePosition - prevCtrlCodeIndex - 1;
 
     //first data point for the revolution in dataBuffer
-    int xfrSourceIndex = prevTDCCodePosition + 1;
+    int xfrSourceIndex = prevCtrlCodeIndex + 1;
 
     //keep current code position for next time
-    prevTDCCodePosition = codePosition;
+    prevCtrlCodeIndex = codePosition;
 
     //determine the scale to shrink/stretch the samples to fit the map column
     double scale = (double)map2DDataColumn.length / (double)numSamplesInRev;
@@ -5070,8 +5125,10 @@ private int handleMapDataTDCCode(int pCode)
 
     //if mode is appropriate, advance the map for each revolution
     //(typically used for Scan mode)
+    //in this case, ignore the altered code returned as this is actually a TDC
+    //code and it must be stored in the buffer
     if (mapAdvanceMode == Board.ADVANCE_ON_TDC_CODE){
-        code = handleMapDataLinearAdvanceCode(code);
+        handleMapDataLinearAdvanceCode(code);
     }
 
     return(code);
@@ -5092,21 +5149,44 @@ private int handleMapDataTDCCode(int pCode)
 // received. It is up to the remotes to ensure that the increments are
 // accurate over the full length of the test.
 //
-// The control code is returned with only MAP_CONTROL_CODE_FLAG and
-// MAP_LINEAR_ADVANCE_FLAG set so other bits can be used as flags by later
-// processes.
+// When called by handleMapDataTDCCode due to ADVANCE_ON_TDC_CODE mode, the
+// MAP_LINEAR_ADVANCE_FLAG bit will be ovewritten by that method with
+// only the MAP_CONTROL_CODE_FLAG set. Currently, the bit is not important
+// in those modes anyway.
 //
-// Returns modified pCode.
+// Returns:
+//
+// If Linear Advance code, previous control code in the buffer will have its
+// MAP_LINEAR_ADVANCE_FLAG bit set and the code is returned with
+// MAP_CONTROL_CODE_FLAG and MAP_IGNORE_CODE_FLAG set which signals that the
+// code should not be stored in the buffer.
+//
+// NOTE for FUTURE:
+//
+// Currently the TDC code handler catches code which occur to closely and
+// ignores them -- assumes it was a double hit on the photo eye. Also fixes
+// double hits on the pulse line from the Control board.
+//
+// However, this is not currently in place for the Linear Advance codes -- a
+// quick double hit might be used in the future by the Control board to signal
+// reverse direction so system can back up when mapping. In that case, if there
+// are glitches on the Control board pulse line, they will have to be solved
+// some other way -- perhaps filtering by the FPGA.
 //
 
 private int handleMapDataLinearAdvanceCode(int pCode)
 {
 
-    int code = MAP_CONTROL_CODE_FLAG | MAP_LINEAR_ADVANCE_FLAG;
+    //set only the bit designating value as a control flag
+    int code = MAP_CONTROL_CODE_FLAG;
 
     map2D.advanceInsertionPoint();
 
-    return(code);
+    if (prevCtrlCodeIndex > 0 && prevCtrlCodeIndex < dataBuffer.length){
+        dataBuffer[prevCtrlCodeIndex] |= MAP_LINEAR_ADVANCE_FLAG;
+    }
+
+    return(code |= MAP_IGNORE_CODE_FLAG);
 
 }//end of UTBoard::handleMapDataLinearAdvanceCode
 //-----------------------------------------------------------------------------
@@ -5115,12 +5195,9 @@ private int handleMapDataLinearAdvanceCode(int pCode)
 // UTBoard::triggerMapAdvance
 //
 // If the board is a mapping type and the current mode allows for external
-// control of map advancement, a marker is placed in the data to reflect that
-// the linear position has advanced and if the board controls a map, the
-// map is advanced one position.
-//
-// A bit is set in the last control code in the data buffer so the advancement
-// points can be extracted later.
+// control of map advancement, a flag bit is placed in the last control code
+// stored in the data to reflect that the linear position has advanced and
+// if the board controls a map, the map is advanced one position.
 //
 
 @Override
@@ -5134,13 +5211,13 @@ public void triggerMapAdvance()
             map2D.advanceInsertionPoint();
         }
 
-        //set flag in the last code to signify that the slice after
-        //will be stored in the next map column -- this is done so that
+        //set flag in the last code stored in the buffer to signify that the
+        //slice will be stored in the next map column -- this is done so that
         //the raw data will have position information in the saved file
 
-        if (prevTDCCodePosition > 0 &&
-                                  prevTDCCodePosition < dataBuffer.length){
-            dataBuffer[prevTDCCodePosition] |= MAP_LINEAR_ADVANCE_FLAG;
+        if (prevCtrlCodeIndex > 0 && prevCtrlCodeIndex < dataBuffer.length){
+
+            dataBuffer[prevCtrlCodeIndex] |= MAP_LINEAR_ADVANCE_FLAG;
 
         }
     }

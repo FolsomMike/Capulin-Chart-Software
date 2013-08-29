@@ -1182,13 +1182,23 @@ public void sendWallMapPacket()
 // a small variation of pTypicalCount by a random amount determined by
 // SAMPLE_COUNT_VARIATION.
 //
+// One out of 10 times, the time is set very short to mimic an erroneous
+// double hit.
+//
 
 private int resetTDCAdvanceCount(int pTypicalCount)
 {
 
-    return(pTypicalCount
+    //periodic with slight randomness
+    int value = pTypicalCount
         - (int)(SAMPLE_COUNT_VARIATION / 2)
-        + (int)(SAMPLE_COUNT_VARIATION * Math.random()));
+        + (int)(SAMPLE_COUNT_VARIATION * Math.random());
+
+    //occasional very short period to mimic erroneous double hit
+    int doubleHit = (int)(10 * Math.random());
+    if (doubleHit == 1) { value = (int)(40 * Math.random()); }
+
+    return(value);
 
 }//end of UTSimulator::resetTDCAdvanceCount
 //-----------------------------------------------------------------------------
