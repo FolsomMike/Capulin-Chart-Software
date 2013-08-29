@@ -2513,8 +2513,8 @@ public void triggerMapAdvance(double pPosition)
 
         UTBoard utBoard = mapSourceBoards[i].utBoard;
 
-        if (utBoard != null && utBoard.getMap2D() != null){
-            if (utBoard.getMap2D().delayDistance > pPosition ) {
+        if (utBoard != null){
+            if (utBoard.mapSensorDelayDistance > pPosition ) {
                 continue;
             }
             else{
@@ -2524,6 +2524,86 @@ public void triggerMapAdvance(double pPosition)
     }
 
 }//end of Capulin1::triggerMapAdvance
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::recordStartLocation
+//
+// Records the linear position of the head/test piece when the start
+// inspection signal is received for pHead.
+//
+
+@Override
+public void recordStartLocation(int pHead, double pPosition)
+{
+
+    recordStartLocationForMapping(pHead, pPosition);
+
+}//end of Capulin1::recordStartLocation
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::recordStopLocation
+//
+// Records the linear position of the head/test piece when the stop
+// inspection signal is received for pHead.
+//
+
+@Override
+public void recordStopLocation(int pHead, double pPosition)
+{
+
+    recordStopLocationForMapping(pHead, pPosition);
+
+}//end of Capulin1::recordStopLocation
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::recordStartLocationForMapping
+//
+// Records the linear position of the head/test piece when the start
+// inspection signal is received for pHead for all boards recording map data.
+//
+
+private void recordStartLocationForMapping(int pHead, double pPosition)
+{
+
+    for (int i = 0; i < mapSourceBoards.length; i++){
+
+        UTBoard utBoard = mapSourceBoards[i].utBoard;
+
+        if (utBoard != null){
+
+            utBoard.recordStartLocationForMapping(pHead, pPosition);
+
+        }
+    }
+
+}//end of Capulin1::recordStartLocationForMapping
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::recordStopLocationForMapping
+//
+// Records the linear position of the head/test piece when the stop
+// inspection signal is received for pHead for all boards recording map data.
+//
+
+private void recordStopLocationForMapping(int pHead, double pPosition)
+{
+
+    for (int i = 0; i < mapSourceBoards.length; i++){
+
+        UTBoard utBoard = mapSourceBoards[i].utBoard;
+
+        if (utBoard != null){
+
+            utBoard.recordStopLocationForMapping(pHead, pPosition);
+
+        }
+    }
+
+}//end of Capulin1::recordStopLocationForMapping
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -2553,11 +2633,14 @@ public void saveAllMapDataSetsToFile(
 // Capulin1::calculateMapOffsetDelays
 //
 // Adds the appropriate photo eye distance to the front of each head to each
-// plotter's distance from the front edge of its head.
+// map data sensor's distance from the front edge of its head.
 //
-// These offsets are used to delay the plotter after the photo eye detects the
-// pipe until the sensor(s) associated to that plotter reach the pipe.
+// These offsets are used to delay the data storace after the photo eye detects
+// the pipe until the sensor(s) associated to that plotter reach the pipe.
 //
+// NOTE: Map offsets are actually deduced from the source sensor offset.
+// Even though the maps have offsets (as all Plotter objects), these are
+// ignored and the sensor offsets are used instead.
 //
 
 @Override
@@ -2573,33 +2656,26 @@ public void calculateMapOffsetDelays(
 
         UTBoard utBoard = mapSourceBoards[i].utBoard;
 
-        if (utBoard != null){
+        if (utBoard != null && utBoard.headForMapDataSensor == 1){
 
-            Plotter plotterPtr = utBoard.getMap2D();
+            utBoard.startFwdDelayDistance = pPhotoEye1DistanceFrontOfHead1
+                                  + utBoard.distanceMapSensorToFrontEdgeOfHead;
 
-            if ((plotterPtr != null) && (plotterPtr.head == 1)){
-                plotterPtr.startFwdDelayDistance =
-                        pPhotoEye1DistanceFrontOfHead1
-                              + plotterPtr.distanceSensorToFrontEdgeOfHead;
+            utBoard.startRevDelayDistance = pPhotoEye2DistanceFrontOfHead1 -
+                                    utBoard.distanceMapSensorToFrontEdgeOfHead;
 
-                plotterPtr.startRevDelayDistance =
-                        pPhotoEye2DistanceFrontOfHead1 -
-                                plotterPtr.distanceSensorToFrontEdgeOfHead;
+        }//if (utBoard != null && utBoard.headForMapDataSensor == 1)
+        else
+        if (utBoard != null && utBoard.headForMapDataSensor == 1){
 
-            }//if ((tracePtr != null) && (tracePtr.head == 1))
+            utBoard.startFwdDelayDistance = pPhotoEye1DistanceFrontOfHead2
+                                + utBoard.distanceMapSensorToFrontEdgeOfHead;
 
-            if ((plotterPtr != null) && (plotterPtr.head == 2)){
-                plotterPtr.startFwdDelayDistance =
-                        pPhotoEye1DistanceFrontOfHead2
-                              + plotterPtr.distanceSensorToFrontEdgeOfHead;
+            utBoard.startRevDelayDistance = pPhotoEye2DistanceFrontOfHead2
+                                  - utBoard.distanceMapSensorToFrontEdgeOfHead;
 
-                plotterPtr.startRevDelayDistance =
-                        pPhotoEye2DistanceFrontOfHead2 -
-                                plotterPtr.distanceSensorToFrontEdgeOfHead;
-
-            }//if ((plotterPtr != null) && (tracePtr.head == 2))
-        }
-    }
+        }//if (utBoard != null && utBoard.headForMapDataSensor == 1)
+    }//for (int i = 0; i < mapSourceBoards.length; i++)
 
 }//end of Capulin1::calculateMapOffsetDelays();
 //-----------------------------------------------------------------------------
@@ -2609,6 +2685,10 @@ public void calculateMapOffsetDelays(
 //
 // Sets the map start delays so the maps don't start until their associated
 // sensors reach the pipe.
+//
+// NOTE: Map offsets are actually deduced from the source sensor offset.
+// Even though the maps have offsets (as all Plotter objects), these are
+// ignored and the sensor offsets are used instead.
 //
 // The distance is set depending on the direction of inspection.  Some systems
 // have different photo eye to sensor distances depending on the direction
@@ -2642,28 +2722,24 @@ public void initializeMapOffsetDelays(int pDirection, int pAwayDirection)
 
         if (utBoard != null){
 
+            //set all map plotters as the lead plotter -- there should only
+            //be one per chart, so it will be the lead by default
             Plotter plotterPtr = utBoard.getMap2D();
+            if (plotterPtr != null) { plotterPtr.leadPlotter = true; }
+
             //if the current direction is the "Away" direction, then set
             //the offsets properly for the carriage moving away from the
             //operator otherwise set them for the carriage moving towards
             //the operator see more notes in this method's header
 
-            if (plotterPtr != null){
-
-                //start with all false, one will be set true
-                plotterPtr.leadPlotter = false;
-
-                if (pDirection == pAwayDirection) {
-                    plotterPtr.delayDistance =
-                                        plotterPtr.startFwdDelayDistance;
-                }
-                else {
-                    plotterPtr.delayDistance =
-                                        plotterPtr.startRevDelayDistance;
-                }
+            if (pDirection == pAwayDirection) {
+                utBoard.mapSensorDelayDistance = utBoard.startFwdDelayDistance;
             }
-        }
-    }
+            else {
+                utBoard.mapSensorDelayDistance = utBoard.startRevDelayDistance;
+            }
+        }//if (utBoard != null){
+    }//for (int i = 0; i < mapSourceBoards.length; i++)
 
 }//end of Hardware::initializeMapOffsetDelays
 //-----------------------------------------------------------------------------

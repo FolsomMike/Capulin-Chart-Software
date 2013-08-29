@@ -20,7 +20,6 @@ package chart.mksystems.hardware;
 
 import chart.Log;
 import chart.mksystems.inifile.IniFile;
-import chart.mksystems.settings.Settings;
 import chart.mksystems.stripchart.Map2D;
 import java.io.*;
 import java.net.*;
@@ -41,6 +40,12 @@ public class UTBoard extends Board{
     String fpgaCodeFilename;
     String dspCodeFilename;
     double nSPerDataPoint, uSPerDataPoint;
+
+    public boolean recordMapDataEnabled;
+
+    double inspectionStartLocation;
+    double inspectionStopLocation;
+
 
     int packetCount = Integer.MAX_VALUE;
     int dataBufferIndex = 0;
@@ -282,6 +287,8 @@ public class UTBoard extends Board{
     static final int MAP_CONTROL_CODE_FLAG =    0x8000;
     static final int MAP_LINEAR_ADVANCE_FLAG =  0x4000;
     static final int MAP_IGNORE_CODE_FLAG =     0x2000;
+    static final int MAP_START_CODE_FLAG =      0x1000;
+    static final int MAP_STOP_CODE_FLAG =       0x0800;
 
     static final int MAP_IGNORE_DETECTION =
                                 MAP_CONTROL_CODE_FLAG | MAP_IGNORE_CODE_FLAG;
@@ -934,6 +941,10 @@ public void enableWallMapPackets(boolean pState)
 
 public void resetForNextRun()
 {
+
+    recordMapDataEnabled = false;
+    inspectionStartLocation = 0;
+    inspectionStopLocation = 0;
 
     dataBufferIndex = 0;
     prevCtrlCodeIndex = -1;
@@ -3724,6 +3735,11 @@ void configureExtended(IniFile pConfigFile)
     boardChannelForMapDataSource =
          pConfigFile.readInt(section, "Board Channel for Map Data Source", -1);
 
+    headForMapDataSensor =
+              pConfigFile.readInt(section, "Head for Map Data Sensor", -1);
+
+    distanceMapSensorToFrontEdgeOfHead = pConfigFile.readDouble(section,
+                    "Distance From Map Data Sensor to Front Edge of Head", 0);
 
     dataBufferSize = pConfigFile.readInt(section, "Data Buffer Size", 0);
 
@@ -5054,7 +5070,11 @@ private int handleMapDataTDCCode(int pCode)
     mapTDCCodeIgnoreTimer = MAP_TDC_IGNORE_TIMER_RESET;
 
     //if this board has no map or it has not been set yet, bail out
-    if (map2D == null) { return(code); }
+    if (map2D == null) {
+        //keep current code position for next time
+        prevCtrlCodeIndex = dataBufferIndex;
+        return(code);
+    }
 
     //prepare variables based on whether maximum or minimum peaks are to be
     //captured for mapping
@@ -5070,19 +5090,17 @@ private int handleMapDataTDCCode(int pCode)
         map2DDataColumn[i] = defaultValue;
     }
 
-    int codePosition = dataBufferIndex;
-
     //get number of samples in this revolution
     //this code also works fine first time through when prevCodePostion is -1,
     //but that first revolution will be partial and unusable
 
-    int numSamplesInRev = codePosition - prevCtrlCodeIndex - 1;
+    int numSamplesInRev = dataBufferIndex - prevCtrlCodeIndex - 1;
 
     //first data point for the revolution in dataBuffer
     int xfrSourceIndex = prevCtrlCodeIndex + 1;
 
     //keep current code position for next time
-    prevCtrlCodeIndex = codePosition;
+    prevCtrlCodeIndex = dataBufferIndex;
 
     //determine the scale to shrink/stretch the samples to fit the map column
     double scale = (double)map2DDataColumn.length / (double)numSamplesInRev;
@@ -5199,6 +5217,10 @@ private int handleMapDataLinearAdvanceCode(int pCode)
 // stored in the data to reflect that the linear position has advanced and
 // if the board controls a map, the map is advanced one position.
 //
+// Currently, the map packet handling code and the code which calls this
+// function should be the same thread, so collisions with
+// dataBuffer[prevCtrlCodeIndex] are not a problem.
+//
 
 @Override
 public void triggerMapAdvance()
@@ -5223,6 +5245,64 @@ public void triggerMapAdvance()
     }
 
 }//end of UTBoard::triggerMapAdvance
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::recordStartLocationForMapping
+//
+// If the board is a mapping type and the mapping transducer is in pHead, a
+// flag bit is placed in the last control code stored in the data to reflect
+// that the inspection has started.
+//
+// Currently, the map packet handling code and the code which calls this
+// function should be the same thread, so collisions with
+// dataBuffer[prevCtrlCodeIndex] are not a problem.
+//
+
+public void recordStartLocationForMapping(int pHead, double pPosition)
+{
+
+    if(type == WALL_MAPPER && headForMapDataSensor == pHead){
+
+        inspectionStartLocation = pPosition;
+
+        if (prevCtrlCodeIndex > 0 && prevCtrlCodeIndex < dataBuffer.length){
+
+            dataBuffer[prevCtrlCodeIndex] |= MAP_START_CODE_FLAG;
+
+        }
+    }
+
+}//end of UTBoard::recordStartLocationForMapping
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::recordStopLocationForMapping
+//
+// If the board is a mapping type and the mapping transducer is in pHead, a
+// flag bit is placed in the last control code stored in the data to reflect
+// that the inspection has started.
+//
+// Currently, the map packet handling code and the code which calls this
+// function should be the same thread, so collisions with
+// dataBuffer[prevCtrlCodeIndex] are not a problem.
+//
+
+public void recordStopLocationForMapping(int pHead, double pPosition)
+{
+
+    if(type == WALL_MAPPER && headForMapDataSensor == pHead){
+
+        inspectionStopLocation = pPosition;
+
+        if (prevCtrlCodeIndex > 0 && prevCtrlCodeIndex < dataBuffer.length){
+
+            dataBuffer[prevCtrlCodeIndex] |= MAP_STOP_CODE_FLAG;
+
+        }
+    }
+
+}//end of UTBoard::recordStopLocationForMapping
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

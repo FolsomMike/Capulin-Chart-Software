@@ -63,6 +63,12 @@ public abstract class Board extends Object implements Runnable{
     int type;
     int targetMapChannel;
     int boardChannelForMapDataSource;
+    int headForMapDataSensor;
+    double distanceMapSensorToFrontEdgeOfHead;
+    double mapSensorDelayDistance;
+    double startFwdDelayDistance = 0;
+    double startRevDelayDistance = 0;
+
     int controlFlags = 0;
     String configFilename;
     IniFile configFile;

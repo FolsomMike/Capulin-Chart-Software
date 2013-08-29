@@ -949,6 +949,34 @@ public void saveAllMapDataSetsToFile(
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// AnalogPCIDAS6023::recordStartLocation
+//
+// Records the linear position of the head/test piece when the start
+// inspection signal is received for pHead.
+//
+
+@Override
+public void recordStartLocation(int pHead, double pPosition)
+{
+
+}//end of AnalogPCIDAS6023::recordStartLocation
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// AnalogPCIDAS6023::recordStopLocation
+//
+// Records the linear position of the head/test piece when the stop
+// inspection signal is received for pHead.
+//
+
+@Override
+public void recordStopLocation(int pHead, double pPosition)
+{
+
+}//end of AnalogPCIDAS6023::recordStopLocation
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // AnalogPCIDAS6023::shutDown
 //
 // This function should be called before exiting the program.  Overriding the

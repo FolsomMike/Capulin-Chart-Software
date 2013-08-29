@@ -158,6 +158,10 @@ public void saveAllMapDataSetsToFile(
         String pFilename, String pJobFileFormat,
         String pInspectionDirectionDescription);
 
+public void recordStartLocation(int pHead, double pPosition);
+
+public void recordStopLocation(int pHead, double pPosition);
+
 }//end of interface HardwareLink
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

@@ -80,6 +80,10 @@ public class Hardware extends Object implements TraceValueCalculator, Runnable,
 
     InspectControlVars inspectCtrlVars;
 
+    public static int NO_HEAD = 0;
+    public static int HEAD_1 = 1;
+    public static int HEAD_2 = 2;
+
     public static int ALL_RABBITS = 0;
     public static int UT_RABBITS = 1;
     public static int CONTROL_RABBITS = 2;
@@ -1154,6 +1158,8 @@ boolean collectEncoderDataInspectMode()
     //encoder values, etc.
     analogDriver.getInspectControlVars(inspectCtrlVars);
 
+    int recordStopPositionForHead = NO_HEAD;
+
     //On entering INSPECT mode, the system will wait until signalled that the
     //head is off the pipe or the pipe is out of the system, then it will wait
     //until the head is on the pipe or pipe enters the system before moving the
@@ -1237,11 +1243,13 @@ boolean collectEncoderDataInspectMode()
     //if head 1 is down and goes up, disable flagging for all traces on head 1
     if (hdwVs.head1Down && !inspectCtrlVars.head1Down){
         hdwVs.head1Down = false; enableHeadTraceFlagging(1, false);
+        recordStopPositionForHead = HEAD_1;
     }
 
     //if head 2 is down and goes up, disable flagging for all traces on head 2
     if (hdwVs.head2Down && !inspectCtrlVars.head2Down){
         hdwVs.head2Down = false; enableHeadTraceFlagging(2, false);
+        recordStopPositionForHead = HEAD_2;
     }
 
     //watch for piece to exit head
@@ -1297,7 +1305,7 @@ boolean collectEncoderDataInspectMode()
 
     boolean newPositionData = true;  //signal that position has been changed
 
-    moveEncoders();
+    moveEncoders(recordStopPositionForHead);
 
     return(newPositionData);
 
@@ -1307,8 +1315,19 @@ boolean collectEncoderDataInspectMode()
 //-----------------------------------------------------------------------------
 // Hardware::moveEncoders
 //
+// Calculates position of the head/test piece to determine if plotters need
+// to move and to perform any other actions required by linear motion.
+//
+// If pRecordStopPositionForHead == HEAD_1, the current position is recorded
+// as the stop inspect location for sensors in head 1.
+//
+// If pRecordStopPositionForHead == HEAD_2, the current position is recorded
+// as the stop inspect location for sensors in head 2.
+//
+// If pRecordStopPositionForHead == NO_HEAD, no location is recorded.
+//
 
-void moveEncoders()
+void moveEncoders(int pRecordStopPositionForHead)
 {
 
     //The control board sends new encoder data after a set number of encoder
@@ -1345,10 +1364,20 @@ void moveEncoders()
 
     if (flaggingEnableDelay1 != 0 && --flaggingEnableDelay1 == 0){
         enableHeadTraceFlagging(1, true);
+        analogDriver.recordStartLocation(1, position);
     }
 
     if (flaggingEnableDelay2 != 0 && --flaggingEnableDelay2 == 0){
         enableHeadTraceFlagging(2, true);
+        analogDriver.recordStartLocation(2, position);
+    }
+
+    if (pRecordStopPositionForHead == HEAD_1){
+        analogDriver.recordStopLocation(1, position);
+    }
+    else
+    if (pRecordStopPositionForHead == HEAD_2){
+        analogDriver.recordStopLocation(2, position);
     }
 
     if (pixelsMoved > 0) { moveTraces(pixelsMoved, position); }
@@ -1566,6 +1595,10 @@ void moveTracesBackward(Trace pTrace, int pPixelsMoved, double pPosition)
 // Hardware::enableHeadTraceFlagging
 //
 // Enables or disables all traces for the specified head.
+//
+// This method is generally called when the inspection start/stop signals are
+// received. In other places in the code there is a distance delay after this
+// signal to avoid recording the glitches incurred while the head is settling.
 //
 
 void enableHeadTraceFlagging(int pHead, boolean pEnable)
