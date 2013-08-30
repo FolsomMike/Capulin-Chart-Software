@@ -303,6 +303,11 @@ public void saveToFile(String pFilename)
               new DataOutputStream(new BufferedOutputStream(
               new FileOutputStream(pFilename)));
 
+        //find start/stop, count revolutions, repair missing control codes, etc.
+        //must be done before saveHeader as the header needs some of that info
+
+        analyzeAndRepairData();
+
         //save all header information
         saveHeader();
 
@@ -543,9 +548,6 @@ private int parseInspectionDirectionFlagFromJobInfoString()
 }//end of WallMapDataSaverTuboBinary::parseInspectionDirectionFlagFromString
 //-----------------------------------------------------------------------------
 
-
-
-
 //-----------------------------------------------------------------------------
 // WallMapDataSaverTuboBinary::saveHeader
 //
@@ -587,6 +589,7 @@ private void saveHeader()throws IOException
     nJointNum.write(outFile);
     LittleEndianTool.writeFloat(fWall, outFile);
     LittleEndianTool.writeFloat(fOD, outFile);
+    nNumRev.value = leastNumberOfRevs;
     nNumRev.write(outFile);
     nMotionBus.write(outFile);
 
@@ -601,9 +604,6 @@ private void saveHeader()throws IOException
 
 private void saveRevolutions() throws IOException
 {
-
-    //find start/stop, count revolutions, repair missing control codes, etc.
-    analyzeAndRepairData();
 
     for (int i = 0; i < leastNumberOfRevs; i++){
         saveRevolution(i);
@@ -692,7 +692,9 @@ private void writeWallReadingsForRevolution(int pRevolutionNumber)
             for(int j = 0; j < mapSourceBoards.length; j++){
 
                 if (i < mapSourceBoards[j].numSamplesInRev) {
-                    wallWord.value = mapSourceBoards[j].dataBuffer[i];
+                    int TOF = mapSourceBoards[j].dataBuffer[i];
+                    double wall = (TOF * 0.015 * .233) / 2;
+                    wallWord.value = (int)(wall * 1000);
                 }
                 else{
                     //leave wallWord at its last value -- doesn't matter what
