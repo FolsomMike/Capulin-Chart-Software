@@ -55,6 +55,8 @@ public void Sourceboard()
 //
 // Initializes the object.  MUST be called by sub classes after instantiation.
 //
+// debug mks -- this crashes on startup sometimes with utBoard null
+//
 
 public void init(UTBoard pUTBoard)
 {
