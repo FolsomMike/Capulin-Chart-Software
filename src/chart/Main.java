@@ -907,6 +907,14 @@ private void saveSegment()
 {
 
     String segmentFilename;
+    String pieceNumber;
+
+    if (!controlPanel.calMode){
+        pieceNumber = decimalFormats[0].format(controlPanel.nextPieceNumber);
+    }
+    else{
+        pieceNumber = decimalFormats[0].format(controlPanel.nextCalPieceNumber);
+    }
 
     isLastPieceInspectedACal = controlPanel.calMode;
 
@@ -916,14 +924,12 @@ private void saveSegment()
     //in alphabetical order in an explorer window
 
     if (!controlPanel.calMode){
-        segmentFilename = "20 - " +
-               decimalFormats[0].format(controlPanel.nextPieceNumber) + ".dat";
+        segmentFilename = "20 - " + pieceNumber + ".dat";
         //save number before it changes to the next -- used for reports and such
         lastPieceInspected = controlPanel.nextPieceNumber;
     }
     else{
-        segmentFilename =  "30 - " +
-            decimalFormats[0].format(controlPanel.nextCalPieceNumber) + ".cal";
+        segmentFilename = "30 - " + pieceNumber + ".cal";
         //save number before it changes to the next -- used for reports and such
         lastPieceInspected = controlPanel.nextCalPieceNumber;
     }
@@ -936,12 +942,10 @@ private void saveSegment()
     //info which can be modified later such as heat, lot, id number, etc.
 
     if (!controlPanel.calMode) {
-        segmentFilename = "20 - " +
-              decimalFormats[0].format(controlPanel.nextPieceNumber) + ".info";
+        segmentFilename = "20 - " + pieceNumber + ".info";
     }
     else {
-        segmentFilename =  "30 - " +
-        decimalFormats[0].format(controlPanel.nextCalPieceNumber) + ".cal info";
+        segmentFilename = "30 - " + pieceNumber + ".cal info";
     }
 
     saveSegmentInfoHelper(settings.currentJobPrimaryPath + segmentFilename);
@@ -949,8 +953,12 @@ private void saveSegment()
 
     //save data buffers handled by any boards
 
-    segmentFilename =  "40 - " +
-        decimalFormats[0].format(controlPanel.nextCalPieceNumber) + ".wall map";
+    if (!controlPanel.calMode) {
+        segmentFilename = "20 - " + pieceNumber + " map.dat";
+    }
+    else {
+        segmentFilename = "30 - " + pieceNumber + " map.cal";
+    }
 
     hardware.saveAllMapDataSetsToTextFile(
         settings.currentJobPrimaryPath + segmentFilename,
