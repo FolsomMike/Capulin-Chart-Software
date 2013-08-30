@@ -27,7 +27,7 @@ package chart.mksystems.hardware;
 
 public class MapSourceBoard extends Object{
 
-    public UTBoard utBoard;
+    UTBoard utBoard;
     short dataBuffer[];
 
     int revolutionStartIndex;
@@ -36,7 +36,9 @@ public class MapSourceBoard extends Object{
     int inspectionStartIndex = -1;
     int inspectionStopIndex = -1;
 
+    int revIndex = -1;
     int numberOfRevs = 0;
+    int numSamplesInRev = 0;
 
 //-----------------------------------------------------------------------------
 // MapSourceBoard::MapSourceBoard (constructor)

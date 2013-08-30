@@ -55,6 +55,10 @@ import java.io.OutputStreamWriter;
 public class WallMapDataSaverTuboBinary extends WallMapDataSaver{
 
 
+    //there must be this many values saved for each channel -- left over space
+    //should be zero filled
+    static final int REVOLUTION_SAMPLES_BLOCK_SIZE = 2000;
+
     static final int FROM_HOME_DIRECTION_FLAG = 0x4000;
     static final int TOWARD_HOME_DIRECTION_FLAG = 0x0000;
 
@@ -66,8 +70,15 @@ public class WallMapDataSaverTuboBinary extends WallMapDataSaver{
     int numberOfChannelsToStoreInFile;
     boolean copyChannelsToFillMissingChannels;
 
+    WORD wallWord;
+    WORD countWord;
+
+    //the average values are used to detect values which are outside the norm
+
     int leastNumberOfRevs = 0;
     int avgNumberOfRevs = 0;
+    int mostNumberOfSamplesPerRev = 0;
+    int avgNumberOfSamplesPerRev = 0;
 
     int fileFormat;
 
@@ -207,6 +218,9 @@ public void init(MapSourceBoard pMapSourceBoards[])
     fChnlOffset = new float[numberOfChannelsToStoreInFile];
 
     nNumRev = new WORD(0);
+
+    wallWord = new WORD(0);
+    countWord = new WORD(0);
 
     wall = new WORD[numberOfChannelsToStoreInFile];
     for(int i = 0; i < wall.length; i++){wall[i] = new WORD(0);}
@@ -378,7 +392,7 @@ public void copyJobInfoToLocalVariables()
     rbNum.set(retrieveJobInfoString("RB Number"), 10);
     spare.set("", 75);
 
-    fMotionPulseLen = (float)1.0;
+    fMotionPulseLen = (float).375; //need to read this from config file
 
     // sensor position is already offset by the map source sensor delays
     // so all values are zero here
@@ -592,7 +606,7 @@ private void saveRevolutions() throws IOException
     analyzeAndRepairData();
 
     for (int i = 0; i < leastNumberOfRevs; i++){
-        saveRevolution(i, 500, 500, 500, 500);
+        saveRevolution(i);
     }
 
 }//end of WallMapDataSaverTuboBinary::saveRevolutions
@@ -607,9 +621,7 @@ private void saveRevolutions() throws IOException
 // revolution.
 //
 
-private void saveRevolution(int pRevolutionNumber,
-        int pNumSamples0, int pNumSamples1, int pNumSamples2, int pNumSamples3)
-                                                            throws IOException
+private void saveRevolution(int pRevolutionNumber) throws IOException
 {
 
     //find endpoints of the next revolution in the databuffer, etc.
@@ -617,25 +629,26 @@ private void saveRevolution(int pRevolutionNumber,
 
     // write the data
 
-    //number of samples for each channel in the revolution
-    for (int i = 0; i < nNumAscan.length; i++){
-        nNumAscan[i].write(outFile);
+    // convert the number of samples to a WORD and then write to the file
+    for (int i = 0; i < mapSourceBoards.length; i++){
+
+        //the number of samples will vary between the boards, the max number
+        //from any board is used instead with missing samples in the other
+        //boards filled at write time
+
+        countWord.value = mostNumberOfSamplesPerRev;
+        countWord.write(outFile);
     }
 
     //this is the location of the current revolution measured in number of
     // "motion pulses" where each pulse equals so many inches
 
-    // NOTE: the Tubo Wall Viewer program seems to ignore the value for
-    // fMotionPulseLen and defaults to 1.0 inch per pulse, thus the correct
-    // operation seems to be multiplying the helix by 1.0 to get nXloc
-    // see Note 1 at the top of this file.
-
-    nXloc = (short)(pRevolutionNumber * 0.375);
-
+    nXloc = (short)(pRevolutionNumber * 1);
     outFile.writeShort(Short.reverseBytes(nXloc));
 
     //not used
     nMotionBusNotUsed.write(outFile);
+
     //not used
     for (int i = 0; i < fCrossArea.length; i++){
         LittleEndianTool.writeFloat(fCrossArea[i], outFile);
@@ -651,55 +664,54 @@ private void saveRevolution(int pRevolutionNumber,
 //
 // Saves data from one revolution all boards to the file.
 //
+// Since the different channels will usually have a slightly different number
+// of samples in any given revolution, the one with the highest sample count
+// is used as the count. The others use the last value reported by the last
+// board to have valid data -- doesn't matter which one so long as a valid
+// data point is used as filler. This way, no samples are actually thrown
+// away, instead some are duplicated.
+//
 
 private void writeWallReadingsForRevolution(int pRevolutionNumber)
                                                             throws IOException
 {
 
-    //debug mks
-
-    wall[0].value = 530;
-    wall[1].value = 531;
-    wall[2].value = 532;
-    wall[3].value = 533;
-
-    //debug mks
-
     //write all data -- TUBO_BINARY_FORMAT always stores the entire size of the
-    //maximum allowable, padding with zeroes if the number of samples is
-    //actually less than the maximum
+    //maximum allowable -- REVOLUTION_SAMPLES_BLOCK_SIZE, padding with zeroes
+    //if the number of samples is actually less than the maximum
 
     int i = 0;
 
-    while(i < NUM_MAX_ASCAN){
+    while(i < REVOLUTION_SAMPLES_BLOCK_SIZE){
 
-        if(i < nNumAscan[0].value){
-            for(int j = 0; j < wall.length; j++){
+        //write data until number of samples reached for the board which had
+        //the most samples in the current revolution
 
-                //debug mks -- this section needs to read data from UTBoards
+        if(i < mostNumberOfSamplesPerRev){
 
-                if(i > 99 && i < 110
-                   && pRevolutionNumber > 99
-                        && pRevolutionNumber < 110){
+            for(int j = 0; j < mapSourceBoards.length; j++){
 
-                        outFile.writeShort(0);
-
+                if (i < mapSourceBoards[j].numSamplesInRev) {
+                    wallWord.value = mapSourceBoards[j].dataBuffer[i];
                 }
                 else{
-                    wall[j].write(outFile);
+                    //leave wallWord at its last value -- doesn't matter what
+                    //board it came from, just need valid data for filler
                 }
 
-                //debug mks end
+                wallWord.write(outFile);
 
-            }
-        }
+            }//for(int j = 0; j < mapSourceBoards.length; j++)
+        }//if(i < mostNumberOfSamplesPerRev)
         else{
-            for(int j = 0; j < wall.length; j++){
+            //write zeroes to fill out the block length
+            for(int j = 0; j < mapSourceBoards.length; j++){
                 outFile.writeByte(0); outFile.writeByte(0);
             }
-        }
+        }//else
 
         i++;
+
     }//while
 
 }//end of WallMapDataSaverTuboBinary::writeWallReadingsForRevolution
@@ -708,7 +720,7 @@ private void writeWallReadingsForRevolution(int pRevolutionNumber)
 //-----------------------------------------------------------------------------
 // WallMapDataSaverTuboBinary::analyzeAndRepairData
 //
-// Analyses the data in preparation for saving to file.
+// Analyzes the data in preparation for saving to file.
 //
 // Finds the start/stop inspection points, counts the revolutions, repairs
 // missing control codes, etc.
@@ -744,6 +756,7 @@ private void findStartStopInspectionIndices()
                                                         0, Integer.MIN_VALUE);
 
         mapSourceBoards[i].inspectionStartIndex = startIndex;
+        mapSourceBoards[i].revIndex = startIndex;
 
         stopIndex = findControlCode(i, UTBoard.MAP_STOP_CODE_FLAG,
                                             startIndex + 1, Integer.MIN_VALUE);
@@ -799,6 +812,7 @@ private void calculateRevCount()
 
     }
 
+    //calculate the average
     avgNumberOfRevs = avgNumberOfRevs / mapSourceBoards.length;
 
 }//end of WallMapDataSaverTuboBinary::calculateRevCount
@@ -821,7 +835,7 @@ private void calculateRevCount()
 private int findControlCode(int pBoardIndex, int pFlag, int pStart, int pEnd)
 {
 
-    short []dataBuffer = mapSourceBoards[pBoardIndex].utBoard.getDataBuffer();
+    short []dataBuffer = mapSourceBoards[pBoardIndex].dataBuffer;
 
     //bail out for invalid pStart
     if (pStart < 0 || pStart > dataBuffer.length) { return(-1); }
@@ -845,28 +859,68 @@ private int findControlCode(int pBoardIndex, int pFlag, int pStart, int pEnd)
 //-----------------------------------------------------------------------------
 // WallMapDataSaverTuboBinary::prepareToExtractNextRevolutionFromDataBuffer
 //
-// Finds the endpoints of the next revolution in the data buffers by looking
-// for control codes.
-//
-// Control codes are deglitched -- if two occur too closely, the second is
-// assumed to be a false signal (water drops on the reflector, etc.) and is
-// ignored. It is not removed from the dataset -- all following functions
-// should ignore any control codes between endpoints.
+// Finds the endpoint of the next revolution in the data buffers by looking
+// for the next control code. Determines the number of samples in the
+// revolution, sets up pointers, prepares for the writing of the data to
+// the file.
 //
 
 private void prepareToExtractNextRevolutionFromDataBuffer()
 {
 
-
-
-//    nNumAscan[0].value = pNumSamples0;
-//    nNumAscan[1].value = pNumSamples1;
-//    nNumAscan[2].value = pNumSamples2;
-//    nNumAscan[3].value = pNumSamples3;
-
-
+    calculateNumberSamplesInRev();
 
 }//end of WallMapDataSaverTuboBinary::prepareToExtractNextRevolutionFromDataBuff
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// WallMapDataSaverTuboBinary::calculateNumberSamplesInRev
+//
+// Determines the position of and the number of samples in the next revolution
+// in each map source board and records the value of the highest revolution
+// count of any boards.
+//
+
+private void calculateNumberSamplesInRev()
+{
+
+    mostNumberOfSamplesPerRev = Integer.MIN_VALUE;
+    avgNumberOfSamplesPerRev = 0;
+    int sampleCount;
+
+    int index;
+
+    for (int i = 0; i < mapSourceBoards.length; i++){
+
+        //nextRevIndex points at the control code, skip past to first value
+        int start = mapSourceBoards[i].revIndex + 1;
+        int stop = Integer.MIN_VALUE;
+
+        //look for the next control code -- that's the end of the revolution
+        index = findControlCode(i, 0, start, stop);
+
+        //next rev for this board will start at next control code
+        mapSourceBoards[i].revIndex = index;
+
+        //calculate number of samples in the revolution
+        sampleCount = index - start - 1;
+
+        mapSourceBoards[i].numSamplesInRev = sampleCount;
+
+        //trap value of the largest sample count of all the boards for this
+        //revolution
+        if (sampleCount > mostNumberOfSamplesPerRev) {
+            mostNumberOfSamplesPerRev = sampleCount;
+        }
+
+        avgNumberOfSamplesPerRev += sampleCount;
+
+    }
+
+    //calculate the average
+    avgNumberOfSamplesPerRev = avgNumberOfSamplesPerRev/mapSourceBoards.length;
+
+}//end of WallMapDataSaverTuboBinary::calculateNumberSamplesInRev
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
