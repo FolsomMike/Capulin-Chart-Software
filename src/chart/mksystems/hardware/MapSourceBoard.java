@@ -36,9 +36,12 @@ public class MapSourceBoard extends Object{
     int inspectionStartIndex = -1;
     int inspectionStopIndex = -1;
 
-    int revIndex = -1;
+    int revStartIndex = -1;
+    int revEndIndex = -1;
     int numberOfRevs = 0;
     int numSamplesInRev = 0;
+
+    int sampleIndex = 0;
 
 //-----------------------------------------------------------------------------
 // MapSourceBoard::MapSourceBoard (constructor)

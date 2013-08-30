@@ -62,6 +62,12 @@ public class WallMapDataSaverTuboBinary extends WallMapDataSaver{
     static final int FROM_HOME_DIRECTION_FLAG = 0x4000;
     static final int TOWARD_HOME_DIRECTION_FLAG = 0x0000;
 
+    //in the "going away" inspection direction, the Tubo Map Viewer as of
+    // 8/30/13 has a built in offset of 56 inches -- the following can be used
+    // to correct for that as it's not compatible with the Chart program
+
+    static final int GOING_AWAY_OFFSET_CORRECTION = -56;
+
     Settings settings;
 
     MapSourceBoard mapSourceBoards[];
@@ -371,6 +377,23 @@ public void loadJobInfo()
 // Copies information from jobInfo object to local variables used to save
 // that info to the data file
 //
+// Note 1:
+//
+// Photo eye to front edge of head: 7.5"
+// Front edge of head to ducer: 7"
+// Delay from inspection start to Start Inspection flag for ducer 1:  6 x 3/8"
+//                                                                     (2.25")
+// Location of photo eye from end of pipe at start inspection: 30.8"
+//
+//
+// nHomeXOffset required by Tubo Wall Map viewer to properly: 21
+//
+// Distance from end of pipe to ducer 1 at start inspection =
+//          30.8 - 7.5 - 7 + 2.25 = 18.55  -- 2.45" missing from the 21"
+//
+
+
+
 
 public void copyJobInfoToLocalVariables()
 {
@@ -406,8 +429,9 @@ public void copyJobInfoToLocalVariables()
     fChnlOffset[2] = (float)0;
     fChnlOffset[3] = (float)0;
 
-    nHomeXOffset = 0;
-    nAwayXOffset = 0;
+    nHomeXOffset = 21; //debug mks -- read actual value here see Note 1 above
+
+    nHomeXOffset += GOING_AWAY_OFFSET_CORRECTION;
 
     nStopXloc = 0;
 
@@ -605,6 +629,12 @@ private void saveHeader()throws IOException
 private void saveRevolutions() throws IOException
 {
 
+    //debug mks -- remove this
+    if (leastNumberOfRevs < 5){
+        leastNumberOfRevs = leastNumberOfRevs;
+    }
+    //debug mks -- remove this
+
     for (int i = 0; i < leastNumberOfRevs; i++){
         saveRevolution(i);
     }
@@ -643,7 +673,7 @@ private void saveRevolution(int pRevolutionNumber) throws IOException
     //this is the location of the current revolution measured in number of
     // "motion pulses" where each pulse equals so many inches
 
-    nXloc = (short)(pRevolutionNumber * 1);
+    nXloc = (short)(pRevolutionNumber * .375);
     outFile.writeShort(Short.reverseBytes(nXloc));
 
     //not used
@@ -691,17 +721,35 @@ private void writeWallReadingsForRevolution(int pRevolutionNumber)
 
             for(int j = 0; j < mapSourceBoards.length; j++){
 
-                if (i < mapSourceBoards[j].numSamplesInRev) {
-                    int TOF = mapSourceBoards[j].dataBuffer[i];
-                    double wall = (TOF * 0.015 * .233) / 2;
-                    wallWord.value = (int)(wall * 1000);
+                //get samples from each board until end of revolution reached
+                //(different for each board as each will have a slightly
+                // different number of samples/rev), then use filler data
+
+                if (mapSourceBoards[j].sampleIndex
+                                        < mapSourceBoards[j].revEndIndex) {
+
+                    int TOF = mapSourceBoards[j].
+                               dataBuffer[mapSourceBoards[j].sampleIndex++];
+
+                    double lWall = (TOF * 0.015 * .233) / 2;
+
+                    wallWord.value = (int)(lWall * 1000);
+
+                if (wallWord.value < 0)   //debug mks
+                     wallWord.value = wallWord.value; //debug mks
+
                 }
                 else{
                     //leave wallWord at its last value -- doesn't matter what
                     //board it came from, just need valid data for filler
+                    int debug = 0; //debug mks remove this
                 }
 
                 wallWord.write(outFile);
+
+                if (wallWord.value < 0)   //debug mks
+                     wallWord.value = wallWord.value; //debug mks
+
 
             }//for(int j = 0; j < mapSourceBoards.length; j++)
         }//if(i < mostNumberOfSamplesPerRev)
@@ -755,13 +803,15 @@ private void findStartStopInspectionIndices()
         int startIndex, stopIndex;
 
         startIndex = findControlCode(i, UTBoard.MAP_START_CODE_FLAG,
-                                                        0, Integer.MIN_VALUE);
+                                                        0, Integer.MAX_VALUE);
 
         mapSourceBoards[i].inspectionStartIndex = startIndex;
-        mapSourceBoards[i].revIndex = startIndex;
+
+        //this is also the start location for the first revolution
+        mapSourceBoards[i].revEndIndex = startIndex;
 
         stopIndex = findControlCode(i, UTBoard.MAP_STOP_CODE_FLAG,
-                                            startIndex + 1, Integer.MIN_VALUE);
+                                            startIndex + 1, Integer.MAX_VALUE);
 
         mapSourceBoards[i].inspectionStopIndex = stopIndex;
 
@@ -828,7 +878,7 @@ private void calculateRevCount()
 // set) will be checked.
 //
 // Searching will begin at pStart and end at pEnd - 1. If pEnd is set to
-// Integer.MIN_VALUE, the search will end at buffer end - 1.
+// Integer.MAX_VALUE, the search will end at buffer end - 1.
 //
 // Returns index of first occurrance of pFlag between pStart and pEnd - 1.
 // Returns -1 if the code is not found.
@@ -842,8 +892,8 @@ private int findControlCode(int pBoardIndex, int pFlag, int pStart, int pEnd)
     //bail out for invalid pStart
     if (pStart < 0 || pStart > dataBuffer.length) { return(-1); }
 
-    //catch MIN_VALUE -- special signal to search to end of buffer
-    if (pEnd == Integer.MIN_VALUE) { pEnd = dataBuffer.length; }
+    //catch MAX_VALUE -- special signal to search to end of buffer
+    if (pEnd == Integer.MAX_VALUE) { pEnd = dataBuffer.length; }
 
     //only look at values with the MAP_CONTROL_CODE_FLAG bit set as well
     int target = UTBoard.MAP_CONTROL_CODE_FLAG | pFlag;
@@ -894,15 +944,21 @@ private void calculateNumberSamplesInRev()
 
     for (int i = 0; i < mapSourceBoards.length; i++){
 
-        //nextRevIndex points at the control code, skip past to first value
-        int start = mapSourceBoards[i].revIndex + 1;
-        int stop = Integer.MIN_VALUE;
+        //revIndex points at the control code, skip past to first value
+        int start = mapSourceBoards[i].revStartIndex + 1;
+        int stop = Integer.MAX_VALUE;
+
+        //the first sample in rev will be first value after control code
+        mapSourceBoards[i].sampleIndex = start;
 
         //look for the next control code -- that's the end of the revolution
         index = findControlCode(i, 0, start, stop);
 
-        //next rev for this board will start at next control code
-        mapSourceBoards[i].revIndex = index;
+        //store end of current revolution
+        mapSourceBoards[i].revEndIndex = index;
+
+        //preset to end of this revolution (start of next) for next time
+        mapSourceBoards[i].revStartIndex = index;
 
         //calculate number of samples in the revolution
         sampleCount = index - start - 1;
