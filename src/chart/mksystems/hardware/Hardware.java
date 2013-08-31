@@ -1326,6 +1326,14 @@ boolean collectEncoderDataInspectMode()
 //
 // If pRecordStopPositionForHead == NO_HEAD, no location is recorded.
 //
+// Note 1:
+//
+// The code handling the pRecordStopPositionForHead must be before the test:
+//   if (pixelsMoved == 0) {return;}. That flag is only valid on the first
+// time through -- it is transmitted when the Control board sends the linear
+// advance data, which does NOT always cause a pixel advance. If it does not,
+// the test will bail and any code after will not execute.
+//
 
 void moveEncoders(int pRecordStopPositionForHead)
 {
@@ -1347,6 +1355,16 @@ void moveEncoders(int pRecordStopPositionForHead)
 
     //take absolute value so head moving in reverse works the same as forward
     position = Math.abs(position);
+
+
+    //this code must be before if (pixelsMoved == 0) {return;}...see Note 1
+    if (pRecordStopPositionForHead == HEAD_1){
+        analogDriver.recordStopLocation(1, position);
+    }
+    else
+    if (pRecordStopPositionForHead == HEAD_2){
+        analogDriver.recordStopLocation(2, position);
+    }
 
     //calculate the number of pixels moved since the last check
     int pixPosition = (int)(position * hdwVs.pixelsPerInch);
@@ -1370,14 +1388,6 @@ void moveEncoders(int pRecordStopPositionForHead)
     if (flaggingEnableDelay2 != 0 && --flaggingEnableDelay2 == 0){
         enableHeadTraceFlagging(2, true);
         analogDriver.recordStartLocation(2, position);
-    }
-
-    if (pRecordStopPositionForHead == HEAD_1){
-        analogDriver.recordStopLocation(1, position);
-    }
-    else
-    if (pRecordStopPositionForHead == HEAD_2){
-        analogDriver.recordStopLocation(2, position);
     }
 
     if (pixelsMoved > 0) { moveTraces(pixelsMoved, position); }
