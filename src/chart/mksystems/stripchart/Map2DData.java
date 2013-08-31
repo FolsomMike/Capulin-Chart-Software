@@ -91,7 +91,7 @@ public void init()
 //
 // Note 1:
 // Resets everything back to default values. The first column of data is set
-// to the max value if peakDirection == MAX or the min value if peakDirection
+// to the min value if peakDirection == MAX or the max value if peakDirection
 // == MIN. This means the least worst data is in the first column so if the
 // map is advanced before data is inserted, that data will be drawn until actual
 // data is inserted.
@@ -119,12 +119,13 @@ synchronized public void resetAll()
     }
 
     //reset the first column to least worst value -- see Note 1 above
+    //MAX -> MIN_VALUE, MIN -> MAX_VALUE (yes, backwards)
 
     int firstColumnDefault = 0;
 
-    if (peakDirection == MAX) { firstColumnDefault = MAX_VALUE; }
+    if (peakDirection == MAX) { firstColumnDefault = MIN_VALUE; }
     else
-    if (peakDirection == MIN) { firstColumnDefault = MIN_VALUE; }
+    if (peakDirection == MIN) { firstColumnDefault = MAX_VALUE; }
 
     for (int i = 0; i < widthOfDataBuffer; i++){
         mapDataBuffer[0][i] = firstColumnDefault;
