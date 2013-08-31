@@ -402,6 +402,7 @@ public class UTBoard extends Board{
     static byte SET_CONTROL_FLAGS_CMD = 24;
     static byte GET_WALL_MAP_CMD = 25;
     static byte RESET_FOR_NEXT_RUN_CMD = 26;
+    static byte SET_MAPPING_CHANNEL_CMD = 27;
 
     static byte ERROR = 125;
     static byte DEBUG_CMD = 126;
@@ -1222,6 +1223,8 @@ public void initialize()
 
     sendRabbitControlFlags();
 
+    sendMappingChannel();
+
     //destroy the configFile object to release resources
     //debug -- mks -- this was removed because the warmStart needs to reload resources
     // probably doesn't need to reload them as the originals are probably still good?
@@ -1460,6 +1463,25 @@ public void sendRabbitControlFlags()
     super.sendRabbitControlFlags(SET_CONTROL_FLAGS_CMD);
 
 }//end of Board::sendRabbitControlFlags
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Board::sendMappingChannel
+//
+// Sends the mapping channel value to the remotes. Each remote board can have
+// one mapping channel which collects extensive data and transmits it to the
+// host for mapping purposes.
+//
+
+public void sendMappingChannel()
+{
+
+    sendBytes(SET_MAPPING_CHANNEL_CMD,
+            (byte) ((boardChannelForMapDataSource >> 8) & 0xff),
+            (byte) (boardChannelForMapDataSource & 0xff)
+            );
+
+}//end of Board::sendMappingChannel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -3733,7 +3755,7 @@ void configureExtended(IniFile pConfigFile)
       pConfigFile.readInt(section, "This Board is Source for Map Channel", -1);
 
     boardChannelForMapDataSource =
-         pConfigFile.readInt(section, "Board Channel for Map Data Source", -1);
+         pConfigFile.readInt(section, "Board Channel for Map Data Source", 1);
 
     headForMapDataSensor =
               pConfigFile.readInt(section, "Head for Map Data Sensor", -1);
@@ -5191,6 +5213,9 @@ private int handleMapDataTDCCode(int pCode)
 // are glitches on the Control board pulse line, they will have to be solved
 // some other way -- perhaps filtering by the FPGA.
 //
+// prevCtrlCodeIndex is not updated because these codes are never kept in
+// the data buffer -- they are ignored.
+//
 
 private int handleMapDataLinearAdvanceCode(int pCode)
 {
@@ -5198,11 +5223,14 @@ private int handleMapDataLinearAdvanceCode(int pCode)
     //set only the bit designating value as a control flag
     int code = MAP_CONTROL_CODE_FLAG;
 
-    map2D.advanceInsertionPoint();
-
     if (prevCtrlCodeIndex > 0 && prevCtrlCodeIndex < dataBuffer.length){
         dataBuffer[prevCtrlCodeIndex] |= MAP_LINEAR_ADVANCE_FLAG;
     }
+
+    //if this board has no map or it has not been set yet, bail out
+    if (map2D == null) { return(code |= MAP_IGNORE_CODE_FLAG); }
+
+    map2D.advanceInsertionPoint();
 
     return(code |= MAP_IGNORE_CODE_FLAG);
 

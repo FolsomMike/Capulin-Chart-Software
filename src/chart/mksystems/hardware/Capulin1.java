@@ -1117,6 +1117,9 @@ public void displayMessages()
 // Installs new firmware on the Rabbit micro-controllers.  Which boards are
 // updated is selected by pWhichRabbits -- all, UT, or Control boards.
 //
+// wip mks -- need to be able to load an individual Rabbit so if one out of
+// ten fails, don't need to reload all ten to fix the one
+//
 
 @Override
 public void updateRabbitCode(int pWhichRabbits)
@@ -1189,15 +1192,16 @@ public void setMode(int pOpMode)
 
     if (opMode == Hardware.SCAN){
 
+        //set mode for Boards to advance map plotters they control -- map
+        //plotters will advance across screen with each revolution
+        setMapAdvanceModes(Board.ADVANCE_ON_TDC_CODE);
+
         //signal "Main Thread" to reset
         performResetUTBoardsForNextRun = true;
 
         //enable async sending of wall map data packets by the UTBoards
         wallMapPacketsEnabled.setValue(true, false);
 
-        //set mode for Boards to advance map plotters they control -- map
-        //plotters will advance across screen with each revolution
-        setMapAdvanceModes(Board.ADVANCE_ON_TDC_CODE);
     }
 
     //for INSPECT mode, which uses hardware encoder and control signals, perform
@@ -1229,25 +1233,25 @@ public void setMode(int pOpMode)
         controlBoards[0].startInspect();
         controlBoardInspectMode = true; //flag that board is in inspect mode
 
+        //set mode for Boards to advance map plotters they control
+        //map plotter advance controlled by this object monitoring encoder
+        setMapAdvanceModes(Board.ADVANCE_BY_CONTROLLER);
+
         //signal "Main Thread" to reset
         performResetUTBoardsForNextRun = true;
 
         //enable async sending of wall map data packets by the UTBoards
         wallMapPacketsEnabled.setValue(true, false);
 
-        //set mode for Boards to advance map plotters they control
-        //map plotter advance controlled by this object monitoring encoder
-        setMapAdvanceModes(Board.ADVANCE_BY_CONTROLLER);
-
     }
 
     if (opMode == Hardware.STOPPED){
 
-        //disable async sending of wall map data packets by the UTBoards
-        wallMapPacketsEnabled.setValue(false, false);
-
         //set mode for Boards to advance map plotters they control
         setMapAdvanceModes(Board.ADVANCE_NEVER);
+
+        //disable async sending of wall map data packets by the UTBoards
+        wallMapPacketsEnabled.setValue(false, false);
 
         //deactivate inspect mode in the control board(s)
         //wip mks -- should this be a synced variable or use a flag to

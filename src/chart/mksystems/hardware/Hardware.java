@@ -289,16 +289,36 @@ public void connect()
 
     analogDriver.connect();
 
-    //calculate the trace offsets from the point where the photo eye detects the
-    //pipe so the traces can be delayed until their sensors reach the inspection
-    //piece
-    calculateTraceOffsetDelays();
+    //calculate the distance offsets from the point where the photo eye detects
+    //the pipe so each plotter can be delayed until its sensors reach the
+    //inspection piece
+    calculatePlotterOffsetDelays();
 
     logger.logMessage("\nChassis configuration complete.\n");
 
     logger.saveToFile("Chassis Configuration Log");
 
 }//end of Hardware::connect
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::calculatePlotterOffsetDelays
+//
+// Calculates appropriate distance offsets for each plotter to align it with
+// the leading edge of the test piece.
+//
+
+void calculatePlotterOffsetDelays()
+{
+
+    calculateTraceOffsetDelays();
+
+    //calculate offset delays for maps not associated with a channel
+    analogDriver.calculateMapOffsetDelays(
+                photoEye1DistanceFrontOfHead1, photoEye1DistanceFrontOfHead2,
+                photoEye2DistanceFrontOfHead1, photoEye2DistanceFrontOfHead2);
+
+}//end of Hardware::calculatePlotterOffsetDelays
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -353,12 +373,6 @@ void calculateTraceOffsetDelays()
             }//for (int tr = 0; tr < nTr; tr++)
         }//for (int sc = 0; sc < nSC; sc++)
     }//for (int cg = 0; cg < chartGroups.length; cg++)
-
-
-    //calculate offset delays for maps not associated with a channel
-    analogDriver.calculateMapOffsetDelays(
-                photoEye1DistanceFrontOfHead1, photoEye1DistanceFrontOfHead2,
-                photoEye2DistanceFrontOfHead1, photoEye2DistanceFrontOfHead2);
 
 }//end of Hardware::calculateTraceOffsetDelays
 //-----------------------------------------------------------------------------
