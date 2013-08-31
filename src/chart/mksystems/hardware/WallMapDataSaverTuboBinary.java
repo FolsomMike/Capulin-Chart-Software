@@ -429,7 +429,7 @@ public void copyJobInfoToLocalVariables()
     fChnlOffset[2] = (float)0;
     fChnlOffset[3] = (float)0;
 
-    nHomeXOffset = 21; //debug mks -- read actual value here see Note 1 above
+    nHomeXOffset = 16; //debug mks -- read actual value here see Note 1 above
 
     nHomeXOffset += GOING_AWAY_OFFSET_CORRECTION;
 
@@ -631,7 +631,7 @@ private void saveRevolutions() throws IOException
 
     //debug mks -- remove this
     if (leastNumberOfRevs < 5){
-        leastNumberOfRevs = leastNumberOfRevs;
+        analyzeAndRepairData();
     }
     //debug mks -- remove this
 
@@ -853,7 +853,7 @@ private void calculateRevCount()
         }
 
         //drop one from the count to ignore the last rev
-        if (revCount < 0) { revCount--; }
+        if (revCount > 0) { revCount--; }
 
          mapSourceBoards[i].numberOfRevs = revCount;
 
