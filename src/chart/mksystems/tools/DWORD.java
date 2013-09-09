@@ -1,36 +1,37 @@
 /******************************************************************************
-* Title: WORD.java
+* Title: DWORD.java
 * Author: Mike Schoonover
 * Date: 8/23/13
 *
 * Purpose:
 *
-* This class mimics the Microsoft WORD programming type which is an unsigned
-* 16 bit integer.
+* This class mimics the Microsoft DWORD programming type which is an unsigned
+* 32 bit integer.
 *
 * Since the object takes up more space than the primitive types, if a large
 * number (such as an array) are to be used it can be more efficient to keep
-* the WORDs as ints and then run them through a WORD object just for printing.
+* the DWORDs as long ints and then run them through a DWORD object just for
+* printing.
 *
-* Java doesn't have unsigned short ints, so a 32 bit int is used to hold the
-* value. As the WORD will never be greater than 65,535, it will never affect the
-* sign bit of the 32 bit int.
+* Java doesn't have unsigned ints, so a 64 bit long int is used to hold the
+* value. As the WORD will never be greater than 4,294,967,295, it will never
+* affect the sign bit of the 64 bit long int.
 *
-* When saved to a file, only the lower two bytes are saved -- in Little Endian
+* When saved to a file, only the lower four bytes are saved -- in Little Endian
 * order as opposed to Java's Big Endian order for compatibility with Microsoft
 * C, C++, C#.
 *
 * Reference:
 *
-*  WORD:
-*      A 16-bit unsigned integer. The range is 0 through 65535 decimal.
-*      This type is declared in WinDef.h as follows:
-*      typedef unsigned short WORD;
+* DWORD:
+*      A 32-bit unsigned integer. The range is 0 through 4294967295 decimal.
+*      This type is declared in IntSafe.h as follows:
+*      typedef unsigned long DWORD;
 *
 */
 
 
-package MKSTools;
+package chart.mksystems.tools;
 
 //-----------------------------------------------------------------------------
 
@@ -40,29 +41,29 @@ import java.io.IOException;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-// class WORD
+// class DWORD
 //
 
-public class WORD extends Object{
+public class DWORD extends Object{
 
-public int value;
+public long value;
 
 //-----------------------------------------------------------------------------
-// WORD::WORD (constructor)
+// DWORD::DWORD (constructor)
 //
 
-public WORD(int pValue)
+public DWORD(long pValue)
 {
 
     value = pValue;
 
-}//end of WORD::WORD (constructor)
+}//end of DWORD::DWORD (constructor)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// WORD::write
+// DWORD::write
 //
-// Writes the two least significant bytes to pFile, Little Endian order.
+// Writes the four least significant bytes to pFile, Little Endian order.
 //
 
 public void write(DataOutputStream pFile) throws IOException
@@ -70,14 +71,16 @@ public void write(DataOutputStream pFile) throws IOException
 
     pFile.writeByte((byte) (value & 0xff));
     pFile.writeByte((byte) ((value >> 8) & 0xff));
+    pFile.writeByte((byte) ((value >> 16) & 0xff));
+    pFile.writeByte((byte) ((value >> 24) & 0xff));
 
-}//end of WORD::write
+}//end of DWORD::write
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// WORD::read
+// DWORD::read
 //
-// Reads two bytes from pFile, Little Endian order, reversing the order to
+// Reads four bytes from pFile, Little Endian order, reversing the order to
 // be Big Endian for Java compatibility.
 //
 
@@ -85,12 +88,13 @@ public void read(DataInputStream pFile) throws IOException
 {
 
     value =    (pFile.readByte() & 0xff)
-            + ((pFile.readByte() << 8)   & 0xff00);
-    
-}//end of WORD::read
+            + ((pFile.readByte() << 8)   & 0xff00)
+            + ((pFile.readByte() << 16)  & 0xff0000)
+            + ((pFile.readByte() << 24)  & 0xff000000);
+
+}//end of DWORD::read
 //-----------------------------------------------------------------------------
 
-
-}//end of class WORD
+}//end of class DWORD
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
