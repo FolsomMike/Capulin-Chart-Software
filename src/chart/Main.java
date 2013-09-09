@@ -36,8 +36,14 @@ import java.awt.event.ComponentListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -122,7 +128,7 @@ public void run() {
     }//try
 
     catch (InterruptedException e) {
-        System.err.println(getClass().getName() + " - Error: 126");
+        settings.logException(e);
     }
 
 }//end of MainThread::run
@@ -185,6 +191,8 @@ class MainWindow implements WindowListener, ActionListener, ChangeListener,
     int lastPieceInspected = -1;
     boolean isLastPieceInspectedACal = false;
 
+    static final integer ERROR_LOG_MAX_SIZE = 10000;
+
 //-----------------------------------------------------------------------------
 // MainWindow::MainWindow (constructor)
 //
@@ -192,19 +200,22 @@ class MainWindow implements WindowListener, ActionListener, ChangeListener,
 public MainWindow()
 {
 
+}//end of MainWindow::MainWindow (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainWindow::init
+//
+// Initializes the object.  MUST be called by sub classes after instantiation.
+//
+
+public void init()
+{
+
     //turn off default bold for Metal look and feel
     UIManager.put("swing.boldMetal", Boolean.FALSE);
 
-    //redirect the standard error output to a file
-    try{
-        FileOutputStream f = new FileOutputStream("Error Messages.txt", true);
-        System.setErr(new PrintStream(f));
-        System.err.print("Program Started: " + (new Date().toString()));
-        System.err.println(" -----------------------------");
-    }
-    catch(FileNotFoundException e){
-        //no error message saved as the error file open failed
-    }
+    PrintStream errorLog = setupErrorLoggingFile();
 
     //force "look and feel" to Java style
     try {
@@ -212,7 +223,7 @@ public MainWindow()
             UIManager.getCrossPlatformLookAndFeelClassName());
     }
     catch (Exception e) {
-        System.err.println(getClass().getName() + " - Error: 216");
+        settings.logException(e);
     }
 
     //create various decimal formats
@@ -225,6 +236,8 @@ public MainWindow()
     converter.init();
 
     settings = new Settings(this, this);
+
+    settings.errorLog = errorLog; //make available for other objects
 
     xfer = new Xfer();
 
@@ -300,7 +313,7 @@ public MainWindow()
     LicenseValidator  lv = new LicenseValidator(mainFrame, "Graphics.ini");
     lv.validateLicense();
 
-}//end of MainWindow::MainWindow (constructor)
+}//end of MainWindow::init
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -321,7 +334,7 @@ private void loadMainStaticSettings()
                                                       Settings.mainFileFormat);
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 325");
+        settings.logException(e);
         return;
     }
 
@@ -375,7 +388,7 @@ private void saveMainStaticSettings()
     try {configFile = new IniFile("Main Static Settings.ini",
                                                      Settings.mainFileFormat);}
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 378");
+        settings.logException(e);
         return;
     }
 
@@ -407,7 +420,7 @@ private void loadGeneralConfiguration()
                        "Configuration - General.ini", Settings.mainFileFormat);
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 410");
+        settings.logException(e);
         return;
     }
 
@@ -469,7 +482,7 @@ private void loadMainSettings()
         configFile = new IniFile("Main Settings.ini", Settings.mainFileFormat);
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 467");
+        settings.logException(e);
         return;
     }
 
@@ -536,7 +549,7 @@ private void saveMainSettings()
         configFile = new IniFile("Main Settings.ini", Settings.mainFileFormat);
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 528");
+        settings.logException(e);
         return;
     }
 
@@ -581,7 +594,7 @@ private void configure()
         configFile = new IniFile(configFilename, settings.jobFileFormat);
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 571");
+        settings.logException(e);
         return;
     }
 
@@ -719,7 +732,7 @@ private void loadCalFile()
                                                         settings.jobFileFormat);
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 705");
+        settings.logException(e);
         return;
     }
 
@@ -903,7 +916,7 @@ boolean segmentStarted()
 // of the data to be saved are known.
 //
 
-private void saveSegment()
+private void saveSegment() throws IOException
 {
 
     String segmentFilename;
@@ -1015,7 +1028,7 @@ private void saveSegmentHelper(String pFilename)
         }
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 967");
+        settings.logException(e);
     }
     finally{
         try{if (out != null) {out.close();}}
@@ -1087,7 +1100,7 @@ private void saveSegmentInfoHelper(String pFilename)
 
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 1039");
+        settings.logException(e);
     }
     finally{
         try{if (out != null) {out.close();}}
@@ -1336,7 +1349,12 @@ public void actionPerformed(ActionEvent e)
     //this part processes a finished piece by saving data, adjusting next piece
     //number, etc.
     if ("Process finished Piece".equals(e.getActionCommand())) {
-        processFinishedPiece();
+        try{
+            processFinishedPiece();
+        }
+        catch(IOException ioe){
+            settings.logException(ioe);
+        }
         return;
     }// if ("Process finished Piece".equals(e.getActionCommand()))
 
@@ -1443,7 +1461,7 @@ public void printFlagReport(int pPieceToPrint, boolean pIsCalPiece)
 // Process a completed piece by saving it, analyzing it, etc.
 //
 
-public void processFinishedPiece()
+public void processFinishedPiece() throws IOException
 {
 
     //if an inspection was started, save the data and increment to the next
@@ -1497,7 +1515,7 @@ public void prepareForNextPiece()
 // piece.
 //
 
-public void handlePieceTransition()
+public void handlePieceTransition()throws IOException
 {
 
     //save the piece just finished
@@ -2022,7 +2040,12 @@ public void processMainTimerEvent()
     //finished piece and prepare for the next one
     if (hardware.prepareForNewPiece){
         hardware.prepareForNewPiece = false;
-        handlePieceTransition();
+        try{
+            handlePieceTransition();
+        }
+        catch(IOException ioe){
+            settings.logException(ioe);
+        }
     }
 
     //plot data on the graphs - if no data is being collected by the hardware
@@ -2240,7 +2263,7 @@ private void loadLanguage(String pLanguage)
        "language\\Main Window - Capulin UT.language", Settings.mainFileFormat);
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 2138");
+        settings.logException(e);
         return;
     }
 
@@ -2435,6 +2458,55 @@ private void displayWarningMessage(String pMessage)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainWindow::setupErrorLoggingFile
+//
+// Opens a file for logging errors and redirects the standard System.err
+// stream to this file.
+//
+// Each time the method is called, it checks to see if the file is larger
+// than the maximum allowable size and deletes the file if so.
+//
+// Returns PrintStream reference to the error logging file.
+//
+
+private PrintStream setupErrorLoggingFile()
+{
+
+    Path p1 = Paths.get("Error Messages.txt");
+        try {
+            if (Files.size(p1) > ERROR_LOG_MAX_SIZE){
+                Files.delete(p1);
+            }
+        }
+        catch(NoSuchFileException nsfe){
+            //do nothing if file not found -- will be recreated
+        }
+        catch (IOException ex) {
+            Logger.getLogger(
+                    MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+            return(null);
+        }
+
+    PrintStream errorLog = null;
+
+    //redirect the standard error output to a file
+    try{
+        FileOutputStream f = new FileOutputStream("Error Messages.txt", true);
+        errorLog = new PrintStream(f);
+        System.setErr(errorLog);
+        System.err.print("Program Started: " + (new Date().toString()));
+        System.err.println(" -----------------------------");
+    }
+    catch(FileNotFoundException e){
+        //no error message saved as the error file open failed
+    }
+
+    return(errorLog);
+
+}//end of MainWindow::setupErrorLoggingFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainWindow::(various component listener functions)
 //
 // These functions are implemented per requirements of interface
@@ -2480,6 +2552,7 @@ private static void createAndShowGUI()
 
     //instantiate an object to create and handle the main window JFrame
     MainWindow mainWindow = new MainWindow();
+    mainWindow.init();
 
 }//end of Main::createAndShowGUI
 //-----------------------------------------------------------------------------

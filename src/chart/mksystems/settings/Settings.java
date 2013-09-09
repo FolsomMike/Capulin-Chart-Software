@@ -71,6 +71,8 @@ public class Settings extends Object implements ActionListener, ItemListener {
 
     public CalFileSaver fileSaver = null;
 
+    public PrintStream errorLog;
+
     //Constants
 
     public static String SOFTWARE_VERSION = "1.96";
@@ -989,6 +991,21 @@ public static long calculateSumOfFileData(String pFilename)
     }
 
 }//end of Settings::calculateSumOfFileData
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Settings::logException
+//
+// Prints message from pE and the stack trace to errorLog.
+//
+
+public void logException(Exception pE)
+{
+
+    errorLog.println(pE.getMessage());
+    pE.printStackTrace(errorLog);
+
+}//end of Settings::logException
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
