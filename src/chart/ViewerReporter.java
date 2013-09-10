@@ -30,6 +30,8 @@ import java.awt.event.ActionListener;
 import java.awt.print.*;
 import java.io.*;
 import java.text.DecimalFormat;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.print.attribute.PrintRequestAttributeSet;
 import javax.swing.*;
 
@@ -933,6 +935,34 @@ public boolean isCalSelected()
 }//end of ViewerReporter::isCalSelected
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// ViewerReporter::logSevere
+//
+// Logs pMessage with level SEVERE using the Java logger.
+//
+
+void logSevere(String pMessage)
+{
+
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage);
+
+}//end of ViewerReporter::logSevere
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ViewerReporter::logStackTrace
+//
+// Logs stack trace info for exception pE with pMessage at level SEVERE using
+// the Java logger.
+//
+
+void logStackTrace(String pMessage, Exception pE)
+{
+
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage, pE);
+
+}//end of ViewerReporter::logStackTrace
+//-----------------------------------------------------------------------------
 
 }//end of class ViewerReporter
 //-----------------------------------------------------------------------------

@@ -22,6 +22,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.*;
 
 //-----------------------------------------------------------------------------
@@ -518,6 +520,34 @@ void createPlaceHolderCalFile(String pFilename)
 }//end of NewJob::createPlaceHolderCalFile
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// NewJob::logSevere
+//
+// Logs pMessage with level SEVERE using the Java logger.
+//
+
+void logSevere(String pMessage)
+{
+
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage);
+
+}//end of NewJob::logSevere
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// NewJob::logStackTrace
+//
+// Logs stack trace info for exception pE with pMessage at level SEVERE using
+// the Java logger.
+//
+
+void logStackTrace(String pMessage, Exception pE)
+{
+
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage, pE);
+
+}//end of NewJob::logStackTrace
+//-----------------------------------------------------------------------------
 
 }//end of class NewJob
 //-----------------------------------------------------------------------------

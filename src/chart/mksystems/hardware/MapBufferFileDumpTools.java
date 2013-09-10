@@ -114,6 +114,21 @@ static private void logSevere(String pMessage)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MapBufferFileDumpTools::logStackTrace
+//
+// Logs stack trace info for exception pE with pMessage at level SEVERE using
+// the Java logger.
+//
+
+static private void logStackTrace(String pMessage, Exception pE)
+{
+
+    Logger.getLogger(getStaticClassName()).log(Level.SEVERE, pMessage, pE);
+
+}//end of MapBufferFileDumpTools::logStackTrace
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MapBufferFileDumpTools::writeHeaderToTextFile
 //
 // Saves all key/value pairs in pHeaderInfo to file pOutFile.

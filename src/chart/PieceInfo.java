@@ -23,6 +23,8 @@ import chart.mksystems.inifile.IniFile;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.*;
 
 
@@ -652,6 +654,35 @@ public void windowActivated(WindowEvent e){}
 public void windowDeactivated(WindowEvent e){}
 
 //end of PieceInfo::(various window listener functions)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// PieceInfo::logSevere
+//
+// Logs pMessage with level SEVERE using the Java logger.
+//
+
+void logSevere(String pMessage)
+{
+
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage);
+
+}//end of PieceInfo::logSevere
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// PieceInfo::logStackTrace
+//
+// Logs stack trace info for exception pE with pMessage at level SEVERE using
+// the Java logger.
+//
+
+void logStackTrace(String pMessage, Exception pE)
+{
+
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage, pE);
+
+}//end of PieceInfo::logStackTrace
 //-----------------------------------------------------------------------------
 
 }//end of class PieceInfo

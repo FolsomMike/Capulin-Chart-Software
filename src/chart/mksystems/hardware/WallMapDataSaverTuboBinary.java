@@ -1362,9 +1362,24 @@ private void setUpTestData()
 void logSevere(String pMessage)
 {
 
-    Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, pMessage);
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage);
 
 }//end of WallMapDataSaverTuboBinary::logSevere
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// WallMapDataSaverTuboBinary::logStackTrace
+//
+// Logs stack trace info for exception pE with pMessage at level SEVERE using
+// the Java logger.
+//
+
+void logStackTrace(String pMessage, Exception pE)
+{
+
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage, pE);
+
+}//end of WallMapDataSaverTuboBinary::logStackTrace
 //-----------------------------------------------------------------------------
 
 }//end of class WallMapDataSaverTuboBinary

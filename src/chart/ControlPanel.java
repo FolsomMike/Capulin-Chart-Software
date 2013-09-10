@@ -28,6 +28,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.ChangeEvent;
@@ -620,6 +622,35 @@ protected static ImageIcon createImageIcon(String path)
     else {return null;}
 
 }//end of ControlPanel::createImageIcon
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlPanel::logSevere
+//
+// Logs pMessage with level SEVERE using the Java logger.
+//
+
+void logSevere(String pMessage)
+{
+
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage);
+
+}//end of ControlPanel::logSevere
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlPanel::logStackTrace
+//
+// Logs stack trace info for exception pE with pMessage at level SEVERE using
+// the Java logger.
+//
+
+void logStackTrace(String pMessage, Exception pE)
+{
+
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage, pE);
+
+}//end of ControlPanel::logStackTrace
 //-----------------------------------------------------------------------------
 
 }//end of class ControlPanel

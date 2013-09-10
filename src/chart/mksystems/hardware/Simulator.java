@@ -395,9 +395,24 @@ public int getIntFromSocket()
 void logSevere(String pMessage)
 {
 
-    Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, pMessage);
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage);
 
 }//end of Simulator::logSevere
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Simulator::logStackTrace
+//
+// Logs stack trace info for exception pE with pMessage at level SEVERE using
+// the Java logger.
+//
+
+void logStackTrace(String pMessage, Exception pE)
+{
+
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage, pE);
+
+}//end of Simulator::logStackTrace
 //-----------------------------------------------------------------------------
 
 }//end of class Simulator

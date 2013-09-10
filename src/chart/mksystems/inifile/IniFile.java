@@ -24,6 +24,8 @@ import java.awt.Color;
 import java.io.*;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 //-----------------------------------------------------------------------------
 // class Parameters
@@ -968,6 +970,35 @@ static public boolean detectUTF16LEFormat(String pFilename)
     }//finally
 
 }//end of IniFile::detectUTF16LEFormat
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// IniFile::logSevere
+//
+// Logs pMessage with level SEVERE using the Java logger.
+//
+
+void logSevere(String pMessage)
+{
+
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage);
+
+}//end of IniFile::logSevere
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// IniFile::logStackTrace
+//
+// Logs stack trace info for exception pE with pMessage at level SEVERE using
+// the Java logger.
+//
+
+void logStackTrace(String pMessage, Exception pE)
+{
+
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage, pE);
+
+}//end of IniFile::logStackTrace
 //-----------------------------------------------------------------------------
 
 

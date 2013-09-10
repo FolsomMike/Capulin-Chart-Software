@@ -40,6 +40,8 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.*;
 
 //-----------------------------------------------------------------------------
@@ -561,6 +563,34 @@ public void getMACAddress() {
 }//end of LicenseValidator::getMACAddress
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// LicenseValidator::logSevere
+//
+// Logs pMessage with level SEVERE using the Java logger.
+//
+
+void logSevere(String pMessage)
+{
+
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage);
+
+}//end of LicenseValidator::logSevere
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// LicenseValidator::logStackTrace
+//
+// Logs stack trace info for exception pE with pMessage at level SEVERE using
+// the Java logger.
+//
+
+void logStackTrace(String pMessage, Exception pE)
+{
+
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage, pE);
+
+}//end of LicenseValidator::logStackTrace
+//-----------------------------------------------------------------------------
 
 }//end of class LicenseValidator
 //-----------------------------------------------------------------------------

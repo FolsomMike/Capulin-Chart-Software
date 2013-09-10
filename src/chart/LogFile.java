@@ -22,6 +22,8 @@ package chart;
 
 import java.io.*;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 
 
@@ -160,6 +162,35 @@ JOptionPane.showMessageDialog(null, pMessage,
                                             "Error", JOptionPane.ERROR_MESSAGE);
 
 }//end of LogFile::displayErrorMessage
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// LogFile::logSevere
+//
+// Logs pMessage with level SEVERE using the Java logger.
+//
+
+void logSevere(String pMessage)
+{
+
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage);
+
+}//end of LogFile::logSevere
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// LogFile::logStackTrace
+//
+// Logs stack trace info for exception pE with pMessage at level SEVERE using
+// the Java logger.
+//
+
+void logStackTrace(String pMessage, Exception pE)
+{
+
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage, pE);
+
+}//end of LogFile::logStackTrace
 //-----------------------------------------------------------------------------
 
 }//end of class LogFile

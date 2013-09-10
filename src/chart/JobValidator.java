@@ -59,6 +59,8 @@ package chart;
 
 import java.io.*;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 
 //-----------------------------------------------------------------------------
@@ -592,6 +594,35 @@ private void displayErrorMessage(String pMessage)
                                             "Error", JOptionPane.ERROR_MESSAGE);
 
 }//end of JobValidator::displayErrorMessage
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// JobValidator::logSevere
+//
+// Logs pMessage with level SEVERE using the Java logger.
+//
+
+void logSevere(String pMessage)
+{
+
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage);
+
+}//end of JobValidator::logSevere
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// JobValidator::logStackTrace
+//
+// Logs stack trace info for exception pE with pMessage at level SEVERE using
+// the Java logger.
+//
+
+void logStackTrace(String pMessage, Exception pE)
+{
+
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage, pE);
+
+}//end of JobValidator::logStackTrace
 //-----------------------------------------------------------------------------
 
 }//end of class JobValidator

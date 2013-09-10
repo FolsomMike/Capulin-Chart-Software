@@ -24,6 +24,8 @@ package chart.mksystems.hardware;
 
 import chart.mksystems.inifile.IniFile;
 import java.net.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -98,6 +100,34 @@ public void receive(DatagramPacket p)
 }//end of UDPSimulator::receive
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// UDPSimulator::logSevere
+//
+// Logs pMessage with level SEVERE using the Java logger.
+//
+
+void logSevere(String pMessage)
+{
+
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage);
+
+}//end of UDPSimulator::logSevere
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UDPSimulator::logStackTrace
+//
+// Logs stack trace info for exception pE with pMessage at level SEVERE using
+// the Java logger.
+//
+
+void logStackTrace(String pMessage, Exception pE)
+{
+
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage, pE);
+
+}//end of UDPSimulator::logStackTrace
+//-----------------------------------------------------------------------------
 
 }//end of class UDPSimulator
 //-----------------------------------------------------------------------------

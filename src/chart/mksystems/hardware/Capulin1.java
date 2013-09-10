@@ -35,6 +35,8 @@ import chart.mksystems.threadsafe.SyncedInteger;
 import chart.mksystems.threadsafe.SyncedVariableSet;
 import java.io.*;
 import java.net.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.*;
 
 //-----------------------------------------------------------------------------
@@ -2827,6 +2829,35 @@ public int xmtMessage(int pMessage, int pValue)
 
 }//end of Capulin1::xmtMessage
 //----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::logSevere
+//
+// Logs pMessage with level SEVERE using the Java logger.
+//
+
+void logSevere(String pMessage)
+{
+
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage);
+
+}//end of Capulin1::logSevere
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::logStackTrace
+//
+// Logs stack trace info for exception pE with pMessage at level SEVERE using
+// the Java logger.
+//
+
+void logStackTrace(String pMessage, Exception pE)
+{
+
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage, pE);
+
+}//end of Capulin1::logStackTrace
+//-----------------------------------------------------------------------------
 
 }//end of class Capulin1
 //-----------------------------------------------------------------------------

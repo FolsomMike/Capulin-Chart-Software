@@ -22,6 +22,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.*;
 
 //-----------------------------------------------------------------------------
@@ -344,6 +346,35 @@ boolean copyFile(String pSource, String pDest)
     return(true);
 
 }//end of RenamePreset::copyFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// RenamePreset::logSevere
+//
+// Logs pMessage with level SEVERE using the Java logger.
+//
+
+void logSevere(String pMessage)
+{
+
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage);
+
+}//end of RenamePreset::logSevere
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// RenamePreset::logStackTrace
+//
+// Logs stack trace info for exception pE with pMessage at level SEVERE using
+// the Java logger.
+//
+
+void logStackTrace(String pMessage, Exception pE)
+{
+
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage, pE);
+
+}//end of RenamePreset::logStackTrace
 //-----------------------------------------------------------------------------
 
 }//end of class RenamePreset

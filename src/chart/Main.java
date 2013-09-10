@@ -2049,8 +2049,7 @@ public void processMainTimerEvent()
             handlePieceTransition();
         }
         catch(IOException e){
-            //debug mks settings.logException(e);
-            Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, e);
+            logStackTrace("Error: 2052", e);
         }
     }
 
@@ -2484,9 +2483,9 @@ private void deleteFileIfOverSizeLimit(String pFilename, int pLimit)
     catch(NoSuchFileException nsfe){
         //do nothing if file not found -- will be recreated as needed
     }
-    catch (IOException ex) {
+    catch (IOException e) {
         //do nothing if error on deletion -- will be deleted next time
-        Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
+        logStackTrace("Error: 2488", e);
     }
 
 }//end of MainWindow::deleteFileIfOverSizeLimit
@@ -2537,7 +2536,7 @@ private void setupJavaLogger()
 
     }
     catch(IOException e){
-        Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, e);
+        logStackTrace("Error: 2539", e);
     }
 
 }//end of MainWindow::setupJavaLogger
@@ -2573,12 +2572,41 @@ private PrintStream setupErrorLoggingFile()
         System.err.println(" -----------------------------");
     }
     catch(FileNotFoundException e){
-        Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, e);
+        logStackTrace("Error: 2576", e);
     }
 
     return(errorLog);
 
 }//end of MainWindow::setupErrorLoggingFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainWindow::logSevere
+//
+// Logs pMessage with level SEVERE using the Java logger.
+//
+
+void logSevere(String pMessage)
+{
+
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage);
+
+}//end of MainWindow::logSevere
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainWindow::logStackTrace
+//
+// Logs stack trace info for exception pE with pMessage at level SEVERE using
+// the Java logger.
+//
+
+void logStackTrace(String pMessage, Exception pE)
+{
+
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage, pE);
+
+}//end of MainWindow::logStackTrace
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

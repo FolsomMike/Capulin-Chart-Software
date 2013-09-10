@@ -26,6 +26,8 @@ import chart.mksystems.inifile.IniFile;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.*;
 
 //-----------------------------------------------------------------------------
@@ -436,6 +438,35 @@ public void windowActivated(WindowEvent e){}
 public void windowDeactivated(WindowEvent e){}
 
 //end of JobInfo::(various window listener functions)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// JobInfo::logSevere
+//
+// Logs pMessage with level SEVERE using the Java logger.
+//
+
+void logSevere(String pMessage)
+{
+
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage);
+
+}//end of JobInfo::logSevere
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// JobInfo::logStackTrace
+//
+// Logs stack trace info for exception pE with pMessage at level SEVERE using
+// the Java logger.
+//
+
+void logStackTrace(String pMessage, Exception pE)
+{
+
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage, pE);
+
+}//end of JobInfo::logStackTrace
 //-----------------------------------------------------------------------------
 
 }//end of class JobInfo
