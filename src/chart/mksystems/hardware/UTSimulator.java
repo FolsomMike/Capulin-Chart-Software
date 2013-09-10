@@ -514,7 +514,7 @@ public int processDataPacketsHelper(boolean pWaitForPkt)
 
     }//try
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 430");
+        logSevere(e.getMessage() + " - Error: 519");
     }
 
     return 0;
@@ -540,7 +540,7 @@ private int readBytes(int pNumBytes)
         return(pNumBytes);
     }// try
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 452");
+        logSevere(e.getMessage() + " - Error: 544");
         return(-1);
     }
 
@@ -920,7 +920,7 @@ void sendPacketHeader(byte pPacketID, byte pDSPChip, byte pDSPCore)
             byteOut.write(outBuffer, 0 /*offset*/, 7);
         }
         catch (IOException e) {
-            System.err.println(getClass().getName() + " - Error: 830");
+            logSevere(e.getMessage() + " - Error: 925");
         }
     }
 
@@ -1610,7 +1610,7 @@ private void configure()
     //if the ini file cannot be opened and loaded, exit without action
     try {configFile = new IniFile("Simulation.ini", mainFileFormat);}
         catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 1236");
+        logSevere(e.getMessage() + " - Error: 1629");
         return;
         }
 

@@ -24,6 +24,8 @@ package chart.mksystems.hardware;
 
 import java.io.*;
 import java.net.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 //-----------------------------------------------------------------------------
 
@@ -110,7 +112,7 @@ public Simulator(InetAddress pIPAddress, int pPort) throws SocketException
     //data sent by the external object
     try{localInStream = new PipedInputStream(outStream, PIPE_SIZE);}
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 112");
+        logSevere(e.getMessage() + " - Error: 112");
     }
 
     //this end goes to the external object
@@ -119,7 +121,7 @@ public Simulator(InetAddress pIPAddress, int pPort) throws SocketException
     //data sent by the external object
     try{localOutStream = new PipedOutputStream(inStream);}
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 121");
+        logSevere(e.getMessage() + " - Error: 121");
     }
 
     inBuffer = new byte[IN_BUFFER_SIZE]; //used by various functions
@@ -167,7 +169,7 @@ public void reSync()
             }
         }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 169");
+        logSevere(e.getMessage() + " - Error: 169");
     }
 
 }//end of Simulator::reSync
@@ -208,7 +210,7 @@ void sendBytes(byte... pBytes)
               byteOut.flush();
         }
         catch (IOException e) {
-            System.err.println(getClass().getName() + " - Error: 220");
+            logSevere(e.getMessage() + " - Error: 220");
         }
     }
 
@@ -272,7 +274,7 @@ void sendDataBlock(int pSize, int[] pBuffer)
             byteOut.flush();
         }
         catch (IOException e) {
-            System.err.println(getClass().getName() + " - Error: 347");
+            logSevere(e.getMessage() + " - Error: 347");
         }
     }
 
@@ -356,7 +358,7 @@ public int getByteFromSocket()
 
     try{byteIn.read(inBuffer, 0, 1);}
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 430");
+        logSevere(e.getMessage() + " - Error: 430");
     }
 
     return (int)(inBuffer[0] & 0xff);
@@ -376,12 +378,26 @@ public int getIntFromSocket()
 
     try{byteIn.read(inBuffer, 0, 2);}
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 450");
+        logSevere(e.getMessage() + " - Error: 450");
     }
 
     return (int)((inBuffer[0]<<8) & 0xff00) + (inBuffer[1] & 0xff);
 
 }//end of Simulator::getIntFromSocket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Simulator::logSevere
+//
+// Logs pMessage with level SEVERE using the Java logger.
+//
+
+void logSevere(String pMessage)
+{
+
+    Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, pMessage);
+
+}//end of Simulator::logSevere
 //-----------------------------------------------------------------------------
 
 }//end of class Simulator

@@ -42,8 +42,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.util.Date;
+import java.util.logging.FileHandler;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -191,7 +194,7 @@ class MainWindow implements WindowListener, ActionListener, ChangeListener,
     int lastPieceInspected = -1;
     boolean isLastPieceInspectedACal = false;
 
-    static final integer ERROR_LOG_MAX_SIZE = 10000;
+    static final int ERROR_LOG_MAX_SIZE = 10000;
 
 //-----------------------------------------------------------------------------
 // MainWindow::MainWindow (constructor)
@@ -214,6 +217,8 @@ public void init()
 
     //turn off default bold for Metal look and feel
     UIManager.put("swing.boldMetal", Boolean.FALSE);
+
+    setupJavaLogger(); //redirect to a file
 
     PrintStream errorLog = setupErrorLoggingFile();
 
@@ -2043,8 +2048,9 @@ public void processMainTimerEvent()
         try{
             handlePieceTransition();
         }
-        catch(IOException ioe){
-            settings.logException(ioe);
+        catch(IOException e){
+            //debug mks settings.logException(e);
+            Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, e);
         }
     }
 
@@ -2458,6 +2464,86 @@ private void displayWarningMessage(String pMessage)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// MainWindow::deleteFileIfOverSizeLimit
+//
+// If file pFilename is larger than pLimit, the file is deleted.
+//
+
+private void deleteFileIfOverSizeLimit(String pFilename, int pLimit)
+{
+
+    //delete the logging file if it has become too large
+
+    Path p1 = Paths.get(pFilename);
+
+    try {
+        if (Files.size(p1) > ERROR_LOG_MAX_SIZE){
+            Files.delete(p1);
+        }
+    }
+    catch(NoSuchFileException nsfe){
+        //do nothing if file not found -- will be recreated as needed
+    }
+    catch (IOException ex) {
+        //do nothing if error on deletion -- will be deleted next time
+        Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
+    }
+
+}//end of MainWindow::deleteFileIfOverSizeLimit
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainWindow::setupJavaLogger
+//
+// Prepares the Java logging system for use. Output is directed to a file.
+//
+// Each time the method is called, it checks to see if the file is larger
+// than the maximum allowable size and deletes the file if so.
+//
+
+private void setupJavaLogger()
+{
+
+    String logFilename = "Java Logger File.txt";
+
+    //prevent the logging file from getting too big
+    deleteFileIfOverSizeLimit(logFilename, ERROR_LOG_MAX_SIZE);
+
+    //remove all existing handlers from the root logger (and thus all child
+    //loggers) so the output is not sent to the console
+
+    Logger rootLogger = Logger.getLogger("");
+    Handler[] handlers = rootLogger.getHandlers();
+    for(Handler handler : handlers) {
+        rootLogger.removeHandler(handler);
+    }
+
+    //add a new handler to send the output to a file
+
+    Handler fh;
+
+    try{
+
+        fh = new FileHandler(logFilename);
+
+        //direct output to a file for the root logger and  all child loggers
+        Logger.getLogger("").addHandler(fh);
+
+        //use simple text output rather than default XML format
+        fh.setFormatter(new SimpleFormatter());
+
+        //record all log messages
+        Logger.getLogger("").setLevel(Level.WARNING);
+
+    }
+    catch(IOException e){
+        Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, e);
+    }
+
+}//end of MainWindow::setupJavaLogger
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // MainWindow::setupErrorLoggingFile
 //
 // Opens a file for logging errors and redirects the standard System.err
@@ -2472,33 +2558,22 @@ private void displayWarningMessage(String pMessage)
 private PrintStream setupErrorLoggingFile()
 {
 
-    Path p1 = Paths.get("Error Messages.txt");
-        try {
-            if (Files.size(p1) > ERROR_LOG_MAX_SIZE){
-                Files.delete(p1);
-            }
-        }
-        catch(NoSuchFileException nsfe){
-            //do nothing if file not found -- will be recreated
-        }
-        catch (IOException ex) {
-            Logger.getLogger(
-                    MainWindow.class.getName()).log(Level.SEVERE, null, ex);
-            return(null);
-        }
+    String logFilename = "Error Messages.txt";
+
+    deleteFileIfOverSizeLimit(logFilename, ERROR_LOG_MAX_SIZE);
 
     PrintStream errorLog = null;
 
     //redirect the standard error output to a file
     try{
-        FileOutputStream f = new FileOutputStream("Error Messages.txt", true);
+        FileOutputStream f = new FileOutputStream(logFilename, true);
         errorLog = new PrintStream(f);
         System.setErr(errorLog);
         System.err.print("Program Started: " + (new Date().toString()));
         System.err.println(" -----------------------------");
     }
     catch(FileNotFoundException e){
-        //no error message saved as the error file open failed
+        Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, e);
     }
 
     return(errorLog);

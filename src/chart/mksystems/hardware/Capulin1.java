@@ -2568,6 +2568,11 @@ public void recordStopLocation(int pHead, double pPosition)
 // Records the linear position of the head/test piece when the start
 // inspection signal is received for pHead for all boards recording map data.
 //
+// The position saved is the distance the leading vertical photo eye beam spot
+// has traveled past the starting end of the piece. The head and transducer
+// offsets can be subtracted from this value to give the locaton of any given
+// transducer.
+//
 
 private void recordStartLocationForMapping(int pHead, double pPosition)
 {
@@ -2591,6 +2596,13 @@ private void recordStartLocationForMapping(int pHead, double pPosition)
 //
 // Records the linear position of the head/test piece when the stop
 // inspection signal is received for pHead for all boards recording map data.
+//
+// The position saved is the distance the leading vertical photo eye beam spot
+// has traveled past the starting end of the piece when the trailing vertical
+// beam spot clears the far end of the piece. The leading vertical beam spot
+// will actually be beyond the far end of the piece at that point. The head and
+// transducer offsets can be subtracted from this value to give the location of
+// any given transducer.
 //
 
 private void recordStopLocationForMapping(int pHead, double pPosition)
@@ -2655,6 +2667,8 @@ public void calculateMapOffsetDelays(
         double pPhotoEye2DistanceFrontOfHead2
         )
 {
+
+    if(mapSourceBoards == null) { return; }
 
     for (int i = 0; i < mapSourceBoards.length; i++){
 
