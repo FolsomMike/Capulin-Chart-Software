@@ -53,6 +53,7 @@ public class UTBoard extends Board{
     short dataBuffer[] = null;
     int prevCtrlCodeIndex = -1;
     int mapTDCCodeIgnoreTimer = 0;
+    boolean dataBufferIsEnabled = true;
 
     static final int MAP_TDC_IGNORE_TIMER_RESET = 50;
 
@@ -1445,6 +1446,24 @@ public void setIndexOfLastDataPointInDataBuffer(int pIndex)
     dataBufferIndex = pIndex;
 
 }//end of UTBoard::setIndexOfLastDataPointInDataBuffer
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::setDataBufferIsEnabled
+//
+// Sets dataBufferIsEnabled to pState.
+//
+// If enabled, data from received map packets is stored in the buffer.
+// If disabled, the map packets are still collected from the socket, but no
+// data is stored.
+//
+
+public void setDataBufferIsEnabled(boolean pState)
+{
+
+    dataBufferIsEnabled = pState;
+
+}//end of UTBoard::setDataBufferIsEnabled
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -4942,13 +4961,18 @@ public int processWallMapPacket()
                 value = handleMapDataControlCode(value);
             }
 
-            //only store if it is not an ignored control code
-            if((value & MAP_IGNORE_DETECTION) != MAP_IGNORE_DETECTION){
-                dataBuffer[dataBufferIndex++] = (short)value;
-            }
+            //only store if data buffer is enabled
 
-            if (dataBufferIndex == dataBuffer.length){
-                dataBufferIndex = dataBuffer.length-1;
+            if(dataBufferIsEnabled){
+
+                //only store if value is not an ignored control code
+                if ((value & MAP_IGNORE_DETECTION) != MAP_IGNORE_DETECTION){
+                    dataBuffer[dataBufferIndex++] = (short)value;
+                }
+
+                if (dataBufferIndex == dataBuffer.length){
+                    dataBufferIndex = dataBuffer.length-1;
+                }
             }
 
             mapTDCCodeIgnoreTimer--; //don't care if goes negative
@@ -5216,12 +5240,16 @@ private int handleMapDataTDCCode(int pCode)
 // prevCtrlCodeIndex is not updated because these codes are never kept in
 // the data buffer -- they are ignored.
 //
+// If the data buffer is not enabled, no action will be taken.
+//
 
 private int handleMapDataLinearAdvanceCode(int pCode)
 {
 
     //set only the bit designating value as a control flag
     int code = MAP_CONTROL_CODE_FLAG;
+
+    if(!dataBufferIsEnabled) { return(code |= MAP_IGNORE_CODE_FLAG); }
 
     if (prevCtrlCodeIndex > 0 && prevCtrlCodeIndex < dataBuffer.length){
         dataBuffer[prevCtrlCodeIndex] |= MAP_LINEAR_ADVANCE_FLAG;
@@ -5249,10 +5277,14 @@ private int handleMapDataLinearAdvanceCode(int pCode)
 // function should be the same thread, so collisions with
 // dataBuffer[prevCtrlCodeIndex] are not a problem.
 //
+// If the data buffer is not enabled, no action will be taken.
+//
 
 @Override
 public void triggerMapAdvance()
 {
+
+    if(!dataBufferIsEnabled) { return; }
 
     if(type == WALL_MAPPER && mapAdvanceMode == ADVANCE_BY_CONTROLLER){
 

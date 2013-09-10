@@ -28,10 +28,10 @@
 
 package chart.mksystems.hardware;
 
-import MKSTools.CharBuf;
-import MKSTools.DWORD;
-import MKSTools.LittleEndianTool;
-import MKSTools.WORD;
+import chart.mksystems.tools.CharBuf;
+import chart.mksystems.tools.DWORD;
+import chart.mksystems.tools.LittleEndianTool;
+import chart.mksystems.tools.WORD;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.settings.Settings;
 import java.io.BufferedInputStream;
@@ -46,6 +46,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 //-----------------------------------------------------------------------------
@@ -54,6 +58,10 @@ import java.io.OutputStreamWriter;
 
 public class WallMapDataSaverTuboBinary extends WallMapDataSaver{
 
+    static final int SAVE_TO_TEXT = 1;
+    static final int LOAD_FROM_TEXT = 2;
+    static final int SAVE_TO_BINARY = 3;
+    static final int LOAD_FROM_BINARY = 4;
 
     //there must be this many values saved for each channel -- left over space
     //should be zero filled
@@ -242,9 +250,6 @@ public void init(MapSourceBoard pMapSourceBoards[])
 
     //setUpTestData(); //use this to create test data for job info entries
 
-    //saveToFile("test1.dat", 31.2, "unknown" ); //debug mks -- remove this
-    //loadFromFile("OVALYTEST_10_2 - Copy.dat"); //debug mks -- remove this
-
 }//end of WallMapDataSaverTuboBinary::init
 //-----------------------------------------------------------------------------
 
@@ -276,6 +281,126 @@ private void determineNumberOfChannelToStoreInFile()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// WallMapDataSaverTuboBinary::dumpOrLoadAllDataBuffersToFiles
+//
+// Saves or loads data buffers from all map source boards to files.
+//
+// The choice of saving or loading to text or binary files is specified by
+// pLoadSaveFormatChoice:
+//
+// SAVE_TO_TEXT, LOAD_FROM_TEXT, SAVE_TO_BINARY, LOAD_FROM_BINARY
+//
+// Note 1: The same start and stop inspection locations are stored for all
+// mapping boards. Each mapping board only has one mapping channel tied to
+// a single transducer. Using the known head and offset from photo eye for that
+// transducer allows the actual position of the transducer to be calculated
+// when needed.
+//
+
+public void dumpOrLoadAllDataBuffersToFiles(String pFilename,
+                                int pLoadSaveFormatChoice) throws IOException
+{
+
+    //create array to hold reference to data buffers for all map source boards
+    short dataBuffers[][];
+    dataBuffers = new short[mapSourceBoards.length][];
+    for (int i = 0; i < dataBuffers.length; i++){
+        dataBuffers[i] = mapSourceBoards[i].dataBuffer;
+    }
+
+    Integer startIndices[] = {0, 0, 0, 0};
+
+    //get index of the last data point from each board
+    Integer endIndices[];
+    endIndices = new Integer[mapSourceBoards.length];
+    copyLastDataPointIndicesFromMappingBoards(endIndices);
+
+    //set up info to be saved in header
+
+    Map<String, Object> headerInfo = new LinkedHashMap<String, Object>();
+
+    //start/stop positions same for all mapping boards -- see Note 1 in header
+    headerInfo.put("Start Inspection Location",
+                           mapSourceBoards[0].utBoard.inspectionStartLocation);
+    headerInfo.put("Stop Inspection Location",
+                           mapSourceBoards[0].utBoard.inspectionStopLocation);
+
+    headerInfo.put("Inspection Direction",
+            settings.inspectionDirectionDescription);
+
+
+    switch (pLoadSaveFormatChoice) {
+
+        case SAVE_TO_TEXT:
+            MapBufferFileDumpTools.saveAllDataBuffersToTextFiles(pFilename,
+                            dataBuffers, startIndices, endIndices, headerInfo);
+            break;
+
+        case LOAD_FROM_TEXT:
+            MapBufferFileDumpTools.loadAllDataBuffersFromTextFiles(pFilename,
+                            dataBuffers, startIndices, endIndices, headerInfo);
+            //new end indices determined by number of data read from file
+            copyLastDataPointIndicesToMappingBoards(endIndices);
+            break;
+
+        case SAVE_TO_BINARY:
+
+            break;
+
+        case LOAD_FROM_BINARY:
+
+            break;
+
+        default:
+
+            break;
+
+    }
+
+}//end of WallMapDataSaverTuboBinary::dumpAllDataBuffersToFiles
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// WallMapDataSaverTuboBinary::copyLastDataPointIndicesFromMappingBoards
+//
+// Copies the index of the last data point in the data buffer from each
+// mapping board to the pEndIndices array.
+//
+// NOTE: The end index actually points to the location after the last value.
+//
+
+private void copyLastDataPointIndicesFromMappingBoards(Integer pEndIndices[])
+{
+
+    for (int i = 0; i < pEndIndices.length; i++){
+        pEndIndices[i] =
+           mapSourceBoards[i].utBoard.getIndexOfLastDataPointInDataBuffer();
+    }
+
+}//end of WallMapDataSaverTuboBinary::copyLastDataPointIndicesFromMappingBoards
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// WallMapDataSaverTuboBinary::copyLastDataPointIndicesToMappingBoards
+//
+// Copies the index of the last data point in the data buffer from the
+// pEndIndices array to each mapping board.
+//
+// NOTE: The end index actually points to the location after the last value.
+//
+
+private void copyLastDataPointIndicesToMappingBoards(Integer pEndIndices[])
+{
+
+    for (int i = 0; i < pEndIndices.length; i++){
+        mapSourceBoards[i].utBoard.setIndexOfLastDataPointInDataBuffer(
+                                                               pEndIndices[i]);
+    }
+
+}//end of WallMapDataSaverTuboBinary::copyLastDataPointIndicesToMappingBoards
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // WallMapDataSaverTuboBinary::saveToFile
 //
 // Writes all header data and the data in the UTBoards to file pFilename.
@@ -285,26 +410,26 @@ private void determineNumberOfChannelToStoreInFile()
 public void saveToFile(String pFilename)
 {
 
-
-    setUpJobInfo();
-
-    //prepare to find revolutions and prepare data for saving
-    for (int i = 0; i < mapSourceBoards.length; i++){
-        mapSourceBoards[i].setUpForSavingData();
-    }
-
-    //debug mks -- remove this
-
-    //load the buffers from a text file to provide debugging data
-    //loadAllDataBuffersFromTextFile(pFilename, settings.jobFileFormat);
-
-    //save the buffers to a text file for debugging
-    //saveAllDataBuffersToTextFile(pFilename,
-    //             settings.jobFileFormat, pInspectionDirectionDescription);
-
-    //debug mks end
-
     try{
+
+        //freeze the data buffer(s) while processing
+        setDataBufferIsEnabled(false);
+
+        //collect job info into local variables
+        setUpJobInfo();
+
+        //prepare to find revolutions and prepare data for saving
+        for (int i = 0; i < mapSourceBoards.length; i++){
+            mapSourceBoards[i].setUpForSavingData();
+        }
+
+        //debug mks -- remove this
+
+        dumpOrLoadAllDataBuffersToFiles(pFilename, LOAD_FROM_TEXT); //debug mks
+
+        //debug mks end
+
+
         outFile =
               new DataOutputStream(new BufferedOutputStream(
               new FileOutputStream(pFilename)));
@@ -322,9 +447,10 @@ public void saveToFile(String pFilename)
 
     }
     catch(IOException e){
-
+        logSevere(e.getMessage() + " - Error: 448");
     }
     finally{
+        setDataBufferIsEnabled(true);
         try{if (outFile != null) {outFile.close();}}
         catch(IOException e){}
     }
@@ -333,12 +459,28 @@ public void saveToFile(String pFilename)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// WallMapDataSaverTuboBinary::setDataBufferIsEnabled
+//
+// Sets the dataBufferedIsEnabled flag for each mapping board to pState
+//
+
+private void setDataBufferIsEnabled(boolean pState)
+{
+
+    for (int i = 0; i < mapSourceBoards.length; i++){
+        mapSourceBoards[i].utBoard.setDataBufferIsEnabled(pState);
+    }
+
+}//end of WallMapDataSaverTuboBinary::setDataBufferIsEnabled
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // WallMapDataSaverTuboBinary::setUpJobInfo
 //
 // Loads the job information and transfers it to local variables.
 //
 
-public void setUpJobInfo()
+private void setUpJobInfo()
 {
 
     loadJobInfo();
@@ -355,7 +497,7 @@ public void setUpJobInfo()
 // out -- they are extracted by other functions as needed.
 //
 
-public void loadJobInfo()
+private void loadJobInfo()
 {
 
     //if the ini file cannot be opened and loaded, exit without action and
@@ -366,7 +508,10 @@ public void loadJobInfo()
             settings.currentJobPrimaryPath + "03 - " + settings.currentJobName
             + " Job Info.ini", settings.jobFileFormat);
     }
-    catch(IOException e){return;}
+    catch(IOException e){
+        logSevere(e.getMessage() + " - Error: 512");
+        return;
+    }
 
 }//end of WallMapDataSaverTuboBinary::loadJobInfo
 //-----------------------------------------------------------------------------
@@ -392,10 +537,7 @@ public void loadJobInfo()
 //          30.8 - 7.5 - 7 + 2.25 = 18.55  -- 2.45" missing from the 21"
 //
 
-
-
-
-public void copyJobInfoToLocalVariables()
+private void copyJobInfoToLocalVariables()
 {
 
     cfgFile.set("01 - " + settings.currentJobName + " Configuration.ini", 128);
@@ -420,7 +562,7 @@ public void copyJobInfoToLocalVariables()
     rbNum.set(retrieveJobInfoString("RB Number"), 10);
     spare.set("", 75);
 
-    fMotionPulseLen = (float).375; //need to read this from config file
+    fMotionPulseLen = (float)0.5; //need to read this from config file
 
     // sensor position is already offset by the map source sensor delays
     // so all values are zero here
@@ -433,7 +575,9 @@ public void copyJobInfoToLocalVariables()
 
     nHomeXOffset += GOING_AWAY_OFFSET_CORRECTION;
 
-    nStopXloc = 0;
+    nHomeXOffset = -24; //from sample 15_3
+    nAwayXOffset = 76; //from sample 15_3
+    nStopXloc = 765; //from sample 15_3
 
     nJointNum.value = 1;
     fWall = (float)settings.nominalWall;
@@ -512,7 +656,6 @@ private double parseDiameterFromJobInfoString()
 
     }
     catch(NumberFormatException e){
-
         value = 0;
     }
 
@@ -527,7 +670,7 @@ private double parseDiameterFromJobInfoString()
 // Returns true if pInput is a number or a decimal point.
 //
 
-public boolean isNumerical(char pInput)
+private boolean isNumerical(char pInput)
 {
 
     if(    (pInput == '0')
@@ -630,9 +773,9 @@ private void saveRevolutions() throws IOException
 {
 
     //debug mks -- remove this
-    if (leastNumberOfRevs < 5){
-        analyzeAndRepairData();
-    }
+    //if (leastNumberOfRevs < 5){
+    //    analyzeAndRepairData();
+    //}
     //debug mks -- remove this
 
     for (int i = 0; i < leastNumberOfRevs; i++){
@@ -673,7 +816,7 @@ private void saveRevolution(int pRevolutionNumber) throws IOException
     //this is the location of the current revolution measured in number of
     // "motion pulses" where each pulse equals so many inches
 
-    nXloc = (short)(pRevolutionNumber * .375);
+    nXloc = (short)(pRevolutionNumber * .375 / 0.5);
     outFile.writeShort(Short.reverseBytes(nXloc));
 
     //not used
@@ -735,21 +878,17 @@ private void writeWallReadingsForRevolution(int pRevolutionNumber)
 
                     wallWord.value = (int)(lWall * 1000);
 
-                if (wallWord.value < 0)   //debug mks
+                if (wallWord.value > 2000)   //debug mks
                      wallWord.value = wallWord.value; //debug mks
+
 
                 }
                 else{
                     //leave wallWord at its last value -- doesn't matter what
                     //board it came from, just need valid data for filler
-                    int debug = 0; //debug mks remove this
                 }
 
                 wallWord.write(outFile);
-
-                if (wallWord.value < 0)   //debug mks
-                     wallWord.value = wallWord.value; //debug mks
-
 
             }//for(int j = 0; j < mapSourceBoards.length; j++)
         }//if(i < mostNumberOfSamplesPerRev)
@@ -808,7 +947,7 @@ private void findStartStopInspectionIndices()
         mapSourceBoards[i].inspectionStartIndex = startIndex;
 
         //this is also the start location for the first revolution
-        mapSourceBoards[i].revEndIndex = startIndex;
+        mapSourceBoards[i].revStartIndex = startIndex;
 
         stopIndex = findControlCode(i, UTBoard.MAP_STOP_CODE_FLAG,
                                             startIndex + 1, Integer.MAX_VALUE);
@@ -899,7 +1038,8 @@ private int findControlCode(int pBoardIndex, int pFlag, int pStart, int pEnd)
     int target = UTBoard.MAP_CONTROL_CODE_FLAG | pFlag;
 
     for (int i = pStart; i < pEnd; i++){
-        if((dataBuffer[i] & target) == target) { return(i); }
+        if((dataBuffer[i] & target) == target) {
+            return(i); }
     }
 
     //code not found
@@ -1003,7 +1143,7 @@ void loadFromFile(String pFilename)
 
     }
     catch(IOException e){
-
+        logSevere(e.getMessage() + " - Error: 1146");
     }
     finally{
         try{if (inFile != null) {inFile.close();}}
@@ -1156,7 +1296,7 @@ private void readWallReadingsForRevolution() throws IOException
 // Set up all variables with test data for debugging purposes.
 //
 
-public void setUpTestData()
+private void setUpTestData()
 {
 
     cfgFile.set("Config file - this is a test.", 128);
@@ -1214,219 +1354,17 @@ public void setUpTestData()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Debug mks -- move this to WallMapDataSaverIRNDTText.java::saveAllDataBuffersToTextFile
+// WallMapDataSaverTuboBinary::logSevere
 //
-// Saves data buffers for all source boards to text files.
+// Logs pMessage with level SEVERE using the Java logger.
 //
 
-private void saveAllDataBuffersToTextFile(String pFilename,
-                 String pJobFileFormat, String pInspectionDirectionDescription)
+void logSevere(String pMessage)
 {
 
-    for (int i = 0; i < mapSourceBoards.length; i++){
-        saveDataBufferToTextFile(i,
-           pFilename, settings.jobFileFormat, pInspectionDirectionDescription);
-    }
+    Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, pMessage);
 
-}//end of Debug mks -- move this to WallMapDataSaverIRNDTText.java::saveAllDataBuffersToTextFile
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Debug mks -- move this to WallMapDataSaverIRNDTText.java::saveDataBufferToTextFile
-//
-// Saves the data in dataBuffer of pBoard to a text file.
-//
-// NOTE: This saves from position zero to the end of data -- it does not
-//  understand segments like the trace saving function does which is necessary
-//  when the index restarts at 0 as required for end to end inspection. Fix
-//  this some day.
-//
-
-private void saveDataBufferToTextFile(int pBoard,
-                    String pFilename, String pJobFileFormat,
-                                         String pInspectionDirectionDescription)
-{
-
-    pFilename = pFilename + " ~ Wall Mapping Data ~ " + pBoard;
-
-    //create a buffered writer stream
-
-    FileOutputStream fileOutputStream = null;
-    OutputStreamWriter outputStreamWriter = null;
-    BufferedWriter bwOut = null;
-
-    try{
-
-        fileOutputStream = new FileOutputStream(pFilename);
-        outputStreamWriter = new OutputStreamWriter(fileOutputStream,
-                                                                pJobFileFormat);
-        bwOut = new BufferedWriter(outputStreamWriter);
-
-        //write the header information - this portion can be read by the iniFile
-        //class which will only read up to the "[Header End]" tag - this allows
-        //simple parsing of the header information while ignoring the data
-        //stream which  follows the header
-
-        bwOut.write("[Header Start]"); bwOut.newLine();
-        bwOut.newLine();
-        bwOut.write("Segment Data Version=" + Settings.SEGMENT_DATA_VERSION);
-        bwOut.newLine();
-        bwOut.write("Measured Length=" + settings.measuredPieceLength);
-        bwOut.newLine();
-        bwOut.write("Inspection Direction="
-                                     + pInspectionDirectionDescription);
-        bwOut.newLine();
-        bwOut.write("[Header End]"); bwOut.newLine(); bwOut.newLine();
-
-        bwOut.write("[Data Set 1]"); bwOut.newLine(); //save the first data set
-
-        int endOfData =
-          mapSourceBoards[pBoard].utBoard.getIndexOfLastDataPointInDataBuffer();
-
-        //save all data stored in the buffer
-        for(int i = 0; i < endOfData; i++){
-            bwOut.write(
-                    Integer.toString(mapSourceBoards[pBoard].dataBuffer[i]));
-            bwOut.newLine();
-        }
-
-        bwOut.write("[End of Set]"); bwOut.newLine();
-
-    }
-    catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 766");
-    }
-    finally{
-        try{if (bwOut != null) {bwOut.close();}}
-        catch(IOException e){}
-        try{if (outputStreamWriter != null) {outputStreamWriter.close();}}
-        catch(IOException e){}
-        try{if (fileOutputStream != null) {fileOutputStream.close();}}
-        catch(IOException e){}
-    }
-
-}//end of Debug mks -- move this to WallMapDataSaverIRNDTText.java::saveDataBufferToTextFile
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Debug mks -- move this to WallMapDataSaverIRNDTText.java::loadAllDataBuffersFromTextFile
-//
-// Loads data buffers for all source boards from text files.
-//
-
-private void loadAllDataBuffersFromTextFile(String pFilename,
-                                                        String pJobFileFormat)
-{
-
-    for (int i = 0; i < mapSourceBoards.length; i++){
-        loadDataBufferFromTextFile(i, pFilename, settings.jobFileFormat);
-    }
-
-}//end of Debug mks -- move this to WallMapDataSaverIRNDTText.java::loadAllDataBuffersFromTextFile
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Debug mks -- move this to WallMapDataSaverIRNDTText.java::loadDataBufferFromTextFile
-//
-// Loads the data in dataBuffer of pBoard from a text file. If board is not set
-// up for mapping or no data buffer has been created, nothing is done.
-//
-// Returns error messages on error, empty string on no error.
-//
-
-private String loadDataBufferFromTextFile(int pBoard,
-                                    String pFilename, String pJobFileFormat)
-{
-
-    String status = "";
-
-    pFilename = pFilename + " ~ Wall Mapping Data ~ " + pBoard;
-
-    int i = 0;
-
-    //create a buffered writer stream
-
-    FileInputStream fileInputStream = null;
-    InputStreamReader inputStreamReader = null;
-    BufferedReader brIn = null;
-
-    short dataBuffer[] = mapSourceBoards[pBoard].dataBuffer;
-
-    String startTag = "[Data Set 1]";
-    String startTagUC = startTag.toUpperCase();
-
-    try{
-
-        fileInputStream = new FileInputStream(pFilename);
-        inputStreamReader = new InputStreamReader(fileInputStream,
-                                                                pJobFileFormat);
-        brIn = new BufferedReader(inputStreamReader);
-
-        String line;
-        boolean success = false;
-
-        //search for the data segment tag
-        while ((line = brIn.readLine()) != null){  //search for tag
-            if (line.trim().toUpperCase().startsWith(startTagUC)){
-                success = true; break;
-            }
-        }
-
-        if (success == false) {
-            throw new IOException(
-             "The file could not be read - tag " + startTag
-                                                          + " not found.");
-        }
-
-        i = 0;
-
-        while ((line = brIn.readLine()) != null){
-
-            //stop when next section end tag reached (will start with [)
-            if (line.trim().startsWith("[")){
-                break;
-            }
-
-            //convert the text to an integer and save in the buffer
-            short data = Short.parseShort(line);
-            dataBuffer[i++] = data;
-
-            //catch buffer overflow
-            if (i == dataBuffer.length) {
-                throw new IOException(
-                 "The file could not be read - too much data for " + startTag
-                                                       + " at data point " + i);
-                }
-
-        }//while ((line = pIn.readLine()) != null)
-
-        //let the board know the position of the last data in the buffer
-        mapSourceBoards[pBoard].utBoard.setIndexOfLastDataPointInDataBuffer(i);
-
-    }
-    catch(NumberFormatException e){
-        //catch error translating the text to an integer
-        return("The file could not be read - corrupt data for " + startTag
-                                                   + " at data point " + i);
-    }
-    catch (FileNotFoundException e){
-        return("Could not find the requested file.");
-        }
-    catch(IOException e){
-        return(e.getMessage() + " " + getClass().getName() + " - Error: 970");
-        }
-    finally{
-        try{if (brIn != null) {brIn.close();}}
-        catch(IOException e){}
-        try{if (inputStreamReader != null) {inputStreamReader.close();}}
-        catch(IOException e){}
-        try{if (fileInputStream != null) {fileInputStream.close();}}
-        catch(IOException e){}
-
-        return(status);
-    }
-
-}//end of Debug mks -- move this to WallMapDataSaverIRNDTText.java::loadDataBufferFromTextFile
+}//end of WallMapDataSaverTuboBinary::logSevere
 //-----------------------------------------------------------------------------
 
 }//end of class WallMapDataSaverTuboBinary
