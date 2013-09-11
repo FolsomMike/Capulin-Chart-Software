@@ -584,7 +584,18 @@ private void copyJobInfoToLocalVariables()
     // don't seem to be lined up on top of each other like the Tubo sample
     // files.  Need feed back from Tubo people on this.
 
-    //debug mks -- needs to be extracted from config info
+    // Note: Tried using reversed offsets as our ducers are in reverse
+    // order -- Tubo Map Viewer crashed.
+    // Tried reversing the order of "This Board is Source for Map Channel="
+    // entries for the mapping UT boards -- no crash but did not line up
+    // wall reduction spikes.
+    // The Chart program delays the start inspection points for each mapping
+    // data buffer in an attempt to line things up. This might be necessary
+    // for trace delays??? (maybe not) but the Tubo Map Viewer tries to line
+    // things up itself based on the transducer offsets.  May need to remove
+    // alignment function in Chart program and let Tubo program handle it.
+
+    //debug mks -- needs to be extracted from config info or such
 
     fChnlOffset[0] = (float)  0;
     fChnlOffset[1] = (float)  .625;
