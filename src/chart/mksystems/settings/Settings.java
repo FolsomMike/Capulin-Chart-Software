@@ -91,8 +91,9 @@ public class Settings extends Object implements ActionListener, ItemListener {
 
     public static String mainFileFormat = "UTF-8";
 
-    public static String MAP_TUBO_BINARY_DATA_VERSION = "IRNDT 1.0";
-    public static double MAP_TUBO_BINARY_DATA_VERSION_NUMBER = 1.23;
+    //these must be set to match the values used by Tubo
+    public static String MAP_TUBO_BINARY_DATA_VERSION = "TruscanWD200501";
+    public static double MAP_TUBO_BINARY_DATA_VERSION_NUMBER = 0;
 
     public String currentJobName;
     public String currentJobPrimaryPath, currentJobBackupPath, reportsPath;

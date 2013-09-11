@@ -17,6 +17,22 @@
 * Author: Yanming Guo
 * Date: Dec. 12, 2011
 *
+* Tubo Wall Map Format Notes
+*
+* The Tubo document specifies:
+*
+* RAW_WALL_HEAD.JobRec.Version = “TruscanWD200501”
+*
+* If any other value is used, the locations will be different between the map
+* and the CVS file and the Motion Pulse length will not be accurate.
+*
+* The fChnlOffset value for each channel CANNOT BE ALL ZEROES or the Tubo
+* Map Viewer program will crash at the 51st revolution. Even using values of
+* 0, .1, .2, .3 will cause a crash. Thus, if the revolutions are already
+* aligned, zero offsets cannot be used so some other arrangement must be used.
+*
+* The Tubo document also specifies that fMotionPulseLen must be 0.5".
+*
 * Open Source Policy:
 *
 * This source code is Public Domain and free to any interested party.  Any
@@ -28,24 +44,19 @@
 
 package chart.mksystems.hardware;
 
+import chart.mksystems.inifile.IniFile;
+import chart.mksystems.settings.Settings;
 import chart.mksystems.tools.CharBuf;
 import chart.mksystems.tools.DWORD;
 import chart.mksystems.tools.LittleEndianTool;
 import chart.mksystems.tools.WORD;
-import chart.mksystems.inifile.IniFile;
-import chart.mksystems.settings.Settings;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -425,7 +436,7 @@ public void saveToFile(String pFilename)
 
         //debug mks -- remove this
 
-        dumpOrLoadAllDataBuffersToFiles(pFilename, LOAD_FROM_TEXT); //debug mks
+        dumpOrLoadAllDataBuffersToFiles(pFilename, LOAD_FROM_TEXT);
 
         //debug mks end
 
@@ -564,20 +575,30 @@ private void copyJobInfoToLocalVariables()
 
     fMotionPulseLen = (float)0.5; //need to read this from config file
 
-    // sensor position is already offset by the map source sensor delays
-    // so all values are zero here
-    fChnlOffset[0] = (float)0;
-    fChnlOffset[1] = (float)0;
-    fChnlOffset[2] = (float)0;
-    fChnlOffset[3] = (float)0;
+    // Alignment Note 1:
+    // Sensor position is already offset by the map source sensor delays
+    // so it seems that all values should be zero here, but Tubo Wall Map
+    // Viewer crashes at revolution 51 if zeroes are used and wall reductions
+    // don't line up quite right. Using the offsets does make all revolution
+    // alignments look better, but the wall reduction hits from each ducer
+    // don't seem to be lined up on top of each other like the Tubo sample
+    // files.  Need feed back from Tubo people on this.
 
-    nHomeXOffset = 16; //debug mks -- read actual value here see Note 1 above
+    //debug mks -- needs to be extracted from config info
+
+    fChnlOffset[0] = (float)  0;
+    fChnlOffset[1] = (float)  .625;
+    fChnlOffset[2] = (float) 1.25;
+    fChnlOffset[3] = (float) 1.875;
+
+    nHomeXOffset = 16; //debug mks -- read actual value here see Note 1
+                       //in this method's header
 
     nHomeXOffset += GOING_AWAY_OFFSET_CORRECTION;
 
-    nHomeXOffset = -24; //from sample 15_3
-    nAwayXOffset = 76; //from sample 15_3
-    nStopXloc = 765; //from sample 15_3
+    nHomeXOffset = -16; //from sample 15_3 debug mks (tubo file is -24, -16 lines up wall reduction for our file)
+    nAwayXOffset = 76; //from sample 15_3 debug mks
+    nStopXloc = 765; //from sample 15_3 debug  mks
 
     nJointNum.value = 1;
     fWall = (float)settings.nominalWall;
@@ -772,12 +793,6 @@ private void saveHeader()throws IOException
 private void saveRevolutions() throws IOException
 {
 
-    //debug mks -- remove this
-    //if (leastNumberOfRevs < 5){
-    //    analyzeAndRepairData();
-    //}
-    //debug mks -- remove this
-
     for (int i = 0; i < leastNumberOfRevs; i++){
         saveRevolution(i);
     }
@@ -816,7 +831,7 @@ private void saveRevolution(int pRevolutionNumber) throws IOException
     //this is the location of the current revolution measured in number of
     // "motion pulses" where each pulse equals so many inches
 
-    nXloc = (short)(pRevolutionNumber * .375 / 0.5);
+    nXloc = (short)(pRevolutionNumber * .375 / fMotionPulseLen);
     outFile.writeShort(Short.reverseBytes(nXloc));
 
     //not used
@@ -877,10 +892,6 @@ private void writeWallReadingsForRevolution(int pRevolutionNumber)
                     double lWall = (TOF * 0.015 * .233) / 2;
 
                     wallWord.value = (int)(lWall * 1000);
-
-                if (wallWord.value > 2000)   //debug mks
-                     wallWord.value = wallWord.value; //debug mks
-
 
                 }
                 else{
@@ -1321,20 +1332,17 @@ private void setUpTestData()
     rbNum.set("RB Number", 10);
     spare.set("", 75);
 
-    fMotionPulseLen = (float)1.0; //Tubo Map Viewer ignores this for display?
-                                  //See Note 1 at top of file.
+    fMotionPulseLen = (float)0.5;
 
-    //fChnlOffset[0] = (float)0;
-    //fChnlOffset[1] = (float)0.625;
-    //fChnlOffset[2] = (float)1.25;
-    //fChnlOffset[3] = (float)1.875;
+    // see "Alignment Note 1" in this file for explanation of the fChnlOffsets
+    // and possible issues to be resolved
 
-    // sensor position is already offset by the map source sensor delays
-    fChnlOffset[0] = (float)0;
-    fChnlOffset[1] = (float)0;
-    fChnlOffset[2] = (float)0;
-    fChnlOffset[3] = (float)0;
+    //debug mks -- needs to be extracted from config info
 
+    fChnlOffset[0] = (float)  0;
+    fChnlOffset[1] = (float)  .625;
+    fChnlOffset[2] = (float) 1.25;
+    fChnlOffset[3] = (float) 1.875;
 
     nHomeXOffset = 0;
     nAwayXOffset = 0;
