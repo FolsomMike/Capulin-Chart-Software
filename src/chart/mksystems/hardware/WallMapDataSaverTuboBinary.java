@@ -97,6 +97,7 @@ public class WallMapDataSaverTuboBinary extends WallMapDataSaver{
 
     WORD wallWord;
     WORD countWord;
+    WORD fillerWord;
 
     //the average values are used to detect values which are outside the norm
 
@@ -246,6 +247,7 @@ public void init(MapSourceBoard pMapSourceBoards[])
 
     wallWord = new WORD(0);
     countWord = new WORD(0);
+    fillerWord = new WORD(0);
 
     wall = new WORD[numberOfChannelsToStoreInFile];
     for(int i = 0; i < wall.length; i++){wall[i] = new WORD(0);}
@@ -607,7 +609,7 @@ private void copyJobInfoToLocalVariables()
 
     nHomeXOffset += GOING_AWAY_OFFSET_CORRECTION;
 
-    nHomeXOffset = -16; //from sample 15_3 debug mks (tubo file is -24, -16 lines up wall reduction for our file)
+    nHomeXOffset = -14; //from sample 15_3 debug mks (tubo file is -24, -14 lines up wall reduction for our file)
     nAwayXOffset = 76; //from sample 15_3 debug mks
     nStopXloc = 765; //from sample 15_3 debug  mks
 
@@ -836,6 +838,7 @@ private void saveRevolution(int pRevolutionNumber) throws IOException
         //boards filled at write time
 
         countWord.value = mostNumberOfSamplesPerRev;
+
         countWord.write(outFile);
     }
 
@@ -881,6 +884,8 @@ private void writeWallReadingsForRevolution(int pRevolutionNumber)
 
     int i = 0;
 
+    fillerWord.value = 0;
+
     while(i < REVOLUTION_SAMPLES_BLOCK_SIZE){
 
         //write data until number of samples reached for the board which had
@@ -910,22 +915,64 @@ private void writeWallReadingsForRevolution(int pRevolutionNumber)
                     //board it came from, just need valid data for filler
                 }
 
-                wallWord.write(outFile);
+                writeWORDToOutFile(wallWord);
 
             }//for(int j = 0; j < mapSourceBoards.length; j++)
         }//if(i < mostNumberOfSamplesPerRev)
         else{
             //write zeroes to fill out the block length
             for(int j = 0; j < mapSourceBoards.length; j++){
-                outFile.writeByte(0); outFile.writeByte(0);
+                writeWORDToOutFile(fillerWord);
             }
         }//else
 
         i++;
 
+        //remove this when Rabbit code modified to use both cores
+        //"Sample Double Simulation Notes" 1,2,3
+        i++;
+        //end of remove this
+
     }//while
 
 }//end of WallMapDataSaverTuboBinary::writeWallReadingsForRevolution
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// WallMapDataSaverTuboBinary::writeWORDToOutFile
+//
+// Writes one WORD to outFile.
+//
+//
+// Sample Double Simulation Note 1:
+//
+// Currently, writes each value twice to simulate double samples. When this
+// is removed, also remove doubling of the the sample count value (search for
+// "sample count doubling to be removed")
+// remove this when Rabbit code changed to use data from both cores
+// See Git Gui commit tag Double_Sample_Rate_Emulation for all changes which
+// need to be undone to remove the doubling functionality.
+//
+
+private void writeWORDToOutFile(WORD pValue) throws IOException
+{
+
+    pValue.write(outFile);
+
+    //remove this when Rabbit code changed to use data from both cores
+    //see "Sample Double Simulation Notes" 1,2,3 in this file
+    //write value again -- flipping bit 0 if bit 1 is set
+    //note that zero filler values will be unchanged
+
+    if ((pValue.value & 0x02) != 0 ){
+        pValue.value ^= 0x01;
+    }
+
+    pValue.write(outFile);
+
+    //end of remove this
+
+}//end of WallMapDataSaverTuboBinary::writeWORDToOutFile
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1139,6 +1186,17 @@ private void calculateNumberSamplesInRev()
 
     //calculate the average
     avgNumberOfSamplesPerRev = avgNumberOfSamplesPerRev/mapSourceBoards.length;
+
+    //remove this when Rabbit code modified to use both cores
+    //Sample Double Simulation Note 2
+    // The value is doubled as the method writing samples writes a
+    // dummy sample for every actual sample to simulate double sampling
+    // rate -- search for "Sample Double Simulation Note 1" and remove
+    // double writing when this part is removed.
+
+    mostNumberOfSamplesPerRev *= 2;
+
+    // end of remove this
 
 }//end of WallMapDataSaverTuboBinary::calculateNumberSamplesInRev
 //-----------------------------------------------------------------------------
