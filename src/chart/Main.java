@@ -28,6 +28,7 @@ import chart.mksystems.menu.MainMenu;
 import chart.mksystems.settings.Link;
 import chart.mksystems.settings.Settings;
 import chart.mksystems.stripchart.ChartGroup;
+import chart.mksystems.tools.MultipleInstancePreventer;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -218,6 +219,8 @@ public void init()
     //turn off default bold for Metal look and feel
     UIManager.put("swing.boldMetal", Boolean.FALSE);
 
+    MultipleInstancePreventer.checkForInstanceAlreadyRunning("IRScan");
+    
     setupJavaLogger(); //redirect to a file
 
     PrintStream errorLog = setupErrorLoggingFile();
