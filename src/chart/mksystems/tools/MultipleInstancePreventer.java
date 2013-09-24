@@ -68,6 +68,10 @@ public void init()
 // the application is already running and an warning message is displayed and
 // the program exits.
 //
+// The user is given the option to start the new instance anyway for cases
+// where a file lock gets stuck in place do to a program crash. This avoids
+// having to reboot the computer immediately.
+//
 // NOTE: Some websites suggested trying to bind a ServerSocket. As only one
 // can be bound on the system, only one app can bind the socket -- those that
 // fail can assume that another instance is running and exit. This is
@@ -100,12 +104,17 @@ static public void checkForInstanceAlreadyRunning(String pProgramName)
     }
     catch (Exception e) {
 
-        JOptionPane.showMessageDialog(null,
+        int response = JOptionPane.showConfirmDialog(null,
         "An instance of " + pProgramName + " is already running. "
-        + "Look for it in the taskbar at the bottom of the screen.",
-        "Warning", JOptionPane.WARNING_MESSAGE);
+        + "Look for it in the taskbar at the bottom of the screen. "
+        + "If you are sure no other instance is running, click 'Yes' to "
+        + "start the program.",
+        pProgramName + " is already running...",
+        JOptionPane.YES_NO_OPTION);
 
-        System.exit(0);
+        if (response == JOptionPane.NO_OPTION){
+            System.exit(0);
+        }
 
     }
 
