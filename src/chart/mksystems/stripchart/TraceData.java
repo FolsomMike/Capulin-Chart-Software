@@ -469,7 +469,7 @@ public void saveSegment(BufferedWriter pOut) throws IOException
 // TraceData::loadSegment
 //
 // Loads the data points and flags for a segment from pIn.  It is expected that
-// the Trace tag and meta data has already been read.
+// the [Trace] tag and meta data has already been read.
 //
 // Returns the last line read from the file so that it can be passed to the
 // next process.
@@ -481,15 +481,16 @@ public String loadSegment(BufferedReader pIn, String pLastLine)
 
     //read in "Data Set 1"
     String line =
-            processDataSeries(pIn, pLastLine, "[Data Set 1]", dataBuffer1);
+            loadDataSeries(pIn, pLastLine, "[Data Set 1]", dataBuffer1, 0);
 
     //if "Data Set 2" is in use, read it in
     if (dataBuffer2 != null) {
-        line = processDataSeries(pIn, line, "[Data Set 2]", dataBuffer2);
+        line = loadDataSeries(pIn, line, "[Data Set 2]", dataBuffer2, 0);
     }
 
-    //read in "Flags"
-    line = processDataSeries(pIn, line, "[Flags]", flagBuffer);
+    //read in "Flags", forcing the DATA_VALID flag true for each data point
+    line = loadDataSeries(pIn, line, "[Flags]", flagBuffer,
+                                                    PlotterData.DATA_VALID);
 
     return(line);
 
@@ -497,9 +498,9 @@ public String loadSegment(BufferedReader pIn, String pLastLine)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// TraceData::processDataSeries
+// TraceData::loadDataSeries
 //
-// Processes a data series from pIn.  The series could be "Data Set 1",
+// Loads a data series from pIn.  The series could be "Data Set 1",
 // "Data Set 2", or "Flags" depending on the parameters passed in.
 //
 // The pStartTag string specifies the section start tag for the type of data
@@ -513,9 +514,14 @@ public String loadSegment(BufferedReader pIn, String pLastLine)
 // been read from the file by the code handling the previous section.  If it has
 // been read, the line containing the tag should be passed in via pLastLine.
 //
+// Value pDataModifier1 will be ORed with each data point as it is stored in
+// the buffer. This allows any bit(s) to be forced to 1 if they are used as
+// flag bits. If no bits are to be forced, pDataModifier1 should be 0.
+//
 
-private String processDataSeries(BufferedReader pIn, String pLastLine,
-                            String pStartTag, int[] pBuffer) throws IOException
+private String loadDataSeries(BufferedReader pIn, String pLastLine,
+                            String pStartTag, int[] pBuffer,
+                            int pDataModifier1) throws IOException
 {
 
     String line;
@@ -557,7 +563,7 @@ private String processDataSeries(BufferedReader pIn, String pLastLine,
 
             //convert the text to an integer and save in the buffer
             int data = Integer.parseInt(line);
-            pBuffer[i++] = data;
+            pBuffer[i++] = data | pDataModifier1;
 
             //catch buffer overflow
             if (i == pBuffer.length) {
@@ -584,7 +590,7 @@ private String processDataSeries(BufferedReader pIn, String pLastLine,
 
     return(line); //should be "[xxxx]" tag on success, unknown value if not
 
-}//end of TraceData::processDataSeries
+}//end of TraceData::loadDataSeries
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
