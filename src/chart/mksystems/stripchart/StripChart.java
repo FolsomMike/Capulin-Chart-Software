@@ -655,7 +655,13 @@ private void configure(IniFile pConfigFile)
     //read the configuration file and create/setup the thresholds
     configureThresholds(configFile);
 
-    numberOfPlotters = pConfigFile.readInt(section, "Number of Plotters", 1);
+    numberOfPlotters = pConfigFile.readInt(section, "Number of Plotters", -1);
+
+    //of "Number of Plotters" entry not found, try "Number of Traces" for
+    //compatiblity with legacy config files
+    if (numberOfPlotters == -1){
+        numberOfPlotters = pConfigFile.readInt(section, "Number of Traces", 1);
+    }
 
     String typeOfPlottersText =
             pConfigFile.readString(section, "Type of Plotters", "Trace");
