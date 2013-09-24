@@ -1,0 +1,115 @@
+
+--------------------------------------------------------------------
+Wed Sep 18 08:08:13 CDT 2013
+
+Connecting With Chassis and Configuring
+
+Broadcasting greeting to all Control boards...
+/169.254.1.1  Control Board present...
+Opening connection with Control board...
+Control Board IP Address: /169.254.1.1
+/169.254.1.1 says Hello from Control Board Simulator!
+Control /169.254.1.1 chassis & slot address: 0-0
+Control 0:0 is ready.
+All Control boards ready.
+Broadcasting greeting to all UT boards...
+/169.254.23.156  UT board present, Ver 1.2p, FPGA loaded...
+/169.254.23.150  UT board present, Ver 1.2p, FPGA loaded...
+/169.254.23.159  UT board present, Ver 1.2p, FPGA loaded...
+Connecting to UT board /169.254.23.156...
+Connecting to UT board /169.254.23.159...
+UT /169.254.23.159 receive buffer size: 8192...
+UT /169.254.23.159 send buffer size: 8192...
+UT /169.254.23.156 receive buffer size: 8192...
+UT /169.254.23.156 send buffer size: 8192...
+Connecting to UT board /169.254.23.150...
+UT /169.254.23.150 receive buffer size: 8192...
+UT /169.254.23.150 send buffer size: 8192...
+UT /169.254.23.159 FPGA already loaded...
+UT /169.254.23.159 chassis & slot address: 0-1
+UT 0:1 loading DSP code for
+    Chip 1 Cores A & B
+UT /169.254.23.156 FPGA already loaded...
+UT /169.254.23.150 FPGA already loaded...
+UT /169.254.23.150 chassis & slot address: 0-0
+UT /169.254.23.156 chassis & slot address: 0-2
+UT 0:0 loading DSP code for
+    Chip 1 Cores A & B
+UT 0:2 loading DSP code for
+    Chip 1 Cores A & B
+UT 0:2 verifying DSP code for
+    Chip 1 Cores A & B
+UT 0:1 verifying DSP code for
+    Chip 1 Cores A & B
+UT 0:0 verifying DSP code for
+    Chip 1 Cores A & B
+UT 0:2 loading DSP code for
+    Chip 1 Cores C & D
+UT 0:1 loading DSP code for
+    Chip 1 Cores C & D
+UT 0:0 loading DSP code for
+    Chip 1 Cores C & D
+UT 0:2 verifying DSP code for
+    Chip 1 Cores C & D
+UT 0:1 verifying DSP code for
+    Chip 1 Cores C & D
+UT 0:0 verifying DSP code for
+    Chip 1 Cores C & D
+UT 0:2 loading DSP code for
+    Chip 2 Cores A & B
+UT 0:1 loading DSP code for
+    Chip 2 Cores A & B
+UT 0:0 loading DSP code for
+    Chip 2 Cores A & B
+UT 0:2 verifying DSP code for
+    Chip 2 Cores A & B
+UT 0:1 verifying DSP code for
+    Chip 2 Cores A & B
+UT 0:0 verifying DSP code for
+    Chip 2 Cores A & B
+UT 0:2 loading DSP code for
+    Chip 2 Cores C & D
+UT 0:1 loading DSP code for
+    Chip 2 Cores C & D
+UT 0:0 loading DSP code for
+    Chip 2 Cores C & D
+UT 0:2 verifying DSP code for
+    Chip 2 Cores C & D
+UT 0:1 verifying DSP code for
+    Chip 2 Cores C & D
+UT 0:0 verifying DSP code for
+    Chip 2 Cores C & D
+UT 0:1 Chip: 1 Core: 1 Status: 1-1
+UT 0:2 Chip: 1 Core: 1 Status: 1-1
+UT 0:1 Chip: 1 Core: 2 Status: 2-1
+UT 0:2 Chip: 1 Core: 2 Status: 2-1
+UT 0:1 Chip: 1 Core: 3 Status: 3-1
+UT 0:2 Chip: 1 Core: 3 Status: 3-1
+UT 0:1 Chip: 1 Core: 4 Status: 4-1
+UT 0:2 Chip: 1 Core: 4 Status: 4-1
+UT 0:0 Chip: 1 Core: 1 Status: 1-1
+UT 0:1 Chip: 2 Core: 1 Status: 1-1
+UT 0:2 Chip: 2 Core: 1 Status: 1-1
+UT 0:0 Chip: 1 Core: 2 Status: 2-1
+UT 0:1 Chip: 2 Core: 2 Status: 2-1
+UT 0:0 Chip: 1 Core: 3 Status: 3-1
+UT 0:2 Chip: 2 Core: 2 Status: 2-1
+UT 0:1 Chip: 2 Core: 3 Status: 3-1
+UT 0:0 Chip: 1 Core: 4 Status: 4-1
+UT 0:2 Chip: 2 Core: 3 Status: 3-1
+UT 0:1 Chip: 2 Core: 4 Status: 4-1
+UT 0:2 Chip: 2 Core: 4 Status: 4-1
+UT 0:0 Chip: 2 Core: 1 Status: 1-1
+UT 0:0 Chip: 2 Core: 2 Status: 2-1
+UT 0:0 Chip: 2 Core: 3 Status: 3-1
+UT 0:0 Chip: 2 Core: 4 Status: 4-1
+UT 0:1 ~ /169.254.23.159 is ready.
+UT 0:2 ~ /169.254.23.156 is ready.
+UT 0:0 ~ /169.254.23.150 is ready.
+All UT boards connected...
+All UT boards initialized...
+All channels initialized...
+All UT boards ready.
+
+Chassis configuration complete.
+
