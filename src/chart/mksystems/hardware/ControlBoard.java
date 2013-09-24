@@ -302,7 +302,13 @@ public synchronized void waitForever()
 public synchronized void connect()
 {
 
-    //displays message on bottom panel of IDE
+    if (ipAddrS == null || ipAddr == null){
+        logger.logMessage(
+                "Control board #" + boardIndex + " never responded to "
+                + "roll call and cannot be contacted.\n");
+        return;
+    }
+
     logger.logMessage("Opening connection with Control board...\n");
 
     try {

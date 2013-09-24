@@ -752,6 +752,12 @@ public synchronized void waitForever()
 public synchronized void connect()
 {
 
+    if (ipAddrS == null || ipAddr == null){
+        logger.logMessage("UT board #" + boardIndex + " never responded to "
+                + "roll call and cannot be contacted.\n");
+        return;
+    }
+
     //see notes above regarding IP Addresses
 
     try {

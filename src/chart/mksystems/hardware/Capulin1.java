@@ -462,7 +462,7 @@ public void connectControlBoard()
 
     socket.close();
 
-    //bail out if no Control boards responded
+    //bail out if no boards responded
     if (responseCount == 0) {return;}
 
     //start the run method of each ControlBoard thread class - the run method
@@ -477,7 +477,7 @@ public void connectControlBoard()
             Thread thread = new Thread(controlBoards[i], "Control Board " + i);
             thread.start();
         }
-    }//if (numberOfControlBoards > 0)
+    }//if (responseCount > 0)
 
     //call each board and wait for it to complete its connection & initial setup
     //note that this object cannot even enter the synchronized method
@@ -651,11 +651,14 @@ public synchronized void connectUTBoards()
 
     socket.close();
 
+    //bail out if no boards responded
+    if (responseCount == 0) {return;}
+
     //start the run method of each UTBoard thread class - the run method makes
     //the TCP/IP connections and uploads FPGA and DSP code simultaneously to the
     //different boards to shorten start up time
 
-    if (numberOfUTBoards > 0){
+    if (responseCount > 0){
         for (int i = 0; i < numberOfUTBoards; i++){
             //pass the Runnable interfaced utBoard object to a thread and start
             //it -- the run function of the utBoard will peform the connection
@@ -663,7 +666,7 @@ public synchronized void connectUTBoards()
             Thread thread = new Thread(utBoards[i], "UT Board " + i);
             thread.start();
         }
-    }//if (numberOfUTBoards > 0)
+    }//if (responseCount > 0)
 
     //call each board and wait for it to complete its connection & initial setup
     //note that this object cannot even enter the synchronized method
