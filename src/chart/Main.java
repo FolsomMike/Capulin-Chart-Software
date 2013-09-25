@@ -64,7 +64,7 @@ import javax.swing.event.DocumentListener;
 //
 //
 
-class MainThread implements Runnable {
+class MainThread extends Thread {
 
     int i = 0;
 
@@ -79,6 +79,8 @@ class MainThread implements Runnable {
 public MainThread(UTCalibrator pCalWindow, Settings pSettings)
 {
 
+    super("Main Thread");
+
     calWindow = pCalWindow; settings = pSettings;
 
 }//end of MainThread::MainThread (constructor)
@@ -87,12 +89,25 @@ public MainThread(UTCalibrator pCalWindow, Settings pSettings)
 //-----------------------------------------------------------------------------
 // MainThread::run
 //
+// Note that if the thread has called hardware.connect and the boards are not
+// responding, it may be a while before the thread will respond to an
+// interrupt. Also, an interrupt may be missed (caught by some code in
+// hardware.connect?) so repeated interrupts should be invoked until the
+// thread catches one and dies.
+//
+// Generally speaking, no methods called by hardware.connect should catch
+// InterruptedException so that and interrupt will return here to be caught.
+//
 
 @Override
 public void run() {
 
     try{
         while (true){
+
+            if (Thread.interrupted()) {
+                throw new InterruptedException();
+            }
 
             //if connection has not been made to the remotes, do so
             if (!hardware.connected) {hardware.connect();}
@@ -126,16 +141,30 @@ public void run() {
 
             hardware.sendDataChangesToRemotes();
 
-            Thread.sleep(10);
+            waitSleep(10);
 
         }//while
     }//try
 
     catch (InterruptedException e) {
-        settings.logException(e);
+        return;
     }
 
 }//end of MainThread::run
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainThread::waitSleep
+//
+// Sleeps for pTime milliseconds.
+//
+
+private void waitSleep(int pTime) throws InterruptedException
+{
+
+    Thread.sleep(pTime);
+
+}//end of MainThread::waitSleep
 //-----------------------------------------------------------------------------
 
 }//end of class MainThread
@@ -220,7 +249,7 @@ public void init()
     UIManager.put("swing.boldMetal", Boolean.FALSE);
 
     MultipleInstancePreventer.checkForInstanceAlreadyRunning("IRScan");
-    
+
     setupJavaLogger(); //redirect to a file
 
     PrintStream errorLog = setupErrorLoggingFile();
@@ -302,9 +331,8 @@ public void init()
 
     //create and start a thread to collect data from the hardware
     mainThread = new MainThread(calWindow, settings);
-    Thread thread = new Thread(mainThread, "Main Thread");
     mainThread.hardware = hardware;
-    thread.start();
+    mainThread.start();
 
     //Create and start a timer which will handle updating the displays.
     mainTimer = new Timer(10, this);
@@ -1306,7 +1334,7 @@ public void actionPerformed(ActionEvent e)
         //program and kill the old one so that all of the configuration data for
         //the job will be loaded properly
 
-        exitProgram(false, true);
+        triggerProgramExit(false, true);
 
         return;
     }
@@ -1704,7 +1732,7 @@ public void createNewJob()
         //program and kill the old one so that all of the configuration data for
         //the job will be loaded properly
 
-        exitProgram(false, true);
+        triggerProgramExit(false, true);
 
     }// if (xfer.rBoolean1)
 
@@ -1743,7 +1771,7 @@ public void changeJob()
         //program and kill the old one so that all of the configuration data for
         //the job will be loaded properly
 
-        exitProgram(false, true);
+        triggerProgramExit(false, true);
 
         }
 
@@ -1784,7 +1812,7 @@ public void copyPreset()
         //program and kill the old one so that all of the configuration data for
         //the job will be loaded properly
 
-        exitProgram(false, true);
+        triggerProgramExit(false, true);
 
     }
 
@@ -1825,7 +1853,7 @@ public void changePreset()
         //program and kill the old one so that all of the configuration data for
         //the job will be loaded properly
 
-        exitProgram(false, true);
+        triggerProgramExit(false, true);
 
         }
 
@@ -2020,27 +2048,9 @@ public void processMainTimerEvent()
 
         if (settings.fileSaver != null) {return;} //wait until saving is done
 
-        //stop calling this timer during shutdown
-        mainTimer.stop();
+        exitProgram();
 
-        //disposing of the frame will exit the program
-        mainFrame.setVisible(false);
-        mainFrame.dispose();
-
-        //to get the program to cleanly exit while debugging in the IDE, must
-        //use System.exit(0) - this may cause an exception if the program is
-        //used as an Applet, so may want to test if program is an Applet and
-        //skip this step in that case
-
-        MainWindow mainWindow;
-
-        //if a restart was requested, make a new main frame and start over
-        if (settings.restartProgram) {
-            mainWindow = new MainWindow();
-        }
-        else {
-            System.exit(0);
-        }
+        return;
 
     }
 
@@ -2279,15 +2289,36 @@ private void loadLanguage(String pLanguage)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// MainWindow::prepareToExitProgram
+// MainWindow::triggerProgramExit
 //
-// Saves files and cleans up in preparation for shut down.
-//
-// Destroys the main window component, exiting the program.
+// Triggers program exit by signalling the main timer function to perform
+// the shutdown process.
 //
 // If pRestart = true, a new main frame is created.  This must be
 // done to switch between configurations and presets as everything must be
 // rebuilt to match the settings in the config file.
+//
+// If pSave is true, all job info data files are saved when the program is
+// exited.
+//
+
+public void triggerProgramExit(boolean pSave, boolean pRestart)
+{
+
+    //signal timer to begin shut down process
+    settings.beginExitProgram = true;
+    //signal timer to save data or not
+    settings.saveOnExit = pSave;
+    //signal timer to restart the program or not
+    settings.restartProgram = pRestart;
+
+}//end of MainWindow::triggerProgramExit
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainWindow::prepareToExitProgram
+//
+// Saves files and cleans up in preparation for shut down.
 //
 // If pSave is true, all job info data files are saved.
 //
@@ -2314,25 +2345,56 @@ public void prepareToExitProgram(boolean pSave)
 //-----------------------------------------------------------------------------
 // MainWindow::exitProgram
 //
-// Saves files, cleans up, shuts down hardware, exits the program by signalling
-// the main timer function.
+// Destroys the main window component, exiting the program.
 //
 // If pRestart = true, a new main frame is created.  This must be
 // done to switch between configurations and presets as everything must be
 // rebuilt to match the settings in the config file.
 //
-// If pSave is true, all job info data files are saved.
-//
 
-public void exitProgram(boolean pSave, boolean pRestart)
+private void exitProgram()
 {
 
-    //signal timer to begin shut down process
-    settings.beginExitProgram = true;
-    //signal timer to save data or not
-    settings.saveOnExit = pSave;
-    //signal timer to restart the program or not
-    settings.restartProgram = pRestart;
+    //stop calling this timer during shutdown
+    mainTimer.stop();
+
+    // stop the main execution thread
+    // wait until the main thread dies before shutting down
+    // If the thread is in hardware.connect, it will miss the interrupt
+    // (caught by code somewhere in the connect process?) so keep interrupting
+    // until successful.
+    // Note that if the thread has called hardware.connect and the boards are
+    // not responding, it may be a while before the thread will respond to an
+    // interrupt.
+
+    while (mainThread.isAlive()){ mainThread.interrupt(); }
+
+    //release the lock on multiple instance preventer file to allow a new
+    //instance to be created without a warning
+    MultipleInstancePreventer.removeLock();
+
+    //disposing of the frame will exit the program
+    mainFrame.setVisible(false);
+    mainFrame.dispose();
+    mainFrame = null;
+
+    //to get the program to cleanly exit while debugging in the IDE, must
+    //use System.exit(0) - this may cause an exception if the program is
+    //used as an Applet, so may want to test if program is an Applet and
+    //skip this step in that case
+
+    MainWindow mainWindow;
+
+    //if a restart was requested, make a new main frame and start over
+    if (settings.restartProgram) {
+
+        mainWindow = new MainWindow();
+        mainWindow.init();
+        return;
+    }
+    else {
+        System.exit(0);
+    }
 
 }//end of MainWindow::exitProgram
 //-----------------------------------------------------------------------------
@@ -2357,7 +2419,7 @@ public void exitProgram(boolean pSave, boolean pRestart)
 public void windowClosing(WindowEvent e)
 {
 
-    exitProgram(true, false);
+    triggerProgramExit(true, false);
 
 }//end of MainWindow::windowClosing
 //-----------------------------------------------------------------------------

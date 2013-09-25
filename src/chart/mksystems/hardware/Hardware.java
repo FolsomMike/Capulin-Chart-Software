@@ -272,7 +272,7 @@ private void createAnalogDriver(String pDriverName)
 // Establishes connections with remote devices.
 //
 
-public void connect()
+public void connect() throws InterruptedException
 {
 
     logger.section();

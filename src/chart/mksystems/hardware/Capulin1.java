@@ -327,7 +327,7 @@ public void createWallMapDataSaver()
 // ignored.
 
 @Override
-public void connect()
+public void connect() throws InterruptedException
 {
 
     connectControlBoard();
@@ -343,7 +343,7 @@ public void connect()
 // Opens a TCP/IP connection with the Control Board.
 //
 
-public void connectControlBoard()
+public void connectControlBoard() throws InterruptedException
 {
 
     //displays message on bottom panel of IDE
@@ -397,7 +397,7 @@ public void connectControlBoard()
 
     //broadcast the roll call greeting several times - bail out when expected
     //number of different Control boards have responded
-    while(loopCount++ < 10 && responseCount < numberOfControlBoards){
+    while(loopCount++ < 5 && responseCount < numberOfControlBoards){
 
         try {socket.send(outPacket);}
         catch(IOException e) {
@@ -406,7 +406,7 @@ public void connectControlBoard()
             return;
         }
 
-        waitSleep(3000); //sleep to delay between broadcasts
+        waitSleep(1000); //sleep to delay between broadcasts
 
         //check for response packets from the remotes
         try{
@@ -455,8 +455,7 @@ public void connectControlBoard()
             }//while(true)
         }//try
         catch(IOException e){
-            //this reached if receive times out
-            System.err.println(getClass().getName() + " - Error: 283");
+            //this reached if receive times out -- take no action
         }
     }// while(loopCount...
 
@@ -502,7 +501,7 @@ public void connectControlBoard()
 // Connects with and sets up all UT boards.
 //
 
-public synchronized void connectUTBoards()
+public synchronized void connectUTBoards() throws InterruptedException
 {
 
     //displays message on bottom panel of IDE
@@ -558,7 +557,7 @@ public synchronized void connectUTBoards()
 
     //force socket.receive to return if no packet available quickly
     try{
-        socket.setSoTimeout(6000);
+        socket.setSoTimeout(1000);
     }
     catch(SocketException e){
         System.err.println(getClass().getName() + " - Error: 385");
@@ -566,7 +565,7 @@ public synchronized void connectUTBoards()
 
     //broadcast the roll call greeting repeatedly - bail out when the expected
     //number of different UT boards have responded
-    while(loopCount++ < 20 && responseCount < numberOfUTBoards){
+    while(loopCount++ < 5 && responseCount < numberOfUTBoards){
 
         try {socket.send(outPacket);}
         catch(IOException e) {
@@ -575,7 +574,7 @@ public synchronized void connectUTBoards()
             return;
         }
 
-        waitSleep(3000); //sleep to delay between broadcasts
+        waitSleep(1000); //sleep to delay between broadcasts
 
         //check for response packets from the remotes
         try{
@@ -631,8 +630,7 @@ public synchronized void connectUTBoards()
             }//while(true)
         }//try
         catch(IOException e){
-            //this reached if receive times out
-            System.err.println(getClass().getName() + " - Error: 452");
+            //this reached if receive times out -- take no action
         }
     }// while(loopCount...
 
@@ -2098,10 +2096,10 @@ public void getInspectControlVars(InspectControlVars pICVars)
 // Sleeps for pTime milliseconds.
 //
 
-void waitSleep(int pTime)
+void waitSleep(int pTime) throws InterruptedException
 {
 
-    try {Thread.sleep(pTime);} catch (InterruptedException e) { }
+    Thread.sleep(pTime);
 
 }//end of Capulin1::waitSleep
 //-----------------------------------------------------------------------------
@@ -2467,6 +2465,8 @@ void resetUTBoardsForNextRun()
 
 void enableWallMapPackets()
 {
+
+    if (mapSourceBoards == null) { return; }
 
     //lock in the synced value since it is used multiple times here
     boolean enable = wallMapPacketsEnabled.applyValue();

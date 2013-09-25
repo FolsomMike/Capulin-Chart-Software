@@ -95,7 +95,7 @@ public void init()
 //
 
 @Override
-public void connect()
+public void connect() throws InterruptedException
 {
 
 

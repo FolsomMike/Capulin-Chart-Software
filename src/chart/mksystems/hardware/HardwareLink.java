@@ -54,7 +54,7 @@ Channel[] getChannels();
 
 UTGate getGate(int pChannel, int pGate);
 
-void connect();
+void connect() throws InterruptedException;
 
 void loadCalFile(IniFile pCalFile);
 
