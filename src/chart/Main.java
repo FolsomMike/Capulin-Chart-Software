@@ -29,6 +29,7 @@ import chart.mksystems.settings.Link;
 import chart.mksystems.settings.Settings;
 import chart.mksystems.stripchart.ChartGroup;
 import chart.mksystems.tools.MultipleInstancePreventer;
+import chart.mksystems.tools.SwissArmyKnife;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -281,6 +282,9 @@ public void init()
     //create the program's main window
     mainFrame = new JFrame("Java Chart");
     settings.mainFrame = mainFrame; //store for use by other objects
+
+    SwissArmyKnife.setIconImages(mainFrame, Main.class, "IRScan Chart Icon");
+
     //do not auto exit on close - shut down handled by the timer function
     mainFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
     mainFrame.addComponentListener(this);
