@@ -2491,6 +2491,8 @@ void enableWallMapPackets()
 void setMapAdvanceModes(int pMode)
 {
 
+    if (mapSourceBoards == null) { return; }
+
     for (int i = 0; i < mapSourceBoards.length; i++){
         if (mapSourceBoards[i].utBoard != null){
             mapSourceBoards[i].utBoard.setMapAdvanceMode(pMode);
@@ -2517,6 +2519,8 @@ void setMapAdvanceModes(int pMode)
 @Override
 public void triggerMapAdvance(double pPosition)
 {
+
+    if (mapSourceBoards == null) { return; }
 
     for (int i = 0; i < mapSourceBoards.length; i++){
 
@@ -2582,6 +2586,8 @@ public void recordStopLocation(int pHead, double pPosition)
 private void recordStartLocationForMapping(int pHead, double pPosition)
 {
 
+    if (mapSourceBoards == null) { return; }
+
     for (int i = 0; i < mapSourceBoards.length; i++){
 
         UTBoard utBoard = mapSourceBoards[i].utBoard;
@@ -2612,6 +2618,8 @@ private void recordStartLocationForMapping(int pHead, double pPosition)
 
 private void recordStopLocationForMapping(int pHead, double pPosition)
 {
+
+    if (mapSourceBoards == null) { return; }
 
     for (int i = 0; i < mapSourceBoards.length; i++){
 
@@ -2738,6 +2746,8 @@ public void calculateMapOffsetDelays(
 @Override
 public void initializeMapOffsetDelays(int pDirection, int pAwayDirection)
 {
+
+    if (mapSourceBoards == null) { return; }
 
     for (int i = 0; i < mapSourceBoards.length; i++){
 
