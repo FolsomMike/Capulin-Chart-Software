@@ -51,11 +51,11 @@
 
 package chart.mksystems.tools;
 
+import java.io.IOException;
 import java.nio.file.*;
+import static java.nio.file.FileVisitResult.*;
 import static java.nio.file.StandardCopyOption.*;
 import java.nio.file.attribute.*;
-import static java.nio.file.FileVisitResult.*;
-import java.io.IOException;
 import java.util.*;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;

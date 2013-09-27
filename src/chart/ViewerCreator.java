@@ -434,15 +434,40 @@ private boolean createAppFolders()
 
     if (!createFolder(appFolderName)) { return(false); }
 
-    if (!createFolderInAppFolder("Help Files")) { return(false); }
+    if (!copyFolderToAppFolder("Help Files")) { return(false); }
 
     if (!createFolderInAppFolder("Log Files")) { return(false); }
 
-    if (!createFolderInAppFolder("Language")) { return(false); }
+    if (!copyFolderToAppFolder("Language")) { return(false); }
 
     return(true);
 
 }//end of ViewerCreator::createsAppFolders
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ViewerCreator::copyFolderToAppFolder
+//
+// Copies the folder pSource and all of its contents from the app's root folder
+// to the target app folder.
+//
+// Returns true if successful, false if not.
+//
+
+private boolean copyFolderToAppFolder(String pSource)
+{
+
+    //get actual path to the file in the current folder, which in this case
+    //is the application's root folder
+
+    Path sourcePath = Paths.get(pSource).toAbsolutePath();
+
+    //copy the folder and its contents to the target folder
+    boolean result = copyFileTree(sourcePath.toString(), appFolderName);
+
+    return(result);
+
+}//end of ViewerCreator::copyFolderToAppFolder
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -489,7 +514,6 @@ private boolean copyJobFolders()
         return(true);
     }
     else{
-        errorMessage = CopyTools.getErrorMessage();
         return(false);
     }
 
@@ -512,8 +536,12 @@ private boolean copyFileTree(String pSource, String pDestination)
     //copy the folders without prompting for overwrite and copying the file
     //attributes as well
 
-    return (CopyTools.copyTree(mainFrame, Paths.get(pSource),
-                                    Paths.get(pDestination), false, true));
+    boolean result = CopyTools.copyTree(mainFrame, Paths.get(pSource),
+                                    Paths.get(pDestination), false, true);
+
+    if (!result) { errorMessage = CopyTools.getErrorMessage(); }
+
+    return(result);
 
 }//end of ViewerCreator::copyFileTree
 //-----------------------------------------------------------------------------
