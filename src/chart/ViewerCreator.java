@@ -49,10 +49,11 @@ public class ViewerCreator extends Thread{
     JFrame mainFrame;
 
     String sep;
+    String targetFolder;
     String rootFolderBaseName;
     String rootFolderName;
     String rootSubFolderName;
-    String targetFolder;
+    String appFolderName;
     String jobName;
     String primaryJobFolder;
     String backupJobFolder;
@@ -279,6 +280,8 @@ private void createViewerPackage()
 
     if(!createRootSubFolder()) { return; }
 
+    if(!copyApplication()) { return; }
+
     if(!createFolderInRootSubFolder(primaryFolderName)) { return; }
 
     primaryTargetFolderName = rootSubFolderName + sep + primaryFolderName;
@@ -312,22 +315,7 @@ private boolean createRootFolder()
 
     setProgress(rootFolderName);
 
-    Path rootPath = Paths.get(rootFolderName);
-
-    try{
-
-        Files.createDirectory(rootPath);
-
-    }
-    catch(FileAlreadyExistsException e){
-        //okay if already exists -- existing folder will be used
-        return(true);
-    }
-    catch(Exception e){
-        return(false); //error on any other exception
-    }
-
-    return(true);
+    return(createFolder(rootFolderName));
 
 }//end of ViewerCreator::createRootFolder
 //-----------------------------------------------------------------------------
@@ -352,22 +340,7 @@ private boolean createRootSubFolder()
 
     setProgress(rootSubFolderName);
 
-    Path rootSubPath = Paths.get(rootSubFolderName);
-
-    try{
-
-        Files.createDirectory(rootSubPath);
-
-    }
-    catch(FileAlreadyExistsException e){
-        //okay if already exists -- existing folder will be used
-        return(true);
-    }
-    catch(Exception e){
-        return(false); //error on any other exception
-    }
-
-    return(true);
+    return(createFolder(rootSubFolderName));
 
 }//end of ViewerCreator::createRootSubFolder
 //-----------------------------------------------------------------------------
@@ -375,7 +348,7 @@ private boolean createRootSubFolder()
 //-----------------------------------------------------------------------------
 // ViewerCreator::createFolderInRootSubFolder
 //
-// Creates folder pFolderName in the root sub folder;
+// Creates folder pFolderName in the root sub folder.
 //
 // Returns true if no error, false on failure.
 //
@@ -392,11 +365,28 @@ private boolean createFolderInRootSubFolder(String pFolderName)
 
     String newFolder = rootSubFolderName + sep + pFolderName;
 
-    Path newPath = Paths.get(newFolder);
+    return(createFolder(newFolder));
+
+}//end of ViewerCreator::createFolderInRootSubFolder
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ViewerCreator::createFolder
+//
+// Creates folder pNewFolder.
+//
+// Returns true if no error, false on failure.
+//
+// Also returns true if the folder already exists -- the existing folder will
+// be used in that case.
+//
+
+private boolean createFolder(String pNewFolder)
+{
 
     try{
 
-        Files.createDirectory(newPath);
+        Files.createDirectory(Paths.get(pNewFolder));
 
     }
     catch(FileAlreadyExistsException e){
@@ -408,6 +398,74 @@ private boolean createFolderInRootSubFolder(String pFolderName)
     }
 
     return(true);
+
+}//end of ViewerCreator::createFolder
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ViewerCreator::copyApplication
+//
+// Copies the application and all necessary support files to the target
+// folder.
+//
+// Returns true if successful, false if not.
+//
+
+private boolean copyApplication()
+{
+
+    appFolderName = rootSubFolderName + sep + "IRNDT IRScan Program";
+
+    return(createAppFolders());
+
+}//end of ViewerCreator::copyApplication
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ViewerCreator::createAppFolders
+//
+// Creates folders required by the application in folder appFolderName.
+//
+// Returns true if successful, false if not.
+//
+
+private boolean createAppFolders()
+{
+
+    if (!createFolder(appFolderName)) { return(false); }
+
+    if (!createFolderInAppFolder("Help Files")) { return(false); }
+
+    if (!createFolderInAppFolder("Log Files")) { return(false); }
+
+    if (!createFolderInAppFolder("Language")) { return(false); }
+
+    return(true);
+
+}//end of ViewerCreator::createsAppFolders
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ViewerCreator::createFolderInAppFolder
+//
+// Creates folder pFolderName in the application folder
+//
+// Returns true if no error, false on failure.
+//
+// Also returns true if the folder already exists -- the existing folder will
+// be used in that case.
+//
+
+private boolean createFolderInAppFolder(String pFolderName)
+{
+
+    setStatus("Creating folder in application folder...");
+
+    setProgress(pFolderName);
+
+    String newFolder = appFolderName + sep + pFolderName;
+
+    return(createFolder(newFolder));
 
 }//end of ViewerCreator::createFolderInRootSubFolder
 //-----------------------------------------------------------------------------
@@ -422,8 +480,6 @@ private boolean createFolderInRootSubFolder(String pFolderName)
 
 private boolean copyJobFolders()
 {
-
-    //String target = primaryJobFolder + sep +
 
     boolean primaryOK = copyFileTree(primaryJobFolder, primaryTargetFolderName);
 

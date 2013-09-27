@@ -1039,7 +1039,7 @@ public void loadLanguage()
     IniFile ini = null;
 
     //if the ini file cannot be opened and loaded, exit without action
-    try {ini = new IniFile("language\\Globals - Capulin UT.language",
+    try {ini = new IniFile("Language\\Globals - Capulin UT.language",
                                                              mainFileFormat);}
     catch(IOException e){
         System.err.println(getClass().getName() + " - Error: 975");
