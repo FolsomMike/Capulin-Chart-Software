@@ -250,6 +250,7 @@ public void run() {
         createViewerPackage();
 
         if(!success){
+            //displayWarningMessage is threadsafe
             displayWarningMessage(
             "One or more errors occurred. Last error encounter: "
             + errorMessage);
@@ -394,6 +395,8 @@ private boolean createFolder(String pNewFolder)
         return(true);
     }
     catch(Exception e){
+        success = false;
+        errorMessage = e.getMessage() + "; Cannot create folder: " + pNewFolder;
         return(false); //error on any other exception
     }
 
@@ -514,6 +517,7 @@ private boolean copyJobFolders()
         return(true);
     }
     else{
+        //success flag and error message already set by copyFileTree
         return(false);
     }
 
@@ -539,7 +543,10 @@ private boolean copyFileTree(String pSource, String pDestination)
     boolean result = CopyTools.copyTree(mainFrame, Paths.get(pSource),
                                     Paths.get(pDestination), false, true);
 
-    if (!result) { errorMessage = CopyTools.getErrorMessage(); }
+    if (!result) {
+        success = false;
+        errorMessage = CopyTools.getErrorMessage();
+    }
 
     return(result);
 
