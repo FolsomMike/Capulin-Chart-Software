@@ -260,7 +260,8 @@ public void init()
         UIManager.setLookAndFeel(
             UIManager.getCrossPlatformLookAndFeelClassName());
     }
-    catch (Exception e) {
+    catch (ClassNotFoundException | InstantiationException |
+            IllegalAccessException | UnsupportedLookAndFeelException e) {
         settings.logException(e);
     }
 
@@ -1256,6 +1257,22 @@ public void actionPerformed(ActionEvent e)
             viewer.init();
         }
         return;
+    }
+
+    //this part creates a Viewer Program package for viewing job data on any
+    //computer
+    if ("Create Viewer Package".equals(e.getActionCommand())) {
+
+        //read values passed to viewerCreate from config file
+
+        ViewerCreator viewerCreator = new ViewerCreator(mainFrame,
+                "IR Scan Job Viewer",
+                settings.currentJobName,
+                settings.currentJobPrimaryPath,
+                settings.currentJobBackupPath,
+                settings.primaryFolderName,
+                settings.backupFolderName);
+        viewerCreator.init();
     }
 
     //this part opens a window to print a flag report

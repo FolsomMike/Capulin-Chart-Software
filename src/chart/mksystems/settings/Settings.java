@@ -326,25 +326,29 @@ public void actionPerformed(ActionEvent e)
 
     //calls function in Main
     if (source.getToolTipText().equalsIgnoreCase("Job Info")){
-        actionListener.actionPerformed(new ActionEvent(this, 1, "Job Info"));
+        actionListener.actionPerformed(
+              new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Job Info"));
         return;
     }
 
     //calls function in Main
     if (source.getToolTipText().equalsIgnoreCase("Save")){
-        actionListener.actionPerformed(new ActionEvent(this, 1, "Save"));
+        actionListener.actionPerformed(
+                 new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Save"));
         return;
     }
 
     //calls function in Main
     if (source.getToolTipText().equalsIgnoreCase("New Job")){
-        actionListener.actionPerformed(new ActionEvent(this, 1, "New Job"));
+        actionListener.actionPerformed(
+               new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "New Job"));
         return;
     }
 
     //calls function in Main
     if (source.getToolTipText().equalsIgnoreCase("Change to a different job.")){
-        actionListener.actionPerformed(new ActionEvent(this, 1, "Change Job"));
+        actionListener.actionPerformed(
+            new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Change Job"));
         return;
     }
 
@@ -352,14 +356,15 @@ public void actionPerformed(ActionEvent e)
     if (source.getToolTipText().equalsIgnoreCase(
                                        "Copy settings from a different job.")){
         actionListener.actionPerformed(new ActionEvent(
-                                             this, 1, "Copy Preset From Job"));
+                  this, ActionEvent.ACTION_PERFORMED, "Copy Preset From Job"));
         return;
     }
 
     //calls function in Main
     if (source.getToolTipText().equalsIgnoreCase(
                                         "Save current settings as a preset.")){
-        actionListener.actionPerformed(new ActionEvent(this, 1, "Save Preset"));
+        actionListener.actionPerformed(
+           new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Save Preset"));
         return;
     }
 
@@ -367,7 +372,7 @@ public void actionPerformed(ActionEvent e)
     if (source.getToolTipText().equalsIgnoreCase(
                                          "Load new settings from a preset.")){
         actionListener.actionPerformed(
-                                new ActionEvent(this, 1, "Change Preset"));
+         new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Change Preset"));
         return;
     }
 
@@ -375,98 +380,114 @@ public void actionPerformed(ActionEvent e)
     if (source.getToolTipText().equalsIgnoreCase(
                                               "Rename the selected preset.")){
         actionListener.actionPerformed(
-                                new ActionEvent(this, 1, "Rename Preset"));
+         new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Rename Preset"));
         return;
     }
 
     //calls function in Main
     if (source.getToolTipText().equalsIgnoreCase("Delete a preset.")){
         actionListener.actionPerformed(
-                                new ActionEvent(this, 1, "Delete Preset"));
+         new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Delete Preset"));
         return;
     }
 
     //calls function in Main
     if (source.getToolTipText().equalsIgnoreCase("Monitor")){
-        actionListener.actionPerformed(new ActionEvent(this, 1, "Monitor"));
+        actionListener.actionPerformed(
+               new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Monitor"));
         return;
     }
 
     //calls function in Main
     if (source.getActionCommand().equalsIgnoreCase("Debugger")){
-        actionListener.actionPerformed(new ActionEvent(this, 1, "Debugger"));
+        actionListener.actionPerformed(
+              new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Debugger"));
         return;
     }
 
     //calls function in Main
     if (source.getActionCommand().equalsIgnoreCase("Repair Job")){
-        actionListener.actionPerformed(new ActionEvent(this, 1, "Repair Job"));
+        actionListener.actionPerformed(
+            new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Repair Job"));
         return;
     }
 
     //calls function in Main
     if (source.getActionCommand().equalsIgnoreCase("Update UT Rabbit Code")){
-        actionListener.actionPerformed(
-                          new ActionEvent(this, 1, source.getActionCommand()));
+        actionListener.actionPerformed(new ActionEvent(
+               this, ActionEvent.ACTION_PERFORMED, source.getActionCommand()));
         return;
     }
 
     //calls function in Main
     if (source.getActionCommand().equalsIgnoreCase(
                                         "Update Control Rabbit Code")){
-        actionListener.actionPerformed(
-                           new ActionEvent(this, 1, source.getActionCommand()));
+        actionListener.actionPerformed(new ActionEvent(
+               this, ActionEvent.ACTION_PERFORMED, source.getActionCommand()));
         return;
     }
 
     //calls function in Main
     if (source.getActionCommand().equalsIgnoreCase("Set Up System")){
         actionListener.actionPerformed(
-                                new ActionEvent(this, 1, "Set Up System"));
+         new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Set Up System"));
         return;
     }
 
     //calls function in Main
     if (source.getActionCommand().equalsIgnoreCase("Renew License")){
         actionListener.actionPerformed(
-                                    new ActionEvent(this, 1, "Renew License"));
+         new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Renew License"));
         return;
     }
 
     //calls function in Main
     if (source.getActionCommand().equalsIgnoreCase("Log")){
-        actionListener.actionPerformed(new ActionEvent(this, 1, "Log"));
+        actionListener.actionPerformed(
+                   new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Log"));
         return;
     }
 
     //calls function in Main
     if (source.getActionCommand().equalsIgnoreCase("Status")){
-        actionListener.actionPerformed(new ActionEvent(this, 1, "Status"));
+        actionListener.actionPerformed(
+                new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Status"));
         return;
     }
 
     //calls function in Main
     if (source.getActionCommand().startsWith("View Chart of a Completed")){
-        actionListener.actionPerformed(new ActionEvent(this, 1, "Open Viewer"));
+        actionListener.actionPerformed(
+           new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Open Viewer"));
         return;
     }
 
     //calls function in Main
     if (source.getActionCommand().startsWith("View / Edit Identifier Info")){
         actionListener.actionPerformed(new ActionEvent(
-                                              this, 1, "Show ID Info Window"));
+                   this, ActionEvent.ACTION_PERFORMED, "Show ID Info Window"));
         return;
     }
 
     //calls function in Main
+    if (source.getActionCommand().
+            startsWith("Create Viewer Package for Viewing on Any Computer")){
+        actionListener.actionPerformed(new ActionEvent(
+                 this, ActionEvent.ACTION_PERFORMED, "Create Viewer Package"));
+        return;
+    }
+
+
+    //calls function in Main
     if (source.getActionCommand().startsWith("About")){
-        actionListener.actionPerformed(new ActionEvent(this, 1, "About"));
+        actionListener.actionPerformed(
+                 new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "About"));
         return;
     }
 
     if (source.getActionCommand().startsWith("Display Configuration Info")){
         actionListener.actionPerformed(new ActionEvent(
-                                        this, 1, "Display Configuration Info"));
+            this, ActionEvent.ACTION_PERFORMED, "Display Configuration Info"));
         return;
     }
 
@@ -511,8 +532,9 @@ public void actionPerformed(ActionEvent e)
     //calls function in Main
     if (source.getActionCommand().
                      startsWith("Print Flag Report for Last Piece Inspected")){
-        actionListener.actionPerformed(new ActionEvent(
-                    this, 1, "Print Flag Report for Last Piece Inspected"));
+        actionListener.actionPerformed(
+                            new ActionEvent(this, ActionEvent.ACTION_PERFORMED,
+                                "Print Flag Report for Last Piece Inspected"));
         return;
     }
 
@@ -520,15 +542,16 @@ public void actionPerformed(ActionEvent e)
     if (source.getActionCommand().
                         startsWith("Print Flag Report for User Selection")){
         actionListener.actionPerformed(
-           new ActionEvent(this, 1, "Print Flag Report for User Selection"));
+                            new ActionEvent(this, ActionEvent.ACTION_PERFORMED,
+                                      "Print Flag Report for User Selection"));
         return;
     }
 
     //calls function in Main
     if (source.getActionCommand().
                         startsWith("View Calibration Records")){
-        actionListener.actionPerformed(
-                        new ActionEvent(this, 1, "View Calibration Records"));
+        actionListener.actionPerformed(new ActionEvent(this,
+                    ActionEvent.ACTION_PERFORMED, "View Calibration Records"));
         return;
     }
 
@@ -714,7 +737,7 @@ public void configure(IniFile pConfigFile)
     if (lineCount == 0 || lineCount > 100) {return;}
 
     //create a vector to hold the lines of text read from the file
-    configInfo = new ArrayList<String>(lineCount);
+    configInfo = new ArrayList<>(lineCount);
 
     String line, number;
 
@@ -842,21 +865,13 @@ public static void appendSecurityHash(String pFilename)
     //bail out if error during hash calculation
     if(hash.length() <= 0) {return;}
 
-    //append the hash code to the file
-
-    PrintWriter file = null;
-
-    try{
-        file = new PrintWriter(new FileWriter(pFilename, true));
+    try(PrintWriter file = new PrintWriter(new FileWriter(pFilename, true))) {
 
         file.println("");
         file.print("Time Stamp: "); file.println(hash);
     }
     catch(IOException e){
         System.err.println(Settings.class.getName() + " - Error: 816");
-    }
-    finally{
-        if (file != null) {file.close();}
     }
 
 }//end of Settings::appendSecurityHash

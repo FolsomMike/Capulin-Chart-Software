@@ -68,6 +68,7 @@ public class MainMenu extends JMenuBar{
 
     JMenu viewMenu;
     JMenuItem viewSegmentMenuItem, viewIDInfoMenuItem;
+    JMenuItem createViewerPackage;
 
     JMenu optionsMenu, chartMenu, aScanMenu, reportOptionsMenu;
     JCheckBoxMenuItem restartNewPieceAtLeftEdgeMenuCheck;
@@ -315,7 +316,7 @@ public MainMenu(Settings pSettings)
     viewMenu.setToolTipText("View");
     add(viewMenu);
 
-    //View/View Saved Segment
+    //View Saved Segment
     viewSegmentMenuItem = new JMenuItem("View Chart of a Completed " +
                                                     settings.pieceDescription);
     viewSegmentMenuItem.setMnemonic(KeyEvent.VK_C);
@@ -324,7 +325,7 @@ public MainMenu(Settings pSettings)
     viewSegmentMenuItem.addActionListener(settings);
     viewMenu.add(viewSegmentMenuItem);
 
-    //View/View/Edit Identifier Info
+    //View/Edit Identifier Info
     viewIDInfoMenuItem = new JMenuItem("View / Edit Identifier Info");
     viewIDInfoMenuItem.setMnemonic(KeyEvent.VK_I);
     viewIDInfoMenuItem.setToolTipText(
@@ -332,6 +333,15 @@ public MainMenu(Settings pSettings)
                                            + settings.pieceDescriptionLC + ".");
     viewIDInfoMenuItem.addActionListener(settings);
     viewMenu.add(viewIDInfoMenuItem);
+
+    //View/Create Viewer Package for Viewing on Any Computer
+    createViewerPackage = new JMenuItem(
+                        "Create Viewer Package for Viewing on Any Computer");
+    createViewerPackage.setMnemonic(KeyEvent.VK_P);
+    createViewerPackage.setToolTipText(
+                         "Create viewer package for viewing on any computer.");
+    createViewerPackage.addActionListener(settings);
+    viewMenu.add(createViewerPackage);
 
     //Options\Language submenu and items
     //languageMenu = new JMenu("Language");
