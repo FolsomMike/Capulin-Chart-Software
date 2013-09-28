@@ -50,6 +50,8 @@ public class Settings extends Object implements ActionListener, ItemListener {
 
     public JFrame mainFrame;
 
+    public boolean viewerMode = false;
+
     public Hardware hardware;
 
     public String language;

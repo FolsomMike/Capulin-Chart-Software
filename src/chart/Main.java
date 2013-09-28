@@ -278,6 +278,10 @@ public void init()
 
     settings.errorLog = errorLog; //make available for other objects
 
+    if (Files.exists(Paths.get("Viewer Mode.ini"))) {
+        settings.viewerMode = true;
+    }
+
     xfer = new Xfer();
 
     //create the program's main window
@@ -337,7 +341,7 @@ public void init()
     //create and start a thread to collect data from the hardware
     mainThread = new MainThread(calWindow, settings);
     mainThread.hardware = hardware;
-    mainThread.start();
+    if(!settings.viewerMode) { mainThread.start(); }
 
     //Create and start a timer which will handle updating the displays.
     mainTimer = new Timer(10, this);
@@ -350,9 +354,16 @@ public void init()
     //force garbage collection before beginning any time sensitive tasks
     System.gc();
 
-    //check to see if license has expired
-    LicenseValidator  lv = new LicenseValidator(mainFrame, "Graphics.ini");
-    lv.validateLicense();
+    //if not in viewer mode check to see if license has expired
+    if(!settings.viewerMode){
+        LicenseValidator  lv = new LicenseValidator(mainFrame, "Graphics.ini");
+        lv.validateLicense();
+    }
+
+    if (settings.viewerMode){
+        displayViewerInstructionsInLogWindow();
+    }
+
 
 }//end of MainWindow::init
 //-----------------------------------------------------------------------------
@@ -392,6 +403,43 @@ private void loadMainStaticSettings()
                                     "Main Configuration", "Reports Path", ""));
 
 }//end of MainWindow::loadMainStaticSettings
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainWindow::displayViewerInstructionsInLogWindow
+//
+// Displays instructions for viewing job data in the log window.
+//
+
+private void displayViewerInstructionsInLogWindow(){
+
+
+    logWindow.appendLine("");
+    logWindow.appendLine("   --- Instructions for Viewing Job Files ---");
+    logWindow.appendLine("");
+
+    logWindow.appendLine(" After reading these instructions, this window can");
+    logWindow.appendLine(" be closed by clicking the X in the upper right");
+    logWindow.appendLine(" corner or it can be moved out of the way.");
+
+    logWindow.appendLine("");
+
+    logWindow.appendLine(" To select a job for viewing, click:");
+    logWindow.appendLine("      File/Change Job");
+
+    logWindow.appendLine("");
+
+    logWindow.appendLine(" To view runs for the selected job, click:");
+    logWindow.appendLine("      View/View Chart of a Completed " +
+                                                    settings.pieceDescription);
+
+    logWindow.appendLine("");
+    logWindow.appendLine(" These commands are located at the top of the ");
+    logWindow.appendLine(" main window in the main menu. This Message Log");
+    logWindow.appendLine(" window may have to be closed or moved to see the");
+    logWindow.appendLine(" main menu.");
+
+}//end of MainWindow::displayViewerInstructionsInLogWindow
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

@@ -28,11 +28,17 @@ package chart;
 
 import chart.mksystems.tools.CopyTools;
 import java.awt.Dimension;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.ListIterator;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JDialog;
@@ -252,7 +258,7 @@ public void run() {
         if(!success){
             //displayWarningMessage is threadsafe
             displayWarningMessage(
-            "One or more errors occurred. Last error encounter: "
+            "One or more errors occurred. Last error encountered: "
             + errorMessage);
         }
 
@@ -263,6 +269,11 @@ public void run() {
     }//try
     catch (InterruptedException e) {
         return;
+    }
+    finally{
+
+        disposeOfStatusWindow();
+
     }
 
 }//end of ViewerCreator::run
@@ -292,6 +303,10 @@ private void createViewerPackage()
     backupTargetFolderName = rootSubFolderName + sep + backupFolderName;
 
     if (!copyJobFolders()) { return; }
+
+    if(!createBasicInstructionFile()) { return; }
+
+    if(!createViewerStarterCmdFile()) { return; }
 
 }//end of ViewerCreator::createViewerPackage
 //-----------------------------------------------------------------------------
@@ -419,7 +434,17 @@ private boolean copyApplication()
 
     appFolderName = rootSubFolderName + sep + "IRNDT IRScan Program";
 
-    return(createAppFolders());
+    if (!createAppFolders()) { return(false); }
+
+    if (!copyAppFiles()) { return(false); }
+
+    if (!createViewerModeConfigFile()) { return(false); }
+
+    if (!createMainSettingsConfigFile()) { return(false); }
+
+    if (!createMainStaticSettingsConfigFile()) { return(false); }
+
+    return(true);
 
 }//end of ViewerCreator::copyApplication
 //-----------------------------------------------------------------------------
@@ -449,6 +474,89 @@ private boolean createAppFolders()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ViewerCreator::copyAppFiles
+//
+// Copies files required by the application to the target folder.
+//
+// Returns true if successful, false if not.
+//
+
+private boolean copyAppFiles()
+{
+
+    if (!copyFileToTargetAppFolder("Chart.jar")) { return(false); }
+
+
+    if (!copyFileToTargetAppFolder(
+                        "Configuration - General.ini")) { return(false); }
+
+    if (!copyFileToTargetAppFolder(
+                "Configuration - Job Info Window.ini")) { return(false); }
+
+    if (!copyFileToTargetAppFolder(
+                "Configuration - Piece Info Window.ini")) { return(false); }
+
+    if (!copyFileIfExistsToTargetAppFolder(
+                "Configs Have Been Converted To UTF-8")) { return(false); }
+
+    return(true);
+
+}//end of ViewerCreator::copyAppFiles
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ViewerCreator::copyFileToTargetAppFolder
+//
+// Copies pFile to the target application folder.
+//
+// Returns true if successful, false if not.
+//
+
+private boolean copyFileToTargetAppFolder(String pFile)
+{
+
+    String destination = appFolderName + sep + pFile;
+
+    //copy without prompting user to overwrite; preserve file attributes
+
+    boolean result = CopyTools.copyFile(mainFrame,
+                    Paths.get(pFile), Paths.get(destination), false, true);
+
+    if (!result) {
+        success = false;
+        errorMessage = CopyTools.getErrorMessage();
+    }
+
+    return(result);
+
+}//end of ViewerCreator::copyFileToTargetAppFolder
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ViewerCreator::copyFileIfExistsToTargetAppFolder
+//
+// Copies pFile if it exists to the target application folder. If it does not
+// exist, nothing is done and no error is recorded.
+//
+// Returns true if successful, false if not.
+//
+
+private boolean copyFileIfExistsToTargetAppFolder(String pFile)
+{
+
+    //do nothing if file does not exist -- not an error
+    if (Files.notExists(Paths.get(pFile))) { return(true); }
+
+    boolean result = copyFileToTargetAppFolder(pFile);
+
+    //success flag and error message already set by copyFileToTargetAppFolder
+
+    return(result);
+
+}//end of ViewerCreator::copyFileIfExistsToTargetAppFolder
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ViewerCreator::copyFolderToAppFolder
 //
 // Copies the folder pSource and all of its contents from the app's root folder
@@ -467,6 +575,8 @@ private boolean copyFolderToAppFolder(String pSource)
 
     //copy the folder and its contents to the target folder
     boolean result = copyFileTree(sourcePath.toString(), appFolderName);
+
+    //success flag and error message already set by copyFileTree
 
     return(result);
 
@@ -499,6 +609,190 @@ private boolean createFolderInAppFolder(String pFolderName)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ViewerCreator::createViewerModeConfigFile
+//
+// Creates file "Viewer Mode.ini" in the target app root folder with entries
+// appropriate for the Viewer package.
+//
+// The presence of this file will cause the application into "Viewer Mode". In
+// this mode, the hardware will be ignored, no license key is needed, help
+// messages are displayed appropriate for use as a viewer.
+//
+// Returns true if successful, false if not.
+//
+
+private boolean createViewerModeConfigFile()
+{
+
+    String filename = appFolderName + sep + "Viewer Mode.ini";
+
+    ArrayList<String> contents = new ArrayList<>();
+
+    // add explanation comments
+
+    contents.add("");
+    contents.add(
+            "; When this file is present in the same folder as Chart.jar,");
+    contents.add(
+            "; the program will start in \"Viewer Mode\". The hardware will");
+    contents.add(
+            "; be ignored, no license key is required, help messages related");
+    contents.add(
+            "; to viewing will be displayed, and various other tweaks will");
+    contents.add(
+            "; be implemented to streamline the viewing operations.");
+    contents.add("");
+    contents.add(
+            "; Rename this file to turn off \"Viewer Mode\".");
+    contents.add("");
+
+    contents.add("[Main Configuration]");
+    contents.add("");
+    contents.add("Width=full screen");
+
+    boolean result = createFileContainingContents(filename, contents);
+
+    return(result);
+
+}//end of ViewerCreator::createViewerModeConfigFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ViewerCreator::createMainSettingsConfigFile
+//
+// Creates file "Main Settings.ini" in the target app root folder with entries
+// appropriate for the Viewer package.
+//
+// The Viewer will be set up to load jobName (the current job passed to this
+// creator) on startup.
+//
+// Returns true if successful, false if not.
+//
+
+private boolean createMainSettingsConfigFile()
+{
+
+    String filename = appFolderName + sep + "Main Settings.ini";
+
+    ArrayList<String> contents = new ArrayList<>();
+
+    contents.add("[Main Configuration]");
+    contents.add("");
+    contents.add("Current Work Order=" + jobName);
+
+    boolean result = createFileContainingContents(filename, contents);
+
+    return(result);
+
+}//end of ViewerCreator::createMainSettingsConfigFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ViewerCreator::createMainStaticSettingsConfigFile
+//
+// Creates file "Main Static Settings.ini" in the target app root folder with
+// entries appropriate for the Viewer package.
+//
+// The Viewer will be set up to load jobs from folders specific to the
+// viewer and contained in the same root folder.
+//
+// Returns true if successful, false if not.
+//
+
+private boolean createMainStaticSettingsConfigFile()
+{
+
+    String filename = appFolderName + sep + "Main Static Settings.ini";
+
+    ArrayList<String> contents = new ArrayList<>();
+
+    contents.add("[Main Configuration]");
+    contents.add("");
+
+    contents.add("Primary Data Path=.." + sep + primaryFolderName + sep);
+    contents.add("Backup Data Path=.." + sep + backupFolderName + sep);
+
+    boolean result = createFileContainingContents(filename, contents);
+
+    return(result);
+
+}//end of ViewerCreator::createMainStaticSettingsConfigFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ViewerCreator::createBasicInstructionFile
+//
+// Creates file "The latest version of Java...." in the viewer package's root
+// folder containing some basic instructions.
+//
+// Returns true if successful, false if not.
+//
+
+private boolean createBasicInstructionFile()
+{
+
+    String name =
+            "The latest version of Java must be installed on your computer to "
+            + "use this viewer. (visit www.java.com to install).txt";
+
+    String filename = rootFolderName + sep + name;
+
+    ArrayList<String> contents = new ArrayList<>();
+
+    contents.add("");
+
+    contents.add(
+      "The latest version of Java must be installed on your computer to use");
+    contents.add("this viewer program.");
+    contents.add("");
+    contents.add("Java can be downloaded and installed by visiting:");
+    contents.add("");
+    contents.add("    www.java.com");
+
+    boolean result = createFileContainingContents(filename, contents);
+
+    return(result);
+
+}//end of ViewerCreator::createBasicInstructionFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ViewerCreator::createViewerStarterCmdFile
+//
+// Creates a Windows CMD file in the viewer package root folder to provide
+// a simple method for the user to start the program.
+//
+// Returns true if successful, false if not.
+//
+
+private boolean createViewerStarterCmdFile()
+{
+
+    String name = "Click This to Run the IR Scan Viewer Program.cmd";
+
+    String filename = rootFolderName + sep + name;
+
+    ArrayList<String> contents = new ArrayList<>();
+
+    contents.add("");
+
+    contents.add("cd \"contents\\IRNDT IRScan Program\"");
+
+    //use the start command to start the program so the command prompt window
+    //does not stay open -- start begins a new session other than the one the
+    //cmd file is running in so it runs independently; the first "" is used
+    //as the name of the session window and is left blank here
+
+    contents.add("start \"\" \"Chart.jar\"");
+
+    boolean result = createFileContainingContents(filename, contents);
+
+    return(result);
+
+}//end of ViewerCreator::createViewerStarterCmdFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ViewerCreator::copyJobFolders
 //
 // Copies the primary and backup folders to the target folder.
@@ -522,6 +816,65 @@ private boolean copyJobFolders()
     }
 
 }//end of ViewerCreator::copyJobFolders
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ViewerCreator::createFileContainingContents
+//
+// Creates text file pFilename containing the lines of text in pContents.
+//
+// Returns true if successful, false if not.
+//
+
+private boolean createFileContainingContents(String pFilename,
+                                                ArrayList <String> pContents)
+{
+
+    FileOutputStream fileOutputStream = null;
+    OutputStreamWriter outputStreamWriter = null;
+    BufferedWriter out = null;
+
+    try{
+
+        fileOutputStream = new FileOutputStream(pFilename);
+        outputStreamWriter = new OutputStreamWriter(fileOutputStream, "UTF-8");
+        out = new BufferedWriter(outputStreamWriter);
+
+        ListIterator i;
+
+        //write each line in the buffer to the file
+
+        for (i = pContents.listIterator(); i.hasNext(); ){
+            out.write((String)i.next());
+            out.newLine();
+            }
+
+        //Note! You MUST flush to make sure everything is written.
+
+        out.flush();
+
+    }
+    catch(IOException e){
+        success = false;
+        errorMessage = e.getMessage() + "; Cannot create file: " + pFilename;
+        return(false); //error on any other exception
+    }
+    finally{
+        try{
+            if (out != null) {out.close();}
+            if (outputStreamWriter != null) {outputStreamWriter.close();}
+            if (fileOutputStream != null) {fileOutputStream.close();}
+        }
+        catch(IOException e){
+        success = false;
+        errorMessage = e.getMessage() + "; Cannot create file: " + pFilename;
+        return(false); //error on any other exception}
+        }
+    }
+
+    return(true);
+
+}//end of ViewerCreator::copyFileIfExistsToTargetAppFolder
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -603,7 +956,7 @@ private void setProgress(String pText)
     //store in class variable so thread safe code can find it
     progressText = pText;
 
-    //schedule a job for the event-dispatching thread to add the message to log
+    //schedule a job for the event-dispatching thread to do the work
 
     javax.swing.SwingUtilities.invokeLater(
             new Runnable() {
@@ -663,7 +1016,7 @@ private void displayWarningMessage(String pMessage)
     //store in class variable so thread safe code can find it
     warningMessage = pMessage;
 
-    //schedule a job for the event-dispatching thread to add the message to log
+    //schedule a job for the event-dispatching thread to do the work
 
     javax.swing.SwingUtilities.invokeLater(
             new Runnable() {
@@ -689,6 +1042,44 @@ private void displayWarningMessageThreadSafe()
 
 }//end of ViewerCreator::displayWarningMessageThreadSafe
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ViewerCreator::disposeOfStatusWindow
+//
+// Closes the status window and releases its resources in a threadsafe
+// manner.
+//
+
+private void disposeOfStatusWindow()
+{
+
+    //schedule a job for the event-dispatching thread to do the work
+
+    javax.swing.SwingUtilities.invokeLater(
+            new Runnable() {
+                @Override
+                public void run() { disposeOfStatusWindowThreadSafe(); } });
+
+}//end of ViewerCreator::disposeOfStatusWindow
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ViewerCreator::disposeOfStatusWindowThreadSafe
+//
+// Closes the status window and releases its resources.
+//
+// Designed to be called from GUI thread by use of invokeLater.
+//
+
+private void disposeOfStatusWindowThreadSafe()
+{
+
+    statusWindow.dispose();
+    statusWindow = null;
+
+}//end of ViewerCreator::disposeOfStatusWindowThreadSafe
+//-----------------------------------------------------------------------------
+
 
 }//end of class ViewerCreator
 //-----------------------------------------------------------------------------
