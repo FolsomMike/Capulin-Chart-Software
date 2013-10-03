@@ -216,7 +216,7 @@ private boolean validateLicenseFile()
 
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 214");
+        logSevere(e.getMessage() + " - Error: 214");
         return(false); //invalid file if error reading
     }
     finally{
@@ -277,7 +277,7 @@ private void saveLicenseFile(long renewalDate, boolean pBogus)
 
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 274");
+        logSevere(e.getMessage() + " - Error: 274");
     }
     finally{
 
@@ -554,10 +554,10 @@ public void getMACAddress() {
         }
     }
     catch (UnknownHostException e) {
-        System.err.println(e.getMessage());
+        logSevere(e.getMessage() + " - Error 557");
     }
     catch (SocketException e) {
-        System.err.println(e.getMessage());
+        logSevere(e.getMessage() + " - Error 560");
     }
 
 }//end of LicenseValidator::getMACAddress

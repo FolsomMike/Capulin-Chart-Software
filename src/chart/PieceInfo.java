@@ -131,7 +131,7 @@ private void configure(String pConfigFilename)
     //if the ini file cannot be opened and loaded, exit without action
     try {configFile = new IniFile(pConfigFilename, fileFormat);}
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 134");
+        logSevere(e.getMessage() + " - Error: 134");
         return;
     }
 
@@ -457,7 +457,7 @@ public void loadData(String pFilename)
     //if the ini file cannot be opened and loaded, exit without action
     try {jobInfoFile = new IniFile(pFilename, fileFormat);}
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 452");
+        logSevere(e.getMessage() + " - Error: 452");
         return;
     }
 
@@ -510,7 +510,7 @@ public void saveData(String pFilename)
     //if the ini file cannot be opened and loaded, exit without action
     try {jobInfoFile = new IniFile(pFilename, fileFormat);}
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 504");
+        logSevere(e.getMessage() + " - Error: 504");
         return;
     }
 

@@ -118,7 +118,7 @@ private void loadAndDisplayInfo()
 
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 103");
+        logSevere(e.getMessage() + " - Error: 103");
         displayErrorMessage("Could not open Help file: " + filepath);
     }
     finally{

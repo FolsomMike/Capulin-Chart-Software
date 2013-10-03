@@ -616,7 +616,7 @@ public final void loadLanguage(String pLanguage)
     try {ini = new IniFile("language\\Main Menu - Capulin UT.language",
                                                       settings.jobFileFormat);}
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 594");
+        logSevere(e.getMessage() + " - Error: 594");
         return;
     }
 

@@ -219,7 +219,7 @@ public JobValidator(String pPrimaryDataPath, String pBackupDataPath,
 
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 213");
+        logSevere(e.getMessage() + " - Error: 213");
     }
     finally{
         if (logFile != null) {logFile.close();}
@@ -562,7 +562,7 @@ boolean copyFile(String pSource, String pDest)
 
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 545");
+        logSevere(e.getMessage() + " - Error: 545");
         return (false);
     }
     finally {
@@ -571,7 +571,7 @@ boolean copyFile(String pSource, String pDest)
             if (out != null) {out.close();}
         }
         catch(IOException e){
-            System.err.println(getClass().getName() + " - Error: 554");
+            logSevere(e.getMessage() + " - Error: 554");
             return(false);
         }
     }

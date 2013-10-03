@@ -359,7 +359,7 @@ public void connectControlBoard() throws InterruptedException
 
     }
     catch (IOException e) {
-        System.err.println(getClass().getName() + " - Error: 204");
+        logSevere(e.getMessage() + " - Error: 204");
         logger.logMessage("Couldn't create Control broadcast socket.\n");
         return;
     }
@@ -380,7 +380,7 @@ public void connectControlBoard() throws InterruptedException
         group = InetAddress.getByName("230.0.0.1");
     }
     catch (UnknownHostException e){
-        System.err.println(getClass().getName() + " - Error: 224");
+        logSevere(e.getMessage() + " - Error: 224");
         socket.close();
         return;
     }
@@ -392,7 +392,7 @@ public void connectControlBoard() throws InterruptedException
         socket.setSoTimeout(1000);
     }
     catch(SocketException e){
-        System.err.println(getClass().getName() + " - Error: 236");
+        logSevere(e.getMessage() + " - Error: 236");
     }
 
     //broadcast the roll call greeting several times - bail out when expected
@@ -401,7 +401,7 @@ public void connectControlBoard() throws InterruptedException
 
         try {socket.send(outPacket);}
         catch(IOException e) {
-            System.err.println(getClass().getName() + " - Error: 245");
+            logSevere(e.getMessage() + " - Error: 245");
             socket.close();
             return;
         }
@@ -526,7 +526,7 @@ public synchronized void connectUTBoards() throws InterruptedException
         }
     }
     catch (IOException e) {
-        System.err.println(getClass().getName() + " - Error: 351");
+        logSevere(e.getMessage() + " - Error: 351");
         logger.logMessage("Couldn't create UT broadcast socket.\n");
         return;
     }
@@ -548,7 +548,7 @@ public synchronized void connectUTBoards() throws InterruptedException
         group = InetAddress.getByName("230.0.0.1");
     }
     catch (UnknownHostException e) {
-        System.err.println(getClass().getName() + " - Error: 373");
+        logSevere(e.getMessage() + " - Error: 373");
         socket.close();
         return;
     }
@@ -560,7 +560,7 @@ public synchronized void connectUTBoards() throws InterruptedException
         socket.setSoTimeout(1000);
     }
     catch(SocketException e){
-        System.err.println(getClass().getName() + " - Error: 385");
+        logSevere(e.getMessage() + " - Error: 385");
     }
 
     //broadcast the roll call greeting repeatedly - bail out when the expected
@@ -569,7 +569,7 @@ public synchronized void connectUTBoards() throws InterruptedException
 
         try {socket.send(outPacket);}
         catch(IOException e) {
-            System.err.println(getClass().getName() + " - Error: 394");
+            logSevere(e.getMessage() + " - Error: 394");
             socket.close();
             return;
         }
@@ -2181,7 +2181,7 @@ public void loadFPGAViaUDP(DatagramSocket pSocket)
         group = InetAddress.getByName("230.0.0.1");
     }
     catch (UnknownHostException e) {
-        System.err.println(getClass().getName() + " - Error: 1750");
+        logSevere(e.getMessage() + " - Error: 1750");
         return;
     }
 
@@ -2247,7 +2247,7 @@ public void loadFPGAViaUDP(DatagramSocket pSocket)
 
     }//try
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 1816");
+        logSevere(e.getMessage() + " - Error: 1816");
     }
     finally {
 
@@ -2431,7 +2431,7 @@ void sendByteUDP(DatagramSocket pSocket, DatagramPacket pOutPacket, byte pByte)
         pSocket.send(pOutPacket);
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 1995");
+        logSevere(e.getMessage() + " - Error: 1995");
     }
 
 }//end of Capulin1::sendByteUDP

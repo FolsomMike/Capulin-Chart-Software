@@ -341,7 +341,7 @@ public synchronized void connect()
 
     }//try
     catch (IOException e) {
-        System.err.println(getClass().getName() + " - Error: 238");
+        logSevere(e.getMessage() + " - Error: 238");
         logger.logMessage("Couldn't get I/O for " + ipAddrS + "\n");
         return;
     }
@@ -351,7 +351,7 @@ public synchronized void connect()
         logger.logMessage(ipAddrS + " says " + in.readLine() + "\n");
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 248");
+        logSevere(e.getMessage() + " - Error: 248");
     }
 
     //flag that board setup has been completed - whether it failed or not
@@ -508,7 +508,7 @@ public int processMonitorPacket()
 
     }// try
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 395");
+        logSevere(e.getMessage() + " - Error: 395");
     }
 
     return 0;
@@ -660,7 +660,7 @@ public int processInspectPacket()
 
     }// try
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 518");
+        logSevere(e.getMessage() + " - Error: 518");
     }
 
     return(0);
@@ -832,7 +832,7 @@ public boolean prepareData()
         }
         catch(EOFException eof){log.append("End of stream.\n"); return false;}
         catch(IOException e){
-            System.err.println(getClass().getName() + " - Error: 672");
+            logSevere(e.getMessage() + " - Error: 672");
             return false;
         }
     }
@@ -963,7 +963,7 @@ public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
 
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 799");
+        logSevere(e.getMessage() + " - Error: 799");
     }
 
     return 0;
@@ -1011,7 +1011,7 @@ public void reSync()
         }
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 847");
+        logSevere(e.getMessage() + " - Error: 847");
     }
 
 }//end of ControlBoard::reSync
@@ -1150,7 +1150,7 @@ protected void shutDown()
 
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 1009");
+        logSevere(e.getMessage() + " - Error: 1009");
     }
 
 }//end of ControlBoard::shutDown

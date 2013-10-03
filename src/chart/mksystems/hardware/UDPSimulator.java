@@ -94,7 +94,7 @@ public void receive(DatagramPacket p)
 
     try{p.setAddress(InetAddress.getByName(ip));}
     catch(UnknownHostException e){
-        System.err.println(getClass().getName() + " - Error: 96");
+        logSevere(e.getMessage() + " - Error: 96");
     }
 
 }//end of UDPSimulator::receive

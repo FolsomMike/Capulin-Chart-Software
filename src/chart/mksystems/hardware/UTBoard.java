@@ -590,7 +590,7 @@ public void init()
     //if the ini file cannot be loaded, continue on - values will default
     try {configFile = new IniFile(configFilename, jobFileFormat);}
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 531");
+        logSevere(e.getMessage() + " - Error: 531");
     }
 
     //FIR filter buffer -- same length as number of filter taps
@@ -802,12 +802,12 @@ public synchronized void connect()
 
     }
     catch (UnknownHostException e) {
-        System.err.println(getClass().getName() + " - Error: 732");
+        logSevere(e.getMessage() + " - Error: 732");
         logger.logMessage("Unknown host: UT " + ipAddrS + ".\n");
         return;
     }
     catch (IOException e) {
-        System.err.println(getClass().getName() + " - Error: 737");
+        logSevere(e.getMessage() + " - Error: 737");
         logger.logMessage("Couldn't get I/O for UT " + ipAddrS + "\n");
         logger.logMessage("--" + e.getMessage() + "--\n");
         return;
@@ -818,7 +818,7 @@ public synchronized void connect()
         logger.logMessage("UT " + ipAddrS + " says " + in.readLine() + "\n");
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 748");
+        logSevere(e.getMessage() + " - Error: 748");
     }
 
     loadFPGA(); //send configuration file for the board's FPGA
@@ -1156,7 +1156,7 @@ public void loadFPGA()
                 pktCounter + " packets." + "\n");
     }//try
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 1014");
+        logSevere(e.getMessage() + " - Error: 1014");
     }
     finally {
         if (inFile != null) {try {inFile.close();} catch(IOException e){}}
@@ -1368,7 +1368,7 @@ void getChassisSlotAddressOverrideFromFile()
     //if the ini file cannot be opened and loaded, exit without action
     try {configFileL = new IniFile("Board Slot Overrides.ini", mainFileFormat);}
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 1222");
+        logSevere(e.getMessage() + " - Error: 1222");
         return;
     }
 
@@ -2246,7 +2246,7 @@ void loadDSPCode(int pDSPChip, int pDSPCore)
         }//while ((c =
     }// try
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 1960");
+        logSevere(e.getMessage() + " - Error: 1960");
         logger.logMessage(
                     "Error opening DSP code file " + dspCodeFilename + "\n");
 
@@ -2412,7 +2412,7 @@ boolean verifyDSPCode(int pDSPChip, int pDSPCore)
         }// if (byteCount > 0)
     }// try
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 2126");
+        logSevere(e.getMessage() + " - Error: 2126");
         logger.logMessage(
                     "Error opening DSP code file " + dspCodeFilename + "\n");
         success = false;
@@ -2546,7 +2546,7 @@ void verifyDSPCode2(int pDSPChip, int pDSPCore)
         }//while ((c =
     }// try
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 2259");
+        logSevere(e.getMessage() + " - Error: 2259");
         logger.logMessage(
                     "Error opening DSP code file " + dspCodeFilename + "\n");
 
@@ -3982,7 +3982,7 @@ public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
 
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 3453");
+        logSevere(e.getMessage() + " - Error: 3453");
     }
 
     return 0;
@@ -4069,7 +4069,7 @@ private int processDSPMessage()
         byteIn.read(inBuffer, 0, 1);
         }// try
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 3518");
+        logSevere(e.getMessage() + " - Error: 3518");
     }
 
     dspMsgID = inBuffer[0];
@@ -4128,7 +4128,7 @@ public void reSync()
             }
         }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 3573");
+        logSevere(e.getMessage() + " - Error: 3573");
     }
 
 }//end of UTBoard::reSync
@@ -4163,7 +4163,7 @@ private int processReadDSPPacket()
             }
         }// try
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 3608");
+        logSevere(e.getMessage() + " - Error: 3608");
     }
 
     return 0;
@@ -4237,7 +4237,7 @@ private int processReadDSPBlockPacket()
 
     }// try
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 3682");
+        logSevere(e.getMessage() + " - Error: 3682");
     }
 
     return(c);
@@ -4267,7 +4267,7 @@ private int processDSPStatusMessage()
             }
         }// try
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 3712");
+        logSevere(e.getMessage() + " - Error: 3712");
     }
 
     return 0; // failure - no bytes read
@@ -4298,7 +4298,7 @@ private int processMapBufferWordsAvailableCount()
             }
         }// try
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 3712");
+        logSevere(e.getMessage() + " - Error: 3712");
     }
 
     return 0; // failure - no bytes read
@@ -4337,7 +4337,7 @@ private int processGetDSPRamChecksumPacket()
             }
         }// try
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 3751");
+        logSevere(e.getMessage() + " - Error: 3751");
     }
 
     return 0;
@@ -4386,7 +4386,7 @@ private int processDSPAckMessage()
         }
         }// try
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 3795");
+        logSevere(e.getMessage() + " - Error: 3795");
     }
 
     return 0; // failure - no bytes read
@@ -4423,7 +4423,7 @@ public int processAScanPacket()
             {return 0;}
         }// try
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 3832");
+        logSevere(e.getMessage() + " - Error: 3832");
     }
 
     //get the board channel from the packet for the aScan data set
@@ -4986,7 +4986,7 @@ public int processWallMapPacket()
         }
     }//try
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 4674");
+        logSevere(e.getMessage() + " - Error: 4674");
     }
 
     return(WALL_MAP_PACKET_DATA_SIZE); //number of bytes read from the socket
@@ -5500,7 +5500,7 @@ public void shutDown()
         if (socket != null) {socket.close();}
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 4509");
+        logSevere(e.getMessage() + " - Error: 4509");
     }
 
 }//end of UTBoard::shutDown

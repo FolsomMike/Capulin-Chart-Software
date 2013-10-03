@@ -448,55 +448,6 @@ public FileVisitResult visitFileFailed(Path pFile, IOException pE)
 }//end of TreeCopier::visitFileFailed
 //-----------------------------------------------------------------------------
 
-
 }//end of class TreeCopier
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-
-
-/*
-    static void usage() {
-        System.err.println("java Copy [-ip] source... target");
-        System.err.println("java Copy -r [-ip] source-dir... target");
-        System.exit(-1);
-    }
-
-
-
-    public static void main(String[] args) throws IOException {
-        boolean recursive = false;
-        boolean prompt = false;
-        boolean preserve = false;
-
-        // process options
-        int argi = 0;
-        while (argi < args.length) {
-            String arg = args[argi];
-            if (!arg.startsWith("-")) { break; }
-            if (arg.length() < 2) { usage(); }
-            for (int i=1; i<arg.length(); i++) {
-                char c = arg.charAt(i);
-                switch (c) {
-                    case 'r' : recursive = true; break;
-                    case 'i' : prompt = true; break;
-                    case 'p' : preserve = true; break;
-                    default : usage();
-                }
-            }
-            argi++;
-        }
-
-        // remaining arguments are the source files(s) and the target location
-        int remaining = args.length - argi;
-        if (remaining < 2) { usage(); }
-        Path[] source = new Path[remaining-1];
-        int i=0;
-        while (remaining > 1) {
-            source[i++] = Paths.get(args[argi++]);
-            remaining--;
-        }
-        Path target = Paths.get(args[argi]);
-
-
-*
-*/

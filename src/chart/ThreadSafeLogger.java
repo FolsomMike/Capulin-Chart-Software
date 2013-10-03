@@ -233,7 +233,7 @@ public void saveToFileThreadSafe()
 
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 233");
+        logSevere(e.getMessage() + " - Error: 233");
         if (file != null) {file.close();}
     }
 

@@ -720,7 +720,7 @@ public void loadCalFile()
             + currentJobName + " Calibration File.ini", settings.jobFileFormat);
         }
         catch(IOException e){
-            System.err.println(getClass().getName() + " - Error: 712");
+            logSevere(e.getMessage() + " - Error: 712");
             return;
         }
 
@@ -824,7 +824,7 @@ public void configure()
                                 + " Configuration.ini", settings.jobFileFormat);
         }
         catch(IOException e){
-            System.err.println(getClass().getName() + " - Error: 815");
+            logSevere(e.getMessage() + " - Error: 815");
             return;
         }
 

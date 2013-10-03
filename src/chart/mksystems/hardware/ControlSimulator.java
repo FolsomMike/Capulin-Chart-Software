@@ -223,7 +223,7 @@ public int processDataPacketsHelper(boolean pWaitForPkt)
 
     }//try
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 221");
+        logSevere(e.getMessage() + " - Error: 221");
     }
 
     return 0;
@@ -301,7 +301,7 @@ int readBlockAndVerify(int pNumberOfBytes, byte pPktID)
         bytesRead = byteIn.read(inBuffer, 0, pNumberOfBytes);
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 299");
+        logSevere(e.getMessage() + " - Error: 299");
         return(-1);
     }
 
@@ -361,7 +361,7 @@ int startInspect(byte pPktID)
         bytesRead = byteIn.read(inBuffer, 0, 2);
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 358");
+        logSevere(e.getMessage() + " - Error: 358");
     }
 
     if (bytesRead == 2){
@@ -420,7 +420,7 @@ int stopInspect(byte pPktID)
         bytesRead = byteIn.read(inBuffer, 0, 2);
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 415");
+        logSevere(e.getMessage() + " - Error: 415");
     }
 
     if (bytesRead == 2){
@@ -553,7 +553,7 @@ void simulateInspection()
             byteOut.write(outBuffer, 0 /*offset*/, pktSize);
         }
         catch (IOException e) {
-            System.err.println(getClass().getName() + " - Error: 546");
+            logSevere(e.getMessage() + " - Error: 546");
         }
     }
 
@@ -581,7 +581,7 @@ void sendPacketHeader(byte pPacketID)
             byteOut.write(outBuffer, 0 /*offset*/, 5);
         }
         catch (IOException e) {
-            System.err.println(getClass().getName() + " - Error: 573");
+            logSevere(e.getMessage() + " - Error: 573");
         }
     }
 
@@ -631,7 +631,7 @@ private void configure()
     //if the ini file cannot be opened and loaded, exit without action
     try {configFile = new IniFile("Simulation.ini", mainFileFormat);}
         catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 622");
+        logSevere(e.getMessage() + " - Error: 622");
         return;
     }
 

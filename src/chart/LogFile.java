@@ -65,7 +65,7 @@ public void init(String pFilename)
         file = new PrintWriter(new FileWriter(pFilename, true));
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 66");
+        logSevere(e.getMessage() + " - Error: 66");
         if (file != null) {file.close();}
     }
 

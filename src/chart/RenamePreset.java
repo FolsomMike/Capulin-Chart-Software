@@ -329,7 +329,7 @@ boolean copyFile(String pSource, String pDest)
 
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 327");
+        logSevere(e.getMessage() + " - Error: 327");
         return (false);
     }
     finally {
@@ -338,7 +338,7 @@ boolean copyFile(String pSource, String pDest)
             if (out != null) {out.close();}
         }
         catch(IOException e){
-            System.err.println(getClass().getName() + " - Error: 336");
+            logSevere(e.getMessage() + " - Error: 336");
             return(false);
         }
     }

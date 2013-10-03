@@ -106,8 +106,9 @@ public void init()
         UIManager.setLookAndFeel(
             UIManager.getCrossPlatformLookAndFeelClassName());
         }
-    catch (Exception e) {
-        System.err.println(getClass().getName() + " - Error: 112");
+    catch (ClassNotFoundException | InstantiationException |
+            IllegalAccessException | UnsupportedLookAndFeelException e) {
+        logSevere(e.getMessage() + " - Error: 112");
     }
 
     mainFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);

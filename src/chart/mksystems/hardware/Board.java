@@ -284,7 +284,7 @@ void sendBytes(byte... pBytes)
               byteOut.flush();
         }
         catch (IOException e) {
-            System.err.println(getClass().getName() + " - Error: 422");
+            logSevere(e.getMessage() + " - Error: 422");
         }
     }
 
@@ -309,7 +309,7 @@ void sendHeader()
             byteOut.write(outBuffer, 0 /*offset*/, 4);
         }
         catch (IOException e){
-            System.err.println(getClass().getName() + " - Error: 569");
+            logSevere(e.getMessage() + " - Error: 569");
         }
     }
 
@@ -336,7 +336,7 @@ boolean waitForNumberOfBytes(int pNumBytes)
         }
     }// try
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 595");
+        logSevere(e.getMessage() + " - Error: 595");
         return(false);
     }
 
@@ -370,7 +370,7 @@ public int readBytes(int pNumBytes)
         }
     }// try
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 595");
+        logSevere(e.getMessage() + " - Error: 595");
     }
 
     return 0;
@@ -443,7 +443,7 @@ byte getRemoteAddressedData(byte pCommand, byte pSendData)
         }// while...
     }// try
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 668");
+        logSevere(e.getMessage() + " - Error: 668");
     }
 
     return inBuf[0];
@@ -811,7 +811,7 @@ void installNewRabbitFirmware(String pBoardType, String pFilename,
 
     }//try
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 947");
+        logSevere(e.getMessage() + " - Error: 947");
         logger.logMessage(
                 pBoardType + " " + ipAddrS + " error loading firmware!" + "\n");
     }
