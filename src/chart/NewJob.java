@@ -37,9 +37,9 @@ class NewJob extends JDialog implements ActionListener{
 
     JFrame frame;
     JTextField jobName;
-    JComboBox configSelect;
+    JComboBox <String> configSelect;
     ArrayList<String> configList;
-    JComboBox presetSelect;
+    JComboBox <String> presetSelect;
     ArrayList<String> presetList;
     Xfer xfer;
     String primaryDataPath, backupDataPath;
@@ -100,7 +100,7 @@ protected void init()
     tPanel = new JPanel();
     tPanel.setLayout(new BoxLayout(tPanel, BoxLayout.LINE_AXIS));
     tPanel.add(Box.createRigidArea(new Dimension(5,0)));
-    configSelect = new JComboBox(configList.toArray());
+    configSelect = new JComboBox<>((String [])configList.toArray());
     tPanel.add(configSelect);
     tPanel.add(Box.createRigidArea(new Dimension(5,0)));
     add(tPanel);
@@ -111,7 +111,7 @@ protected void init()
     tPanel = new JPanel();
     tPanel.setLayout(new BoxLayout(tPanel, BoxLayout.LINE_AXIS));
     tPanel.add(Box.createRigidArea(new Dimension(5,0)));
-    presetSelect = new JComboBox(presetList.toArray());
+    presetSelect = new JComboBox<>((String [])presetList.toArray());
     tPanel.add(presetSelect);
     tPanel.add(Box.createRigidArea(new Dimension(5,0)));
     add(tPanel);

@@ -36,7 +36,7 @@ import javax.swing.*;
 class CopyPreset extends JDialog implements ActionListener{
 
     JFrame frame;
-    JComboBox presetSelect;
+    JComboBox <String>presetSelect;
     ArrayList<String> jobList;
     Xfer xfer;
     String primaryDataPath, backupDataPath;
@@ -84,7 +84,7 @@ public void init()
     tPanel = new JPanel();
     tPanel.setLayout(new BoxLayout(tPanel, BoxLayout.LINE_AXIS));
     tPanel.add(Box.createRigidArea(new Dimension(5,0)));
-    presetSelect = new JComboBox(jobList.toArray());
+    presetSelect = new JComboBox<>((String [])jobList.toArray());
     tPanel.add(presetSelect);
     tPanel.add(Box.createRigidArea(new Dimension(5,0)));
     add(tPanel);
@@ -136,7 +136,7 @@ private void loadJobList()
     String[] configs = jobDir.list();
 
     //create a list to hold the file/folder names
-    jobList = new ArrayList<String>(1000);
+    jobList = new ArrayList<>(1000);
     jobList.addAll(Arrays.asList(configs));
     //sort the items alphabetically
     Collections.sort(jobList);

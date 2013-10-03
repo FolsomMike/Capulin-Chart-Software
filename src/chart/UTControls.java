@@ -266,8 +266,7 @@ public void init()
 {
 
     //create red and black fonts for use with display objects
-    HashMap<TextAttribute, Object> map =
-                new HashMap<TextAttribute, Object>();
+    HashMap<TextAttribute, Object> map = new HashMap<>();
     blackFont = new Font("Dialog", Font.PLAIN, 12);
     map.put(TextAttribute.FOREGROUND, Color.RED);
     redFont = blackFont.deriveFont(map);
@@ -1108,7 +1107,7 @@ void setupProcessTab()
     processTab.removeAll();
 
     JLabel label;
-    JComboBox jcb;
+    JComboBox <String>jcb;
     SpinnerPanel sp;
     UTGate gate;
 
@@ -1191,7 +1190,7 @@ void setupProcessTab()
             //get the signal processing list for the gate type
             ArrayList<String> pl = gate.getSigProcList();
 
-            jcb = new JComboBox(pl.toArray());
+            jcb = new JComboBox<>((String [])pl.toArray());
             jcb.setSelectedIndex(gate.getSigProcIndex());
             jcb.setActionCommand("Signal Processing");
             jcb.addActionListener(this);

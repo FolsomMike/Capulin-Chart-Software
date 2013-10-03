@@ -120,7 +120,7 @@ public void init()
     segmentFileFilter = new SegmentFileFilter();
 
     //create a list to hold the segment file names
-    segmentList = new ArrayList<String>();
+    segmentList = new ArrayList<>();
 
     //change the layout manager
     BoxLayout boxLayout = new BoxLayout(
@@ -1734,7 +1734,8 @@ class ViewerControlPanel extends JPanel implements ActionListener
     JButton first, previous, next, last;
     JButton infoDetails;
     JButton print, printMultiple;
-    JComboBox layoutSelector, userMagnifySelector;
+    JComboBox <String>layoutSelector;
+    JComboBox <String>userMagnifySelector;
     JButton load, list;
 
 //-----------------------------------------------------------------------------
@@ -1908,7 +1909,7 @@ private void configure(/*IniFile pConfigFile*/)
     String[] layouts = {"8-1/2 x 11 : Fit Height", "8-1/2 x 11 : Fit Width",
                         "8-1/2 x 14 : Fit Height", "8-1/2 x 14 : Fit Width",
                         "A4 : Fit Height", "A4 : Fit Width"};
-    layoutSelector = new JComboBox(layouts);
+    layoutSelector = new JComboBox<>(layouts);
     Viewer.setSizes(layoutSelector, 150, 25);
     layoutSelector.setToolTipText("Select paper size and scaling.");
     panel1.add(layoutSelector);
@@ -1928,7 +1929,7 @@ private void configure(/*IniFile pConfigFile*/)
         "Magnify 1.6", "Magnify 1.7", "Magnify 1.8", "Magnify 1.9",
         "Magnify 2.0"};
 
-    userMagnifySelector = new JComboBox(magnifyValues);
+    userMagnifySelector = new JComboBox<>(magnifyValues);
     Viewer.setSizes(userMagnifySelector, 150, 25);
     layoutSelector.setToolTipText("Select magnification.");
     panel1.add(userMagnifySelector);
@@ -2168,7 +2169,7 @@ public void init()
     tPanel = new JPanel();
     tPanel.setLayout(new BoxLayout(tPanel, BoxLayout.LINE_AXIS));
     tPanel.add(Box.createRigidArea(new Dimension(5,0)));
-    fileSelect = new JComboBox(entryList.toArray());
+    fileSelect = new JComboBox<>((String [])entryList.toArray());
     tPanel.add(fileSelect);
     tPanel.add(Box.createRigidArea(new Dimension(5,0)));
     add(tPanel);

@@ -41,7 +41,7 @@ import javax.swing.*;
 class LoadConfiguration extends JDialog implements ActionListener{
 
     JFrame frame;
-    JComboBox configSelect;
+    JComboBox <String>configSelect;
     ArrayList<String> configList;
     Xfer xfer;
     String currentJobPrimaryPath, currentJobBackupPath;
@@ -92,7 +92,7 @@ public void init()
     tPanel = new JPanel();
     tPanel.setLayout(new BoxLayout(tPanel, BoxLayout.LINE_AXIS));
     tPanel.add(Box.createRigidArea(new Dimension(5,0)));
-    configSelect = new JComboBox(configList.toArray());
+    configSelect = new JComboBox<>((String [])configList.toArray());
     tPanel.add(configSelect);
     tPanel.add(Box.createRigidArea(new Dimension(5,0)));
     add(tPanel);

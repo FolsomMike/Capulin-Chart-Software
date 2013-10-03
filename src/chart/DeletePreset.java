@@ -36,7 +36,7 @@ import javax.swing.*;
 class DeletePreset extends JDialog implements ActionListener{
 
     JFrame frame;
-    JComboBox presetSelect;
+    JComboBox <String>presetSelect;
     ArrayList<String> presetList;
     Xfer xfer;
     String primaryDataPath, backupDataPath;
@@ -82,7 +82,7 @@ public void init()
     tPanel = new JPanel();
     tPanel.setLayout(new BoxLayout(tPanel, BoxLayout.LINE_AXIS));
     tPanel.add(Box.createRigidArea(new Dimension(5,0)));
-    presetSelect = new JComboBox(presetList.toArray());
+    presetSelect = new JComboBox<>((String [])presetList.toArray());
     tPanel.add(presetSelect);
     tPanel.add(Box.createRigidArea(new Dimension(5,0)));
     add(tPanel);
@@ -134,7 +134,7 @@ void loadPresetList()
     String[] configs = jobDir.list();
 
     //create a list to hold the items
-    presetList = new ArrayList<String>();
+    presetList = new ArrayList<>();
     presetList.addAll(Arrays.asList(configs));
     //sort the items alphabetically
     Collections.sort(presetList);

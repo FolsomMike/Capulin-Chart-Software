@@ -36,7 +36,7 @@ import javax.swing.*;
 class RenamePreset extends JDialog implements ActionListener{
 
     JFrame frame;
-    JComboBox presetSelect;
+    JComboBox<String> presetSelect;
     ArrayList<String> presetList;
     JTextField newNameEntry;
     Xfer xfer;
@@ -83,7 +83,7 @@ public void init()
     tPanel = new JPanel();
     tPanel.setLayout(new BoxLayout(tPanel, BoxLayout.LINE_AXIS));
     tPanel.add(Box.createRigidArea(new Dimension(5,0)));
-    presetSelect = new JComboBox(presetList.toArray());
+    presetSelect = new JComboBox<>((String [])presetList.toArray());
     tPanel.add(presetSelect);
     tPanel.add(Box.createRigidArea(new Dimension(5,0)));
     add(tPanel);

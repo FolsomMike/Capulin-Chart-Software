@@ -36,7 +36,7 @@ import javax.swing.*;
 class ChooseJob extends JDialog implements ActionListener{
 
     JFrame frame;
-    JComboBox jobSelect;
+    JComboBox <String> jobSelect;
     ArrayList<String> jobList;
     Xfer xfer;
     String primaryDataPath, backupDataPath;
@@ -82,7 +82,7 @@ public void init()
     tPanel = new JPanel();
     tPanel.setLayout(new BoxLayout(tPanel, BoxLayout.LINE_AXIS));
     tPanel.add(Box.createRigidArea(new Dimension(5,0)));
-    jobSelect = new JComboBox(jobList.toArray());
+    jobSelect = new JComboBox<>((String [])jobList.toArray());
     tPanel.add(jobSelect);
     tPanel.add(Box.createRigidArea(new Dimension(5,0)));
     add(tPanel);
