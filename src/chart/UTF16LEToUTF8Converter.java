@@ -134,7 +134,17 @@ protected boolean convertFile(String pOldFile, String pTempFile)
 
     //if the file is not a UTF-16LE file saved by this program, skip it
     //this is not an error, so return true
-    if(!IniFile.detectUTF16LEFormat(pOldFile)) {return(convertGood);}
+
+    boolean result = false;
+
+    try{
+        result = IniFile.detectUTF16LEFormat(pOldFile);
+    }
+    catch(IOException e){
+        return(false);
+    }
+
+    if(!result) {return(convertGood);}
 
     boolean addFormatTypeEntry = false;
 
@@ -199,12 +209,12 @@ protected boolean convertFile(String pOldFile, String pTempFile)
 
     }//try
     catch (FileNotFoundException e){
-        System.err.println(getClass().getName() + " - Error: 200");
+        logSevere(e.getMessage() + " - Error: 200");
         logFile.log("Conversion fail - old or new file not found.");
         convertGood = false;
     }//catch...
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 205");
+        logSevere(e.getMessage() + " - Error: 205");
         logFile.log("Conversion fail - IO error for old or new file.");
         convertGood = false;
     }//catch...
@@ -296,8 +306,17 @@ protected boolean compareFile(String pOldFile, String pTempFile)
         compareGood = false; return(compareGood);
     }
 
+    boolean result = false;
+
+    try{
+        result = IniFile.detectUTF16LEFormat(pOldFile);
+    }
+    catch(IOException e){
+        result = false;
+    }
+
     //if the old file is not of the old style format, fail compare
-    if(!IniFile.detectUTF16LEFormat(pOldFile)){
+    if(!result){
         logFile.log("Compare fail - old file is not in UTF-16LE format.");
         compareGood = false; return(compareGood);
     }
@@ -387,12 +406,12 @@ protected boolean compareFile(String pOldFile, String pTempFile)
 
     }//try
     catch (FileNotFoundException e){
-        System.err.println(getClass().getName() + " - Error: 385");
+        logSevere(e.getMessage() + " - Error: 385");
         logFile.log("Compare fail - old or temp file not found.");
         compareGood = false;
     }//catch...
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 390");
+        logSevere(e.getMessage() + " - Error: 390");
         logFile.log("Compare fail - IO error for old or temp file.");
         compareGood = false;
     }//catch...

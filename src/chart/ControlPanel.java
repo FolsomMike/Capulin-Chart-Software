@@ -505,7 +505,7 @@ private void loadSettings()
                  + jobName + " Piece Number File.ini", settings.jobFileFormat);
         }
         catch(IOException e){
-            System.err.println(getClass().getName() + " - Error: 505");
+            logSevere(e.getMessage() + " - Error: 505");
             return;
         }
 
@@ -544,11 +544,17 @@ public void saveSettings()
         nextPieceNumber = statusPanel.pieceNumberEditor.getIntValue();
     }
 
-    saveSettingsHelper(currentJobPrimaryPath, jobName,
+    try{
+
+        saveSettingsHelper(currentJobPrimaryPath, jobName,
                   nextPieceNumber, nextCalPieceNumber, settings.jobFileFormat);
 
-    saveSettingsHelper(currentJobBackupPath, jobName,
+        saveSettingsHelper(currentJobBackupPath, jobName,
                   nextPieceNumber, nextCalPieceNumber, settings.jobFileFormat);
+    }
+    catch(IOException e){
+        logSevere(e.getMessage());
+    }
 
 }//end of ControlPanel::saveSettings
 //-----------------------------------------------------------------------------
@@ -566,6 +572,7 @@ public void saveSettings()
 
 static void saveSettingsHelper(String pJobPath, String pJobName,
      int pNextPieceNumber, int pNextCalPieceNumber, String pFileFormat)
+                                                            throws IOException
 {
 
     //if the job path has not been set, don't save anything or it will be saved
@@ -582,8 +589,8 @@ static void saveSettingsHelper(String pJobPath, String pJobName,
                          + pJobName + " Piece Number File.ini", pFileFormat);
     }
     catch(IOException e){
-        System.err.println(ControlPanel.class.getName() + " - Error: 580");
-        return;
+        throw new IOException(
+         e.getMessage() + " " + ControlPanel.class.getName() + " - Error: 580");
     }
 
     settingsFile.writeInt(

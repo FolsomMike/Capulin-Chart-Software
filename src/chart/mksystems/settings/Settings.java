@@ -75,8 +75,6 @@ public class Settings extends Object implements ActionListener, ItemListener {
 
     public CalFileSaver fileSaver = null;
 
-    public PrintStream errorLog;
-
     //Constants
 
     public static String SOFTWARE_VERSION = "1.97";
@@ -858,7 +856,7 @@ public static String truncate(String pSource, int pLength)
 // its purpose.
 //
 
-public static void appendSecurityHash(String pFilename)
+static public void appendSecurityHash(String pFilename) throws IOException
 {
 
     //calculate the security hash code for the file
@@ -873,7 +871,7 @@ public static void appendSecurityHash(String pFilename)
         file.print("Time Stamp: "); file.println(hash);
     }
     catch(IOException e){
-        System.err.println(Settings.class.getName() + " - Error: 816");
+        throw new IOException(e.getMessage() + " - Error: 816");
     }
 
 }//end of Settings::appendSecurityHash
@@ -887,10 +885,17 @@ public static void appendSecurityHash(String pFilename)
 // On error, returns an empty string.
 //
 
-public static String calculateSecurityHash(String pFilename)
+public static String calculateSecurityHash(String pFilename) throws IOException
 {
 
-    long sum = calculateSumOfFileData(pFilename);
+    long sum;
+
+    try{
+        sum = calculateSumOfFileData(pFilename);
+    }
+    catch(IOException e){
+        throw new IOException(e.getMessage());
+    }
 
     //bail out if there was an error calculating the sum
     if (sum < 0) {return("");}
@@ -972,14 +977,14 @@ static String encrypt(long pSum)
 // saved at the end of the file in ASCII hexadecimal format.
 //
 // If not errors encountered, the sum of the data is returned. On error, -1
-// is returned.
+// is returned or IOException is thrown.
 //
 // Note: the sum may experience overflow if the data is too large. This is
 // not necessarily an error -- the resulting value can still be used for
 // checksums, hashcodes, etc. , so long as the result is the same each time.
 //
 
-public static long calculateSumOfFileData(String pFilename)
+public static long calculateSumOfFileData(String pFilename) throws IOException
 {
 
     FileInputStream in = null;
@@ -1000,8 +1005,8 @@ public static long calculateSumOfFileData(String pFilename)
         }
     }
     catch(IOException e){
-        System.err.println(Settings.class.getName() + " - Error: 947");
         sum = -1;
+        throw new IOException(e.getMessage() + " - Error: 947");
     }
     finally{
         try{if (in != null) {in.close();}}
@@ -1011,21 +1016,6 @@ public static long calculateSumOfFileData(String pFilename)
     }
 
 }//end of Settings::calculateSumOfFileData
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Settings::logException
-//
-// Prints message from pE and the stack trace to errorLog.
-//
-
-public void logException(Exception pE)
-{
-
-    errorLog.println(pE.getMessage());
-    pE.printStackTrace(errorLog);
-
-}//end of Settings::logException
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1044,7 +1034,7 @@ public void loadLanguage()
     try {ini = new IniFile("Language\\Globals - Capulin UT.language",
                                                              mainFileFormat);}
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 975");
+        logSevere(e.getMessage() + " - Error: 975");
         return;
     }
 

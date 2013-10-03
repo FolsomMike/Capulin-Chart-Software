@@ -191,7 +191,7 @@ protected void saveFile(String pJobPath)
                               " Calibration File.ini", settings.jobFileFormat);
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 190");
+        logSevere(e.getMessage() + " - Error: 190");
         return;
     }
 
@@ -282,7 +282,7 @@ protected void saveFileHumanReadable(String pJobPath)
 
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 277");
+        logSevere(e.getMessage() + " - Error: 277");
     }
     finally{
 
@@ -295,7 +295,12 @@ protected void saveFileHumanReadable(String pJobPath)
     }
 
     //calculate a security hash code and append it to the file
-    Settings.appendSecurityHash(filename);
+    try{
+        Settings.appendSecurityHash(filename);
+    }
+    catch(IOException e){
+        logSevere(e.getMessage());
+    }
 
 }//end of MainWindow::saveFileHumanReadable
 //-----------------------------------------------------------------------------

@@ -253,8 +253,6 @@ public void init()
 
     setupJavaLogger(); //redirect to a file
 
-    PrintStream errorLog = setupErrorLoggingFile();
-
     //force "look and feel" to Java style
     try {
         UIManager.setLookAndFeel(
@@ -262,7 +260,7 @@ public void init()
     }
     catch (ClassNotFoundException | InstantiationException |
             IllegalAccessException | UnsupportedLookAndFeelException e) {
-        settings.logException(e);
+        logSevere(e.getMessage() + " - Error: 263");
     }
 
     //create various decimal formats
@@ -275,8 +273,6 @@ public void init()
     converter.init();
 
     settings = new Settings(this, this);
-
-    settings.errorLog = errorLog; //make available for other objects
 
     if (Files.exists(Paths.get("Viewer Mode.ini"))) {
         settings.viewerMode = true;
@@ -386,7 +382,7 @@ private void loadMainStaticSettings()
                                                       Settings.mainFileFormat);
     }
     catch(IOException e){
-        settings.logException(e);
+        logSevere(e.getMessage() + " - Error: 385");
         return;
     }
 
@@ -477,7 +473,7 @@ private void saveMainStaticSettings()
     try {configFile = new IniFile("Main Static Settings.ini",
                                                      Settings.mainFileFormat);}
     catch(IOException e){
-        settings.logException(e);
+        logSevere(e.getMessage() + " - Error: 975");
         return;
     }
 
@@ -509,7 +505,7 @@ private void loadGeneralConfiguration()
                        "Configuration - General.ini", Settings.mainFileFormat);
     }
     catch(IOException e){
-        settings.logException(e);
+        logSevere(e.getMessage() + " - Error: 508");
         return;
     }
 
@@ -571,7 +567,7 @@ private void loadMainSettings()
         configFile = new IniFile("Main Settings.ini", Settings.mainFileFormat);
     }
     catch(IOException e){
-        settings.logException(e);
+        logSevere(e.getMessage() + " - Error: 570");
         return;
     }
 
@@ -638,7 +634,7 @@ private void saveMainSettings()
         configFile = new IniFile("Main Settings.ini", Settings.mainFileFormat);
     }
     catch(IOException e){
-        settings.logException(e);
+        logSevere(e.getMessage() + " - Error: 637");
         return;
     }
 
@@ -669,7 +665,18 @@ private void configure()
     String configFilename = settings.currentJobPrimaryPath + "01 - " +
                                 settings.currentJobName + " Configuration.ini";
 
-    if(IniFile.detectUTF16LEFormat(configFilename)) {
+    boolean result;
+
+    try{
+        result = IniFile.detectUTF16LEFormat(configFilename);
+    }
+    catch(IOException e){
+        logSevere(e.getMessage());
+        //on error while trying to determine format, try UTF-8
+        result = false;
+    }
+
+    if(result) {
         settings.jobFileFormat = "UTF-16LE";
     }
     else {
@@ -683,7 +690,7 @@ private void configure()
         configFile = new IniFile(configFilename, settings.jobFileFormat);
     }
     catch(IOException e){
-        settings.logException(e);
+        logSevere(e.getMessage() + " - Error: 693");
         return;
     }
 
@@ -821,7 +828,7 @@ private void loadCalFile()
                                                         settings.jobFileFormat);
     }
     catch(IOException e){
-        settings.logException(e);
+        logSevere(e.getMessage() + " - Error: 831");
         return;
     }
 
@@ -1117,7 +1124,7 @@ private void saveSegmentHelper(String pFilename)
         }
     }
     catch(IOException e){
-        settings.logException(e);
+        logSevere(e.getMessage() + " - Error: 1127");
     }
     finally{
         try{if (out != null) {out.close();}}
@@ -1189,7 +1196,7 @@ private void saveSegmentInfoHelper(String pFilename)
 
     }
     catch(IOException e){
-        settings.logException(e);
+        logSevere(e.getMessage() + " - Error: 1199");
     }
     finally{
         try{if (out != null) {out.close();}}
@@ -1458,7 +1465,7 @@ public void actionPerformed(ActionEvent e)
             processFinishedPiece();
         }
         catch(IOException ioe){
-            settings.logException(ioe);
+            logSevere(ioe.getMessage() + " - Error: 1468");
         }
         return;
     }// if ("Process finished Piece".equals(e.getActionCommand()))
@@ -2350,7 +2357,7 @@ private void loadLanguage(String pLanguage)
        "language\\Main Window - Capulin UT.language", Settings.mainFileFormat);
     }
     catch(IOException e){
-        settings.logException(e);
+        logSevere(e.getMessage() + " - Error: 2360");
         return;
     }
 
@@ -2657,7 +2664,10 @@ private void setupJavaLogger()
 
     try{
 
-        fh = new FileHandler(logFilename);
+        //write log to logFilename, 10000 byte limit on each file, rotate
+        //between two files, append the the current file each startup
+
+        fh = new FileHandler(logFilename, 10000, 2, true);
 
         //direct output to a file for the root logger and  all child loggers
         Logger.getLogger("").addHandler(fh);
@@ -2674,44 +2684,6 @@ private void setupJavaLogger()
     }
 
 }//end of MainWindow::setupJavaLogger
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// MainWindow::setupErrorLoggingFile
-//
-// Opens a file for logging errors and redirects the standard System.err
-// stream to this file.
-//
-// Each time the method is called, it checks to see if the file is larger
-// than the maximum allowable size and deletes the file if so.
-//
-// Returns PrintStream reference to the error logging file.
-//
-
-private PrintStream setupErrorLoggingFile()
-{
-
-    String logFilename = "Error Messages.txt";
-
-    deleteFileIfOverSizeLimit(logFilename, ERROR_LOG_MAX_SIZE);
-
-    PrintStream errorLog = null;
-
-    //redirect the standard error output to a file
-    try{
-        FileOutputStream f = new FileOutputStream(logFilename, true);
-        errorLog = new PrintStream(f);
-        System.setErr(errorLog);
-        System.err.print("Program Started: " + (new Date().toString()));
-        System.err.println(" -----------------------------");
-    }
-    catch(FileNotFoundException e){
-        logStackTrace("Error: 2576", e);
-    }
-
-    return(errorLog);
-
-}//end of MainWindow::setupErrorLoggingFile
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -2820,13 +2792,13 @@ public static void main(String[] args)
 //-----------------------------------------------------------------------------
 // Useful debugging code
 
-//debug mks - sets to a light green
+// - sets to a light green
 //setBackground(new Color(153, 204, 0));
-//end debug mks
+//end
 
-//debug mks - sets to red
+// - sets to red
 //setBackground(new Color(255, 0, 0));
-//end debug mks
+//end
 
 //displays message on bottom panel of IDE
 //System.out.println("File not found");

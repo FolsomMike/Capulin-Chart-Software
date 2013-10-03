@@ -390,10 +390,17 @@ void createJob()
 
     //create the "Piece Number File.ini" file in the new folders with starting
     //values of 1 for the next inspection piece and next cal piece numbers
-    ControlPanel.saveSettingsHelper(
+
+    try{
+
+        ControlPanel.saveSettingsHelper(
                             primaryFolder + "/", newJobName, 1, 1, fileFormat);
-    ControlPanel.saveSettingsHelper(
+        ControlPanel.saveSettingsHelper(
                             backupFolder + "/", newJobName, 1, 1, fileFormat);
+    }
+    catch(IOException e){
+        logSevere(e.getMessage());
+    }
 
     //signal the class which invoked this window that a new job or jobs have
     //been created and pass back the name of the last valid job created
@@ -463,7 +470,7 @@ boolean copyFile(String pSource, String pDest)
 
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 461");
+        logSevere(e.getMessage() + " - Error: 461");
         return (false);
     }
     finally {
@@ -472,7 +479,7 @@ boolean copyFile(String pSource, String pDest)
             if (out != null) {out.close();}
             }
         catch(IOException e){
-            System.err.println(getClass().getName() + " - Error: 470");
+            logSevere(e.getMessage() + " - Error: 470");
             return(false);
         }
     }

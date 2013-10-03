@@ -345,7 +345,7 @@ public IniFile(String pFilename, String pFileFormat) throws IOException
 
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 346");
+        logSevere(e.getMessage() + " - Error: 346");
         throw new IOException();
     }
     finally{
@@ -394,7 +394,7 @@ public void save()
 
     }
     catch(IOException e){
-        System.err.println(getClass().getName() + " - Error: 394");
+        logSevere(e.getMessage() + " - Error: 394");
     }
     finally{
         try{if (out != null) {out.close();}}
@@ -916,10 +916,10 @@ public void writeString(String pSection, String pKey, String pValue)
 //
 // Returns true if file was created in UTF-16LE format, false if otherwise.
 //
-// Returns false if the file is not found or on I/O error.
+// Throws IOException if the file is not found or on I/O error.
 //
 
-static public boolean detectUTF16LEFormat(String pFilename)
+static public boolean detectUTF16LEFormat(String pFilename) throws IOException
 {
 
     FileInputStream fileInputStream = null;
@@ -957,8 +957,7 @@ static public boolean detectUTF16LEFormat(String pFilename)
         return(false);
     }//catch
     catch(IOException e){
-        System.err.println(IniFile.class.getName() + " - Error: 956");
-        return(false);
+        throw new IOException(e.getMessage() + " - Error: 956");
     }//catch
     finally{
         try{if (in != null) {in.close();}}
