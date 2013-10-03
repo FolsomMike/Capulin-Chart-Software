@@ -24,8 +24,10 @@ Error Messages.txt
 
 
 Java Logger File.txt
+Java Logger File.txt.0
 Java Logger File.txt.1
 Java Logger File.txt.lck
+
 
 # ignore all ini files
 # these change frequently and it is not useful to propagate the changes to each developer
