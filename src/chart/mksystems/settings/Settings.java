@@ -1005,15 +1005,14 @@ public static long calculateSumOfFileData(String pFilename) throws IOException
         }
     }
     catch(IOException e){
-        sum = -1;
         throw new IOException(e.getMessage() + " - Error: 947");
     }
     finally{
         try{if (in != null) {in.close();}}
         catch(IOException e){}
-
-        return(sum);
     }
+
+    return(sum);
 
 }//end of Settings::calculateSumOfFileData
 //-----------------------------------------------------------------------------

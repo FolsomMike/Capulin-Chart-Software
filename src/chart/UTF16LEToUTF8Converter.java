@@ -241,9 +241,9 @@ protected boolean convertFile(String pOldFile, String pTempFile)
             logFile.log("Error during conversion: " + oldFile);
         }
 
-        return(convertGood);
-
     }//finally
+
+    return(convertGood);
 
 }//end of UTF16LEToUTF8Converter::convertFile
 //-----------------------------------------------------------------------------
@@ -441,9 +441,9 @@ protected boolean compareFile(String pOldFile, String pTempFile)
             logFile.log("Compare fail: " + oldFile);
         }
 
-        return(compareGood);
-
     }//finally
+
+    return(compareGood);
 
 }//end of UTF16LEToUTF8Converter::compareFile
 //-----------------------------------------------------------------------------
