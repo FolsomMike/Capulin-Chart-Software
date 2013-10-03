@@ -122,32 +122,60 @@ static public MColor fromString(String pString, Color pDefault)
     pString = pString.toUpperCase();
 
     //if the color name matches a standard color, use that color
-
-    if (pString.equals("BLACK")) {match = Color.BLACK; exit = true;}
-    else
-    if (pString.equals("BLUE")) {match = Color.BLUE; exit = true;}
-    else
-    if (pString.equals("CYAN")) {match = Color.CYAN; exit = true;}
-    else
-    if (pString.equals("DARK_GRAY")){match = Color.DARK_GRAY;exit = true;}
-    else
-    if (pString.equals("GRAY")) {match = Color.GRAY; exit = true;}
-    else
-    if (pString.equals("GREEN")) {match = Color.GREEN; exit = true;}
-    else
-    if (pString.equals("LIGHT GRAY")){match = Color.LIGHT_GRAY;exit=true;}
-    else
-    if (pString.equals("MAGENTA")) {match = Color.MAGENTA; exit = true;}
-    else
-    if (pString.equals("ORANGE")) {match = Color.ORANGE; exit = true;}
-    else
-    if (pString.equals("PINK")) {match = Color.PINK; exit = true;}
-    else
-    if (pString.equals("RED")) {match = Color.RED; exit = true;}
-    else
-    if (pString.equals("WHITE")) {match = Color.WHITE; exit = true;}
-    else
-    if (pString.equals("YELLOW")) {match = Color.YELLOW; exit = true;}
+    switch (pString) {
+        case "BLACK":
+            match = Color.BLACK;
+            exit = true;
+            break;
+        case "BLUE":
+            match = Color.BLUE;
+            exit = true;
+            break;
+        case "CYAN":
+            match = Color.CYAN;
+            exit = true;
+            break;
+        case "DARK_GRAY":
+            match = Color.DARK_GRAY;
+            exit = true;
+            break;
+        case "GRAY":
+            match = Color.GRAY;
+            exit = true;
+            break;
+        case "GREEN":
+            match = Color.GREEN;
+            exit = true;
+            break;
+        case "LIGHT GRAY":
+            match = Color.LIGHT_GRAY;
+            exit=true;
+            break;
+        case "MAGENTA":
+            match = Color.MAGENTA;
+            exit = true;
+            break;
+        case "ORANGE":
+            match = Color.ORANGE;
+            exit = true;
+            break;
+        case "PINK":
+            match = Color.PINK;
+            exit = true;
+            break;
+        case "RED":
+            match = Color.RED;
+            exit = true;
+            break;
+        case "WHITE":
+            match = Color.WHITE;
+            exit = true;
+            break;
+        case "YELLOW":
+            match = Color.YELLOW;
+            exit = true;
+            break;
+    }
 
     //if color found, exit with that color
     if (exit) {return(new MColor(match));}
@@ -285,15 +313,27 @@ public class IniFile extends Object{
 // IniFile::IniFile (constructor)
 //
 
-public IniFile(String pFilename, String pFileFormat) throws IOException
+public IniFile(String pFilename, String pFileFormat)
 {
 
     fileFormat = pFileFormat;
+    filename = pFilename;
+
+}//end of IniFile::IniFile (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// IniFile::init
+//
+// Initializes the object.  MUST be called by sub classes after instantiation.
+//
+
+public void init() throws IOException
+{
 
     //create a vector to hold the lines of text read from the file
-    buffer = new ArrayList<String>(1000);
+    buffer = new ArrayList<>(1000);
 
-    filename = pFilename;
     modified = false; //no data has yet been modified or added
 
     //create various decimal formats
@@ -354,7 +394,7 @@ public IniFile(String pFilename, String pFileFormat) throws IOException
         if (fileInputStream != null) {fileInputStream.close();}
     }
 
-}//end of IniFile::IniFile (constructor)
+}//end of IniFile::init
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

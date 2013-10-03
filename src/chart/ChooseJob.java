@@ -134,7 +134,7 @@ private void loadJobList()
     String[] configs = jobDir.list();
 
     //create a list to hold the file/folder names
-    jobList = new ArrayList<String>(1000);
+    jobList = new ArrayList<>(1000);
     jobList.addAll(Arrays.asList(configs));
     //sort the items alphabetically
     Collections.sort(jobList);

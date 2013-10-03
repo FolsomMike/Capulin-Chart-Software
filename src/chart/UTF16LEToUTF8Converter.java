@@ -135,7 +135,7 @@ protected boolean convertFile(String pOldFile, String pTempFile)
     //if the file is not a UTF-16LE file saved by this program, skip it
     //this is not an error, so return true
 
-    boolean result = false;
+    boolean result;
 
     try{
         result = IniFile.detectUTF16LEFormat(pOldFile);
@@ -306,7 +306,7 @@ protected boolean compareFile(String pOldFile, String pTempFile)
         compareGood = false; return(compareGood);
     }
 
-    boolean result = false;
+    boolean result;
 
     try{
         result = IniFile.detectUTF16LEFormat(pOldFile);

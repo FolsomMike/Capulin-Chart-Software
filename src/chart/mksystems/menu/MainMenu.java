@@ -613,8 +613,11 @@ public final void loadLanguage(String pLanguage)
     IniFile ini;
 
     //if the ini file cannot be opened and loaded, exit without action
-    try {ini = new IniFile("language\\Main Menu - Capulin UT.language",
-                                                      settings.jobFileFormat);}
+    try {
+        ini = new IniFile("language\\Main Menu - Capulin UT.language",
+                                                      settings.jobFileFormat);
+        ini.init();
+    }
     catch(IOException e){
         logSevere(e.getMessage() + " - Error: 594");
         return;

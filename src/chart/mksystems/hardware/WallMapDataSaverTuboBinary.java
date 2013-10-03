@@ -330,7 +330,7 @@ public void dumpOrLoadAllDataBuffersToFiles(String pFilename,
 
     //set up info to be saved in header
 
-    Map<String, Object> headerInfo = new LinkedHashMap<String, Object>();
+    Map<String, Object> headerInfo = new LinkedHashMap<>();
 
     //start/stop positions same for all mapping boards -- see Note 1 in header
     headerInfo.put("Start Inspection Location",
@@ -520,6 +520,7 @@ private void loadJobInfo()
         jobInfoFile = new IniFile(
             settings.currentJobPrimaryPath + "03 - " + settings.currentJobName
             + " Job Info.ini", settings.jobFileFormat);
+        jobInfoFile.init();
     }
     catch(IOException e){
         logSevere(e.getMessage() + " - Error: 512");

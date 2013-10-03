@@ -503,6 +503,7 @@ private void loadSettings()
     try {
         settingsFile = new IniFile(currentJobPrimaryPath + "02 - "
                  + jobName + " Piece Number File.ini", settings.jobFileFormat);
+        settingsFile.init();
         }
         catch(IOException e){
             logSevere(e.getMessage() + " - Error: 505");
@@ -587,6 +588,7 @@ static void saveSettingsHelper(String pJobPath, String pJobName,
     try {
         settingsFile = new IniFile(pJobPath + "02 - "
                          + pJobName + " Piece Number File.ini", pFileFormat);
+        settingsFile.init();
     }
     catch(IOException e){
         throw new IOException(

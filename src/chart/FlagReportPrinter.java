@@ -947,6 +947,7 @@ public void loadJobInfo()
         jobInfoFile = new IniFile(
             jobPrimaryPath + "03 - " + currentJobName
             + " Job Info.ini", settings.jobFileFormat);
+        jobInfoFile.init();
     }
     catch(IOException e){return;}
 

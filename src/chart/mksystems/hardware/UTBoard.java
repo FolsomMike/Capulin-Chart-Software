@@ -588,7 +588,10 @@ public void init()
 {
 
     //if the ini file cannot be loaded, continue on - values will default
-    try {configFile = new IniFile(configFilename, jobFileFormat);}
+    try {
+        configFile = new IniFile(configFilename, jobFileFormat);
+        configFile.init();
+    }
     catch(IOException e){
         logSevere(e.getMessage() + " - Error: 531");
     }
@@ -1366,7 +1369,10 @@ void getChassisSlotAddressOverrideFromFile()
     IniFile configFileL;
 
     //if the ini file cannot be opened and loaded, exit without action
-    try {configFileL = new IniFile("Board Slot Overrides.ini", mainFileFormat);}
+    try {
+        configFileL = new IniFile("Board Slot Overrides.ini", mainFileFormat);
+        configFileL.init();
+    }
     catch(IOException e){
         logSevere(e.getMessage() + " - Error: 1222");
         return;

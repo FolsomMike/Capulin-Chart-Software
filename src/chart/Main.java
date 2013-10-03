@@ -43,7 +43,6 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
-import java.util.Date;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -378,8 +377,10 @@ private void loadMainStaticSettings()
     IniFile configFile;
 
     //if the ini file cannot be opened and loaded, exit without action
-    try {configFile = new IniFile("Main Static Settings.ini",
+    try {
+        configFile = new IniFile("Main Static Settings.ini",
                                                       Settings.mainFileFormat);
+        configFile.init();
     }
     catch(IOException e){
         logSevere(e.getMessage() + " - Error: 385");
@@ -470,8 +471,11 @@ private void saveMainStaticSettings()
     IniFile configFile;
 
     //if the ini file cannot be opened and loaded, exit without action
-    try {configFile = new IniFile("Main Static Settings.ini",
-                                                     Settings.mainFileFormat);}
+    try {
+        configFile = new IniFile("Main Static Settings.ini",
+                                                     Settings.mainFileFormat);
+        configFile.init();
+    }
     catch(IOException e){
         logSevere(e.getMessage() + " - Error: 975");
         return;
@@ -501,8 +505,10 @@ private void loadGeneralConfiguration()
     IniFile configFile;
 
     //if the ini file cannot be opened and loaded, exit without action
-    try {configFile = new IniFile(
+    try {
+        configFile = new IniFile(
                        "Configuration - General.ini", Settings.mainFileFormat);
+        configFile.init();
     }
     catch(IOException e){
         logSevere(e.getMessage() + " - Error: 508");
@@ -565,6 +571,7 @@ private void loadMainSettings()
     //if the ini file cannot be opened and loaded, exit without action
     try {
         configFile = new IniFile("Main Settings.ini", Settings.mainFileFormat);
+        configFile.init();
     }
     catch(IOException e){
         logSevere(e.getMessage() + " - Error: 570");
@@ -576,6 +583,7 @@ private void loadMainSettings()
 
     JobValidator jobValidator = new JobValidator(settings.primaryDataPath,
             settings.backupDataPath, settings.currentJobName, false, xfer);
+    jobValidator.init();
 
     //if flag returns true, one or both of the root data paths is missing - set
     //both and the job name to empty so they won't be accessed
@@ -632,6 +640,7 @@ private void saveMainSettings()
     //if the ini file cannot be opened and loaded, exit without action
     try {
         configFile = new IniFile("Main Settings.ini", Settings.mainFileFormat);
+        configFile.init();
     }
     catch(IOException e){
         logSevere(e.getMessage() + " - Error: 637");
@@ -688,6 +697,7 @@ private void configure()
     //if the ini file cannot be opened and loaded, exit without action
     try {
         configFile = new IniFile(configFilename, settings.jobFileFormat);
+        configFile.init();
     }
     catch(IOException e){
         logSevere(e.getMessage() + " - Error: 693");
@@ -826,6 +836,7 @@ private void loadCalFile()
         calFile = new IniFile(settings.currentJobPrimaryPath + "00 - "
                             + settings.currentJobName + " Calibration File.ini",
                                                         settings.jobFileFormat);
+        calFile.init();
     }
     catch(IOException e){
         logSevere(e.getMessage() + " - Error: 831");
@@ -1400,6 +1411,7 @@ public void actionPerformed(ActionEvent e)
         JobValidator jobValidator = new JobValidator(
                 settings.currentJobPrimaryPath, settings.currentJobBackupPath,
                 settings.currentJobName, true, xfer);
+        jobValidator.init();
 
         displayInfoMessage(
                         "The repair is complete.  Click OK to reload the job.");
@@ -2349,12 +2361,13 @@ private void loadLanguage(String pLanguage)
 
     language = pLanguage;
 
-    IniFile ini = null;
+    IniFile ini;
 
     //if the ini file cannot be opened and loaded, exit without action
     try {
         ini = new IniFile(
        "language\\Main Window - Capulin UT.language", Settings.mainFileFormat);
+        ini.init();
     }
     catch(IOException e){
         logSevere(e.getMessage() + " - Error: 2360");

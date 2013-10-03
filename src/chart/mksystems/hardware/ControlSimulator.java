@@ -629,8 +629,11 @@ private void configure()
     IniFile configFile;
 
     //if the ini file cannot be opened and loaded, exit without action
-    try {configFile = new IniFile("Simulation.ini", mainFileFormat);}
-        catch(IOException e){
+    try {
+        configFile = new IniFile("Simulation.ini", mainFileFormat);
+        configFile.init();
+    }
+    catch(IOException e){
         logSevere(e.getMessage() + " - Error: 622");
         return;
     }

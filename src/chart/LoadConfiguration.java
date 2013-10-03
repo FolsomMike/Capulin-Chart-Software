@@ -42,7 +42,7 @@ class LoadConfiguration extends JDialog implements ActionListener{
 
     JFrame frame;
     JComboBox configSelect;
-    Vector<String> configList;
+    ArrayList<String> configList;
     Xfer xfer;
     String currentJobPrimaryPath, currentJobBackupPath;
     String jobName;
@@ -64,6 +64,18 @@ public LoadConfiguration(JFrame pFrame, String pCurrentJobPrimaryPath,
     jobName = pJobName;
     xfer = pXfer;
 
+}//end of LoadConfiguration::LoadConfiguration (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// LoadConfiguration::init
+//
+// Initializes the object.  MUST be called by sub classes after instantiation.
+//
+
+public void init()
+{
+
     xfer.rBoolean1 = false; //action completed flag - set true if user completes
 
     setModal(true); //window always on top and has focus until closed
@@ -80,7 +92,7 @@ public LoadConfiguration(JFrame pFrame, String pCurrentJobPrimaryPath,
     tPanel = new JPanel();
     tPanel.setLayout(new BoxLayout(tPanel, BoxLayout.LINE_AXIS));
     tPanel.add(Box.createRigidArea(new Dimension(5,0)));
-    configSelect = new JComboBox(configList);
+    configSelect = new JComboBox(configList.toArray());
     tPanel.add(configSelect);
     tPanel.add(Box.createRigidArea(new Dimension(5,0)));
     add(tPanel);
@@ -114,7 +126,7 @@ public LoadConfiguration(JFrame pFrame, String pCurrentJobPrimaryPath,
 
     setVisible(true);
 
-}//end of LoadConfiguration::LoadConfiguration (constructor)
+}//end of LoadConfiguration::init
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -132,7 +144,7 @@ final void loadConfigList()
     String[] configs = configDir.list();
 
     //create a list to hold the configuration filenames
-    configList = new Vector<String>();
+    configList = new ArrayList<>();
     configList.addAll(Arrays.asList(configs));
     //sort the configurations alphabetically
     Collections.sort(configList);

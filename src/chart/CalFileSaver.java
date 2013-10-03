@@ -189,6 +189,7 @@ protected void saveFile(String pJobPath)
     try {
         calFile = new IniFile(pJobPath + "00 - " + settings.currentJobName +
                               " Calibration File.ini", settings.jobFileFormat);
+        calFile.init();
     }
     catch(IOException e){
         logSevere(e.getMessage() + " - Error: 190");

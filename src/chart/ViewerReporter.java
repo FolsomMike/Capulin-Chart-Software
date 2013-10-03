@@ -718,11 +718,12 @@ public void loadCalFile()
 
         calFile = new IniFile(jobPrimaryPath + "00 - "
             + currentJobName + " Calibration File.ini", settings.jobFileFormat);
-        }
-        catch(IOException e){
-            logSevere(e.getMessage() + " - Error: 712");
-            return;
-        }
+        calFile.init();
+    }
+    catch(IOException e){
+        logSevere(e.getMessage() + " - Error: 712");
+        return;
+    }
 
     //since the Viewer does not create a Hardware object, load in any values
     //which are needed for viewing which would normally be loaded by the
@@ -822,6 +823,7 @@ public void configure()
     try {
         configFile = new IniFile(jobPrimaryPath + "01 - " + currentJobName
                                 + " Configuration.ini", settings.jobFileFormat);
+        configFile.init();
         }
         catch(IOException e){
             logSevere(e.getMessage() + " - Error: 815");

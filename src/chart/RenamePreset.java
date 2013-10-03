@@ -145,7 +145,7 @@ void loadPresetList()
     String[] configs = jobDir.list();
 
     //create a list to hold the items
-    presetList = new ArrayList<String>();
+    presetList = new ArrayList<>();
     presetList.addAll(Arrays.asList(configs));
     //sort the items alphabetically
     Collections.sort(presetList);

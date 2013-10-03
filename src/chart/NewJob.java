@@ -163,7 +163,7 @@ private void loadConfigList()
     String[] configs = configDir.list();
 
     //create a list to hold the configuration filenames
-    configList = new ArrayList<String>();
+    configList = new ArrayList<>();
     configList.addAll(Arrays.asList(configs));
     //sort the configurations alphabetically
     Collections.sort(configList);
@@ -192,7 +192,7 @@ private void loadPresetList()
     String[] presets = presetDir.list();
 
     //create a list to hold the preset filenames
-    presetList = new ArrayList<String>();
+    presetList = new ArrayList<>();
     presetList.addAll(Arrays.asList(presets));
     //sort the presets alphabetically
     Collections.sort(presetList);

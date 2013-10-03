@@ -1027,11 +1027,14 @@ public static long calculateSumOfFileData(String pFilename) throws IOException
 public void loadLanguage()
 {
 
-    IniFile ini = null;
+    IniFile ini;
 
     //if the ini file cannot be opened and loaded, exit without action
-    try {ini = new IniFile("Language\\Globals - Capulin UT.language",
-                                                             mainFileFormat);}
+    try {
+        ini = new IniFile("Language\\Globals - Capulin UT.language",
+                                                             mainFileFormat);
+        ini.init();
+    }
     catch(IOException e){
         logSevere(e.getMessage() + " - Error: 975");
         return;

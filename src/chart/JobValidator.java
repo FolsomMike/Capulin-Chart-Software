@@ -148,13 +148,25 @@ public JobValidator(String pPrimaryDataPath, String pBackupDataPath,
     currentJobPrimaryPath = pPrimaryDataPath + jobName + File.separator;
     currentJobBackupPath = pBackupDataPath + jobName + File.separator;
 
+}//end of JobValidator::JobValidator (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// JobValidator::init
+//
+// Initializes the object.  MUST be called by sub classes after instantiation.
+//
+
+public void init()
+{
+
     try{
 
         xfer.rBoolean2 = xfer.rBoolean3 = false;
 
         //check to see if the root data paths exist or can be repaired if robust
-        if (!validatePathAndRepair(pPrimaryDataPath, "root primary", robust)
-            || !validatePathAndRepair(pBackupDataPath, "root backup", robust)
+        if (!validatePathAndRepair(primaryDataPath, "root primary", robust)
+            || !validatePathAndRepair(backupDataPath, "root backup", robust)
             ) {
 
             xfer.rBoolean2 = true; return;
@@ -225,7 +237,7 @@ public JobValidator(String pPrimaryDataPath, String pBackupDataPath,
         if (logFile != null) {logFile.close();}
     }
 
-}//end of JobValidator::JobValidator (constructor)
+}//end of JobValidator::init
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -419,6 +431,7 @@ public boolean handleConfigFileBackupRestoreFailure()
     LoadConfiguration loadConfiguration =
        new LoadConfiguration(null, currentJobPrimaryPath, currentJobBackupPath,
                                                                  jobName, xfer);
+    loadConfiguration.init();
 
     return true;
 
