@@ -1397,8 +1397,8 @@ public void actionPerformed(ActionEvent e)
     }
 
     //this part handles pulsing Output 1
-    if ("Pulse Output 1".equals(e.getActionCommand())) {
-        hardware.pulseOutput1();
+    if ("Pulse Audible Alarm".equals(e.getActionCommand())) {
+        hardware.pulseAudibleAlarm();
         return;
     }
 

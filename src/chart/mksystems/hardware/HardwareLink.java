@@ -72,11 +72,11 @@ byte[] getMonitorPacket(boolean pRequestPacket);
 
 void zeroEncoderCounts();
 
-void pulseOutput1();
+void pulseAudibleAlarm();
 
-void turnOnOutput1();
+void turnOnAudibleAlarm();
 
-void turnOffOutput1();
+void turnOffAudibleAlarm();
 
 public void requestAScan(int pChannel);
 

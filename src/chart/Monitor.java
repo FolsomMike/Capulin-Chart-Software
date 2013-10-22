@@ -159,11 +159,11 @@ public void init()
     zeroEncoderCounts.setToolTipText("Zero Encoder Counts");
     panel.add(zeroEncoderCounts);
 
-    JButton pulseOutput1 = new JButton("Pulse Output 1");
-    pulseOutput1.setActionCommand("Pulse Output 1");
-    pulseOutput1.addActionListener(this);
-    pulseOutput1.setToolTipText("Pulse Output 1");
-    panel.add(pulseOutput1);
+    JButton pulseAudibleAlarm = new JButton("Pulse Audible Alarm");
+    pulseAudibleAlarm.setActionCommand("Pulse Audible Alarm");
+    pulseAudibleAlarm.addActionListener(this);
+    pulseAudibleAlarm.setToolTipText("Pulse Audible Alarm");
+    panel.add(pulseAudibleAlarm);
 
     pack();
 
@@ -192,10 +192,10 @@ public void actionPerformed(ActionEvent e)
     }
 
     //tells the Control board to pulse output 1
-    if (source.getToolTipText().equalsIgnoreCase("Pulse Output 1")){
+    if (source.getToolTipText().equalsIgnoreCase("Pulse Audible Alarm")){
         //pass the command back to the main function
         actionListener.actionPerformed(
-                              new ActionEvent(this, 1, "Pulse Output 1"));
+                              new ActionEvent(this, 1, "Pulse Audible Alarm"));
         return;
     }
 

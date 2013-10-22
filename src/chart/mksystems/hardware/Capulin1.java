@@ -70,6 +70,9 @@ public class Capulin1 extends Object implements HardwareLink, MessageLink{
 
     String jobFileFormat, mainFileFormat;
 
+    //if null, Control board fires alarm, otherwise IO module does
+    EthernetIOModules audibleAlarmController = null;
+
     boolean utBoardsReady = false;
     boolean controlBoardsReady = false;
 
@@ -82,6 +85,9 @@ public class Capulin1 extends Object implements HardwareLink, MessageLink{
     ControlBoard[] controlBoards;
     int numberOfControlBoards = 1; //debug mks - read from config
     String controlBoardIP; //debug mks - get rid of this?
+
+    EthernetIOModules [] ioModules;
+    int numberOfIOModules;
 
     String fpgaCodeFilename;
 
@@ -200,6 +206,11 @@ private void configure(IniFile pConfigFile)
 
     if (numberOfUTBoards > 255) {numberOfUTBoards = 255;}
 
+    numberOfIOModules =
+                     pConfigFile.readInt("Hardware", "Number of IO Modules", 0);
+
+    if (numberOfIOModules > 255) {numberOfIOModules = 255;}
+
     numberOfChannels =
                 pConfigFile.readInt("Hardware", "Number of Analog Channels", 1);
 
@@ -221,6 +232,9 @@ private void configure(IniFile pConfigFile)
 
     //create and setup the UT boards
     configureUTBoards();
+
+    //create and set up other IO module types
+    configureIOModules();
 
     //create and setup the channels
     configureChannels();
@@ -1333,48 +1347,87 @@ public void zeroEncoderCounts()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Capulin1::pulseOutput1
+// Capulin1::pulseAudibleAlarm
 //
-// Pulses output 1.
+// Turns the audible alarm on briefly.
 //
-
-@Override
-public void pulseOutput1()
-{
-
-    controlBoards[0].pulseOutput();
-
-}//end of Capulin1::pulseOutput1
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Capulin1::turnOnOutput1
+// If audibleAlarmController is null, the audible alarm is handled by the
+// Control board. If not null, it points to the IO module which controls the
+// alarm.
 //
-// Turn on output 1.
+// Currently hardcoded to fire output 1 on the control board or single relay
+// on an IO module. Need to add info to config file to specify which ouput
+// fires the alarm.
 //
 
 @Override
-public void turnOnOutput1()
+public void pulseAudibleAlarm()
 {
 
-    controlBoards[0].turnOnOutput();
+    if (audibleAlarmController == null){
+        controlBoards[0].pulseOutput();
+    }
+    else{
+        audibleAlarmController.pulseAudibleAlarm();
+    }
 
-}//end of Capulin1::turnOnOutput1
+}//end of Capulin1::pulseAudibleAlarm
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Capulin1::turnOffOutput1
+// Capulin1::turnOnAudibleAlarm
 //
-// Turn off output 1.
+// Turns on the audible alarm.
+//
+// If audibleAlarmController is null, the audible alarm is handled by the
+// Control board. If not null, it points to the IO module which controls the
+// alarm.
+//
+// Currently hardcoded to output 1 on the control board or single relay
+// on an IO module. Need to add info to config file to specify which ouput
+// fires the alarm.
 //
 
 @Override
-public void turnOffOutput1()
+public void turnOnAudibleAlarm()
 {
 
-    controlBoards[0].turnOffOutput();
+    if (audibleAlarmController == null){
+        controlBoards[0].turnOnOutput();
+    }
+    else{
+        audibleAlarmController.turnOnAudibleAlarm();
+    }
 
-}//end of Capulin1::turnOffOutput1
+}//end of Capulin1::turnOnAudibleAlarm
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::turnOffAudibleAlarm
+//
+// Turns off the audible alarm
+//
+// If audibleAlarmController is null, the audible alarm is handled by the
+// Control board. If not null, it points to the IO module which controls the
+// alarm.
+//
+// Currently hardcoded to output 1 on the control board or single relay
+// on an IO module. Need to add info to config file to specify which ouput
+// fires the alarm.
+//
+
+@Override
+public void turnOffAudibleAlarm()
+{
+
+    if (audibleAlarmController == null){
+        controlBoards[0].turnOffOutput();
+    }
+    else{
+        audibleAlarmController.turnOffAudibleAlarm();
+    }
+
+}//end of Capulin1::turnOffAudibleAlarm
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1787,6 +1840,48 @@ private void configureControlBoards()
     }//if (numberOfControlBoards > 0)
 
 }//end of Capulin1::configureControlBoards
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::configureIOModules
+//
+// Loads configuration settings from the configuration.ini file relating to
+// the boards and creates/sets them up.
+//
+
+private void configureIOModules()
+{
+
+    //create an array of IO modules per the config file setting
+    if (numberOfIOModules > 0){
+
+        ioModules = new EthernetIOModules[numberOfIOModules];
+
+        String moduleType;
+
+        for (int i = 0; i < numberOfIOModules; i++) {
+
+            moduleType =
+             configFile.readString("IO Module " + i, "Module Type", "unknown");
+
+            if (moduleType.equals("WebRelay X-WR-1R12")){
+                ioModules[i] = new WebRelay_X_WR_1R12(i, configFile);
+            }
+
+            if (ioModules[i] != null) {
+
+                ioModules[i].init();
+
+                //store IO module as audible alarm controller
+                if(ioModules[i].isAudibleAlarmController()){
+                    audibleAlarmController = ioModules[i];
+                }
+            }
+        }// for (int i = 0; i < numberOfIOModules; i++)
+
+    }//if (numberOfIOModules > 0)
+
+}//end of Capulin1::configureIOModules
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

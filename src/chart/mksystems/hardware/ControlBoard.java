@@ -179,7 +179,7 @@ public void init()
 //-----------------------------------------------------------------------------
 // ControlBoard::configure
 //
-// Loads configuration settings from the configuration.ini file.
+// Loads configuration settings from pConfigFile.
 // The various child objects are then created as specified by the config data.
 //
 
@@ -237,14 +237,16 @@ void configureExtended(IniFile pConfigFile)
 //
 
 void parsePositionTrackingMode(String pValue)
-{
 
-    if (pValue.equals("Send Clock Markers")) {
-        rabbitControlFlags |= RABBIT_SEND_CLOCK_MARKERS;
-    }
-    else
-    if (pValue.equals("Send TDC and Linear Markers")) {
-        rabbitControlFlags |= RABBIT_SEND_TDC_AND_LINEAR_MARKERS;
+{
+    
+    switch (pValue) {
+        case "Send Clock Markers":
+            rabbitControlFlags |= RABBIT_SEND_CLOCK_MARKERS;
+            break;
+        case "Send TDC and Linear Markers":
+            rabbitControlFlags |= RABBIT_SEND_TDC_AND_LINEAR_MARKERS;
+            break;
     }
 
 }//end of ControlBoard::parsePositionTrackingMode

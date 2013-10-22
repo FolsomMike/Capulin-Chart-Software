@@ -234,42 +234,42 @@ public void zeroEncoderCounts()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// AnalogPCIDAS6023::pulseOutput1
+// AnalogPCIDAS6023::pulseAudibleAlarm
 //
-// Pulses output 1.
-//
-
-@Override
-public void pulseOutput1()
-{
-
-}//end of AnalogPCIDAS6023::pulseOutput1
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// AnalogPCIDAS6023::turnOnOutput1
-//
-// Turn on output 1.
+// Pulses the audible alarm.
 //
 
 @Override
-public void turnOnOutput1()
+public void pulseAudibleAlarm()
 {
 
-}//end of AnalogPCIDAS6023::turnOnOutput1
+}//end of AnalogPCIDAS6023::pulseAudibleAlarm
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// AnalogPCIDAS6023::turnOffOutput1
+// AnalogPCIDAS6023::turnOnAudibleAlarm
 //
-// Turn off output 1.
+// Turns on the audible alarm.
 //
 
 @Override
-public void turnOffOutput1()
+public void turnOnAudibleAlarm()
 {
 
-}//end of AnalogPCIDAS6023::turnOffOutput1
+}//end of AnalogPCIDAS6023::turnOnAudibleAlarm
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// AnalogPCIDAS6023::turnOffAudibleAlarm
+//
+// Turns off the audible alarm.
+//
+
+@Override
+public void turnOffAudibleAlarm()
+{
+
+}//end of AnalogPCIDAS6023::turnOffAudibleAlarm
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
