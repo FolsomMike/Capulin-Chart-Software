@@ -1,0 +1,109 @@
+
+---------------------------------------------------------------------
+Sat Feb 09 14:29:23 MST 2013
+
+Converting files:
+
+File converted: .\Board Slot Overrides.ini
+File converted: .\Main Static Settings.ini
+File converted: .\Configuration - Job Info Window.ini
+File converted: .\Main Settings.ini
+
+File converted: presets\1 channel test bench.preset
+File converted: presets\40 channel research.preset
+File converted: presets\10 channel 4.500 13.50 P110.preset
+File converted: presets\10 channel 7.625 29.70 P110.preset
+File converted: presets\10 channel 2.875 6.50 L80.preset
+File converted: presets\10 channel 5.500 15.50 J55.preset
+File converted: presets\10 channel 5.500 20.00 P110.preset
+File converted: presets\10 channel 7.000 26.00 J55 SR2.preset
+File converted: presets\10 channel 4.500 11.60 P110.preset
+File converted: presets\10 channel 5.500 20.00 L80.preset
+File converted: presets\10 channel 7.000 26.00 P110.preset
+File converted: presets\10 channel 7.625 26.40 P110.preset
+File converted: presets\10 channel 4.500 11.60 GT or P110.preset
+File converted: presets\10 channel 4.500 11.60 GT.preset
+File converted: presets\10 channel 7.00 32.00 P110.preset
+File converted: presets\10 channel 2.375 4.70 L80.preset
+File converted: presets\10 channel 5.500 17.00 P110.preset
+File converted: presets\10 channel CAL.preset
+File converted: presets\10 channel 16.000 42.09 WALL 250 LP.preset
+File converted: presets\10 channel 8.625 32.00 J55.preset
+
+File converted: configurations\1 channel test bench.config
+File converted: configurations\40 channel research.config
+File converted: configurations\10 channel XXtreme Weldline.config
+
+Validating conversions and cleaning up:
+
+Files are identical: .\Board Slot Overrides.ini
+Success -- temp file renamed: .\Board Slot Overrides.ini
+Files are identical: .\Main Static Settings.ini
+Success -- temp file renamed: .\Main Static Settings.ini
+Files are identical: .\Configuration - Job Info Window.ini
+Success -- temp file renamed: .\Configuration - Job Info Window.ini
+Compare ignored -- there is no temp file: .\Graphics.ini UTF-8
+Delete and rename ignored -- there is no temp file: .\Graphics.ini UTF-8
+Files are identical: .\Main Settings.ini
+Success -- temp file renamed: .\Main Settings.ini
+Compare ignored -- there is no temp file: .\Configuration - General.ini UTF-8
+Delete and rename ignored -- there is no temp file: .\Configuration - General.ini UTF-8
+Compare ignored -- there is no temp file: .\Configuration - Piece Info Window.ini UTF-8
+Delete and rename ignored -- there is no temp file: .\Configuration - Piece Info Window.ini UTF-8
+Compare ignored -- there is no temp file: .\Simulation.ini UTF-8
+Delete and rename ignored -- there is no temp file: .\Simulation.ini UTF-8
+
+Files are identical: presets\1 channel test bench.preset
+Success -- temp file renamed: presets\1 channel test bench.preset
+Files are identical: presets\40 channel research.preset
+Success -- temp file renamed: presets\40 channel research.preset
+Files are identical: presets\10 channel 4.500 13.50 P110.preset
+Success -- temp file renamed: presets\10 channel 4.500 13.50 P110.preset
+Files are identical: presets\10 channel 7.625 29.70 P110.preset
+Success -- temp file renamed: presets\10 channel 7.625 29.70 P110.preset
+Files are identical: presets\10 channel 2.875 6.50 L80.preset
+Success -- temp file renamed: presets\10 channel 2.875 6.50 L80.preset
+Files are identical: presets\10 channel 5.500 15.50 J55.preset
+Success -- temp file renamed: presets\10 channel 5.500 15.50 J55.preset
+Files are identical: presets\10 channel 5.500 20.00 P110.preset
+Success -- temp file renamed: presets\10 channel 5.500 20.00 P110.preset
+Files are identical: presets\10 channel 7.000 26.00 J55 SR2.preset
+Success -- temp file renamed: presets\10 channel 7.000 26.00 J55 SR2.preset
+Files are identical: presets\10 channel 4.500 11.60 P110.preset
+Success -- temp file renamed: presets\10 channel 4.500 11.60 P110.preset
+Files are identical: presets\10 channel 5.500 20.00 L80.preset
+Success -- temp file renamed: presets\10 channel 5.500 20.00 L80.preset
+Files are identical: presets\10 channel 7.000 26.00 P110.preset
+Success -- temp file renamed: presets\10 channel 7.000 26.00 P110.preset
+Files are identical: presets\10 channel 7.625 26.40 P110.preset
+Success -- temp file renamed: presets\10 channel 7.625 26.40 P110.preset
+Files are identical: presets\10 channel 4.500 11.60 GT or P110.preset
+Success -- temp file renamed: presets\10 channel 4.500 11.60 GT or P110.preset
+Files are identical: presets\10 channel 4.500 11.60 GT.preset
+Success -- temp file renamed: presets\10 channel 4.500 11.60 GT.preset
+Files are identical: presets\10 channel 7.00 32.00 P110.preset
+Success -- temp file renamed: presets\10 channel 7.00 32.00 P110.preset
+Files are identical: presets\10 channel 2.375 4.70 L80.preset
+Success -- temp file renamed: presets\10 channel 2.375 4.70 L80.preset
+Files are identical: presets\10 channel 5.500 17.00 P110.preset
+Success -- temp file renamed: presets\10 channel 5.500 17.00 P110.preset
+Files are identical: presets\10 channel CAL.preset
+Success -- temp file renamed: presets\10 channel CAL.preset
+Files are identical: presets\10 channel 16.000 42.09 WALL 250 LP.preset
+Success -- temp file renamed: presets\10 channel 16.000 42.09 WALL 250 LP.preset
+Files are identical: presets\10 channel 8.625 32.00 J55.preset
+Success -- temp file renamed: presets\10 channel 8.625 32.00 J55.preset
+
+Files are identical: configurations\1 channel test bench.config
+Success -- temp file renamed: configurations\1 channel test bench.config
+Files are identical: configurations\40 channel research.config
+Success -- temp file renamed: configurations\40 channel research.config
+Files are identical: configurations\10 channel XXtreme Weldline.config
+Success -- temp file renamed: configurations\10 channel XXtreme Weldline.config
+
+Validating conversions and cleaning up orphans:
+
+
+
+
+All files converted successfully.
