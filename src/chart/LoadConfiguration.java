@@ -92,7 +92,8 @@ public void init()
     tPanel = new JPanel();
     tPanel.setLayout(new BoxLayout(tPanel, BoxLayout.LINE_AXIS));
     tPanel.add(Box.createRigidArea(new Dimension(5,0)));
-    configSelect = new JComboBox<>((String [])configList.toArray());
+    configSelect =
+            new JComboBox<>(configList.toArray(new String[configList.size()]));
     tPanel.add(configSelect);
     tPanel.add(Box.createRigidArea(new Dimension(5,0)));
     add(tPanel);

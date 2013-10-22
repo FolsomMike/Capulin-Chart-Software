@@ -84,7 +84,8 @@ public void init()
     tPanel = new JPanel();
     tPanel.setLayout(new BoxLayout(tPanel, BoxLayout.LINE_AXIS));
     tPanel.add(Box.createRigidArea(new Dimension(5,0)));
-    presetSelect = new JComboBox<>((String [])presetList.toArray());
+    presetSelect =
+            new JComboBox<>(presetList.toArray(new String[presetList.size()]));
     presetSelect.setEditable(true);
     tPanel.add(presetSelect);
     tPanel.add(Box.createRigidArea(new Dimension(5,0)));

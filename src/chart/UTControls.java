@@ -1190,7 +1190,7 @@ void setupProcessTab()
             //get the signal processing list for the gate type
             ArrayList<String> pl = gate.getSigProcList();
 
-            jcb = new JComboBox<>((String [])pl.toArray());
+            jcb = new JComboBox<>(pl.toArray(new String[pl.size()]));
             jcb.setSelectedIndex(gate.getSigProcIndex());
             jcb.setActionCommand("Signal Processing");
             jcb.addActionListener(this);

@@ -82,7 +82,7 @@ public void init()
     tPanel = new JPanel();
     tPanel.setLayout(new BoxLayout(tPanel, BoxLayout.LINE_AXIS));
     tPanel.add(Box.createRigidArea(new Dimension(5,0)));
-    jobSelect = new JComboBox<>((String [])jobList.toArray());
+    jobSelect = new JComboBox<>(jobList.toArray(new String[jobList.size()]));
     tPanel.add(jobSelect);
     tPanel.add(Box.createRigidArea(new Dimension(5,0)));
     add(tPanel);

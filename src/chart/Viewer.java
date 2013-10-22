@@ -2169,7 +2169,8 @@ public void init()
     tPanel = new JPanel();
     tPanel.setLayout(new BoxLayout(tPanel, BoxLayout.LINE_AXIS));
     tPanel.add(Box.createRigidArea(new Dimension(5,0)));
-    fileSelect = new JComboBox<>((String [])entryList.toArray());
+    fileSelect =
+            new JComboBox<>(entryList.toArray(new String[entryList.size()]));
     tPanel.add(fileSelect);
     tPanel.add(Box.createRigidArea(new Dimension(5,0)));
     add(tPanel);
