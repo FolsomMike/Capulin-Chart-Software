@@ -70,8 +70,8 @@ public class Capulin1 extends Object implements HardwareLink, MessageLink{
 
     String jobFileFormat, mainFileFormat;
 
-    //if null, Control board fires alarm, otherwise IO module does
-    EthernetIOModules audibleAlarmController = null;
+    //device which controls the audible alarm
+    AudibleAlarmController audibleAlarmController = null;
 
     boolean utBoardsReady = false;
     boolean controlBoardsReady = false;
@@ -850,9 +850,15 @@ public boolean isPlotterConnectedToBoard(Plotter pPlotter, Board pBoard)
 public void initializeControlBoards()
 {
 
-    for (int j = 0; j < numberOfControlBoards; j++) {
-        if (controlBoards[j] != null) {
-            controlBoards[j].initialize();
+    for (int i = 0; i < numberOfControlBoards; i++) {
+        if (controlBoards[i] != null) {
+
+            controlBoards[i].initialize();
+
+            //store board as audible alarm controller if designated
+            if(controlBoards[i].isAudibleAlarmController()){
+                audibleAlarmController = controlBoards[i];
+            }
         }
     }
 
@@ -1351,23 +1357,12 @@ public void zeroEncoderCounts()
 //
 // Turns the audible alarm on briefly.
 //
-// If audibleAlarmController is null, the audible alarm is handled by the
-// Control board. If not null, it points to the IO module which controls the
-// alarm.
-//
-// Currently hardcoded to fire output 1 on the control board or single relay
-// on an IO module. Need to add info to config file to specify which ouput
-// fires the alarm.
-//
 
 @Override
 public void pulseAudibleAlarm()
 {
 
-    if (audibleAlarmController == null){
-        controlBoards[0].pulseOutput();
-    }
-    else{
+    if (audibleAlarmController != null){
         audibleAlarmController.pulseAudibleAlarm();
     }
 
@@ -1379,23 +1374,12 @@ public void pulseAudibleAlarm()
 //
 // Turns on the audible alarm.
 //
-// If audibleAlarmController is null, the audible alarm is handled by the
-// Control board. If not null, it points to the IO module which controls the
-// alarm.
-//
-// Currently hardcoded to output 1 on the control board or single relay
-// on an IO module. Need to add info to config file to specify which ouput
-// fires the alarm.
-//
 
 @Override
 public void turnOnAudibleAlarm()
 {
 
-    if (audibleAlarmController == null){
-        controlBoards[0].turnOnOutput();
-    }
-    else{
+    if (audibleAlarmController != null){
         audibleAlarmController.turnOnAudibleAlarm();
     }
 
@@ -1405,25 +1389,14 @@ public void turnOnAudibleAlarm()
 //-----------------------------------------------------------------------------
 // Capulin1::turnOffAudibleAlarm
 //
-// Turns off the audible alarm
-//
-// If audibleAlarmController is null, the audible alarm is handled by the
-// Control board. If not null, it points to the IO module which controls the
-// alarm.
-//
-// Currently hardcoded to output 1 on the control board or single relay
-// on an IO module. Need to add info to config file to specify which ouput
-// fires the alarm.
+// Turns off the audible alarm.
 //
 
 @Override
 public void turnOffAudibleAlarm()
 {
 
-    if (audibleAlarmController == null){
-        controlBoards[0].turnOffOutput();
-    }
-    else{
+    if (audibleAlarmController != null){
         audibleAlarmController.turnOffAudibleAlarm();
     }
 
@@ -1835,6 +1808,7 @@ private void configureControlBoards()
                     i, RUNTIME_PACKET_SIZE, simulateControlBoards, log,
                                                                 mainFileFormat);
             controlBoards[i].init();
+
         }
 
     }//if (numberOfControlBoards > 0)
@@ -1872,7 +1846,7 @@ private void configureIOModules()
 
                 ioModules[i].init();
 
-                //store IO module as audible alarm controller
+                //store IO module as audible alarm controller if designated
                 if(ioModules[i].isAudibleAlarmController()){
                     audibleAlarmController = ioModules[i];
                 }

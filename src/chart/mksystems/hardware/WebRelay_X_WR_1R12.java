@@ -42,7 +42,7 @@ import java.util.logging.Logger;
 import net.www.protocol.raw.RawURLConnection;
 
 
-public class WebRelay_X_WR_1R12 extends EthernetIOModules{
+public class WebRelay_X_WR_1R12 extends EthernetIOModules {
 
     static final String MODULE_CONTROL_FILEMAME = "state.xml";
 
@@ -184,18 +184,22 @@ public String connectSendGetRequestClose(String pNetURL)
 //
 // In this class, the module only has one relay so pWhichRelay is ignored.
 //
+// If pPulseDuration <= 0, no pulse duration is sent to the module in which
+// case it will use the preset duration. This preset is set manually via a
+// web brower accessing the module's setup page.
+//
 
 @Override
-public void setRelayState(int pWhichRelay, int pState, int pPulseDuration)
+public void setRelayState(int pWhichRelay, int pState, String pPulseDuration)
 {
 
     String controlURL;
 
-    if (pState != RELAY_PULSE){
-        controlURL = relaySetBaseURL + pState;
+    if (pState == RELAY_PULSE && Double.parseDouble(pPulseDuration) > 0){
+        controlURL = relaySetBaseURL + pState + "&pulseTime=" + pPulseDuration;
     }
     else{
-        controlURL = relaySetBaseURL + pState + "&pulseTime=" + pPulseDuration;
+        controlURL = relaySetBaseURL + pState;
     }
 
     connectSendGetRequestClose(controlURL);
@@ -210,13 +214,25 @@ public void setRelayState(int pWhichRelay, int pState, int pPulseDuration)
 //
 // In this class, the module only has one relay so pWhichRelay is ignored.
 //
+// If pPulseDuration <= 0, no pulse duration is sent to the module in which
+// case it will use the preset duration. This preset is set manually via a
+// web brower accessing the module's setup page.
+//
 
 @Override
-public void pulseRelay(int pWhichRelay, int pPulseDuration)
+public void pulseRelay(int pWhichRelay, String pPulseDuration)
 {
 
-    String controlURL =
+    String controlURL;
+
+    if (Double.parseDouble(pPulseDuration) > 0){
+        controlURL =
                 relaySetBaseURL + RELAY_PULSE + "&pulseTime=" + pPulseDuration;
+    }
+    else{
+        controlURL = relaySetBaseURL + RELAY_PULSE;
+
+    }
 
     connectSendGetRequestClose(controlURL);
 

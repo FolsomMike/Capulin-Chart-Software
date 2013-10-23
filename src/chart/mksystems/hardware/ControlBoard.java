@@ -31,7 +31,8 @@ import javax.swing.*;
 // This class creates and handles an interface to a Control board.
 //
 
-public class ControlBoard extends Board implements MessageLink{
+public class ControlBoard extends Board implements MessageLink,
+                                                    AudibleAlarmController{
 
     byte[] monitorBuffer;
     static int MONITOR_PACKET_SIZE = 25;
@@ -71,6 +72,10 @@ public class ControlBoard extends Board implements MessageLink{
     //number of counts each encoder moves to trigger an inspection data packet
     //these values are read later from the config file
     int encoder1DeltaTrigger, encoder2DeltaTrigger;
+
+    protected boolean audibleAlarmController;
+    protected int audibleAlarmOutputChannel;
+    protected String audibleAlarmPulseDuration;
 
     // values for the Rabbits control flag - only lower 16 bits are used
     // as the corresponding variable in the Rabbit is an unsigned int
@@ -172,7 +177,6 @@ public void init()
     //read the configuration file and create/setup the charting/control elements
     configure(configFile);
 
-
 }//end of ControlBoard::init
 //-----------------------------------------------------------------------------
 
@@ -207,9 +211,9 @@ void configure(IniFile pConfigFile)
 // ControlBoard::configureExtended
 //
 // Loads further configuration settings from the configuration.ini file.
-// These settings are stored using the boards chassis and slot addresses, so
-// they cannot be loaded until after the host has uploaded the FPGA code to the
-// board.
+// These settings are tagged using the boards chassis and slot addresses, so
+// they cannot be loaded until after the host has retrieved the board's
+// chassis and slot address.
 //
 
 @Override
@@ -226,6 +230,15 @@ void configureExtended(IniFile pConfigFile)
 
     parsePositionTrackingMode(positionTrackingMode);
 
+    audibleAlarmController =
+              pConfigFile.readBoolean(section, "Audible Alarm Module", false);
+
+    audibleAlarmOutputChannel =
+            pConfigFile.readInt(section, "Audible Alarm Output Channel", 0);
+
+    audibleAlarmPulseDuration =
+          pConfigFile.readString(section, "Audible Alarm Pulse Duration", "1");
+
 }//end of ControlBoard::configureExtended
 //-----------------------------------------------------------------------------
 
@@ -239,7 +252,7 @@ void configureExtended(IniFile pConfigFile)
 void parsePositionTrackingMode(String pValue)
 
 {
-    
+
     switch (pValue) {
         case "Send Clock Markers":
             rabbitControlFlags |= RABBIT_SEND_CLOCK_MARKERS;
@@ -391,7 +404,6 @@ public void initialize()
     // board's chassis and slot addresses are known
 
     configureExtended(configFile);
-
 
     sendRabbitControlFlags();
 
@@ -687,16 +699,16 @@ public void zeroEncoderCounts()
 //-----------------------------------------------------------------------------
 // ControlBoard::pulseOutput
 //
-// Pulses the specified output(s).
+// Pulses the specified output.
 //
-// WIP MKS - need to add parameter to pass in which output to be fired.
-// Currently the Rabbit code simply fires output 1 with this call.
+// NOTE: current ignores the pulse duration read from config file -- needs to
+// be fixed.
 //
 
-public void pulseOutput()
+public void pulseOutput(int pWhichOutput)
 {
 
-    sendBytes(PULSE_OUTPUT_CMD, (byte) 0);
+    sendBytes(PULSE_OUTPUT_CMD, (byte) pWhichOutput);
 
 }//end of ControlBoard::pulseOutput
 //-----------------------------------------------------------------------------
@@ -704,16 +716,13 @@ public void pulseOutput()
 //-----------------------------------------------------------------------------
 // ControlBoard::turnOnOutput
 //
-// Turns on the specified output(s).
-//
-// WIP MKS - need to add parameter to pass in which output to be fired.
-// Currently the Rabbit code simply fires output 1 with this call.
+// Turns on the specified output.
 //
 
-public void turnOnOutput()
+public void turnOnOutput(int pWhichOutput)
 {
 
-    sendBytes(TURN_ON_OUTPUT_CMD, (byte) 0);
+    sendBytes(TURN_ON_OUTPUT_CMD, (byte) pWhichOutput);
 
 }//end of ControlBoard::turnOnOutput
 //-----------------------------------------------------------------------------
@@ -721,18 +730,75 @@ public void turnOnOutput()
 //-----------------------------------------------------------------------------
 // ControlBoard::turnOffOutput
 //
-// Turns off the specified output(s).
-//
-// WIP MKS - need to add parameter to pass in which output to be fired.
-// Currently the Rabbit code simply fires output 1 with this call.
+// Turns off the specified output.
 //
 
-public void turnOffOutput()
+public void turnOffOutput(int pWhichOutput)
 {
 
-    sendBytes(TURN_OFF_OUTPUT_CMD, (byte) 0);
+    sendBytes(TURN_OFF_OUTPUT_CMD, (byte) pWhichOutput);
 
 }//end of ControlBoard::turnOffOutput
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlBoard::turnOnAudibleAlarm
+//
+// Turns on the output which fires the audible alarm for one second.
+//
+
+@Override
+public void turnOnAudibleAlarm()
+{
+
+    turnOnOutput(audibleAlarmOutputChannel);
+
+}//end of ControlBoard::turnOnAudibleAlarm
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlBoard::turnOffAudibleAlarm
+//
+// Turns off the output which fires the audible alarm for one second.
+//
+
+@Override
+public void turnOffAudibleAlarm()
+{
+
+    turnOffOutput(audibleAlarmOutputChannel);
+
+}//end of ControlBoard::turnOffAudibleAlarm
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlBoard::pulseAudibleAlarm
+//
+// Pulses the output which fires the audible alarm for one second.
+//
+
+@Override
+public void pulseAudibleAlarm()
+{
+
+    pulseOutput(audibleAlarmOutputChannel);
+
+}//end of ControlBoard::pulseAudibleAlarm
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlBoard::isAudibleAlarmController
+//
+// Returns audibleAlarmController.
+//
+
+@Override
+public boolean isAudibleAlarmController()
+{
+
+    return(audibleAlarmController);
+
+}//end of ControlBoard::isAudibleAlarmController
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

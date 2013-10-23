@@ -34,12 +34,14 @@ import net.www.protocol.raw.RawURLStreamHandlerFactory;
 // class EthernetIOModules
 //
 
-public class EthernetIOModules extends Object{
+public class EthernetIOModules extends Object
+                                        implements AudibleAlarmController {
 
     IniFile configFile;
 
     boolean audibleAlarmController;
     int audibleAlarmOutputChannel;
+    String audibleAlarmPulseDuration;
 
     protected String moduleType;
     protected int moduleNumber;
@@ -110,10 +112,22 @@ public void waitSleep(int pTime)
 // duration of the pulse in seconds.
 //
 
-public void setRelayState(int pWhichRelay, int pState, int pPulseDuration)
+public void setRelayState(int pWhichRelay, int pState, String pPulseDuration)
 {
 
 }//end of EthernetIOModules::setRelayState
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// EthernetIOModules::pulseRelay
+//
+// Pulses relay number pWhichRelay for pPulseDuration seconds.
+//
+
+public void pulseRelay(int pWhichRelay, String pPulseDuration)
+{
+
+}//end of EthernetIOModules::pulseRelay
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -122,10 +136,12 @@ public void setRelayState(int pWhichRelay, int pState, int pPulseDuration)
 // Turns on the relay which fires the audible alarm for one second.
 //
 
+@Override
 public void turnOnAudibleAlarm()
 {
 
-    setRelayState(audibleAlarmOutputChannel, RELAY_ON, 0);
+    setRelayState(audibleAlarmOutputChannel, RELAY_ON,
+                                                    audibleAlarmPulseDuration);
 
 }//end of EthernetIOModules::turnOnAudibleAlarm
 //-----------------------------------------------------------------------------
@@ -136,24 +152,14 @@ public void turnOnAudibleAlarm()
 // Turns off the relay which fires the audible alarm for one second.
 //
 
+@Override
 public void turnOffAudibleAlarm()
 {
 
-    setRelayState(audibleAlarmOutputChannel, RELAY_OFF, 0);
+    setRelayState(audibleAlarmOutputChannel, RELAY_OFF,
+                                                    audibleAlarmPulseDuration);
 
 }//end of EthernetIOModules::turnOffAudibleAlarm
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// EthernetIOModules::pulseRelay
-//
-// Pulses relay number pWhichRelay for pPulseDuration seconds.
-//
-
-public void pulseRelay(int pWhichRelay, int pPulseDuration)
-{
-
-}//end of EthernetIOModules::pulseRelay
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -162,10 +168,11 @@ public void pulseRelay(int pWhichRelay, int pPulseDuration)
 // Pulses the relay which fires the audible alarm for one second.
 //
 
+@Override
 public void pulseAudibleAlarm()
 {
 
-    pulseRelay(audibleAlarmOutputChannel, 1);
+    pulseRelay(audibleAlarmOutputChannel, audibleAlarmPulseDuration);
 
 }//end of EthernetIOModules::pulseAudibleAlarm
 //-----------------------------------------------------------------------------
@@ -176,6 +183,7 @@ public void pulseAudibleAlarm()
 // Returns audibleAlarmController.
 //
 
+@Override
 public boolean isAudibleAlarmController()
 {
 
@@ -206,6 +214,8 @@ void configure(IniFile pConfigFile)
     audibleAlarmOutputChannel =
             pConfigFile.readInt(section, "Audible Alarm Output Channel", 0);
 
+    audibleAlarmPulseDuration =
+          pConfigFile.readString(section, "Audible Alarm Pulse Duration", "1");
 
 }//end of EthernetIOModules::configure
 //-----------------------------------------------------------------------------
