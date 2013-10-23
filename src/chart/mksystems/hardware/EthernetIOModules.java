@@ -77,6 +77,12 @@ public EthernetIOModules(int pModuleNumber, IniFile pConfigFile)
 //
 // Initializes the object.  MUST be called by sub classes after instantiation.
 //
+// The stream handler factory can only be called once per Java Virtual Machine
+// instance. When the program tries to restart after a job or preset load,
+// the attempt to set the factory again will cause an exception which can be
+// caught and ignored. Oddly, the attempt throws an Error rather than an
+// Exception.
+//
 
 public void init()
 {
@@ -85,7 +91,12 @@ public void init()
     //WebRelay modules have some non-standard response formats which won't
     //work with the default handlers
 
-    URL.setURLStreamHandlerFactory(new RawURLStreamHandlerFactory());
+    try{
+        URL.setURLStreamHandlerFactory(new RawURLStreamHandlerFactory());
+    }
+    catch(Error e){
+        //see notes in method header about only setting factory once
+    }
 
 }//end of EthernetIOModules::init
 //-----------------------------------------------------------------------------
