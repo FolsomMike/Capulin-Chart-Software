@@ -112,7 +112,7 @@ public class UTBoard extends Board{
     int hardwareDelay;
 
     int aScanCoreID;
-    int pktDSPChipID, pktDSPCoreID, pktID, dspMsgID;
+    int pktDSPChipID, pktDSPCoreID, pktID, dspMsgID, dspMsgCoreID;
 
     byte[] readDSPResult;
     boolean readDSPDone;
@@ -373,6 +373,8 @@ public class UTBoard extends Board{
 
     static byte DSP_ACKNOWLEDGE = 127;
 
+    static final byte DSP_NULL_CORE = 0;
+
     //Commands for UT boards
     //These should match the values in the code for those boards.
 
@@ -408,6 +410,15 @@ public class UTBoard extends Board{
     static byte ERROR = 125;
     static byte DEBUG_CMD = 126;
     static byte EXIT_CMD = 127;
+
+    //Error Codes for UT boards
+
+    static final byte NO_ERROR = 0;
+    static final byte DSP_RETURN_PKT_ILLEGAL_SIZE_ERROR = 1;
+    static final byte DSP_RETURN_PKT_TIMEOUT_ERROR = 2;
+    static final byte DSP_RETURN_PKT_INVALID_HEADER_ERROR = 3;
+
+    static final int BOARD_ERROR_FLAG_BIT = 0x80;
 
     //Status Codes for UT boards
     //These should match the values in the code for those boards.
@@ -550,6 +561,19 @@ public class UTBoard extends Board{
     int noResponseToPeakDataRequestCount = 0;
     //track number of "No Response Time Out for Peak Data Request" occurrances
     int noResponseToPeakDataRequestTimeOutCount = 0;
+
+    //track various errors
+    int dspReturnPktIllegalSizeErrorCount = 0;
+    int dspReturnPktTimeoutErrorCount = 0;
+    int dspReturnPktInvalidHeaderErrorCount = 0;
+
+    // track info for the last reported error
+
+    int lastErrorCode = NO_ERROR;
+    int lastErrorDSPChip = -1;
+    int lastErrorCore = -1;
+    int lastErrorPktID = -1;
+    int lastErrorDSPMsgID = -1;
 
 //-----------------------------------------------------------------------------
 // UTBoard::UTBoard (constructor)
@@ -1949,7 +1973,7 @@ public void readRAM(int pDSPChip, int pDSPCore, int pRAMType,
                 (byte)((pAddress >> 8) & 0xff),(byte)(pAddress & 0xff),
                 (byte)(pCount & 0xff));
 
-    // wait until processDSPPackets reaches the answer packet from the remote
+    // wait until processDSPMessage reaches the answer packet from the remote
     // and processes it
 
     timeOutRead = 0;
@@ -2004,7 +2028,7 @@ void readRAMDSP(int pDSPChip, int pDSPCore, int pRAMType,
                 (byte)(pPage |= ((pRAMType == 1) ? 0x10 : 0x00)),
                 (byte)((pAddress >> 8) & 0xff),(byte)(pAddress & 0xff));
 
-    // wait until processDSPPackets reaches the answer packet from the remote
+    // wait until processDSPMessage reaches the answer packet from the remote
     // and processes it
 
     if (pForceProcessDataPackets){
@@ -2064,7 +2088,7 @@ int getDSPRamChecksum(int pDSPChip, int pDSPCore, int pRAMType,
                 (byte)((pBlockSize >> 8) & 0xff),(byte)(pBlockSize & 0xff)
                 );
 
-    // wait until processDSPPackets reaches the answer packet from the remote
+    // wait until processDSPMessage reaches the answer packet from the remote
     // and processes it
 
     if (pForceProcessDataPackets){
@@ -2112,7 +2136,7 @@ void readNextRAMDSP(int pDSPChip, int pDSPCore, byte[] pRetBuffer)
 
     sendBytes(READ_NEXT_DSP_CMD, (byte)pDSPChip, (byte)pDSPCore);
 
-    // wait until processDSPPackets reaches the answer packet from the remote
+    // wait until processDSPMessage reaches the answer packet from the remote
     // and processes it
 
     timeOutRead = 0;
@@ -3215,7 +3239,7 @@ public boolean logDSPStatusHelper(int pDSPChip, int pDSPCore,
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTBoard::logDSPStatusHelper
+// UTBoard::logDSPMapBufferHelper
 //
 // Requests and writes to the log window the number of bytes available for
 // extraction from the specified DSP chip and Core..
@@ -3274,15 +3298,13 @@ public boolean waitForPacketThenLogMessage(int pDSPChip, int pDSPCore,
     //if bytesRead is > 0, a packet was processed and data will be in inBuffer
     if (bytesRead > 0){
 
-        int dspCoreFromPkt = (int)inBuffer[0];
-
         int value =
-                  (int)((inBuffer[1]<<8) & 0xff00) + (int)(inBuffer[2] & 0xff);
+                  (int)((inBuffer[0]<<8) & 0xff00) + (int)(inBuffer[1] & 0xff);
 
         //displays status code in log window
         logger.logMessage("UT " + chassisSlotAddr + " Chip: " + pDSPChip
           + " Core: " + pDSPCore + " " + pMessagePhrase + " "
-          + dspCoreFromPkt + "-" + value + "\n");
+          + dspMsgID + "-" + value + "\n");
         return(true);
 
     }
@@ -3531,7 +3553,7 @@ public void requestAScan(int pChannel, int pHardwareDelay)
                     ? bdChs[pChannel].dspCore1 : bdChs[pChannel].dspCore2,
             (byte) pChannel);
 
-        // block further AScan requests until processDSPPackets processes the
+        // block further AScan requests until processDSPMessage processes the
         // answer packet from the previous request
         aScanRcvd = false;
 
@@ -3614,7 +3636,7 @@ public void requestPeakData(int pChannel)
         }
     }
 
-    // block further requests until processDSPPackets processes the answer
+    // block further requests until processDSPMessage processes the answer
     //packet from the previous request
     peakDataRcvd = false;
 
@@ -3672,7 +3694,7 @@ public void requestPeakData4(int pChannel0, int pChannel1, int pChannel2,
         }
     }
 
-    // block further requests until processDSPPackets processes the answer
+    // block further requests until processDSPMessage processes the answer
     //packet from the previous request
     peakDataRcvd = false;
 
@@ -3958,11 +3980,10 @@ public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
         //store the ID of the core associated with this packet
         pktDSPCoreID = inBuffer[2];
 
-        //reset the DSP message ID to null because it no longer is associated
-        //with the pktID which now matches this packet - dspMsgID is updated
-        //by the processDSPMessage function
+        //reset the DSP message details -- will get set by processDSPMessage
+        //if the packet is a DSP message response
 
-        dspMsgID = DSP_NULL_MSG_CMD;
+        dspMsgID = DSP_NULL_MSG_CMD; dspMsgCoreID = DSP_NULL_CORE;
 
         if ( pktID == GET_STATUS_CMD) {return processRabbitStatusPacket();}
 
@@ -4068,17 +4089,24 @@ private int processDSPMessage()
     try{
         timeOutProcess = 0;
         while(timeOutProcess++ < TIMEOUT){
-            if (byteIn.available() >= 1) {break;}
+            if (byteIn.available() >= 2) {break;}
             waitSleep(10);
             }
-        if (byteIn.available() < 1) {return 0;}
-        byteIn.read(inBuffer, 0, 1);
+        if (byteIn.available() < 2) {return 0;}
+        byteIn.read(inBuffer, 0, 2);
         }// try
     catch(IOException e){
         logSevere(e.getMessage() + " - Error: 3518");
     }
 
-    dspMsgID = inBuffer[0];
+    //first two bytes are message type and the responding DSP core number
+    dspMsgID = inBuffer[0]; dspMsgCoreID = inBuffer[1];
+
+    //catch error
+    if ((dspMsgCoreID & BOARD_ERROR_FLAG_BIT) != 0){
+        handleDSPMessageErrors();
+        return(2);
+    }
 
     if ( dspMsgID == DSP_GET_STATUS_CMD) {return processDSPStatusMessage();}
 
@@ -4091,6 +4119,42 @@ private int processDSPMessage()
     return 0;
 
 }//end of UTBoard::processDSPMessage
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::handleDSPMessageErrors
+//
+// Tracks error messages returned by the DSPs.
+//
+
+private void handleDSPMessageErrors()
+{
+
+    //store chip/core/packet ID/error message of the last error
+
+    //for DSP errors, the core ID and message type are not valid as these are
+    //returned by the DSP core which may not have responded in error cases
+    //instead, use the packet info which can generally be parsed to deduce
+    //the message details
+
+    //the error code is returned from the remove via dspMsgID
+
+    lastErrorDSPChip = pktDSPChipID; lastErrorCore = pktDSPCoreID;
+    lastErrorPktID =  pktID;  lastErrorDSPMsgID = dspMsgID;
+
+    if(dspMsgID == DSP_RETURN_PKT_ILLEGAL_SIZE_ERROR) {
+        dspReturnPktIllegalSizeErrorCount++;
+    }
+
+    if(dspMsgID == DSP_RETURN_PKT_TIMEOUT_ERROR) {
+        dspReturnPktTimeoutErrorCount++;
+    }
+
+    if(dspMsgID == DSP_RETURN_PKT_INVALID_HEADER_ERROR) {
+        dspReturnPktInvalidHeaderErrorCount++;
+    }
+
+}//end of UTBoard::handleDSPMessageErrors
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -4265,11 +4329,11 @@ private int processDSPStatusMessage()
     try{
         timeOutProcess = 0;
         while(timeOutProcess++ < TIMEOUT){
-            if (byteIn.available() >= 3) {break;}
+            if (byteIn.available() >= 2) {break;}
             waitSleep(10);}
-        if (byteIn.available() >= 3){
+        if (byteIn.available() >= 2){
             dspStatusMessageRcvd = true;
-            return byteIn.read(inBuffer, 0, 3);
+            return byteIn.read(inBuffer, 0, 2);
             }
         }// try
     catch(IOException e){
@@ -4296,11 +4360,11 @@ private int processMapBufferWordsAvailableCount()
     try{
         timeOutProcess = 0;
         while(timeOutProcess++ < TIMEOUT){
-            if (byteIn.available() >= 3) {break;}
+            if (byteIn.available() >= 2) {break;}
             waitSleep(10);}
-        if (byteIn.available() >= 3){
+        if (byteIn.available() >= 2){
             dspStatusMessageRcvd = true;
-            return byteIn.read(inBuffer, 0, 3);
+            return byteIn.read(inBuffer, 0, 2);
             }
         }// try
     catch(IOException e){
@@ -4376,19 +4440,15 @@ private int processGetDSPRamChecksumPacket()
 private int processDSPAckMessage()
 {
 
-    // the ack packet has two data bytes
-    // the DSP core returned by the core itself is the first byte
-    // for the ack packet, the second byte is undefined
-
     try{
         timeOutProcess = 0;
         while(timeOutProcess++ < TIMEOUT){
-            if (byteIn.available() >= 2) {break;}
+            if (byteIn.available() >= 1) {break;}
             waitSleep(10);
             }
-        if (byteIn.available() >= 2) {
+        if (byteIn.available() >= 1) {
             dspMessageAckCounter++;
-            return byteIn.read(inBuffer, 0, 2);
+            return byteIn.read(inBuffer, 0, 1);
         }
         }// try
     catch(IOException e){
@@ -5418,26 +5478,25 @@ public void logStatus(Log pLogWindow)
 
     Log lLog = pLogWindow; //use shorter name
 
-    //------------------------------------------------
+    boolean displayErrorDetail = false;
+
+    //display a header to identify the board
+
+    lLog.append("----------------------------------------------\n");
+    lLog.appendLine("Chassis #: " + chassisAddr + "   Slot #: " + slotAddr);
 
     // if there have been socket sync errors, display message and clear count
 
     if (reSyncCount > 0){
-        lLog.append("----------------------------------------------\n");
-        lLog.append("Number of reSync errors since last report: " + reSyncCount
+        lLog.appendLine("");
+        lLog.appendLine("Number of reSync errors since last report: "
+        + reSyncCount
         + "\nInfo for packet processed prior to sync error: \n"
         + "DSP Chip: " + reSyncDSPChip + " DSP Core: " + reSyncDSPCore
         + "\nPacket ID: " + reSyncPktID + " DSP Message ID: " + reSyncDSPMsgID);
-        lLog.append("\n----------------------------------------------\n");
+        lLog.appendLine("");
+        reSyncCount = 0;
     }
-
-    reSyncCount = 0;
-
-    //display a header to identify the board
-
-    lLog.appendLine("Chassis #: " + chassisAddr + "   Slot #: " + slotAddr);
-
-    //------------------------------------------------
 
     //display number of peak data requests which had no response
     if (noResponseToPeakDataRequestCount > 0){
@@ -5446,13 +5505,47 @@ public void logStatus(Log pLogWindow)
         noResponseToPeakDataRequestCount = 0;
     }
 
-    //------------------------------------------------
-
     //display number of peak data requests which time out before response
     if (noResponseToPeakDataRequestTimeOutCount > 0){
         lLog.append("Number of Peak Data Packet Requests which timed out:");
         lLog.appendLine(" " + noResponseToPeakDataRequestTimeOutCount);
         noResponseToPeakDataRequestTimeOutCount = 0;
+        displayErrorDetail = true;
+    }
+
+    if (dspReturnPktIllegalSizeErrorCount > 0){
+        lLog.append("Number of DSP return packet illegal size errors:");
+        lLog.appendLine(" " + dspReturnPktIllegalSizeErrorCount);
+        dspReturnPktIllegalSizeErrorCount = 0;
+        displayErrorDetail = true;
+    }
+
+    if (dspReturnPktTimeoutErrorCount > 0){
+        lLog.append("Number of DSP return packet timeout errors:");
+        lLog.appendLine(" " + dspReturnPktTimeoutErrorCount);
+        dspReturnPktTimeoutErrorCount = 0;
+        displayErrorDetail = true;
+    }
+
+    if (dspReturnPktInvalidHeaderErrorCount > 0){
+        lLog.append("Number of DSP return packet invalid header errors:");
+        lLog.appendLine(" " + dspReturnPktInvalidHeaderErrorCount);
+        dspReturnPktInvalidHeaderErrorCount = 0;
+        displayErrorDetail = true;
+    }
+
+    //display the last DSP core which reported an error and details
+    if (displayErrorDetail){
+        lLog.appendLine("Last error code reported:" + lastErrorCode);
+        lLog.appendLine("Details:");
+        lLog.appendLine(
+        "DSP Chip: " + lastErrorDSPChip + " DSP Core: " + lastErrorCore
+        + "\nPacket ID: " + lastErrorPktID
+        + " DSP Message ID: " + lastErrorDSPMsgID);
+
+        lastErrorCode = NO_ERROR;
+
+
     }
 
 }//end of UTBoard::logStatus
