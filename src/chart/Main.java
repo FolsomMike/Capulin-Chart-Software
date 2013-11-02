@@ -112,6 +112,15 @@ public void run() {
             //if connection has not been made to the remotes, do so
             if (!hardware.connected) {hardware.connect();}
 
+            //if the hardware is not active (i.e. has been shut down) bail out
+            if (!hardware.active) { return; }
+
+            //turn off all hardware functions
+            if (settings.triggerHardwareShutdown){
+                hardware.shutDown();
+                return;
+            }
+
             //run any miscellaneous background processes
             hardware.runBackgroundProcesses();
 
@@ -2420,8 +2429,8 @@ public void prepareToExitProgram(boolean pSave)
     //signal timer to watch for time to exit
     settings.exitProgram = true;
 
-    //turn off all hardware functions
-    hardware.shutDown();
+    //tell the main thread to shut down the hardware
+    settings.triggerHardwareShutdown = true;
 
     //if flag is true, save all data
     //the timer function should monitor conditions to make sure save is

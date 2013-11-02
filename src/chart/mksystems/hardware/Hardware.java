@@ -89,6 +89,7 @@ public class Hardware extends Object implements TraceValueCalculator, Runnable,
     public static int CONTROL_RABBITS = 2;
 
     public boolean connected = false;
+    public boolean active = false;
     boolean collectDataEnabled = true;
 
     //variables used by functions - declared here to avoid garbage collection
@@ -293,6 +294,8 @@ public void connect() throws InterruptedException
     //the pipe so each plotter can be delayed until its sensors reach the
     //inspection piece
     calculatePlotterOffsetDelays();
+
+    active = true; //allow hardware to be accessed
 
     logger.logMessage("\nChassis configuration complete.\n");
 
@@ -661,49 +664,49 @@ public void zeroEncoderCounts()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Hardware::pulseOutput1
+// Hardware::pulseAudibleAlarm
 //
-// Pulses output 1 on the Control board.
+// Pulses the audible alarm.
 //
 
-public void pulseOutput1()
+public void pulseAudibleAlarm()
 {
 
-    analogDriver.pulseOutput1();
+    analogDriver.pulseAudibleAlarm();
 
-}//end of Hardware::pulseOutput1
+}//end of Hardware::pulseAudibleAlarm
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Hardware::turnOnOutput1
+// Hardware::turnOnAudibleAlarm
 //
-// Turns on output 1 on the Control board.
+// Turns on the audible alarm.
 //
 
-public void turnOnOutput1()
+public void turnOnAudibleAlarm()
 {
 
-    analogDriver.turnOnOutput1();
+    analogDriver.turnOnAudibleAlarm();
 
     output1On = true;
 
-}//end of Hardware::turnOnOutput1
+}//end of Hardware::turnOnAudibleAlarm
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Hardware::turnOffOutput1
+// Hardware::turnOffAudibleAlarm
 //
-// Turns off output 1 on the Control board.
+// Turns off the audible alarm.
 //
 
-public void turnOffOutput1()
+public void turnOffAudibleAlarm()
 {
 
-    analogDriver.turnOffOutput1();
+    analogDriver.turnOffAudibleAlarm();
 
     output1On = false;
 
-}//end of Hardware::turnOffOutput1
+}//end of Hardware::turnOffAudibleAlarm
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1207,7 +1210,7 @@ boolean collectEncoderDataInspectMode()
         if (!inspectCtrlVars.onPipeFlag) {return false;}
         else {
             hdwVs.waitForOnPipe = false; hdwVs.watchForOffPipe = true;
-            initializeTraceOffsetDelays(inspectCtrlVars.encoder2Dir);
+            initializePlotterOffsetDelays(inspectCtrlVars.encoder2Dir);
             //the direction of the linear encoder at the start of the inspection
             //sets the forward direction (increasing or decreasing encoder
             //count)
@@ -1658,6 +1661,22 @@ void enableHeadTraceFlagging(int pHead, boolean pEnable)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Hardware::initializePlotterOffsetDelays
+//
+// Initializes the plotter start delays for the different types of plotter
+// objects. See the notes in each method called for more details.
+
+public void initializePlotterOffsetDelays(int pDirection)
+{
+
+    initializeTraceOffsetDelays(pDirection);
+
+    analogDriver.initializeMapOffsetDelays(pDirection, awayDirection);
+
+}//end of Hardware::initializePlotterOffsetDelays
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Hardware::initializeTraceOffsetDelays
 //
 // Sets the trace start delays so the traces don't start until their associated
@@ -1751,9 +1770,6 @@ public void initializeTraceOffsetDelays(int pDirection)
         }//for (int sc = 0; sc < nSC; sc++)
     }//for (int cg = 0; cg < chartGroups.length; cg++)
 
-    //
-    analogDriver.initializeMapOffsetDelays(pDirection, awayDirection);
-
 }//end of Hardware::initializeTraceOffsetDelays
 //-----------------------------------------------------------------------------
 
@@ -1774,7 +1790,7 @@ public void startMarker(UTGate pGatePtr, int pWhichThreshold)
 
     if (pGatePtr.thresholds[pWhichThreshold].okToMark
                                                 || markerMode == CONTINUOUS){
-        pulseOutput1(); //fire the marker
+        pulseAudibleAlarm(); //fire the marker
     }
 
     pGatePtr.thresholds[pWhichThreshold].okToMark = false;
@@ -2035,6 +2051,8 @@ public void logStatus(Log pLogWindow)
 
 public void shutDown()
 {
+
+    active = false;
 
     analogDriver.shutDown();
 
