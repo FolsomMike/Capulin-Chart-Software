@@ -167,6 +167,8 @@ public class Settings extends Object implements ActionListener, ItemListener {
     public boolean restartProgram = false;
     public boolean saveOnExit = false;
 
+    public boolean triggerHardwareShutdown = false;
+
     //if true, program will simulate data for debugging, training and demo
     //replaced by simulateMechanical, simulateUT, etc?
     public boolean simulationMode = false;
