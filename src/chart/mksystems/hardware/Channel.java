@@ -239,6 +239,12 @@ public void initialize()
     //send all the changes made above to the remotes
     sendDataChangesToRemotes();
 
+    //enable sample processing after all values initialized
+    lDSPControlFlags |= UTBoard.PROCESSING_ENABLED;
+    dspControlFlags.setValue(lDSPControlFlags, true);
+    //send new flag value to remotes
+    sendDataChangesToRemotes();
+
 }//end of Channel::initialize
 //-----------------------------------------------------------------------------
 

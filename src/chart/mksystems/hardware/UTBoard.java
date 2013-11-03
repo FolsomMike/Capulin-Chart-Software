@@ -338,7 +338,7 @@ public class UTBoard extends Board{
     //before requesting a processing time calculation to use as a baseline as
     //this results in the least amount of processing.
 
-    static int unused_flags1 = 0x0001; //transmitter active flag (set by DSP)
+    static int PROCESSING_ENABLED = 0x0001; //signal sample processing enabled
     static int GATES_ENABLED = 0x0002;      //gates enabled flag
     static int DAC_ENABLED = 0x0004;        //DAC enabled flag
     static int ASCAN_FAST_ENABLED = 0x0008; //fast AScan enabled flag
@@ -886,11 +886,7 @@ public synchronized void connect()
     //sleep for a bit to allow DSPs to start up
     waitSleep(1000);
 
-    logDSPStatus(1, 1, true); logDSPStatus(1, 2, true);
-    logDSPStatus(1, 3, true); logDSPStatus(1, 4, true);
-
-    logDSPStatus(2, 1, true); logDSPStatus(2, 2, true);
-    logDSPStatus(2, 3, true); logDSPStatus(2, 4, true);
+    logAllDSPStatus();
 
     //enable sampling - FPGA has control of the HPI bus to transfer A/D data
     setState(0, 1);
@@ -2709,9 +2705,9 @@ void sendHardwareRange(int pChannel, int pCount)
     //RAM via the HPI port - odd number will cause transfer lock up in FPGA
     if (pCount % 2 != 0) {pCount++;}
 
-    writeFPGAReg(bdChs[pChannel].countReg0, (byte) (pCount & 0xff));
-    writeFPGAReg(bdChs[pChannel].countReg1, (byte) ((pCount >> 8) & 0xff));
     writeFPGAReg(bdChs[pChannel].countReg2, (byte) ((pCount >> 16) & 0xff));
+    writeFPGAReg(bdChs[pChannel].countReg1, (byte) ((pCount >> 8) & 0xff));
+    writeFPGAReg(bdChs[pChannel].countReg0, (byte) (pCount & 0xff));
 
 }//end of UTBoard::sendHardwareRange
 //-----------------------------------------------------------------------------
@@ -3184,6 +3180,24 @@ public void sendDSPControlFlags(int pChannel, int pFlags)
                (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0);
 
 }//end of UTBoard::sendDSPControlFlags
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::logAllDSPStatus
+//
+// Retrieves and displays the status for all DSP cores on the board.
+//
+
+public void logAllDSPStatus()
+{
+
+    logDSPStatus(1, 1, true); logDSPStatus(1, 2, true);
+    logDSPStatus(1, 3, true); logDSPStatus(1, 4, true);
+
+    logDSPStatus(2, 1, true); logDSPStatus(2, 2, true);
+    logDSPStatus(2, 3, true); //logDSPStatus(2, 4, true);
+
+}//end of UTBoard::logAllDSPStatus
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
