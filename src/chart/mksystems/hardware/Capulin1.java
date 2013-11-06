@@ -345,11 +345,13 @@ public void createWallMapDataSaver()
 public void connect() throws InterruptedException
 {
 
-    findNetworkInterface();
+    NetworkInterface iFace;
 
-    connectControlBoard();
+    iFace = findNetworkInterface();
 
-    connectUTBoards();
+    connectControlBoard(iFace);
+
+    connectUTBoards(iFace);
 
 }//end of Capulin1::connect
 //-----------------------------------------------------------------------------
@@ -359,19 +361,31 @@ public void connect() throws InterruptedException
 //
 // Opens a TCP/IP connection with the Control Board.
 //
+// To find the boards, first makes a UDP connection via the network interface
+// pNetworkInterface. If there are multiple interfaces in the system, such as
+// an Internet connection, the UDP broadcasts will fail unless tied to the
+// interface connected to the remotes.
+//
 
-public void connectControlBoard() throws InterruptedException
+public void connectControlBoard(NetworkInterface pNetworkInterface)
+                                                    throws InterruptedException
 {
 
-    //displays message on bottom panel of IDE
     logger.logMessage("Broadcasting greeting to all Control boards...\n");
 
-    DatagramSocket socket;
+    MulticastSocket socket;
 
     //debug mks - need separate variable for simulated control boards ~ UTSimulator.instanceCounter = 0; //reset simulated board counter
 
     try{
-        if (!simulateControlBoards) {socket = new DatagramSocket(4445);}
+        if (!simulateControlBoards) {
+            socket = new MulticastSocket(4445);
+            if (pNetworkInterface != null) {
+                try{
+                    socket.setNetworkInterface(pNetworkInterface);
+                }catch (IOException e) {}//let system bind to default interface
+            }
+        }
         else {socket = new UDPSimulator(4445, "Control Board present...");}
 
     }
@@ -515,16 +529,19 @@ public void connectControlBoard() throws InterruptedException
 //-----------------------------------------------------------------------------
 // Capulin1::connectUTBoards
 //
-// Connects with and sets up all UT boards.
+// To find the boards, first makes a UDP connection via the network interface
+// pNetworkInterface. If there are multiple interfaces in the system, such as
+// an Internet connection, the UDP broadcasts will fail unless tied to the
+// interface connected to the remotes.
 //
 
-public synchronized void connectUTBoards() throws InterruptedException
+public synchronized void connectUTBoards(NetworkInterface pNetworkInterface)
+                                                    throws InterruptedException
 {
 
-    //displays message on bottom panel of IDE
     logger.logMessage("Broadcasting greeting to all UT boards...\n");
 
-    DatagramSocket socket;
+    MulticastSocket socket;
 
     UTSimulator.instanceCounter = 0; //reset simulated board counter
 
@@ -536,7 +553,12 @@ public synchronized void connectUTBoards() throws InterruptedException
 
     try{
         if (!simulateUTBoards) {
-            socket = new DatagramSocket(4445);
+            socket = new MulticastSocket(4445);
+            if (pNetworkInterface != null) {
+                try{
+                    socket.setNetworkInterface(pNetworkInterface);
+                }catch (IOException e) {}//let system bind to default interface
+            }
         }
         else {
             socket = new UDPSimulator(4445, "UT board present, FPGA loaded...");
@@ -773,36 +795,38 @@ public synchronized void connectUTBoards() throws InterruptedException
 // an Internet connection), it can cause the UDP broadcasts to fail.
 //
 
-public void findNetworkInterface()
+public NetworkInterface findNetworkInterface()
 {
 
-    try {
-      InetAddress localhost = InetAddress.getLocalHost();
-      System.out.println(" IP Addr: " + localhost.getHostAddress());
-      // Just in case this host has multiple IP addresses....
-      InetAddress[] allMyIps = InetAddress.getAllByName(localhost.getCanonicalHostName());
-      if (allMyIps != null && allMyIps.length > 1) {
-        System.out.println(" Full list of IP addresses:");
-        for (int i = 0; i < allMyIps.length; i++) {
-          System.out.println("    " + allMyIps[i]);
+    logger.logMessage("");
+
+    NetworkInterface iFace = null;
+
+    try{
+        logger.logMessage("Full list of Network Interfaces:" + "\n");
+        for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
+
+            NetworkInterface intf = en.nextElement();
+            logger.logMessage("    " + intf.getName() + " " + intf.getDisplayName() + "\n");
+
+            for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
+
+                String ipAddr = enumIpAddr.nextElement().toString();
+
+                logger.logMessage("        " + ipAddr + "\n");
+
+                if(ipAddr.startsWith("/169.254")){
+                    iFace = intf;
+                    logger.logMessage("==>> Binding to this adapter...\n");
+                }
+            }
         }
-      }
-    } catch (UnknownHostException e) {
-      System.out.println(" (error retrieving server host name)");
+    }
+    catch (SocketException e) {
+        logger.logMessage(" (error retrieving network interface list)" + "\n");
     }
 
-    try {
-      System.out.println("Full list of Network Interfaces:");
-      for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
-        NetworkInterface intf = en.nextElement();
-        System.out.println("    " + intf.getName() + " " + intf.getDisplayName());
-        for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
-          System.out.println("        " + enumIpAddr.nextElement().toString());
-        }
-      }
-    } catch (SocketException e) {
-      System.out.println(" (error retrieving network interface list)");
-    }
+    return(iFace);
 
 }//end of Capulin1::findNetworkInterface
 //-----------------------------------------------------------------------------

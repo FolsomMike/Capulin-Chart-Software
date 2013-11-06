@@ -23,6 +23,7 @@
 package chart.mksystems.hardware;
 
 import chart.mksystems.inifile.IniFile;
+import java.io.IOException;
 import java.net.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,9 +36,9 @@ import java.util.logging.Logger;
 // and remote devices such as Control Boards, UT Boards, etc.
 //
 
-public class UDPSimulator extends DatagramSocket{
+public class UDPSimulator extends MulticastSocket{
 
-public UDPSimulator() throws SocketException{}; //default constructor - not used
+public UDPSimulator() throws SocketException, IOException{}; //default constructor - not used
 
     int port;
 
@@ -51,7 +52,8 @@ public UDPSimulator() throws SocketException{}; //default constructor - not used
 // UDPSimulator::UDPSimulator (constructor)
 //
 
-public UDPSimulator(int pPort, String pAnnouncement) throws SocketException
+public UDPSimulator(int pPort, String pAnnouncement)
+        throws SocketException, IOException
 {
 
     super(pPort);
