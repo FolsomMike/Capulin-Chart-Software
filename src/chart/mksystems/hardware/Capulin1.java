@@ -35,6 +35,7 @@ import chart.mksystems.threadsafe.SyncedInteger;
 import chart.mksystems.threadsafe.SyncedVariableSet;
 import java.io.*;
 import java.net.*;
+import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
@@ -343,6 +344,8 @@ public void createWallMapDataSaver()
 @Override
 public void connect() throws InterruptedException
 {
+
+    findNetworkInterface();
 
     connectControlBoard();
 
@@ -743,6 +746,65 @@ public synchronized void connectUTBoards() throws InterruptedException
     logger.logMessage("All UT boards ready.\n");
 
 }//end of Capulin1::connectUTBoards
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1:findNetworkInterface
+//
+// Finds the network interface for communication with the remotes. Returns
+// null if no suitable interface found.
+//
+// The first interface which is connected and has an IP address beginning with
+// 169.254.*.* is returned.
+//
+// NOTE: If more than one interface is connected and has a 169.254.*.*
+// IP address, the first one in the list will be returned. Will need to add
+// code to further differentiate the interfaces if such a set up is to be
+// used. Internet connections will typically not have such an IP address, so
+// a second interface connected to the Internet will not cause a problem with
+// the existing code.
+//
+// If a network interface is not specified for the connection, Java will
+// choose the first one it finds. The TCP/IP protocol seems to work even if
+// the wrong interface is chosen. However, the UDP broadcasts for wake up calls
+// will not work unless the socket is bound to the appropriate interface.
+//
+// If multiple interface adapters are present, enabled, and running (such as
+// an Internet connection), it can cause the UDP broadcasts to fail.
+//
+
+public void findNetworkInterface()
+{
+
+    try {
+      InetAddress localhost = InetAddress.getLocalHost();
+      System.out.println(" IP Addr: " + localhost.getHostAddress());
+      // Just in case this host has multiple IP addresses....
+      InetAddress[] allMyIps = InetAddress.getAllByName(localhost.getCanonicalHostName());
+      if (allMyIps != null && allMyIps.length > 1) {
+        System.out.println(" Full list of IP addresses:");
+        for (int i = 0; i < allMyIps.length; i++) {
+          System.out.println("    " + allMyIps[i]);
+        }
+      }
+    } catch (UnknownHostException e) {
+      System.out.println(" (error retrieving server host name)");
+    }
+
+    try {
+      System.out.println("Full list of Network Interfaces:");
+      for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
+        NetworkInterface intf = en.nextElement();
+        System.out.println("    " + intf.getName() + " " + intf.getDisplayName());
+        for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
+          System.out.println("        " + enumIpAddr.nextElement().toString());
+        }
+      }
+    } catch (SocketException e) {
+      System.out.println(" (error retrieving network interface list)");
+    }
+
+}//end of Capulin1::findNetworkInterface
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
