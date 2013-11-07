@@ -804,12 +804,15 @@ public NetworkInterface findNetworkInterface()
 
     try{
         logger.logMessage("Full list of Network Interfaces:" + "\n");
-        for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
+        for (Enumeration<NetworkInterface> en =
+              NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
 
             NetworkInterface intf = en.nextElement();
-            logger.logMessage("    " + intf.getName() + " " + intf.getDisplayName() + "\n");
+            logger.logMessage("    " + intf.getName() + " " +
+                                                intf.getDisplayName() + "\n");
 
-            for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
+            for (Enumeration<InetAddress> enumIpAddr =
+                     intf.getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
 
                 String ipAddr = enumIpAddr.nextElement().toString();
 
