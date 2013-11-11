@@ -12,6 +12,57 @@
 * This source code is Public Domain and free to any interested party.  Any
 * person, company, or organization may do with it as they please.
 *
+*
+* Notes Regarding Collection of Map Data
+*
+* Signal is given for remotes to begin sending map data and for UTBoard object
+* to save it.
+*
+* Data from the same revolution may not be stored at the same index in the
+* different UTBoard object buffers as each remote may receive the command to
+* begin sending at a slightly different time -- thus the data is misaligned in
+* the buffers.
+*
+* Distance tagging and saving to the 2D Map buffer does not begin until each
+* ducer reaches the edge of the test piece -- thus the data in the 2D Map is
+* aligned distance wise.
+*
+* The Tubo program does not want the data distance aligned -- it wants the data
+* sets for each ducer in a revolution group to have come from the same physical
+* revolution. It aligns the data based on value saved with the data specifying
+* the physical distance between each transducer.
+*
+* The data stored to the 2D map may be compressed or stretched and is distance
+* aligned, so it cannot be used for saving the file for use by the Tubo map
+* display program.
+*
+* When the start inspection signal is received, a flag is set for the last
+* received revolution in each raw data buffer. *IF* the ethernet transfer is
+* always fast enough, all buffers may have the latest revolution -- in which
+* case this signal would serve to provide an alignment signal in the unaligned
+* raw data buffers.
+*
+* The only problem would be the rare case when the start inspection signal is
+* received exactly between the time when a TDC code has been received by one or
+* more UTBoard objects but not yet received for the remaining objects.
+*
+* Solution:
+*
+*  This problem could be alleviated by looking at the number of samples since
+*  the last TDC for all objects -- if some have just received a TDC code, but
+*  others have not, skip back past the recent ones -- this should end up marking
+*  the last full revolution for all boards.
+*
+* The TDC codes do arrive with an incremental counter, but it cannot be trusted
+* that they are not out of sync as the boards will receive the command to start
+* recording data at slightly different times.
+*
+* Could force synchronization of counters by having Control board send a reset
+* pulse once or periodically. Any missed pulses would have to be detected as
+* the counters would be mismatched for each. NOTE: This could be confusing as
+* the counters currently overrun to zero from the TDC pulses -- how can the
+* two be differentiated?
+*
 */
 
 //-----------------------------------------------------------------------------
