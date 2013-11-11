@@ -5098,12 +5098,12 @@ public int processWallMapPacket()
 //
 // Note 1:
 //
-// If mapAdvanceMode == ADVANCE_BY_CONTROLLER, the map advance is handled by
-// another object. In that case, it is assumed that all control codes from the
-// remotes are meant to be TDC codes. Since the Control board is not resetting
-// the TDC code count in the lower bits, it will roll over to zero and appear
-// to be a linear advance code -- in this mode it must be handled as a TDC
-// rather than a linear advance.
+// If mapAdvanceMode == ADVANCE_ON_TRIGGER, the map advance is handled by
+// another Java object. In that case, it is assumed that all control codes
+// from the remotes are meant to be TDC codes. Since the Control board is not
+// resetting the TDC code count in the lower bits, it will roll over to zero
+// and appear to be a linear advance code -- in this mode it must be handled as
+// a TDC rather than a linear advance.
 //
 // Returns:
 //
@@ -5119,8 +5119,9 @@ public int processWallMapPacket()
 // MAP_CONTROL_CODE_FLAG and MAP_IGNORE_CODE_FLAG set which signals that the
 // code should not be stored in the buffer.
 //
-// Thus the only control codes left in the data will be TDC codes with some of
-// those also being linear advance codes.
+// Thus the only control codes stored in the final data will have the
+// MAP_CONTROL_CODE_FLAG flag bit set and will represent TDC codes; some of
+// those also will have the linear advance flag set.
 //
 
 private int handleMapDataControlCode(int pCode)
@@ -5140,7 +5141,7 @@ private int handleMapDataControlCode(int pCode)
 
     //see Note 1 in method header
     if (code == 0) {
-        if (mapAdvanceMode == ADVANCE_BY_CONTROLLER){
+        if (mapAdvanceMode == ADVANCE_ON_TRIGGER){
             code = handleMapDataTDCCode(code);
         }
         else{
@@ -5171,13 +5172,13 @@ private int handleMapDataControlCode(int pCode)
 //
 // Returns:
 //
-// If a TDC code, code returned with only MAP_CONTROL_CODE_FLAG flag bit set
+// If valid TDC code, code returned with only MAP_CONTROL_CODE_FLAG flag bit set
 // so the other bits can be used as flags by later processes.
 //
 // If a TDC code received too soon after the previous TDC code, the code is
-// ignored and code is returned with MAP_CONTROL_CODE_FLAG and
-// MAP_IGNORE_CODE_FLAG set which signals that the code should not be stored in
-// the buffer.
+// considered to be invalid and ignored and code is returned with
+// MAP_CONTROL_CODE_FLAG and MAP_IGNORE_CODE_FLAG set which signals that the
+// code should not be stored in the buffer.
 //
 
 private int handleMapDataTDCCode(int pCode)
@@ -5314,8 +5315,8 @@ private int handleMapDataTDCCode(int pCode)
 // NOTE for FUTURE:
 //
 // Currently the TDC code handler catches code which occur to closely and
-// ignores them -- assumes it was a double hit on the photo eye. Also fixes
-// double hits on the pulse line from the Control board.
+// ignores them -- assumes it was a double hit on the photo eye or an electrical
+// bounce on the pulse line.
 //
 // However, this is not currently in place for the Linear Advance codes -- a
 // quick double hit might be used in the future by the Control board to signal
@@ -5324,7 +5325,7 @@ private int handleMapDataTDCCode(int pCode)
 // some other way -- perhaps filtering by the FPGA.
 //
 // prevCtrlCodeIndex is not updated because these codes are never kept in
-// the data buffer -- they are ignored.
+// the data buffer -- they merely set a flag in the previous control code.
 //
 // If the data buffer is not enabled, no action will be taken.
 //
@@ -5372,7 +5373,7 @@ public void triggerMapAdvance()
 
     if(!dataBufferIsEnabled) { return; }
 
-    if(type == WALL_MAPPER && mapAdvanceMode == ADVANCE_BY_CONTROLLER){
+    if(type == WALL_MAPPER && mapAdvanceMode == ADVANCE_ON_TRIGGER){
 
         if (map2D != null) {
             //move to next buffer slot for storing data

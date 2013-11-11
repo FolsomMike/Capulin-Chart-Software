@@ -1347,7 +1347,7 @@ public void setMode(int pOpMode)
 
         //set mode for Boards to advance map plotters they control
         //map plotter advance controlled by this object monitoring encoder
-        setMapAdvanceModes(Board.ADVANCE_BY_CONTROLLER);
+        setMapAdvanceModes(Board.ADVANCE_ON_TRIGGER);
 
         //signal "Main Thread" to reset
         performResetUTBoardsForNextRun = true;

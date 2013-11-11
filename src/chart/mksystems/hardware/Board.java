@@ -103,8 +103,9 @@ public abstract class Board extends Object implements Runnable{
 
     final static int ADVANCE_NEVER = 0;
     final static int ADVANCE_ON_TDC_CODE = 1;
-    final static int ADVANCE_BY_CONTROLLER = 2;
+    final static int ADVANCE_ON_TRIGGER = 2;
     final static int ADVANCE_ON_ENCODER_CODE = 3;
+    final static int ADVANCE_ON_LINEAR_ADVANCE_CODE = 4;
 
     int mapAdvanceMode = ADVANCE_NEVER;
 
