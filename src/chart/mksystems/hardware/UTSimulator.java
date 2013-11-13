@@ -1382,7 +1382,10 @@ public void simulateSineWaveAScan(int pChannel)
 
     int []aScan = aScanBuffer;
 
-    int j = 0;
+    //read and save to quench "only read from" warning
+    int j = aScan[0]; aScan[0] = j;
+
+    j = 0;
 
     //first byte returned is the channel
     aScan[j++] = pChannel;
@@ -1437,16 +1440,19 @@ public void simulateSineWaveAScan(int pChannel)
 public void simulateAScan(int pChannel)
 {
 
-    int delayCount = boardChannels[pChannel].delayCount;
-    int sampleCount = boardChannels[pChannel].sampleCount;
-    int gain = boardChannels[pChannel].dspGain;
+    //int delayCount = boardChannels[pChannel].delayCount;
+    //int lSampleCount = boardChannels[pChannel].sampleCount;
+    //int gain = boardChannels[pChannel].dspGain;
 
     mainBangSineAngle = 1;
     reflectionSineAngle = 1;
 
     int []aScan = aScanBuffer;
 
-    int i, j = 0;
+    //read and save to quench "only read from" warning
+    int j = aScan[0]; aScan[0] = j;
+
+    j = 0;
 
     //first byte returned is the channel
     aScan[j++] = pChannel;
@@ -1460,7 +1466,7 @@ public void simulateAScan(int pChannel)
     int simData;
 
     //fill the array with data - generate a spike for the interface
-    for (i=0; i<400; i++){
+    for (int i=0; i<400; i++){
         if (i==iFaceCrossing) {
             simData = 280;
         }
@@ -1473,7 +1479,7 @@ public void simulateAScan(int pChannel)
 
     /*
 
-    while (i < (delayCount + sampleCount)){
+    while (i < (delayCount + lSampleCount)){
 
         //main bang for first 60 data points
         if ((i) <= 60) simulateMainBang(aScan, j, gain);

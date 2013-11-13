@@ -289,10 +289,10 @@ public void createWallMapDataSaver()
 
     //init map source objects with the boards assigned to each map channel;
     //they are in random order in the array so use findBoard to locate each;
-    //they will then be in mapSoureBoards array in order of their map channel
+    //they will then be in mapSourceBoards array in order of their map channel
 
     for (int i = 0; i < mapSourceBoards.length; i++){
-        mapSourceBoards[i].init(findBoardByTargetMapChannel(i));
+        mapSourceBoards[i].init(findBoardByMapChannel(i));
     }
 
     //currently, the system only handles a single mapping channel per board
@@ -2030,20 +2030,20 @@ int findBoardIndexByChassisAndSlotAddr(int pChassis, int pSlot)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Capulin1::findBoardIndexByTargetMapChannel
+// Capulin1::findBoardIndexByMapChannel
 //
 // Finds the UTBoard object in the array which has been designated as a
-// source for map channel pTargetMapChannel.
+// source for map channel pMapChannel.
 //
 // Returns the board's index in the array or -1 if no board found.
 //
 
-int findBoardIndexByTargetMapChannel(int pTargetMapChannel)
+int findBoardIndexByMapChannel(int pMapChannel)
 {
 
     for (int i = 0; i < numberOfUTBoards; i++) {
         if (utBoards[i] != null && utBoards[i].ready) {
-            if (pTargetMapChannel == utBoards[i].getTargetMapChannel()) {
+            if (pMapChannel == utBoards[i].getMapChannel()) {
                 return (i);
             }
         }
@@ -2051,22 +2051,22 @@ int findBoardIndexByTargetMapChannel(int pTargetMapChannel)
 
     return(-1);
 
-}//end of Capulin1::findBoardIndexByTargetMapChannel
+}//end of Capulin1::findBoardIndexByMapChannel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Capulin1::findBoardByTargetMapChannel
+// Capulin1::findBoardByMapChannel
 //
 // Finds the UTBoard object in the array which has been designated as a
-// source for map channel pTargetMapChannel.
+// source for map channel pMapChannel.
 //
 // Returns reference to the board or null if no board found.
 //
 
-UTBoard findBoardByTargetMapChannel(int pTargetMapChannel)
+UTBoard findBoardByMapChannel(int pMapChannel)
 {
 
-    int target = findBoardIndexByTargetMapChannel(pTargetMapChannel);
+    int target = findBoardIndexByMapChannel(pMapChannel);
 
     if (target != -1){
         return(utBoards[target]);
@@ -2075,7 +2075,7 @@ UTBoard findBoardByTargetMapChannel(int pTargetMapChannel)
         return(null);
     }
 
-}//end of Capulin1::findBoardByTargetMapChannel
+}//end of Capulin1::findBoardByMapChannel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -2091,7 +2091,7 @@ int countMapSourceBoards()
 
     for (int i = 0; i < numberOfUTBoards; i++) {
         if (utBoards[i] != null && utBoards[i].ready) {
-            if (utBoards[i].getTargetMapChannel() != -1) {
+            if (utBoards[i].getMapChannel() != -1) {
                 count++;
             }
         }

@@ -1470,17 +1470,17 @@ void getChassisSlotAddressOverrideFromFile()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTBoard::getTargetMapChannel
+// UTBoard::getMapChannel
 //
-// Returns targetMapChannel.
+// Returns mapChannel.
 //
 
-int getTargetMapChannel()
+int getMapChannel()
 {
 
-    return(targetMapChannel);
+    return(mapChannel);
 
-}//end of UTBoard::getTargetMapChannel
+}//end of UTBoard::getmapChannel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -3869,7 +3869,7 @@ void configureExtended(IniFile pConfigFile)
 
     parseBoardType(value);
 
-    targetMapChannel =
+    mapChannel =
       pConfigFile.readInt(section, "This Board is Source for Map Channel", -1);
 
     boardChannelForMapDataSource =
