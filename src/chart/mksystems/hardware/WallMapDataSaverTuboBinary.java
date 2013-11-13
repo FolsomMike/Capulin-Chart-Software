@@ -902,7 +902,7 @@ private void writeWallReadingsForRevolution(int pRevolutionNumber)
 
                 //the source boards are already stored in the array in order
                 //of their map channels
-                
+
                 MapSourceBoard mapSourceBoard = mapSourceBoards[j];
 
                 if (mapSourceBoard.sampleIndex < mapSourceBoard.revEndIndex) {
@@ -978,36 +978,6 @@ private void writeWORDToOutFile(WORD pValue) throws IOException
     //end of remove this
 
 }//end of WallMapDataSaverTuboBinary::writeWORDToOutFile
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// WallMapDataSaverTuboBinary::findMapSourceBoardByMapChannel
-//
-// Returns the UTBoard object which is designated as the source for the map
-// channel pMapChannel. This channel value refers to the channels used by the
-// Tubo map viewer program where channel 0 is Transducer 1, channel 1 is
-// Transducer 2, and so on.
-//
-// If no board can be found with the specified pMapChannel, the first board
-// in the mapSourceBoards array is returned. This way, the program won't crash
-// and the data will look okay but will actually be from the incorrect
-// transducer.
-//
-
-private MapSourceBoard findMapSourceBoardByMapChannel(int pMapChannel)
-{
-
-    //find board which is source for the specified map channel
-    for (int i = 0; i < mapSourceBoards.length; i++){
-        if (mapSourceBoards[i].utBoard.getMapChannel() == pMapChannel){
-            return(mapSourceBoards[i]);
-        }
-    }
-
-    //no board found for the specified map channel, so return first in array
-    return(mapSourceBoards[0]);
-
-}//end of WallMapDataSaverTuboBinary::findMapSourceBoardByMapChannel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
