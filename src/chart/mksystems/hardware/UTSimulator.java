@@ -566,6 +566,54 @@ private int processDSPMessage()
         return (readDSPStatus(dspChip, dspCore));
     }
 
+    if ( dspMsgID == UTBoard.DSP_SET_FLAGS1) {
+        return (setDSPFlags1(dspChip, dspCore));
+    }
+
+    if ( dspMsgID == UTBoard.DSP_SET_GATE_SIG_PROC_THRESHOLD) {
+        return (setDSPGateSignalProcessingThreshold(dspChip, dspCore));
+    }
+
+    if ( dspMsgID == UTBoard.DSP_SET_GAIN_CMD) {
+        return (setDSPSoftwareGain(dspChip, dspCore));
+    }
+
+    if ( dspMsgID == UTBoard.DSP_SET_HIT_MISS_COUNTS) {
+        return (setDSPHitMissCounts(dspChip, dspCore));
+    }
+
+    if ( dspMsgID == UTBoard.DSP_SET_RECTIFICATION) {
+        return (setDSPRectification(dspChip, dspCore));
+    }
+
+    if ( dspMsgID == UTBoard.DSP_SET_AD_SAMPLE_SIZE_CMD) {
+        return (setDSPADSampleSize(dspChip, dspCore));
+    }
+
+    if ( dspMsgID == UTBoard.DSP_SET_DELAYS) {
+        return (setDSPDelays(dspChip, dspCore));
+    }
+
+    if ( dspMsgID == UTBoard.DSP_SET_ASCAN_SCALE) {
+        return (setDSPAScanScale(dspChip, dspCore));
+    }
+
+    if ( dspMsgID == UTBoard.DSP_SET_GATE) {
+        return (setDSPGate(dspChip, dspCore));
+    }
+
+    if ( dspMsgID == UTBoard.DSP_SET_DAC) {
+        return (setDSPDAC(dspChip, dspCore));
+    }
+
+    if ( dspMsgID == UTBoard.DSP_SET_GATE_FLAGS) {
+        return (setDSPGateFlags(dspChip, dspCore));
+    }
+
+    if ( dspMsgID == UTBoard.DSP_SET_DAC_FLAGS) {
+        return (setDSPDACFlags(dspChip, dspCore));
+    }
+
     //clear out the remaining bytes of any unhandled DSP message
     tossDSPMessageRemainder();
 
@@ -613,6 +661,8 @@ public void tossDSPMessageRemainder()
 //
 // Simulates returning of the DSP status flags.
 //
+// Returns number of bytes read.
+//
 
 int readDSPStatus(int pDSPChip, int pDSPCore)
 {
@@ -620,31 +670,404 @@ int readDSPStatus(int pDSPChip, int pDSPCore)
     readBytes(12); //read in the rest of the packet
 
     //send standard packet header
-    sendPacketHeader(UTBoard.MESSAGE_DSP_CMD, (byte)0, (byte)0);
+    sendPacketHeader(UTBoard.MESSAGE_DSP_CMD, (byte)pDSPChip, (byte)pDSPCore);
 
     //send core and status flags back
     sendBytes((byte)UTBoard.DSP_GET_STATUS_CMD, (byte)pDSPCore,
                 (byte)0, (byte)1);
 
-    return 12;
+    return(12);
 
 }//end of UTSimulator::readDSPStatus
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTSimulator::setDSPGain
+// UTSimulator::sendACK
 //
-// Simulates setting the software gain applied by the DSP.
+// Simulates returning of the DSP acknowledge packet.
+//
+// The low byte of resync count is returned in the packet.
+//
+// wip mks -- currently returns 0xaa55 instead of the resync count
 //
 
-void setDSPGain()
+void sendACK(int pDSPChip, int pDSPCore)
 {
 
-    readBytes(3); //read in the rest of the packet
+    //send standard packet header
+    sendPacketHeader(UTBoard.MESSAGE_DSP_CMD, (byte)pDSPChip, (byte)pDSPCore);
 
-    boardChannels[inBuffer[0]].dspGain = inBuffer[1];
+    //send core and status flags back
+    sendBytes((byte)UTBoard.DSP_ACKNOWLEDGE, (byte)pDSPCore, (byte)0xa5);
 
-}//end of UTSimulator::setDSPGain
+}//end of UTSimulator::sendACK
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTSimulator::setDSPFlags1
+//
+// Sets control flags 1 for the DSP core.
+//
+
+int setDSPFlags1(int pDSPChip, int pDSPCore)
+{
+
+    //read return and receive packet size
+    readBytes(2);
+
+    int returnPktSize = inBuffer[0];
+    int receivePktSize = inBuffer[1];
+
+    //read remainder of packet plus checksum byte
+    readBytes(receivePktSize + 1);
+
+    //parse the word
+    int flags1 = (int)((inBuffer[0]<<8) & 0xff00) + ((inBuffer[1]) & 0xff);
+
+    sendACK(pDSPChip, pDSPCore);
+
+    //read packet + two size bytes + checksum byte
+    return(receivePktSize + 3);
+
+}//end of UTSimulator::setDSPFlags1
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTSimulator::setDSPGateSignalProcessingThreshold
+//
+// Sets DSP gate signal processing threshold for DSP core.
+//
+
+int setDSPGateSignalProcessingThreshold(int pDSPChip, int pDSPCore)
+{
+
+    //read return and receive packet size
+    readBytes(2);
+
+    int returnPktSize = inBuffer[0];
+    int receivePktSize = inBuffer[1];
+
+    //read remainder of packet plus checksum byte
+    readBytes(receivePktSize + 1);
+
+    //parse the word
+    int threshold = (int)((inBuffer[0]<<8) & 0xff00) + ((inBuffer[1]) & 0xff);
+
+    sendACK(pDSPChip, pDSPCore);
+
+    //read packet + two size bytes + checksum byte
+    return(receivePktSize + 3);
+
+}//end of UTSimulator::setDSPGateSignalProcessingThreshold
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTSimulator::setDSPSoftwareGain
+//
+// Simulates setting the software gain applied by the DSP core.
+//
+
+int setDSPSoftwareGain(int pDSPChip, int pDSPCore)
+{
+
+    //read return and receive packet size
+    readBytes(2);
+
+    int returnPktSize = inBuffer[0];
+    int receivePktSize = inBuffer[1];
+
+    //read remainder of packet plus checksum byte
+    readBytes(receivePktSize + 1);
+
+    //parse the word
+    int gain = (int)((inBuffer[0]<<8) & 0xff00) + ((inBuffer[1]) & 0xff);
+
+    sendACK(pDSPChip, pDSPCore);
+
+    //read packet + two size bytes + checksum byte
+    return(receivePktSize + 3);
+
+}//end of UTSimulator::setDSPSoftwareGain
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTSimulator::setDSPHitMissCounts
+//
+// Sets Hit and Miss counts for the DSP core.
+//
+
+int setDSPHitMissCounts(int pDSPChip, int pDSPCore)
+{
+
+    //read return and receive packet size
+    readBytes(2);
+
+    int returnPktSize = inBuffer[0];
+    int receivePktSize = inBuffer[1];
+
+    //read remainder of packet plus checksum byte
+    readBytes(receivePktSize + 1);
+
+    //parse the words
+
+    int hitCount = (int)((inBuffer[0]<<8) & 0xff00) + ((inBuffer[1]) & 0xff);
+
+    int missCount = (int)((inBuffer[2]<<8) & 0xff00) + ((inBuffer[3]) & 0xff);
+
+    sendACK(pDSPChip, pDSPCore);
+
+    //read packet + two size bytes + checksum byte
+    return(receivePktSize + 3);
+
+}//end of UTSimulator::setDSPHitMissCounts
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTSimulator::setDSPRectification
+//
+// Sets the signal rectification mode for the DSP core.
+//
+
+int setDSPRectification(int pDSPChip, int pDSPCore)
+{
+
+    //read return and receive packet size
+    readBytes(2);
+
+    int returnPktSize = inBuffer[0];
+    int receivePktSize = inBuffer[1];
+
+    //read remainder of packet plus checksum byte
+    readBytes(receivePktSize + 1);
+
+    //parse the byte
+
+    int rectification = (inBuffer[0]);
+
+    sendACK(pDSPChip, pDSPCore);
+
+    //read packet + two size bytes + checksum byte
+    return(receivePktSize + 3);
+
+}//end of UTSimulator::setDSPRectification
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTSimulator::setDSPADSampleSize
+//
+// Sets AD sample size for the DSP core.
+//
+
+int setDSPADSampleSize(int pDSPChip, int pDSPCore)
+{
+
+    //read return and receive packet size
+    readBytes(2);
+
+    int returnPktSize = inBuffer[0];
+    int receivePktSize = inBuffer[1];
+
+    //read remainder of packet plus checksum byte
+    readBytes(receivePktSize + 1);
+
+    //parse the word
+    int adSampleSize =
+                      (int)((inBuffer[0]<<8) & 0xff00) + ((inBuffer[1]) & 0xff);
+
+    sendACK(pDSPChip, pDSPCore);
+
+    //read packet + two size bytes + checksum byte
+    return(receivePktSize + 3);
+
+}//end of UTSimulator::setDSPADSampleSize
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTSimulator::setDSPDelays
+//
+// Sets the software delay and the hardware delay for the A/D sample set and
+// the AScan dataset for the DSP core.
+//
+
+int setDSPDelays(int pDSPChip, int pDSPCore)
+{
+
+    //read return and receive packet size
+    readBytes(2);
+
+    int returnPktSize = inBuffer[0];
+    int receivePktSize = inBuffer[1];
+
+    //read remainder of packet plus checksum byte
+    readBytes(receivePktSize + 1);
+
+    //parse the words
+
+    int aScanDelay = (int)((inBuffer[0]<<8) & 0xff00) + ((inBuffer[1]) & 0xff);
+
+    int hardwareDelay =
+     (int)((inBuffer[2]<<24) & 0xff000000) + (int)((inBuffer[3]<<16) & 0xff0000)
+            + (int)((inBuffer[4]<<8) & 0xff00) + ((inBuffer[5]) & 0xff);
+
+    sendACK(pDSPChip, pDSPCore);
+
+    //read packet + two size bytes + checksum byte
+    return(receivePktSize + 3);
+
+}//end of UTSimulator::setDSPDelays
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTSimulator::setDSPGate
+//
+// Sets the parameters for a gate for a DSP core.
+//
+
+int setDSPGate(int pDSPChip, int pDSPCore)
+{
+
+    //read return and receive packet size
+    readBytes(2);
+
+    int returnPktSize = inBuffer[0];
+    int receivePktSize = inBuffer[1];
+
+    //read remainder of packet plus checksum byte
+    readBytes(receivePktSize + 1);
+
+    //parse the words
+    //wip mks -- not done yet because there a a lot of variables --
+    // see "setGate" in "Capulin UT DSP.asm" for details
+
+    sendACK(pDSPChip, pDSPCore);
+
+    //read packet + two size bytes + checksum byte
+    return(receivePktSize + 3);
+
+}//end of UTSimulator::setDSPGate
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTSimulator::setDSPDAC
+//
+// Sets the parameters for a DAC gate for a DSP core.
+//
+
+int setDSPDAC(int pDSPChip, int pDSPCore)
+{
+
+    //read return and receive packet size
+    readBytes(2);
+
+    int returnPktSize = inBuffer[0];
+    int receivePktSize = inBuffer[1];
+
+    //read remainder of packet plus checksum byte
+    readBytes(receivePktSize + 1);
+
+    //parse the words
+    //wip mks -- not done yet because there a a lot of variables --
+    // see "setDAC" in "Capulin UT DSP.asm" for details
+
+    sendACK(pDSPChip, pDSPCore);
+
+    //read packet + two size bytes + checksum byte
+    return(receivePktSize + 3);
+
+}//end of UTSimulator::setDSPDAC
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTSimulator::setDSPGateFlags
+//
+// Sets the parameters for a gate for a DSP core.
+//
+
+int setDSPGateFlags(int pDSPChip, int pDSPCore)
+{
+
+    //read return and receive packet size
+    readBytes(2);
+
+    int returnPktSize = inBuffer[0];
+    int receivePktSize = inBuffer[1];
+
+    //read remainder of packet plus checksum byte
+    readBytes(receivePktSize + 1);
+
+    //parse the words
+    int gate = ((inBuffer[0]) & 0xff);
+    int flags = (int)((inBuffer[1]<<8) & 0xff00) + ((inBuffer[2]) & 0xff);
+
+    sendACK(pDSPChip, pDSPCore);
+
+    //read packet + two size bytes + checksum byte
+    return(receivePktSize + 3);
+
+}//end of UTSimulator::setDSPGateFlags
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTSimulator::setDSPDACFlags
+//
+// Sets the parameters for a DAC gate for a DSP core.
+//
+
+int setDSPDACFlags(int pDSPChip, int pDSPCore)
+{
+
+    //read return and receive packet size
+    readBytes(2);
+
+    int returnPktSize = inBuffer[0];
+    int receivePktSize = inBuffer[1];
+
+    //read remainder of packet plus checksum byte
+    readBytes(receivePktSize + 1);
+
+    //parse the words
+    int gate = ((inBuffer[0]) & 0xff);
+    int flags = (int)((inBuffer[1]<<8) & 0xff00) + ((inBuffer[2]) & 0xff);
+
+    sendACK(pDSPChip, pDSPCore);
+
+    //read packet + two size bytes + checksum byte
+    return(receivePktSize + 3);
+
+}//end of UTSimulator::setDSPDACFlags
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTSimulator::setDSPAScanScale
+//
+// Sets AScan compression scale for the DSP core and the size of each batch
+// to process at a time when using slow processing mode.
+//
+
+int setDSPAScanScale(int pDSPChip, int pDSPCore)
+{
+
+    //read return and receive packet size
+    readBytes(2);
+
+    int returnPktSize = inBuffer[0];
+    int receivePktSize = inBuffer[1];
+
+    //read remainder of packet plus checksum byte
+    readBytes(receivePktSize + 1);
+
+    //parse the words
+
+    int scale = (int)((inBuffer[0]<<8) & 0xff00) + ((inBuffer[1]) & 0xff);
+
+    int batchSize = (int)((inBuffer[2]<<8) & 0xff00) + ((inBuffer[3]) & 0xff);
+
+    sendACK(pDSPChip, pDSPCore);
+
+    //read packet + two size bytes + checksum byte
+    return(receivePktSize + 3);
+
+}//end of UTSimulator::setDSPAScanScale
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -902,6 +1325,10 @@ void readDSP()
 //
 // Sends via the socket: 0xaa, 0x55, 0xaa, 0x55, packet identifier, DSP chip,
 // and DSP core.
+//
+// This is the packet header for Rabbit to Host, not DSP to Rabbit. The code
+// calling this function skips the send/receive to DSP step and creates the
+// data as if it had been received from the DSP.
 //
 // Does not flush.
 //

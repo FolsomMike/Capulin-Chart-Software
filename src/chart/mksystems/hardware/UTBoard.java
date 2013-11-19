@@ -408,7 +408,7 @@ public class UTBoard extends Board{
     static byte DSP_GET_ASCAN_NEXT_BLOCK_CMD = 4;
     static byte DSP_SET_AD_SAMPLE_SIZE_CMD = 5;
     static byte DSP_SET_DELAYS	= 6;
-    static byte DSP_SET_ASCAN_SCALE	= 7;
+    static byte DSP_SET_ASCAN_SCALE = 7;
     static byte DSP_SET_GATE = 8;
     static byte DSP_SET_GATE_FLAGS = 9;
     static byte DSP_SET_DAC	= 10;
@@ -417,7 +417,7 @@ public class UTBoard extends Board{
     static byte DSP_GET_PEAK_DATA = 13;
     static byte DSP_SET_RECTIFICATION = 14;
     static byte DSP_SET_FLAGS1 = 15;
-    static byte DSP_CLEAR_FLAGS1 = 16;
+    static byte DSP_UNUSED1 = 16;
     static byte DSP_SET_GATE_SIG_PROC_THRESHOLD = 17;
     static byte DSP_GET_MAP_BLOCK_CMD = 18;
     static byte DSP_GET_MAP_COUNT_CMD = 19;
@@ -4124,6 +4124,12 @@ public int processDataPacketsUntilPeakPacket()
 // expected.
 //
 // See processOneDataPacket notes for more info.
+//
+// wip mks -- This has has a problem! If an error occurs and a resync is
+// required, processOneDataPacket returns 0 even though the remaining packets
+// could be processed after the resync correction. Maybe return -1 on resync
+// and only bail out here if processOneDataPacket returns 0? Would need to
+// update all functions which call processOneDataPacket in that case!
 //
 
 public void processAllAvailableDataPackets(boolean pWaitForPkt)

@@ -2878,7 +2878,7 @@ public void sendDataChangesToRemotes()
     //than having processAllAvailableDataPackets wait between each packet as
     //this way is much faster
 
-    if (utBoard != null) {utBoard.waitSleep(100);}
+    if (utBoard != null) {utBoard.waitSleep(300);}
 
     //process the expected DSP ACK packets
     if (utBoard != null) {utBoard.processAllAvailableDataPackets(false);}
