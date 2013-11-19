@@ -667,7 +667,14 @@ public void tossDSPMessageRemainder()
 int readDSPStatus(int pDSPChip, int pDSPCore)
 {
 
-    readBytes(12); //read in the rest of the packet
+    //read return and receive packet size
+    readBytes(2);
+
+    int returnPktSize = inBuffer[0];
+    int receivePktSize = inBuffer[1];
+
+    //read remainder of packet plus checksum byte
+    readBytes(receivePktSize + 1);
 
     //send standard packet header
     sendPacketHeader(UTBoard.MESSAGE_DSP_CMD, (byte)pDSPChip, (byte)pDSPCore);
@@ -676,7 +683,8 @@ int readDSPStatus(int pDSPChip, int pDSPCore)
     sendBytes((byte)UTBoard.DSP_GET_STATUS_CMD, (byte)pDSPCore,
                 (byte)0, (byte)1);
 
-    return(12);
+    //read packet + two size bytes + checksum byte
+    return(receivePktSize + 3);
 
 }//end of UTSimulator::readDSPStatus
 //-----------------------------------------------------------------------------
