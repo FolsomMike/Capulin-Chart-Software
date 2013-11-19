@@ -267,6 +267,8 @@ protected void retractExtractionPoint()
 // Moves the insertion point backward one buffer position and makes the
 // necessary preparations to the previous and new locations.
 //
+// Only the DATA_ERASED flag is left set (if it was set by the data having
+// been previously erased) for the current position.
 // Only the DATA_ERASED flag is set for the erased position.
 //
 // This method should only be called by the producer thread.
@@ -275,9 +277,13 @@ protected void retractExtractionPoint()
 synchronized public void eraseDataAtInsertionPoint()
 {
 
-    //clear all flags for the current position which was in process and never
-    //reached by the extractionPoint (and the consumer thread)
-    flagBuffer[insertionPoint] = CLEAR_ALL_FLAGS;
+    //clear all flags for the new position except DATA_ERASED so that the
+    //consumer thread will see that the data was once erased even if the
+    //producer thread adds removes more data or adds new data before the
+    //consumer thread can respond to the erasure -- this allows the consumer
+    //thread to fully erase back to the farthest data erasure point
+
+    flagBuffer[insertionPoint] &= DATA_ERASED;
 
     // back up the insertionPoint
     insertionPoint--;

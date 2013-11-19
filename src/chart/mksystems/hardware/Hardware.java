@@ -1407,10 +1407,10 @@ void moveEncoders(int pRecordStopPositionForHead)
         analogDriver.recordStartLocation(2, position);
     }
 
-    if (pixelsMoved > 0) { moveTraces(pixelsMoved, position); }
+    moveTraces(pixelsMoved, position);
 
     // advance all maps not linked to specific channels
-    if (pixelsMoved > 0) { moveMaps(pixelsMoved, position);}
+    moveMaps(pixelsMoved, position);
 
 }//end of Hardware::moveEncoders
 //-----------------------------------------------------------------------------
@@ -1577,6 +1577,9 @@ void moveTracesForward(Trace pTrace, int pPixelsMoved, double pPosition)
 //
 // Parameter pPosition is the position of the head or inspection piece as
 // measured from the point where the photo eye was blocked.
+//
+// wip mks -- need to catch when pipe/head has reversed all the way back past
+// the start point and exit the inspect mode!
 //
 
 void moveTracesBackward(Trace pTrace, int pPixelsMoved, double pPosition)
