@@ -12,6 +12,10 @@ DSP/
 Rabbit/
 Log Files/*.*
 
+# put miscellaneous files not to be tracked in this folder
+
+Files Not Tracked by Git/
+
 *.lock
 
 # ignore any jar file which might be in the executable directory
@@ -23,10 +27,7 @@ Error Messages.txt
 *.zip
 
 
-Java Logger File.txt
-Java Logger File.txt.0
-Java Logger File.txt.1
-Java Logger File.txt.lck
+Java Logger File*
 
 
 # ignore all ini files
