@@ -583,9 +583,33 @@ private int plotPoint(Graphics2D pG2, PlotVars pVars, TraceDatum pTraceDatum)
     else
         if (flagThreshold == -1) {drawUserFlag(pG2, pVars.pixPtr, pVars.y2);}
 
+
+    //draw square markers if flag has been set for the current location
+    if ((pTraceDatum.flags & PlotterData.MARKER_SQUARE) != 0) {
+        drawMarkerSquare(pG2, pVars.pixPtr, pVars.y2, Color.GREEN);
+    }
+
     return(lastPlotted);
 
 }//end of Trace::plotPoint
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Trace::drawMarkerSquare
+//
+// Draws a pColor square at the specified location.
+//
+
+void drawMarkerSquare(Graphics2D pG2, int xPos, int pSigHeight, Color pColor)
+
+{
+    //add 1 to xPos so flag is drawn to the right of the peak
+
+    pG2.setColor(pColor);
+
+    pG2.fillRect(xPos+1, pSigHeight, 8, 8);
+
+}//end of Trace::drawMarkerSquare
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -748,12 +772,25 @@ void getPixXY(PlotVars pVs)
 // Values of pStart and pEnd will be forced between 0 and the buffer length
 // to avoid errors.
 //
+// If pFlagLocation is true, a flag will be placed in the data buffer at the
+// location of the min value.
+//
+// Returns the min value and also returns it in pPeakInfo.peak.
+// The buffer index of that value is returned in pPeakInfo.index.
+//
 
 @Override
-public int findMinValue(int pStart, int pEnd)
+public int findMinValue(int pStart, int pEnd, TraceDatum pPeakInfo,
+                                                        boolean pFlagLocation)
 {
 
-    return(traceData.findMinValue(pStart, pEnd));
+    int peak = (traceData.findMinValue(pStart, pEnd, pPeakInfo));
+
+    if (pFlagLocation && pPeakInfo.index != -1){
+        traceData.setFlags(pPeakInfo.index, PlotterData.MARKER_SQUARE);
+    }
+
+    return(peak);
 
 }//end of Trace::findMinValue
 //-----------------------------------------------------------------------------
@@ -767,12 +804,25 @@ public int findMinValue(int pStart, int pEnd)
 // Values of pStart and pEnd will be forced between 0 and the buffer length
 // to avoid errors.
 //
+// If pFlagLocation is true, a flag will be placed in the data buffer at the
+// location of the max value.
+//
+// Returns the max value and also returns it in pPeakInfo.peak.
+// The buffer index of that value is returned in pPeakInfo.index.
+//
 
 @Override
-public int findMaxValue(int pStart, int pEnd)
+public int findMaxValue(int pStart, int pEnd,TraceDatum pPeakInfo,
+                                                        boolean pFlagLocation)
 {
 
-    return(traceData.findMaxValue(pStart, pEnd));
+    int peak = (traceData.findMaxValue(pStart, pEnd, pPeakInfo));
+
+    if (pFlagLocation && pPeakInfo.index != -1){
+        traceData.setFlags(pPeakInfo.index, PlotterData.MARKER_SQUARE);
+    }
+
+    return(peak);
 
 }//end of Trace::findMaxValue
 //-----------------------------------------------------------------------------

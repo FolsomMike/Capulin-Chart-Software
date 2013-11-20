@@ -1606,14 +1606,15 @@ public void processFinishedPiece() throws IOException
 
         markSegmentEnd();  //mark the buffer location of the end of the segment
 
+        //display the min wall from the just finished piece -- do this before
+        //saving the segment so peak wall marker(s) get saved
+        updatePrevMinWallDisplay();
+
         //if data paths are good, save the data for the segment
         if(isConfigGoodA()) {saveSegment();}
 
         //increment the next piece or next cal piece number
         controlPanel.incrementPieceNumber();
-
-        //display the min wall from the just finished piece
-        updatePrevMinWallDisplay();
 
         }
 

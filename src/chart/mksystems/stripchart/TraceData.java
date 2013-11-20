@@ -336,8 +336,11 @@ public int[] getDataBuffer2()
 // Values of pStart and pEnd will be forced between 0 and dataBuffer1.length
 // to avoid errors.
 //
+// Returns the min value and also returns it in pPeakInfo.peak.
+// The buffer index of that value is returned in pPeakInfo.index.
+//
 
-public int findMinValue(int pStart, int pEnd)
+public int findMinValue(int pStart, int pEnd, TraceDatum pPeakInfo)
 {
 
     if (pStart < 0) {pStart = 0;}
@@ -347,12 +350,16 @@ public int findMinValue(int pStart, int pEnd)
     if (pEnd >= dataBuffer1.length) {pEnd = dataBuffer1.length - 1;}
 
     int peak = Integer.MAX_VALUE;
+    int index = -1;
 
     for (int i = pStart; i < pEnd; i++){
 
-        if (dataBuffer1[i] < peak) {peak = dataBuffer1[i];}
+        if (dataBuffer1[i] < peak) {peak = dataBuffer1[i]; index = i;}
 
     }
+
+    pPeakInfo.peak = peak;
+    pPeakInfo.index = index;
 
     return(peak);
 
@@ -368,8 +375,11 @@ public int findMinValue(int pStart, int pEnd)
 // Values of pStart and pEnd will be forced between 0 and dataBuffer1.length
 // to avoid errors.
 //
+// Returns the max value and also returns it in pPeakInfo.peak.
+// The buffer index of that value is returned in pPeakInfo.index.
+//
 
-public int findMaxValue(int pStart, int pEnd)
+public int findMaxValue(int pStart, int pEnd, TraceDatum pPeakInfo)
 {
 
     if (pStart < 0) {pStart = 0;}
@@ -379,10 +389,14 @@ public int findMaxValue(int pStart, int pEnd)
     if (pEnd >= dataBuffer1.length) {pEnd = dataBuffer1.length - 1;}
 
     int peak = Integer.MIN_VALUE;
+    int index = -1;
 
     for (int i = pStart; i < pEnd; i++){
-        if (dataBuffer1[i] > peak) {peak = dataBuffer1[i];}
+        if (dataBuffer1[i] > peak) {peak = dataBuffer1[i]; index = i;}
     }
+
+    pPeakInfo.peak = peak;
+    pPeakInfo.index = index;
 
     return(peak);
 

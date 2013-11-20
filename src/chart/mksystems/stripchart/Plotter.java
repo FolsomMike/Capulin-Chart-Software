@@ -558,8 +558,15 @@ public boolean segmentStarted()
 //
 // Should be overridden by subclasses.
 //
+// If pFlagLocation is true, a flag will be placed in the data buffer at the
+// location of the min value.
+//
+// Returns the min value and also returns it in pPeakInfo.peak.
+// The buffer index of that value is returned in pPeakInfo.index.
+//
 
-public int findMinValue(int pStart, int pEnd)
+public int findMinValue(int pStart, int pEnd,TraceDatum pPeakInfo,
+                                                        boolean pFlagLocation)
 {
 
     return(0);
@@ -575,8 +582,16 @@ public int findMinValue(int pStart, int pEnd)
 //
 // Should be overridden by subclasses.
 //
+// If pFlagLocation is true, a flag will be placed in the data buffer at the
+// location of the max value.
+//
+// Returns the max value and also returns it in pPeakInfo.peak.
+// The buffer index of that value is returned in pPeakInfo.index.
+//
 
-public int findMaxValue(int pStart, int pEnd)
+
+public int findMaxValue(int pStart, int pEnd,TraceDatum pPeakInfo,
+                                                        boolean pFlagLocation)
 {
 
     return(0);

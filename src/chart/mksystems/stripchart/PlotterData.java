@@ -82,6 +82,7 @@ public class PlotterData extends Object{
     static final int DATA_VALID =             0x100000;
     static final int DATA_ERASED =            0x200000;
     static final int IN_PROCESS =             0x400000;
+    static final int MARKER_SQUARE =          0x800000;
 
     static final int CLEAR_CLOCK_MASK = 0xfffffe00;
     static final int THRESHOLD_MASK = 0x0000fe00;

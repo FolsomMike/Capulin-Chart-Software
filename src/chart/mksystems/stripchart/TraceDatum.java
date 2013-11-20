@@ -35,6 +35,9 @@ public class TraceDatum extends PlotterDatum{
     public int prevData2;
     public int flags;
 
+    public int peak;
+    public int index;
+
 }//end of class TraceDatum
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

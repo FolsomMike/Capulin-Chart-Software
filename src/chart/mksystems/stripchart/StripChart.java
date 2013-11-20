@@ -489,6 +489,8 @@ public class StripChart extends JPanel implements MouseListener,
     public int lastAScanChannel = 0;
     boolean chartSizeEqualsBufferSize;
 
+    TraceDatum peakInfo;
+
     ActionListener actionListener;
 
 //-----------------------------------------------------------------------------
@@ -534,6 +536,8 @@ public void init()
 
     //listen for mouse events on the strip chart
     addMouseListener(this);
+
+    peakInfo = new TraceDatum();
 
     //read the configuration file and create/setup the charting/control elements
     configure(configFile);
@@ -1632,10 +1636,10 @@ public int findMinOrMaxValueOfPlotter(Plotter pPlotter, boolean pFindMin,
 {
 
     if(pFindMin) {
-        return(pPlotter.findMinValue(pStart, pEnd));
+        return(pPlotter.findMinValue(pStart, pEnd, peakInfo, true));
     }
     else {
-        return(pPlotter.findMaxValue(pStart, pEnd));
+        return(pPlotter.findMaxValue(pStart, pEnd, peakInfo, true));
     }
 
 }//end of StripChart::findMinOrMaxValueOfPlotter
