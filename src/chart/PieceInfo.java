@@ -23,6 +23,7 @@ import chart.mksystems.inifile.IniFile;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.nio.charset.Charset;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
@@ -128,9 +129,13 @@ private void configure(String pConfigFilename)
     IniFile configFile;
     String section, text;
 
+    //the "Configuration - Piece Info Window.ini" files were saved in the
+    //default character set for Windows, so this must be used to load them
+    String defaultCS = Charset.defaultCharset().displayName();
+
     //if the ini file cannot be opened and loaded, exit without action
     try {
-        configFile = new IniFile(pConfigFilename, fileFormat);
+        configFile = new IniFile(pConfigFilename, defaultCS /*fileFormat*/);
         configFile.init();
     }
     catch(IOException e){
@@ -606,8 +611,9 @@ public void focusGained(FocusEvent e)
     //textfields so the data can be saved -- the enabled button also serves as
     //a visual clue that data has been modified
 
-    if (e.getComponent().getName().equals("Value Text Field"))
+    if (e.getComponent().getName().equals("Value Text Field")){
         if (updateButton != null) {updateButton.setEnabled(true);}
+    }
 
 }//end of PieceInfo::focusGained
 //-----------------------------------------------------------------------------
