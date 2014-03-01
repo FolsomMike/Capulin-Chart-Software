@@ -23,6 +23,7 @@ import chart.Xfer;
 import chart.mksystems.hardware.Hardware;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.settings.Settings;
+import chart.mksystems.tools.SwissArmyKnife;
 import java.awt.*;
 import java.io.*;
 
@@ -579,6 +580,20 @@ private int plotPoint(Graphics2D pG2, PlotVars pVars, TraceDatum pTraceDatum)
         }//if (hdwVs.plotStyle ==
 
         thresholds[flagThreshold].drawFlag(pG2, pVars.pixPtr, flagY);
+        
+        //java.awt.Toolkit.getDefaultToolkit().beep();
+        
+            javax.swing.SwingUtilities.invokeLater(
+            new Runnable() {
+                @Override
+                public void run() { 
+                    java.awt.Toolkit.getDefaultToolkit().beep(); } });
+            
+
+          //  SwissArmyKnife.waitSleep(500);
+        
+        
+        
     }
     else
         if (flagThreshold == -1) {drawUserFlag(pG2, pVars.pixPtr, pVars.y2);}

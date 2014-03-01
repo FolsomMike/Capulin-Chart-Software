@@ -86,6 +86,21 @@ static public void setIconImages(Window pWindow, Class pRootClass,
 }//end of SwissArmyKnife::setIconImages
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// SwissArmyKnife::waitSleep
+//
+// Sleeps for pTime milliseconds.
+//
+
+public static void waitSleep(int pTime)
+{
+
+        try {Thread.sleep(pTime);} catch (InterruptedException e) { }
+
+}//end of SwissArmyKnife::waitSleep
+//-----------------------------------------------------------------------------
+
+
 }//end of class SwissArmyKnife
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
