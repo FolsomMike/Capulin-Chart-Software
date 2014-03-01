@@ -1,0 +1,42 @@
+
+---------------------------------------------------------------------
+Wed Dec 04 09:40:25 MST 2013
+
+Converting files:
+
+
+
+File converted: configurations\XXtreme ~ 20 channels ~ 8 Long ~ 8 Trans ~ 4 Wall.config
+File converted: configurations\XXtreme ~ 40 channels ~ 8x2 Long ~ 8x2 Trans ~ 8 Wall.config
+
+Validating conversions and cleaning up:
+
+Compare ignored -- there is no temp file: .\Board Slot Overrides.ini UTF-8
+Delete and rename ignored -- there is no temp file: .\Board Slot Overrides.ini UTF-8
+Compare ignored -- there is no temp file: .\Configuration - General.ini UTF-8
+Delete and rename ignored -- there is no temp file: .\Configuration - General.ini UTF-8
+Compare ignored -- there is no temp file: .\Configuration - Job Info Window.ini UTF-8
+Delete and rename ignored -- there is no temp file: .\Configuration - Job Info Window.ini UTF-8
+Compare ignored -- there is no temp file: .\Configuration - Piece Info Window.ini UTF-8
+Delete and rename ignored -- there is no temp file: .\Configuration - Piece Info Window.ini UTF-8
+Compare ignored -- there is no temp file: .\Main Settings.ini UTF-8
+Delete and rename ignored -- there is no temp file: .\Main Settings.ini UTF-8
+Compare ignored -- there is no temp file: .\Main Static Settings.ini UTF-8
+Delete and rename ignored -- there is no temp file: .\Main Static Settings.ini UTF-8
+Compare ignored -- there is no temp file: .\Simulation.ini UTF-8
+Delete and rename ignored -- there is no temp file: .\Simulation.ini UTF-8
+
+
+Compare ignored -- there is no temp file: configurations\Belle Chasse ~ Head 1 - 395647 R0 & Head 2 - 395648 R0.config UTF-8
+Delete and rename ignored -- there is no temp file: configurations\Belle Chasse ~ Head 1 - 395647 R0 & Head 2 - 395648 R0.config UTF-8
+Files are identical: configurations\XXtreme ~ 20 channels ~ 8 Long ~ 8 Trans ~ 4 Wall.config
+Success -- temp file renamed: configurations\XXtreme ~ 20 channels ~ 8 Long ~ 8 Trans ~ 4 Wall.config
+Files are identical: configurations\XXtreme ~ 40 channels ~ 8x2 Long ~ 8x2 Trans ~ 8 Wall.config
+Success -- temp file renamed: configurations\XXtreme ~ 40 channels ~ 8x2 Long ~ 8x2 Trans ~ 8 Wall.config
+
+Validating conversions and cleaning up orphans:
+
+
+
+
+All files converted successfully.

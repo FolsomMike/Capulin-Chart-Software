@@ -1336,6 +1336,9 @@ public void setMode(int pOpMode)
         hdwVs.trackToNearEndofPiece = false;
         hdwVs.nearEndOfPiece = false;
 
+        //reset length of tube
+        hdwVs.measuredLength = 0;
+        
         //ignore the Inspect status flags until a new packet is received
         controlBoards[0].setNewInspectPacketReady(false);
 

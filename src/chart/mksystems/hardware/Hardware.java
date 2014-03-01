@@ -778,6 +778,27 @@ public void setMode(int pOpMode)
 
     analogDriver.setMode(pOpMode);
 
+    //handle STOP mode
+    if (opMode == Hardware.STOP){
+        
+        //if the measuredLength is 0 when put in Stop mode, set to the length of
+        //tube which as been scanned (if any) so that the tube will have a valid
+        //number for length -- necessary for units without photoeyes for which
+        //the end of the tube is denoted by going to Stop mode
+
+        if (hdwVs.measuredLength == 0){
+
+            //calculate number counts recorded between start/stop eye triggers
+            int pieceLengthEncoderCounts =
+             Math.abs(inspectCtrlVars.encoder2 - inspectCtrlVars.encoder2Start);
+
+            //convert to inches
+            hdwVs.measuredLength =
+                              pieceLengthEncoderCounts * encoder2InchesPerCount;
+
+        }
+    }//end of if (opMode == Hardware.INSPECT)
+    
     //if in scan mode, enable flagging always
     if (opMode == Hardware.SCAN){
         hdwVs.head1Down = true; enableHeadTraceFlagging(1, true);
@@ -1286,7 +1307,7 @@ boolean collectEncoderDataInspectMode()
             hdwVs.trackToEndOfPiece = true;
             hdwVs.endOfPieceTracker = hdwVs.endOfPiecePosition;
 
-            //calculate number of counts recorded between start/stop eyes
+            //calculate number counts recorded between start/stop eye triggers
             int pieceLengthEncoderCounts =
              Math.abs(inspectCtrlVars.encoder2 - inspectCtrlVars.encoder2Start);
 
