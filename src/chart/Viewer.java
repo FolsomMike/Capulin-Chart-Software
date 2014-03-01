@@ -506,11 +506,10 @@ boolean isNumeric(char pChar)
     if (pChar == '6') {return true;}
     if (pChar == '7') {return true;}
     if (pChar == '8') {return true;}
-    if (pChar == '9') {return true;}
 
-    return false; //not numeric
+    return pChar == '9'; 
 
-}//end of Viewer::isNumeric
+}
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -639,13 +638,9 @@ void startPrint()
     //select the paper size according to what the user has selected
     if (settings.graphPrintLayout.contains("8-1/2 x 11")){
         aset.add(MediaSizeName.NA_LETTER);
-    }
-    else
-    if (settings.graphPrintLayout.contains("8-1/2 x 14")){
+    }else if (settings.graphPrintLayout.contains("8-1/2 x 14")){
         aset.add(MediaSizeName.NA_LEGAL);
-    }
-    else
-    if (settings.graphPrintLayout.contains("A4")){
+    }else if (settings.graphPrintLayout.contains("A4")){
         aset.add(MediaSizeName.ISO_A4);
     }
 
@@ -2216,6 +2211,7 @@ public void init()
 //
 
 @Override
+    @SuppressWarnings("UnnecessaryReturnStatement")
 public void actionPerformed(ActionEvent e)
 {
 

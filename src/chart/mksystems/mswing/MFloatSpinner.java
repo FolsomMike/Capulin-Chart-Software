@@ -5,7 +5,7 @@
 *
 * Purpose:
 *
-* This class creates a number editing spinner with a customizeable display
+* This class creates a number editing spinner with a customizable display
 * format most useful for floating point numbers.  The standard JSpinner
 * created with the SpinnerNumberModel will create a JSpinner.NumberEditor with
 * a default formatting pattern.  This subclass (MFloatSpinner) allows the
@@ -13,6 +13,92 @@
 *
 * This spinner can also be used for integers for consistency.
 *
+* How to Use MFloatSpinner
+*
+*   Creating the Objects
+* 
+* For double values:
+* 
+*    //set this spinner up for use with doubles
+*    //the format string "##0" has decimal places
+*    //use intSpinner1.getIntValue() to retrieve the value as an integer
+*    
+*    MFloatSpinner doubleSpinner1 = 
+*            new MFloatSpinner(5.5, 1.1, 9.9, 0.1, "##0.0", 60, 20);
+*    doubleSpinner1.setName("Double Spinner 1 -- used for doubles");
+*    doubleSpinner1.addChangeListener(this);
+*    doubleSpinner1.setToolTipText("This is float spinner #1!");
+*    mainPanel.add(doubleSpinner1);
+*
+* For integer values:
+* 
+*    MFloatSpinner doubleSpinner1 = 
+*            new MFloatSpinner(5.5, 1.1, 9.9, 0.1, "##0.0", 60, 20);
+*    doubleSpinner1.setName("Double Spinner 1 -- used for doubles");
+*    doubleSpinner1.addChangeListener(this);
+*    doubleSpinner1.setToolTipText("This is float spinner #1!");
+*    mainPanel.add(doubleSpinner1);
+*
+* Responding to Changes
+* 
+* When the value is changed, MFloatSpinners call their ChangeListener's
+* stateChanged method. So, in the above case, the class creating the objects
+* should implement ChangeListener since it passes "this" to the spinners as
+* their ChangeListener objects.
+* 
+* As such, the class should also contain the stateChanged method which can
+* handle spinner value changes as shown below:
+*
+* @Override
+* public void stateChanged(ChangeEvent ce)
+*
+*{
+*    
+*    //if for some reason the object which changed state is not a subclass of
+*   //of Component, do nothing as this code only handles Components
+*   
+*   if (!(ce.getSource() instanceof Component)) {
+*       return;
+*   }    
+*   
+*   //cast the object to a Component so it's methods can be accessed
+*   Component c = (Component)ce.getSource();
+*   
+*   String name = ((Component)ce.getSource()).getName();
+*       
+*   if (name.startsWith("Double Spinner 1")){
+*   
+*       //Since we know that the Component with the name starting with
+*       //"Double Spinner 1" is an MFloatSpinner (because we created it and
+*       // used that name for it), it can safely be cast to an MFloatSpinner.
+*       //Since the values in that spinner are meant to be doubles, the
+*       //getDoubleValue method is used to retrieve the value.
+*       
+*      double value = ((MFloatSpinner)c).getDoubleValue();
+*   
+*       view.setTextForDataTArea1("" + value);
+*       
+*   }
+*   
+*   if (name.startsWith("Integer Spinner 1")){
+*   
+*       //Since we know that the Component with the name starting with
+*       //"Integer Spinner 1" is an MFloatSpinner (because we created it and
+*       // used that name for it), it can safely be cast to an MFloatSpinner.
+*       //Since the values in that spinner are meant to be integers, the
+*       //getIntValue method is used to retrieve the value.
+*        
+*       int value = ((MFloatSpinner)c).getIntValue();
+*    
+*       view.setTextForDataTArea2("" + value);
+*        
+*    }
+* 
+* }//end of stateChanged
+* 
+* Details of Implementation
+*  (only needed for deeper understanding)
+* 
 * While the pattern can be changed after creating a standard JSpinner, the
 * size of the edit window also has to be adjusted because its size will already
 * have been determined using the default pattern.
