@@ -1519,9 +1519,9 @@ public void loadCalFile(IniFile pCalFile)
     }
 
     leadMaskPos = pCalFile.readDouble(
-                             section, "Leading Mask Position (inches)", 24.0);
+                             section, "Leading Mask Position (inches)", 6.0);
     trailMaskPos = pCalFile.readDouble(
-                             section, "Trailing Mask Position (inches)", 24.0);
+                             section, "Trailing Mask Position (inches)", 6.0);
 
 }//end of StripChart::loadCalFile
 //-----------------------------------------------------------------------------
