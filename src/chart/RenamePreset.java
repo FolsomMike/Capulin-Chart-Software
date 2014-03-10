@@ -280,26 +280,20 @@ boolean renamePreset()
 
 boolean validateFilename(String pString)
 {
-
+    
     //the matches function for the String class could not be used since it compares
     //the entire string - Internet search suggest using a Whitelist rather than a
     //Blacklist
-
-    if (pString.contains("<")  ||
-        pString.contains(">")  ||
-        pString.contains("/")  ||
-        pString.contains("?")  ||
-        pString.contains(":")  ||
-        pString.contains("\"") ||
-        pString.contains("\\") ||
-        pString.contains("|")  ||
-        pString.contains("*") ) {
-
-        return false;
-    }
-    else {
-        return true;
-    }
+        
+    return( !pString.contains("<") && 
+            !pString.contains(">") && 
+            !pString.contains("/") && 
+            !pString.contains("?") && 
+            !pString.contains(":") && 
+            !pString.contains("\"") && 
+            !pString.contains("\\") && 
+            !pString.contains("|") && 
+            !pString.contains("*"));
 
 }//end of RenamePreset::validateFilename
 //-----------------------------------------------------------------------------

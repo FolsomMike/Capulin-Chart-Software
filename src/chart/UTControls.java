@@ -620,20 +620,16 @@ void updateSignalModeControl()
     if (displayMode == 0) {
         posHalfRadioButton.setSelected(true);
     }
-    else
-    if (displayMode == 1) {
+    else if (displayMode == 1) {
         negHalfRadioButton.setSelected(true);
     }
-    else
-    if (displayMode == 2) {
+    else if (displayMode == 2) {
         fullWaveRadioButton.setSelected(true);
     }
-    else
-    if (displayMode == 3) {
+    else if (displayMode == 3) {
         rfRadioButton.setSelected(true);
     }
-    else
-    if (displayMode == 4) {
+    else if (displayMode == 4) {
         offRadioButton.setSelected(true);
     }
 
@@ -775,20 +771,16 @@ void setupSignalTab()
     if (displayMode == 0) {
         posHalfRadioButton.setSelected(true);
     }
-    else
-    if (displayMode == 1) {
+    else if (displayMode == 1) {
         negHalfRadioButton.setSelected(true);
     }
-    else
-    if (displayMode == 2) {
+    else if (displayMode == 2) {
         fullWaveRadioButton.setSelected(true);
     }
-    else
-    if (displayMode == 3) {
+    else if (displayMode == 3) {
         rfRadioButton.setSelected(true);
     }
-    else
-    if (displayMode == 4) {
+    else if (displayMode == 4) {
         offRadioButton.setSelected(true);
     }
 

@@ -1157,22 +1157,17 @@ void getDSPRamBlockChecksum()
     // blockSize is not used in current version
     //int blockSize =
     //        (int)((inBuffer[x++]<<8) & 0xff00) + ((inBuffer[x++]) & 0xff);
-
-    //look for the block entry which matches the chip, core, page and address
-
-    for (int i = 0; i < ramMemoryBlockChecksums.length; i++){
-        if ((!ramMemoryBlockChecksums[i].empty) &&
-            (ramMemoryBlockChecksums[i].chip == chip) &&
-            (ramMemoryBlockChecksums[i].core == core) &&
-            (ramMemoryBlockChecksums[i].page == page) &&
-            (ramMemoryBlockChecksums[i].startAddress == address)){
-
-            checksum = ramMemoryBlockChecksums[i].checksum;
-
+    for (
+      RamMemoryBlockChecksum ramMemoryBlockChecksum : ramMemoryBlockChecksums) {
+        if ((!ramMemoryBlockChecksum.empty)
+                && (ramMemoryBlockChecksum.chip == chip)
+                && (ramMemoryBlockChecksum.core == core)
+                && (ramMemoryBlockChecksum.page == page)
+                && (ramMemoryBlockChecksum.startAddress == address)) {
+            checksum = ramMemoryBlockChecksum.checksum;
             break;
-
-        }//if ((!ramMemoryBlockChecksums[i].empty) &&...
-    }// for (int i = 0; i < ramMemoryBlockChecksums.length; i++)
+        } //if ((!ramMemoryBlockChecksums[i].empty) &&...
+    } // for (int i = 0; i < ramMemoryBlockChecksums.length; i++)
 
 
     //send standard packet header

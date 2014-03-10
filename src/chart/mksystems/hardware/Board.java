@@ -464,7 +464,7 @@ void getRemoteDataBlock(byte pCommand, byte pQualifier, int pSize,
                                                                  int[] pBuffer)
 {
 
-    return; //debug mks - remove this line - reinsert next block
+    //debug mks - remove this line - reinsert next block
 
     /*
 

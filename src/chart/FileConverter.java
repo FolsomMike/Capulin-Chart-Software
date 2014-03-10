@@ -273,13 +273,10 @@ private boolean convertFiles(String pExtension, String pPath)
                 + "' in folder '" + pPath + "'");
         return(convertFilesGood); //this is not an error
     }
-
-    for (int i = 0; i < files.length; i++){
-
-        filename = pPath + "/" + files[i];
-
+    
+    for (String file1 : files) {
+        filename = pPath + "/" + file1;
         file = new File(filename);
-
         //convert only normal files -- ignore directories -- if an error occurs
         //with any file, record the error
         if (file.isFile()) {
@@ -287,8 +284,7 @@ private boolean convertFiles(String pExtension, String pPath)
                 convertFilesGood = false;
             }
         }
-
-    }//for (int i = 0...
+    } //for (String file1 : files)
 
     return(convertFilesGood);
 

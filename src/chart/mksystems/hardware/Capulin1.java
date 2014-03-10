@@ -383,7 +383,7 @@ public void connectControlBoard(NetworkInterface pNetworkInterface)
             if (pNetworkInterface != null) {
                 try{
                     socket.setNetworkInterface(pNetworkInterface);
-                }catch (IOException e) {}//let system bind to default interface
+                }catch (SocketException e) {}//let system bind to default interface
             }
         }
         else {socket = new UDPSimulator(4445, "Control Board present...");}
@@ -557,7 +557,7 @@ public synchronized void connectUTBoards(NetworkInterface pNetworkInterface)
             if (pNetworkInterface != null) {
                 try{
                     socket.setNetworkInterface(pNetworkInterface);
-                }catch (IOException e) {}//let system bind to default interface
+                }catch (SocketException e) {}//let system bind to default interface
             }
         }
         else {
@@ -879,11 +879,8 @@ public void initializeUTBoards()
 
 private void linkPlottersToBoards()
 {
-
-    for (int i = 0; i < chartGroups.length; i++){
-
-        ChartGroup cg = chartGroups[i];
-
+    
+    for (ChartGroup cg : chartGroups) {
         for (int j = 0; j < cg.getNumberOfStripCharts(); j++){
 
             StripChart sc = cg.getStripChart(j);
@@ -892,17 +889,15 @@ private void linkPlottersToBoards()
 
                 Plotter p = sc.getPlotter(k);
 
-               for (int l = 0; l < numberOfUTBoards; l++) {
-                   UTBoard utb = utBoards[l];
-                   if(isPlotterConnectedToBoard(p, utb)){
-                       utb.setMap2D((Map2D)p);
+                for (int l = 0; l < numberOfUTBoards; l++) {
+                    UTBoard utb = utBoards[l];
+                    if(isPlotterConnectedToBoard(p, utb)){
+                        utb.setMap2D((Map2D)p);
                     }
                 }
             }
         }
     }
-
-
 
 }//end of Capulin1::linkPlottersToBoards
 //-----------------------------------------------------------------------------
@@ -1216,9 +1211,6 @@ public void saveCalFileHumanReadable(BufferedWriter pOut) throws IOException
 @Override
 public void displayMessages()
 {
-
-    //if another function is using the socket, don't read messages from it
-    if (!logEnabled) {return;}
 
 }//end of Capulin1::displayMessages
 //-----------------------------------------------------------------------------
@@ -2631,12 +2623,11 @@ void enableWallMapPackets()
 
     //lock in the synced value since it is used multiple times here
     boolean enable = wallMapPacketsEnabled.applyValue();
-
-    for (int i = 0; i < mapSourceBoards.length; i++){
-        if (mapSourceBoards[i].utBoard != null){
-            mapSourceBoards[i].utBoard.enableWallMapPackets(enable);
+        for (MapSourceBoard mapSourceBoard : mapSourceBoards) {
+            if (mapSourceBoard.utBoard != null) {
+                mapSourceBoard.utBoard.enableWallMapPackets(enable);
+            }
         }
-    }
 
 }//end of Capulin1::enableWallMapPackets
 //-----------------------------------------------------------------------------
@@ -2653,12 +2644,11 @@ void setMapAdvanceModes(int pMode)
 {
 
     if (mapSourceBoards == null) { return; }
-
-    for (int i = 0; i < mapSourceBoards.length; i++){
-        if (mapSourceBoards[i].utBoard != null){
-            mapSourceBoards[i].utBoard.setMapAdvanceMode(pMode);
+        for (MapSourceBoard mapSourceBoard : mapSourceBoards) {
+            if (mapSourceBoard.utBoard != null) {
+                mapSourceBoard.utBoard.setMapAdvanceMode(pMode);
+            }
         }
-    }
 
 }//end of Capulin1::setMapAdvanceModes
 //-----------------------------------------------------------------------------
@@ -2682,14 +2672,11 @@ public void triggerMapAdvance(double pPosition)
 {
 
     if (mapSourceBoards == null) { return; }
-
-    for (int i = 0; i < mapSourceBoards.length; i++){
-
-        UTBoard utBoard = mapSourceBoards[i].utBoard;
-
+    
+    for (MapSourceBoard mapSourceBoard : mapSourceBoards) {
+        UTBoard utBoard = mapSourceBoard.utBoard;
         if (utBoard != null){
             if (utBoard.mapSensorDelayDistance > pPosition ) {
-                continue;
             }
             else{
                 utBoard.triggerMapAdvance();
@@ -2749,10 +2736,8 @@ private void recordStartLocationForMapping(int pHead, double pPosition)
 
     if (mapSourceBoards == null) { return; }
 
-    for (int i = 0; i < mapSourceBoards.length; i++){
-
-        UTBoard utBoard = mapSourceBoards[i].utBoard;
-
+    for (MapSourceBoard mapSourceBoard : mapSourceBoards) {
+        UTBoard utBoard = mapSourceBoard.utBoard;
         if (utBoard != null){
 
             utBoard.recordStartLocationForMapping(pHead, pPosition);
@@ -2781,11 +2766,9 @@ private void recordStopLocationForMapping(int pHead, double pPosition)
 {
 
     if (mapSourceBoards == null) { return; }
-
-    for (int i = 0; i < mapSourceBoards.length; i++){
-
-        UTBoard utBoard = mapSourceBoards[i].utBoard;
-
+    
+    for (MapSourceBoard mapSourceBoard : mapSourceBoards) {
+        UTBoard utBoard = mapSourceBoard.utBoard;
         if (utBoard != null){
 
             utBoard.recordStopLocationForMapping(pHead, pPosition);
@@ -2843,31 +2826,29 @@ public void calculateMapOffsetDelays(
 {
 
     if(mapSourceBoards == null) { return; }
-
-    for (int i = 0; i < mapSourceBoards.length; i++){
-
-        UTBoard utBoard = mapSourceBoards[i].utBoard;
-
+    
+    for (MapSourceBoard mapSourceBoard : mapSourceBoards) {
+        UTBoard utBoard = mapSourceBoard.utBoard;
         if (utBoard != null && utBoard.headForMapDataSensor == 1){
 
             utBoard.startFwdDelayDistance = pPhotoEye1DistanceFrontOfHead1
-                                  + utBoard.distanceMapSensorToFrontEdgeOfHead;
+                    + utBoard.distanceMapSensorToFrontEdgeOfHead;
 
             utBoard.startRevDelayDistance = pPhotoEye2DistanceFrontOfHead1 -
-                                    utBoard.distanceMapSensorToFrontEdgeOfHead;
+                    utBoard.distanceMapSensorToFrontEdgeOfHead;
 
         }//if (utBoard != null && utBoard.headForMapDataSensor == 1)
         else
-        if (utBoard != null && utBoard.headForMapDataSensor == 1){
+            if (utBoard != null && utBoard.headForMapDataSensor == 1){
 
-            utBoard.startFwdDelayDistance = pPhotoEye1DistanceFrontOfHead2
-                                + utBoard.distanceMapSensorToFrontEdgeOfHead;
+                utBoard.startFwdDelayDistance = pPhotoEye1DistanceFrontOfHead2
+                        + utBoard.distanceMapSensorToFrontEdgeOfHead;
 
-            utBoard.startRevDelayDistance = pPhotoEye2DistanceFrontOfHead2
-                                  - utBoard.distanceMapSensorToFrontEdgeOfHead;
+                utBoard.startRevDelayDistance = pPhotoEye2DistanceFrontOfHead2
+                        - utBoard.distanceMapSensorToFrontEdgeOfHead;
 
-        }//if (utBoard != null && utBoard.headForMapDataSensor == 1)
-    }//for (int i = 0; i < mapSourceBoards.length; i++)
+            }//if (utBoard != null && utBoard.headForMapDataSensor == 1)
+    } //for (int i = 0; i < mapSourceBoards.length; i++)
 
 }//end of Capulin1::calculateMapOffsetDelays();
 //-----------------------------------------------------------------------------
@@ -2910,10 +2891,8 @@ public void initializeMapOffsetDelays(int pDirection, int pAwayDirection)
 
     if (mapSourceBoards == null) { return; }
 
-    for (int i = 0; i < mapSourceBoards.length; i++){
-
-        UTBoard utBoard = mapSourceBoards[i].utBoard;
-
+    for (MapSourceBoard mapSourceBoard : mapSourceBoards) {
+        UTBoard utBoard = mapSourceBoard.utBoard;
         if (utBoard != null){
 
             //set all map plotters as the lead plotter -- there should only
@@ -2933,7 +2912,7 @@ public void initializeMapOffsetDelays(int pDirection, int pAwayDirection)
                 utBoard.mapSensorDelayDistance = utBoard.startRevDelayDistance;
             }
         }//if (utBoard != null){
-    }//for (int i = 0; i < mapSourceBoards.length; i++)
+    } //for (int i = 0; i < mapSourceBoards.length; i++)
 
 }//end of Hardware::initializeMapOffsetDelays
 //-----------------------------------------------------------------------------

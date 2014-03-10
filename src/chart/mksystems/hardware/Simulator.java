@@ -392,7 +392,7 @@ public int getIntFromSocket()
 // Logs pMessage with level SEVERE using the Java logger.
 //
 
-void logSevere(String pMessage)
+final void logSevere(String pMessage)
 {
 
     Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage);

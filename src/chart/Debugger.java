@@ -554,28 +554,20 @@ public void actionPerformed(ActionEvent e)
     }
 
     if (dspChip1.isSelected()) {whichDSPChip = 1;}
-    else
-    if (dspChip2.isSelected()) {whichDSPChip = 2;}
+    else if (dspChip2.isSelected()) {whichDSPChip = 2;}
 
     if (dspCoreA.isSelected()) {whichDSPCore = 1;}
-    else
-    if (dspCoreB.isSelected()) {whichDSPCore = 2;}
-    else
-    if (dspCoreC.isSelected()) {whichDSPCore = 3;}
-    else
-    if (dspCoreD.isSelected()) {whichDSPCore = 4;}
+    else if (dspCoreB.isSelected()) {whichDSPCore = 2;}
+    else if (dspCoreC.isSelected()) {whichDSPCore = 3;}
+    else if (dspCoreD.isSelected()) {whichDSPCore = 4;}
 
     if (ramLocal.isSelected()) {ramType = 0;}
-    else
-    if (ramShared.isSelected()) {ramType = 1;}
+    else if (ramShared.isSelected()) {ramType = 1;}
 
     if (ramPage0.isSelected()) {ramPage = 0;}
-    else
-    if (ramPage1.isSelected()) {ramPage = 1;}
-    else
-    if (ramPage2.isSelected()) {ramPage = 2;}
-    else
-    if (ramPage3.isSelected()) {ramPage = 3;}
+    else if (ramPage1.isSelected()) {ramPage = 1;}
+    else if (ramPage2.isSelected()) {ramPage = 2;}
+    else if (ramPage3.isSelected()) {ramPage = 3;}
 
     //write the data to the specified address
     if (e.getActionCommand().equalsIgnoreCase("Modify")){
@@ -729,13 +721,13 @@ void refreshDisplayedStates()
     //that all screen settings match the actual settings
 
     samplingEnabled.setSelected(
-                hardware.getState(chassisNum, slotNum, 0) == 0 ? false:true);
+                (hardware.getState(chassisNum, slotNum, 0) != 0));
 
     dspRunEnabled.setSelected(
-                hardware.getState(chassisNum, slotNum, 1) == 0 ? false:true);
+                (hardware.getState(chassisNum, slotNum, 1) != 0));
 
     testDataEnabled.setSelected(
-                hardware.getState(chassisNum, slotNum, 2) == 0 ? false:true);
+                (hardware.getState(chassisNum, slotNum, 2) != 0));
 
 }//end of Debugger::refreshDisplayedStates
 //-----------------------------------------------------------------------------

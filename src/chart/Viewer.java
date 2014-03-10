@@ -2211,7 +2211,6 @@ public void init()
 //
 
 @Override
-    @SuppressWarnings("UnnecessaryReturnStatement")
 public void actionPerformed(ActionEvent e)
 {
 

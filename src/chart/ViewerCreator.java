@@ -268,7 +268,6 @@ public void run() {
 
     }//try
     catch (InterruptedException e) {
-        return;
     }
     finally{
 
@@ -409,7 +408,7 @@ private boolean createFolder(String pNewFolder)
         //okay if already exists -- existing folder will be used
         return(true);
     }
-    catch(Exception e){
+    catch(IOException e){
         success = false;
         errorMessage = e.getMessage() + "; Cannot create folder: " + pNewFolder;
         return(false); //error on any other exception

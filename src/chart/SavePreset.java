@@ -138,7 +138,7 @@ void loadPresetList()
     String[] configs = jobDir.list();
 
     //create a list to hold the items
-    presetList = new ArrayList<String>();
+    presetList = new ArrayList<>();
     presetList.addAll(Arrays.asList(configs));
     //sort the items alphabetically
     Collections.sort(presetList);
@@ -280,25 +280,21 @@ boolean savePreset()
 boolean validateFilename(String pString)
 {
 
-    //the matches function for the String class could not be used since it compares
-    //the entire string - Internet search suggest using a Whitelist rather than a
-    //Blacklist
-
-    if (pString.contains("<")  ||
-        pString.contains(">")  ||
-        pString.contains("/")  ||
-        pString.contains("?")  ||
-        pString.contains(":")  ||
-        pString.contains("\"") ||
-        pString.contains("\\") ||
-        pString.contains("|")  ||
-        pString.contains("*") ) {
-
-        return false;
-    }
-    else {
-        return true;
-    }
+//the matches function for the String class could not be used since it compares
+//the entire string - Internet search suggest using a Whitelist rather than a
+//Blacklist
+    
+    
+    return( 
+            !pString.contains("<") && 
+            !pString.contains(">") && 
+            !pString.contains("/") && 
+            !pString.contains("?") && 
+            !pString.contains(":") && 
+            !pString.contains("\"") && 
+            !pString.contains("\\") && 
+            !pString.contains("|") && 
+            !pString.contains("*"));
 
 }//end of SavePreset::validateFilename
 //-----------------------------------------------------------------------------

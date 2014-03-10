@@ -229,7 +229,7 @@ public void saveToFileThreadSafe()
 
         file.println(log.getText().replace("\n", lineSeparator));
 
-        if (file != null) {file.close();}
+        file.close();
 
     }
     catch(IOException e){

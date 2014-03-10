@@ -949,7 +949,7 @@ public void loadJobInfo()
             + " Job Info.ini", settings.jobFileFormat);
         jobInfoFile.init();
     }
-    catch(IOException e){return;}
+    catch(IOException e){}
 
 }//end of FlagReportPrinter::loadJobInfo
 //-----------------------------------------------------------------------------

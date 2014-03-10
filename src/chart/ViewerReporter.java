@@ -680,8 +680,7 @@ static public boolean matchAndParseBoolean(String pString, String pKey,
         if (pMatchVars.rString1.equalsIgnoreCase("true")) {
             pMatchVars.rBoolean1 = true;
         }
-        else
-        if (pMatchVars.rString1.equalsIgnoreCase("false")) {
+        else if (pMatchVars.rString1.equalsIgnoreCase("false")) {
             pMatchVars.rBoolean1 = false;
         }
         else {

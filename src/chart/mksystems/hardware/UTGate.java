@@ -187,7 +187,7 @@ public void init()
     //         the UT calibrator window and make it look bad.
 
     //processing options for a normal gate
-    flawGateProcessList = new ArrayList<String>();
+    flawGateProcessList = new ArrayList<>();
     flawGateProcessList.add("peak");
     //option to integrate signal above the gate
     flawGateProcessList.add("enhance above gate");

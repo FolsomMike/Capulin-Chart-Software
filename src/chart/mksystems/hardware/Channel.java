@@ -218,8 +218,8 @@ public void initialize()
     if (utBoard != null && utBoard.getType() == UTBoard.RABBIT_FLAW_WALL_MODE){
         lDSPControlFlags |= UTBoard.DSP_FLAW_WALL_MODE;
     }
-    else
-    if (utBoard != null && utBoard.getType() == UTBoard.RABBIT_WALL_MAP_MODE){
+    else if (
+       utBoard != null && utBoard.getType() == UTBoard.RABBIT_WALL_MAP_MODE){
         lDSPControlFlags |= UTBoard.DSP_WALL_MAP_MODE;
     }
 

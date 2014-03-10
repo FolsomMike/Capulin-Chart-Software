@@ -322,7 +322,7 @@ public void createFolder(Path pFolder)
     catch(FileAlreadyExistsException e){
         //okay if already exists -- existing folder will be used
     }
-    catch(Exception e){
+    catch(IOException e){
         success = false;
         errorMessage = e.getMessage() + "; Unable to create: " + pFolder;
     }

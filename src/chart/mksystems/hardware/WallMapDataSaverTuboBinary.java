@@ -430,10 +430,9 @@ public void saveToFile(String pFilename)
 
         //collect job info into local variables
         setUpJobInfo();
-
-        //prepare to find revolutions and prepare data for saving
-        for (int i = 0; i < mapSourceBoards.length; i++){
-            mapSourceBoards[i].setUpForSavingData();
+        
+        for (MapSourceBoard mapSourceBoard : mapSourceBoards) {
+            mapSourceBoard.setUpForSavingData();
         }
 
         //debug mks -- remove this
@@ -479,9 +478,9 @@ public void saveToFile(String pFilename)
 
 private void setDataBufferIsEnabled(boolean pState)
 {
-
-    for (int i = 0; i < mapSourceBoards.length; i++){
-        mapSourceBoards[i].utBoard.setDataBufferIsEnabled(pState);
+    
+    for (MapSourceBoard mapSourceBoard : mapSourceBoards) {
+        mapSourceBoard.utBoard.setDataBufferIsEnabled(pState);
     }
 
 }//end of WallMapDataSaverTuboBinary::setDataBufferIsEnabled
@@ -829,11 +828,7 @@ private void saveRevolution(int pRevolutionNumber) throws IOException
     //find endpoints of the next revolution in the databuffer, etc.
     prepareToExtractNextRevolutionFromDataBuffer();
 
-    // write the data
-
-    // convert the number of samples to a WORD and then write to the file
-    for (int i = 0; i < mapSourceBoards.length; i++){
-
+    for (MapSourceBoard mapSourceBoard : mapSourceBoards) {
         //the number of samples will vary between the boards, the max number
         //from any board is used instead with missing samples in the other
         //boards filled at write time
@@ -893,23 +888,14 @@ private void writeWallReadingsForRevolution(int pRevolutionNumber)
         //the most samples in the current revolution
 
         if(i < mostNumberOfSamplesPerRev){
-
-            for(int j = 0; j < mapSourceBoards.length; j++){
-
-                //get samples from each board until end of revolution reached
-                //(different for each board as each will have a slightly
-                // different number of samples/rev), then use filler data
-
-                //the source boards are already stored in the array in order
-                //of their map channels
-
-                MapSourceBoard mapSourceBoard = mapSourceBoards[j];
-
+            
+            for (MapSourceBoard mapSourceBoard : mapSourceBoards) {
+                
                 if (mapSourceBoard.sampleIndex < mapSourceBoard.revEndIndex) {
 
                     int TOF = mapSourceBoard.
-                                      dataBuffer[mapSourceBoard.sampleIndex++];
-
+                            dataBuffer[mapSourceBoard.sampleIndex++];
+                    
                     double lWall = (TOF * 0.015 * .233) / 2;
 
                     wallWord.value = (int)(lWall * 1000);
@@ -921,12 +907,10 @@ private void writeWallReadingsForRevolution(int pRevolutionNumber)
                 }
 
                 writeWORDToOutFile(wallWord);
-
-            }//for(int j = 0; j < mapSourceBoards.length; j++)
+            }
         }//if(i < mostNumberOfSamplesPerRev)
         else{
-            //write zeroes to fill out the block length
-            for(int j = 0; j < mapSourceBoards.length; j++){
+            for (MapSourceBoard mapSourceBoard : mapSourceBoards) {
                 writeWORDToOutFile(fillerWord);
             }
         }//else
@@ -1315,9 +1299,8 @@ private void readRevolution(int pRevolutionNumber,
                                                             throws IOException
 {
 
-    //number of samples for each channel in the revolution
-    for (int i = 0; i < nNumAscan.length; i++){
-        nNumAscan[i].read(inFile);
+    for (WORD nNumAscan1 : nNumAscan) {
+            nNumAscan1.read(inFile);
     }
 
     //this is the location of the current revolution measured in number of
@@ -1359,12 +1342,12 @@ private void readWallReadingsForRevolution() throws IOException
     while(i < NUM_MAX_ASCAN){
 
         if(i < nNumAscan[0].value){
-            for(int j = 0; j < wall.length; j++){
-                wall[j].read(inFile);
+            for (WORD wall1 : wall) {
+                wall1.read(inFile);
             }
         }
         else{
-            for(int j = 0; j < wall.length; j++){
+            for (WORD wall1 : wall) {
                 skipPadding = inFile.readByte();
                 skipPadding = inFile.readByte();
             }

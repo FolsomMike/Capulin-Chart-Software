@@ -19,7 +19,6 @@ package chart.mksystems.tools;
 
 //-----------------------------------------------------------------------------
 
-import chart.ControlPanel;
 import java.awt.Image;
 import java.awt.Window;
 import java.util.ArrayList;

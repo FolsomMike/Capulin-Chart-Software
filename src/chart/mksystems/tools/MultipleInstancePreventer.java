@@ -21,6 +21,7 @@ package chart.mksystems.tools;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
@@ -135,7 +136,7 @@ static public void removeLock()
           fileLock.release();
           lockChannel.close();
           lockFile.delete();
-        } catch (Exception e) {
+        } catch (IOException e) {
           System.out.println(
                   "Error while closing the lock socket: " + e.getMessage());
         }

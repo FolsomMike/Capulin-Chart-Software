@@ -475,13 +475,9 @@ public boolean handleJobInfoConfigFileBackupRestoreFailure(
             + " was damaged or missing and replaced with the default version.");
     }
 
-    //if file could not be copied to either directory, return error
-    if (!successP || !successB) {
-        return false;
-    }
-    else {
-        return true;
-    }
+    
+    //if file was copied to both directories, return true
+    return (successP && successB);
 
 }//end of JobValidator::handleJobInfoConfigFileBackupRestoreFailure
 //-----------------------------------------------------------------------------

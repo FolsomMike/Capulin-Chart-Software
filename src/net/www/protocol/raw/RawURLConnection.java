@@ -87,7 +87,8 @@ RawURLConnection ( URL url, String pRawType ) throws IOException {
                            + "InputStream";
         cis = (RawInputStream)Class.forName(name).newInstance();
     }
-    catch ( Exception e ) {
+    catch ( ClassNotFoundException | 
+            InstantiationException | IllegalAccessException e ) {
         System.err.println(getClass().getName() + " - Error: 58");
     }
 

@@ -91,8 +91,7 @@ public void init()
     setMaximumSize(new Dimension(panelWidth, panelHeight));
 
     //create red and black fonts for use with display objects
-    Hashtable<TextAttribute, Object> map =
-                new Hashtable<TextAttribute, Object>();
+    Hashtable<TextAttribute, Object> map = new Hashtable<>();
     blackFont = new Font("Dialog", Font.PLAIN, 12);
     map.put(TextAttribute.FOREGROUND, Color.RED);
     redFont = blackFont.deriveFont(map);
@@ -196,7 +195,6 @@ public void actionPerformed(ActionEvent e)
         //pass the command back to the main function
         actionListener.actionPerformed(
                               new ActionEvent(this, 1, "Pulse Audible Alarm"));
-        return;
     }
 
 }//end of Monitor::actionPerformed

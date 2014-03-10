@@ -460,7 +460,7 @@ public void drawKeyLabel(Graphics2D pG2)
     //set the background color for the text to white so that most colors are
     //more visible
 
-    HashMap<TextAttribute, Object> map = new HashMap<TextAttribute, Object>();
+    HashMap<TextAttribute, Object> map = new HashMap<>();
 
     Font font = new Font(Font.SERIF, Font.PLAIN, 12);
 

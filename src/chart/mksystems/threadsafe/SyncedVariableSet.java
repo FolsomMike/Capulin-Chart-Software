@@ -60,7 +60,7 @@ public class SyncedVariableSet extends Object{
 
     private boolean dataChangedMaster = false;
 
-    private ArrayList<SyncedVariable> variableList;
+    private final ArrayList<SyncedVariable> variableList;
 
 //-----------------------------------------------------------------------------
 // SyncedVariableSet::SyncedVariableSet (constructor)
@@ -71,7 +71,7 @@ public SyncedVariableSet()
 {
 
     //create an ArrayList for the SyncedVariable objects managed by this object
-    variableList = new ArrayList<SyncedVariable>(100);
+    variableList = new ArrayList<>(100);
 
 }//end of SyncedVariableSet::SyncedVariableSet (constructor)
 //-----------------------------------------------------------------------------

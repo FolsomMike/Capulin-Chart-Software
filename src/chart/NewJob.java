@@ -423,26 +423,17 @@ void createJob()
 
 boolean validateFilename(String pString)
 {
-
-    //the matches function for the String class could not be used since it
-    //compares the entire string - Internet search suggest using a Whitelist
-    //rather than a Blacklist
-
-    if (pString.contains("<")  ||
-        pString.contains(">")  ||
-        pString.contains("/")  ||
-        pString.contains("?")  ||
-        pString.contains(":")  ||
-        pString.contains("\"") ||
-        pString.contains("\\") ||
-        pString.contains("|")  ||
-        pString.contains("*") ) {
-
-        return false;
-    }
-    else {
-        return true;
-    }
+    
+//the matches function for the String class could not be used since it
+//compares the entire string - Internet search suggest using a Whitelist
+//rather than a Blacklist
+    
+        return (
+           !pString.contains("<") && !pString.contains(">") && 
+           !pString.contains("/") && !pString.contains("?") &&
+           !pString.contains(":") && !pString.contains("\"") &&
+           !pString.contains("\\") && !pString.contains("|") &&
+           !pString.contains("*"));
 
 }//end of NewJob::validateFilename
 //-----------------------------------------------------------------------------
@@ -522,9 +513,10 @@ void createPlaceHolderCalFile(String pFilename)
     //don't put any text in the file or it will remain there even when the
     //new proper cal file is created as it appends rather than overwrites
 
-    file.println("\n");
-
-    file.close();
+    if (file != null){
+        file.println("\n");
+        file.close();
+    }
 
 }//end of NewJob::createPlaceHolderCalFile
 //-----------------------------------------------------------------------------

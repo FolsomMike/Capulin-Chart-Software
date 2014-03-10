@@ -1009,8 +1009,7 @@ if (e.getActionCommand().equals("Copy to All")){
     if (settings.copyToAllMode == 0) {
         copyToAllChannelsForCurrentChart();
     }
-    else
-    if (settings.copyToAllMode == 1) {
+    else if (settings.copyToAllMode == 1) {
         copyToAllChannelsForAllCharts();
     }
 

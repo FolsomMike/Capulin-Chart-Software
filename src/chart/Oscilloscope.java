@@ -266,8 +266,7 @@ public void displayData(int pRange, int pInterfaceCrossingPosition,
 
         //limit y before inverse to prevent problems
          if (yPos < 0) {yPos = 0;}
-         else
-         if (yPos > maxY) {yPos = maxY;}
+         else if (yPos > maxY) {yPos = maxY;}
 
          //invert y value so 0,0 is at bottom left, then shift by vertOffset
          int yInv = maxY - yPos;
