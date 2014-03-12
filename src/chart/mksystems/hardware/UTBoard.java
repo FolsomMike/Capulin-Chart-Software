@@ -4957,8 +4957,7 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
                 //wall trace with it
                 //NOTE: need to add the threshold to the config file so it is
                 // programmable.
-                if ((hdwVs.nearStartOfPiece || hdwVs.nearEndOfPiece)
-                                                && hdwVs.wallMinModifier > 30) {
+                if (hdwVs.wallMinModifier > 50) {
                     minThickness -= hdwVs.wallMinModifier;
                     hdwVs.wallMinModifier = Integer.MIN_VALUE;
                     }

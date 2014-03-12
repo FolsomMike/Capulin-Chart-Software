@@ -116,7 +116,7 @@ public class HardwareVars extends Object{
     //configuration file -- the values are used to modify the wall traces so
     //that a flaw gate can create a spike on the wall trace(s)
     public int wallMaxModifier;
-    public int wallMinModifier;
+    public int wallMinModifier =  Integer.MIN_VALUE;
 
 }//end of class HardwareVars
 //-----------------------------------------------------------------------------
