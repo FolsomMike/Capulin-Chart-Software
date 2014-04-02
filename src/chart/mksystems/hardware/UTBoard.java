@@ -1649,7 +1649,7 @@ void setRepRateInHertz(int pValue)
 
     //limit to a safe value - if the rep rate is too high and the pulse width
     //too wide, the pulser circuitry will have an excessive duty cycle and burn
-    //up 4166 is twice 2Khz for 4 channels - a reasonable maximum
+    //up; 4166 is twice 2Khz for 4 banks - a reasonable maximum
     // (a smaller value is a higher rep rate)
     if (repRate < 4166 || repRate > 65535 ) {repRate = 33333;}
 
