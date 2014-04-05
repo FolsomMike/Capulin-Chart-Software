@@ -787,6 +787,13 @@ public void setMode(int pOpMode)
             hdwVs.measuredLength =
                               pieceLengthEncoderCounts * encoder2InchesPerCount;
 
+            //the distance between the vertical eyes is not accounted for
+            //when calculating the distance travelled when the STOP mode is
+            //entered -- the trailing photo-eye may not even have reached the
+            //end of the test piece -- the calculation in this case is merely
+            //a rough estimate to determine if any inspection occurred so that
+            //the data can be saved if a partial run was made
+            
         }
     }//end of if (opMode == Hardware.INSPECT)
     
@@ -1293,11 +1300,6 @@ boolean collectEncoderDataInspectMode()
             //position
             hdwVs.trackToNearEndofPiece = true;
 
-            //use tracking counter to delay after leading photo eye cleared
-            //until end of piece
-            hdwVs.trackToEndOfPiece = true;
-            hdwVs.endOfPieceTracker = hdwVs.endOfPiecePosition;
-
             //calculate number counts recorded between start/stop eye triggers
             int pieceLengthEncoderCounts =
              Math.abs(inspectCtrlVars.encoder2 - inspectCtrlVars.encoder2Start);
@@ -1315,16 +1317,6 @@ boolean collectEncoderDataInspectMode()
             hdwVs.measuredLength /= 12; //convert to decimal feet
 
             hdwVs.watchForOffPipe = false;
-
-            //debug mks -- next flag set added because the Belle Chasse unit
-            //does not turn the encoder after the home end of the pipe is passed
-            //because the belt gets lifted off the encoder
-            //previously this flag would only be set if the encoder turned a bit
-
-            //wip mks -- isn't this a problem? Saves data immediately after
-            // photo eye clears instead of waiting until lifted ducer reaches
-            // end of pipe? Does it mess up length measurement or is that
-            // done some other way?
 
             //set flag to force preparation for a new piece
             prepareForNewPiece = true;
@@ -1556,17 +1548,6 @@ void moveTracesForward(Trace pTrace, int pPixelsMoved, double pPosition)
             }
         }
 
-        if (hdwVs.trackToEndOfPiece){
-            if (hdwVs.endOfPieceTracker != 0){
-                hdwVs.endOfPieceTracker--;
-            }
-            else{
-                hdwVs.trackToEndOfPiece = false;
-
-                //set flag to force preparation for a new piece
-                prepareForNewPiece = true;
-            }
-        }
     }//for (int x = 0; x < pixelsMoved; x++){
 
 }//end of Hardware::moveTracesForward
