@@ -343,7 +343,7 @@ boolean waitForNumberOfBytes(int pNumBytes)
 
     return(false);
 
-}//end of Board::readBytes
+}//end of Board::waitForNumberOfBytes
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

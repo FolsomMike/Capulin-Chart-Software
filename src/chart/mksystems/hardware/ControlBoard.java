@@ -35,7 +35,7 @@ public class ControlBoard extends Board implements MessageLink,
                                                     AudibleAlarmController{
 
     byte[] monitorBuffer;
-    static int MONITOR_PACKET_SIZE = 25;
+    byte[] allEncoderValuesBuf;
     String fileFormat;
 
     int packetRequestTimer = 0;
@@ -56,6 +56,13 @@ public class ControlBoard extends Board implements MessageLink,
     int encoder2, prevEncoder2;
     int encoder1Dir, encoder2Dir;
 
+    int encoderPosAtOnPipeSignal = 0;
+    int encoderPosAtOffPipeSignal = 0;
+    int encoderPosAtHead1DownSignal = 0;
+    int encoderPosAtHead1UpSignal = 0;
+    int encoderPosAtHead2DownSignal = 0;
+    int encoderPosAtHead2UpSignal = 0;
+    
     int inspectPacketCount = 0;
 
     boolean onPipeFlag = false;
@@ -83,9 +90,10 @@ public class ControlBoard extends Board implements MessageLink,
     // transmit tracking pulse to DSPs for every o'clock position and a reset
     // pulse at every TDC
     static final int RABBIT_SEND_CLOCK_MARKERS = 0x0001;
-    // transmit a single pulse at every TDC detection and a reset pulse for
-    // every linear advance of one step
-    static final int RABBIT_SEND_TDC_AND_LINEAR_MARKERS = 0x0002;
+    // transmit a single pulse at every TDC detection
+    static final int RABBIT_SEND_TDC = 0x0002;
+    // enables sending of track sync pulses (doesn't affect track reset pulses)
+    static final int TRACK_PULSES_ENABLED = 0x0004;
 
     //Commands for Control boards
     //These should match the values in the code for those boards.
@@ -108,16 +116,20 @@ public class ControlBoard extends Board implements MessageLink,
     static byte DATA_CMD = 15;
     static byte GET_CHASSIS_SLOT_ADDRESS_CMD = 16;
     static byte SET_CONTROL_FLAGS_CMD = 17;
+    static byte RESET_TRACK_COUNTERS_CMD = 18;
+    static byte GET_ALL_ENCODER_VALUES_CMD = 19;
 
     static byte ERROR = 125;
     static byte DEBUG_CMD = 126;
     static byte EXIT_CMD = 127;
-
+    
     //Status Codes for Control boards
     //These should match the values in the code for those boards.
 
     static byte NO_STATUS = 0;
 
+    static int MONITOR_PACKET_SIZE = 25;
+    static int ALL_ENCODERS_PACKET_SIZE = 24;    
     static int RUNTIME_PACKET_SIZE = 2048;
 
     //Masks for the Control Board inputs
@@ -174,6 +186,8 @@ public void init()
 
     monitorBuffer = new byte[MONITOR_PACKET_SIZE];
 
+    allEncoderValuesBuf = new byte[ALL_ENCODERS_PACKET_SIZE];
+    
     //read the configuration file and create/setup the charting/control elements
     configure(configFile);
 
@@ -257,12 +271,49 @@ void parsePositionTrackingMode(String pValue)
         case "Send Clock Markers":
             rabbitControlFlags |= RABBIT_SEND_CLOCK_MARKERS;
             break;
-        case "Send TDC and Linear Markers":
-            rabbitControlFlags |= RABBIT_SEND_TDC_AND_LINEAR_MARKERS;
+        case "Send TDC Markers":
+            rabbitControlFlags |= RABBIT_SEND_TDC;
             break;
     }
 
 }//end of ControlBoard::parsePositionTrackingMode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlBoard::setTrackPulsesEnabledFlag
+//
+// Sets the TRACK_PULSES_ENABLED flag in rabbitControlFlags and transmits it
+// to the remote.
+//
+
+public void setTrackPulsesEnabledFlag(boolean pState) {
+
+    if (pState){
+        rabbitControlFlags |= TRACK_PULSES_ENABLED;
+    }
+    else{
+        rabbitControlFlags &= (~TRACK_PULSES_ENABLED);
+    }
+
+    //send updated flags to the remotes
+    sendRabbitControlFlags();
+    
+}//end of ControlBoard::setTrackPulsesEnabledFlag
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlBoard::resetTrackCounters
+//
+// Sends to the remote the command to fire a Track Counter Reset pulse to
+// zero the tracking counters in the UT Boards.
+//
+
+public void resetTrackCounters()
+{
+    
+    sendBytes(RESET_TRACK_COUNTERS_CMD, (byte) (0));
+
+}//end of ControlBoard::resetTrackCounters
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -434,6 +485,98 @@ private void getChassisSlotAddress()
                                         + chassisAddr + "-" + slotAddr + "\n");
 
 }//end of ControlBoard::getChassisSlotAddress
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlBoard::requestAllEncoderValues
+//
+// Requests a packet from the remote with all encoder values saved at different
+// points in the inspection process.
+//
+
+public void requestAllEncoderValues()
+{
+
+    //set all values to max so it can be detected when they are set by 
+    //the code which processes the return packet - processAllEncoderValuesPacket
+    
+    encoderPosAtOnPipeSignal = Integer.MAX_VALUE;
+    encoderPosAtOffPipeSignal = Integer.MAX_VALUE;
+    encoderPosAtHead1DownSignal = Integer.MAX_VALUE;
+    encoderPosAtHead1UpSignal = Integer.MAX_VALUE;
+    encoderPosAtHead2DownSignal = Integer.MAX_VALUE;
+    encoderPosAtHead2UpSignal = Integer.MAX_VALUE;
+    
+    //request packet; returned packet handled by processAllEncoderValuesPacket
+    sendBytes(GET_ALL_ENCODER_VALUES_CMD);
+
+}//end of ControlBoard::requestAllEncoderValues
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlBoard::processAllEncoderValuesPacket
+//
+// Parses and stores data from a GET_ALL_ENCODER_VALUES_CMD packet.
+//
+// Returns number of bytes retrieved from the socket.
+//
+
+public int processAllEncoderValuesPacket()
+{
+
+    try{
+        timeOutProcess = 0;
+        while(timeOutProcess++ < TIMEOUT){
+            
+            int num = byteIn.available(); //debug mks -- remove this
+            
+            if (byteIn.available() >= ALL_ENCODERS_PACKET_SIZE) {break;}
+            waitSleep(10);
+        }
+        if (byteIn.available() >= ALL_ENCODERS_PACKET_SIZE) {
+            byteIn.read(allEncoderValuesBuf, 0, ALL_ENCODERS_PACKET_SIZE);
+        }
+
+    }// try
+    catch(IOException e){
+        logSevere(e.getMessage() + " - Error: 539");
+    }
+
+    int x = 0;
+
+    encoderPosAtOnPipeSignal = ((allEncoderValuesBuf[x++] << 24));
+    encoderPosAtOnPipeSignal |= (allEncoderValuesBuf[x++] << 16)& 0x00ff0000;
+    encoderPosAtOnPipeSignal |= (allEncoderValuesBuf[x++] << 8) & 0x0000ff00;
+    encoderPosAtOnPipeSignal |= (allEncoderValuesBuf[x++])      & 0x000000ff;
+
+    encoderPosAtOffPipeSignal = ((allEncoderValuesBuf[x++] << 24));
+    encoderPosAtOffPipeSignal |= (allEncoderValuesBuf[x++] << 16) & 0x00ff0000;
+    encoderPosAtOffPipeSignal |= (allEncoderValuesBuf[x++] << 8)  & 0x0000ff00;
+    encoderPosAtOffPipeSignal |= (allEncoderValuesBuf[x++])       & 0x000000ff;
+    
+    encoderPosAtHead1DownSignal = ((allEncoderValuesBuf[x++] << 24));
+    encoderPosAtHead1DownSignal |= (allEncoderValuesBuf[x++] << 16)& 0x00ff0000;
+    encoderPosAtHead1DownSignal |= (allEncoderValuesBuf[x++] << 8) & 0x0000ff00;
+    encoderPosAtHead1DownSignal |= (allEncoderValuesBuf[x++])      & 0x000000ff;
+
+    encoderPosAtHead1UpSignal = ((allEncoderValuesBuf[x++] << 24));
+    encoderPosAtHead1UpSignal |= (allEncoderValuesBuf[x++] << 16) & 0x00ff0000;
+    encoderPosAtHead1UpSignal |= (allEncoderValuesBuf[x++] << 8)  & 0x0000ff00;
+    encoderPosAtHead1UpSignal |= (allEncoderValuesBuf[x++])       & 0x000000ff;
+
+    encoderPosAtHead2DownSignal = ((allEncoderValuesBuf[x++] << 24));
+    encoderPosAtHead2DownSignal |= (allEncoderValuesBuf[x++] << 16)& 0x00ff0000;
+    encoderPosAtHead2DownSignal |= (allEncoderValuesBuf[x++] << 8) & 0x0000ff00;
+    encoderPosAtHead2DownSignal |= (allEncoderValuesBuf[x++])      & 0x000000ff;
+
+    encoderPosAtHead2UpSignal = ((allEncoderValuesBuf[x++] << 24));
+    encoderPosAtHead2UpSignal |= (allEncoderValuesBuf[x++] << 16) & 0x00ff0000;
+    encoderPosAtHead2UpSignal |= (allEncoderValuesBuf[x++] << 8)  & 0x0000ff00;
+    encoderPosAtHead2UpSignal |= (allEncoderValuesBuf[x++])       & 0x000000ff;
+    
+    return(ALL_ENCODERS_PACKET_SIZE);
+
+}//end of ControlBoard::processAllEncoderValuesPacket
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1028,6 +1171,10 @@ public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
         if (pktID == GET_INSPECT_PACKET_CMD) {return processInspectPacket();}
         else
         if (pktID == GET_MONITOR_PACKET_CMD) {return processMonitorPacket();}
+        else
+        if (pktID == GET_ALL_ENCODER_VALUES_CMD) {
+            return processAllEncoderValuesPacket();
+        }
 
     }
     catch(IOException e){

@@ -991,6 +991,16 @@ public void shutDown()
 }//end of AnalogPCIDAS6023::shutDown
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// AnalogPCIDAS6023::setTrackPulsesEnabledFlag
+//
+
+@Override
+public void setTrackPulsesEnabledFlag(boolean pState)
+{
+
+}//end of AnalogPCIDAS6023::setTrackPulsesEnabledFlag
+//-----------------------------------------------------------------------------
 
 }//end of class AnalogPCIDAS6023
 //-----------------------------------------------------------------------------

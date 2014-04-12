@@ -118,11 +118,14 @@ public class Capulin1 extends Object implements HardwareLink, MessageLink{
     //involving the socket -- used to prevent thread collisions
 
     boolean performResetUTBoardsForNextRun = false;
-
-
+    boolean invokeInspectModeTrigger = false;
+    boolean invokeScanModeTrigger = false;
+    boolean invokeStopModeTrigger = false;    
+    
     SyncedVariableSet syncedVarMgr;
 
     SyncedBoolean wallMapPacketsEnabled;
+    SyncedBoolean trackPulsesEnabled;
 
     //all boards (and thus all channels) must have the same rep rate
     //on startup, the UT boards each load a default rep rate from the
@@ -167,6 +170,8 @@ public void init()
     syncedVarMgr = new SyncedVariableSet();
     wallMapPacketsEnabled = new SyncedBoolean(syncedVarMgr);
     wallMapPacketsEnabled.init();
+    trackPulsesEnabled = new SyncedBoolean(syncedVarMgr);
+    trackPulsesEnabled.init();        
     repRateInHertz = new SyncedInteger(syncedVarMgr);
     repRateInHertz.init();
 
@@ -1000,6 +1005,11 @@ public void initializeChannels()
 //
 // This method should only be invoked by the "Main Thread".
 //
+// If multiple functions/variables are to be invoked/changed, create a function
+// with a trigger variable and add it to the handleSyncedCommands method. This
+// is especially appropriate if the order in which the functions/variables are
+// to be processed. See invokeInspectMode for an example.
+//
 
 @Override
 public void sendDataChangesToRemotes()
@@ -1018,8 +1028,15 @@ public void sendDataChangesToRemotes()
 
     if (!syncedVarMgr.getDataChangedMaster()) {return;}
 
-    if (wallMapPacketsEnabled.getDataChangedFlag()){enableWallMapPackets();}
+    if (wallMapPacketsEnabled.getDataChangedFlag()){
+        enableWallMapPackets(wallMapPacketsEnabled.applyValue());
+    }
 
+    if (trackPulsesEnabled.getDataChangedFlag()){
+        controlBoards[0].setTrackPulsesEnabledFlag(
+                                              trackPulsesEnabled.applyValue());
+    }
+    
     if (repRateInHertz.getDataChangedFlag()) {sendRepRate();}
 
 }//end of Capulin1::sendDataChangesToRemotes
@@ -1042,10 +1059,41 @@ public void handleSyncedCommands()
     if(performResetUTBoardsForNextRun){
         performResetUTBoardsForNextRun = false;
         //prepare the UTBoards for a new run
-        resetUTBoardsForNextRun();
+        resetUTBoardsForNextRun(true);
+    }
+
+    if(invokeInspectModeTrigger){
+        invokeInspectModeTrigger = false;
+        invokeInspectMode();
+    }
+
+    if(invokeScanModeTrigger){
+        invokeScanModeTrigger = false;
+        invokeScanMode();
+    }
+    
+    if(invokeStopModeTrigger){
+        invokeStopModeTrigger = false;
+        invokeStopMode();
     }
 
 }//end of Capulin1::handleSyncedCommands
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::setTrackPulsesEnabledFlag
+//
+// Sets the Track Pulses Enabled Flag in the Control Board to enable or
+// disable sending of Track Sync pulses to the UT boards.
+//
+
+@Override
+public void setTrackPulsesEnabledFlag(boolean pState)
+{
+
+    controlBoards[0].setTrackPulsesEnabledFlag(pState);
+
+}//end of Capulin1::setTrackPulsesEnabledFlag
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1296,80 +1344,168 @@ public void setMode(int pOpMode)
 
     if (opMode == Hardware.SCAN){
 
-        //set mode for Boards to advance map plotters they control -- map
-        //plotters will advance across screen with each revolution
-        setMapAdvanceModes(Board.ADVANCE_ON_TDC_CODE);
-
-        //signal "Main Thread" to reset
-        performResetUTBoardsForNextRun = true;
-
-        //enable async sending of wall map data packets by the UTBoards
-        wallMapPacketsEnabled.setValue(true, false);
-
+        //trigger "Main Thread" to enter the mode
+        invokeScanModeTrigger = true;
+        
     }
 
     //for INSPECT mode, which uses hardware encoder and control signals, perform
     //initialization
     if (opMode == Hardware.INSPECT){
 
-        //system waits until it receives flag that head is off the pipe or no
-        //pipe is in the system
-        hdwVs.waitForOffPipe = true;
-
-        //track from photo eye clear to end of pipe
-        hdwVs.trackToEndOfPiece = false;
-
-        //use a flag and a tracking counter to indicate when head is still near
-        //the beginning of the piece
-        hdwVs.nearStartOfPiece = true;
-        hdwVs.nearStartOfPieceTracker = hdwVs.nearStartOfPiecePosition;
-
-        //flags set true later when end of pipe is near
-        hdwVs.trackToNearEndofPiece = false;
-        hdwVs.nearEndOfPiece = false;
-
-        //reset length of tube
-        hdwVs.measuredLength = 0;
-        
-        //ignore the Inspect status flags until a new packet is received
-        controlBoards[0].setNewInspectPacketReady(false);
-
-        //force send of an Inspect packet so all the flags will be up to date
-        controlBoards[0].requestInspectPacket();
-
-        controlBoards[0].startInspect();
-        controlBoardInspectMode = true; //flag that board is in inspect mode
-
-        //set mode for Boards to advance map plotters they control
-        //map plotter advance controlled by this object monitoring encoder
-        setMapAdvanceModes(Board.ADVANCE_ON_TRIGGER);
-
-        //signal "Main Thread" to reset
-        performResetUTBoardsForNextRun = true;
-
-        //enable async sending of wall map data packets by the UTBoards
-        wallMapPacketsEnabled.setValue(true, false);
-
+        //trigger "Main Thread" to enter the mode
+        invokeInspectModeTrigger = true;
+                
     }
 
     if (opMode == Hardware.STOPPED){
 
-        //set mode for Boards to advance map plotters they control
-        setMapAdvanceModes(Board.ADVANCE_NEVER);
-
-        //disable async sending of wall map data packets by the UTBoards
-        wallMapPacketsEnabled.setValue(false, false);
-
-        //deactivate inspect mode in the control board(s)
-        //wip mks -- should this be a synced variable or use a flag to
-        // signal "Main Thread" to do this? see performResetUTBoardsForNextRun
-        // for an example
-
-        if (controlBoardInspectMode) {controlBoards[0].stopInspect();}
-
+        //trigger "Main Thread" to enter the mode
+        invokeStopModeTrigger = true;
+            
     }
 
 }//end of Capulin1::setMode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::invokeScanMode
+//
+// Puts the system in Scan mode.
+//
+// WARNING: Should only be called from the "Main Thread". Other threads, such
+// as the "Event Dispatch Thread" should trigger the "Main Thread" to execute
+// this function by setting invokeScanModeTrigger true.
+//
+
+private void invokeScanMode()
+{
+
+    controlBoards[0].requestAllEncoderValues(); //debug mks -- remove this
+    //controlBoards[0].requestAllEncoderValues(); //debug mks -- remove this    
+    
+    //set mode for Boards to advance map plotters they control -- map
+    //plotters will advance across screen with each revolution
+    setMapAdvanceModes(Board.ADVANCE_ON_TDC_CODE);
+
+    prepareRemotesForNextRun(); //prepare UTBoards, Control Boards, etc.
+    
+    //in scan mode, map is advanced on each TDC, so enable Control board to
+    //provide a pulse for each TDC it detects
+    setTrackPulsesEnabledFlag(true);
+    
+}//end of Capulin1::invokeScanMode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::invokeInspectMode
+//
+// Puts the system in Inspect mode.
+//
+// WARNING: Should only be called from the "Main Thread". Other threads, such
+// as the "Event Dispatch Thread" should trigger the "Main Thread" to execute
+// this function by setting invokeInspectModeTrigger true.
+//
+
+private void invokeInspectMode()
+{
+
+    //system waits until it receives flag that head is off the pipe or no
+    //pipe is in the system
+    hdwVs.waitForOffPipe = true;
+
+    //track from photo eye clear to end of pipe
+    hdwVs.trackToEndOfPiece = false;
+
+    //use a flag and a tracking counter to indicate when head is still near
+    //the beginning of the piece
+    hdwVs.nearStartOfPiece = true;
+    hdwVs.nearStartOfPieceTracker = hdwVs.nearStartOfPiecePosition;
+
+    //flags set true later when end of pipe is near
+    hdwVs.trackToNearEndofPiece = false;
+    hdwVs.nearEndOfPiece = false;
+
+    //reset length of tube
+    hdwVs.measuredLength = 0;
+
+    //set mode for Boards to advance map plotters they control
+    //map plotter advance controlled by this object monitoring encoder
+    setMapAdvanceModes(Board.ADVANCE_ON_TRIGGER);
+
+    prepareRemotesForNextRun(); //prepare UTBoards, Control Boards, etc.
+
+    //ignore the Inspect status flags until a new packet is received
+    controlBoards[0].setNewInspectPacketReady(false);
+
+    //force send of an Inspect packet so all the flags will be up to date
+    controlBoards[0].requestInspectPacket();
+
+    controlBoards[0].startInspect();
+    controlBoardInspectMode = true; //flag that board is in inspect mode
+        
+}//end of Capulin1::invokeInspectMode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::invokeStopMode
+//
+// Puts the system in Stop mode.
+//
+// WARNING: Should only be called from the "Main Thread". Other threads, such
+// as the "Event Dispatch Thread" should trigger the "Main Thread" to execute
+// this function by setting invokeStopModeTrigger true.
+//
+
+private void invokeStopMode()
+{
+
+    //set mode for Boards to advance map plotters they control
+    setMapAdvanceModes(Board.ADVANCE_NEVER);
+
+    //disable async sending of wall map data packets by the UTBoards
+    enableWallMapPackets(false);
+ 
+    //disable tracking pulses from Control to UT boards
+    setTrackPulsesEnabledFlag(false);
+        
+    //deactivate inspect mode in the control board(s)
+    if (controlBoardInspectMode) {
+        controlBoardInspectMode = false;
+        controlBoards[0].stopInspect();
+    }
+        
+}//end of Capulin1::invokeStopMode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::prepareRemotesForNextRun
+//
+// Prepares all remote devices for the next inspection run.
+//
+// WARNING: Should only be called from the "Main Thread". Other threads, such
+// as the "Event Dispatch Thread" should trigger the "Main Thread" to execute
+// this function by setting invokeStopModeTrigger true.
+//
+
+private void prepareRemotesForNextRun()
+{
+
+    //make sure tracking pulses are disabled before issuing reset command
+    setTrackPulsesEnabledFlag(false);
+    
+    //controlBoards[0].getRemoteData(ControlBoard.GET_STATUS_CMD, true); //debug mks -- remove this
+        
+    //tell Control board to pulse the Track Counter Reset line to zero the
+    //tracking counters in the UT Boards
+    controlBoards[0].resetTrackCounters();
+    
+    //try{waitSleep(500);}catch(InterruptedException e){} //debug mks -- remove this
+    //controlBoards[0].getRemoteData(ControlBoard.GET_STATUS_CMD, true); //debug mks -- remove this    
+    
+    resetUTBoardsForNextRun(true);
+        
+}//end of Capulin1::prepareRemotesForNextRun
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -2596,12 +2732,17 @@ void sendByteUDP(DatagramSocket pSocket, DatagramPacket pOutPacket, byte pByte)
 // Resets all buffer pointers and such in each UTBoard in preparation for the
 // next run.
 //
+// If pEnableWallMapPackets is true, the remote is enabled to transmit wall
+// data map packets asynchronously.
+//
 
-void resetUTBoardsForNextRun()
+void resetUTBoardsForNextRun(boolean pEnableWallMapPackets)
 {
 
     for (int i = 0; i < numberOfUTBoards; i++){
-        if (utBoards[i] != null){ utBoards[i].resetForNextRun(); }
+        if (utBoards[i] != null){ 
+            utBoards[i].resetForNextRun(pEnableWallMapPackets);
+        }
     }
 
 }//end of Capulin1::resetUTBoardsForNextRun
@@ -2616,16 +2757,14 @@ void resetUTBoardsForNextRun()
 // Any boards of other type will ignore the call.
 //
 
-void enableWallMapPackets()
+void enableWallMapPackets(boolean pState)
 {
 
     if (mapSourceBoards == null) { return; }
-
-    //lock in the synced value since it is used multiple times here
-    boolean enable = wallMapPacketsEnabled.applyValue();
+    
         for (MapSourceBoard mapSourceBoard : mapSourceBoards) {
             if (mapSourceBoard.utBoard != null) {
-                mapSourceBoard.utBoard.enableWallMapPackets(enable);
+                mapSourceBoard.utBoard.enableWallMapPackets(pState);
             }
         }
 

@@ -162,6 +162,8 @@ public void recordStartLocation(int pHead, double pPosition);
 
 public void recordStopLocation(int pHead, double pPosition);
 
+public void setTrackPulsesEnabledFlag(boolean pState);
+
 }//end of interface HardwareLink
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

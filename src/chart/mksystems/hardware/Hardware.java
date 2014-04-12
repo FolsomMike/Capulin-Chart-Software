@@ -795,7 +795,7 @@ public void setMode(int pOpMode)
             //the data can be saved if a partial run was made
             
         }
-    }//end of if (opMode == Hardware.INSPECT)
+    }//end of if (opMode == Hardware.STOP)
     
     //if in scan mode, enable flagging always
     if (opMode == Hardware.SCAN){
@@ -1271,9 +1271,11 @@ boolean collectEncoderDataInspectMode()
 
     //if head 2 is up and goes down, enable flagging for all traces on head 2
     //a small distance delay is used to prevent flagging of the initial
-    //transition
+    //transition; also enable track sync pulses from Control Board
     if (!hdwVs.head2Down && inspectCtrlVars.head2Down){
         hdwVs.head2Down = true; flaggingEnableDelay2 = 6;
+        //disable TDC tracking pulses from Control Board
+        analogDriver.setTrackPulsesEnabledFlag(true);
     }
 
     //if head 1 is down and goes up, disable flagging for all traces on head 1

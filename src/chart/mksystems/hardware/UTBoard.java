@@ -421,7 +421,8 @@ public class UTBoard extends Board{
     static byte DSP_SET_GATE_SIG_PROC_THRESHOLD = 17;
     static byte DSP_GET_MAP_BLOCK_CMD = 18;
     static byte DSP_GET_MAP_COUNT_CMD = 19;
-
+    static byte DSP_RESET_MAPPING_CMD = 20;
+    
     static byte DSP_ACKNOWLEDGE = 127;
 
     static final byte DSP_NULL_CORE = 0;
@@ -1017,11 +1018,14 @@ public void enableWallMapPackets(boolean pState)
 // Resets all buffer pointers and such in preparation for the next run.
 // Sends a reset code to the remote so it can prepare as well.
 //
+// The remote is enabled to collect map data from the DSPs and transmit back
+// to the host asynchonously.
+//
 // Should be called from "Main Thread" and not the GUI thread to avoid
 // collisions in accessing the socket.
 //
 
-public void resetForNextRun()
+public void resetForNextRun(boolean pEnableWallMapPackets)
 {
 
     recordMapDataEnabled = false;
@@ -1031,10 +1035,11 @@ public void resetForNextRun()
     dataBufferIndex = 0;
     prevCtrlCodeIndex = -1;
     if(map2D != null) { map2D.resetAll(); }
-
-    //send reset command to the remote
+    
+    //send reset command to the remotes; also resets DSP mapping and enables
+    //Rabbit to collect map data from DSP and transmit to host
     sendResetForNextRunCmd();
-
+    
 }//end of UTBoard::resetForNextRun
 //-----------------------------------------------------------------------------
 
@@ -2931,6 +2936,23 @@ public void sendDACGateFlags(int pChannel, int pGate, int pFlags)
                (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0);
 
 }//end of UTBoard::sendDACGateFlags
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::sendDSPMapResetCommand
+//
+// Sends the command to reset the mapping variables to the DSP cores
+// associated with the mapping board channel.
+//
+
+void sendDSPMapResetCommand()
+{
+
+    sendChannelParam(boardChannelForMapDataSource, (byte) DSP_RESET_MAPPING_CMD,
+               (byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) 0,
+               (byte) 0, (byte)0, (byte)0, (byte)0);
+
+}//end of UTBoard::sendDSPMapResetCommand
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
