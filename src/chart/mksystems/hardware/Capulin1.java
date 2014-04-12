@@ -84,8 +84,7 @@ public class Capulin1 extends Object implements HardwareLink, MessageLink{
     boolean simulate, simulateControlBoards, simulateUTBoards;
 
     ControlBoard[] controlBoards;
-    int numberOfControlBoards = 1; //debug mks - read from config
-    String controlBoardIP; //debug mks - get rid of this?
+    int numberOfControlBoards;
 
     EthernetIOModules [] ioModules;
     int numberOfIOModules;
@@ -204,6 +203,12 @@ private void configure(IniFile pConfigFile)
     simulateUTBoards =
             pConfigFile.readBoolean("Hardware", "Simulate UT Boards", false);
 
+    numberOfControlBoards =
+                 pConfigFile.readInt("Hardware", "Number of Control Boards", 1);
+    
+    numberOfUTBoards =
+                     pConfigFile.readInt("Hardware", "Number of UT Boards", 1);
+        
     //if any simulation is active, set the simulate flag true
     if (simulateControlBoards || simulateUTBoards) {simulate = true;}
 
@@ -219,9 +224,6 @@ private void configure(IniFile pConfigFile)
 
     numberOfChannels =
                 pConfigFile.readInt("Hardware", "Number of Analog Channels", 1);
-
-    controlBoardIP = pConfigFile.readString(
-                      "Hardware", "Control Board IP Address", "169.254.56.11");
 
     fpgaCodeFilename = pConfigFile.readString(
                         "Hardware", "UT FPGA Code Filename", "not specified");
