@@ -581,14 +581,14 @@ private int plotPoint(Graphics2D pG2, PlotVars pVars, TraceDatum pTraceDatum)
         thresholds[flagThreshold].drawFlag(pG2, pVars.pixPtr, flagY);
         
         //java.awt.Toolkit.getDefaultToolkit().beep();
-        
+/*  //debug mks -- doesn't work very well -- threading issue?       
             javax.swing.SwingUtilities.invokeLater(
             new Runnable() {
                 @Override
                 public void run() { 
                     java.awt.Toolkit.getDefaultToolkit().beep(); } });
             
-
+*/
           //  SwissArmyKnife.waitSleep(500);
         
         
