@@ -146,12 +146,6 @@ synchronized public void connect() throws IOException {
     out.print("Host: " + url.getHost() + "\r\n");
     out.print("\r\n");
 
-    /* debug mks -- this works!
-    out.print( "GET " + "/index.html" + " HTTP/1.1\r\n" );
-    out.print("Host: www.folsomvillage.com\r\n");
-    out.print("\r\n");
-     */
-
     //initialize the RawInputStream
     cis.set( s.getInputStream(), server );
 

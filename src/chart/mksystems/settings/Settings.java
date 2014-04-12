@@ -592,7 +592,7 @@ public void itemStateChanged(ItemEvent e)
                + ((e.getStateChange() == ItemEvent.SELECTED) ?
                  "selected":"unselected");
 
-    System.out.println(s); //debug mks
+    System.out.println(s);
 
 }//end of Settings::itemStateChanged
 //-----------------------------------------------------------------------------
@@ -1073,9 +1073,6 @@ void logStackTrace(String pMessage, Exception pE)
 
 }//end of Settings::logStackTrace
 //-----------------------------------------------------------------------------
-
-
-//debug mks System.out.println(String.valueOf(value)); //debug mks
 
 }//end of class Settings
 //-----------------------------------------------------------------------------

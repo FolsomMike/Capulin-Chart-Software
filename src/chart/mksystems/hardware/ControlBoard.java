@@ -528,8 +528,6 @@ public int processAllEncoderValuesPacket()
         timeOutProcess = 0;
         while(timeOutProcess++ < TIMEOUT){
             
-            int num = byteIn.available(); //debug mks -- remove this
-            
             if (byteIn.available() >= ALL_ENCODERS_PACKET_SIZE) {break;}
             waitSleep(10);
         }

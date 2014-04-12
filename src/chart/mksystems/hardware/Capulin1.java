@@ -1382,9 +1382,6 @@ public void setMode(int pOpMode)
 
 private void invokeScanMode()
 {
-
-    controlBoards[0].requestAllEncoderValues(); //debug mks -- remove this
-    //controlBoards[0].requestAllEncoderValues(); //debug mks -- remove this    
     
     //set mode for Boards to advance map plotters they control -- map
     //plotters will advance across screen with each revolution
@@ -1495,15 +1492,10 @@ private void prepareRemotesForNextRun()
 
     //make sure tracking pulses are disabled before issuing reset command
     setTrackPulsesEnabledFlag(false);
-    
-    //controlBoards[0].getRemoteData(ControlBoard.GET_STATUS_CMD, true); //debug mks -- remove this
         
     //tell Control board to pulse the Track Counter Reset line to zero the
     //tracking counters in the UT Boards
     controlBoards[0].resetTrackCounters();
-    
-    //try{waitSleep(500);}catch(InterruptedException e){} //debug mks -- remove this
-    //controlBoards[0].getRemoteData(ControlBoard.GET_STATUS_CMD, true); //debug mks -- remove this    
     
     resetUTBoardsForNextRun(true);
         

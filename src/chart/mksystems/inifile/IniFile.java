@@ -1041,7 +1041,7 @@ void logStackTrace(String pMessage, Exception pE)
 //-----------------------------------------------------------------------------
 
 
-//debug System.out.println(String.valueOf(value)); //debug mks
+//debug code System.out.println(String.valueOf(value));
 
 }//end of class IniFile
 //-----------------------------------------------------------------------------
