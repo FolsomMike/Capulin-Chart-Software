@@ -56,12 +56,7 @@ public class ControlBoard extends Board implements MessageLink,
     int encoder2, prevEncoder2;
     int encoder1Dir, encoder2Dir;
 
-    int encoderPosAtOnPipeSignal = 0;
-    int encoderPosAtOffPipeSignal = 0;
-    int encoderPosAtHead1DownSignal = 0;
-    int encoderPosAtHead1UpSignal = 0;
-    int encoderPosAtHead2DownSignal = 0;
-    int encoderPosAtHead2UpSignal = 0;
+    EncoderValues encoderValues;
     
     int inspectPacketCount = 0;
 
@@ -186,6 +181,8 @@ public void init()
 
     monitorBuffer = new byte[MONITOR_PACKET_SIZE];
 
+    encoderValues = new EncoderValues(); encoderValues.init();
+    
     allEncoderValuesBuf = new byte[ALL_ENCODERS_PACKET_SIZE];
     
     //read the configuration file and create/setup the charting/control elements
@@ -500,12 +497,7 @@ public void requestAllEncoderValues()
     //set all values to max so it can be detected when they are set by 
     //the code which processes the return packet - processAllEncoderValuesPacket
     
-    encoderPosAtOnPipeSignal = Integer.MAX_VALUE;
-    encoderPosAtOffPipeSignal = Integer.MAX_VALUE;
-    encoderPosAtHead1DownSignal = Integer.MAX_VALUE;
-    encoderPosAtHead1UpSignal = Integer.MAX_VALUE;
-    encoderPosAtHead2DownSignal = Integer.MAX_VALUE;
-    encoderPosAtHead2UpSignal = Integer.MAX_VALUE;
+    encoderValues.setAllToMaxValue();
     
     //request packet; returned packet handled by processAllEncoderValuesPacket
     sendBytes(GET_ALL_ENCODER_VALUES_CMD);
@@ -542,39 +534,47 @@ public int processAllEncoderValuesPacket()
 
     int x = 0;
 
-    encoderPosAtOnPipeSignal = ((allEncoderValuesBuf[x++] << 24));
-    encoderPosAtOnPipeSignal |= (allEncoderValuesBuf[x++] << 16)& 0x00ff0000;
-    encoderPosAtOnPipeSignal |= (allEncoderValuesBuf[x++] << 8) & 0x0000ff00;
-    encoderPosAtOnPipeSignal |= (allEncoderValuesBuf[x++])      & 0x000000ff;
-
-    encoderPosAtOffPipeSignal = ((allEncoderValuesBuf[x++] << 24));
-    encoderPosAtOffPipeSignal |= (allEncoderValuesBuf[x++] << 16) & 0x00ff0000;
-    encoderPosAtOffPipeSignal |= (allEncoderValuesBuf[x++] << 8)  & 0x0000ff00;
-    encoderPosAtOffPipeSignal |= (allEncoderValuesBuf[x++])       & 0x000000ff;
+    encoderValues.encoderPosAtOnPipeSignal = encoderValues.convertBytesToInt(
+                        allEncoderValuesBuf[x++], allEncoderValuesBuf[x++],
+                        allEncoderValuesBuf[x++], allEncoderValuesBuf[x++]);
     
-    encoderPosAtHead1DownSignal = ((allEncoderValuesBuf[x++] << 24));
-    encoderPosAtHead1DownSignal |= (allEncoderValuesBuf[x++] << 16)& 0x00ff0000;
-    encoderPosAtHead1DownSignal |= (allEncoderValuesBuf[x++] << 8) & 0x0000ff00;
-    encoderPosAtHead1DownSignal |= (allEncoderValuesBuf[x++])      & 0x000000ff;
+    encoderValues.encoderPosAtOffPipeSignal = encoderValues.convertBytesToInt(
+                        allEncoderValuesBuf[x++], allEncoderValuesBuf[x++],
+                        allEncoderValuesBuf[x++], allEncoderValuesBuf[x++]);
 
-    encoderPosAtHead1UpSignal = ((allEncoderValuesBuf[x++] << 24));
-    encoderPosAtHead1UpSignal |= (allEncoderValuesBuf[x++] << 16) & 0x00ff0000;
-    encoderPosAtHead1UpSignal |= (allEncoderValuesBuf[x++] << 8)  & 0x0000ff00;
-    encoderPosAtHead1UpSignal |= (allEncoderValuesBuf[x++])       & 0x000000ff;
+    encoderValues.encoderPosAtHead1DownSignal = encoderValues.convertBytesToInt(
+                        allEncoderValuesBuf[x++], allEncoderValuesBuf[x++],
+                        allEncoderValuesBuf[x++], allEncoderValuesBuf[x++]);
 
-    encoderPosAtHead2DownSignal = ((allEncoderValuesBuf[x++] << 24));
-    encoderPosAtHead2DownSignal |= (allEncoderValuesBuf[x++] << 16)& 0x00ff0000;
-    encoderPosAtHead2DownSignal |= (allEncoderValuesBuf[x++] << 8) & 0x0000ff00;
-    encoderPosAtHead2DownSignal |= (allEncoderValuesBuf[x++])      & 0x000000ff;
+    encoderValues.encoderPosAtHead1UpSignal = encoderValues.convertBytesToInt(
+                        allEncoderValuesBuf[x++], allEncoderValuesBuf[x++],
+                        allEncoderValuesBuf[x++], allEncoderValuesBuf[x++]);
 
-    encoderPosAtHead2UpSignal = ((allEncoderValuesBuf[x++] << 24));
-    encoderPosAtHead2UpSignal |= (allEncoderValuesBuf[x++] << 16) & 0x00ff0000;
-    encoderPosAtHead2UpSignal |= (allEncoderValuesBuf[x++] << 8)  & 0x0000ff00;
-    encoderPosAtHead2UpSignal |= (allEncoderValuesBuf[x++])       & 0x000000ff;
-    
+    encoderValues.encoderPosAtHead2DownSignal = encoderValues.convertBytesToInt(
+                        allEncoderValuesBuf[x++], allEncoderValuesBuf[x++],
+                        allEncoderValuesBuf[x++], allEncoderValuesBuf[x++]);
+
+    encoderValues.encoderPosAtHead2UpSignal = encoderValues.convertBytesToInt(
+                        allEncoderValuesBuf[x++], allEncoderValuesBuf[x++],
+                        allEncoderValuesBuf[x++], allEncoderValuesBuf[x++]);
+
     return(ALL_ENCODERS_PACKET_SIZE);
 
 }//end of ControlBoard::processAllEncoderValuesPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlBoard::getAllEncoderValues
+//
+// Returns an object containing the encoder values retrieved from the remote.
+//
+
+public EncoderValues getAllEncoderValues()
+{
+
+    return(encoderValues);
+
+}//end of ControlBoard::getAllEncoderValues
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
