@@ -567,17 +567,17 @@ public int processAllEncoderValuesPacket()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// ControlBoard::getAllEncoderValues
+// ControlBoard::getAllEncoderValuesObject
 //
 // Returns an object containing the encoder values retrieved from the remote.
 //
 
-public EncoderValues getAllEncoderValues()
+public EncoderValues getAllEncoderValuesObject()
 {
 
     return(encoderValues);
 
-}//end of ControlBoard::getAllEncoderValues
+}//end of ControlBoard::getAllEncoderValuesObject
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

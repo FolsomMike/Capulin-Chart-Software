@@ -33,6 +33,8 @@ public class WallMapDataSaver extends Object{
 
     IniFile jobInfoFile = null;
 
+    EncoderValues encoderValues;
+    
 //-----------------------------------------------------------------------------
 // WallMapDataSaver::WallMapDataSaver (constructor)
 //
@@ -51,10 +53,12 @@ public WallMapDataSaver()
 // Initializes the object.  MUST be called by sub classes after instantiation.
 //
 
-public void init(MapSourceBoard pMapSourceBoards[])
+public void init(MapSourceBoard pMapSourceBoards[],
+                                                  EncoderValues pEncoderValues)
 {
 
-
+    encoderValues = pEncoderValues;
+    
 }//end of WallMapDataSaver::init
 //-----------------------------------------------------------------------------
 

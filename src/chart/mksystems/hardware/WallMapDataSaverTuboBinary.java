@@ -214,9 +214,12 @@ public WallMapDataSaverTuboBinary(Settings pSettings, int pFileFormat,
 //
 
 @Override
-public void init(MapSourceBoard pMapSourceBoards[])
+public void init(MapSourceBoard pMapSourceBoards[],
+                                                  EncoderValues pEncoderValues)
 {
 
+    super.init(pMapSourceBoards, pEncoderValues);
+    
     mapSourceBoards = pMapSourceBoards;
     numberOfMapSourceBoards = mapSourceBoards.length;
 
@@ -437,7 +440,7 @@ public void saveToFile(String pFilename)
 
         //debug mks -- remove this
 
-        dumpOrLoadAllDataBuffersToFiles(pFilename, LOAD_FROM_TEXT);
+        //dumpOrLoadAllDataBuffersToFiles(pFilename, LOAD_FROM_TEXT);
 
         //debug mks end
 

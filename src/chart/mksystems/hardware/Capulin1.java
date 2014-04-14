@@ -311,8 +311,9 @@ public void createWallMapDataSaver()
     wallMapDataSaver = new WallMapDataSaverTuboBinary(settings,
                 wallMapFileFormat, numberOfMapSourceHardwareChannels , true);
 
-    //pass a reference to the source boards to the data saver
-    wallMapDataSaver.init(mapSourceBoards);
+    //pass reference to source boards and an EncoderValues object to data saver
+    wallMapDataSaver.init(mapSourceBoards, 
+                                controlBoards[0].getAllEncoderValuesObject());
 
 }//end of Capulin1::createWallMapDataSaver
 //-----------------------------------------------------------------------------
@@ -359,6 +360,9 @@ public void connect() throws InterruptedException
     connectControlBoard(iFace);
 
     connectUTBoards(iFace);
+    
+    //create object to save map data collected by remotes
+    createWallMapDataSaver();
 
 }//end of Capulin1::connect
 //-----------------------------------------------------------------------------
@@ -858,9 +862,6 @@ public void initializeUTBoards()
 
     //disable async sending of wall map data packets by the UTBoards
     wallMapPacketsEnabled.setValue(false, true);
-
-    //create object to save map data collected by boards
-    createWallMapDataSaver();
 
 }//end of Capulin1::initializeUTBoards
 //-----------------------------------------------------------------------------
