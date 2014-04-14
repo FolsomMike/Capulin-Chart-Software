@@ -164,6 +164,12 @@ public void recordStopLocation(int pHead, double pPosition);
 
 public void setTrackPulsesEnabledFlag(boolean pState);
 
+public void enableWallMapPackets(boolean pState);
+
+public void setDataBufferIsEnabled(boolean pState);
+
+public void requestAllEncoderValues();
+
 }//end of interface HardwareLink
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

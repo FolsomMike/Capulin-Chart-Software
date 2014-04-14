@@ -60,7 +60,7 @@ public void init()
 
 public void setAllToMaxValue()
 {
-    
+
     encoderPosAtOnPipeSignal = Integer.MAX_VALUE;
     encoderPosAtOffPipeSignal = Integer.MAX_VALUE;
     encoderPosAtHead1DownSignal = Integer.MAX_VALUE;

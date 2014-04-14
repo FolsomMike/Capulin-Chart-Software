@@ -104,7 +104,7 @@ public class UTBoard extends Board{
     short dataBuffer[] = null;
     int prevCtrlCodeIndex = -1;
     int mapTDCCodeIgnoreTimer = 0;
-    boolean dataBufferIsEnabled = true;
+    boolean dataBufferIsEnabled = false;
 
     static final int MAP_TDC_IGNORE_TIMER_RESET = 50;
 
@@ -1019,7 +1019,8 @@ public void enableWallMapPackets(boolean pState)
 // Sends a reset code to the remote so it can prepare as well.
 //
 // The remote is enabled to collect map data from the DSPs and transmit back
-// to the host asynchonously.
+// to the host asynchonously -- this is done automatically in the Rabbit by the
+// call to sendResetForNextRunCmd().
 //
 // Should be called from "Main Thread" and not the GUI thread to avoid
 // collisions in accessing the socket.
@@ -1039,6 +1040,9 @@ public void resetForNextRun(boolean pEnableWallMapPackets)
     //send reset command to the remotes; also resets DSP mapping and enables
     //Rabbit to collect map data from DSP and transmit to host
     sendResetForNextRunCmd();
+
+    //no map data is stored in the buffer until enabled later
+    setDataBufferIsEnabled(false);
     
 }//end of UTBoard::resetForNextRun
 //-----------------------------------------------------------------------------

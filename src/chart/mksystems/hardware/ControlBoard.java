@@ -490,6 +490,9 @@ private void getChassisSlotAddress()
 // Requests a packet from the remote with all encoder values saved at different
 // points in the inspection process.
 //
+// Note that the values will not be valid until the packet is received. If
+// any encoder value is Integer.MAX_VALUE, the packet has not been received.
+//
 
 public void requestAllEncoderValues()
 {

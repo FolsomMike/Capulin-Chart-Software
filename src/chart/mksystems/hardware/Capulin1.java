@@ -1618,6 +1618,25 @@ public void turnOffAudibleAlarm()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Capulin1::requestAllEncoderValues
+//
+// Requests a packet from the remote with all encoder values saved at different
+// points in the inspection process.
+//
+// Note that the values will not be valid until the packet is received. If
+// any encoder value is Integer.MAX_VALUE, the packet has not been received.
+//
+
+@Override
+public void requestAllEncoderValues()
+{
+
+    controlBoards[0].requestAllEncoderValues();
+    
+}//end of Capulin1::requestAllEncoderValues
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Capulin1::requestAScan
 //
 // Requests an AScan dataset for the specified channel from the appropriate
@@ -2751,7 +2770,8 @@ void resetUTBoardsForNextRun(boolean pEnableWallMapPackets)
 // Any boards of other type will ignore the call.
 //
 
-void enableWallMapPackets(boolean pState)
+@Override
+public void enableWallMapPackets(boolean pState)
 {
 
     if (mapSourceBoards == null) { return; }
@@ -2763,6 +2783,27 @@ void enableWallMapPackets(boolean pState)
         }
 
 }//end of Capulin1::enableWallMapPackets
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::setDataBufferIsEnabled
+//
+// Sets the dataBufferedIsEnabled flag for each mapping board to pState
+//
+
+@Override
+public void setDataBufferIsEnabled(boolean pState)
+{
+
+    if (mapSourceBoards == null) { return; }
+    
+        for (MapSourceBoard mapSourceBoard : mapSourceBoards) {
+            if (mapSourceBoard.utBoard != null) {
+                mapSourceBoard.utBoard.setDataBufferIsEnabled(pState);
+            }
+        }
+
+}//end of Capulin1::setDataBufferIsEnabled
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

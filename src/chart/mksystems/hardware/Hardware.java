@@ -1212,6 +1212,7 @@ boolean collectEncoderDataInspectMode()
 
         if (inspectCtrlVars.onPipeFlag) {return false;}
         else {
+            //piece has been removed; prepare for it to enter to begin
             hdwVs.waitForOffPipe = false;
             hdwVs.waitForOnPipe = true;
             //assume all heads up if off pipe and disable flagging
@@ -1271,11 +1272,12 @@ boolean collectEncoderDataInspectMode()
 
     //if head 2 is up and goes down, enable flagging for all traces on head 2
     //a small distance delay is used to prevent flagging of the initial
-    //transition; also enable track sync pulses from Control Board
+    //transition; also enable track sync pulses from Control Board and saving
+    //of map data; UT Boards already enabled to send map data
     if (!hdwVs.head2Down && inspectCtrlVars.head2Down){
         hdwVs.head2Down = true; flaggingEnableDelay2 = 6;
-        //disable TDC tracking pulses from Control Board
         analogDriver.setTrackPulsesEnabledFlag(true);
+        analogDriver.setDataBufferIsEnabled(true);
     }
 
     //if head 1 is down and goes up, disable flagging for all traces on head 1
@@ -1285,9 +1287,12 @@ boolean collectEncoderDataInspectMode()
     }
 
     //if head 2 is down and goes up, disable flagging for all traces on head 2
+    //disable saving to the map buffer and disable remote sending of map data
     if (hdwVs.head2Down && !inspectCtrlVars.head2Down){
         hdwVs.head2Down = false; enableHeadTraceFlagging(2, false);
         recordStopPositionForHead = HEAD_2;
+        analogDriver.setDataBufferIsEnabled(false);
+        analogDriver.enableWallMapPackets(false);
     }
 
     //watch for piece to exit head
@@ -1302,6 +1307,8 @@ boolean collectEncoderDataInspectMode()
             //position
             hdwVs.trackToNearEndofPiece = true;
 
+            analogDriver.requestAllEncoderValues();
+            
             //calculate number counts recorded between start/stop eye triggers
             int pieceLengthEncoderCounts =
              Math.abs(inspectCtrlVars.encoder2 - inspectCtrlVars.encoder2Start);

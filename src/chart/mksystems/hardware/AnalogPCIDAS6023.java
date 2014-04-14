@@ -1002,6 +1002,52 @@ public void setTrackPulsesEnabledFlag(boolean pState)
 }//end of AnalogPCIDAS6023::setTrackPulsesEnabledFlag
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// AnalogPCIDAS6023::enableWallMapPackets
+//
+// Enables or disables the asynchronous sending of wall map data packets by
+// UTBoards of type WALL_MAPPING.
+//
+// Any boards of other type will ignore the call.
+//
+
+@Override
+public void enableWallMapPackets(boolean pState)
+{
+
+}//end of AnalogPCIDAS6023::enableWallMapPackets
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// AnalogPCIDAS6023::setDataBufferIsEnabled
+//
+// Sets the dataBufferedIsEnabled flag for each mapping board to pState
+//
+
+@Override
+public void setDataBufferIsEnabled(boolean pState)
+{
+
+}//end of AnalogPCIDAS6023::setDataBufferIsEnabled
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// AnalogPCIDAS6023::requestAllEncoderValues
+//
+// Requests a packet from the remote with all encoder values saved at different
+// points in the inspection process.
+//
+// Note that the values will not be valid until the packet is received. If
+// any encoder value is Integer.MAX_VALUE, the packet has not been received.
+//
+
+@Override
+public void requestAllEncoderValues()
+{
+    
+}//end of AnalogPCIDAS6023::requestAllEncoderValues
+//-----------------------------------------------------------------------------
+
 }//end of class AnalogPCIDAS6023
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
