@@ -133,9 +133,9 @@ static public void removeLock()
 {
 
     try {
-          fileLock.release();
-          lockChannel.close();
-          lockFile.delete();
+          if (fileLock != null) {fileLock.release();}
+          if (lockChannel != null) {lockChannel.close();}
+          if (lockFile != null) {lockFile.delete();}
         } catch (IOException e) {
           System.out.println(
                   "Error while closing the lock socket: " + e.getMessage());
