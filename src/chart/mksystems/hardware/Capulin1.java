@@ -1389,6 +1389,9 @@ private void invokeScanMode()
     setMapAdvanceModes(Board.ADVANCE_ON_TDC_CODE);
 
     prepareRemotesForNextRun(); //prepare UTBoards, Control Boards, etc.
+
+    //enable data storage in UTBoard objects
+    setDataBufferIsEnabled(true);
     
     //in scan mode, map is advanced on each TDC, so enable Control board to
     //provide a pulse for each TDC it detects
