@@ -38,8 +38,9 @@ public class MapSourceBoard extends Object{
 
     int revStartIndex = -1;
     int revEndIndex = -1;
-    int numberOfRevs = 0;
+    int numRevs = 0;
     int numSamplesInRev = 0;
+    int avgNumSamplesPerRev = 0;
 
     int sampleIndex = 0;
 

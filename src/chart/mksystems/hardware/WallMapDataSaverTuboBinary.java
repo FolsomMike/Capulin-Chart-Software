@@ -1134,6 +1134,9 @@ private void analyzeAndRepairData()
     //find start/stop indices for all map source boards
     findStartStopInspectionIndices();
 
+    //split any extra large revolutions in two with a TDC code
+    repairMissingTDCCodesForAllBoards();
+    
     //compute rev count for each board and find the one with the least
     calculateRevCount();
 
@@ -1154,39 +1157,176 @@ private void analyzeAndRepairData()
 
 private void findStartStopInspectionIndices()
 {
-
-    for (int i = 0; i < mapSourceBoards.length; i++){
+    
+    for (MapSourceBoard mapSourceBoard : mapSourceBoards) {
 
         int startIndex, stopIndex;
-
-        startIndex = findControlCode(i, UTBoard.MAP_ANY_FLAG,
-                                                        0, Integer.MAX_VALUE);
-
-        mapSourceBoards[i].inspectionStartIndex = startIndex;
-
+        startIndex = findControlCode(mapSourceBoard, UTBoard.MAP_ANY_FLAG, 0,
+                                                            Integer.MAX_VALUE);
+        mapSourceBoard.inspectionStartIndex = startIndex;
         //this is also the start location for the first revolution
-        mapSourceBoards[i].revStartIndex = startIndex;
-
-        stopIndex = findControlCode(i, UTBoard.MAP_STOP_CODE_FLAG,
+        mapSourceBoard.revStartIndex = startIndex;
+        stopIndex = findControlCode(mapSourceBoard, UTBoard.MAP_STOP_CODE_FLAG,
                                             startIndex + 1, Integer.MAX_VALUE);
-
-        mapSourceBoards[i].inspectionStopIndex = stopIndex;
-
+        mapSourceBoard.inspectionStopIndex = stopIndex;
     }
 
 }//end of WallMapDataSaverTuboBinary::findStartStopInspectionIndices
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// WallMapDataSaverTuboBinary::repairMissingTDCCodesForAllBoards
+//
+// Fills in missing TDC codes for all mapping boards. See note in
+// repairMissingTDCCodes for more info.
+//
+
+private void repairMissingTDCCodesForAllBoards()
+{
+
+    //do a preliminary count before repair to calculate a rough average number
+    //of samples per revolution; a new count will be required after TDC code
+    //repair as that adds more revolutions
+    
+    calculateRevCount(); //counts revs for all boards
+
+    for (MapSourceBoard mapSourceBoard : mapSourceBoards) {
+        calculateAvgNumSamplesPerRev(mapSourceBoard);
+        repairMissingTDCCodes(mapSourceBoard);
+    }
+    
+}//end of WallMapDataSaverTuboBinary::repairMissingTDCCodesForAllBoards
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// WallMapDataSaverTuboBinary::calculateAvgNumSamplesPerRev
+//
+// Calculates the average number of samples in each revolution for 
+// pMapSourceBoard.
+//
+// NOTE: Method calculateRevCount should already have been called.
+//
+
+private void calculateAvgNumSamplesPerRev(MapSourceBoard pMapSourceBoard)
+{
+    
+    if (pMapSourceBoard.numRevs <= 0){
+        pMapSourceBoard.avgNumSamplesPerRev = 0;
+        return;        
+    }
+    
+    //get total number of samples in the board's buffer; this will also
+    //include the control codes, but they are few enough to be ignored for the
+    //purpose of obtaining a rough average
+    
+    int totalNumSamples = pMapSourceBoard.inspectionStopIndex
+                                    -  pMapSourceBoard.inspectionStartIndex;
+    
+    if (totalNumSamples <= 0){
+        pMapSourceBoard.avgNumSamplesPerRev = 0;
+        return;
+    }
+        
+    pMapSourceBoard.avgNumSamplesPerRev = 
+                                totalNumSamples / pMapSourceBoard.numRevs;
+
+}//end of WallMapDataSaverTuboBinary::calculateAvgNumSamplesPerRev
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// WallMapDataSaverTuboBinary::repairMissingTDCCodes
+//
+// Scan the data file for pMapSourceBoard for revolutions which are
+// approximately twice the average size and insert a TDC code halfway to split
+// the revolution into two. It is assumed that for those oversized revolutions
+// that a TDC signal was missed by the UT board.
+//
+// NOTE: Method calculateAvgNumSamplesPerRev should already have been called.
+//
+
+private void repairMissingTDCCodes(MapSourceBoard pMapSourceBoard)
+{
+
+    if (pMapSourceBoard.avgNumSamplesPerRev <= 0){
+        return;        
+    }
+    
+    int sampleIndex;
+    int prevStart;
+    int start = pMapSourceBoard.inspectionStartIndex;
+    int stop = pMapSourceBoard.inspectionStopIndex;
+    int numSamples;
+    
+    //if a revolution has signicantly more than average number of samples,
+    //it will be split -- calculate the trigger level using the average
+    int triggerLevel = 
+                    (int)(pMapSourceBoard.avgNumSamplesPerRev * 1.75);
+        
+    //check the sample count for each rev, using findControlCode to find the
+    //end of each rev
+
+    while((sampleIndex = findControlCode(pMapSourceBoard,
+                                UTBoard.MAP_ANY_FLAG, start, stop)) != -1) {
+
+        numSamples = sampleIndex - start;
+
+        if (numSamples > triggerLevel){                
+            splitRevWithTDCCode(pMapSourceBoard, start, sampleIndex);
+        }
+
+        start = sampleIndex + 1;
+
+    }//while
+
+}//end of WallMapDataSaverTuboBinary::repairMissingTDCCodes
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// WallMapDataSaverTuboBinary::splitRevWithTDCCode
+//
+// In the map buffer for pMapSourceBoard, overwrites the sample in the center
+// of the revolution bounded by pStart and pStop with a TDC code. The
+// overwritten sample is compared with the following sample and that sample
+// position is overwritten with the smaller of the two in order to preserve the
+// worst case signal.
+//
+
+private void splitRevWithTDCCode(MapSourceBoard pMapSourceBoard, 
+                                                        int pStart, int pStop)
+{
+
+    //ignore small revolutions
+    if ((pStop - pStart) < 10) {return;}
+    
+    //find the sample index in the middle of the revolution
+    int midPoint = (pStart + pStop) / 2;
+    
+    //keep the smaller of the midpoint/midpoint+1 values so no worst case
+    //data point is lost
+    
+    if (pMapSourceBoard.dataBuffer[midPoint] <
+                                    pMapSourceBoard.dataBuffer[midPoint+1]){
+        
+        pMapSourceBoard.dataBuffer[midPoint+1] = 
+                                        pMapSourceBoard.dataBuffer[midPoint];
+    }
+
+    //insert the TDC code over the midpoint sample
+    pMapSourceBoard.dataBuffer[midPoint] = (short)UTBoard.MAP_CONTROL_CODE_FLAG;
+    
+}//end of WallMapDataSaverTuboBinary::splitRevWithTDCCode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // WallMapDataSaverTuboBinary::calculateRevCount
 //
-// Calculates the number of revolutions for each board. Stores the value of
-// the least number of revs of any of the boards in leastNumberOfRevs and
-// the average number of revs in avgNumberOfRevs.
+// Calculates the number of revolutions for each board. Stores the count in
+// each board, stores the least number of revs of any of the boards in
+// leastNumberOfRevs and the average number of revs in avgNumberOfRevs.
 //
 // Count drops one revolution -- don't want to use last rev as it may be corrupt
 // due to head liftoff. First rev should be good as its already delayed after
-// head drop
+// head drop.
 //
 
 private void calculateRevCount()
@@ -1195,34 +1335,28 @@ private void calculateRevCount()
     leastNumberOfRevs = Integer.MAX_VALUE;
     avgNumberOfRevs = 0;
     int index;
-
-    for (int i = 0; i < mapSourceBoards.length; i++){
-
-        int start = mapSourceBoards[i].inspectionStartIndex;
-        int stop = mapSourceBoards[i].inspectionStopIndex;
+        
+    for (MapSourceBoard mapSourceBoard : mapSourceBoards) {
+        
+        int start = mapSourceBoard.inspectionStartIndex;
+        int stop = mapSourceBoard.inspectionStopIndex;
         int revCount = 0;
-
+        
         //look for all control codes between the start and stop points
-
-        while((index = 
-                findControlCode(i, UTBoard.MAP_ANY_FLAG, start, stop)) != -1) {
+        while ((index = findControlCode(mapSourceBoard, UTBoard.MAP_ANY_FLAG,
+                                                        start, stop)) != -1) {
             revCount++;
             start = index + 1;
         }
-
         //drop one from the count to ignore the last rev
         if (revCount > 0) { revCount--; }
-
-         mapSourceBoards[i].numberOfRevs = revCount;
-
+        mapSourceBoard.numRevs = revCount;
         //trap value of the smallest rev count of all the boards
         if (revCount < leastNumberOfRevs) { leastNumberOfRevs = revCount; }
-
         avgNumberOfRevs += revCount;
-
     }
 
-    //calculate the average
+    //calculate the average number of revolutions across all the channels
     avgNumberOfRevs = avgNumberOfRevs / mapSourceBoards.length;
 
 }//end of WallMapDataSaverTuboBinary::calculateRevCount
@@ -1231,9 +1365,9 @@ private void calculateRevCount()
 //-----------------------------------------------------------------------------
 // WallMapDataSaverTuboBinary::findControlCode
 //
-// Finds the next occurrance of the control code with pFlag set for board
-// pBoardIndex. Only control codes (those values with MAP_CONTROL_CODE_FLAG bit
-// set) will be checked.
+// Finds the next occurrance of the control code with pFlag set for 
+// pMapSourceBoard. Only control codes (those values with MAP_CONTROL_CODE_FLAG
+// bit set) will be checked.
 //
 // Searching will begin at pStart and end at pEnd - 1. If pEnd is set to
 // Integer.MAX_VALUE, the search will end at buffer end - 1.
@@ -1242,10 +1376,11 @@ private void calculateRevCount()
 // Returns -1 if the code is not found.
 //
 
-private int findControlCode(int pBoardIndex, int pFlag, int pStart, int pEnd)
+private int findControlCode(MapSourceBoard pMapSourceBoard, int pFlag,
+                                                        int pStart, int pEnd)
 {
 
-    short []dataBuffer = mapSourceBoards[pBoardIndex].dataBuffer;
+    short []dataBuffer = pMapSourceBoard.dataBuffer;
 
     //bail out for invalid pStart
     if (pStart < 0 || pStart > dataBuffer.length) { return(-1); }
@@ -1311,7 +1446,8 @@ private void calculateNumberSamplesInRev()
         mapSourceBoards[i].sampleIndex = start;
 
         //look for the next control code -- that's the end of the revolution
-        index = findControlCode(i, UTBoard.MAP_ANY_FLAG, start, stop);
+        index = findControlCode(mapSourceBoards[i], UTBoard.MAP_ANY_FLAG, 
+                                                                  start, stop);
 
         //store end of current revolution
         mapSourceBoards[i].revEndIndex = index;
