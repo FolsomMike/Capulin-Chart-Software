@@ -74,9 +74,11 @@ public class WallMapDataSaverTuboBinary extends WallMapDataSaver{
     static final int SAVE_TO_BINARY = 3;
     static final int LOAD_FROM_BINARY = 4;
 
-    //there must be this many values saved for each channel -- left over space
-    //should be zero filled
-    static final int REVOLUTION_SAMPLES_BLOCK_SIZE = 2000;
+    //each slice contains a sample from each channel
+    //thus there are NUMBER_SLICES_PER_REV * NUMBER CHANNELS entries
+    //this number of samples is always written to the file; as 
+    
+    static final int NUMBER_SLICES_PER_REV = 2000;
 
     static final int FROM_HOME_DIRECTION_FLAG = 0x4000;
     static final int TOWARD_HOME_DIRECTION_FLAG = 0x0000;
@@ -98,6 +100,8 @@ public class WallMapDataSaverTuboBinary extends WallMapDataSaver{
     WORD wallWord;
     WORD countWord;
     WORD fillerWord;
+    
+    static int PADDING_VALUE;
 
     //the average values are used to detect values which are outside the norm
 
@@ -428,9 +432,6 @@ public void saveToFile(String pFilename)
 
     try{
 
-        //freeze the data buffer(s) while processing
-        setDataBufferIsEnabled(false);
-
         //collect job info into local variables
         setUpJobInfo();
         
@@ -465,7 +466,6 @@ public void saveToFile(String pFilename)
         logSevere(e.getMessage() + " - Error: 448");
     }
     finally{
-        setDataBufferIsEnabled(true);
         try{if (outFile != null) {outFile.close();}}
         catch(IOException e){}
     }
@@ -863,7 +863,7 @@ private void saveRevolution(int pRevolutionNumber) throws IOException
 //-----------------------------------------------------------------------------
 // WallMapDataSaverTuboBinary::writeWallReadingsForRevolution
 //
-// Saves data from one revolution all boards to the file.
+// Saves data from one revolution from all boards to the file.
 //
 // Since the different channels will usually have a slightly different number
 // of samples in any given revolution, the one with the highest sample count
@@ -877,57 +877,209 @@ private void writeWallReadingsForRevolution(int pRevolutionNumber)
                                                             throws IOException
 {
 
-    //write all data -- TUBO_BINARY_FORMAT always stores the entire size of the
-    //maximum allowable -- REVOLUTION_SAMPLES_BLOCK_SIZE, padding with zeroes
-    //if the number of samples is actually less than the maximum
-
-    int i = 0;
-
+    //write entire block -- TUBO_BINARY_FORMAT always stores the entire size of
+    //the maximum allowable -- REVOLUTION_SAMPLES_BLOCK_SIZE, padding with
+    //zeroes if the number of samples is actually less than the maximum
+    
+    WORD sampleSlice[]; //holds one sample from each channel
+    sampleSlice = new WORD[mapSourceBoards.length];
+    for (int i = 0; i<sampleSlice.length; i++){
+        sampleSlice[i] = new WORD(0);
+    }
+        
     fillerWord.value = 0;
 
-    while(i < REVOLUTION_SAMPLES_BLOCK_SIZE){
+    for(int i =0; i < NUMBER_SLICES_PER_REV; i++){
 
-        //write data until number of samples reached for the board which had
-        //the most samples in the current revolution
-
-        if(i < mostNumberOfSamplesPerRev){
-            
-            for (MapSourceBoard mapSourceBoard : mapSourceBoards) {
-                
-                if (mapSourceBoard.sampleIndex < mapSourceBoard.revEndIndex) {
-
-                    int TOF = mapSourceBoard.
-                            dataBuffer[mapSourceBoard.sampleIndex++];
-                    
-                    double lWall = (TOF * 0.015 * .233) / 2;
-
-                    wallWord.value = (int)(lWall * 1000);
-
-                }
-                else{
-                    //leave wallWord at its last value -- doesn't matter what
-                    //board it came from, just need valid data for filler
-                }
-
-                writeWORDToOutFile(wallWord);
-            }
-        }//if(i < mostNumberOfSamplesPerRev)
-        else{
-            for (MapSourceBoard mapSourceBoard : mapSourceBoards) {
-                writeWORDToOutFile(fillerWord);
-            }
-        }//else
-
-        i++;
-
-        //remove this when Rabbit code modified to use both cores
-        //"Sample Double Simulation Notes" 1,2,3
-        i++;
-        //end of remove this
-
-    }//while
+        writeSliceToOutFile(i, sampleSlice);
+        
+    }        
 
 }//end of WallMapDataSaverTuboBinary::writeWallReadingsForRevolution
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// WallMapDataSaverTuboBinary::writeSliceToOutFile
+//
+// Writes one real data or padding sample slice to outFile. A slice contains
+// one sample from each channel.
+//
+// If pSlice is less than the number of samples in the channel with the greatest
+// number of sample in the revolution, then real sample data is written.
+//
+// After pSlice passes the largest number of samples, padding values are
+// written to fill out the data block.
+//
+
+private void writeSliceToOutFile(int pSlice, WORD[] pValues) throws IOException
+{
+    
+    if(pSlice < mostNumberOfSamplesPerRev){
+        writeSampleSliceToOutFile(pSlice, pValues);
+    }
+    else{
+        writePaddingSliceToOutFile(pValues);
+    }
+
+}//end of WallMapDataSaverTuboBinary::writeSliceToOutFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// WallMapDataSaverTuboBinary::writeSampleSliceToOutFile
+//
+// Writes one real data sample slice to outFile. A slice contains one sample
+// from each channel.
+//
+// Every other slice is actually written as a tweaked duplicate. See note
+// below:
+//
+// Sample Double Simulation Note 1:
+//
+// Currently, the program duplicates (with a tweak) each value to simulate
+// double samples. When this feature is removed, also remove doubling of the
+// sample count value (search for "sample count doubling to be removed").
+//
+// This can be done when Rabbit code is changed to use data from both cores
+// See Git Gui commit tag Double_Sample_Rate_Emulation for all changes which
+// need to be undone to remove the doubling functionality.
+//
+
+private void writeSampleSliceToOutFile(int pSplice, WORD[] pValues)
+                                                            throws IOException
+{
+
+    for (int j=0; j<mapSourceBoards.length; j++) {
+        
+        if (mapSourceBoards[j].sampleIndex 
+                                    < mapSourceBoards[j].revEndIndex) {
+
+            //alternate real samples with tweaked copies
+            //sample count doubling to be removed at later time
+            
+            if ((pSplice % 2) == 0){
+                translateSample(j, pValues);
+            }
+            else{
+                createTweakedSample(j, pValues);
+            }
+            
+        }
+        else{            
+            //after end of data reached in a channel, leave data point as
+            //the last valid point to pad so that each channel has the same
+            //number of samples per revolution            
+        }
+        
+    }//for (int j=0...
+        
+    //write one slice to file (one sample value for each channel)
+    writeArrayOfWordsToOutFile(pValues);
+    
+}//end of WallMapDataSaverTuboBinary::writeSampleSliceToOutFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// WallMapDataSaverTuboBinary::translateSample
+//
+// Extracts the next sample from the mapSourceBoard denoted by pIndex,
+// converts it to the appropriate format, and stores it in the matching slot
+// of pValues.
+// 
+
+private void translateSample(int pIndex, WORD[] pValues)
+{        
+
+    int TOF = mapSourceBoards[pIndex].
+            dataBuffer[mapSourceBoards[pIndex].sampleIndex++];
+    double lWall = (TOF * 0.015 * .233) / 2;
+    pValues[pIndex].value = (int)(lWall * 1000);    
+        
+}//end of WallMapDataSaverTuboBinary::translateSample
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// WallMapDataSaverTuboBinary::createTweakedSample
+//
+// Uses the sample already in the pIndex slot of pValues to create a slightly
+// tweaked copy which is stored back in the same slot.
+//
+// Search for "Sample Double Simulation Note 1:" for more info.
+//
+
+private void createTweakedSample(int pIndex, WORD[] pValues)
+{        
+
+    if ((pValues[pIndex].value & 0x02) != 0 ){
+        pValues[pIndex].value ^= 0x01;
+    }
+    
+}//end of WallMapDataSaverTuboBinary::createTweakedSample
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// WallMapDataSaverTuboBinary::writePaddingSliceToOutFile
+//
+// Writes one padding value slice to outFile. A slice contains one padding
+// sample for each channel.
+//
+
+private void writePaddingSliceToOutFile(WORD[] pValues)
+                                                             throws IOException
+{
+
+    for (WORD slice : pValues){
+        slice.value = PADDING_VALUE;
+    }
+    
+    //write one slice to file (one padding value for each channel)
+    writeArrayOfWordsToOutFile(pValues);
+
+}//end of WallMapDataSaverTuboBinary::writePaddingSliceToOutFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// WallMapDataSaverTuboBinary::writeArrayOfWordsToOutFile
+//
+// Writes all the words in pWords to outFile
+//
+
+private void writeArrayOfWordsToOutFile(WORD[] pValues) throws IOException
+{
+    
+    for (WORD value : pValues) {
+        value.write(outFile);
+    }
+    
+}//end of WallMapDataSaverTuboBinary::writeArrayOfWordsToOutFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// WallMapDataSaverTuboBinary::writeArrayOfMassagedWordsToOutFile
+//
+// Writes all the words in pWords to outFile after tweaking them.
+//
+// NOTE: This method to be obsoleted some day. See note below.
+//
+// Sample Double Simulation Note 1:
+//
+// Currently, the program writes each value twice to simulate double samples.
+// When this feature is removed, also remove doubling of the the sample count
+// value (search for "sample count doubling to be removed").
+//
+// This can be done when Rabbit code changed to use data from both cores
+// See Git Gui commit tag Double_Sample_Rate_Emulation for all changes which
+// need to be undone to remove the doubling functionality.
+//
+
+private void writeArrayOfMassagedWordsToOutFile(WORD[] pValues)
+                                                        throws IOException
+{
+    
+    for (WORD value : pValues) {
+        value.write(outFile);
+    }
+    
+}//end of WallMapDataSaverTuboBinary::writeArrayOfMassagedWordsToOutFile
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -935,13 +1087,13 @@ private void writeWallReadingsForRevolution(int pRevolutionNumber)
 //
 // Writes one WORD to outFile.
 //
-//
 // Sample Double Simulation Note 1:
 //
-// Currently, writes each value twice to simulate double samples. When this
-// is removed, also remove doubling of the the sample count value (search for
-// "sample count doubling to be removed")
-// remove this when Rabbit code changed to use data from both cores
+// Currently, the program writes each value twice to simulate double samples.
+// When this feature is removed, also remove doubling of the the sample count
+// value (search for "sample count doubling to be removed").
+//
+// This will be done when Rabbit code changed to use data from both cores
 // See Git Gui commit tag Double_Sample_Rate_Emulation for all changes which
 // need to be undone to remove the doubling functionality.
 //
@@ -994,6 +1146,11 @@ private void analyzeAndRepairData()
 // Finds the start/stop inspection points of all map source boards. The
 // results are stored in the mapSourceBoard objects.
 //
+// Since the tracking markers are disabled from the Control Board until the
+// inspection starts, the first control code in the map data will be the first
+// TDC signal code stored. Thus, searching for the first control code of any
+// type should find the start of the data.
+//
 
 private void findStartStopInspectionIndices()
 {
@@ -1002,7 +1159,7 @@ private void findStartStopInspectionIndices()
 
         int startIndex, stopIndex;
 
-        startIndex = findControlCode(i, UTBoard.MAP_START_CODE_FLAG,
+        startIndex = findControlCode(i, UTBoard.MAP_ANY_FLAG,
                                                         0, Integer.MAX_VALUE);
 
         mapSourceBoards[i].inspectionStartIndex = startIndex;
@@ -1047,7 +1204,8 @@ private void calculateRevCount()
 
         //look for all control codes between the start and stop points
 
-        while((index = findControlCode(i, 0, start, stop)) != -1) {
+        while((index = 
+                findControlCode(i, UTBoard.MAP_ANY_FLAG, start, stop)) != -1) {
             revCount++;
             start = index + 1;
         }
@@ -1153,7 +1311,7 @@ private void calculateNumberSamplesInRev()
         mapSourceBoards[i].sampleIndex = start;
 
         //look for the next control code -- that's the end of the revolution
-        index = findControlCode(i, 0, start, stop);
+        index = findControlCode(i, UTBoard.MAP_ANY_FLAG, start, stop);
 
         //store end of current revolution
         mapSourceBoards[i].revEndIndex = index;

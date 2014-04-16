@@ -336,6 +336,7 @@ public class UTBoard extends Board{
     //A/D data
     static int AD_RAW_DATA_BUFFER_ADDRESS = 0x4000;
 
+    static final int MAP_ANY_FLAG =             0x0000;
     static final int MAP_CONTROL_CODE_FLAG =    0x8000;
     static final int MAP_LINEAR_ADVANCE_FLAG =  0x4000;
     static final int MAP_IGNORE_CODE_FLAG =     0x2000;
@@ -1036,13 +1037,13 @@ public void resetForNextRun(boolean pEnableWallMapPackets)
     dataBufferIndex = 0;
     prevCtrlCodeIndex = -1;
     if(map2D != null) { map2D.resetAll(); }
-    
-    //send reset command to the remotes; also resets DSP mapping and enables
-    //Rabbit to collect map data from DSP and transmit to host
-    sendResetForNextRunCmd();
 
     //no map data is stored in the buffer until enabled later
     setDataBufferIsEnabled(false);
+        
+    //send reset command to the remotes; also resets DSP mapping and enables
+    //Rabbit to collect map data from DSP and transmit to host
+    sendResetForNextRunCmd();
     
 }//end of UTBoard::resetForNextRun
 //-----------------------------------------------------------------------------
