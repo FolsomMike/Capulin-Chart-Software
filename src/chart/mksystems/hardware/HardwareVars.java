@@ -118,6 +118,10 @@ public class HardwareVars extends Object{
     public int wallMaxModifier;
     public int wallMinModifier =  Integer.MIN_VALUE;
 
+        //distance between the laser spots of the two perpendicular eyes used to
+    //trigger on-pipe and off-pipe signals
+    public double photoEyeToPhotoEyeDistance;
+
 }//end of class HardwareVars
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

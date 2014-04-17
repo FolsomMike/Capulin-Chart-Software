@@ -348,15 +348,16 @@ public void dumpOrLoadAllDataBuffersToFiles(String pFilename,
     headerInfo.put("Inspection Direction",
             settings.inspectionDirectionDescription);
 
-
     switch (pLoadSaveFormatChoice) {
 
         case SAVE_TO_TEXT:
+            encoderValues.writeEncoderValuesToFile(pFilename);
             MapBufferFileDumpTools.saveAllDataBuffersToTextFiles(pFilename,
                             dataBuffers, startIndices, endIndices, headerInfo);
             break;
 
         case LOAD_FROM_TEXT:
+            encoderValues.readEncoderValuesFromFile(pFilename);            
             MapBufferFileDumpTools.loadAllDataBuffersFromTextFiles(pFilename,
                             dataBuffers, startIndices, endIndices, headerInfo);
             //new end indices determined by number of data read from file
@@ -441,6 +442,8 @@ public void saveToFile(String pFilename)
 
         //debug mks -- remove this
 
+        //dumpOrLoadAllDataBuffersToFiles(pFilename, SAVE_TO_TEXT);        
+        
         //dumpOrLoadAllDataBuffersToFiles(pFilename, LOAD_FROM_TEXT);
 
         //debug mks end
@@ -1435,39 +1438,29 @@ private void calculateNumberSamplesInRev()
     int sampleCount;
 
     int index;
-
-    for (int i = 0; i < mapSourceBoards.length; i++){
-
+    
+    for (MapSourceBoard mapSourceBoard : mapSourceBoards) {
+        
         //revIndex points at the control code, skip past to first value
-        int start = mapSourceBoards[i].revStartIndex + 1;
+        int start = mapSourceBoard.revStartIndex + 1;
         int stop = Integer.MAX_VALUE;
-
         //the first sample in rev will be first value after control code
-        mapSourceBoards[i].sampleIndex = start;
-
+        mapSourceBoard.sampleIndex = start;
         //look for the next control code -- that's the end of the revolution
-        index = findControlCode(mapSourceBoards[i], UTBoard.MAP_ANY_FLAG, 
-                                                                  start, stop);
-
+        index = findControlCode(mapSourceBoard,
+                                        UTBoard.MAP_ANY_FLAG, start, stop);
         //store end of current revolution
-        mapSourceBoards[i].revEndIndex = index;
-
+        mapSourceBoard.revEndIndex = index;
         //preset to end of this revolution (start of next) for next time
-        mapSourceBoards[i].revStartIndex = index;
-
+        mapSourceBoard.revStartIndex = index;
         //calculate number of samples in the revolution
         sampleCount = index - start - 1;
-
-        mapSourceBoards[i].numSamplesInRev = sampleCount;
-
+        mapSourceBoard.numSamplesInRev = sampleCount;
         //trap value of the largest sample count of all the boards for this
         //revolution
         if (sampleCount > mostNumberOfSamplesPerRev) {
             mostNumberOfSamplesPerRev = sampleCount;
-        }
-
-        avgNumberOfSamplesPerRev += sampleCount;
-
+        }   avgNumberOfSamplesPerRev += sampleCount;
     }
 
     //calculate the average

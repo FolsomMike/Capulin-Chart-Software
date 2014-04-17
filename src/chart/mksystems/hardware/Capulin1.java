@@ -313,7 +313,7 @@ public void createWallMapDataSaver()
 
     //pass reference to source boards and an EncoderValues object to data saver
     wallMapDataSaver.init(mapSourceBoards, 
-                                controlBoards[0].getAllEncoderValuesObject());
+                                controlBoards[0].getEncoderValuesObject());
 
 }//end of Capulin1::createWallMapDataSaver
 //-----------------------------------------------------------------------------
@@ -2049,6 +2049,12 @@ private void configureControlBoards()
         }
 
     }//if (numberOfControlBoards > 0)
+
+    EncoderValues encoderValues = controlBoards[0].getEncoderValuesObject();
+    //copy various encoder related values so other objects can access them
+    encoderValues.photoEyeToPhotoEyeDistance = hdwVs.photoEyeToPhotoEyeDistance;
+    encoderValues.encoder1InchesPerCount = 0;
+    encoderValues.encoder2InchesPerCount = 0;
 
 }//end of Capulin1::configureControlBoards
 //-----------------------------------------------------------------------------

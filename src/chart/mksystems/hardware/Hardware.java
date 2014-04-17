@@ -118,10 +118,6 @@ public class Hardware extends Object implements TraceValueCalculator, Runnable,
     double photoEye2DistanceFrontOfHead1;
     double photoEye2DistanceFrontOfHead2;
 
-    //distance between the laser spots of the two perpendicular eyes used to
-    //trigger on-pipe and off-pipe signals
-    double photoEyeToPhotoEyeDistance;
-
 //-----------------------------------------------------------------------------
 // Hardware::Hardware (constructor)
 //
@@ -183,7 +179,7 @@ private void configure(IniFile pConfigFile)
     photoEye2DistanceFrontOfHead2 = pConfigFile.readDouble("Hardware",
                          "Photo Eye 2 Distance to Front Edge of Head 2", 22.0);
 
-    photoEyeToPhotoEyeDistance = pConfigFile.readDouble("Hardware",
+    hdwVs.photoEyeToPhotoEyeDistance = pConfigFile.readDouble("Hardware",
                          "Distance Between Perpendicular Photo Eyes", 53.4375);
 
     settings.awayFromHome =
@@ -1321,7 +1317,7 @@ boolean collectEncoderDataInspectMode()
             //starts when lead eye hits pipe but ends when trailing eye clears,
             //so the extra distance between the eyes must be accounted for
 
-            hdwVs.measuredLength -= photoEyeToPhotoEyeDistance;
+            hdwVs.measuredLength -= hdwVs.photoEyeToPhotoEyeDistance;
 
             hdwVs.measuredLength /= 12; //convert to decimal feet
 
