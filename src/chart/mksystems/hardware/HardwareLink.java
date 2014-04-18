@@ -145,12 +145,7 @@ public void triggerMapAdvance(double pPosition);
 
 public int getNumberOfUTBoards();
 
-public void calculateMapOffsetDelays(
-        double pPhotoEye1DistanceFrontOfHead1,
-        double pPhotoEye1DistanceFrontOfHead2,
-        double pPhotoEye2DistanceFrontOfHead1,
-        double pPhotoEye2DistanceFrontOfHead2
-        );
+public void calculateMapOffsetDelays();
 
 public void initializeMapOffsetDelays(int pDirection, int pAwayDirection);
 

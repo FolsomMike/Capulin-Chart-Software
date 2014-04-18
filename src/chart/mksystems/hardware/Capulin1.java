@@ -2053,9 +2053,21 @@ private void configureControlBoards()
     EncoderValues encoderValues = controlBoards[0].getEncoderValuesObject();
     //copy various encoder related values so other objects can access them
     encoderValues.photoEyeToPhotoEyeDistance = hdwVs.photoEyeToPhotoEyeDistance;
-    encoderValues.encoder1InchesPerCount = 0;
-    encoderValues.encoder2InchesPerCount = 0;
+    encoderValues.encoder1InchesPerCount = hdwVs.encoder1InchesPerCount;
+    encoderValues.encoder2InchesPerCount = hdwVs.encoder2InchesPerCount;
 
+    encoderValues.photoEye1DistanceFrontOfHead1 =
+                                        hdwVs.photoEye1DistanceFrontOfHead1;
+
+    encoderValues.photoEye1DistanceFrontOfHead2 =
+                                        hdwVs.photoEye1DistanceFrontOfHead2;
+
+    encoderValues.photoEye2DistanceFrontOfHead1 =
+                                        hdwVs.photoEye2DistanceFrontOfHead1;
+
+    encoderValues.photoEye2DistanceFrontOfHead2 =
+                                        hdwVs.photoEye2DistanceFrontOfHead2;
+    
 }//end of Capulin1::configureControlBoards
 //-----------------------------------------------------------------------------
 
@@ -2975,7 +2987,6 @@ public void saveAllMapDataSetsToFile(
         String pInspectionDirectionDescription)
 {
 
-
     //update values in Settings object for others to access
     settings.nominalWall = hdwVs.nominalWall;
     settings.measuredPieceLength = hdwVs.measuredLength;
@@ -3001,12 +3012,7 @@ public void saveAllMapDataSetsToFile(
 //
 
 @Override
-public void calculateMapOffsetDelays(
-        double pPhotoEye1DistanceFrontOfHead1,
-        double pPhotoEye1DistanceFrontOfHead2,
-        double pPhotoEye2DistanceFrontOfHead1,
-        double pPhotoEye2DistanceFrontOfHead2
-        )
+public void calculateMapOffsetDelays()
 {
 
     if(mapSourceBoards == null) { return; }
@@ -3015,20 +3021,24 @@ public void calculateMapOffsetDelays(
         UTBoard utBoard = mapSourceBoard.utBoard;
         if (utBoard != null && utBoard.headForMapDataSensor == 1){
 
-            utBoard.startFwdDelayDistance = pPhotoEye1DistanceFrontOfHead1
+            utBoard.startFwdDelayDistance = 
+                    hdwVs.photoEye1DistanceFrontOfHead1
                     + utBoard.distanceMapSensorToFrontEdgeOfHead;
 
-            utBoard.startRevDelayDistance = pPhotoEye2DistanceFrontOfHead1 -
+            utBoard.startRevDelayDistance = 
+                    hdwVs.photoEye2DistanceFrontOfHead1 -
                     utBoard.distanceMapSensorToFrontEdgeOfHead;
 
         }//if (utBoard != null && utBoard.headForMapDataSensor == 1)
         else
             if (utBoard != null && utBoard.headForMapDataSensor == 1){
 
-                utBoard.startFwdDelayDistance = pPhotoEye1DistanceFrontOfHead2
+                utBoard.startFwdDelayDistance = 
+                        hdwVs.photoEye1DistanceFrontOfHead2
                         + utBoard.distanceMapSensorToFrontEdgeOfHead;
 
-                utBoard.startRevDelayDistance = pPhotoEye2DistanceFrontOfHead2
+                utBoard.startRevDelayDistance = 
+                        hdwVs.photoEye2DistanceFrontOfHead2
                         - utBoard.distanceMapSensorToFrontEdgeOfHead;
 
             }//if (utBoard != null && utBoard.headForMapDataSensor == 1)

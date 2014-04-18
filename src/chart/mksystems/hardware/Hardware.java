@@ -56,9 +56,6 @@ public class Hardware extends Object implements TraceValueCalculator, Runnable,
     //moving away is increasing or decreasing encoder counts
     int awayDirection = 0;
 
-    double encoder1InchesPerCount;
-    double encoder2InchesPerCount;
-
     int prevPixPosition;
 
     boolean output1On = false;
@@ -112,12 +109,6 @@ public class Hardware extends Object implements TraceValueCalculator, Runnable,
     public static int PULSE = 0, CONTINUOUS = 1;
     public int markerMode = PULSE;
 
-    double photoEye1DistanceFrontOfHead1;
-    double photoEye1DistanceFrontOfHead2;
-
-    double photoEye2DistanceFrontOfHead1;
-    double photoEye2DistanceFrontOfHead2;
-
 //-----------------------------------------------------------------------------
 // Hardware::Hardware (constructor)
 //
@@ -167,16 +158,16 @@ private void configure(IniFile pConfigFile)
                 pConfigFile.readDouble("Hardware", "nS per Data Point", 15.0);
     hdwVs.uSPerDataPoint = hdwVs.nSPerDataPoint / 1000;
 
-    photoEye1DistanceFrontOfHead1 = pConfigFile.readDouble("Hardware",
+    hdwVs.photoEye1DistanceFrontOfHead1 = pConfigFile.readDouble("Hardware",
                           "Photo Eye 1 Distance to Front Edge of Head 1", 8.0);
 
-    photoEye1DistanceFrontOfHead2 = pConfigFile.readDouble("Hardware",
+    hdwVs.photoEye1DistanceFrontOfHead2 = pConfigFile.readDouble("Hardware",
                          "Photo Eye 1 Distance to Front Edge of Head 2", 32.0);
 
-    photoEye2DistanceFrontOfHead1 = pConfigFile.readDouble("Hardware",
+    hdwVs.photoEye2DistanceFrontOfHead1 = pConfigFile.readDouble("Hardware",
                          "Photo Eye 2 Distance to Front Edge of Head 1", 46.0);
 
-    photoEye2DistanceFrontOfHead2 = pConfigFile.readDouble("Hardware",
+    hdwVs.photoEye2DistanceFrontOfHead2 = pConfigFile.readDouble("Hardware",
                          "Photo Eye 2 Distance to Front Edge of Head 2", 22.0);
 
     hdwVs.photoEyeToPhotoEyeDistance = pConfigFile.readDouble("Hardware",
@@ -199,10 +190,10 @@ private void configure(IniFile pConfigFile)
     //accurate results over the length of the piece -- the packet send trigger
     //counts are often the same as the values below
 
-    encoder1InchesPerCount =
+    hdwVs.encoder1InchesPerCount =
         pConfigFile.readDouble("Hardware", "Encoder 1 Inches Per Count", 0.003);
 
-    encoder2InchesPerCount =
+    hdwVs.encoder2InchesPerCount =
         pConfigFile.readDouble("Hardware", "Encoder 2 Inches Per Count", 0.003);
 
     hdwVs.pixelsPerInch =
@@ -313,9 +304,7 @@ void calculatePlotterOffsetDelays()
     calculateTraceOffsetDelays();
 
     //calculate offset delays for maps not associated with a channel
-    analogDriver.calculateMapOffsetDelays(
-                photoEye1DistanceFrontOfHead1, photoEye1DistanceFrontOfHead2,
-                photoEye2DistanceFrontOfHead1, photoEye2DistanceFrontOfHead2);
+    analogDriver.calculateMapOffsetDelays();
 
 }//end of Hardware::calculatePlotterOffsetDelays
 //-----------------------------------------------------------------------------
@@ -342,21 +331,21 @@ void calculateTraceOffsetDelays()
                     plotterPtr = chartGroup.getStripChart(sc).getPlotter(tr);
                     if ((plotterPtr != null) && (plotterPtr.head == 1)){
                         plotterPtr.startFwdDelayDistance =
-                                photoEye1DistanceFrontOfHead1
+                                hdwVs.photoEye1DistanceFrontOfHead1
                                 + plotterPtr.distanceSensorToFrontEdgeOfHead;
                         
                         plotterPtr.startRevDelayDistance =
-                                photoEye2DistanceFrontOfHead1 -
+                                hdwVs.photoEye2DistanceFrontOfHead1 -
                                 plotterPtr.distanceSensorToFrontEdgeOfHead;
                         
                     }//if ((tracePtr != null) && (tracePtr.head == 1))
                     if ((plotterPtr != null) && (plotterPtr.head == 2)){
                         plotterPtr.startFwdDelayDistance =
-                                photoEye1DistanceFrontOfHead2
+                                hdwVs.photoEye1DistanceFrontOfHead2
                                 + plotterPtr.distanceSensorToFrontEdgeOfHead;
                         
                         plotterPtr.startRevDelayDistance =
-                                photoEye2DistanceFrontOfHead2 -
+                                hdwVs.photoEye2DistanceFrontOfHead2 -
                                 plotterPtr.distanceSensorToFrontEdgeOfHead;
                         
                     }//if ((tracePtr != null) && (tracePtr.head == 2))
@@ -781,7 +770,7 @@ public void setMode(int pOpMode)
 
             //convert to inches
             hdwVs.measuredLength =
-                              pieceLengthEncoderCounts * encoder2InchesPerCount;
+                 hdwVs.convertEncoder2CountsToInches(pieceLengthEncoderCounts);
 
             //the distance between the vertical eyes is not accounted for
             //when calculating the distance travelled when the STOP mode is
@@ -1311,7 +1300,7 @@ boolean collectEncoderDataInspectMode()
 
             //convert to inches
             hdwVs.measuredLength =
-                              pieceLengthEncoderCounts * encoder2InchesPerCount;
+                  hdwVs.convertEncoder2CountsToInches(pieceLengthEncoderCounts);
 
             //subtract the distance between the perpendicular eyes -- tracking
             //starts when lead eye hits pipe but ends when trailing eye clears,
@@ -1376,8 +1365,8 @@ void moveEncoders(int pRecordStopPositionForHead)
     //skipped pixels are filled with data from the previous pixel.
 
     //calculate the position in inches
-    double position = encoder2InchesPerCount *
-            (inspectCtrlVars.encoder2 - inspectCtrlVars.encoder2Start);
+    double position = hdwVs.convertEncoder2CountsToInches(
+                    inspectCtrlVars.encoder2 - inspectCtrlVars.encoder2Start);
 
     //take absolute value so head moving in reverse works the same as forward
     position = Math.abs(position);

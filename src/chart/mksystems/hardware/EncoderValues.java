@@ -50,6 +50,13 @@ public class EncoderValues extends Object{
     public double photoEyeToPhotoEyeDistance = 0;
     public double encoder1InchesPerCount = 0;
     public double encoder2InchesPerCount = 0;
+
+    public double photoEye1DistanceFrontOfHead1 = 0;
+    public double photoEye1DistanceFrontOfHead2 = 0;
+    
+    public double photoEye2DistanceFrontOfHead1 = 0;
+    public double photoEye2DistanceFrontOfHead2 = 0;
+
     
 //-----------------------------------------------------------------------------
 // EncoderValues::EncoderValues (constructor)
@@ -131,6 +138,21 @@ public double convertEncoder1CountsToFeet(int pCounts)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// EncoderValues::convertEncoder1CountsToInches
+//
+// Converts pCounts number of encoder 1 counts to decimal inches and returns
+// that value by scaling by the counts-per-inch value for that encoder.
+//
+
+public double convertEncoder1CountsToInches(int pCounts)
+{
+    
+    return(pCounts * encoder1InchesPerCount);
+    
+}//end of EncoderValues::convertEncoder1CountsToInches
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // EncoderValues::convertEncoder2CountsToFeet
 //
 // Converts pCounts number of encoder 2 counts to decimal feet and returns that
@@ -143,6 +165,21 @@ public double convertEncoder2CountsToFeet(int pCounts)
     return(pCounts * encoder2InchesPerCount / 12);
     
 }//end of EncoderValues::convertEncoder2CountsToFeet
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// EncoderValues::convertEncoder2CountsToInches
+//
+// Converts pCounts number of encoder 2 counts to decimal inches and returns
+// that value by scaling by the counts-per-inch value for that encoder.
+//
+
+public double convertEncoder2CountsToInches(int pCounts)
+{
+    
+    return(pCounts * encoder2InchesPerCount);
+    
+}//end of EncoderValues::convertEncoder2CountsToInches
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

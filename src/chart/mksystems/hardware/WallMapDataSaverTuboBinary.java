@@ -84,10 +84,11 @@ public class WallMapDataSaverTuboBinary extends WallMapDataSaver{
     static final int TOWARD_HOME_DIRECTION_FLAG = 0x0000;
 
     //in the "going away" inspection direction, the Tubo Map Viewer as of
-    // 8/30/13 has a built in offset of 56 inches -- the following can be used
+    // 8/30/13 has a built in offset of 28 inches -- the following can be used
     // to correct for that as it's not compatible with the Chart program
-
-    static final int GOING_AWAY_OFFSET_CORRECTION = -56;
+    // units is inches
+    
+    static final double GOING_AWAY_OFFSET_CORRECTION = -28;
 
     Settings settings;
 
@@ -440,14 +441,20 @@ public void saveToFile(String pFilename)
             mapSourceBoard.setUpForSavingData();
         }
 
-        //debug mks -- remove this
+        //testing mks -- use this to save or load raw map data
+        //if loading, set next tube number to same number used to save
+        //and then run a short inspection (can be in simulation mode) and
+        //the saved run will be loaded and used as if it came from a run
 
         //dumpOrLoadAllDataBuffersToFiles(pFilename, SAVE_TO_TEXT);        
         
         //dumpOrLoadAllDataBuffersToFiles(pFilename, LOAD_FROM_TEXT);
 
-        //debug mks end
-
+        //the above options save the encoders as well as the buffers, use this
+        //line instead to just save the encoders
+        //encoderValues.writeEncoderValuesToFile(pFilename);
+        
+        //testing mks end
 
         outFile =
               new DataOutputStream(new BufferedOutputStream(
@@ -583,26 +590,6 @@ private void copyJobInfoToLocalVariables()
 
     fMotionPulseLen = (float)0.5; //need to read this from config file
 
-    // Alignment Note 1:
-    // Sensor position is already offset by the map source sensor delays
-    // so it seems that all values should be zero here, but Tubo Wall Map
-    // Viewer crashes at revolution 51 if zeroes are used and wall reductions
-    // don't line up quite right. Using the offsets does make all revolution
-    // alignments look better, but the wall reduction hits from each ducer
-    // don't seem to be lined up on top of each other like the Tubo sample
-    // files.  Need feed back from Tubo people on this.
-
-    // Note: Tried using reversed offsets as our ducers are in reverse
-    // order -- Tubo Map Viewer crashed.
-    // Tried reversing the order of "This Board is Source for Map Channel="
-    // entries for the mapping UT boards -- no crash but did not line up
-    // wall reduction spikes.
-    // The Chart program delays the start inspection points for each mapping
-    // data buffer in an attempt to line things up. This might be necessary
-    // for trace delays??? (maybe not) but the Tubo Map Viewer tries to line
-    // things up itself based on the transducer offsets.  May need to remove
-    // alignment function in Chart program and let Tubo program handle it.
-
     //debug mks -- needs to be extracted from config info or such
 
     fChnlOffset[0] = (float)  0;
@@ -610,16 +597,13 @@ private void copyJobInfoToLocalVariables()
     fChnlOffset[2] = (float) 1.25;
     fChnlOffset[3] = (float) 1.875;
 
-    nHomeXOffset = 16; //debug mks -- read actual value here see Note 1
-                       //in this method's header
+    //these are calculated later
+    nHomeXOffset = 0;
+    nAwayXOffset = 0;
+    nStopXloc = 0;
 
-    nHomeXOffset += GOING_AWAY_OFFSET_CORRECTION;
-
-    nHomeXOffset = -14; //from sample 15_3 debug mks (tubo file is -24, -14 lines up wall reduction for our file)
-    nAwayXOffset = 76; //from sample 15_3 debug mks
-    nStopXloc = 765; //from sample 15_3 debug  mks
-
-    nJointNum.value = 1;
+    nJointNum.value = settings.pieceNumberToBeSaved;
+    
     fWall = (float)settings.nominalWall;
     fOD = (float)parseDiameterFromJobInfoString();
 
@@ -789,6 +773,10 @@ private void saveHeader()throws IOException
     for(int i = 0; i < fChnlOffset.length; i++){
         LittleEndianTool.writeFloat(fChnlOffset[i], outFile);
     }
+    
+    //calculate nHomeXOffset, nAwayXOffset, nStopXloc
+    calculateEndOfInspectionDistances();
+    
     outFile.writeShort(Short.reverseBytes(nHomeXOffset));
     outFile.writeShort(Short.reverseBytes(nAwayXOffset));
     outFile.writeInt(Integer.reverseBytes(nStopXloc));
@@ -801,6 +789,134 @@ private void saveHeader()throws IOException
     nMotionBus.write(outFile);
 
 }//end of WallMapDataSaverTuboBinary::saveHeader
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// WallMapDataSaverTuboBinary::calculateEndOfInspectionDistances
+//
+// Calculates the various distances for the transducers using the encoder
+// position values at the end of inspection as required for the Tubo binary
+// file.
+//
+// All values are calculated for both directions, even though not all of the
+// values are used by the viewer program for both directions. The unused
+// values will be ignored.
+//
+// For the "Go Away From Home" direction:
+//      on pipe occurs when eye1 reaches tube
+//      off pipe occurs when eye2 leaves tube
+//
+// For the "Go Home" direction:
+//      on pipe occurs when eye2 reaches tube
+//      off pipe occurs when eye1 leaves tube
+//
+// nHomeXOffset: distance from the end of the pipe to Probe 4 where inspection
+//               starts for the "Go Away from Home" direction
+//
+// nAwayXOffset: distance from the end of the pipe to Probe 1 where inspection
+//              ends for the "Go Toward Home" direction
+//
+// nStopXloc: for direction "Go Toward Home" is location of the head at the 
+//            moment the head is picked up from the pipe to stop inspection.
+//            nStopXloc generally is equal to the longitudinal location of the
+//            last revolution if the last revolution is not truncated.
+//              (this would be probe 1?)
+//            Per Yan Ming, this value can be nearly anything. The program
+//            uses nAwayXOffset and the position recorded for each revolution
+//            to calculate the location of any point.
+//
+
+private void calculateEndOfInspectionDistances()
+{
+
+    //--- calculate nHomeXOffset -- used for "Go Away From Home" direction
+    
+    int encoderPosAtHeadDownSignal;
+    double photoEye1DistanceFrontOfHead;
+    
+    //choose encoder position and distances based on which head holds
+    //leading sensor in "Go Away From Home" direction
+    if (mapSourceBoards[3].utBoard.headForMapDataSensor == 1){
+        encoderPosAtHeadDownSignal = encoderValues.encoderPosAtHead1DownSignal;
+        photoEye1DistanceFrontOfHead = 
+                                    encoderValues.photoEye1DistanceFrontOfHead1;
+    }else{
+        encoderPosAtHeadDownSignal = encoderValues.encoderPosAtHead2DownSignal;
+        photoEye1DistanceFrontOfHead = 
+                                    encoderValues.photoEye1DistanceFrontOfHead2;        
+    }
+        
+    //calculate position in inches of the leading mapping transducer from the
+    //end of the tube when its head begins inspection for "Go Away From Home"
+    //direction
+    
+    double homeXOffset = 
+              encoderValues.convertEncoder2CountsToInches(
+                                                    encoderPosAtHeadDownSignal)
+            - encoderValues.convertEncoder2CountsToInches(
+                                        encoderValues.encoderPosAtOnPipeSignal)
+            - photoEye1DistanceFrontOfHead
+            - mapSourceBoards[3].utBoard.distanceMapSensorToFrontEdgeOfHead;
+
+    //correct for offset built into the viewer program
+    homeXOffset += GOING_AWAY_OFFSET_CORRECTION;
+
+    //convert to motion pulses
+    nHomeXOffset = (short)(homeXOffset / fMotionPulseLen);
+        
+    //--- calculate nAwayXOffset -- used for "Go Home" direction
+    
+    int encoderPosAtHeadUpSignal;
+    
+    //choose encoder position and distances based on which head holds
+    //leading sensor in "Go Home" direction
+    if (mapSourceBoards[0].utBoard.headForMapDataSensor == 1){
+        encoderPosAtHeadUpSignal = encoderValues.encoderPosAtHead1UpSignal;
+        photoEye1DistanceFrontOfHead = 
+                                    encoderValues.photoEye1DistanceFrontOfHead1;
+    }else{
+        encoderPosAtHeadUpSignal = encoderValues.encoderPosAtHead2UpSignal;
+        photoEye1DistanceFrontOfHead = 
+                                    encoderValues.photoEye1DistanceFrontOfHead2;        
+    }
+    
+    double awayXOffset =
+              encoderValues.convertEncoder2CountsToInches(
+                                        encoderValues.encoderPosAtOffPipeSignal)
+            - encoderValues.convertEncoder2CountsToInches(
+                                                    encoderPosAtHeadUpSignal)            
+            - photoEye1DistanceFrontOfHead
+            + mapSourceBoards[0].utBoard.distanceMapSensorToFrontEdgeOfHead;
+
+    //convert to motion pulses
+    nAwayXOffset = (short)(homeXOffset / fMotionPulseLen);
+    
+    //--- calculate nStopXloc -- used for "Go Home" direction
+
+    //choose encoder position and distances based on which head holds
+    //leading sensor in "Go Home" direction
+    if (mapSourceBoards[0].utBoard.headForMapDataSensor == 1){
+        encoderPosAtHeadUpSignal = encoderValues.encoderPosAtHead1UpSignal;
+        photoEye1DistanceFrontOfHead = 
+                                    encoderValues.photoEye1DistanceFrontOfHead1;
+    }else{
+        encoderPosAtHeadUpSignal = encoderValues.encoderPosAtHead2UpSignal;
+        photoEye1DistanceFrontOfHead = 
+                                    encoderValues.photoEye1DistanceFrontOfHead2;        
+    }
+    
+    double stopXloc =
+              encoderValues.convertEncoder2CountsToInches(
+                                                    encoderPosAtHeadUpSignal)                        
+              - encoderValues.convertEncoder2CountsToInches(
+                                        encoderValues.encoderPosAtOnPipeSignal)
+            + photoEye1DistanceFrontOfHead
+            + mapSourceBoards[0].utBoard.distanceMapSensorToFrontEdgeOfHead;
+
+    //convert to motion pulses
+    nStopXloc = (short)(stopXloc / fMotionPulseLen);
+    
+}//end of WallMapDataSaverTuboBinary::calculateEndOfInspectionDistances
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

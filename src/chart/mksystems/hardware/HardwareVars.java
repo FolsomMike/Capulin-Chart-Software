@@ -118,10 +118,80 @@ public class HardwareVars extends Object{
     public int wallMaxModifier;
     public int wallMinModifier =  Integer.MIN_VALUE;
 
-        //distance between the laser spots of the two perpendicular eyes used to
+    double encoder1InchesPerCount;
+    double encoder2InchesPerCount;
+    
+    //distance between the laser spots of the two perpendicular eyes used to
     //trigger on-pipe and off-pipe signals
     public double photoEyeToPhotoEyeDistance;
 
+    double photoEye1DistanceFrontOfHead1;
+    double photoEye1DistanceFrontOfHead2;
+
+    double photoEye2DistanceFrontOfHead1;
+    double photoEye2DistanceFrontOfHead2;
+
+//-----------------------------------------------------------------------------
+// HardwareVars::convertEncoder1CountsToFeet
+//
+// Converts pCounts number of encoder 1 counts to decimal feet and returns that
+// value by scaling by the counts-per-inch value for that encoder.
+//
+
+public double convertEncoder1CountsToFeet(int pCounts)
+{
+    
+    return(pCounts * encoder1InchesPerCount / 12);
+    
+}//end of HardwareVars::convertEncoder1CountsToFeet
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// HardwareVars::convertEncoder1CountsToInches
+//
+// Converts pCounts number of encoder 1 counts to decimal inches and returns
+// that value by scaling by the counts-per-inch value for that encoder.
+//
+
+public double convertEncoder1CountsToInches(int pCounts)
+{
+    
+    return(pCounts * encoder1InchesPerCount);
+    
+}//end of HardwareVars::convertEncoder1CountsToInches
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// HardwareVars::convertEncoder2CountsToFeet
+//
+// Converts pCounts number of encoder 2 counts to decimal feet and returns that
+// value by scaling by the counts-per-inch value for that encoder.
+//
+
+public double convertEncoder2CountsToFeet(int pCounts)
+{
+    
+    return(pCounts * encoder2InchesPerCount / 12);
+    
+}//end of HardwareVars::convertEncoder2CountsToFeet
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// HardwareVars::convertEncoder2CountsToInches
+//
+// Converts pCounts number of encoder 2 counts to decimal inches and returns
+// that value by scaling by the counts-per-inch value for that encoder.
+//
+
+public double convertEncoder2CountsToInches(int pCounts)
+{
+    
+    return(pCounts * encoder2InchesPerCount);
+    
+}//end of HardwareVars::convertEncoder2CountsToInches
+//-----------------------------------------------------------------------------
+    
+    
 }//end of class HardwareVars
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

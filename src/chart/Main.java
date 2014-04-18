@@ -1040,9 +1040,11 @@ private void saveSegment() throws IOException
 
     if (!controlPanel.calMode){
         pieceNumber = decimalFormats[0].format(controlPanel.nextPieceNumber);
+        settings.pieceNumberToBeSaved = controlPanel.nextPieceNumber;
     }
     else{
         pieceNumber = decimalFormats[0].format(controlPanel.nextCalPieceNumber);
+        settings.pieceNumberToBeSaved = controlPanel.nextCalPieceNumber;
     }
 
     isLastPieceInspectedACal = controlPanel.calMode;

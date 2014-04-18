@@ -216,6 +216,8 @@ public class Settings extends Object implements ActionListener, ItemListener {
 
     public ArrayList<String> configInfo;
 
+    public int pieceNumberToBeSaved;
+    
     public double nominalWall;
     public double measuredPieceLength;
 
