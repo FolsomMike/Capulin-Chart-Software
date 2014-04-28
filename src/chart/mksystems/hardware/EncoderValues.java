@@ -40,6 +40,8 @@ import java.util.logging.Logger;
 
 public class EncoderValues extends Object{
 
+    String inspectionDirection;
+    
     public int encoderPosAtOnPipeSignal = 0;
     public int encoderPosAtOffPipeSignal = 0;
     public int encoderPosAtHead1DownSignal = 0;
@@ -189,9 +191,12 @@ public double convertEncoder2CountsToInches(int pCounts)
 // prefix.
 //
 
-public void writeEncoderValuesToFile(String pFilename)
+public void writeEncoderValuesToFile(String pFilename, 
+                                                String pInspectionDirection)
 {
 
+    inspectionDirection = pInspectionDirection;
+    
     pFilename = pFilename + " ~ Wall Mapping Data ~ Encoder Values.dat";
 
     FileOutputStream fileOutputStream = null;
@@ -234,6 +239,8 @@ public void writeEncoderValuesToFile(String pFilename)
 private void writeEncoderValuesToOpenFile(BufferedWriter pOutFile)
                                                         throws IOException
 {
+    
+    pOutFile.write("Inspection Direction=" + inspectionDirection);
     
     pOutFile.write("Encoder Position at On Pipe Signal=" 
                                                 + encoderPosAtOnPipeSignal);
@@ -356,6 +363,9 @@ public void readEncoderValuesFromOpenFile(BufferedReader pInFile)
 
     String value;
 
+    value = readNextValue(pInFile); if (value == null){return;}
+    inspectionDirection = value;
+        
     value = readNextValue(pInFile); if (value == null){return;}
     encoderPosAtOnPipeSignal = Integer.parseInt(value);
 

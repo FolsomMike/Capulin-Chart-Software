@@ -87,9 +87,21 @@ public class WallMapDataSaverTuboBinary extends WallMapDataSaver{
     // 8/30/13 has a built in offset of 28 inches -- the following can be used
     // to correct for that as it's not compatible with the Chart program
     // units is inches
-    
+    // NOTE: due to backwards nomenclature in the Tubo map viewer, the
+    //  "home" offset variable is used with "AWAY" offset correction
+
     static final double GOING_AWAY_OFFSET_CORRECTION = -28;
 
+    //in the "going home" inspection direction, the Tubo Map Viewer as of
+    // 8/30/13 has a built in offset of 72.5 inches -- the following can be used
+    // to correct for that as it's not compatible with the Chart program
+    // units is inches
+    // NOTE: due to backwards nomenclature in the Tubo map viewer, the
+    //  "away" offset variable is used with "HOME" offset correction
+    
+    static final double GOING_HOME_OFFSET_CORRECTION = -72.5;
+    
+    
     Settings settings;
 
     MapSourceBoard mapSourceBoards[];
@@ -352,13 +364,16 @@ public void dumpOrLoadAllDataBuffersToFiles(String pFilename,
     switch (pLoadSaveFormatChoice) {
 
         case SAVE_TO_TEXT:
-            encoderValues.writeEncoderValuesToFile(pFilename);
+            encoderValues.writeEncoderValuesToFile(pFilename, 
+                                    settings.inspectionDirectionDescription);
             MapBufferFileDumpTools.saveAllDataBuffersToTextFiles(pFilename,
                             dataBuffers, startIndices, endIndices, headerInfo);
             break;
 
         case LOAD_FROM_TEXT:
-            encoderValues.readEncoderValuesFromFile(pFilename);            
+            encoderValues.readEncoderValuesFromFile(pFilename);
+            settings.inspectionDirectionDescription = 
+                                            encoderValues.inspectionDirection;
             MapBufferFileDumpTools.loadAllDataBuffersFromTextFiles(pFilename,
                             dataBuffers, startIndices, endIndices, headerInfo);
             //new end indices determined by number of data read from file
@@ -448,12 +463,14 @@ public void saveToFile(String pFilename)
 
         //dumpOrLoadAllDataBuffersToFiles(pFilename, SAVE_TO_TEXT);        
         
-        //dumpOrLoadAllDataBuffersToFiles(pFilename, LOAD_FROM_TEXT);
+        dumpOrLoadAllDataBuffersToFiles(pFilename, LOAD_FROM_TEXT); //debug mks -- comment this out
 
         //the above options save the encoders as well as the buffers, use this
         //line instead to just save the encoders
         //encoderValues.writeEncoderValuesToFile(pFilename);
-        
+        //settings.inspectionDirectionDescription = 
+        //                                    encoderValues.inspectionDirection;
+
         //testing mks end
 
         outFile =
@@ -609,10 +626,7 @@ private void copyJobInfoToLocalVariables()
 
     nNumRev.value = 0; //set later after revolutions are counted
 
-    nMotionBus.value = 0;
-
-    //set the inspection direction flag
-    nMotionBus.value |= parseInspectionDirectionFlagFromJobInfoString();
+    nMotionBus.value = 0; //set later when header is saved
 
     nMotionBusNotUsed.value = 0; //this value is stored with each revolution
 
@@ -776,11 +790,15 @@ private void saveHeader()throws IOException
     
     //calculate nHomeXOffset, nAwayXOffset, nStopXloc
     calculateEndOfInspectionDistances();
-    
+
     outFile.writeShort(Short.reverseBytes(nHomeXOffset));
     outFile.writeShort(Short.reverseBytes(nAwayXOffset));
     outFile.writeInt(Integer.reverseBytes(nStopXloc));
 
+    //set the inspection direction flag    
+    nMotionBus.value = 0;
+    nMotionBus.value |= parseInspectionDirectionFlagFromJobInfoString();
+    
     nJointNum.write(outFile);
     LittleEndianTool.writeFloat(fWall, outFile);
     LittleEndianTool.writeFloat(fOD, outFile);
@@ -830,6 +848,7 @@ private void calculateEndOfInspectionDistances()
 {
 
     //--- calculate nHomeXOffset -- used for "Go Away From Home" direction
+    // photo eye 1 detects on-pipe for this direction so use it for distances
     
     int encoderPosAtHeadDownSignal;
     double photoEye1DistanceFrontOfHead;
@@ -859,12 +878,15 @@ private void calculateEndOfInspectionDistances()
             - mapSourceBoards[3].utBoard.distanceMapSensorToFrontEdgeOfHead;
 
     //correct for offset built into the viewer program
+    //(yes, "home" offset variable is used with "AWAY" offset correction)
     homeXOffset += GOING_AWAY_OFFSET_CORRECTION;
 
     //convert to motion pulses
     nHomeXOffset = (short)(homeXOffset / fMotionPulseLen);
         
     //--- calculate nAwayXOffset -- used for "Go Home" direction
+    // encoder counts are negative for this direction so use absolute value
+    // photo-eye 1 detects off-pipe for this direction so use it for distances
     
     int encoderPosAtHeadUpSignal;
     
@@ -882,35 +904,43 @@ private void calculateEndOfInspectionDistances()
     
     double awayXOffset =
               encoderValues.convertEncoder2CountsToInches(
-                                        encoderValues.encoderPosAtOffPipeSignal)
+                   Math.abs(encoderValues.encoderPosAtOffPipeSignal))
             - encoderValues.convertEncoder2CountsToInches(
-                                                    encoderPosAtHeadUpSignal)            
+                                            Math.abs(encoderPosAtHeadUpSignal))
             - photoEye1DistanceFrontOfHead
-            + mapSourceBoards[0].utBoard.distanceMapSensorToFrontEdgeOfHead;
+            - mapSourceBoards[0].utBoard.distanceMapSensorToFrontEdgeOfHead;
 
+    //correct for offset built into the viewer program
+    //(yes, "away" offset variable is used with "HOME" offset correction)        
+    awayXOffset += GOING_HOME_OFFSET_CORRECTION;
+        
     //convert to motion pulses
-    nAwayXOffset = (short)(homeXOffset / fMotionPulseLen);
+    nAwayXOffset = (short)(awayXOffset / fMotionPulseLen);
     
     //--- calculate nStopXloc -- used for "Go Home" direction
-
+    // encoder counts are negative for this direction so use absolute value
+    // photo-eye 2 detects on-pipe for this direction so use it for distances
+    
+    double photoEye2DistanceFrontOfHead;
+    
     //choose encoder position and distances based on which head holds
     //leading sensor in "Go Home" direction
     if (mapSourceBoards[0].utBoard.headForMapDataSensor == 1){
         encoderPosAtHeadUpSignal = encoderValues.encoderPosAtHead1UpSignal;
-        photoEye1DistanceFrontOfHead = 
-                                    encoderValues.photoEye1DistanceFrontOfHead1;
+        photoEye2DistanceFrontOfHead = 
+                                    encoderValues.photoEye2DistanceFrontOfHead1;
     }else{
         encoderPosAtHeadUpSignal = encoderValues.encoderPosAtHead2UpSignal;
-        photoEye1DistanceFrontOfHead = 
-                                    encoderValues.photoEye1DistanceFrontOfHead2;        
+        photoEye2DistanceFrontOfHead = 
+                                    encoderValues.photoEye2DistanceFrontOfHead2;        
     }
     
     double stopXloc =
               encoderValues.convertEncoder2CountsToInches(
-                                                    encoderPosAtHeadUpSignal)                        
+                                            Math.abs(encoderPosAtHeadUpSignal))
               - encoderValues.convertEncoder2CountsToInches(
-                                        encoderValues.encoderPosAtOnPipeSignal)
-            + photoEye1DistanceFrontOfHead
+                              Math.abs(encoderValues.encoderPosAtOnPipeSignal))
+            + photoEye2DistanceFrontOfHead
             + mapSourceBoards[0].utBoard.distanceMapSensorToFrontEdgeOfHead;
 
     //convert to motion pulses
