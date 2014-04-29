@@ -241,6 +241,7 @@ private void writeEncoderValuesToOpenFile(BufferedWriter pOutFile)
 {
     
     pOutFile.write("Inspection Direction=" + inspectionDirection);
+    pOutFile.newLine();
     
     pOutFile.write("Encoder Position at On Pipe Signal=" 
                                                 + encoderPosAtOnPipeSignal);
