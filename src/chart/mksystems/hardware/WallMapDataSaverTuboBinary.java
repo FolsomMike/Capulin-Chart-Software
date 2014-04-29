@@ -83,27 +83,35 @@ public class WallMapDataSaverTuboBinary extends WallMapDataSaver{
     static final int FROM_HOME_DIRECTION_FLAG = 0x4000;
     static final int TOWARD_HOME_DIRECTION_FLAG = 0x0000;
 
-    //in the "going away" inspection direction, the Tubo Map Viewer as of
-    // 8/30/13 has a built in offset of 28 inches -- the following can be used
-    // to correct for that as it's not compatible with the Chart program
+    // in the "going away" inspection direction, the Tubo Map Viewer as of
+    // 8/30/13 has a built in offset  -- the following can be used to correct
+    // for that
     // units is inches
     // NOTE: due to backwards nomenclature in the Tubo map viewer, the
     //  "home" offset variable is used with "AWAY" offset correction
 
-    static final double GOING_AWAY_OFFSET_CORRECTION = -28;
+    static final double GOING_AWAY_TUBO_OFFSET_CORRECTION = -28;
 
     //in the "going home" inspection direction, the Tubo Map Viewer as of
-    // 8/30/13 has a built in offset of 72.5 inches -- the following can be used
-    // to correct for that as it's not compatible with the Chart program
+    // 8/30/13 has a built in offset -- the following can be used to correct
+    // for that
     // units is inches
     // NOTE: due to backwards nomenclature in the Tubo map viewer, the
     //  "away" offset variable is used with "HOME" offset correction
     
-    static final double GOING_HOME_OFFSET_CORRECTION = -72.5;
+    static final double GOING_HOME_TUBO_OFFSET_CORRECTION = 30.5;
+
+    //the PLC and/or photo-eye have built-in delay to prevent false triggering
+    //this value is used to correct for the distance missed during delay
     
+    static final double GOING_HOME_PLC_OFFSET_CORRECTION = -1.5;
     
+    double avgCalculatedHelix;
+
     Settings settings;
 
+    double distanceInspected;
+    
     MapSourceBoard mapSourceBoards[];
     int numberOfMapSourceBoards;
     int numberOfHardwareChannels;
@@ -463,13 +471,12 @@ public void saveToFile(String pFilename)
 
         //dumpOrLoadAllDataBuffersToFiles(pFilename, SAVE_TO_TEXT);        
         
-        dumpOrLoadAllDataBuffersToFiles(pFilename, LOAD_FROM_TEXT); //debug mks -- comment this out
+        //dumpOrLoadAllDataBuffersToFiles(pFilename, LOAD_FROM_TEXT);
 
         //the above options save the encoders as well as the buffers, use this
         //line instead to just save the encoders
-        //encoderValues.writeEncoderValuesToFile(pFilename);
-        //settings.inspectionDirectionDescription = 
-        //                                    encoderValues.inspectionDirection;
+        encoderValues.writeEncoderValuesToFile(pFilename, 
+                                settings.inspectionDirectionDescription); //debug mks -- comment this out
 
         //testing mks end
 
@@ -481,7 +488,9 @@ public void saveToFile(String pFilename)
         //must be done before saveHeader as the header needs some of that info
 
         analyzeAndRepairData();
-
+        
+        calculateDistanceInspectedAndAvgHelix();
+                
         //save all header information
         saveHeader();
 
@@ -498,6 +507,43 @@ public void saveToFile(String pFilename)
     }
 
 }//end of WallMapDataSaverTuboBinary::saveToFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// WallMapDataSaverTuboBinary::calculateDistanceInspectedAndAvgHelix
+//
+// Calculates the distance inspected from the head down signal to the head
+// up signal.
+//
+
+private void calculateDistanceInspectedAndAvgHelix()
+{
+    
+    int headUpPosition, headDownPosition;
+    
+    //choose encoder position and distances based on which head holds
+    //leading sensor in "Go Home" direction
+    
+    if (mapSourceBoards[0].utBoard.headForMapDataSensor == 1){
+
+        headUpPosition = encoderValues.encoderPosAtHead1UpSignal;
+        headDownPosition = encoderValues.encoderPosAtHead1DownSignal;
+        
+    }else{
+
+        headUpPosition = encoderValues.encoderPosAtHead2UpSignal;
+        headDownPosition = encoderValues.encoderPosAtHead2DownSignal;
+        
+    }
+    
+    
+    distanceInspected = 
+        encoderValues.convertEncoder2CountsToInches(
+                    Math.abs(headUpPosition) - Math.abs(headDownPosition));
+
+    avgCalculatedHelix = distanceInspected / leastNumberOfRevs;
+    
+}//end of WallMapDataSaverTuboBinary::calculateDistanceInspectedAndAvgHelix
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -610,9 +656,9 @@ private void copyJobInfoToLocalVariables()
     //debug mks -- needs to be extracted from config info or such
 
     fChnlOffset[0] = (float)  0;
-    fChnlOffset[1] = (float)  .625;
-    fChnlOffset[2] = (float) 1.25;
-    fChnlOffset[3] = (float) 1.875;
+    fChnlOffset[1] = (float)  .75;
+    fChnlOffset[2] = (float) 1.5;
+    fChnlOffset[3] = (float) 2.25;
 
     //these are calculated later
     nHomeXOffset = 0;
@@ -876,10 +922,10 @@ private void calculateEndOfInspectionDistances()
                                         encoderValues.encoderPosAtOnPipeSignal)
             - photoEye1DistanceFrontOfHead
             - mapSourceBoards[3].utBoard.distanceMapSensorToFrontEdgeOfHead;
-
+    
     //correct for offset built into the viewer program
     //(yes, "home" offset variable is used with "AWAY" offset correction)
-    homeXOffset += GOING_AWAY_OFFSET_CORRECTION;
+    homeXOffset += GOING_AWAY_TUBO_OFFSET_CORRECTION;
 
     //convert to motion pulses
     nHomeXOffset = (short)(homeXOffset / fMotionPulseLen);
@@ -910,39 +956,20 @@ private void calculateEndOfInspectionDistances()
             - photoEye1DistanceFrontOfHead
             - mapSourceBoards[0].utBoard.distanceMapSensorToFrontEdgeOfHead;
 
+    //correct for distance added during PLC/eye deglitch delay
+    awayXOffset += GOING_HOME_PLC_OFFSET_CORRECTION;
+    
     //correct for offset built into the viewer program
     //(yes, "away" offset variable is used with "HOME" offset correction)        
-    awayXOffset += GOING_HOME_OFFSET_CORRECTION;
+    awayXOffset += GOING_HOME_TUBO_OFFSET_CORRECTION;
         
     //convert to motion pulses
     nAwayXOffset = (short)(awayXOffset / fMotionPulseLen);
     
     //--- calculate nStopXloc -- used for "Go Home" direction
-    // encoder counts are negative for this direction so use absolute value
-    // photo-eye 2 detects on-pipe for this direction so use it for distances
     
-    double photoEye2DistanceFrontOfHead;
+    double stopXloc = distanceInspected;
     
-    //choose encoder position and distances based on which head holds
-    //leading sensor in "Go Home" direction
-    if (mapSourceBoards[0].utBoard.headForMapDataSensor == 1){
-        encoderPosAtHeadUpSignal = encoderValues.encoderPosAtHead1UpSignal;
-        photoEye2DistanceFrontOfHead = 
-                                    encoderValues.photoEye2DistanceFrontOfHead1;
-    }else{
-        encoderPosAtHeadUpSignal = encoderValues.encoderPosAtHead2UpSignal;
-        photoEye2DistanceFrontOfHead = 
-                                    encoderValues.photoEye2DistanceFrontOfHead2;        
-    }
-    
-    double stopXloc =
-              encoderValues.convertEncoder2CountsToInches(
-                                            Math.abs(encoderPosAtHeadUpSignal))
-              - encoderValues.convertEncoder2CountsToInches(
-                              Math.abs(encoderValues.encoderPosAtOnPipeSignal))
-            + photoEye2DistanceFrontOfHead
-            + mapSourceBoards[0].utBoard.distanceMapSensorToFrontEdgeOfHead;
-
     //convert to motion pulses
     nStopXloc = (short)(stopXloc / fMotionPulseLen);
     
@@ -993,7 +1020,7 @@ private void saveRevolution(int pRevolutionNumber) throws IOException
     //this is the location of the current revolution measured in number of
     // "motion pulses" where each pulse equals so many inches
 
-    nXloc = (short)(pRevolutionNumber * .375 / fMotionPulseLen);
+    nXloc = (short)(pRevolutionNumber * avgCalculatedHelix / fMotionPulseLen);
     outFile.writeShort(Short.reverseBytes(nXloc));
 
     //not used
@@ -1826,16 +1853,6 @@ private void setUpTestData()
     spare.set("", 75);
 
     fMotionPulseLen = (float)0.5;
-
-    // see "Alignment Note 1" in this file for explanation of the fChnlOffsets
-    // and possible issues to be resolved
-
-    //debug mks -- needs to be extracted from config info
-
-    fChnlOffset[0] = (float)  0;
-    fChnlOffset[1] = (float)  .625;
-    fChnlOffset[2] = (float) 1.25;
-    fChnlOffset[3] = (float) 1.875;
 
     nHomeXOffset = 0;
     nAwayXOffset = 0;
