@@ -21,6 +21,7 @@ package chart.mksystems.tools;
 
 import java.awt.Image;
 import java.awt.Window;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.ImageIcon;
@@ -99,6 +100,23 @@ public static void waitSleep(int pTime)
 }//end of SwissArmyKnife::waitSleep
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// SwissArmyKnife::stripFileSeparator
+//
+// Strips off the file separator from the end of pPath is one is found.
+//
+
+public static String stripFileSeparator(String pPath)
+{
+
+    if (pPath.endsWith(File.separator)) {
+        pPath = pPath.substring(0, pPath.length()-1);
+    }
+
+    return(pPath);
+
+}//end of SwissArmyKnife::stripFileSeparator
+//-----------------------------------------------------------------------------
 
 }//end of class SwissArmyKnife
 //-----------------------------------------------------------------------------

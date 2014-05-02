@@ -25,6 +25,7 @@ import chart.mksystems.settings.Settings;
 import chart.mksystems.stripchart.ChartGroup;
 import chart.mksystems.stripchart.Plotter;
 import chart.mksystems.stripchart.StripChart;
+import chart.mksystems.tools.SwissArmyKnife;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -446,7 +447,11 @@ public void startPrint()
 //-----------------------------------------------------------------------------
 // FlagReportPrinter::createFolder
 //
-// Creates a folder to hold the reports if it does not already exist.
+// Creates a folder to hold the output files if it does not already exist.
+//
+// If the string containing a specific folder to be used (as specified by
+// a config file entry) is empty, the path is set to the existing
+// work order folder.
 //
 // Returns the full path to the folder.
 //
@@ -461,31 +466,22 @@ public String createFolder()
     File folder;
 
     if(!reportsPath.isEmpty()){
-        lReportsPath = reportsPath;
-        if (lReportsPath.endsWith(File.separator)) {
-            lReportsPath = lReportsPath.substring(0, lReportsPath.length()-1);
-        }
+        
+        lReportsPath = SwissArmyKnife.stripFileSeparator(reportsPath);
 
         //create a folder using the job name to hold the reports
         folder = new File(lReportsPath);
         if (!folder.exists()){
             //attempt to create the folder
             if (!folder.mkdirs()){
-                displayErrorMessage("The reports folder could not be created.");
+                displayErrorMessage("The output folder could not be created.");
                 return("");
             }
         }//if(!reportsPath.isEmpty)
     }//if(!reportsPath.isEmpty())
 
-   //remove the folder separator from the end of the job path if it exists
-   //so we can make a new folder name
-
-    String lJobPrimaryPath = jobPrimaryPath;
-    if (lJobPrimaryPath.endsWith(File.separator)) {
-        lJobPrimaryPath =
-                    lJobPrimaryPath.substring(0, lJobPrimaryPath.length()-1);
-    }
-
+    String lJobPrimaryPath = SwissArmyKnife.stripFileSeparator(jobPrimaryPath);
+    
     String finalReportsPath;
 
     //if a specific folder has been specified to hold reports, then place
@@ -507,7 +503,7 @@ public String createFolder()
         //attempt to create the folder
         if (!folder.mkdirs()){
             displayErrorMessage(
-                            "The job's reports folder could not be created.");
+                            "The output folder could not be created.");
             return("");
         }
     }
