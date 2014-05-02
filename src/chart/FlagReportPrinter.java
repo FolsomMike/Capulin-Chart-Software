@@ -428,7 +428,8 @@ public void startPrint()
 {
 
     //if it does not already exist, create a folder to hold the report
-    String lReportsPath = createFolder();
+    String lReportsPath = createFolder(
+                reportsPath, jobPrimaryPath, currentJobName  ," ~ Reports");
 
     //don't print if the path could not be created
     if (lReportsPath.isEmpty()) {return;}
@@ -447,16 +448,30 @@ public void startPrint()
 //-----------------------------------------------------------------------------
 // FlagReportPrinter::createFolder
 //
-// Creates a folder to hold the output files if it does not already exist.
+// Creates a folder to hold a specific type of output files if it does not
+// already exist. This folder is used to segregate certain types of files for
+// easier viewing and access via outside programs. This also reduces the need
+// to access the folders containing the main data files which reduces the
+// possibility of accidental file destruction.
 //
-// If the string containing a specific folder to be used (as specified by
-// a config file entry) is empty, the path is set to the existing
-// work order folder.
+// If pSpecialPath contains a specific folder to be used (as specified by
+// a config file entry or such), the output files will be stored there.
+//
+// If pSpecialPath is empty, a new folder will be created in the primary
+// path using pJobName with pDescriptor appended. Thus, for pDescriptor of
+// "Reports" and pJobName of "WO1234", and pBasePath
+// of "IR Scan Data Files -  Primary", a sample of the folder created:
+//
+// IR Scan Data Files -  Primary
+//      WO3944
+//      WO1234
+//      WO1234 ~ Reports
 //
 // Returns the full path to the folder.
 //
 
-public String createFolder()
+public String createFolder(String pSpecialPath, String pBasePath,
+                                        String pJobName, String pDescriptor)
 {
 
     //remove the folder separator from the end of the reports path if it exists
@@ -465,9 +480,10 @@ public String createFolder()
     String lReportsPath = "";
     File folder;
 
-    if(!reportsPath.isEmpty()){
+    //use the specified output folder if path is not empty
+    if(!pSpecialPath.isEmpty()){
         
-        lReportsPath = SwissArmyKnife.stripFileSeparator(reportsPath);
+        lReportsPath = SwissArmyKnife.stripFileSeparator(pSpecialPath);
 
         //create a folder using the job name to hold the reports
         folder = new File(lReportsPath);
@@ -477,28 +493,26 @@ public String createFolder()
                 displayErrorMessage("The output folder could not be created.");
                 return("");
             }
-        }//if(!reportsPath.isEmpty)
-    }//if(!reportsPath.isEmpty())
-
-    String lJobPrimaryPath = SwissArmyKnife.stripFileSeparator(jobPrimaryPath);
+        }
+    }//if(!pSpecialPath.isEmpty())
     
-    String finalReportsPath;
+    String fullReportsPath;
 
     //if a specific folder has been specified to hold reports, then place
     //the new folder there -- if not, then place the folder in the primary
     //data folder
     if (!lReportsPath.isEmpty()){
-        finalReportsPath = lReportsPath + File.separator + currentJobName;
+        fullReportsPath = lReportsPath + File.separator + pJobName;
     }
     else{
-        finalReportsPath = lJobPrimaryPath;
+        fullReportsPath = SwissArmyKnife.stripFileSeparator(pBasePath);
     }
 
-    //create a new folder which will be sorted next to the job data folder
-    finalReportsPath = finalReportsPath + " ~ Reports";
+    //create a new folder which will be stored next to the job data folder
+    fullReportsPath = fullReportsPath + pDescriptor;
 
     //create a folder using the job name to hold the reports
-    folder = new File(finalReportsPath);
+    folder = new File(fullReportsPath);
     if (!folder.exists()){
         //attempt to create the folder
         if (!folder.mkdirs()){
@@ -509,7 +523,7 @@ public String createFolder()
     }
 
 //if all folders created okay, return the full path
-return(finalReportsPath);
+return(fullReportsPath);
 
 }//end of FlagReportPrinter::createFolder
 //-----------------------------------------------------------------------------
