@@ -408,6 +408,9 @@ private void loadMainStaticSettings()
     settings.reportsPath = formatPath(configFile.readString(
                                     "Main Configuration", "Reports Path", ""));
 
+    settings.mapFilesPath = formatPath(configFile.readString(
+                           "Main Configuration", "Map Files Path", ""));
+
 }//end of MainWindow::loadMainStaticSettings
 //-----------------------------------------------------------------------------
 
@@ -457,6 +460,8 @@ private void displayViewerInstructionsInLogWindow(){
 
 private String formatPath (String pPath){
 
+    pPath = pPath.trim();
+    
     if (!pPath.equals("") && !pPath.endsWith(File.separator)) {
         pPath += File.separator;
     }
@@ -542,16 +547,11 @@ private void loadGeneralConfiguration()
     settings.backupFolderName = settings.backupFolderName.replace("\\", sep);
 
     //if there is a separator at the end, remove for consistency with later code
-    String t = settings.primaryFolderName;
-    if (t.endsWith(sep)) {
-        settings.primaryFolderName = t.substring(0, t.length()-1);
-    }
+    settings.primaryFolderName = 
+                SwissArmyKnife.stripFileSeparator(settings.primaryFolderName);
 
-    t = settings.backupFolderName;
-    if (t.endsWith(sep)) {
-        settings.backupFolderName = t.substring(0, t.length()-1);
-    }
-
+    settings.backupFolderName =
+                SwissArmyKnife.stripFileSeparator(settings.backupFolderName);
 
     settings.printResolutionX = configFile.readInt(
                                 "Printer", "Printer Resolution X in DPI", 300);
@@ -1091,14 +1091,9 @@ private void saveSegment() throws IOException
         segmentFilename = "30 - " + pieceNumber + " map.cal";
     }
 
-    hardware.saveAllMapDataSetsToTextFile(
-        settings.currentJobPrimaryPath + segmentFilename,
-        settings.jobFileFormat, settings.inspectionDirectionDescription);
-
-    hardware.saveAllMapDataSetsToTextFile(
-        settings.currentJobBackupPath + segmentFilename,
-        settings.jobFileFormat, settings.inspectionDirectionDescription);
-
+    //save map file copies if mapping is active
+    saveMap(segmentFilename);
+    
 }//end of MainWindow::saveSegment
 //-----------------------------------------------------------------------------
 
@@ -1230,6 +1225,44 @@ private void saveSegmentInfoHelper(String pFilename)
     }
 
 }//end of MainWindow::saveSegmentInfoHelper
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainWindow::saveMap
+//
+// Saves map file copies if mapping is active. A copy is saved in the primary
+// and backup folders and a copy is saved in the folder specified for map
+// files. If not specified, the third copy is saved in a folder next to the
+// job folder.
+//
+// This third copy in a separate directory is meant to be accessed by outside
+// programs, thus eliminating the need to browse through the main data fiiles.
+//
+
+private void saveMap(String pSegmentFilename)
+{
+    
+    hardware.saveAllMapDataSetsToTextFile(
+        settings.currentJobPrimaryPath + pSegmentFilename,
+        settings.jobFileFormat, settings.inspectionDirectionDescription);
+
+    hardware.saveAllMapDataSetsToTextFile(
+        settings.currentJobBackupPath + pSegmentFilename,
+        settings.jobFileFormat, settings.inspectionDirectionDescription);
+
+    String lMapsPath = SwissArmyKnife.createFolderForSpecifiedFileType(
+        settings.mapFilesPath, settings.currentJobPrimaryPath, 
+            settings.currentJobName," ~ Maps", mainFrame);
+       
+    if (!lMapsPath.equals("")){
+
+        hardware.saveAllMapDataSetsToTextFile(
+            lMapsPath + pSegmentFilename,
+            settings.jobFileFormat, settings.inspectionDirectionDescription);
+        
+    }
+    
+}//end of MainWindow::saveMap
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

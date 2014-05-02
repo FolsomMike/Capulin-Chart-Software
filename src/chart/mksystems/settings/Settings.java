@@ -96,7 +96,8 @@ public class Settings extends Object implements ActionListener, ItemListener {
     public static double MAP_TUBO_BINARY_DATA_VERSION_NUMBER = 0;
 
     public String currentJobName;
-    public String currentJobPrimaryPath, currentJobBackupPath, reportsPath;
+    public String currentJobPrimaryPath, currentJobBackupPath;
+    public String reportsPath, mapFilesPath;
     public String primaryDataPath;
     public String backupDataPath;
 
