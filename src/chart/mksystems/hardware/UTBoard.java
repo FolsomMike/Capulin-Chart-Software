@@ -1028,7 +1028,7 @@ public void enableWallMapPackets(boolean pState)
 // collisions in accessing the socket.
 //
 
-public void resetForNextRun(boolean pEnableWallMapPackets)
+public void resetForNextRun()
 {
 
     recordMapDataEnabled = false;

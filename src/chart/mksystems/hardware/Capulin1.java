@@ -207,7 +207,7 @@ private void configure(IniFile pConfigFile)
             pConfigFile.readBoolean("Hardware", "Simulate UT Boards", false);
 
     simulationDataSourceFilePath = SwissArmyKnife.formatPath(
-       pConfigFile.readString("Hardware", 
+    pConfigFile.readString("Hardware", 
                                       "Simulation Data Source File Path", ""));
     
     numberOfControlBoards =
@@ -1069,7 +1069,7 @@ public void handleSyncedCommands()
     if(performResetUTBoardsForNextRun){
         performResetUTBoardsForNextRun = false;
         //prepare the UTBoards for a new run
-        resetUTBoardsForNextRun(true);
+        resetUTBoardsForNextRun();
     }
 
     if(invokeInspectModeTrigger){
@@ -1508,7 +1508,7 @@ private void prepareRemotesForNextRun()
     //tracking counters in the UT Boards
     controlBoards[0].resetTrackCounters();
     
-    resetUTBoardsForNextRun(true);
+    resetUTBoardsForNextRun();
         
 }//end of Capulin1::prepareRemotesForNextRun
 //-----------------------------------------------------------------------------
@@ -2774,16 +2774,16 @@ void sendByteUDP(DatagramSocket pSocket, DatagramPacket pOutPacket, byte pByte)
 // Resets all buffer pointers and such in each UTBoard in preparation for the
 // next run.
 //
-// If pEnableWallMapPackets is true, the remote is enabled to transmit wall
-// data map packets asynchronously.
+// The remote will also be enabled to transmit wall data map packets
+// asynchronously.
 //
 
-void resetUTBoardsForNextRun(boolean pEnableWallMapPackets)
+void resetUTBoardsForNextRun()
 {
 
     for (int i = 0; i < numberOfUTBoards; i++){
         if (utBoards[i] != null){ 
-            utBoards[i].resetForNextRun(pEnableWallMapPackets);
+            utBoards[i].resetForNextRun();
         }
     }
 
