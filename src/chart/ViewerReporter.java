@@ -58,7 +58,7 @@ public class ViewerReporter implements ActionListener, TraceValueCalculator {
     int loadSegmentError;
     String segmentDataVersion;
 
-    String inspectionDirection;
+    String inspectionDirection = "";
 
     int numberOfChartGroups;
     ChartGroup[] chartGroups;

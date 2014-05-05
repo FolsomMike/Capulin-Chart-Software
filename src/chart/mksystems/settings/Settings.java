@@ -229,7 +229,7 @@ public class Settings extends Object implements ActionListener, ItemListener {
     //home is away from the operator's compartment -- these are loaded from the
     //configuration file so that they can be customized
     public String towardsHome, awayFromHome;
-    public String inspectionDirectionDescription;
+    public String inspectionDirectionDescription = "unknown";
 
 
 //-----------------------------------------------------------------------------

@@ -781,9 +781,17 @@ public void setMode(int pOpMode)
             
         }
     }//end of if (opMode == Hardware.STOP)
-    
-    //if in scan mode, enable flagging always
+
+    //handle INSPECT_WITH_TIMER_TRACKING mode
+    if (opMode == Hardware.INSPECT_WITH_TIMER_TRACKING){
+        //enable flagging always for timer driven mode
+        hdwVs.head1Down = true; enableHeadTraceFlagging(1, true);
+        hdwVs.head2Down = true; enableHeadTraceFlagging(2, true);
+    }
+        
+    //handle SCAN mode
     if (opMode == Hardware.SCAN){
+        //enable flagging always for scan mode
         hdwVs.head1Down = true; enableHeadTraceFlagging(1, true);
         hdwVs.head2Down = true; enableHeadTraceFlagging(2, true);
     }
