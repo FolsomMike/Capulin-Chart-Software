@@ -17,6 +17,8 @@
 package chart.mksystems.tools;
 
 //-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// class TemplateClass
 //
 
 public class TemplateClass extends Object{

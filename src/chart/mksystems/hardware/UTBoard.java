@@ -37,7 +37,7 @@
 * display program.
 *
 * When the start inspection signal is received, a flag is set for the last
-* received revolution in each raw data buffer. *IF* the ethernet transfer is
+* received revolution in each raw data buffer. *IF* the Ethernet transfer is
 * always fast enough, all buffers may have the latest revolution -- in which
 * case this signal would serve to provide an alignment signal in the unaligned
 * raw data buffers.
@@ -72,6 +72,7 @@ package chart.mksystems.hardware;
 import chart.Log;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.stripchart.Map2D;
+import chart.mksystems.tools.SwissArmyKnife;
 import java.io.*;
 import java.net.*;
 import javax.swing.*;
@@ -847,8 +848,8 @@ public synchronized void connect()
 
         if (!simulate) {socket = new Socket(ipAddr, 23);}
         else {
-            UTSimulator utSimulator =
-                                new UTSimulator(ipAddr, 23, mainFileFormat);
+            UTSimulator utSimulator = new UTSimulator(
+                     ipAddr, 23, mainFileFormat, simulationDataSourceFilePath);
             utSimulator.init();
 
             socket = utSimulator;
@@ -3861,6 +3862,12 @@ void configure(IniFile pConfigFile)
 
     super.configure(pConfigFile);
 
+    simulationDataSourceFilePath = SwissArmyKnife.formatPath(
+       pConfigFile.readString("Hardware", 
+           "Simulation Data Source File Path", 
+            "Simulation Data Source Files" + File.separator + 
+                           "Basic 10 Board Peak Detector Random Simulation"));
+        
     fpgaCodeFilename = pConfigFile.readString(
                         "Hardware", "UT FPGA Code Filename", "not specified");
 

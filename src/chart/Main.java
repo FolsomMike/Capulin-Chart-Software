@@ -399,16 +399,16 @@ private void loadMainStaticSettings()
     //set the data folders to empty if values cannot be read from the ini file
     //all functions which write data should abort if the folder names are empty
 
-    settings.primaryDataPath = formatPath(configFile.readString(
+    settings.primaryDataPath = SwissArmyKnife.formatPath(configFile.readString(
                                "Main Configuration", "Primary Data Path", ""));
 
-    settings.backupDataPath = formatPath(configFile.readString(
+    settings.backupDataPath = SwissArmyKnife.formatPath(configFile.readString(
                                 "Main Configuration", "Backup Data Path", ""));
 
-    settings.reportsPath = formatPath(configFile.readString(
+    settings.reportsPath = SwissArmyKnife.formatPath(configFile.readString(
                                     "Main Configuration", "Reports Path", ""));
 
-    settings.mapFilesPath = formatPath(configFile.readString(
+    settings.mapFilesPath = SwissArmyKnife.formatPath(configFile.readString(
                            "Main Configuration", "Map Files Path", ""));
 
 }//end of MainWindow::loadMainStaticSettings
@@ -449,26 +449,6 @@ private void displayViewerInstructionsInLogWindow(){
     logWindow.appendLine(" main menu.");
 
 }//end of MainWindow::displayViewerInstructionsInLogWindow
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// MainWindow::formatPath
-//
-// Append a fwd/backslash if pPath does not already end with one.
-// Use File.separator to apply the correct character for the operating system.
-//
-
-private String formatPath (String pPath){
-
-    pPath = pPath.trim();
-    
-    if (!pPath.equals("") && !pPath.endsWith(File.separator)) {
-        pPath += File.separator;
-    }
-
-    return(pPath);
-
-}//end of MainWindow::formatPath
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

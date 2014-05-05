@@ -67,7 +67,7 @@ public void init(UTBoard pUTBoard)
 
     utBoard = pUTBoard;
 
-    dataBuffer = utBoard.getDataBuffer();
+    dataBuffer = utBoard.getDataBuffer(); // debug mks -- null pointer exception here sometimes -- especially in simulation
 
 }//end of MapSourceBoard::init
 //-----------------------------------------------------------------------------

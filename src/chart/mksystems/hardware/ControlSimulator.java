@@ -22,7 +22,6 @@
 package chart.mksystems.hardware;
 
 import chart.MessageLink;
-import chart.mksystems.inifile.IniFile;
 import java.io.*;
 import java.net.*;
 
@@ -50,7 +49,6 @@ public class ControlSimulator extends Simulator implements MessageLink{
 
     public static int controlBoardCounter = 0;
     int controlBoardNumber;
-    String mainFileFormat;
 
     boolean onPipeFlag = false;
     boolean head1Down = false;
@@ -93,23 +91,14 @@ public class ControlSimulator extends Simulator implements MessageLink{
 //
 
 public ControlSimulator(InetAddress pIPAddress, int pPort,
-                                String pMainFileFormat) throws SocketException
+               String pMainFileFormat, String pSimulationDataSourceFilePath)
+                                                        throws SocketException
 {
 
     //call the parent class constructor
-    super(pIPAddress, pPort);
+    super(pIPAddress, pPort, pSimulationDataSourceFilePath);
 
     mainFileFormat = pMainFileFormat;
-
-    //give each Control board a unique number so it can load data from the
-    //simulation.ini file and such
-    //this is different than the unique index provided in the parent class
-    //Simulator as that number is distributed across all sub classes -- UT
-    //boards, Control boards, etc.
-    controlBoardNumber = controlBoardCounter++;
-
-    //load configuration data from file
-    configure();
 
     //create an out writer from this class - will be input for some other class
     //this writer is only used to send the greeting back to the host
@@ -118,6 +107,25 @@ public ControlSimulator(InetAddress pIPAddress, int pPort,
     out.println("Hello from Control Board Simulator!");
 
 }//end of ControlSimulator::ControlSimulator (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlSimulator::init
+//
+// Initializes the object.  MUST be called by sub classes after instantiation.
+//
+
+public void init()
+{
+    
+    //give each board a unique number so it can load data from the
+    //simulation files and such
+
+    controlBoardNumber = controlBoardCounter++;
+
+    super.init(controlBoardNumber);
+
+}//end of ControlSimulator::init
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -613,25 +621,29 @@ public int xmtMessage(int pMessage, int pValue)
 //----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// ControlSimulator::configure
+// ControlSimulator::configureMain
 //
-// Loads configuration settings from the configuration.ini file.
+// Loads configuration settings from the "01 - Simulation Main Info.ini" file.
 // The various child objects are then created as specified by the config data.
+//
+// This info handles all set up for use with all the file in the
+// specified simulation source data folder. In addition, each group of
+// simulation files also has a config file specific to that group. Each group
+// generally provides data for a different run, so different sets of data can
+// be simulated for subsequent runs.
 //
 // Each instance must open its own iniFile object because they are created
 // simultaneously in different threads.  The iniFile object is not guaranteed
 // to be thread safe.
 //
 
-private void configure()
+@Override
+public void configureMain(int pBoardNumber) throws IOException
 {
 
-    IniFile configFile;
-
-    //if the ini file cannot be opened and loaded, exit without action
     try {
-        configFile = new IniFile("Simulation.ini", mainFileFormat);
-        configFile.init();
+        //open the config file and load common settings        
+        super.configureMain(pBoardNumber);
     }
     catch(IOException e){
         logSevere(e.getMessage() + " - Error: 622");
@@ -644,8 +656,28 @@ private void configure()
 
     slotAddr = (byte)configFile.readInt(section, "Slot Number", 0);
 
-}//end of ControlSimulator::configure
+    //Control Board chassis/slot do not need to be inverted
+    
+}//end of ControlSimulator::configureMain
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlSimulator::configureSimulationDataSet
+//
+// Loads configuration settings for the data set to be used for the current run.
+// Each simulation data source folder may contain multiple data sets, each with
+// a different identifying number. These different sets are used to provide a
+// different simulation for each successive run.
+//
+
+@Override
+public void configureSimulationDataSet()
+{
+
+    
+}//end of ControlSimulator::configureSimulationDataSet
+//-----------------------------------------------------------------------------
+
 
 }//end of class ControlSimulator
 //-----------------------------------------------------------------------------

@@ -59,7 +59,8 @@ class InstallFirmwareSettings extends Object{
 
 public abstract class Board extends Object implements Runnable{
 
-
+    String simulationDataSourceFilePath = "";
+    
     short rabbitControlFlags = 0;
     boolean enabled = false;
     int type;

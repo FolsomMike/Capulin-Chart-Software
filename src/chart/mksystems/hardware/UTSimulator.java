@@ -60,146 +60,6 @@ class RamMemoryBlockChecksum extends Object{
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-// class BoardChannel
-//
-// This class encapsulates data for a single channel on a UT board.
-//
-
-class BoardChannel extends Object{
-
-    int index;
-
-    int delayCount; //number of samples to skip for delay - set by Host
-    byte delayCount0, delayCount1, delayCount2, delayCount3;
-
-    int sampleCount; //number of samples to record - set by Host
-    byte sampleCount0, sampleCount1, sampleCount2;
-
-    int dspGain;
-
-    byte sampleDelayReg0;
-    byte sampleDelayReg1;
-    byte sampleDelayReg2;
-    byte sampleDelayReg3;
-
-    byte sampleCountReg0;
-    byte sampleCountReg1;
-    byte sampleCountReg2;
-
-//-----------------------------------------------------------------------------
-// BoardChannel::BoardChannel (constructor)
-//
-
-public BoardChannel(int pIndex, byte pSampleDelayReg0, byte pSampleCountReg0)
-{
-
-    index = pIndex;
-
-    // the FPGA register addresses for all channels for sample delay and sample
-    // count are contiguous addresses, so use a bit of math to calculate each
-    // address from the first one
-
-    sampleDelayReg0 = (byte) (pSampleDelayReg0 + (index * 4));
-    sampleDelayReg1 = (byte) (pSampleDelayReg0 + 1 + (index * 4));
-    sampleDelayReg2 = (byte) (pSampleDelayReg0 + 2 + (index * 4));
-    sampleDelayReg3 = (byte) (pSampleDelayReg0 + 3 + (index * 4));
-
-    sampleCountReg0 = (byte) (pSampleCountReg0 + (index * 3));
-    sampleCountReg1 = (byte) (pSampleCountReg0 + 1 + (index * 3));
-    sampleCountReg2 = (byte) (pSampleCountReg0 + 2 + (index * 3));
-
-}//end of BoardChannel::BoardChannel (constructor)
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// BoardChannel::setDelayCount
-//
-// Checks if pRegAddr matches one of the delayCount byte register addresses
-// and stores pValue in that register if so.
-//
-// Concatenates all bytes set by the host computer to form the value for the
-// delayCount.  Since the value might be illegal when only some of the bytes
-// have been set, it is checked for out of bounds.
-//
-
-void setDelayCount(byte pRegAddr, byte pValue){
-
-    //since the host computer writes to the variables one byte at a time in the
-    //FPGA registers, the bytes are collected individually and then converted
-    //to the full values - the values must be tested for out of bounds each time
-    //as it could be illegal when only some of the bytes have been updated
-
-    if (pRegAddr == sampleDelayReg0) {delayCount0 = pValue;}
-    if (pRegAddr == sampleDelayReg1) {delayCount1 = pValue;}
-    if (pRegAddr == sampleDelayReg2) {delayCount2 = pValue;}
-    if (pRegAddr == sampleDelayReg3) {delayCount2 = pValue;}
-
-
-    delayCount = (int)(
-        ((delayCount3<<24) & 0xff000000) + ((delayCount2<<16) & 0xff0000)
-         + ((delayCount1<<8) & 0xff00) + (delayCount0 & 0xff)
-        );
-
-    //the hardware uses a 4 byte unsigned integer - Java doesn't do unsigned
-    //easily, so the max value is limited to the maximum positive value Java
-    //allows for a signed integer - this limitation is also used for the
-    //hardware even though it could handle a larger number
-
-    if (delayCount < 0) {delayCount = 0;}
-    if (delayCount > UTBoard.MAX_DELAY_COUNT) {
-        delayCount = UTBoard.MAX_DELAY_COUNT;
-    }
-
-}//end of BoardChannel::setDelayCount
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// BoardChannel::setSampleCount
-//
-// Checks if pRegAddr matches one of the sampleCount byte register addresses
-// and stores pValue in that register if so.
-//
-// Concatenates all bytes set by the host computer to form the value for the
-// sampleCount.  Since the value might be illegal when only some of the bytes
-// have been set, it is checked for out of bounds.
-//
-
-void setSampleCount(byte pRegAddr, byte pValue){
-
-
-    //since the host computer writes to the variables one byte at a time in the
-    //FPGA registers, the bytes are collected individually and then converted
-    //to the full values - the values must be tested for out of bounds each time
-    //as it could be illegal when only some of the bytes have been updated
-
-    if (pRegAddr == sampleCountReg0) {sampleCount0 = pValue;}
-    if (pRegAddr == sampleCountReg1) {sampleCount1 = pValue;}
-    if (pRegAddr == sampleCountReg2) {sampleCount2 = pValue;}
-
-
-    sampleCount = (int)(
-        ((sampleCount2<<16) & 0xff0000)
-         + ((sampleCount1<<8) & 0xff00) + (sampleCount0 & 0xff)
-        );
-
-    //the hardware uses a 3 byte unsigned integer - Java doesn't do unsigned
-    //easily, so the max value is limited to the maximum positive value Java
-    //allows for a signed integer
-
-    if (sampleCount < 0) {sampleCount = 0;}
-    if (sampleCount > UTBoard.MAX_SAMPLE_COUNT) {
-        sampleCount = UTBoard.MAX_SAMPLE_COUNT;
-    }
-
-}//end of BoardChannel::setSampleCount
-//-----------------------------------------------------------------------------
-
-}//end of class BoardChannel
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
 // class UTSimulator
 //
 // This class simulates data from a TCP/IP connection between the host computer
@@ -213,10 +73,15 @@ public UTSimulator() throws SocketException{}; //default constructor - not used
     short rabbitControlFlags = 0;
 
     static int MAX_BOARD_CHANNELS = 4;
-    BoardChannel[] boardChannels;
-    String mainFileFormat;
+    BoardChannelSimulator[] boardChannels;
     int peakDataPktCounter = 0;
 
+    double nominalWall, nSPerDataPoint, compressionVelocityNS;
+    int numWallMultiples;
+    
+    int mapChannel, boardChannelForMapDataSource, headForMapDataSensor;
+    int traceBufferSize, mapBufferSize;
+    
     static int ASCAN_BUFFER_SIZE = 8 * 1024; //matches RAM sample buffer in FPGA
     int[] aScanBuffer;
 
@@ -301,12 +166,12 @@ public UTSimulator() throws SocketException{}; //default constructor - not used
 // UTSimulator::UTSimulator (constructor)
 //
 
-public UTSimulator(InetAddress pIPAddress, int pPort, String pMainFileFormat)
-                                                        throws SocketException
+public UTSimulator(InetAddress pIPAddress, int pPort, String pMainFileFormat,
+        String pSimulationDataSourceFilePath) throws SocketException
 {
 
     //call the parent class constructor
-    super(pIPAddress, pPort);
+    super(pIPAddress, pPort, pSimulationDataSourceFilePath);
 
     mainFileFormat = pMainFileFormat;
 
@@ -321,13 +186,18 @@ public UTSimulator(InetAddress pIPAddress, int pPort, String pMainFileFormat)
 
 public void init()
 {
+    
+    //give each board a unique number so it can load data from the
+    //simulation files and such
 
-    //give each UT board a unique number so it can load data from the
-    //simulation.ini file and such
-    //as that number is distributed across all sub classes -- UT boards,
-    //Control boards, etc.
     utBoardNumber = utBoardCounter++;
 
+    super.init(utBoardNumber);
+    
+    if (simulationType == FROM_FILE){
+        prepareNextSimulationDataSetFromFiles();
+    }
+    
     status = UTBoard.FPGA_LOADED_FLAG;
 
     mapDataBuffer = new int[MAP_BUFFER_SIZE];
@@ -335,13 +205,6 @@ public void init()
     tdcTracker = resetTDCAdvanceCount(SAMPLES_PER_REV);
     helixAdvanceTracker = resetTDCAdvanceCount(SAMPLES_PER_ADVANCE);
     wallMapPacketSendTimer = WALL_MAP_PACKET_SEND_RELOAD;
-
-    //create an array of channel variables
-    boardChannels = new BoardChannel[MAX_BOARD_CHANNELS];
-    for (int i=0; i<MAX_BOARD_CHANNELS; i++) {
-        boardChannels[i] = new BoardChannel(
-                    i, UTBoard.CH1_SAMPLE_DELAY_0, UTBoard.CH1_SAMPLE_COUNT_0);
-    }
 
     channelPeakSets = new ChannelPeakSet[NUMBER_OF_BOARD_CHANNELS];
     for (int i=0; i < NUMBER_OF_BOARD_CHANNELS; i++) {
@@ -353,9 +216,6 @@ public void init()
     for (int i=0; i < NUMBER_OF_RAM_MEMORY_BLOCKS; i++) {
         ramMemoryBlockChecksums[i] = new RamMemoryBlockChecksum();
     }
-
-    //load configuration data from file
-    configure();
 
     aScanBuffer = new int[ASCAN_BUFFER_SIZE]; //used to store simulated A/D data
 
@@ -1446,21 +1306,8 @@ public void getPeakData4()
 
             //maximum wall values
 
-            short wall;
-
-            wall = (short)(170 + (Math.random()*10));
-
-            //debug mks sendShortInt(wall);  //wall max peak uS distance
-
-            //debug mks
-            if (ch==0){
-            sendShortInt(wall);  //wall max peak uS distance
-            }
-            else {
-                sendShortInt(500);
-            }  //wall max peak uS distance
-            //debug mks
-
+            sendShortInt(boardChannels[ch].getNextMaxWallValue());
+        
             sendShortInt((short)0);  //start fractional distance numerator
 
             sendShortInt((short)1);  //start fractional distance denominator
@@ -1473,25 +1320,8 @@ public void getPeakData4()
 
             //minimum wall values
 
-            wall = (short)(145 + (Math.random()*10));
-
-            //occasional peak
-            if(((int)(Math.random()*200)) == 1) {
-                wall -= (int)(Math.random()*30);
-            }
-
-            //debug mks sendShortInt(wall);  //wall min peak uS distance
-
-            //debug mks
-            if (ch==0){
-            sendShortInt(wall);  //wall max peak uS distance
-            }
-            else {
-                sendShortInt(0);
-            }  //wall max peak uS distance
-            //debug mks
-
-
+            sendShortInt(boardChannels[ch].getNextMinWallValue());            
+            
             sendShortInt((short)0);  //start fractional distance numerator
 
             sendShortInt((short)1);  //start fractional distance denominator
@@ -2028,25 +1858,29 @@ void simulateReflection(int[] pBuffer, int pIndex, double pGain)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTSimulator::configure
+// UTSimulator::configureMain
 //
-// Loads configuration settings from the configuration.ini file.
+// Loads configuration settings from the "01 - Simulation Main Info.ini" file.
 // The various child objects are then created as specified by the config data.
+//
+// This info handles all set up for use with all the file in the
+// specified simulation source data folder. In addition, each group of
+// simulation files also has a config file specific to that group. Each group
+// generally provides data for a different run, so different sets of data can
+// be simulated for subsequent runs.
 //
 // Each instance must open its own iniFile object because they are created
 // simultaneously in different threads.  The iniFile object is not guaranteed
 // to be thread safe.
 //
 
-private void configure()
+@Override
+public void configureMain(int pBoardNumber) throws IOException
 {
 
-    IniFile configFile;
-
-    //if the ini file cannot be opened and loaded, exit without action
     try {
-        configFile = new IniFile("Simulation.ini", mainFileFormat);
-        configFile.init();
+        //open the config file and load common settings
+        super.configureMain(pBoardNumber);
     }
     catch(IOException e){
         logSevere(e.getMessage() + " - Error: 1629");
@@ -2057,15 +1891,165 @@ private void configure()
 
     chassisAddr = (byte)configFile.readInt(section, "Chassis Number", 0);
 
-    chassisAddr = (byte)(~chassisAddr); //the switches invert the value
+    chassisAddr = (byte)(~chassisAddr); //UTBoard returns inverted values
 
     slotAddr = (byte)configFile.readInt(section, "Slot Number", 0);
 
-    slotAddr = (byte)(~slotAddr); //the switches invert the value
+    slotAddr = (byte)(~slotAddr); //UTBoard returns inverted values
 
-}//end of UTSimulator::configure
+    String value;
+    
+    enabled = configFile.readBoolean(section, "Enabled", true);
+
+    value = configFile.readString(section, "Simulation Type", "Random");
+    
+    parseSimulationType(value);
+    
+    value = configFile.readString(section, "Type", "Basic Peak Collector");
+
+    parseBoardType(value);
+
+    traceBufferSize = configFile.readInt(section, 
+                                             "Number Of Trace Data Points", 0);
+
+    if(traceBufferSize > 10000){ traceBufferSize = 10000; }
+
+    mapChannel =
+      configFile.readInt(section, "This Board is Source for Map Channel", -1);
+
+    boardChannelForMapDataSource =
+         configFile.readInt(section, "Board Channel for Map Data Source", 1);
+
+    headForMapDataSensor =
+              configFile.readInt(section, "Head for Map Data Sensor", -1);
+
+    distanceMapSensorToFrontEdgeOfHead = configFile.readDouble(section,
+                    "Distance From Map Data Sensor to Front Edge of Head", 0);
+
+    mapBufferSize = configFile.readInt(section, "Map Data Buffer Size", 0);
+
+    if(mapBufferSize > 100000000){ mapBufferSize = 100000000; }
+
+    //create an array of channel variables
+    boardChannels = new BoardChannelSimulator[MAX_BOARD_CHANNELS];
+    for (int i=0; i<MAX_BOARD_CHANNELS; i++) {
+        boardChannels[i] = new BoardChannelSimulator(i, traceBufferSize,
+        simulationType, UTBoard.CH1_SAMPLE_DELAY_0, UTBoard.CH1_SAMPLE_COUNT_0);
+        boardChannels[i].init();
+        boardChannels[i].configure(configFile, section);
+    }
+        
+}//end of UTSimulator::configureMain
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// UTSimulator::configureSimulationDataSet
+//
+// Loads configuration settings for the data set to be used for the current run.
+// Each simulation data source folder may contain multiple data sets, each with
+// a different identifying number. These different sets are used to provide a
+// different simulation for each successive run.
+//
+
+@Override
+public void configureSimulationDataSet()
+{
+
+    try {
+        String fullPath =
+                createSimulationDataFilename("20 - ", " Simulation Info.ini");
+        configFile = new IniFile(fullPath, mainFileFormat);
+        configFile.init();
+    }
+    catch(IOException e){
+        logSevere(e.getMessage() + " - Error: 1629");
+        return;
+    }
+
+    String section = "Simulated UT Board " + (utBoardNumber + 1);
+
+    nominalWall = configFile.readDouble("Wall", "Nominal Wall", 0.250);
+
+    nSPerDataPoint = configFile.readDouble("Wall", "nS per Data Point", 15.0);
+    
+    double velocityUS =
+              configFile.readDouble("Wall", "Velocity (distance/uS)", 0.233);
+    
+    compressionVelocityNS = velocityUS / 1000;
+    
+    numWallMultiples = configFile.readInt(
+                                    "Wall", "Number of Multiples for Wall", 1);
+    
+    /* debug mks
+        //convert nanosecond time span to distance
+        //dataPeakD is the only variable possibly changed by peak data updates
+        wallThickness = dataPeakD * hdwVs.nSPerDataPoint * hdwVs.velocityNS /
+                                                 (hdwVs.numberOfMultiples * 2);
+    */
+    
+    
+}//end of UTSimulator::configureSimulationDataSet
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTSimulator::prepareNextSimulationDataSetFromFiles
+//
+// Loads the next set of simulation data and opens files for reading other data
+// which is not pre-loaded but done on the fly.
+//
+
+
+public void prepareNextSimulationDataSetFromFiles()
+{
+    
+    String dataSetFilename = createSimulationDataFilename("20 - ", ".dat");
+    File file = new File(dataSetFilename);
+    
+    //check if data file exists for the current data set number
+    while (!file.exists()) {
+        //if already at 1, then don't load data
+        if(currentDataSetIndex == 1){ return; }
+        //if not at 1, assume last data set reached and start over at 1
+        currentDataSetIndex = 1;
+        dataSetFilename = createSimulationDataFilename("20 - ", "");
+        file = new File(dataSetFilename);        
+    }
+    
+    FileInputStream fileInputStream = null;
+    InputStreamReader inputStreamReader = null;
+    BufferedReader in = null;
+
+    try{
+
+        fileInputStream = new FileInputStream(dataSetFilename);
+        inputStreamReader = new InputStreamReader(fileInputStream);
+
+        in = new BufferedReader(inputStreamReader);
+
+        for (BoardChannelSimulator boardChannel : boardChannels) {
+            boardChannel.prepareNextSimulationDataSetFromFiles(in);
+        }
+                
+    }        
+    catch (FileNotFoundException e){
+        return;
+        }
+    finally{
+        try{if (in != null) {in.close();}}
+        catch(IOException e){}
+        try{if (inputStreamReader != null) {inputStreamReader.close();}}
+        catch(IOException e){}
+        try{if (fileInputStream != null) {fileInputStream.close();}}
+        catch(IOException e){}
+    }
+        
+    //move to the next data set
+    currentDataSetIndex++;    
+    
+}//end of UTSimulator::prepareNextSimulationDataSetFromFiles
+//-----------------------------------------------------------------------------
+        
+        
 }//end of class UTSimulator
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

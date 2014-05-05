@@ -205,6 +205,26 @@ return(fullReportsPath + File.separator);
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// SwissArmyKnife::formatPath
+//
+// Append a fwd/backslash if pPath does not already end with one.
+// Use File.separator to apply the correct character for the operating system.
+//
+
+public static String formatPath (String pPath){
+
+    pPath = pPath.trim();
+    
+    if (!pPath.equals("") && !pPath.endsWith(File.separator)) {
+        pPath += File.separator;
+    }
+
+    return(pPath);
+
+}//end of SwissArmyKnife::formatPath
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // SwissArmyKnife::displayErrorMessage
 //
 // Displays an error dialog with message pMessage.

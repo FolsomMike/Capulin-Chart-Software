@@ -20,6 +20,7 @@ package chart.mksystems.hardware;
 
 import chart.MessageLink;
 import chart.mksystems.inifile.IniFile;
+import chart.mksystems.tools.SwissArmyKnife;
 import java.io.*;
 import java.net.*;
 import javax.swing.*;
@@ -204,6 +205,10 @@ void configure(IniFile pConfigFile)
 
     super.configure(pConfigFile);
 
+    simulationDataSourceFilePath = SwissArmyKnife.formatPath(
+       pConfigFile.readString("Hardware", 
+                                      "Simulation Data Source File Path", ""));
+        
     inBuffer = new byte[RUNTIME_PACKET_SIZE];
     outBuffer = new byte[RUNTIME_PACKET_SIZE];
 
@@ -384,7 +389,12 @@ public synchronized void connect()
         }
         else {
 
-            socket = new ControlSimulator(ipAddr, 23, fileFormat);
+            ControlSimulator controlSimulator = new ControlSimulator(
+                        ipAddr, 23, fileFormat, simulationDataSourceFilePath);
+            controlSimulator.init();
+            
+            socket = controlSimulator;
+            
             //when simulating, the socket is a ControlSimulator class object
             //which is also a MessageLink implementor, so cast it for use as
             //such so that messages can be sent to the object

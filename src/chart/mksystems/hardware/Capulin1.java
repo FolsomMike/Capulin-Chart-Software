@@ -33,6 +33,7 @@ import chart.mksystems.stripchart.TraceData;
 import chart.mksystems.threadsafe.SyncedBoolean;
 import chart.mksystems.threadsafe.SyncedInteger;
 import chart.mksystems.threadsafe.SyncedVariableSet;
+import chart.mksystems.tools.SwissArmyKnife;
 import java.io.*;
 import java.net.*;
 import java.util.Enumeration;
@@ -83,6 +84,8 @@ public class Capulin1 extends Object implements HardwareLink, MessageLink{
 
     boolean simulate, simulateControlBoards, simulateUTBoards;
 
+    String simulationDataSourceFilePath = "";
+    
     ControlBoard[] controlBoards;
     int numberOfControlBoards;
 
@@ -203,6 +206,10 @@ private void configure(IniFile pConfigFile)
     simulateUTBoards =
             pConfigFile.readBoolean("Hardware", "Simulate UT Boards", false);
 
+    simulationDataSourceFilePath = SwissArmyKnife.formatPath(
+       pConfigFile.readString("Hardware", 
+                                      "Simulation Data Source File Path", ""));
+    
     numberOfControlBoards =
                  pConfigFile.readInt("Hardware", "Number of Control Boards", 1);
     
