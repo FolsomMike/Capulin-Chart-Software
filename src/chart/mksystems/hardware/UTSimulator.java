@@ -21,6 +21,7 @@
 
 package chart.mksystems.hardware;
 
+import static chart.mksystems.hardware.UTBoard.RESET_FOR_NEXT_RUN_CMD;
 import chart.mksystems.inifile.IniFile;
 import java.io.*;
 import java.net.*;
@@ -143,7 +144,7 @@ public UTSimulator() throws SocketException{}; //default constructor - not used
     public byte prevPage = -1;
     public int prevAddress = -2;
 
-    short trackByte = 0;
+    short trackWord = 0;
     int tdcTracker = 0;
     int helixAdvanceTracker = 0;
     static final int SAMPLES_PER_REV = 500;
@@ -202,8 +203,7 @@ public void init()
 
     mapDataBuffer = new int[MAP_BUFFER_SIZE];
 
-    tdcTracker = resetTDCAdvanceCount(SAMPLES_PER_REV);
-    helixAdvanceTracker = resetTDCAdvanceCount(SAMPLES_PER_ADVANCE);
+    tdcTracker = calculateTimeToNextTDC(SAMPLES_PER_REV);
     wallMapPacketSendTimer = WALL_MAP_PACKET_SEND_RELOAD;
 
     channelPeakSets = new ChannelPeakSet[NUMBER_OF_BOARD_CHANNELS];
@@ -368,8 +368,11 @@ public int processDataPacketsHelper(boolean pWaitForPkt)
         if (inBuffer[0] == UTBoard.MESSAGE_DSP_CMD) {processDSPMessage();}
         else
         if (inBuffer[0] == UTBoard.SET_CONTROL_FLAGS_CMD)
-        {   setRabbitControlFlags();}
-
+        {   setRabbitControlFlags(); }
+        else
+        if (inBuffer[0] == UTBoard.RESET_FOR_NEXT_RUN_CMD)
+        {   resetForNextRun(); }
+ 
         return 0;
 
     }//try
@@ -490,15 +493,40 @@ private int processDSPMessage()
 
 private int setRabbitControlFlags()
 {
-
-    readBytes(2); //read in the rest of the packet
+    
+    readBytes(3); //read in the rest of the packet including checksum
 
     rabbitControlFlags = (short) (((((short)inBuffer[0])<<8) & 0xff00)
                                                 + ((short)inBuffer[1]) & 0xff);
 
-    return(2);
+    return(3);
 
 }//end of UTBoard::setRabbitControlFlags
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTSimulator::resetForNextRun
+//
+// Prepares for the next run.
+//
+
+private int resetForNextRun()
+{
+
+    //debug mks
+    int x;
+    try {x = byteIn.available();} catch(IOException e){}
+    //readBytes(5);
+    //debug mks
+    
+    readBytes(3); //read in the rest of the packet including checksum
+
+    //enable map data collection and transmission to the host
+    rabbitControlFlags |= UTBoard.RABBIT_SEND_DATA_ASYNC;
+    
+    return(3);
+
+}//end of UTBoard::resetForNextRun
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1350,8 +1378,8 @@ public void getPeakData4()
 public void sendWallMapPacket()
 {
 
-    boolean insertControlByte = false;
-    boolean tdc = false, advance = false;
+    boolean insertControlWord = false;
+    boolean tdc = false;
 
     //send standard packet header
     //use1 for DSP chip and 0 for core because the data is from cores A & B
@@ -1367,56 +1395,27 @@ public void sendWallMapPacket()
     //simulate and send the wall data points
     for (int i=0; i < MAP_BUFFER_SIZE; i++){
 
-        //periodically, the tracking byte gets incremented by TDC signal
-        //that value gets passed in with the samples
+        //periodically, the tracking word gets incremented by the clock signal
+        //and reset to zero by the TDC signal; at every reset, the value of
+        //the word just before the reset is inserted into the data stream as
+        //a control code to denote the start of a revolution; thus the tracking
+        //value used in the control code is usually the last clock position
+        //before a reset; the increment by clock signal is not simulated here,
+        //just the reset by TDC
 
         if (tdcTracker-- == 0){
-            tdcTracker = resetTDCAdvanceCount(SAMPLES_PER_REV);
-            tdc = true; insertControlByte = true;
+            tdcTracker = calculateTimeToNextTDC(SAMPLES_PER_REV);
+            tdc = true; insertControlWord = true;
             revCount++; //count number of revolutions
             sampleCount = 0; //count starts over with each rev
-        }
-
-        //periodically, the tracking byte gets zeroed by helical advance signal
-        //that value gets passed in with the samples
-
-
-        /*
-        //wip mks
-        //if the chart program is set up for map advance to be controlled by
-        //encoders, inserting linear advance codes here cuases problems
-        //as for that mode the program starts a new revolution for ANY code
-        //and the advance code will cause an errant start of a new rev
-        //need to add an option to simulate to turn this on and off if it is
-        //ever needed.
-
-        if (helixAdvanceTracker-- == 0){
-            helixAdvanceTracker = resetTDCAdvanceCount(SAMPLES_PER_ADVANCE);
-            advance = true; insertControlByte = true;
-        }
-        */
-
-        //sometimes the TDC and Advance signal might occur at the same sample
-        //in that case, it is random whether the track byte will be incremented
-        //or zeroed; here that case is simulated by doing one or the other
-        //based on the odd/even value of trackByte
-
-        if (tdc && advance){
-            if ((trackByte % 2) == 0){trackByte++;}
-            else {trackByte = 0;}
-        }
-        else if (tdc){
-            trackByte++;
-        }
-        else if (advance){
-            trackByte = 0;
+            trackWord = (short)UTBoard.MAX_CLOCK_POSITION;
         }
 
         //send a control byte if needed or a data sample
         //control bytes have bit 15 set to distinguish from a data byte
 
-        if (insertControlByte){
-            sendShortInt(trackByte | 0x8000);
+        if (insertControlWord){
+            sendShortInt(trackWord | UTBoard.MAP_CONTROL_CODE_FLAG);
         }
         else {
 
@@ -1432,7 +1431,7 @@ public void sendWallMapPacket()
             sampleCount++; //count the samples sent
         }
 
-        tdc = advance = insertControlByte = false;
+        tdc = insertControlWord = false;
 
     }
 
@@ -1562,7 +1561,9 @@ private short genSimdWMDPtCleanWithRectangles(int pRevCount, int pSampleCount)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTSimulator::resetTDCAdvanceCount
+// UTSimulator::calculateTimeToNextTDC
+//
+// Returns a number for use as a countdown timer to the next TDC signal.
 //
 // Returns a number for resetting tdcTracker or helixAdvanceTracker which is
 // a small variation of pTypicalCount by a random amount determined by
@@ -1572,7 +1573,7 @@ private short genSimdWMDPtCleanWithRectangles(int pRevCount, int pSampleCount)
 // double hit.
 //
 
-private int resetTDCAdvanceCount(int pTypicalCount)
+private int calculateTimeToNextTDC(int pTypicalCount)
 {
 
     //periodic with slight randomness
@@ -1586,7 +1587,7 @@ private int resetTDCAdvanceCount(int pTypicalCount)
 
     return(value);
 
-}//end of UTSimulator::resetTDCAdvanceCount
+}//end of UTSimulator::calculateTimeToNextTDC
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1933,7 +1934,7 @@ public void configureMain(int pBoardNumber) throws IOException
     //create an array of channel variables
     boardChannels = new BoardChannelSimulator[MAX_BOARD_CHANNELS];
     for (int i=0; i<MAX_BOARD_CHANNELS; i++) {
-        boardChannels[i] = new BoardChannelSimulator(i, traceBufferSize,
+        boardChannels[i] = new BoardChannelSimulator(i, traceBufferSize, type,
         simulationType, UTBoard.CH1_SAMPLE_DELAY_0, UTBoard.CH1_SAMPLE_COUNT_0);
         boardChannels[i].init();
         boardChannels[i].configure(configFile, section);
