@@ -197,11 +197,7 @@ public void init()
     utBoardNumber = utBoardCounter++;
 
     super.init(utBoardNumber);
-    
-    if (simulationType == FROM_FILE){
-        prepareNextSimulationDataSetFromFiles();
-    }
-    
+        
     status = UTBoard.FPGA_LOADED_FLAG;
 
     mapDataBuffer = new int[MAP_BUFFER_SIZE];
@@ -518,8 +514,12 @@ private int resetForNextRun()
     
     readBytes(3); //read in the rest of the packet including checksum
     
-    for (BoardChannelSimulator boardChannel : boardChannels) {
-        boardChannel.resetForNextRun();
+    if (simulationType == RANDOM){
+        prepareNextSimulationDataSetFromRandom();
+    }
+    else
+    if (simulationType == FROM_FILE){
+        prepareNextSimulationDataSetFromFiles();
     }
     
     //enable map data collection and transmission to the host
@@ -528,6 +528,114 @@ private int resetForNextRun()
     return(3);
 
 }//end of UTBoard::resetForNextRun
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTSimulator::prepareNextSimulationDataSetFromRandom
+//
+// Set up values for random data generation for the next run.
+//
+
+public void prepareNextSimulationDataSetFromRandom()
+{
+
+    //no setup currently required
+    
+}//end of UTBoard::prepareNextSimulationDataSetFromRandom
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTSimulator::prepareNextSimulationDataSetFromFiles
+//
+// Loads the next set of simulation data and opens files for reading other data
+// which is not pre-loaded but done on the fly.
+//
+// Each time this method is called, currentDataSetIndex is incremented so that
+// a new data set will be loaded to provide different data. When a file set
+// is not found for the index, it starts over at 1.
+//
+// If a file set is not found for index 1, the simulation mode is changed
+// to RANDOM and no files are opened or data loaded.
+//
+
+public void prepareNextSimulationDataSetFromFiles()
+{
+    
+    String dataSetFilename;
+    File file; Boolean fileExists;
+    
+    //check if data file exists for the current data set number
+    do {
+        
+        dataSetFilename = createSimulationDataFilename("20 - ", ".dat");
+        file = new File(dataSetFilename);
+        fileExists = file.exists();
+        
+        if (!fileExists){
+            //if already at 1, don't load data -- set simulation RANDOM mode
+            if(currentDataSetIndex == 1){ 
+                setSimulationType(RANDOM); 
+                return; 
+            }
+            
+            //if not already at 1, assume last set reached and start over at 1
+            currentDataSetIndex = 1;
+            
+        }
+
+    }while(!fileExists);
+    
+    FileInputStream fileInputStream = null;
+    InputStreamReader inputStreamReader = null;
+    BufferedReader in = null;
+
+    try{
+
+        fileInputStream = new FileInputStream(dataSetFilename);
+        inputStreamReader = new InputStreamReader(fileInputStream);
+
+        in = new BufferedReader(inputStreamReader);
+
+        for (BoardChannelSimulator boardChannel : boardChannels) {
+            boardChannel.prepareNextSimulationDataSetFromFiles(in);
+        }
+                
+    }        
+    catch (FileNotFoundException e){
+        return;
+        }
+    finally{
+        try{if (in != null) {in.close();}}
+        catch(IOException e){}
+        try{if (inputStreamReader != null) {inputStreamReader.close();}}
+        catch(IOException e){}
+        try{if (fileInputStream != null) {fileInputStream.close();}}
+        catch(IOException e){}
+    }
+        
+    //move to the next data set
+    currentDataSetIndex++;    
+    
+}//end of UTSimulator::prepareNextSimulationDataSetFromFiles
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTSimulator::setSimulationType
+//
+// Sets value of simulationType to pValue for this class and all
+// the BoardChannelSimulator objects.
+//
+
+public void setSimulationType(int pValue)
+{
+
+    simulationType = pValue;
+    
+    for (BoardChannelSimulator boardChannel : boardChannels) {
+        boardChannel.setSimulationType(pValue);
+    }
+
+}//end of UTSimulator::setSimulationType
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1867,66 +1975,7 @@ public void configureSimulationDataSet()
     
 }//end of UTSimulator::configureSimulationDataSet
 //-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// UTSimulator::prepareNextSimulationDataSetFromFiles
-//
-// Loads the next set of simulation data and opens files for reading other data
-// which is not pre-loaded but done on the fly.
-//
-
-
-public void prepareNextSimulationDataSetFromFiles()
-{
-    
-    String dataSetFilename = createSimulationDataFilename("20 - ", ".dat");
-    File file = new File(dataSetFilename);
-    
-    //check if data file exists for the current data set number
-    while (!file.exists()) {
-        //if already at 1, then don't load data
-        if(currentDataSetIndex == 1){ return; }
-        //if not at 1, assume last data set reached and start over at 1
-        currentDataSetIndex = 1;
-        dataSetFilename = createSimulationDataFilename("20 - ", "");
-        file = new File(dataSetFilename);        
-    }
-    
-    FileInputStream fileInputStream = null;
-    InputStreamReader inputStreamReader = null;
-    BufferedReader in = null;
-
-    try{
-
-        fileInputStream = new FileInputStream(dataSetFilename);
-        inputStreamReader = new InputStreamReader(fileInputStream);
-
-        in = new BufferedReader(inputStreamReader);
-
-        for (BoardChannelSimulator boardChannel : boardChannels) {
-            boardChannel.prepareNextSimulationDataSetFromFiles(in);
-        }
                 
-    }        
-    catch (FileNotFoundException e){
-        return;
-        }
-    finally{
-        try{if (in != null) {in.close();}}
-        catch(IOException e){}
-        try{if (inputStreamReader != null) {inputStreamReader.close();}}
-        catch(IOException e){}
-        try{if (fileInputStream != null) {fileInputStream.close();}}
-        catch(IOException e){}
-    }
-        
-    //move to the next data set
-    currentDataSetIndex++;    
-    
-}//end of UTSimulator::prepareNextSimulationDataSetFromFiles
-//-----------------------------------------------------------------------------
-        
-        
 }//end of class UTSimulator
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

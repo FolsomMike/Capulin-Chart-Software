@@ -121,6 +121,20 @@ public void init()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// BoardChannelSimulator::setSimulationType
+//
+// Sets value of simulationType to pValue.
+//
+
+public void setSimulationType(int pValue)
+{
+
+    simulationType = pValue;
+    
+}//end of BoardChannelSimulator::setSimulationType
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // BoardChannelSimulator::prepareNextSimulationDataSetFromFiles
 //
 // Loads the next set of simulation data from pSourceFile.
@@ -676,19 +690,6 @@ public int getNextWallMapValueFromFile()
     return(1);
     
 }//end of BoardChannelSimulator::getNextWallMapValueFromFile
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// BoardChannelSimulator::resetForNextRun
-//
-// Prepares for the next run.
-//
-
-public void resetForNextRun()
-{
-
-
-}//end of BoardChannelSimulator::resetForNextRun
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
