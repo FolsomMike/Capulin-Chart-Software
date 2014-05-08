@@ -17,11 +17,19 @@
 *
 */
 
+    // use this to make sure each method is cleaning up all bytes in the
+    // received packet -- copy to method to be checked and use breakpoint
+    //testing mks
+    //int x = 0;
+    //try {x = byteIn.available();} catch(IOException e){}
+    //readBytes(x);
+    //testing mks
+
+
 //-----------------------------------------------------------------------------
 
 package chart.mksystems.hardware;
 
-import static chart.mksystems.hardware.UTBoard.RESET_FOR_NEXT_RUN_CMD;
 import chart.mksystems.inifile.IniFile;
 import java.io.*;
 import java.net.*;
@@ -157,11 +165,6 @@ public UTSimulator() throws SocketException{}; //default constructor - not used
     static final int WALL_MAP_PACKET_SEND_RELOAD = 20;
     int revCount = 0;
     int sampleCount = 0;
-    int revAnomalyStart = -1;
-    int revAnomalyWidth = -1;
-    int sampleAnomalyStart = -1;
-    int sampleAnomalyHeight = -1;
-    short anomalyThickness = -1;
 
 //-----------------------------------------------------------------------------
 // UTSimulator::UTSimulator (constructor)
@@ -512,15 +515,13 @@ private int setRabbitControlFlags()
 
 private int resetForNextRun()
 {
-
-    //debug mks
-    int x;
-    try {x = byteIn.available();} catch(IOException e){}
-    //readBytes(5);
-    //debug mks
     
     readBytes(3); //read in the rest of the packet including checksum
-
+    
+    for (BoardChannelSimulator boardChannel : boardChannels) {
+        boardChannel.resetForNextRun();
+    }
+    
     //enable map data collection and transmission to the host
     rabbitControlFlags |= UTBoard.RABBIT_SEND_DATA_ASYNC;
     
@@ -554,7 +555,7 @@ public void tossDSPMessageRemainder()
 
 int readDSPStatus(int pDSPChip, int pDSPCore)
 {
-
+        
     //read return and receive packet size
     readBytes(2);
 
@@ -1419,12 +1420,9 @@ public void sendWallMapPacket()
         }
         else {
 
-            // the data in the map is raw time-of-flight count (two way)
-            // speed of sound in steel = 0.233 inch/uS
-            // 15 nS per count
-
-            short wallDataPoint =
-              generateSimulatedWallMapDataPoint(2, revCount, sampleCount);
+            short wallDataPoint = 
+                    (short)boardChannels[boardChannelForMapDataSource].
+                                getNextWallMapValue(2, revCount, sampleCount);
 
             sendShortInt(wallDataPoint);
 
@@ -1436,128 +1434,6 @@ public void sendWallMapPacket()
     }
 
 }//end of UTSimulator::sendWallMapPacket
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// UTSimulator::generateSimulatedWallMapDataPoint
-//
-// Several methods of generating simulated data. Pick one by the value of
-// pWhichSimulation.
-//
-
-private short generateSimulatedWallMapDataPoint(int pWhichSimulation,
-                                            int pRevCount, int pSampleCount)
-{
-
-    if (pWhichSimulation == 1){
-        return(genSimdWMDPtShotGun());
-    }
-    else
-    if (pWhichSimulation == 2){
-        return(genSimdWMDPtCleanWithRectangles(pRevCount, pSampleCount));
-    }
-
-    return(0);
-
-}//end of UTSimulator::generateSimulatedWallMapDataPoint
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// UTSimulator::genSimdWMDPtShotGun
-//
-// Small random background variations, frequent spikes of higher variation.
-//
-
-private short genSimdWMDPtShotGun()
-{
-
-    // the data in the map is raw time-of-flight count (two way)
-    // speed of sound in steel = 0.233 inch/uS
-    // 15 nS per count
-
-    //convert wall in inches to number of samples
-    double wall = .250; //wall in inches
-    int tof = (int)(wall / .233 / 0.015) * 2;
-
-    short wallDataPoint = (short)(tof - (tof * .05 * Math.random()));
-
-    if ((int)(200 * Math.random()) == 1){
-        wallDataPoint = (short)(tof - (tof *.20 * Math.random()));
-    }
-
-    return(wallDataPoint);
-
-}//end of UTSimulator::genSimdWMDPtShotGun
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// UTSimulator::genSimdWMDPtCleanWithRectangles
-//
-// Clean background with no variations, relatively few rectangular low spots.
-//
-// the data in the map is raw time-of-flight count (two way)
-// speed of sound in steel = 0.233 inch/uS
-// 15 nS per count
-
-private short genSimdWMDPtCleanWithRectangles(int pRevCount, int pSampleCount)
-{
-
-    //start with the typical background wall
-
-    //convert wall in inches to number of samples
-    double wall = .250; //wall in inches
-    int tof = (int)(wall / .233 / 0.015) * 2;
-
-    short wallDataPoint = (short)(tof - (tof * .05 * Math.random()));
-
-    //at random intervals, create a rectangular thin wall anomaly
-
-    if (revAnomalyStart == -1 && ((int)(30000 * Math.random()) == 1)){
-
-        //starts horizontally at the current revolution count
-        revAnomalyStart = revCount;
-        //spans a random width of revolutions
-        revAnomalyWidth = 10 + (int)(10 * Math.random());
-        //starts vertically at the current sample count
-        sampleAnomalyStart = sampleCount;
-        //spans a random number of samples
-        sampleAnomalyHeight = 10 + (int)(10 * Math.random());
-        //has a random thickness
-        anomalyThickness =
-                       (short)(tof - (tof * .20) - (tof *.10 * Math.random()));
-    }
-
-    //if anomaly generation is currently active, check to see if the revolution
-    //and sample counts which define the boundaries are in valid range for
-    //the anomaly's position -- if so, set value to anomaly thickness
-
-    if (revAnomalyStart != -1){
-
-        //if the revCount has passed the width of the anomaly, end generation
-        if (revCount >= (revAnomalyStart + revAnomalyWidth)){
-            revAnomalyStart = -1;
-            return(wallDataPoint);
-        }
-
-        //check both rev count and sample count to see if anomaly data points
-        //should be generated for that position
-
-        if (revCount > revAnomalyStart
-                &&
-            revCount < (revAnomalyStart + revAnomalyWidth)
-                &&
-            sampleCount > sampleAnomalyStart
-                &&
-            sampleCount < (sampleAnomalyStart + sampleAnomalyHeight)){
-
-            return(anomalyThickness);
-
-        }
-    }
-
-    return(wallDataPoint);
-
-}//end of UTSimulator::genSimdWMDPtCleanWithRectangles
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

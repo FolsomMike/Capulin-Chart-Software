@@ -47,7 +47,14 @@ public class BoardChannelSimulator extends Object{
     int bufferAIndex, bufferBIndex;
     int bufferADataEnd, bufferBDataEnd;
 
+    int type;
     int simulationType;
+
+    int revAnomalyStart = -1;
+    int revAnomalyWidth = -1;
+    int sampleAnomalyStart = -1;
+    int sampleAnomalyHeight = -1;
+    short anomalyThickness = -1;
     
     int delayCount; //number of samples to skip for delay - set by Host
     byte delayCount0, delayCount1, delayCount2, delayCount3;
@@ -71,13 +78,14 @@ public class BoardChannelSimulator extends Object{
 //
 
 public BoardChannelSimulator(
-                            int pIndex, int pBufferSize, int pSimulationType,
+                            int pIndex, int pBufferSize, int pType,
+                            int pSimulationType,
                             byte pSampleDelayReg0, byte pSampleCountReg0)
 {
 
     index = pIndex;    
     bufferSize = pBufferSize;
-    simulationType = pSimulationType;
+    type = pType; simulationType = pSimulationType;
     
     // the FPGA register addresses for all channels for sample delay and sample
     // count are contiguous addresses, so use a bit of math to calculate each
@@ -138,6 +146,9 @@ public void prepareNextSimulationDataSetFromFiles(BufferedReader pSourceFile)
             loadDataSetFromFile(pSourceFile, bufferB, -2, 
                     -2, sourceBTraceIndex, sourceBDataSetIndex);
     
+    //open files, load data, etc for the map
+    prepareNextSimulationMapDataSetFromFiles();
+
 }//end of BoardChannelSimulator::prepareNextSimulationDataSetFromFiles
 //-----------------------------------------------------------------------------
 
@@ -445,7 +456,7 @@ public int getNextMinWallValue()
         return(0);
     }
 
-}//end of BoardChannelSimulator::getNextMaxWallValue
+}//end of BoardChannelSimulator::getNextMinWallValue
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -494,6 +505,210 @@ public int getNextMinWallValueFromFile()
     return(value);
     
 }//end of BoardChannelSimulator::getNextMinWallValueFromFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// BoardChannelSimulator::getNextWallMapValue
+//
+// Returns the next simulated or file supplied wall map value.
+//
+// If simulationType is RANDOM, the value is generated randomly.
+// If simulationType is FROM_FILE, value is from data loaded from a file.
+//
+
+public int getNextWallMapValue(int pWhichSimulation,
+                                            int pRevCount, int pSampleCount)
+{
+
+    if(simulationType == UTSimulator.RANDOM){
+        return(getNextWallMapValueRandom(pWhichSimulation,
+                                                    pRevCount, pSampleCount));
+    }
+    else
+    if(simulationType == UTSimulator.FROM_FILE){
+        return(getNextWallMapValueFromFile());
+    }
+    else{
+        return(0);
+    }
+    
+}//end of BoardChannelSimulator::getNextWallMapValue
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// BoardChannelSimulator::getNextWallMapValueRandom
+//
+// Returns the next wall map value simulated via random number.
+//
+// Uses one of multiple methods of generating simulated data. Pick one by the
+// value of pWhichSimulation.
+//
+
+public short getNextWallMapValueRandom(int pWhichSimulation,
+                                            int pRevCount, int pSampleCount)
+{
+
+    if (pWhichSimulation == 1){
+        return(genSimdWMDPtShotGun());
+    }
+    else
+    if (pWhichSimulation == 2){
+        return(genSimdWMDPtCleanWithRectangles(pRevCount, pSampleCount));
+    }
+
+    return(0);
+
+}//end of BoardChannelSimulator::getNextWallMapValueRandom
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// BoardChannelSimulator::genSimdWMDPtShotGun
+//
+// Small random background variations, frequent spikes of higher variation.
+//
+// the data in the map is raw time-of-flight count (two way)
+// speed of sound in steel = 0.233 inch/uS
+// 15 nS per count
+//
+
+private short genSimdWMDPtShotGun()
+{
+
+    //convert wall in inches to number of samples
+    //debug mks -- use value loaded from config file
+    double wall = .250; //wall in inches
+    int tof = (int)(wall / .233 / 0.015) * 2;
+
+    short wallDataPoint = (short)(tof - (tof * .05 * Math.random()));
+
+    if ((int)(200 * Math.random()) == 1){
+        wallDataPoint = (short)(tof - (tof *.20 * Math.random()));
+    }
+
+    return(wallDataPoint);
+
+}//end of BoardChannelSimulator::genSimdWMDPtShotGun
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// BoardChannelSimulator::genSimdWMDPtCleanWithRectangles
+//
+// Clean background with no variations, relatively few rectangular low spots.
+//
+// the data in the map is raw time-of-flight count (two way)
+// speed of sound in steel = 0.233 inch/uS
+// 15 nS per count
+//
+
+private short genSimdWMDPtCleanWithRectangles(int pRevCount, int pSampleCount)
+{
+
+    //start with the typical background wall
+
+    //convert wall in inches to number of samples
+    double wall = .250; //wall in inches
+    int tof = (int)(wall / .233 / 0.015) * 2;
+
+    short wallDataPoint = (short)(tof - (tof * .05 * Math.random()));
+
+    //at random intervals, create a rectangular thin wall anomaly
+
+    if (revAnomalyStart == -1 && ((int)(30000 * Math.random()) == 1)){
+
+        //starts horizontally at the current revolution count
+        revAnomalyStart = pRevCount;
+        //spans a random width of revolutions
+        revAnomalyWidth = 10 + (int)(10 * Math.random());
+        //starts vertically at the current sample count
+        sampleAnomalyStart = pSampleCount;
+        //spans a random number of samples
+        sampleAnomalyHeight = 10 + (int)(10 * Math.random());
+        //has a random thickness
+        anomalyThickness =
+                       (short)(tof - (tof * .20) - (tof *.10 * Math.random()));
+    }
+
+    //if anomaly generation is currently active, check to see if the revolution
+    //and sample counts which define the boundaries are in valid range for
+    //the anomaly's position -- if so, set value to anomaly thickness
+
+    if (revAnomalyStart != -1){
+
+        //if the revCount has passed the width of the anomaly, end generation
+        if (pRevCount >= (revAnomalyStart + revAnomalyWidth)){
+            revAnomalyStart = -1;
+            return(wallDataPoint);
+        }
+
+        //check both rev count and sample count to see if anomaly data points
+        //should be generated for that position
+
+        if (pRevCount > revAnomalyStart
+                &&
+            pRevCount < (revAnomalyStart + revAnomalyWidth)
+                &&
+            pSampleCount > sampleAnomalyStart
+                &&
+            pSampleCount < (sampleAnomalyStart + sampleAnomalyHeight)){
+
+            return(anomalyThickness);
+
+        }
+    }
+
+    return(wallDataPoint);
+
+}//end of BoardChannelSimulator::genSimdWMDPtCleanWithRectangles
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// BoardChannelSimulator::getNextWallMapValueFromFile
+//
+// Returns the next wall map value simulated with a value from buffer
+// previously loaded from a file.
+//
+// When end of data reached, sequence starts over from beginning.
+//
+
+public int getNextWallMapValueFromFile()
+{
+
+    return(1);
+    
+}//end of BoardChannelSimulator::getNextWallMapValueFromFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// BoardChannelSimulator::resetForNextRun
+//
+// Prepares for the next run.
+//
+
+public void resetForNextRun()
+{
+
+
+}//end of BoardChannelSimulator::resetForNextRun
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// BoardChannelSimulator::prepareNextSimulationMapDataSetFromFiles
+//
+// Prepares the next map data set for use by opening files and/or reading
+// data as required.
+//
+
+public int prepareNextSimulationMapDataSetFromFiles()
+{
+
+    //debug mks -- close the current file if it is already open here!!!!
+    
+    if (type != UTBoard.WALL_MAPPER){ return(-1); }
+        
+    return(-1); //debug mks -- fix this
+        
+
+}//end of BoardChannelSimulator::prepareNextSimulationMapDataSetFromFiles
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
