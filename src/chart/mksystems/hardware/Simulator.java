@@ -52,7 +52,7 @@ public Simulator() throws SocketException{}; //default constructor - not used
 
     int currentDataSetIndex = 1;
     
-    DecimalFormat dataSetIndexFormat = new DecimalFormat("0000000");
+    final DecimalFormat dataSetIndexFormat = new DecimalFormat("0000000");
     
     String mainFileFormat;
     IniFile configFile;

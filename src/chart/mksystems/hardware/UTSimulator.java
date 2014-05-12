@@ -85,8 +85,9 @@ public UTSimulator() throws SocketException{}; //default constructor - not used
     BoardChannelSimulator[] boardChannels;
     int peakDataPktCounter = 0;
 
-    double nominalWall, nSPerDataPoint, compressionVelocityNS;
+    double nominalWall, nSPerDataPoint, uSPerDataPoint, compressionVelocityNS;
     int numWallMultiples;
+    double inchesPerChartPercentagePoint;
     
     int mapChannel, boardChannelForMapDataSource, headForMapDataSensor;
     int traceBufferSize, mapBufferSize;
@@ -152,8 +153,6 @@ public UTSimulator() throws SocketException{}; //default constructor - not used
     public byte prevPage = -1;
     public int prevAddress = -2;
 
-    short trackWord = 0;
-    int tdcTracker = 0;
     int helixAdvanceTracker = 0;
     static final int SAMPLES_PER_REV = 500;
     static final int SAMPLES_PER_ADVANCE = 500;
@@ -163,8 +162,6 @@ public UTSimulator() throws SocketException{}; //default constructor - not used
     int mapDataBuffer[];
     int wallMapPacketSendTimer = 0;
     static final int WALL_MAP_PACKET_SEND_RELOAD = 20;
-    int revCount = 0;
-    int sampleCount = 0;
 
 //-----------------------------------------------------------------------------
 // UTSimulator::UTSimulator (constructor)
@@ -202,7 +199,6 @@ public void init()
 
     mapDataBuffer = new int[MAP_BUFFER_SIZE];
 
-    tdcTracker = calculateTimeToNextTDC(SAMPLES_PER_REV);
     wallMapPacketSendTimer = WALL_MAP_PACKET_SEND_RELOAD;
 
     channelPeakSets = new ChannelPeakSet[NUMBER_OF_BOARD_CHANNELS];
@@ -557,6 +553,15 @@ public void prepareNextSimulationDataSetFromRandom()
 // If a file set is not found for index 1, the simulation mode is changed
 // to RANDOM and no files are opened or data loaded.
 //
+// The data for all Traces is stored in a single file such as 
+//  "20 - 0000001 map.dat". Thus this one file is opened and passed to each
+// BoardChannelSimulator for use.
+//
+// The data for Maps is stored individually in separate files, so the info to
+// create the filename (such as the currentDataSetIndex) is passed to each
+// BoardChannelSimulator so each can create the appropriate filename and open
+// that specific file.
+//
 
 public void prepareNextSimulationDataSetFromFiles()
 {
@@ -587,17 +592,18 @@ public void prepareNextSimulationDataSetFromFiles()
     
     FileInputStream fileInputStream = null;
     InputStreamReader inputStreamReader = null;
-    BufferedReader in = null;
+    BufferedReader traceSimData = null;
 
     try{
 
         fileInputStream = new FileInputStream(dataSetFilename);
         inputStreamReader = new InputStreamReader(fileInputStream);
 
-        in = new BufferedReader(inputStreamReader);
+        traceSimData = new BufferedReader(inputStreamReader);
 
         for (BoardChannelSimulator boardChannel : boardChannels) {
-            boardChannel.prepareNextSimulationDataSetFromFiles(in);
+            boardChannel.prepareNextSimulationDataSetFromFiles(
+             simulationDataSourceFilePath, currentDataSetIndex, traceSimData);
         }
                 
     }        
@@ -605,7 +611,7 @@ public void prepareNextSimulationDataSetFromFiles()
         return;
         }
     finally{
-        try{if (in != null) {in.close();}}
+        try{if (traceSimData != null) {traceSimData.close();}}
         catch(IOException e){}
         try{if (inputStreamReader != null) {inputStreamReader.close();}}
         catch(IOException e){}
@@ -1487,9 +1493,6 @@ public void getPeakData4()
 public void sendWallMapPacket()
 {
 
-    boolean insertControlWord = false;
-    boolean tdc = false;
-
     //send standard packet header
     //use1 for DSP chip and 0 for core because the data is from cores A & B
     sendPacketHeader(UTBoard.GET_WALL_MAP_CMD, (byte)1, (byte)0);
@@ -1504,74 +1507,15 @@ public void sendWallMapPacket()
     //simulate and send the wall data points
     for (int i=0; i < MAP_BUFFER_SIZE; i++){
 
-        //periodically, the tracking word gets incremented by the clock signal
-        //and reset to zero by the TDC signal; at every reset, the value of
-        //the word just before the reset is inserted into the data stream as
-        //a control code to denote the start of a revolution; thus the tracking
-        //value used in the control code is usually the last clock position
-        //before a reset; the increment by clock signal is not simulated here,
-        //just the reset by TDC
+        short wallDataPoint = 
+                (short)boardChannels[boardChannelForMapDataSource].
+                                                        getNextWallMapValue(2);
 
-        if (tdcTracker-- == 0){
-            tdcTracker = calculateTimeToNextTDC(SAMPLES_PER_REV);
-            tdc = true; insertControlWord = true;
-            revCount++; //count number of revolutions
-            sampleCount = 0; //count starts over with each rev
-            trackWord = (short)UTBoard.MAX_CLOCK_POSITION;
-        }
-
-        //send a control byte if needed or a data sample
-        //control bytes have bit 15 set to distinguish from a data byte
-
-        if (insertControlWord){
-            sendShortInt(trackWord | UTBoard.MAP_CONTROL_CODE_FLAG);
-        }
-        else {
-
-            short wallDataPoint = 
-                    (short)boardChannels[boardChannelForMapDataSource].
-                                getNextWallMapValue(2, revCount, sampleCount);
-
-            sendShortInt(wallDataPoint);
-
-            sampleCount++; //count the samples sent
-        }
-
-        tdc = insertControlWord = false;
-
+        sendShortInt(wallDataPoint);
+        
     }
 
 }//end of UTSimulator::sendWallMapPacket
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// UTSimulator::calculateTimeToNextTDC
-//
-// Returns a number for use as a countdown timer to the next TDC signal.
-//
-// Returns a number for resetting tdcTracker or helixAdvanceTracker which is
-// a small variation of pTypicalCount by a random amount determined by
-// SAMPLE_COUNT_VARIATION.
-//
-// One out of 10 times, the time is set very short to mimic an erroneous
-// double hit.
-//
-
-private int calculateTimeToNextTDC(int pTypicalCount)
-{
-
-    //periodic with slight randomness
-    int value = pTypicalCount
-        - (int)(SAMPLE_COUNT_VARIATION / 2)
-        + (int)(SAMPLE_COUNT_VARIATION * Math.random());
-
-    //occasional very short period to mimic erroneous double hit
-    int doubleHit = (int)(10 * Math.random());
-    if (doubleHit == 1) { value = (int)(40 * Math.random()); }
-
-    return(value);
-
-}//end of UTSimulator::calculateTimeToNextTDC
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1903,7 +1847,7 @@ public void configureMain(int pBoardNumber) throws IOException
       configFile.readInt(section, "This Board is Source for Map Channel", -1);
 
     boardChannelForMapDataSource =
-         configFile.readInt(section, "Board Channel for Map Data Source", 1);
+         configFile.readInt(section, "Board Channel for Map Data Source", -1);
 
     headForMapDataSensor =
               configFile.readInt(section, "Head for Map Data Sensor", -1);
@@ -1917,9 +1861,14 @@ public void configureMain(int pBoardNumber) throws IOException
 
     //create an array of channel variables
     boardChannels = new BoardChannelSimulator[MAX_BOARD_CHANNELS];
-    for (int i=0; i<MAX_BOARD_CHANNELS; i++) {
+    for (int i=0; i<boardChannels.length; i++) {
+        
+        int lMapChannel = -1;
+        if (i == boardChannelForMapDataSource) { lMapChannel = mapChannel;}
+    
         boardChannels[i] = new BoardChannelSimulator(i, traceBufferSize, type,
-        simulationType, UTBoard.CH1_SAMPLE_DELAY_0, UTBoard.CH1_SAMPLE_COUNT_0);
+        simulationType, UTBoard.CH1_SAMPLE_DELAY_0, UTBoard.CH1_SAMPLE_COUNT_0,
+        mapChannel);
         boardChannels[i].init();
         boardChannels[i].configure(configFile, section);
     }
@@ -1957,6 +1906,8 @@ public void configureSimulationDataSet()
 
     nSPerDataPoint = configFile.readDouble("Wall", "nS per Data Point", 15.0);
     
+    uSPerDataPoint = nSPerDataPoint / 1000;
+    
     double velocityUS =
               configFile.readDouble("Wall", "Velocity (distance/uS)", 0.233);
     
@@ -1965,14 +1916,15 @@ public void configureSimulationDataSet()
     numWallMultiples = configFile.readInt(
                                     "Wall", "Number of Multiples for Wall", 1);
     
-    /* debug mks
-        //convert nanosecond time span to distance
-        //dataPeakD is the only variable possibly changed by peak data updates
-        wallThickness = dataPeakD * hdwVs.nSPerDataPoint * hdwVs.velocityNS /
-                                                 (hdwVs.numberOfMultiples * 2);
-    */
+    inchesPerChartPercentagePoint = configFile.readDouble(
+                        "Wall", "Inches per Chart Percentage Point", 0.002);
     
-    
+    for (BoardChannelSimulator boardChannel : boardChannels) {
+        boardChannel.setWallParameters(nominalWall, nSPerDataPoint, 
+          uSPerDataPoint, velocityUS, compressionVelocityNS, numWallMultiples,
+          inchesPerChartPercentagePoint);
+    }
+
 }//end of UTSimulator::configureSimulationDataSet
 //-----------------------------------------------------------------------------
                 

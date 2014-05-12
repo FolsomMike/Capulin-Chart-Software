@@ -18,9 +18,15 @@ package chart.mksystems.hardware;
 
 //-----------------------------------------------------------------------------
 
+import static chart.mksystems.hardware.UTSimulator.SAMPLES_PER_REV;
+import static chart.mksystems.hardware.UTSimulator.SAMPLE_COUNT_VARIATION;
 import chart.mksystems.inifile.IniFile;
 import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.text.DecimalFormat;
 
 //-----------------------------------------------------------------------------
 // class BoardChannelSimulator
@@ -50,6 +56,28 @@ public class BoardChannelSimulator extends Object{
     int type;
     int simulationType;
 
+    int mapChannel = -1;
+
+    FileInputStream fileInputStream = null;
+    InputStreamReader inputStreamReader = null;
+    BufferedReader mapSimDataFile = null;
+    boolean mapSimDataError = false;
+    
+    int prevMapSimDataValue = 0;
+
+    int tdcTracker = 0;
+    int revCount = 0;
+    int mapSampleCount = 0;
+    short trackWord = 0;
+
+    double nominalWall;
+    double nSPerDataPoint;
+    double uSPerDataPoint;
+    double velocityUS;
+    double compressionVelocityNS;
+    int numWallMultiples;
+    double inchesPerChartPercentagePoint;
+    
     int revAnomalyStart = -1;
     int revAnomalyWidth = -1;
     int sampleAnomalyStart = -1;
@@ -73,6 +101,8 @@ public class BoardChannelSimulator extends Object{
     byte sampleCountReg1;
     byte sampleCountReg2;
 
+    final DecimalFormat dataSetIndexFormat = new DecimalFormat("0000000");    
+    
 //-----------------------------------------------------------------------------
 // BoardChannelSimulator::BoardChannelSimulator (constructor)
 //
@@ -80,12 +110,14 @@ public class BoardChannelSimulator extends Object{
 public BoardChannelSimulator(
                             int pIndex, int pBufferSize, int pType,
                             int pSimulationType,
-                            byte pSampleDelayReg0, byte pSampleCountReg0)
+                            byte pSampleDelayReg0, byte pSampleCountReg0,
+                            int pMapChannel)
 {
 
     index = pIndex;    
     bufferSize = pBufferSize;
     type = pType; simulationType = pSimulationType;
+    mapChannel = pMapChannel;
     
     // the FPGA register addresses for all channels for sample delay and sample
     // count are contiguous addresses, so use a bit of math to calculate each
@@ -116,7 +148,9 @@ public void init()
         bufferA = new int[bufferSize];
         bufferB = new int[bufferSize];
     }
-        
+
+    tdcTracker = calculateTimeToNextTDC(SAMPLES_PER_REV);    
+    
 }//end of BoardChannelSimulator::init
 //-----------------------------------------------------------------------------
 
@@ -137,13 +171,34 @@ public void setSimulationType(int pValue)
 //-----------------------------------------------------------------------------
 // BoardChannelSimulator::prepareNextSimulationDataSetFromFiles
 //
-// Loads the next set of simulation data from pSourceFile.
+// Loads the next set of simulation data from pTraceSimSourceFile and opens
+// files for data sets which are not preloaded but are loaded on the fly, such
+// as Map data.
+//
+
+public void prepareNextSimulationDataSetFromFiles(
+    String pPath, int pCurrentDataSetIndex, BufferedReader pTraceSimSourceFile)
+{
+
+    prepareNextTraceSimulationDataSetFromFiles(pTraceSimSourceFile);
+    
+    //open files, load data, etc for the map
+    prepareNextMapSimulationDataSetFromFiles(pPath, pCurrentDataSetIndex);
+
+}//end of BoardChannelSimulator::prepareNextSimulationDataSetFromFiles
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// BoardChannelSimulator::prepareNextTraceSimulationDataSetFromFiles
+//
+// Loads the next set of simulation data for a Trace from pSourceFile.
 //
 // bufferADataEnd/bufferBDataEnd will be set to index of the last data
 // point stored in each buffer.
 //
 
-public void prepareNextSimulationDataSetFromFiles(BufferedReader pSourceFile)
+public void prepareNextTraceSimulationDataSetFromFiles(
+                                                BufferedReader pSourceFile)
 {
 
     bufferAIndex = 0; bufferBIndex = 0;
@@ -160,10 +215,7 @@ public void prepareNextSimulationDataSetFromFiles(BufferedReader pSourceFile)
             loadDataSetFromFile(pSourceFile, bufferB, -2, 
                     -2, sourceBTraceIndex, sourceBDataSetIndex);
     
-    //open files, load data, etc for the map
-    prepareNextSimulationMapDataSetFromFiles();
-
-}//end of BoardChannelSimulator::prepareNextSimulationDataSetFromFiles
+}//end of BoardChannelSimulator::prepareNextTraceSimulationDataSetFromFiles
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -262,6 +314,112 @@ public int loadDataSetFromFilePosition(BufferedReader pSourceFile,
     return(i-1);
     
 }//end of BoardChannelSimulator::loadDataSetFromFilePosition
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// BoardChannelSimulator::prepareNextMapSimulationDataSetFromFiles
+//
+// Prepares the next map data set for use by opening files and/or reading
+// data as required. Some files are left open so that data can be read on the
+// fly as the simulation is progressing.
+//
+// NOTE: BufferedReader.mark should NOT be used to mark the start point of the
+// data as the data block is quite large. The data block size must be specified
+// to the mark method which will cause the input buffer to be resized to match
+// this large number which would require excessive memory. To reset to the
+// beginning of the data, the file must be closed, reopened and then searched
+// again.
+//
+
+public void prepareNextMapSimulationDataSetFromFiles(
+                                        String pPath, int pCurrentDataSetIndex)
+{
+
+    if (type != UTBoard.WALL_MAPPER){ return; }
+
+    //if open, close the data file in current use
+    closeMapSimDataFile();
+        
+    String mapSimDataFileName = 
+                  createMapSimulationDataFilename(pPath, pCurrentDataSetIndex);    
+
+    try{
+
+        fileInputStream = new FileInputStream(mapSimDataFileName);
+        inputStreamReader = new InputStreamReader(fileInputStream);
+
+        mapSimDataFile = new BufferedReader(inputStreamReader);
+                
+    }        
+    catch (FileNotFoundException e){
+        //on error, force simulation type to RANDOM
+        simulationType = Simulator.RANDOM;
+        return;
+        }
+
+    //skip to the data section
+    int retCode = 
+                findSectionWithIndex(mapSimDataFile, "[Data Set 1]", "", -1);
+    
+    //on error or failure to find section, force type to RANDOM
+    if (retCode == -1) {
+        closeMapSimDataFile();
+        simulationType = Simulator.RANDOM;
+    }
+
+}//end of BoardChannelSimulator::prepareNextMapSimulationDataSetFromFiles
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// BoardChannelSimulator::createMapSimulationDataFilename
+//
+// Creates a filename to load a simulation Map data set file using pPath,
+// the current data set index pCurrentDataSetIndex, and the supplied prefix and
+// suffix.
+//
+
+protected String createMapSimulationDataFilename(
+                                        String pPath, int pCurrentDataSetIndex)
+{
+ 
+    return(pPath + "20 - "
+          + dataSetIndexFormat.format(pCurrentDataSetIndex)
+          + " map.dat ~ Wall Mapping Data ~ " + mapChannel + ".dat");
+    
+}//end of BoardChannelSimulator::createMapSimulationDataFilename
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// BoardChannelSimulator::closeMapSimDataFile
+//
+// If open, closes the map simulation data file and sets all related references
+// to null.
+//
+
+private void closeMapSimDataFile()
+{
+ 
+    try{
+        if (mapSimDataFile != null) {
+            mapSimDataFile.close(); mapSimDataFile = null;
+            mapSimDataError = false;
+        }
+    }
+    catch(IOException e){}
+    try{
+        if (inputStreamReader != null) {
+            inputStreamReader.close(); inputStreamReader = null;
+        }
+    }
+    catch(IOException e){}
+    try{
+        if (fileInputStream != null) {
+            fileInputStream.close(); fileInputStream = null;
+        }
+    }
+    catch(IOException e){}    
+
+}//end of BoardChannelSimulator::closeMapSimDataFile
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -382,6 +540,54 @@ public int parseIntFromKeyValue(String pKeyValue)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// BoardChannelSimulator::readAndParseIntFromMapSimDataFile
+//
+// Reads the next line from mapSimDataFile, converts it to an int, and returns
+// the value.
+//
+// On error, returns the previous value read at the time of the error and
+// for every call thereafter...does not try to read any more lines after the
+// first error.
+//
+
+public int readAndParseIntFromMapSimDataFile()
+{
+    
+    if (mapSimDataError) { return(prevMapSimDataValue); }
+    
+    int value = 0;
+    
+    try{
+        
+        String line;
+        
+        if ((line = mapSimDataFile.readLine()) == null){
+            mapSimDataError = true;
+        }
+
+        //convert text after the equal sign to an int and return it
+        try{
+            value = Integer.parseInt(line);
+            }
+        catch(NumberFormatException e){
+            mapSimDataError = true;
+            }
+    }
+    catch(IOException e){
+        mapSimDataError = true;
+    }
+    finally{
+        if (mapSimDataError) {
+            value = prevMapSimDataValue;
+        }                    
+    }
+    
+    return(value);
+    
+}//end of BoardChannelSimulator::readAndParseIntFromMapSimDataFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // BoardChannelSimulator::getNextMaxWallValue
 //
 // Returns the next simulated or file supplied maximum wall value.
@@ -412,15 +618,13 @@ public int getNextMaxWallValue()
 //
 // Returns the next maximum wall value simulated via random number.
 //
-// wip mks -- hard coded to 170+/-10 which is around 0.297" wall
-//    change this to be a bit more than nominal wall value loaded from sim file
-//
 
 public int getNextMaxWallValueRandom()
 {
  
     short wall;
-    wall = (short)(170 + (Math.random()*10));
+    wall = (short)(convertInchesToSampleCounts(nominalWall * 1.20)
+                                                        + (Math.random()*10));
     return(wall);
     
 }//end of BoardChannelSimulator::getNextMaxWallValueRandom
@@ -442,7 +646,7 @@ public int getNextMaxWallValueFromFile()
     
     if (bufferAIndex >= bufferADataEnd) { bufferAIndex = 0; }
     
-    return(value);
+    return(convertChartPercentageToSampleCounts(value));
     
 }//end of BoardChannelSimulator::getNextMaxWallValueFromFile
 //-----------------------------------------------------------------------------
@@ -479,20 +683,18 @@ public int getNextMinWallValue()
 // Returns the next minimum wall value simulated via random number. An
 // occasional down spike is added.
 //
-// wip mks -- hard coded to 145+/-10 which is around 0.253" wall
-//    change this to be a bit less than nominal wall value loaded from sim file
-//
 
 public int getNextMinWallValueRandom()
 {
  
-    short wall;
+    int tof = convertInchesToSampleCounts(nominalWall * .95);
     
-    wall = (short)(145 + (Math.random()*10));
+    short wall;
+    wall = (short)(tof +(Math.random()*10));
 
     //occasional down spike
     if(((int)(Math.random()*200)) == 1) {
-        wall -= (int)(Math.random()*30);
+        wall -= (int)(Math.random()* tof * .30);
     }
     
     return(wall);
@@ -516,7 +718,7 @@ public int getNextMinWallValueFromFile()
     
     if (bufferBIndex >= bufferBDataEnd) { bufferBIndex = 0; }
     
-    return(value);
+    return(convertChartPercentageToSampleCounts(value));
     
 }//end of BoardChannelSimulator::getNextMinWallValueFromFile
 //-----------------------------------------------------------------------------
@@ -530,13 +732,11 @@ public int getNextMinWallValueFromFile()
 // If simulationType is FROM_FILE, value is from data loaded from a file.
 //
 
-public int getNextWallMapValue(int pWhichSimulation,
-                                            int pRevCount, int pSampleCount)
+public int getNextWallMapValue(int pWhichSimulation)
 {
 
     if(simulationType == UTSimulator.RANDOM){
-        return(getNextWallMapValueRandom(pWhichSimulation,
-                                                    pRevCount, pSampleCount));
+        return(getNextWallMapValueRandom(pWhichSimulation));
     }
     else
     if(simulationType == UTSimulator.FROM_FILE){
@@ -558,18 +758,49 @@ public int getNextWallMapValue(int pWhichSimulation,
 // value of pWhichSimulation.
 //
 
-public short getNextWallMapValueRandom(int pWhichSimulation,
-                                            int pRevCount, int pSampleCount)
+public short getNextWallMapValueRandom(int pWhichSimulation)
 {
+    
+    boolean insertControlWord = false;
+    
+    //periodically, the tracking word gets incremented by the clock signal
+    //and reset to zero by the TDC signal; at every reset, the value of
+    //the word just before the reset is inserted into the data stream as
+    //a control code to denote the start of a revolution; thus the tracking
+    //value used in the control code is usually the last clock position
+    //before a reset; the increment by clock signal is not simulated here,
+    //just the reset by TDC
 
-    if (pWhichSimulation == 1){
-        return(genSimdWMDPtShotGun());
-    }
-    else
-    if (pWhichSimulation == 2){
-        return(genSimdWMDPtCleanWithRectangles(pRevCount, pSampleCount));
+    if (tdcTracker-- == 0){
+        tdcTracker = calculateTimeToNextTDC(SAMPLES_PER_REV);
+        insertControlWord = true;
+        revCount++; //count number of revolutions
+        mapSampleCount = 0; //count starts over with each rev
+        trackWord = (short)UTBoard.MAX_CLOCK_POSITION;
     }
 
+        //send a control byte if needed or a data sample
+        //control bytes have bit 15 set to distinguish from a data byte
+
+        if (insertControlWord){
+            //return a control word
+            return((short)(trackWord | UTBoard.MAP_CONTROL_CODE_FLAG));
+        }
+        else {
+            //return a data word
+            
+            mapSampleCount++; //count the samples sent            
+            
+            if (pWhichSimulation == 1){
+                return(genSimdWMDPtShotGun());
+            }
+            else
+            if (pWhichSimulation == 2){
+                return(genSimdWMDPtCleanWithRectangles());
+            }
+
+        }
+    
     return(0);
 
 }//end of BoardChannelSimulator::getNextWallMapValueRandom
@@ -590,9 +821,8 @@ private short genSimdWMDPtShotGun()
 
     //convert wall in inches to number of samples
     //debug mks -- use value loaded from config file
-    double wall = .250; //wall in inches
-    int tof = (int)(wall / .233 / 0.015) * 2;
-
+    int tof = convertInchesToSampleCounts(.250);
+    
     short wallDataPoint = (short)(tof - (tof * .05 * Math.random()));
 
     if ((int)(200 * Math.random()) == 1){
@@ -614,15 +844,13 @@ private short genSimdWMDPtShotGun()
 // 15 nS per count
 //
 
-private short genSimdWMDPtCleanWithRectangles(int pRevCount, int pSampleCount)
+private short genSimdWMDPtCleanWithRectangles()
 {
 
     //start with the typical background wall
-
-    //convert wall in inches to number of samples
-    double wall = .250; //wall in inches
-    int tof = (int)(wall / .233 / 0.015) * 2;
-
+    //debug mks -- use value loaded from config file
+    int tof = convertInchesToSampleCounts(.250);
+        
     short wallDataPoint = (short)(tof - (tof * .05 * Math.random()));
 
     //at random intervals, create a rectangular thin wall anomaly
@@ -630,11 +858,11 @@ private short genSimdWMDPtCleanWithRectangles(int pRevCount, int pSampleCount)
     if (revAnomalyStart == -1 && ((int)(30000 * Math.random()) == 1)){
 
         //starts horizontally at the current revolution count
-        revAnomalyStart = pRevCount;
+        revAnomalyStart = revCount;
         //spans a random width of revolutions
         revAnomalyWidth = 10 + (int)(10 * Math.random());
         //starts vertically at the current sample count
-        sampleAnomalyStart = pSampleCount;
+        sampleAnomalyStart = mapSampleCount;
         //spans a random number of samples
         sampleAnomalyHeight = 10 + (int)(10 * Math.random());
         //has a random thickness
@@ -649,7 +877,7 @@ private short genSimdWMDPtCleanWithRectangles(int pRevCount, int pSampleCount)
     if (revAnomalyStart != -1){
 
         //if the revCount has passed the width of the anomaly, end generation
-        if (pRevCount >= (revAnomalyStart + revAnomalyWidth)){
+        if (revCount >= (revAnomalyStart + revAnomalyWidth)){
             revAnomalyStart = -1;
             return(wallDataPoint);
         }
@@ -657,13 +885,13 @@ private short genSimdWMDPtCleanWithRectangles(int pRevCount, int pSampleCount)
         //check both rev count and sample count to see if anomaly data points
         //should be generated for that position
 
-        if (pRevCount > revAnomalyStart
+        if (revCount > revAnomalyStart
                 &&
-            pRevCount < (revAnomalyStart + revAnomalyWidth)
+            revCount < (revAnomalyStart + revAnomalyWidth)
                 &&
-            pSampleCount > sampleAnomalyStart
+            mapSampleCount > sampleAnomalyStart
                 &&
-            pSampleCount < (sampleAnomalyStart + sampleAnomalyHeight)){
+            mapSampleCount < (sampleAnomalyStart + sampleAnomalyHeight)){
 
             return(anomalyThickness);
 
@@ -687,29 +915,9 @@ private short genSimdWMDPtCleanWithRectangles(int pRevCount, int pSampleCount)
 public int getNextWallMapValueFromFile()
 {
 
-    return(1);
+    return(readAndParseIntFromMapSimDataFile());
     
 }//end of BoardChannelSimulator::getNextWallMapValueFromFile
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// BoardChannelSimulator::prepareNextSimulationMapDataSetFromFiles
-//
-// Prepares the next map data set for use by opening files and/or reading
-// data as required.
-//
-
-public int prepareNextSimulationMapDataSetFromFiles()
-{
-
-    //debug mks -- close the current file if it is already open here!!!!
-    
-    if (type != UTBoard.WALL_MAPPER){ return(-1); }
-        
-    return(-1); //debug mks -- fix this
-        
-
-}//end of BoardChannelSimulator::prepareNextSimulationMapDataSetFromFiles
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -793,6 +1001,95 @@ void setSampleCount(byte pRegAddr, byte pValue){
     }
 
 }//end of BoardChannelSimulator::setSampleCount
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// BoardChannelSimulator::calculateTimeToNextTDC
+//
+// Returns a number for use as a countdown timer to the next TDC signal.
+//
+// Returns a number for resetting tdcTracker or helixAdvanceTracker which is
+// a small variation of pTypicalCount by a random amount determined by
+// SAMPLE_COUNT_VARIATION.
+//
+// One out of 10 times, the time is set very short to mimic an erroneous
+// double hit.
+//
+
+private int calculateTimeToNextTDC(int pTypicalCount)
+{
+
+    //periodic with slight randomness
+    int value = pTypicalCount
+        - (int)(SAMPLE_COUNT_VARIATION / 2)
+        + (int)(SAMPLE_COUNT_VARIATION * Math.random());
+
+    //occasional very short period to mimic erroneous double hit
+    int doubleHit = (int)(10 * Math.random());
+    if (doubleHit == 1) { value = (int)(40 * Math.random()); }
+
+    return(value);
+
+}//end of BoardChannelSimulator::calculateTimeToNextTDC
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// BoardChannelSimulator::convertInchesToSampleCounts
+//
+// Converts the distance of pInches to the corresponding number of samples
+// of the UT signal in steel for a full round trip of the wall thickness.
+//
+
+private int convertInchesToSampleCounts(double pInches)
+{
+
+    return((int)(pInches / velocityUS / uSPerDataPoint) * 2);
+    
+}//end of BoardChannelSimulator::convertInchesToSampleCounts
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// BoardChannelSimulator::convertChartPercentageToSampleCounts
+//
+// Converts the percentage of chart height pPercentage to the corresponding
+// number of samples of the UT signal in steel for a full round trip of the
+// wall thickness.
+//
+// This is useful for converting data from files which containg chart height
+// values back to the raw time-of-flight values for simulation.
+//
+
+private int convertChartPercentageToSampleCounts(double pPercentage)
+{
+
+    double wall = nominalWall + (pPercentage - 50) * 
+                                                inchesPerChartPercentagePoint;
+
+    return(convertInchesToSampleCounts(wall));
+    
+}//end of BoardChannelSimulator::convertChartPercentageToSampleCounts
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// BoardChannelSimulator::setWallParameters
+//
+// Sets the various wall parameters for use in simulation.
+//
+
+public void setWallParameters(double pNominalWall, double pNSPerDataPoint,
+     double pUSPerDataPoint, double pVelocityUS, double pCompressionVelocityNS,
+                  int pNumWallMultiples, double pInchesPerChartPercentagePoint)
+{
+
+    nominalWall = pNominalWall;
+    nSPerDataPoint = pNSPerDataPoint;
+    uSPerDataPoint = pUSPerDataPoint;
+    velocityUS = pVelocityUS;
+    compressionVelocityNS = pCompressionVelocityNS;
+    numWallMultiples = pNumWallMultiples;
+    inchesPerChartPercentagePoint = pInchesPerChartPercentagePoint;
+    
+}//end of BoardChannelSimulator::setWallParameters
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

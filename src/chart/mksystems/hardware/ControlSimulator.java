@@ -84,8 +84,8 @@ public class ControlSimulator extends Simulator implements MessageLink{
     //number of packets for length of tube -- take into account the start delay
     //packets as inspection does not occur during that time
     public static int LENGTH_OF_JOINT_IN_PACKETS =
-                                                1298 + START_DELAY_IN_PACKETS;
-
+                                                1400 + START_DELAY_IN_PACKETS;
+    
 //-----------------------------------------------------------------------------
 // ControlSimulator::ControlSimulator (constructor)
 //
@@ -488,10 +488,10 @@ void simulateInspection()
     if (triggerTrack >= 10) {onPipeFlag = true;} else {onPipeFlag = false;}
 
     //after head 1 reaches position, give head 1 down signal
-    if (triggerTrack >= 200) {head1Down = true;} else {head1Down = false;}
+    if (triggerTrack >= 25) {head1Down = true;} else {head1Down = false;}
 
     //after head 2 reaches position, give head 2 down signal
-    if (triggerTrack >= 250) {head2Down = true;} else {head2Down = false;}
+    if (triggerTrack >= 50) {head2Down = true;} else {head2Down = false;}
 
     //after head 1 reaches pick up position, give head 1 up signal
     if (triggerTrack >= LENGTH_OF_JOINT_IN_PACKETS-100) {head1Down = false;}
