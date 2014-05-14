@@ -1,0 +1,51 @@
+
+---------------------------------------------------------------------
+Mon Feb 18 12:15:58 CST 2013
+
+Converting files:
+
+File converted: .\Board Slot Overrides.ini
+File converted: .\Configuration - General.ini
+File converted: .\Configuration - Job Info Window.ini
+File converted: .\Main Settings.ini
+File converted: .\Main Static Settings.ini
+File converted: .\Simulation.ini
+
+File converted: presets\Paragon Weldline #1.preset
+File converted: presets\Trouble Shooting Setup.preset
+
+File converted: configurations\Paragon Configuration - Multiplexed - 1K per channel.config
+
+Validating conversions and cleaning up:
+
+Files are identical: .\Board Slot Overrides.ini
+Success -- temp file renamed: .\Board Slot Overrides.ini
+Files are identical: .\Configuration - General.ini
+Success -- temp file renamed: .\Configuration - General.ini
+Files are identical: .\Configuration - Job Info Window.ini
+Success -- temp file renamed: .\Configuration - Job Info Window.ini
+Compare ignored -- there is no temp file: .\Configuration - Piece Info Window.ini UTF-8
+Delete and rename ignored -- there is no temp file: .\Configuration - Piece Info Window.ini UTF-8
+Compare ignored -- there is no temp file: .\Graphics.ini UTF-8
+Delete and rename ignored -- there is no temp file: .\Graphics.ini UTF-8
+Files are identical: .\Main Settings.ini
+Success -- temp file renamed: .\Main Settings.ini
+Files are identical: .\Main Static Settings.ini
+Success -- temp file renamed: .\Main Static Settings.ini
+Files are identical: .\Simulation.ini
+Success -- temp file renamed: .\Simulation.ini
+
+Files are identical: presets\Paragon Weldline #1.preset
+Success -- temp file renamed: presets\Paragon Weldline #1.preset
+Files are identical: presets\Trouble Shooting Setup.preset
+Success -- temp file renamed: presets\Trouble Shooting Setup.preset
+
+Files are identical: configurations\Paragon Configuration - Multiplexed - 1K per channel.config
+Success -- temp file renamed: configurations\Paragon Configuration - Multiplexed - 1K per channel.config
+
+Validating conversions and cleaning up orphans:
+
+
+
+
+All files converted successfully.

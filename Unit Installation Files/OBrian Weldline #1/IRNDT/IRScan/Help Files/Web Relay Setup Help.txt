@@ -1,0 +1,38 @@
+-- To Set Up WebRelay Module --
+
+If a DAQ Temperature Module is on the network and has not
+already been set up then disconnect it from the network or
+it will conflict with the WebRelay Module during setup as
+they initially have the same IP address.
+
+Set computer TCP/IPv4 address to: 192.168.1.50
+Set netmask to: 255.255.255.0
+
+In web browser, go to address: http://192.168.1.2/setup.html
+
+The username is admin, password is webrelay.
+
+On the "Network" tab, change settings to:
+
+IP Address: 169.254.1.3
+Netmask: 255.255.0.0
+Broadcast: 169.254.1.255
+Gateway: 169.254.1.1
+TCP Port: 80
+Modbus Port: 502
+Speed: 10Mbps
+MOde: Half Duplex
+
+NOTE: do not change tabs before clicking "Submit" or all
+ values will be reset.
+
+After setting up addresses as described above:
+
+Reset the computers LAN network adapter to "Obtain an IP
+ address automatically".
+
+In web browser, go to address http://169.254.1.3/setup.html
+ to now access the setup screen.
+
+In web browser, go to address http://169.254.1.3 to now
+ access the monitoring screen.

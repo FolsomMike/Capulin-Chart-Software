@@ -1,0 +1,18 @@
+Sun May 11 16:31:49 PDT 2014
+Error - backup path does not exist: C:\Users\brian\Documents\IR Scan Data Files - Backup\Test 1\
+Action - creating backup path.
+Sun May 11 16:31:49 PDT 2014
+Error - file does not exist: C:\Users\brian\Documents\IR Scan Data Files - Backup\Test 1\00 - Test 1 Calibration File.ini
+Action - copying from backup folder: C:\Users\brian\Documents\IR Scan Data Files -  Primary\Test 1\00 - Test 1 Calibration File.ini
+Sun May 11 16:32:23 PDT 2014
+Error - file does not exist: C:\Users\brian\Documents\IR Scan Data Files - Backup\Test 1\01 - Test 1 Configuration.ini
+Action - copying from backup folder: C:\Users\brian\Documents\IR Scan Data Files -  Primary\Test 1\01 - Test 1 Configuration.ini
+Sun May 11 16:32:25 PDT 2014
+Error - file does not exist: C:\Users\brian\Documents\IR Scan Data Files - Backup\Test 1\02 - Test 1 Piece Number File.ini
+Action - copying from backup folder: C:\Users\brian\Documents\IR Scan Data Files -  Primary\Test 1\02 - Test 1 Piece Number File.ini
+Sun May 11 16:32:27 PDT 2014
+Error - file does not exist: C:\Users\brian\Documents\IR Scan Data Files - Backup\Test 1\03 - Test 1 Job Info.ini
+Action - copying from backup folder: C:\Users\brian\Documents\IR Scan Data Files -  Primary\Test 1\03 - Test 1 Job Info.ini
+Sun May 11 16:32:28 PDT 2014
+Error - file does not exist: C:\Users\brian\Documents\IR Scan Data Files - Backup\Test 1\04 - Test 1 Configuration - Job Info Window.ini
+Action - copying from backup folder: C:\Users\brian\Documents\IR Scan Data Files -  Primary\Test 1\04 - Test 1 Configuration - Job Info Window.ini
