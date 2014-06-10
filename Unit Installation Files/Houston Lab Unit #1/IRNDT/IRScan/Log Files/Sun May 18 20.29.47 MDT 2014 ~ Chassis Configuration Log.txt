@@ -1,0 +1,136 @@
+
+--------------------------------------------------------------------
+Sun May 18 20:29:22 MDT 2014
+
+Connecting With Chassis and Configuring
+
+Full list of Network Interfaces:
+    lo Software Loopback Interface 1
+        /127.0.0.1
+        /0:0:0:0:0:0:0:1
+    net0 WAN Miniport (SSTP)
+    net1 WAN Miniport (L2TP)
+    net2 WAN Miniport (PPTP)
+    ppp0 WAN Miniport (PPPOE)
+    eth0 WAN Miniport (IPv6)
+    eth1 WAN Miniport (Network Monitor)
+    eth2 WAN Miniport (IP)
+    ppp1 RAS Async Adapter
+    net3 WAN Miniport (IKEv2)
+    net4 Bluetooth Device (RFCOMM Protocol TDI)
+    eth3 Bluetooth Device (Personal Area Network)
+        /fe80:0:0:0:6d87:3e1a:ea4b:d168%12
+    eth4 Realtek PCIe FE Family Controller
+        /169.254.38.223
+==>> Binding to this adapter...
+        /fe80:0:0:0:a8cb:c70e:d9af:26df%13
+    net5 Intel(R) Centrino(R) Wireless-N 1030
+        /192.168.1.30
+        /fe80:0:0:0:e554:8b0:45ff:b695%14
+    net6 Microsoft Virtual WiFi Miniport Adapter
+        /fe80:0:0:0:5075:30bc:e79f:498d%15
+    net7 Microsoft Virtual WiFi Miniport Adapter #2
+    net8 Teredo Tunneling Pseudo-Interface
+        /2001:0:9d38:90d7:93:1e20:27b5:e3d
+        /fe80:0:0:0:93:1e20:27b5:e3d%17
+    eth5 Sierra Wireless HSPA Network Adapter
+    net9 NETGEAR WNA3100 N300 Wireless USB Adapter
+    net10 Microsoft Virtual WiFi Miniport Adapter #3
+    net11 Microsoft ISATAP Adapter #3
+        /fe80:0:0:0:0:5efe:c0a8:11e%21
+    net12 Microsoft ISATAP Adapter #5
+    net13 Microsoft ISATAP Adapter #6
+        /fe80:0:0:0:0:5efe:a9fe:26df%23
+    net14 Microsoft ISATAP Adapter
+    net15 Microsoft ISATAP Adapter #2
+    eth6 Realtek PCIe FE Family Controller-QoS Packet Scheduler-0000
+    eth7 Realtek PCIe FE Family Controller-WFP LightWeight Filter-0000
+    net16 Intel(R) Centrino(R) Wireless-N 1030-Virtual WiFi Filter Driver-0000
+    net17 Intel(R) Centrino(R) Wireless-N 1030-QoS Packet Scheduler-0000
+    eth8 WAN Miniport (Network Monitor)-QoS Packet Scheduler-0000
+    eth9 WAN Miniport (IP)-QoS Packet Scheduler-0000
+    eth10 WAN Miniport (IPv6)-QoS Packet Scheduler-0000
+    net18 Intel(R) Centrino(R) Wireless-N 1030-Native WiFi Filter Driver-0000
+    net19 Intel(R) Centrino(R) Wireless-N 1030-WFP LightWeight Filter-0000
+    net20 Microsoft Virtual WiFi Miniport Adapter-Native WiFi Filter Driver-0000
+    net21 Microsoft Virtual WiFi Miniport Adapter-QoS Packet Scheduler-0000
+    net22 Microsoft Virtual WiFi Miniport Adapter-WFP LightWeight Filter-0000
+    net23 Microsoft 6to4 Adapter
+Broadcasting greeting to all Control boards...
+/169.254.1.1  Control Board present...
+Opening connection with Control board...
+Control Board IP Address: /169.254.1.1
+/169.254.1.1 says Hello from Control Board Simulator!
+Control /169.254.1.1 chassis & slot address: 0-0
+Control 0:0 is ready.
+All Control boards ready.
+Broadcasting greeting to all UT boards...
+/169.254.207.21  UT board present, Ver 1.3z, FPGA loaded...
+/169.254.38.10  UT board present, Ver 1.3z, FPGA loaded...
+Connecting to UT board /169.254.38.10...
+Connecting to UT board /169.254.207.21...
+UT /169.254.38.10 receive buffer size: 8192...
+UT /169.254.38.10 send buffer size: 8192...
+UT /169.254.38.10 says Hello from UT Board!
+UT /169.254.207.21 receive buffer size: 8192...
+UT /169.254.207.21 send buffer size: 8192...
+UT /169.254.207.21 says Hello from UT Board!
+UT /169.254.207.21 FPGA already loaded...
+UT /169.254.38.10 FPGA already loaded...
+UT /169.254.207.21 chassis & slot address: 0-1
+UT 0:1 loading DSP code for
+    Chip 1 Cores A & B
+UT /169.254.38.10 chassis & slot address: 0-0
+UT 0:0 loading DSP code for
+    Chip 1 Cores A & B
+UT 0:0 verifying DSP code for
+    Chip 1 Cores A & B
+UT 0:1 verifying DSP code for
+    Chip 1 Cores A & B
+UT 0:0 loading DSP code for
+    Chip 1 Cores C & D
+UT 0:1 loading DSP code for
+    Chip 1 Cores C & D
+UT 0:1 verifying DSP code for
+    Chip 1 Cores C & D
+UT 0:0 verifying DSP code for
+    Chip 1 Cores C & D
+UT 0:0 loading DSP code for
+    Chip 2 Cores A & B
+UT 0:1 loading DSP code for
+    Chip 2 Cores A & B
+UT 0:1 verifying DSP code for
+    Chip 2 Cores A & B
+UT 0:0 verifying DSP code for
+    Chip 2 Cores A & B
+UT 0:0 loading DSP code for
+    Chip 2 Cores C & D
+UT 0:1 loading DSP code for
+    Chip 2 Cores C & D
+UT 0:0 verifying DSP code for
+    Chip 2 Cores C & D
+UT 0:1 verifying DSP code for
+    Chip 2 Cores C & D
+UT 0:0 Chip: 1 Core: 1 Status 1-8
+UT 0:1 Chip: 1 Core: 1 Status 1-8
+UT 0:0 Chip: 1 Core: 2 Status 1-8
+UT 0:1 Chip: 1 Core: 2 Status 1-8
+UT 0:1 Chip: 1 Core: 3 Status 1-8
+UT 0:0 Chip: 1 Core: 3 Status 1-8
+UT 0:1 Chip: 1 Core: 4 Status 1-8
+UT 0:0 Chip: 1 Core: 4 Status 1-8
+UT 0:1 Chip: 2 Core: 1 Status 1-8
+UT 0:0 Chip: 2 Core: 1 Status 1-8
+UT 0:1 Chip: 2 Core: 2 Status 1-8
+UT 0:0 Chip: 2 Core: 2 Status 1-8
+UT 0:1 Chip: 2 Core: 3 Status 1-8
+UT 0:0 Chip: 2 Core: 3 Status 1-8
+UT 0:1 ~ /169.254.207.21 is ready.
+UT 0:0 ~ /169.254.38.10 is ready.
+All UT boards connected...
+All UT boards initialized...
+All channels initialized...
+All UT boards ready.
+
+Chassis configuration complete.
+
