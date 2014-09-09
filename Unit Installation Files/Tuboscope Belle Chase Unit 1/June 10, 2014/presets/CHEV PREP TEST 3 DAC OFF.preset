@@ -1,0 +1,4199 @@
+
+
+[General]
+Restart Each New Piece at Left Edge of Chart=true
+Show Red Peak Line at Gate Center=false
+Show Red Peak Line at Peak Location=true
+Show Peak Symbol at Peak Location=true
+Scanning and Inspecting Speed=5
+Graph Print Layout=8-1/2 x 11 : Fit Width
+Graph Print Magnify=Magnify 1.0
+[Chart Group 1]
+Window X Position=0
+Window Y Position=0
+[Chart Group 1 Strip Chart 1]
+Title=Wall
+Short Title=Wall
+Chart is Visible=true
+Leading Mask Position=-1
+Trailing Mask Position=-1
+Leading Mask Position (inches)=24.0
+Trailing Mask Position (inches)=24.0
+[Chart Group 1 Strip Chart 1 Threshold 1]
+Threshold Level=14
+[Chart Group 1 Strip Chart 1 Threshold 2]
+Threshold Level=78
+[Chart Group 1 Strip Chart 1 Threshold 3]
+Threshold Level=50
+[Chart Group 1 Strip Chart 2]
+Title=Longitudinal
+Short Title=Long
+Chart is Visible=true
+Leading Mask Position=-1
+Trailing Mask Position=-1
+Leading Mask Position (inches)=24.0
+Trailing Mask Position (inches)=24.0
+[Chart Group 1 Strip Chart 2 Threshold 1]
+Threshold Level=21
+[Chart Group 1 Strip Chart 2 Threshold 2]
+Threshold Level=20
+[Chart Group 1 Strip Chart 3]
+Title=Transverse
+Short Title=Tran
+Chart is Visible=true
+Leading Mask Position=-1
+Trailing Mask Position=-1
+Leading Mask Position (inches)=24.0
+Trailing Mask Position (inches)=24.0
+[Chart Group 1 Strip Chart 3 Threshold 1]
+Threshold Level=21
+[Chart Group 1 Strip Chart 3 Threshold 2]
+Threshold Level=20
+[Chart Group 1 Strip Chart 4]
+Title=22 Oblique
+Short Title=22OB
+Chart is Visible=true
+Leading Mask Position=-1
+Trailing Mask Position=-1
+Leading Mask Position (inches)=24.0
+Trailing Mask Position (inches)=24.0
+[Chart Group 1 Strip Chart 4 Threshold 1]
+Threshold Level=21
+[Chart Group 1 Strip Chart 4 Threshold 2]
+Threshold Level=20
+[Chart Group 1 Strip Chart 5]
+Title=12 Oblique
+Short Title=12OB
+Chart is Visible=false
+Leading Mask Position=-1
+Trailing Mask Position=-1
+Leading Mask Position (inches)=24.0
+Trailing Mask Position (inches)=24.0
+[Chart Group 1 Strip Chart 5 Threshold 1]
+Threshold Level=51
+[Chart Group 1 Strip Chart 5 Threshold 2]
+Threshold Level=50
+[Chart Group 1 Strip Chart 6]
+Title=45 Oblique
+Short Title=45OB
+Chart is Visible=false
+Leading Mask Position=-1
+Trailing Mask Position=-1
+Leading Mask Position (inches)=24.0
+Trailing Mask Position (inches)=24.0
+[Chart Group 1 Strip Chart 6 Threshold 1]
+Threshold Level=51
+[Chart Group 1 Strip Chart 6 Threshold 2]
+Threshold Level=50
+[Hardware]
+Nominal Wall=0.707
+Nominal Wall Chart Position=50
+Wall Chart Scale=0.002
+Velocity (distance/uS)=0.233
+Velocity of Shear Wave (distance/uS)=0.133
+Number of Multiples for Wall=1
+English(0) / Metric(1)=0
+Units are in Time(0) or Distance(1)=1
+Marker pulses once for each threshold violation (0) or fires continuously during the violation (1)=0
+Pulse Rep Rate in Hertz=2000
+[Channel 1]
+Sample Delay=80.22556390977444
+Range=86.09022556390977
+Software Gain=37.8
+Hardware Gain Stage 1=3
+Hardware Gain Stage 2=1
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=1
+Previous Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 1 Gate 1]
+Gate Start=88.796992481203
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=88.796992481203
+Gate Width=16.917293233082706
+Gate Level=21
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 1 Gate 2]
+Gate Start=105.86466165413533
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=105.86466165413533
+Gate Width=16.917293233082706
+Gate Level=20
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 1 DAC Gate 1]
+Gate is Active=false
+Gate Start=87.32008592910847
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=18.939849624060148
+Gate Level=49
+[Channel 1 DAC Gate 2]
+Gate is Active=false
+Gate Start=106.25993555316863
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=20.415682062298604
+Gate Level=54
+[Channel 1 DAC Gate 3]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 1 DAC Gate 4]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 1 DAC Gate 5]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 1 DAC Gate 6]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 1 DAC Gate 7]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 1 DAC Gate 8]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 1 DAC Gate 9]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 1 DAC Gate 10]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 2]
+Sample Delay=80.22556390977444
+Range=86.09022556390977
+Software Gain=36.9
+Hardware Gain Stage 1=2
+Hardware Gain Stage 2=1
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=1
+Previous Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 2 Gate 1]
+Gate Start=88.796992481203
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=88.796992481203
+Gate Width=16.917293233082706
+Gate Level=21
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 2 Gate 2]
+Gate Start=105.86466165413533
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=105.86466165413533
+Gate Width=16.917293233082706
+Gate Level=20
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 2 DAC Gate 1]
+Gate is Active=false
+Gate Start=87.32008592910847
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=18.939849624060148
+Gate Level=49
+[Channel 2 DAC Gate 2]
+Gate is Active=false
+Gate Start=106.25993555316863
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=20.415682062298604
+Gate Level=54
+[Channel 2 DAC Gate 3]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 2 DAC Gate 4]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 2 DAC Gate 5]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 2 DAC Gate 6]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 2 DAC Gate 7]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 2 DAC Gate 8]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 2 DAC Gate 9]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 2 DAC Gate 10]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 3]
+Sample Delay=80.22556390977444
+Range=86.09022556390977
+Software Gain=37.4
+Hardware Gain Stage 1=2
+Hardware Gain Stage 2=2
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=1
+Previous Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 3 Gate 1]
+Gate Start=88.796992481203
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=88.796992481203
+Gate Width=16.917293233082706
+Gate Level=21
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 3 Gate 2]
+Gate Start=105.86466165413533
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=105.86466165413533
+Gate Width=16.917293233082706
+Gate Level=20
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 3 DAC Gate 1]
+Gate is Active=false
+Gate Start=87.32008592910847
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=18.939849624060148
+Gate Level=49
+[Channel 3 DAC Gate 2]
+Gate is Active=false
+Gate Start=106.25993555316863
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=20.415682062298604
+Gate Level=54
+[Channel 3 DAC Gate 3]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 3 DAC Gate 4]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 3 DAC Gate 5]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 3 DAC Gate 6]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 3 DAC Gate 7]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 3 DAC Gate 8]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 3 DAC Gate 9]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 3 DAC Gate 10]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 4]
+Sample Delay=80.22556390977444
+Range=86.09022556390977
+Software Gain=38.699999999999996
+Hardware Gain Stage 1=2
+Hardware Gain Stage 2=1
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=1
+Previous Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 4 Gate 1]
+Gate Start=88.796992481203
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=88.796992481203
+Gate Width=16.917293233082706
+Gate Level=21
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 4 Gate 2]
+Gate Start=105.86466165413533
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=105.86466165413533
+Gate Width=16.917293233082706
+Gate Level=20
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 4 DAC Gate 1]
+Gate is Active=false
+Gate Start=87.32008592910847
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=18.939849624060148
+Gate Level=49
+[Channel 4 DAC Gate 2]
+Gate is Active=false
+Gate Start=106.25993555316863
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=20.415682062298604
+Gate Level=54
+[Channel 4 DAC Gate 3]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 4 DAC Gate 4]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 4 DAC Gate 5]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 4 DAC Gate 6]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 4 DAC Gate 7]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 4 DAC Gate 8]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 4 DAC Gate 9]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 4 DAC Gate 10]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 5]
+Sample Delay=83.00751879699249
+Range=37.59398496240601
+Software Gain=39.7
+Hardware Gain Stage 1=3
+Hardware Gain Stage 2=2
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=4
+Previous Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 5 Gate 1]
+Gate Start=95.78947368421052
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=95.78947368421052
+Gate Width=2.488721804511278
+Gate Level=42
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 5 Gate 2]
+Gate Start=107.44360902255637
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=107.44360902255637
+Gate Width=2.932330827067669
+Gate Level=40
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 5 DAC Gate 1]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 5 DAC Gate 2]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 5 DAC Gate 3]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 5 DAC Gate 4]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 5 DAC Gate 5]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 5 DAC Gate 6]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 5 DAC Gate 7]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 5 DAC Gate 8]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 5 DAC Gate 9]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 5 DAC Gate 10]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 6]
+Sample Delay=83.00751879699249
+Range=37.59398496240601
+Software Gain=39.7
+Hardware Gain Stage 1=3
+Hardware Gain Stage 2=2
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=4
+Previous Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 6 Gate 1]
+Gate Start=95.78947368421052
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=95.78947368421052
+Gate Width=2.488721804511278
+Gate Level=42
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 6 Gate 2]
+Gate Start=107.44360902255637
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=107.44360902255637
+Gate Width=2.932330827067669
+Gate Level=40
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 6 DAC Gate 1]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 6 DAC Gate 2]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 6 DAC Gate 3]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 6 DAC Gate 4]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 6 DAC Gate 5]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 6 DAC Gate 6]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 6 DAC Gate 7]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 6 DAC Gate 8]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 6 DAC Gate 9]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 6 DAC Gate 10]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 7]
+Sample Delay=83.00751879699249
+Range=37.59398496240601
+Software Gain=39.7
+Hardware Gain Stage 1=3
+Hardware Gain Stage 2=2
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=4
+Previous Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 7 Gate 1]
+Gate Start=95.78947368421052
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=95.78947368421052
+Gate Width=2.488721804511278
+Gate Level=42
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 7 Gate 2]
+Gate Start=107.44360902255637
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=107.44360902255637
+Gate Width=2.932330827067669
+Gate Level=40
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 7 DAC Gate 1]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 7 DAC Gate 2]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 7 DAC Gate 3]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 7 DAC Gate 4]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 7 DAC Gate 5]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 7 DAC Gate 6]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 7 DAC Gate 7]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 7 DAC Gate 8]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 7 DAC Gate 9]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 7 DAC Gate 10]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 8]
+Sample Delay=83.00751879699249
+Range=37.59398496240601
+Software Gain=39.7
+Hardware Gain Stage 1=3
+Hardware Gain Stage 2=2
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=4
+Previous Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 8 Gate 1]
+Gate Start=95.78947368421052
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=95.78947368421052
+Gate Width=2.488721804511278
+Gate Level=42
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 8 Gate 2]
+Gate Start=107.44360902255637
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=107.44360902255637
+Gate Width=2.932330827067669
+Gate Level=40
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 8 DAC Gate 1]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 8 DAC Gate 2]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 8 DAC Gate 3]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 8 DAC Gate 4]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 8 DAC Gate 5]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 8 DAC Gate 6]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 8 DAC Gate 7]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 8 DAC Gate 8]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 8 DAC Gate 9]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 8 DAC Gate 10]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 9]
+Sample Delay=83.00751879699249
+Range=37.59398496240601
+Software Gain=39.7
+Hardware Gain Stage 1=3
+Hardware Gain Stage 2=2
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=4
+Previous Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 9 Gate 1]
+Gate Start=95.78947368421052
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=95.78947368421052
+Gate Width=2.488721804511278
+Gate Level=42
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 9 Gate 2]
+Gate Start=107.44360902255637
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=107.44360902255637
+Gate Width=2.932330827067669
+Gate Level=40
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 9 DAC Gate 1]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 9 DAC Gate 2]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 9 DAC Gate 3]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 9 DAC Gate 4]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 9 DAC Gate 5]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 9 DAC Gate 6]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 9 DAC Gate 7]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 9 DAC Gate 8]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 9 DAC Gate 9]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 9 DAC Gate 10]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 10]
+Sample Delay=83.00751879699249
+Range=37.59398496240601
+Software Gain=39.7
+Hardware Gain Stage 1=3
+Hardware Gain Stage 2=2
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=4
+Previous Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 10 Gate 1]
+Gate Start=95.78947368421052
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=95.78947368421052
+Gate Width=2.488721804511278
+Gate Level=42
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 10 Gate 2]
+Gate Start=107.44360902255637
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=107.44360902255637
+Gate Width=2.932330827067669
+Gate Level=40
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 10 DAC Gate 1]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 10 DAC Gate 2]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 10 DAC Gate 3]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 10 DAC Gate 4]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 10 DAC Gate 5]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 10 DAC Gate 6]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 10 DAC Gate 7]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 10 DAC Gate 8]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 10 DAC Gate 9]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 10 DAC Gate 10]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 11]
+Sample Delay=83.00751879699249
+Range=37.59398496240601
+Software Gain=39.7
+Hardware Gain Stage 1=3
+Hardware Gain Stage 2=2
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=4
+Previous Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 11 Gate 1]
+Gate Start=95.78947368421052
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=95.78947368421052
+Gate Width=2.488721804511278
+Gate Level=42
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 11 Gate 2]
+Gate Start=107.44360902255637
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=107.44360902255637
+Gate Width=2.932330827067669
+Gate Level=40
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 11 DAC Gate 1]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 11 DAC Gate 2]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 11 DAC Gate 3]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 11 DAC Gate 4]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 11 DAC Gate 5]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 11 DAC Gate 6]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 11 DAC Gate 7]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 11 DAC Gate 8]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 11 DAC Gate 9]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 11 DAC Gate 10]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 12]
+Sample Delay=83.00751879699249
+Range=37.59398496240601
+Software Gain=39.7
+Hardware Gain Stage 1=3
+Hardware Gain Stage 2=2
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=4
+Previous Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 12 Gate 1]
+Gate Start=95.78947368421052
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=95.78947368421052
+Gate Width=2.488721804511278
+Gate Level=42
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 12 Gate 2]
+Gate Start=107.44360902255637
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=107.44360902255637
+Gate Width=2.932330827067669
+Gate Level=40
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 12 DAC Gate 1]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 12 DAC Gate 2]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 12 DAC Gate 3]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 12 DAC Gate 4]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 12 DAC Gate 5]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 12 DAC Gate 6]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 12 DAC Gate 7]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 12 DAC Gate 8]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 12 DAC Gate 9]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 12 DAC Gate 10]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 13]
+Sample Delay=80.22556390977444
+Range=86.09022556390977
+Software Gain=37.4
+Hardware Gain Stage 1=3
+Hardware Gain Stage 2=1
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=1
+Previous Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 13 Gate 1]
+Gate Start=88.796992481203
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=88.796992481203
+Gate Width=16.917293233082706
+Gate Level=21
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 13 Gate 2]
+Gate Start=105.86466165413533
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=105.86466165413533
+Gate Width=16.917293233082706
+Gate Level=20
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 13 DAC Gate 1]
+Gate is Active=false
+Gate Start=87.32008592910847
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=18.939849624060148
+Gate Level=49
+[Channel 13 DAC Gate 2]
+Gate is Active=false
+Gate Start=106.25993555316863
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=20.415682062298604
+Gate Level=54
+[Channel 13 DAC Gate 3]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 13 DAC Gate 4]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 13 DAC Gate 5]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 13 DAC Gate 6]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 13 DAC Gate 7]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 13 DAC Gate 8]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 13 DAC Gate 9]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 13 DAC Gate 10]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 14]
+Sample Delay=80.22556390977444
+Range=86.09022556390977
+Software Gain=38.2
+Hardware Gain Stage 1=2
+Hardware Gain Stage 2=1
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=1
+Previous Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 14 Gate 1]
+Gate Start=88.796992481203
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=88.796992481203
+Gate Width=16.917293233082706
+Gate Level=21
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 14 Gate 2]
+Gate Start=105.86466165413533
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=105.86466165413533
+Gate Width=16.917293233082706
+Gate Level=20
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 14 DAC Gate 1]
+Gate is Active=false
+Gate Start=87.32008592910847
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=18.939849624060148
+Gate Level=49
+[Channel 14 DAC Gate 2]
+Gate is Active=false
+Gate Start=106.25993555316863
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=20.415682062298604
+Gate Level=54
+[Channel 14 DAC Gate 3]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 14 DAC Gate 4]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 14 DAC Gate 5]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 14 DAC Gate 6]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 14 DAC Gate 7]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 14 DAC Gate 8]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 14 DAC Gate 9]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 14 DAC Gate 10]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 15]
+Sample Delay=80.22556390977444
+Range=86.09022556390977
+Software Gain=38.0
+Hardware Gain Stage 1=3
+Hardware Gain Stage 2=1
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=1
+Previous Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 15 Gate 1]
+Gate Start=88.796992481203
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=88.796992481203
+Gate Width=16.917293233082706
+Gate Level=21
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 15 Gate 2]
+Gate Start=105.86466165413533
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=105.86466165413533
+Gate Width=16.917293233082706
+Gate Level=20
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 15 DAC Gate 1]
+Gate is Active=false
+Gate Start=87.32008592910847
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=18.939849624060148
+Gate Level=49
+[Channel 15 DAC Gate 2]
+Gate is Active=false
+Gate Start=106.25993555316863
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=20.415682062298604
+Gate Level=54
+[Channel 15 DAC Gate 3]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 15 DAC Gate 4]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 15 DAC Gate 5]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 15 DAC Gate 6]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 15 DAC Gate 7]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 15 DAC Gate 8]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 15 DAC Gate 9]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 15 DAC Gate 10]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 16]
+Sample Delay=80.22556390977444
+Range=86.09022556390977
+Software Gain=38.2
+Hardware Gain Stage 1=3
+Hardware Gain Stage 2=1
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=1
+Previous Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 16 Gate 1]
+Gate Start=88.796992481203
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=88.796992481203
+Gate Width=16.917293233082706
+Gate Level=21
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 16 Gate 2]
+Gate Start=105.86466165413533
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=105.86466165413533
+Gate Width=16.917293233082706
+Gate Level=20
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 16 DAC Gate 1]
+Gate is Active=false
+Gate Start=87.32008592910847
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=18.939849624060148
+Gate Level=49
+[Channel 16 DAC Gate 2]
+Gate is Active=false
+Gate Start=106.25993555316863
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=20.415682062298604
+Gate Level=54
+[Channel 16 DAC Gate 3]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 16 DAC Gate 4]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 16 DAC Gate 5]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 16 DAC Gate 6]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 16 DAC Gate 7]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 16 DAC Gate 8]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 16 DAC Gate 9]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 16 DAC Gate 10]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 17]
+Sample Delay=0.0
+Range=53.0
+Software Gain=0.0
+Hardware Gain Stage 1=2
+Hardware Gain Stage 2=1
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=0
+Previous Signal Mode=0
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 17 Gate 1]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 17 Gate 2]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 17 DAC Gate 1]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 17 DAC Gate 2]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 17 DAC Gate 3]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 17 DAC Gate 4]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 17 DAC Gate 5]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 17 DAC Gate 6]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 17 DAC Gate 7]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 17 DAC Gate 8]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 17 DAC Gate 9]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 17 DAC Gate 10]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 18]
+Sample Delay=0.0
+Range=53.0
+Software Gain=0.0
+Hardware Gain Stage 1=2
+Hardware Gain Stage 2=1
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=0
+Previous Signal Mode=0
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 18 Gate 1]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 18 Gate 2]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 18 DAC Gate 1]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 18 DAC Gate 2]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 18 DAC Gate 3]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 18 DAC Gate 4]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 18 DAC Gate 5]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 18 DAC Gate 6]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 18 DAC Gate 7]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 18 DAC Gate 8]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 18 DAC Gate 9]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 18 DAC Gate 10]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 19]
+Sample Delay=0.0
+Range=53.0
+Software Gain=0.0
+Hardware Gain Stage 1=2
+Hardware Gain Stage 2=1
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=0
+Previous Signal Mode=0
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 19 Gate 1]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 19 Gate 2]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 19 DAC Gate 1]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 19 DAC Gate 2]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 19 DAC Gate 3]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 19 DAC Gate 4]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 19 DAC Gate 5]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 19 DAC Gate 6]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 19 DAC Gate 7]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 19 DAC Gate 8]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 19 DAC Gate 9]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 19 DAC Gate 10]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 20]
+Sample Delay=0.0
+Range=53.0
+Software Gain=0.0
+Hardware Gain Stage 1=2
+Hardware Gain Stage 2=1
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=0
+Previous Signal Mode=0
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 20 Gate 1]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 20 Gate 2]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 20 DAC Gate 1]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 20 DAC Gate 2]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 20 DAC Gate 3]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 20 DAC Gate 4]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 20 DAC Gate 5]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 20 DAC Gate 6]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 20 DAC Gate 7]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 20 DAC Gate 8]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 20 DAC Gate 9]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 20 DAC Gate 10]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 21]
+Sample Delay=79.24812030075186
+Range=37.59398496240601
+Software Gain=38.0
+Hardware Gain Stage 1=3
+Hardware Gain Stage 2=3
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=4
+Previous Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 21 Gate 1]
+Gate Start=93.98496240601503
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=93.98496240601503
+Gate Width=2.9473684210526314
+Gate Level=42
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 21 Gate 2]
+Gate Start=104.55639097744361
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=104.55639097744361
+Gate Width=2.4135338345864663
+Gate Level=41
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 21 DAC Gate 1]
+Gate is Active=false
+Gate Start=72.02320085929108
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=35.061654135338344
+Gate Level=8
+[Channel 21 DAC Gate 2]
+Gate is Active=false
+Gate Start=107.08485499462941
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=9.499462943071965
+Gate Level=71
+[Channel 21 DAC Gate 3]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 21 DAC Gate 4]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 21 DAC Gate 5]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 21 DAC Gate 6]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 21 DAC Gate 7]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 21 DAC Gate 8]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 21 DAC Gate 9]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 21 DAC Gate 10]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 22]
+Sample Delay=79.24812030075186
+Range=37.59398496240601
+Software Gain=38.0
+Hardware Gain Stage 1=3
+Hardware Gain Stage 2=3
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=4
+Previous Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 22 Gate 1]
+Gate Start=93.98496240601503
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=93.98496240601503
+Gate Width=2.9473684210526314
+Gate Level=42
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 22 Gate 2]
+Gate Start=104.55639097744361
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=104.55639097744361
+Gate Width=2.4135338345864663
+Gate Level=41
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 22 DAC Gate 1]
+Gate is Active=false
+Gate Start=72.02320085929108
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=35.061654135338344
+Gate Level=8
+[Channel 22 DAC Gate 2]
+Gate is Active=false
+Gate Start=107.08485499462941
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=9.499462943071965
+Gate Level=71
+[Channel 22 DAC Gate 3]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 22 DAC Gate 4]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 22 DAC Gate 5]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 22 DAC Gate 6]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 22 DAC Gate 7]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 22 DAC Gate 8]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 22 DAC Gate 9]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 22 DAC Gate 10]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 23]
+Sample Delay=79.24812030075186
+Range=37.59398496240601
+Software Gain=38.0
+Hardware Gain Stage 1=3
+Hardware Gain Stage 2=3
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=4
+Previous Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 23 Gate 1]
+Gate Start=93.98496240601503
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=93.98496240601503
+Gate Width=2.9473684210526314
+Gate Level=42
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 23 Gate 2]
+Gate Start=104.55639097744361
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=104.55639097744361
+Gate Width=2.4135338345864663
+Gate Level=41
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 23 DAC Gate 1]
+Gate is Active=false
+Gate Start=72.02320085929108
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=35.061654135338344
+Gate Level=8
+[Channel 23 DAC Gate 2]
+Gate is Active=false
+Gate Start=107.08485499462941
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=9.499462943071965
+Gate Level=71
+[Channel 23 DAC Gate 3]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 23 DAC Gate 4]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 23 DAC Gate 5]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 23 DAC Gate 6]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 23 DAC Gate 7]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 23 DAC Gate 8]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 23 DAC Gate 9]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 23 DAC Gate 10]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 24]
+Sample Delay=79.24812030075186
+Range=37.59398496240601
+Software Gain=38.0
+Hardware Gain Stage 1=3
+Hardware Gain Stage 2=3
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=4
+Previous Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 24 Gate 1]
+Gate Start=93.98496240601503
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=93.98496240601503
+Gate Width=2.9473684210526314
+Gate Level=42
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 24 Gate 2]
+Gate Start=104.55639097744361
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=104.55639097744361
+Gate Width=2.4135338345864663
+Gate Level=41
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 24 DAC Gate 1]
+Gate is Active=false
+Gate Start=72.02320085929108
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=35.061654135338344
+Gate Level=8
+[Channel 24 DAC Gate 2]
+Gate is Active=false
+Gate Start=107.08485499462941
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=9.499462943071965
+Gate Level=71
+[Channel 24 DAC Gate 3]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 24 DAC Gate 4]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 24 DAC Gate 5]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 24 DAC Gate 6]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 24 DAC Gate 7]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 24 DAC Gate 8]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 24 DAC Gate 9]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 24 DAC Gate 10]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 25]
+Sample Delay=80.22556390977444
+Range=86.09022556390977
+Software Gain=37.699999999999996
+Hardware Gain Stage 1=2
+Hardware Gain Stage 2=1
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=1
+Previous Signal Mode=1
+Reject Level=30
+AScan Display Smoothing=1
+[Channel 25 Gate 1]
+Gate Start=88.3157894736842
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=88.3157894736842
+Gate Width=18.796992481203006
+Gate Level=21
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 25 Gate 2]
+Gate Start=106.61654135338345
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=106.61654135338345
+Gate Width=16.917293233082706
+Gate Level=20
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 25 DAC Gate 1]
+Gate is Active=false
+Gate Start=87.07411385606873
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=18.447905477980665
+Gate Level=50
+[Channel 25 DAC Gate 2]
+Gate is Active=false
+Gate Start=105.5220193340494
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=21.891514500537056
+Gate Level=64
+[Channel 25 DAC Gate 3]
+Gate is Active=false
+Gate Start=104.53813104189044
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.459720730397422
+Gate Level=53
+[Channel 25 DAC Gate 4]
+Gate is Active=false
+Gate Start=93.96133190118152
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=0.0
+Gate Level=91
+[Channel 25 DAC Gate 5]
+Gate is Active=false
+Gate Start=50.17830290010741
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 25 DAC Gate 6]
+Gate is Active=false
+Gate Start=50.17830290010741
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 25 DAC Gate 7]
+Gate is Active=false
+Gate Start=50.17830290010741
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 25 DAC Gate 8]
+Gate is Active=false
+Gate Start=50.17830290010741
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 25 DAC Gate 9]
+Gate is Active=false
+Gate Start=50.17830290010741
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 25 DAC Gate 10]
+Gate is Active=false
+Gate Start=50.17830290010741
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 26]
+Sample Delay=80.22556390977444
+Range=86.09022556390977
+Software Gain=35.699999999999996
+Hardware Gain Stage 1=2
+Hardware Gain Stage 2=2
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=1
+Previous Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 26 Gate 1]
+Gate Start=88.27067669172932
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=88.27067669172932
+Gate Width=18.796992481203006
+Gate Level=21
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 26 Gate 2]
+Gate Start=106.46616541353383
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=106.46616541353383
+Gate Width=18.796992481203006
+Gate Level=20
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 26 DAC Gate 1]
+Gate is Active=false
+Gate Start=86.58216970998926
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=20.16970998925886
+Gate Level=49
+[Channel 26 DAC Gate 2]
+Gate is Active=false
+Gate Start=106.75187969924811
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=23.121374865735767
+Gate Level=64
+[Channel 26 DAC Gate 3]
+Gate is Active=false
+Gate Start=118.55853920515574
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=0.0
+Gate Level=28
+[Channel 26 DAC Gate 4]
+Gate is Active=false
+Gate Start=90.02577873254565
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=27
+[Channel 26 DAC Gate 5]
+Gate is Active=false
+Gate Start=91.74758324382384
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=0.7379162191192266
+Gate Level=25
+[Channel 26 DAC Gate 6]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 26 DAC Gate 7]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 26 DAC Gate 8]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 26 DAC Gate 9]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 26 DAC Gate 10]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 27]
+Sample Delay=80.22556390977444
+Range=86.09022556390977
+Software Gain=37.1
+Hardware Gain Stage 1=2
+Hardware Gain Stage 2=1
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=1
+Previous Signal Mode=1
+Reject Level=30
+AScan Display Smoothing=1
+[Channel 27 Gate 1]
+Gate Start=88.3157894736842
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=88.3157894736842
+Gate Width=18.796992481203006
+Gate Level=21
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 27 Gate 2]
+Gate Start=106.61654135338345
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=106.61654135338345
+Gate Width=16.917293233082706
+Gate Level=20
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 27 DAC Gate 1]
+Gate is Active=false
+Gate Start=87.07411385606873
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=18.447905477980665
+Gate Level=50
+[Channel 27 DAC Gate 2]
+Gate is Active=false
+Gate Start=105.5220193340494
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=21.891514500537056
+Gate Level=64
+[Channel 27 DAC Gate 3]
+Gate is Active=false
+Gate Start=104.53813104189044
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.459720730397422
+Gate Level=53
+[Channel 27 DAC Gate 4]
+Gate is Active=false
+Gate Start=93.96133190118152
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=0.0
+Gate Level=91
+[Channel 27 DAC Gate 5]
+Gate is Active=false
+Gate Start=50.17830290010741
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 27 DAC Gate 6]
+Gate is Active=false
+Gate Start=50.17830290010741
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 27 DAC Gate 7]
+Gate is Active=false
+Gate Start=50.17830290010741
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 27 DAC Gate 8]
+Gate is Active=false
+Gate Start=50.17830290010741
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 27 DAC Gate 9]
+Gate is Active=false
+Gate Start=50.17830290010741
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 27 DAC Gate 10]
+Gate is Active=false
+Gate Start=50.17830290010741
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 28]
+Sample Delay=80.22556390977444
+Range=86.09022556390977
+Software Gain=37.300000000000004
+Hardware Gain Stage 1=2
+Hardware Gain Stage 2=2
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=1
+Previous Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 28 Gate 1]
+Gate Start=88.27067669172932
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=88.27067669172932
+Gate Width=18.796992481203006
+Gate Level=21
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 28 Gate 2]
+Gate Start=106.46616541353383
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=106.46616541353383
+Gate Width=18.796992481203006
+Gate Level=20
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 28 DAC Gate 1]
+Gate is Active=false
+Gate Start=86.58216970998926
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=20.16970998925886
+Gate Level=49
+[Channel 28 DAC Gate 2]
+Gate is Active=false
+Gate Start=106.75187969924811
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=23.121374865735767
+Gate Level=64
+[Channel 28 DAC Gate 3]
+Gate is Active=false
+Gate Start=118.55853920515574
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=0.0
+Gate Level=28
+[Channel 28 DAC Gate 4]
+Gate is Active=false
+Gate Start=90.02577873254565
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=27
+[Channel 28 DAC Gate 5]
+Gate is Active=false
+Gate Start=91.74758324382384
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=0.7379162191192266
+Gate Level=25
+[Channel 28 DAC Gate 6]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 28 DAC Gate 7]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 28 DAC Gate 8]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 28 DAC Gate 9]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 28 DAC Gate 10]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 29]
+Sample Delay=78.94736842105263
+Range=15.037593984962406
+Software Gain=42.0
+Hardware Gain Stage 1=2
+Hardware Gain Stage 2=1
+Interface Tracking=true
+DAC Enabled=false
+Signal Mode=0
+Previous Signal Mode=0
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 29 Gate 1]
+Gate Start=78.57142857142857
+Gate Start with Interface Tracking=78.57142857142857
+Gate Start without Interface Tracking=50.0
+Gate Width=3.308270676691729
+Gate Level=60
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=ignore bad interface
+[Channel 29 Gate 2]
+Gate Start=4.2105263157894735
+Gate Start with Interface Tracking=4.2105263157894735
+Gate Start without Interface Tracking=50.0
+Gate Width=2.030075187969925
+Gate Level=61
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=first crossing
+[Channel 29 Gate 3]
+Gate Start=8.57142857142857
+Gate Start with Interface Tracking=8.57142857142857
+Gate Start without Interface Tracking=50.0
+Gate Width=3.157894736842105
+Gate Level=60
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=first crossing
+[Channel 29 DAC Gate 1]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 29 DAC Gate 2]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 29 DAC Gate 3]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 29 DAC Gate 4]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 29 DAC Gate 5]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 29 DAC Gate 6]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 29 DAC Gate 7]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 29 DAC Gate 8]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 29 DAC Gate 9]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 29 DAC Gate 10]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 30]
+Sample Delay=78.94736842105263
+Range=15.037593984962406
+Software Gain=42.0
+Hardware Gain Stage 1=2
+Hardware Gain Stage 2=1
+Interface Tracking=true
+DAC Enabled=false
+Signal Mode=0
+Previous Signal Mode=0
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 30 Gate 1]
+Gate Start=78.57142857142857
+Gate Start with Interface Tracking=78.57142857142857
+Gate Start without Interface Tracking=50.0
+Gate Width=3.308270676691729
+Gate Level=60
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=ignore bad interface
+[Channel 30 Gate 2]
+Gate Start=4.2105263157894735
+Gate Start with Interface Tracking=4.2105263157894735
+Gate Start without Interface Tracking=50.0
+Gate Width=2.030075187969925
+Gate Level=61
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=first crossing
+[Channel 30 Gate 3]
+Gate Start=8.57142857142857
+Gate Start with Interface Tracking=8.57142857142857
+Gate Start without Interface Tracking=50.0
+Gate Width=3.157894736842105
+Gate Level=60
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=first crossing
+[Channel 30 DAC Gate 1]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 30 DAC Gate 2]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 30 DAC Gate 3]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 30 DAC Gate 4]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 30 DAC Gate 5]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 30 DAC Gate 6]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 30 DAC Gate 7]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 30 DAC Gate 8]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 30 DAC Gate 9]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 30 DAC Gate 10]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 31]
+Sample Delay=80.22556390977444
+Range=86.09022556390977
+Software Gain=37.699999999999996
+Hardware Gain Stage 1=2
+Hardware Gain Stage 2=1
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=1
+Previous Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 31 Gate 1]
+Gate Start=88.27067669172932
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=88.27067669172932
+Gate Width=18.796992481203006
+Gate Level=21
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 31 Gate 2]
+Gate Start=106.46616541353383
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=106.46616541353383
+Gate Width=18.796992481203006
+Gate Level=20
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 31 DAC Gate 1]
+Gate is Active=false
+Gate Start=86.58216970998926
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=20.16970998925886
+Gate Level=49
+[Channel 31 DAC Gate 2]
+Gate is Active=false
+Gate Start=106.75187969924811
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=23.121374865735767
+Gate Level=64
+[Channel 31 DAC Gate 3]
+Gate is Active=false
+Gate Start=118.55853920515574
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=0.0
+Gate Level=28
+[Channel 31 DAC Gate 4]
+Gate is Active=false
+Gate Start=90.02577873254565
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=27
+[Channel 31 DAC Gate 5]
+Gate is Active=false
+Gate Start=91.74758324382384
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=0.7379162191192266
+Gate Level=25
+[Channel 31 DAC Gate 6]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 31 DAC Gate 7]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 31 DAC Gate 8]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 31 DAC Gate 9]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 31 DAC Gate 10]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 32]
+Sample Delay=80.22556390977444
+Range=86.09022556390977
+Software Gain=37.800000000000004
+Hardware Gain Stage 1=2
+Hardware Gain Stage 2=1
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=1
+Previous Signal Mode=1
+Reject Level=30
+AScan Display Smoothing=1
+[Channel 32 Gate 1]
+Gate Start=88.3157894736842
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=88.3157894736842
+Gate Width=18.796992481203006
+Gate Level=21
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 32 Gate 2]
+Gate Start=106.61654135338345
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=106.61654135338345
+Gate Width=16.917293233082706
+Gate Level=20
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 32 DAC Gate 1]
+Gate is Active=false
+Gate Start=87.07411385606873
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=18.447905477980665
+Gate Level=50
+[Channel 32 DAC Gate 2]
+Gate is Active=false
+Gate Start=105.5220193340494
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=21.891514500537056
+Gate Level=64
+[Channel 32 DAC Gate 3]
+Gate is Active=false
+Gate Start=104.53813104189044
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.459720730397422
+Gate Level=53
+[Channel 32 DAC Gate 4]
+Gate is Active=false
+Gate Start=93.96133190118152
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=0.0
+Gate Level=91
+[Channel 32 DAC Gate 5]
+Gate is Active=false
+Gate Start=50.17830290010741
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 32 DAC Gate 6]
+Gate is Active=false
+Gate Start=50.17830290010741
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 32 DAC Gate 7]
+Gate is Active=false
+Gate Start=50.17830290010741
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 32 DAC Gate 8]
+Gate is Active=false
+Gate Start=50.17830290010741
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 32 DAC Gate 9]
+Gate is Active=false
+Gate Start=50.17830290010741
+Gate Start with Interface Tracking=50.0
+Gate Start 
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 32 DAC Gate 10]
+Gate is Active=false
+Gate Start=50.17830290010741
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 33]
+Sample Delay=80.22556390977444
+Range=86.09022556390977
+Software Gain=36.1
+Hardware Gain Stage 1=2
+Hardware Gain Stage 2=1
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=1
+Previous Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 33 Gate 1]
+Gate Start=88.27067669172932
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=88.27067669172932
+Gate Width=18.796992481203006
+Gate Level=21
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 33 Gate 2]
+Gate Start=106.46616541353383
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=106.46616541353383
+Gate Width=18.796992481203006
+Gate Level=20
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 33 DAC Gate 1]
+Gate is Active=false
+Gate Start=86.58216970998926
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=20.16970998925886
+Gate Level=49
+[Channel 33 DAC Gate 2]
+Gate is Active=false
+Gate Start=106.75187969924811
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=23.121374865735767
+Gate Level=64
+[Channel 33 DAC Gate 3]
+Gate is Active=false
+Gate Start=118.55853920515574
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=0.0
+Gate Level=28
+[Channel 33 DAC Gate 4]
+Gate is Active=false
+Gate Start=90.02577873254565
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=27
+[Channel 33 DAC Gate 5]
+Gate is Active=false
+Gate Start=91.74758324382384
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=0.7379162191192266
+Gate Level=25
+[Channel 33 DAC Gate 6]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 33 DAC Gate 7]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 33 DAC Gate 8]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 33 DAC Gate 9]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 33 DAC Gate 10]
+Gate is Active=false
+Gate Start=49.932330827067666
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 34]
+Sample Delay=80.22556390977444
+Range=86.09022556390977
+Software Gain=37.1
+Hardware Gain Stage 1=2
+Hardware Gain Stage 2=1
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=1
+Previous Signal Mode=1
+Reject Level=30
+AScan Display Smoothing=1
+[Channel 34 Gate 1]
+Gate Start=88.3157894736842
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=88.3157894736842
+Gate Width=18.796992481203006
+Gate Level=21
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 34 Gate 2]
+Gate Start=106.61654135338345
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=106.61654135338345
+Gate Width=16.917293233082706
+Gate Level=20
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 34 DAC Gate 1]
+Gate is Active=false
+Gate Start=87.07411385606873
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=18.447905477980665
+Gate Level=50
+[Channel 34 DAC Gate 2]
+Gate is Active=false
+Gate Start=105.5220193340494
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=21.891514500537056
+Gate Level=64
+[Channel 34 DAC Gate 3]
+Gate is Active=false
+Gate Start=104.53813104189044
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.459720730397422
+Gate Level=53
+[Channel 34 DAC Gate 4]
+Gate is Active=false
+Gate Start=93.96133190118152
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=0.0
+Gate Level=91
+[Channel 34 DAC Gate 5]
+Gate is Active=false
+Gate Start=50.17830290010741
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 34 DAC Gate 6]
+Gate is Active=false
+Gate Start=50.17830290010741
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 34 DAC Gate 7]
+Gate is Active=false
+Gate Start=50.17830290010741
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 34 DAC Gate 8]
+Gate is Active=false
+Gate Start=50.17830290010741
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 34 DAC Gate 9]
+Gate is Active=false
+Gate Start=50.17830290010741
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 34 DAC Gate 10]
+Gate is Active=false
+Gate Start=50.17830290010741
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=1.9677765843179376
+Gate Level=15
+[Channel 35]
+Sample Delay=79.24812030075186
+Range=37.59398496240601
+Software Gain=38.0
+Hardware Gain Stage 1=3
+Hardware Gain Stage 2=3
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=4
+Previous Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 35 Gate 1]
+Gate Start=93.98496240601503
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=93.98496240601503
+Gate Width=2.9473684210526314
+Gate Level=42
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 35 Gate 2]
+Gate Start=104.55639097744361
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=104.55639097744361
+Gate Width=2.4135338345864663
+Gate Level=41
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 35 DAC Gate 1]
+Gate is Active=false
+Gate Start=72.02320085929108
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=35.061654135338344
+Gate Level=8
+[Channel 35 DAC Gate 2]
+Gate is Active=false
+Gate Start=107.08485499462941
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=9.499462943071965
+Gate Level=71
+[Channel 35 DAC Gate 3]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 35 DAC Gate 4]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 35 DAC Gate 5]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 35 DAC Gate 6]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 35 DAC Gate 7]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 35 DAC Gate 8]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 35 DAC Gate 9]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 35 DAC Gate 10]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 36]
+Sample Delay=79.24812030075186
+Range=37.59398496240601
+Software Gain=38.0
+Hardware Gain Stage 1=3
+Hardware Gain Stage 2=3
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=4
+Previous Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 36 Gate 1]
+Gate Start=93.98496240601503
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=93.98496240601503
+Gate Width=2.9473684210526314
+Gate Level=42
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 36 Gate 2]
+Gate Start=104.55639097744361
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=104.55639097744361
+Gate Width=2.4135338345864663
+Gate Level=41
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 36 DAC Gate 1]
+Gate is Active=false
+Gate Start=72.02320085929108
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=35.061654135338344
+Gate Level=8
+[Channel 36 DAC Gate 2]
+Gate is Active=false
+Gate Start=107.08485499462941
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=9.499462943071965
+Gate Level=71
+[Channel 36 DAC Gate 3]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 36 DAC Gate 4]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 36 DAC Gate 5]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 36 DAC Gate 6]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 36 DAC Gate 7]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 36 DAC Gate 8]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 36 DAC Gate 9]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 36 DAC Gate 10]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 37]
+Sample Delay=79.24812030075186
+Range=37.59398496240601
+Software Gain=38.0
+Hardware Gain Stage 1=3
+Hardware Gain Stage 2=3
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=4
+Previous Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 37 Gate 1]
+Gate Start=93.98496240601503
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=93.98496240601503
+Gate Width=2.9473684210526314
+Gate Level=42
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 37 Gate 2]
+Gate Start=104.55639097744361
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=104.55639097744361
+Gate Width=2.4135338345864663
+Gate Level=41
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 37 DAC Gate 1]
+Gate is Active=false
+Gate Start=72.02320085929108
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=35.061654135338344
+Gate Level=8
+[Channel 37 DAC Gate 2]
+Gate is Active=false
+Gate Start=107.08485499462941
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=9.499462943071965
+Gate Level=71
+[Channel 37 DAC Gate 3]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 37 DAC Gate 4]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 37 DAC Gate 5]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 37 DAC Gate 6]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 37 DAC Gate 7]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 37 DAC Gate 8]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 37 DAC Gate 9]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 37 DAC Gate 10]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 38]
+Sample Delay=79.24812030075186
+Range=37.59398496240601
+Software Gain=38.0
+Hardware Gain Stage 1=3
+Hardware Gain Stage 2=3
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=4
+Previous Signal Mode=1
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 38 Gate 1]
+Gate Start=93.98496240601503
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=93.98496240601503
+Gate Width=2.9473684210526314
+Gate Level=42
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 38 Gate 2]
+Gate Start=104.55639097744361
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=104.55639097744361
+Gate Width=2.4135338345864663
+Gate Level=41
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 38 DAC Gate 1]
+Gate is Active=false
+Gate Start=72.02320085929108
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=35.061654135338344
+Gate Level=8
+[Channel 38 DAC Gate 2]
+Gate is Active=false
+Gate Start=107.08485499462941
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=9.499462943071965
+Gate Level=71
+[Channel 38 DAC Gate 3]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 38 DAC Gate 4]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 38 DAC Gate 5]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 38 DAC Gate 6]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 38 DAC Gate 7]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 38 DAC Gate 8]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 38 DAC Gate 9]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 38 DAC Gate 10]
+Gate is Active=false
+Gate Start=49.915359828141774
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.072610096670247
+Gate Level=15
+[Channel 39]
+Sample Delay=0.0
+Range=53.0
+Software Gain=0.0
+Hardware Gain Stage 1=2
+Hardware Gain Stage 2=1
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=0
+Previous Signal Mode=0
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 39 Gate 1]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 39 Gate 2]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 39 DAC Gate 1]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 39 DAC Gate 2]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 39 DAC Gate 3]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 39 DAC Gate 4]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 39 DAC Gate 5]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 39 DAC Gate 6]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 39 DAC Gate 7]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 39 DAC Gate 8]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 39 DAC Gate 9]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 39 DAC Gate 10]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 40]
+Sample Delay=0.0
+Range=53.0
+Software Gain=0.0
+Hardware Gain Stage 1=2
+Hardware Gain Stage 2=1
+Interface Tracking=false
+DAC Enabled=false
+Signal Mode=0
+Previous Signal Mode=0
+Reject Level=0
+AScan Display Smoothing=1
+[Channel 40 Gate 1]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 40 Gate 2]
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+Gate Hit Count=0
+Gate Miss Count=0
+Signal Processing Threshold=0
+Signal Processing Function=peak
+[Channel 40 DAC Gate 1]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 40 DAC Gate 2]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 40 DAC Gate 3]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 40 DAC Gate 4]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 40 DAC Gate 5]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 40 DAC Gate 6]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 40 DAC Gate 7]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 40 DAC Gate 8]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 40 DAC Gate 9]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
+[Channel 40 DAC Gate 10]
+Gate is Active=false
+Gate Start=50.0
+Gate Start with Interface Tracking=50.0
+Gate Start without Interface Tracking=50.0
+Gate Width=2.0
+Gate Level=15
