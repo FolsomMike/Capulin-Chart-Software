@@ -282,8 +282,8 @@ private String processTraceMetaData(BufferedReader pIn, String pLastLine)
     boolean success = false;
     Xfer matchSet = new Xfer(); //for receiving data from function calls
 
-    //if pLastLine contains the [Trace] tag, then skip ahead else read until
-    // end of file reached or "[Trace]" section tag reached
+    //if pLastLine contains the [Trace] tag, then start loading section
+    //immediately else read until "[Trace]" section tag reached
 
     if (Viewer.matchAndParseString(pLastLine, "[Trace]", "",  matchSet)) {
         success = true; //tag already found
@@ -345,7 +345,7 @@ private String processTraceMetaData(BufferedReader pIn, String pLastLine)
     }
 
     //if the index number in the file does not match the index number for this
-    //threshold, abort the file read
+    //plotter, abort the file read
 
     if (traceIndexRead != plotterIndex) {
         throw new IOException(
@@ -600,7 +600,9 @@ private int plotPoint(Graphics2D pG2, PlotVars pVars, TraceDatum pTraceDatum)
 
     //draw square markers if flag has been set for the current location
     if ((pTraceDatum.flags & PlotterData.MARKER_SQUARE) != 0) {
-        drawMarkerSquare(pG2, pVars.pixPtr, pVars.y2, Color.GREEN);
+        drawMarkerSquare(pG2, pVars.pixPtr, 
+            pVars.y2 <= (canvasYLimit-10) ? pVars.y2:canvasYLimit-10,
+            Color.GREEN);
     }
 
     return(lastPlotted);

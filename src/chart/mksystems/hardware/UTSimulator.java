@@ -543,7 +543,7 @@ public void prepareNextSimulationDataSetFromRandom()
 //-----------------------------------------------------------------------------
 // UTSimulator::prepareNextSimulationDataSetFromFiles
 //
-// Loads the next set of simulation data and opens files for reading other data
+// Loads the next set of simulation data and opens files for reading any data
 // which is not pre-loaded but done on the fly.
 //
 // Each time this method is called, currentDataSetIndex is incremented so that
@@ -1888,7 +1888,7 @@ public void configureMain(int pBoardNumber) throws IOException
 @Override
 public void configureSimulationDataSet()
 {
-
+    
     try {
         String fullPath =
                 createSimulationDataFilename("20 - ", " Simulation Info.ini");

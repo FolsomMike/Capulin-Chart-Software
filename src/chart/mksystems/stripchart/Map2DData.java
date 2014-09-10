@@ -29,8 +29,6 @@ package chart.mksystems.stripchart;
 
 //-----------------------------------------------------------------------------
 
-import chart.Viewer;
-import chart.Xfer;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -363,12 +361,18 @@ public int[][] getMapDataBuffer()
 // before the next segment start has been marked so that the end points
 // of the data to be saved are known.
 //
+// wip mks -- need to make this buffer circular with segment start/end marks
+// just like Trace class so multiple tubes can be handled.
+//
 
 public void saveSegment(BufferedWriter pOut) throws IOException
 {
 
-/*
-
+    //for now, all data stored in buffer is saved; need to change so multiple
+    //tubes can be stored in a circular buffer and saved as segments like in
+    //the Trace class
+    lastSegmentStartIndex = 0; lastSegmentEndIndex = insertionPoint;
+        
     //catch unexpected case where start/stop are invalid and bail
     if (lastSegmentStartIndex < 0 || lastSegmentEndIndex < 0){
         pOut.write("Segment start and/or start invalid - no data saved.");
@@ -379,37 +383,23 @@ public void saveSegment(BufferedWriter pOut) throws IOException
     //save all the data and flags in the segment
 
     int i = lastSegmentStartIndex;
-
+    
     pOut.write("[Data Set 1]"); pOut.newLine(); //save the first data set
 
+    //save all data in the buffer
+    
     while (i != lastSegmentEndIndex){
-        pOut.write(Integer.toString(dataBuffer1[i])); //save the data set 1
-        pOut.newLine();
+        
+        for (int j = 0; j < widthOfDataBuffer; j++){
+            pOut.write(Integer.toString(mapDataBuffer[i][j]));
+            pOut.newLine();   
+        }
+        
         //increment to next buffer slot, wrap around because buffer is circular
         if (++i == sizeOfDataBuffer) {i = 0;}
     }
 
     pOut.write("[End of Set]"); pOut.newLine();
-
-    //save the second data set if it exists
-    //the second data set is only used for certain styles of plotting
-    if (dataBuffer2 != null){
-
-        i = lastSegmentStartIndex;
-
-        pOut.write("[Data Set 2]"); pOut.newLine();
-
-        //save the second data set if it exists
-        while (i != lastSegmentEndIndex){
-            pOut.write(Integer.toString(dataBuffer2[i])); //save the data set 2
-            pOut.newLine();
-            //increment to next buffer slot, wrap around as buffer is circular
-            if (++i == sizeOfDataBuffer) {i = 0;}
-        }
-
-        pOut.write("[End of Set]"); pOut.newLine();
-
-    }//if (dataBuffer2 != null)
 
     i = lastSegmentStartIndex;
 
@@ -426,10 +416,6 @@ public void saveSegment(BufferedWriter pOut) throws IOException
 
     pOut.newLine(); //blank line
 
-*
-*/
-
-
 }//end of Map2DData::saveSegment
 //-----------------------------------------------------------------------------
 
@@ -437,7 +423,7 @@ public void saveSegment(BufferedWriter pOut) throws IOException
 // Map2DData::loadSegment
 //
 // Loads the data points and flags for a segment from pIn.  It is expected that
-// the Trace tag and meta data has already been read.
+// the Map2D tag and meta data has already been read.
 //
 // Returns the last line read from the file so that it can be passed to the
 // next process.
@@ -447,121 +433,17 @@ public String loadSegment(BufferedReader pIn, String pLastLine)
                                                             throws IOException
 {
 
- /*
-
     //read in "Data Set 1"
     String line =
-            processDataSeries(pIn, pLastLine, "[Data Set 1]", dataBuffer1);
+        loadData2DArraySeries(pIn, pLastLine, "[Data Set 1]", mapDataBuffer, 0);
 
-    //if "Data Set 2" is in use, read it in
-    if (dataBuffer2 != null) {
-        line = processDataSeries(pIn, line, "[Data Set 2]", dataBuffer2);
-    }
-
-    //read in "Flags"
-    line = processDataSeries(pIn, line, "[Flags]", flagBuffer);
-
+    //read in "Flags", forcing the DATA_VALID flag true for each data point
+    line = loadDataSeries(pIn, line, "[Flags]", flagBuffer,
+                                                    PlotterData.DATA_VALID);
 
     return(line);
-
-   *
-*/
-
-
-    return("debug mks -- remove this");
-
+    
 }//end of Map2DData::loadSegment
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Map2DData::processDataSeries
-//
-// Processes a data series from pIn.  The series could be "Data Set 1",
-// "Data Set 2", or "Flags" depending on the parameters passed in.
-//
-// The pStartTag string specifies the section start tag for the type of data
-// expected and could be: "[Data Set 1]", "[Data Set 2]", or "[Flags]".  The
-// pBuffer pointer should be set to the buffer associated with the data type.
-//
-// Returns the last line read from the file so that it can be passed to the
-// next process.
-//
-// For these sections, the [xxx] section start tag may or may not have already
-// been read from the file by the code handling the previous section.  If it has
-// been read, the line containing the tag should be passed in via pLastLine.
-//
-
-private String processDataSeries(BufferedReader pIn, String pLastLine,
-                            String pStartTag, int[] pBuffer) throws IOException
-{
-
-    String line;
-    boolean success = false;
-    Xfer matchSet = new Xfer(); //for receiving data from function calls
-
-    //if pLastLine contains the [xxx] tag, then skip ahead else read until
-    // end of file reached or "[xxx]" section tag reached
-
-    if (Viewer.matchAndParseString(pLastLine, pStartTag, "",  matchSet)) {
-        success = true;  //tag already found
-    }
-    else {
-        while ((line = pIn.readLine()) != null){  //search for tag
-            if (Viewer.matchAndParseString(line, pStartTag, "",  matchSet)){
-                success = true; break;
-            }
-        }//while
-    }//else
-
-    if (!success) {
-        throw new IOException(
-           "The file could not be read - section not found for " + pStartTag);
-    }
-
-    //scan the first part of the section and parse its entries
-    //these entries apply to the chart group itself
-
-    int i = 0;
-    success = false;
-    while ((line = pIn.readLine()) != null){
-
-        //stop when next section end tag reached (will start with [)
-        if (Viewer.matchAndParseString(line, "[", "",  matchSet)){
-            success = true; break;
-        }
-
-        try{
-
-            //convert the text to an integer and save in the buffer
-            int data = Integer.parseInt(line);
-            pBuffer[i++] = data;
-
-            //catch buffer overflow
-            if (i == pBuffer.length) {
-                throw new IOException(
-                 "The file could not be read - too much data for " + pStartTag
-                                                       + " at data point " + i);
-            }
-
-        }
-        catch(NumberFormatException e){
-            //catch error translating the text to an integer
-            throw new IOException(
-             "The file could not be read - corrupt data for " + pStartTag
-                                                       + " at data point " + i);
-        }
-
-    }//while ((line = pIn.readLine()) != null)
-
-    if (!success) {
-        throw new IOException(
-         "The file could not be read - missing end of section for "
-                                                                + pStartTag);
-    }
-
-    return(line); //should be "[xxxx]" tag on success, unknown value if not
-
-}//end of Map2DData::processDataSeries
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

@@ -20,11 +20,16 @@ package chart.mksystems.stripchart;
 
 //-----------------------------------------------------------------------------
 
+import chart.Viewer;
+import chart.Xfer;
 import chart.mksystems.hardware.Hardware;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.settings.Settings;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
 
 //-----------------------------------------------------------------------------
 // class Map2D
@@ -42,6 +47,8 @@ public class Map2D extends Plotter{
     int verticalOffset, verticalSize;
     int minY, maxY;
 
+    int widthOfDataInFile, lengthOfDataInFile;
+    
 //-----------------------------------------------------------------------------
 // Map2D::Map2D (constructor)
 //
@@ -412,6 +419,202 @@ public void paintComponent(Graphics2D pG2)
 
 }//end of Map2D::paintComponent
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map2D::saveSegment
+//
+// Saves the data for a segment to the open file pOut.
+//
+// This function should be called whenever a new segment is completed - each
+// segment could represent a piece being monitored, a time period, etc.
+//
+// This function should be called after the segment end has been marked and
+// before the next segment start has been marked so that the end points
+// of the data to be saved are known.
+//
+
+@Override
+public void saveSegment(BufferedWriter pOut) throws IOException
+{
+
+    pOut.write("[2D Map]"); pOut.newLine();
+    pOut.write("2D Map Index=" + plotterIndex); pOut.newLine();
+    pOut.write("2D Map Title=" + title); pOut.newLine();
+    pOut.write("2D Map Short Title=" + shortTitle); pOut.newLine();
+    //change from insertionPoint to lastSegmentEndIndex after Map2D is updated
+    //to handle multiple segments in a circular buffer
+    pOut.write("2D Map Data Buffer Length=" + map2DData.insertionPoint);
+    pOut.newLine();
+    pOut.write("2D Map Data Buffer Width=" + map2DData.widthOfDataBuffer);
+    pOut.newLine();
+
+    pOut.newLine();
+
+    map2DData.saveSegment(pOut);
+
+}//end of Map2D::saveSegment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map2D::loadSegment
+//
+// Loads the meta data, data points, and flags for a segment from pIn.  It is
+// expected that the Map2D section is next in the file.
+//
+// Returns the last line read from the file so that it can be passed to the
+// next process.
+//
+// For the Map2D section, the [2D Map] tag may or may not have already
+// been read from the file by the code handling the previous section.  If it has
+// been read, the line containing the tag should be passed in via pLastLine.
+//
+
+@Override
+public String loadSegment(BufferedReader pIn, String pLastLine)
+                                                            throws IOException
+{
+
+    //handle entries for the trace itself
+    String line = processMap2DMetaData(pIn, pLastLine);
+
+    try{
+        //read in trace data points
+        line = map2DData.loadSegment(pIn, line);
+    }
+    catch(IOException e){
+
+        //add identifying details to the error message and pass it on
+        throw new IOException(e.getMessage() + " of Chart Group "
+              + chartGroup + " Chart " + chartIndex + " Map2D " + plotterIndex);
+    }
+
+    return(line);
+
+}//end of Map2D::loadSegment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Map2D::processMap2DMetaData
+//
+// Processes file entries for the map such as the title via pIn.
+//
+// Returns the last line read from the file so that it can be passed to the
+// next process.
+//
+// For the Map2D section, the [2D Map] tag may or may not have already
+// been read from the file by the code handling the previous section.  If it has
+// been read, the line containing the tag should be passed in via pLastLine.
+//
+
+private String processMap2DMetaData(BufferedReader pIn, String pLastLine)
+                                                             throws IOException
+
+{
+
+    String line;
+    boolean success = false;
+    Xfer matchSet = new Xfer(); //for receiving data from function calls
+
+    lengthOfDataInFile = map2DData.sizeOfDataBuffer;
+    widthOfDataInFile = map2DData.widthOfDataBuffer;        
+    
+    //if pLastLine contains the [2D Map] tag, then start loading section
+    //immediately else read until "[2D Map]" section tag reached
+
+    if (Viewer.matchAndParseString(pLastLine, "[2D Map]", "",  matchSet)) {
+        success = true; //tag already found
+    }
+    else {
+        while ((line = pIn.readLine()) != null){  //search for tag
+            if (Viewer.matchAndParseString(line, "[2D Map]", "",  matchSet)){
+                success = true; break;
+            }
+        }//while
+    }//else
+
+    if (!success) {
+        throw new IOException(
+            "The file could not be read - section not found for Chart Group "
+            + chartGroup + " Chart " + chartIndex + " Map2D " + plotterIndex);
+    }
+
+    //set defaults
+    int map2DIndexRead = -1;
+    String titleRead = "", shortTitleRead = "";
+
+    //scan the first part of the section and parse its entries
+    //these entries apply to the chart group itself
+
+    success = false;
+    while ((line = pIn.readLine()) != null){
+
+        //stop when next section tag reached (will start with [)
+        if (Viewer.matchAndParseString(line, "[", "",  matchSet)){
+            success = true; break;
+        }
+
+        //read the "Trace Index" entry - if not found, default to -1
+        if (Viewer.matchAndParseInt(line, "2D Map Index", -1, matchSet)) {
+            map2DIndexRead = matchSet.rInt1;
+        }
+
+        //read the "... Title" entry - if not found, default to ""
+        if (Viewer.matchAndParseString(line, "2D Map Title", "", matchSet)) {
+            titleRead = matchSet.rString1;
+        }
+
+        //read the "... Short Title" entry - if not found, default to ""
+        if (Viewer.matchAndParseString(
+                                    line, "2D Map Short Title", "", matchSet)) {
+            shortTitleRead = matchSet.rString1;
+        }
+        
+        if (Viewer.matchAndParseInt(
+              line, "2D Map Data Buffer Length", 
+                                       map2DData.sizeOfDataBuffer, matchSet)) {
+            lengthOfDataInFile = matchSet.rInt1;
+        }        
+
+        if (Viewer.matchAndParseInt(
+              line, "2D Map Data Buffer Width",
+                                       map2DData.widthOfDataBuffer, matchSet)) {
+            widthOfDataInFile = matchSet.rInt1;
+        }        
+                
+    }// while ((line = pIn.readLine()) != null)
+
+    //validate and apply settings
+    
+    title = titleRead; shortTitle = shortTitleRead;
+    
+    if (lengthOfDataInFile > map2DData.sizeOfDataBuffer){
+        lengthOfDataInFile = map2DData.sizeOfDataBuffer;
+    }
+
+    if (widthOfDataInFile > map2DData.widthOfDataBuffer){
+        widthOfDataInFile = map2DData.widthOfDataBuffer;
+    }
+        
+    if (!success) {
+        throw new IOException(
+        "The file could not be read - missing end of section for Chart Group "
+              + chartGroup + " Chart " + chartIndex + " Map2D " + plotterIndex);
+    }
+
+    //if the index number in the file does not match the index number for this
+    //plotter, abort the file read
+
+    if (map2DIndexRead != plotterIndex) {
+        throw new IOException(
+            "The file could not be read - section not found for Chart Group "
+              + chartGroup + " Chart " + chartIndex + " Map2D " + plotterIndex);
+    }
+
+    return(line); //should be "[xxxx]" tag on success, unknown value if not
+
+}//end of Map2D::processMap2DMetaData
+//-----------------------------------------------------------------------------
+
 
 }//end of class Map2D
 //-----------------------------------------------------------------------------

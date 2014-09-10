@@ -48,7 +48,7 @@ import chart.mksystems.inifile.IniFile;
 import chart.mksystems.settings.Settings;
 import chart.mksystems.tools.CharBuf;
 import chart.mksystems.tools.DWORD;
-import chart.mksystems.tools.LittleEndianTool;
+import chart.mksystems.tools.EndianTools;
 import chart.mksystems.tools.WORD;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -475,8 +475,8 @@ public void saveToFile(String pFilename)
 
         //the above options save the encoders as well as the buffers, use this
         //line instead to just save the encoders
-        encoderValues.writeEncoderValuesToFile(pFilename, 
-                                settings.inspectionDirectionDescription); //debug mks -- comment this out
+        //encoderValues.writeEncoderValuesToFile(pFilename, 
+        //                        settings.inspectionDirectionDescription);
 
         //testing mks end
 
@@ -819,8 +819,8 @@ private void saveHeader()throws IOException
     comment.write(outFile);
     version.write(outFile);
     verNum.write(outFile);
-    LittleEndianTool.writeFloat(nominalWall, outFile);
-    LittleEndianTool.writeFloat(OD, outFile);
+    EndianTools.writeFloatLE(nominalWall, outFile);
+    EndianTools.writeFloatLE(OD, outFile);
     location.write(outFile);
     wellName.write(outFile);
     date.write(outFile);
@@ -829,9 +829,9 @@ private void saveHeader()throws IOException
     outFile.writeByte(wallStatFlag);
     rbNum.write(outFile);
     spare.write(outFile);
-    LittleEndianTool.writeFloat(fMotionPulseLen, outFile);
+    EndianTools.writeFloatLE(fMotionPulseLen, outFile);
     for(int i = 0; i < fChnlOffset.length; i++){
-        LittleEndianTool.writeFloat(fChnlOffset[i], outFile);
+        EndianTools.writeFloatLE(fChnlOffset[i], outFile);
     }
     
     //calculate nHomeXOffset, nAwayXOffset, nStopXloc
@@ -846,8 +846,8 @@ private void saveHeader()throws IOException
     nMotionBus.value |= parseInspectionDirectionFlagFromJobInfoString();
     
     nJointNum.write(outFile);
-    LittleEndianTool.writeFloat(fWall, outFile);
-    LittleEndianTool.writeFloat(fOD, outFile);
+    EndianTools.writeFloatLE(fWall, outFile);
+    EndianTools.writeFloatLE(fOD, outFile);
     nNumRev.value = leastNumberOfRevs;
     nNumRev.write(outFile);
     nMotionBus.write(outFile);
@@ -1028,7 +1028,7 @@ private void saveRevolution(int pRevolutionNumber) throws IOException
 
     //not used
     for (int i = 0; i < fCrossArea.length; i++){
-        LittleEndianTool.writeFloat(fCrossArea[i], outFile);
+        EndianTools.writeFloatLE(fCrossArea[i], outFile);
     }
 
     writeWallReadingsForRevolution(pRevolutionNumber);
@@ -1705,8 +1705,8 @@ private void readHeader()throws IOException
     comment.read(inFile);
     version.read(inFile);
     verNum.read(inFile);
-    nominalWall = LittleEndianTool.readFloat(inFile);
-    OD = LittleEndianTool.readFloat(inFile);
+    nominalWall = EndianTools.readFloatLE(inFile);
+    OD = EndianTools.readFloatLE(inFile);
     location.read(inFile);
     wellName.read(inFile);
     date.read(inFile);
@@ -1715,17 +1715,17 @@ private void readHeader()throws IOException
     wallStatFlag = inFile.readByte();
     rbNum.read(inFile);
     spare.read(inFile);
-    fMotionPulseLen = LittleEndianTool.readFloat(inFile);
+    fMotionPulseLen = EndianTools.readFloatLE(inFile);
     for(int i = 0; i < fChnlOffset.length; i++){
-        fChnlOffset[i] = LittleEndianTool.readFloat(inFile);
+        fChnlOffset[i] = EndianTools.readFloatLE(inFile);
     }
     nHomeXOffset = Short.reverseBytes(inFile.readShort());
     nAwayXOffset = Short.reverseBytes(inFile.readShort());
     nStopXloc = Integer.reverseBytes(inFile.readInt());
 
     nJointNum.read(inFile);
-    fWall = LittleEndianTool.readFloat(inFile);
-    fOD = LittleEndianTool.readFloat(inFile);
+    fWall = EndianTools.readFloatLE(inFile);
+    fOD = EndianTools.readFloatLE(inFile);
     nNumRev.read(inFile);
     nMotionBus.read(inFile);
 
@@ -1777,7 +1777,7 @@ private void readRevolution(int pRevolutionNumber,
     nMotionBusNotUsed.read(inFile);
     //not used
     for (int i = 0; i < fCrossArea.length; i++){
-        fCrossArea[i] = LittleEndianTool.readFloat(inFile);
+        fCrossArea[i] = EndianTools.readFloatLE(inFile);
     }
 
     readWallReadingsForRevolution();

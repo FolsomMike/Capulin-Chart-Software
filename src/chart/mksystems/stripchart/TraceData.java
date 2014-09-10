@@ -29,8 +29,6 @@ package chart.mksystems.stripchart;
 
 //-----------------------------------------------------------------------------
 
-import chart.Viewer;
-import chart.Xfer;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -509,102 +507,6 @@ public String loadSegment(BufferedReader pIn, String pLastLine)
     return(line);
 
 }//end of TraceData::loadSegment
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// TraceData::loadDataSeries
-//
-// Loads a data series from pIn.  The series could be "Data Set 1",
-// "Data Set 2", or "Flags" depending on the parameters passed in.
-//
-// The pStartTag string specifies the section start tag for the type of data
-// expected and could be: "[Data Set 1]", "[Data Set 2]", or "[Flags]".  The
-// pBuffer pointer should be set to the buffer associated with the data type.
-//
-// Returns the last line read from the file so that it can be passed to the
-// next process.
-//
-// For these sections, the [xxx] section start tag may or may not have already
-// been read from the file by the code handling the previous section.  If it has
-// been read, the line containing the tag should be passed in via pLastLine.
-//
-// Value pDataModifier1 will be ORed with each data point as it is stored in
-// the buffer. This allows any bit(s) to be forced to 1 if they are used as
-// flag bits. If no bits are to be forced, pDataModifier1 should be 0.
-//
-
-private String loadDataSeries(BufferedReader pIn, String pLastLine,
-                            String pStartTag, int[] pBuffer,
-                            int pDataModifier1) throws IOException
-{
-
-    String line;
-    boolean success = false;
-    Xfer matchSet = new Xfer(); //for receiving data from function calls
-
-    //if pLastLine contains the [xxx] tag, then skip ahead else read until
-    // end of file reached or "[xxx]" section tag reached
-
-    if (Viewer.matchAndParseString(pLastLine, pStartTag, "",  matchSet)) {
-        success = true;  //tag already found
-    }
-    else {
-        while ((line = pIn.readLine()) != null){  //search for tag
-            if (Viewer.matchAndParseString(line, pStartTag, "",  matchSet)){
-                success = true; break;
-            }
-        }//while
-    }//else
-
-    if (!success) {
-        throw new IOException(
-           "The file could not be read - section not found for " + pStartTag);
-    }
-
-    //scan the first part of the section and parse its entries
-    //these entries apply to the chart group itself
-
-    int i = 0;
-    success = false;
-    while ((line = pIn.readLine()) != null){
-
-        //stop when next section end tag reached (will start with [)
-        if (Viewer.matchAndParseString(line, "[", "",  matchSet)){
-            success = true; break;
-        }
-
-        try{
-
-            //convert the text to an integer and save in the buffer
-            int data = Integer.parseInt(line);
-            pBuffer[i++] = data | pDataModifier1;
-
-            //catch buffer overflow
-            if (i == pBuffer.length) {
-                throw new IOException(
-                 "The file could not be read - too much data for " + pStartTag
-                                                       + " at data point " + i);
-            }
-
-        }
-        catch(NumberFormatException e){
-            //catch error translating the text to an integer
-            throw new IOException(
-             "The file could not be read - corrupt data for " + pStartTag
-                                                       + " at data point " + i);
-        }
-
-    }//while ((line = pIn.readLine()) != null)
-
-    if (!success) {
-        throw new IOException(
-         "The file could not be read - missing end of section for "
-                                                                + pStartTag);
-    }
-
-    return(line); //should be "[xxxx]" tag on success, unknown value if not
-
-}//end of TraceData::loadDataSeries
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

@@ -557,6 +557,8 @@ public synchronized void connectUTBoards(NetworkInterface pNetworkInterface)
                                                     throws InterruptedException
 {
 
+    String index;
+    
     logger.logMessage("Broadcasting greeting to all UT boards...\n");
 
     MulticastSocket socket;
@@ -641,6 +643,16 @@ public synchronized void connectUTBoards(NetworkInterface pNetworkInterface)
 
                 socket.receive(inPacket);
 
+                //debug mks
+                //this section used to simulate what happens when a board does
+                //not respond -- cannot close the program when that happens...
+                //need to finish fixing this problem so this code has been
+                //left here but commented out.
+                //if (responseCount == 9){ 
+                //    break;
+                //}
+                //debug mks
+                
                 //store each new ip address in a UT board object
                 for (int i = 0; i < numberOfUTBoards; i++){
 
@@ -675,22 +687,33 @@ public synchronized void connectUTBoards(NetworkInterface pNetworkInterface)
                             fpgaLoadedCount++;
                         }
 
+                        index = (i < 10) ? " "+i+" " : ""+i+" ";
+                        
                         //display the greeting string from the remote
                         logger.logMessage(
-                                utBoards[i].ipAddrS + "  " + response + "\n");
+                          index + utBoards[i].ipAddrS + "  " + response + "\n");
 
                         //stop scanning the boards now that ip saved
                         break;
                     }
                 }//for (int i = 0; i < numberOfUTBoards; i++)
 
-            }//while(true)
+            }//while(true)                        
         }//try
         catch(IOException e){
             //this reached if receive times out -- take no action
         }
     }// while(loopCount...
+        
+    //display number of boards which responded
+    logger.logMessage("\n " + responseCount + " of " + 
+                       numberOfUTBoards + " UT Boards responded.\n\n");
 
+    if (responseCount < (numberOfUTBoards)){
+        logger.logMessage("*** ERROR *** " + (numberOfUTBoards - responseCount)
+                                        + " UT Board(s) did not respond.\n\n");
+    }
+    
     //if not all boards reported that their FPGAs were already loaded, load them
     //all now
 
@@ -838,7 +861,7 @@ public NetworkInterface findNetworkInterface()
 
                 if(ipAddr.startsWith("/169.254")){
                     iFace = intf;
-                    logger.logMessage("==>> Binding to this adapter...\n");
+                    logger.logMessage("==>> Binding to above adapter...\n");
                 }
             }
         }
@@ -847,6 +870,8 @@ public NetworkInterface findNetworkInterface()
         logger.logMessage(" (error retrieving network interface list)" + "\n");
     }
 
+    logger.logMessage("\n");
+    
     return(iFace);
 
 }//end of Capulin1::findNetworkInterface

@@ -3864,10 +3864,10 @@ void configure(IniFile pConfigFile)
 
     simulationDataSourceFilePath = SwissArmyKnife.formatPath(
        pConfigFile.readString("Hardware", 
-           "Simulation Data Source File Path", 
-            "Simulation Data Source Files" + File.separator + 
-                           "Basic 10 Board Peak Detector Random Simulation"));
-        
+         "Simulation Data Source File Path", 
+         "Simulation Data Source Files" + File.separator + 
+         "Random Simulation for Basic 1-10 Board System Without Wall Mapping"));
+    
     fpgaCodeFilename = pConfigFile.readString(
                         "Hardware", "UT FPGA Code Filename", "not specified");
 
@@ -5569,6 +5569,57 @@ public void installNewRabbitFirmware()
                                "UT", "Rabbit\\CAPULIN UT BOARD.bin", settings);
 
 }//end of UTBoard::installNewRabbitFirmware
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::signed2BytesToInt
+//
+// Converts the two bytes of a signed short int to an integer.
+//
+// Use this if the original value was signed.
+//
+
+private int signed2BytesToInt(byte pByte1, byte pByte0)
+{
+
+    return (short)((pByte1<<8) & 0xff00) + (pByte0 & 0xff);
+    
+}//end of UTBoard::signed2BytesToInt
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::unSigned2BytesToInt
+//
+// Converts the two bytes of an unsigned short to an integer.
+//
+// Use this if the original value was unsigned.
+//
+
+private int unSigned2BytesToInt(byte pByte1, byte pByte0)
+{
+
+    return (int)((pByte1<<8) & 0xff00) + (pByte0 & 0xff);
+    
+}//end of UTBoard::unSigned2BytesToInt
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::signed4BytesToInt
+//
+// Converts the four bytes of a signed integer to an integer.
+//
+// Use this if the original value was signed.
+//
+
+private int signed4BytesToInt(
+                        byte pByte3, byte pByte2, byte pByte1, byte pByte0)
+{
+            
+    return
+         ((pByte3<<24) & 0xff000000) +  ((pByte2<<16) & 0xff0000)
+          + ((pByte1<<8) & 0xff00) + (pByte0 & 0xff);
+
+}//end of UTBoard::signed4BytesToInt
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

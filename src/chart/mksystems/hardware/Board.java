@@ -519,6 +519,8 @@ public int processDataPackets(boolean pWaitForPkt, int pTimeOut)
     // will ever be coming because this same thread which is now blocked is
     // sometimes the one requesting data
 
+    //wip mks -- is the above true? explain better or change the functionality
+    
     if (pWaitForPkt) {
         return processOneDataPacket(pWaitForPkt, pTimeOut);
     }

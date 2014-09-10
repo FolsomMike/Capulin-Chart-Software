@@ -623,7 +623,7 @@ public int getNextMaxWallValueRandom()
 {
  
     short wall;
-    wall = (short)(convertInchesToSampleCounts(nominalWall * 1.20)
+    wall = (short)(convertInchesToSampleCounts(nominalWall * 1.05)
                                                         + (Math.random()*10));
     return(wall);
     

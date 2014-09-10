@@ -8,8 +8,16 @@
 * This class simulates a UDP connection between the host and the remote
 * devices (Control Boards, UT Boards, etc.)
 *
-* This is a subclass of DatagramPacket and can be substituted for an instance
+* This is a subclass of MulticastSocket and can be substituted for an instance
 * of that class when simulated data is needed.
+* 
+* This class uses a crude method to simulate the socket...it overrides the
+* MulticastSocket.receive method and simply returns a data packet when the
+* main program calls that method to receive data.
+* 
+* The Ethernet socket simulator used by the Simulator class is a more robust
+* simulation and actually reads and writes data to the underlying sockets
+* to communicate with the main program.
 *
 * Open Source Policy:
 *
@@ -38,8 +46,6 @@ import java.util.logging.Logger;
 
 public class UDPSimulator extends MulticastSocket{
 
-public UDPSimulator() throws SocketException, IOException{}; //default constructor - not used
-
     int port;
 
     int responseCount = 0;
@@ -47,6 +53,10 @@ public UDPSimulator() throws SocketException, IOException{}; //default construct
     String announcement;
 
     IniFile configFile;
+
+//default constructor - not used    
+public UDPSimulator() throws SocketException, IOException{};
+
 
 //-----------------------------------------------------------------------------
 // UDPSimulator::UDPSimulator (constructor)
@@ -80,6 +90,10 @@ public void send(DatagramPacket p)
 //-----------------------------------------------------------------------------
 // UDPSimulator::receive
 //
+// This method gets triggered when the program sends a UDP packet.
+//
+// See notes in header regarding the methods used in this class compared to
+// the socket simulator in the Simulator class.
 //
 
 @Override

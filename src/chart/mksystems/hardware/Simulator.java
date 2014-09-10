@@ -179,11 +179,9 @@ public void init(int pBoardNumber)
         return;
     }
 
-    //load detailed simulation configuration if file path set
-    if(simulationType == FROM_FILE){
-        configureSimulationDataSet();
-    }
-
+    //load general configuration data
+    configureSimulationDataSet();
+    
 }//end of Simulator::init
 //-----------------------------------------------------------------------------
 
