@@ -762,23 +762,22 @@ public void setMode(int pOpMode)
         //number for length -- necessary for units without photoeyes for which
         //the end of the tube is denoted by going to Stop mode
 
+        //the distance between the vertical eyes is not accounted for
+        //when calculating the distance travelled when the STOP mode is
+        //entered -- the trailing photo-eye may not even have reached the
+        //end of the test piece -- the calculation in this case is merely
+        //a rough estimate
+        
         if (hdwVs.measuredLength == 0){
 
             //calculate number counts recorded between start/stop eye triggers
             int pieceLengthEncoderCounts =
              Math.abs(inspectCtrlVars.encoder2 - inspectCtrlVars.encoder2Start);
-
+            
             //convert to inches
             hdwVs.measuredLength =
-                 hdwVs.convertEncoder2CountsToInches(pieceLengthEncoderCounts);
-
-            //the distance between the vertical eyes is not accounted for
-            //when calculating the distance travelled when the STOP mode is
-            //entered -- the trailing photo-eye may not even have reached the
-            //end of the test piece -- the calculation in this case is merely
-            //a rough estimate to determine if any inspection occurred so that
-            //the data can be saved if a partial run was made
-            
+                 hdwVs.convertEncoder2CountsToFeet(pieceLengthEncoderCounts);
+                        
         }
     }//end of if (opMode == Hardware.STOP)
 
