@@ -635,7 +635,7 @@ public String getWallMinOrMaxText(boolean pFindMin, HardwareVars pHdwVs)
     //often extraneous data after the end of the segment
 
     int lLeadMaskPos, lTrailMaskPos;
-    double length = pHdwVs.measuredLength * pHdwVs.pixelsPerInch;
+    double length = pHdwVs.measuredLength * 12 * pHdwVs.pixelsPerInch;
     lLeadMaskPos = (int)(stripChart.leadMaskPos * pHdwVs.pixelsPerInch);
     lTrailMaskPos =
             (int)(length - (stripChart.trailMaskPos * pHdwVs.pixelsPerInch));
