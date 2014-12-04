@@ -1,0 +1,79 @@
+
+---------------------------------------------------------------------
+Fri Aug 10 09:09:27 CDT 2012
+
+Converting files:
+
+File converted: .\Board Slot Overrides.ini
+File converted: .\Configuration - General.ini
+File converted: .\Configuration - Job Info Window.ini
+File converted: .\Configuration - Piece Info Window.ini
+File converted: .\Main Settings.ini
+File converted: .\Main Static Settings.ini
+
+File converted: presets\ rjg wed 6-05One.preset
+File converted: presets\1.preset
+File converted: presets\2-21.preset
+File converted: presets\5-11 03-31.preset
+File converted: presets\5-11 0923.preset
+File converted: presets\5-8 4-55.preset
+File converted: presets\rjg 3-11.preset
+File converted: presets\rjg after starfoam 1-45.preset
+File converted: presets\rjg fri 7-50.preset
+File converted: presets\rjg wed 6-30.preset
+
+File converted: configurations\Tubo UT A Initial Board Test Configuration.config
+File converted: configurations\Tubo UT A Trace per Ducer #1.config
+File converted: configurations\Tubo UT A ~ Obliques.config
+
+Validating conversions and cleaning up:
+
+Files are identical: .\Board Slot Overrides.ini
+Success -- temp file renamed: .\Board Slot Overrides.ini
+Files are identical: .\Configuration - General.ini
+Success -- temp file renamed: .\Configuration - General.ini
+Files are identical: .\Configuration - Job Info Window.ini
+Success -- temp file renamed: .\Configuration - Job Info Window.ini
+Files are identical: .\Configuration - Piece Info Window.ini
+Success -- temp file renamed: .\Configuration - Piece Info Window.ini
+Files are identical: .\Main Settings.ini
+Success -- temp file renamed: .\Main Settings.ini
+Files are identical: .\Main Static Settings.ini
+Success -- temp file renamed: .\Main Static Settings.ini
+
+Files are identical: presets\ rjg wed 6-05One.preset
+Success -- temp file renamed: presets\ rjg wed 6-05One.preset
+Files are identical: presets\1.preset
+Success -- temp file renamed: presets\1.preset
+Files are identical: presets\2-21.preset
+Success -- temp file renamed: presets\2-21.preset
+Files are identical: presets\5-11 03-31.preset
+Success -- temp file renamed: presets\5-11 03-31.preset
+Files are identical: presets\5-11 0923.preset
+Success -- temp file renamed: presets\5-11 0923.preset
+Files are identical: presets\5-8 4-55.preset
+Success -- temp file renamed: presets\5-8 4-55.preset
+Files are identical: presets\rjg 3-11.preset
+Success -- temp file renamed: presets\rjg 3-11.preset
+Files are identical: presets\rjg after starfoam 1-45.preset
+Success -- temp file renamed: presets\rjg after starfoam 1-45.preset
+Files are identical: presets\rjg fri 7-50.preset
+Success -- temp file renamed: presets\rjg fri 7-50.preset
+Files are identical: presets\rjg wed 6-30.preset
+Success -- temp file renamed: presets\rjg wed 6-30.preset
+
+Compare ignored -- there is no temp file: configurations\Belle Chase 1 Configuration 1.config UTF-8
+Delete and rename ignored -- there is no temp file: configurations\Belle Chase 1 Configuration 1.config UTF-8
+Files are identical: configurations\Tubo UT A Initial Board Test Configuration.config
+Success -- temp file renamed: configurations\Tubo UT A Initial Board Test Configuration.config
+Files are identical: configurations\Tubo UT A Trace per Ducer #1.config
+Success -- temp file renamed: configurations\Tubo UT A Trace per Ducer #1.config
+Files are identical: configurations\Tubo UT A ~ Obliques.config
+Success -- temp file renamed: configurations\Tubo UT A ~ Obliques.config
+
+Validating conversions and cleaning up orphans:
+
+
+
+
+All files converted successfully.

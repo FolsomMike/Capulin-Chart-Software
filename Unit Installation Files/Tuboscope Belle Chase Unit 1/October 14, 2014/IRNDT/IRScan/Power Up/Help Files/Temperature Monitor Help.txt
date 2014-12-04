@@ -1,0 +1,101 @@
+Capulin UT Systems with DAQ Network Temperature Monitors
+
+
+DAQ Temperature Module and WebRelay Module
+
+The system uses a DAQ Temperature Module to monitor the
+temperature in the chassis.  It uses a WebRelay Module to
+signal the PLC that the temperature is safe and that it
+is okay to power the chassis.
+
+If the Chassis Power Switch on the PLC is ON, the Chassis
+Power Breaker is on, and the Temperature Safe Signal is
+received, the PLC will power the chassis.
+
+The Temperature Safe Signal is a pulse -- if it does not
+occur approximately once per minute or stays in the active
+state for more than 2 seconds, the PLC assumes the
+temperature is unsafe or the monitor program is not
+operating and will shut off the chassis power.
+
+
+-- To Set Up DAQ Temperature Module --
+
+If the WebRelay Module has not already been set up then 
+disconnect it from the network or it will conflict with the
+DAQ Temperature Module during setup as they initially have
+the same IP address.
+
+Set computer TCP/IPv4 address to: 192.168.1.50
+Set netmask to: 255.255.255.0
+
+In web browser, go to address: http://192.168.1.2/setup.html
+
+The username is admin, password is webrelay.
+
+On the "Sensor 1" tab, select the sensor from the 
+"Sensor Address" dropdown.
+
+On the "Network" tab, change settings to:
+
+IP Address: 169.254.1.2
+Netmask: 255.255.0.0
+Broadcast: 169.254.1.255
+Gateway: 169.254.1.1
+TCP Port: 80
+Modbus Port: 502
+Speed: 10Mbps
+MOde: Half Duplex
+
+NOTE: do not change tabs before clicking "Submit" or all
+ values will be reset.
+
+After setting up addresses as described above:
+
+Reset the computers LAN network adapter to "Obtain an IP
+ address automatically".
+
+In web browser, go to address http://169.254.1.2/setup.html
+ to now access the setup screen.
+
+In web browser, go to address http://169.254.1.2 to now
+ access the monitoring screen.
+
+-- To Set Up WebRelay Module --
+
+If the DAQ Temperature Module has not already been set up then
+disconnect it from the network or it will conflict with the
+WebRelay Module during setup as they initially have the same
+IP address.
+
+Set computer TCP/IPv4 address to: 192.168.1.50
+Set netmask to: 255.255.255.0
+
+In web browser, go to address: http://192.168.1.2/setup.html
+
+The username is admin, password is webrelay.
+
+On the "Network" tab, change settings to:
+
+IP Address: 169.254.1.3
+Netmask: 255.255.0.0
+Broadcast: 169.254.1.255
+Gateway: 169.254.1.1
+TCP Port: 80
+Modbus Port: 502
+Speed: 10Mbps
+MOde: Half Duplex
+
+NOTE: do not change tabs before clicking "Submit" or all
+ values will be reset.
+
+After setting up addresses as described above:
+
+Reset the computers LAN network adapter to "Obtain an IP
+ address automatically".
+
+In web browser, go to address http://169.254.1.3/setup.html
+ to now access the setup screen.
+
+In web browser, go to address http://169.254.1.3 to now
+ access the monitoring screen.

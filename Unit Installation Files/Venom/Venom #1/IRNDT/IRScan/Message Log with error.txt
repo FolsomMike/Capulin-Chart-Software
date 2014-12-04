@@ -1,0 +1,327 @@
+
+--------------------------------------------------------------------
+Tue Jun 10 14:33:15 CDT 2014
+
+Connecting With Chassis and Configuring
+
+Full list of Network Interfaces:
+    lo Software Loopback Interface 1
+        /127.0.0.1
+        /0:0:0:0:0:0:0:1
+    net0 WAN Miniport (SSTP)
+    net1 WAN Miniport (L2TP)
+    net2 WAN Miniport (PPTP)
+    ppp0 WAN Miniport (PPPOE)
+    eth0 WAN Miniport (IPv6)
+    eth1 WAN Miniport (Network Monitor)
+    eth2 WAN Miniport (IP)
+    ppp1 RAS Async Adapter
+    net3 WAN Miniport (IKEv2)
+    eth3 Intel(R) PRO/1000 PL Network Connection
+        /169.254.55.142
+==>> Binding to this adapter...
+        /fe80:0:0:0:2423:7563:d485:378e%11
+    net4 Microsoft ISATAP Adapter
+        /fe80:0:0:0:0:5efe:a7e:54b7%12
+    eth4 Intel(R) PRO/1000 PL Network Connection #2
+        /10.126.84.183
+        /fe80:0:0:0:a113:3d9c:9651:cc7%13
+    net5 Microsoft ISATAP Adapter #2
+        /fe80:0:0:0:0:5efe:a9fe:378e%14
+    net6 Microsoft ISATAP Adapter #3
+    eth5 Intel(R) PRO/1000 PL Network Connection-QoS Packet Scheduler-0000
+    eth6 Intel(R) PRO/1000 PL Network Connection-WFP LightWeight Filter-0000
+    eth7 Intel(R) PRO/1000 PL Network Connection #2-QoS Packet Scheduler-0000
+    eth8 Intel(R) PRO/1000 PL Network Connection #2-WFP LightWeight Filter-0000
+    eth9 WAN Miniport (Network Monitor)-QoS Packet Scheduler-0000
+    eth10 WAN Miniport (IP)-QoS Packet Scheduler-0000
+    eth11 WAN Miniport (IPv6)-QoS Packet Scheduler-0000
+Broadcasting greeting to all Control boards...
+/169.254.49.248  Control board present, Ver 1.2t...
+Opening connection with Control board...
+Control Board IP Address: /169.254.49.248
+/169.254.49.248 says Hello from Control Board!
+Control /169.254.49.248 chassis & slot address: 0-10
+Control 0:10 is ready.
+All Control boards ready.
+Broadcasting greeting to all UT boards...
+/169.254.251.3  UT board present, Ver 1.3z, FPGA loaded...
+/169.254.251.57  UT board present, Ver 1.3z, FPGA loaded...
+/169.254.250.222  UT board present, Ver 1.3z, FPGA loaded...
+/169.254.251.0  UT board present, Ver 1.3z, FPGA loaded...
+/169.254.118.133  UT board present, Ver 1.3z, FPGA loaded...
+/169.254.117.38  UT board present, Ver 1.3z, FPGA loaded...
+/169.254.251.4  UT board present, Ver 1.3z, FPGA loaded...
+/169.254.118.125  UT board present, Ver 1.3z, FPGA loaded...
+/169.254.251.9  UT board present, Ver 1.3z, FPGA loaded...
+Connecting to UT board /169.254.251.3...
+Connecting to UT board /169.254.250.222...
+Connecting to UT board /169.254.117.38...
+Connecting to UT board /169.254.251.57...
+Connecting to UT board /169.254.251.0...
+Connecting to UT board /169.254.118.133...
+Connecting to UT board /169.254.251.4...
+Connecting to UT board /169.254.251.9...
+Connecting to UT board /169.254.118.125...
+UT board #9 never responded to roll call and cannot be contacted.
+UT /169.254.118.133 receive buffer size: 8192...
+UT /169.254.118.133 send buffer size: 8192...
+UT /169.254.251.4 receive buffer size: 8192...
+UT /169.254.251.4 send buffer size: 8192...
+UT /169.254.251.9 receive buffer size: 8192...
+UT /169.254.251.9 send buffer size: 8192...
+UT /169.254.251.3 receive buffer size: 8192...
+UT /169.254.251.3 send buffer size: 8192...
+UT /169.254.117.38 receive buffer size: 8192...
+UT /169.254.250.222 receive buffer size: 8192...
+UT /169.254.117.38 send buffer size: 8192...
+UT /169.254.250.222 send buffer size: 8192...
+UT /169.254.118.125 receive buffer size: 8192...
+UT /169.254.251.57 receive buffer size: 8192...
+UT /169.254.118.125 send buffer size: 8192...
+UT /169.254.251.57 send buffer size: 8192...
+UT /169.254.251.0 receive buffer size: 8192...
+UT /169.254.251.0 send buffer size: 8192...
+UT /169.254.117.38 says Hello from UT Board!
+UT /169.254.118.125 says Hello from UT Board!
+UT /169.254.251.57 says Hello from UT Board!
+UT /169.254.251.0 says Hello from UT Board!
+UT /169.254.118.133 says Hello from UT Board!
+UT /169.254.251.4 says Hello from UT Board!
+UT /169.254.251.9 says Hello from UT Board!
+UT /169.254.251.3 says Hello from UT Board!
+UT /169.254.250.222 says Hello from UT Board!
+UT /169.254.118.133 FPGA already loaded...
+UT /169.254.251.4 FPGA already loaded...
+UT /169.254.118.125 FPGA already loaded...
+UT /169.254.251.4 chassis & slot address: 0-0
+UT /169.254.251.9 FPGA already loaded...
+UT /169.254.118.125 chassis & slot address: 0-5
+UT /169.254.117.38 FPGA already loaded...
+UT /169.254.251.9 chassis & slot address: 0-6
+UT /169.254.118.133 chassis & slot address: 0-9
+UT /169.254.250.222 FPGA already loaded...
+UT /169.254.117.38 chassis & slot address: 0-1
+UT /169.254.251.57 FPGA already loaded...
+UT /169.254.250.222 chassis & slot address: 0-2
+UT /169.254.251.3 FPGA already loaded...
+UT /169.254.251.3 chassis & slot address: 0-8
+UT /169.254.251.57 chassis & slot address: 0-4
+UT /169.254.251.0 FPGA already loaded...
+UT 0:5 loading DSP code for
+    Chip 1 Cores A & B
+UT 0:0 loading DSP code for
+    Chip 1 Cores A & B
+UT 0:1 loading DSP code for
+    Chip 1 Cores A & B
+UT 0:6 loading DSP code for
+    Chip 1 Cores A & B
+UT 0:9 loading DSP code for
+    Chip 1 Cores A & B
+UT 0:8 loading DSP code for
+    Chip 1 Cores A & B
+UT 0:2 loading DSP code for
+    Chip 1 Cores A & B
+UT /169.254.251.0 chassis & slot address: 0-3
+UT 0:3 loading DSP code for
+    Chip 1 Cores A & B
+UT 0:4 loading DSP code for
+    Chip 1 Cores A & B
+UT 0:6 verifying DSP code for
+    Chip 1 Cores A & B
+UT 0:8 verifying DSP code for
+    Chip 1 Cores A & B
+UT 0:1 verifying DSP code for
+    Chip 1 Cores A & B
+UT 0:3 verifying DSP code for
+    Chip 1 Cores A & B
+UT 0:2 verifying DSP code for
+    Chip 1 Cores A & B
+UT 0:4 verifying DSP code for
+    Chip 1 Cores A & B
+UT 0:5 verifying DSP code for
+    Chip 1 Cores A & B
+UT 0:0 verifying DSP code for
+    Chip 1 Cores A & B
+UT 0:9 verifying DSP code for
+    Chip 1 Cores A & B
+UT 0:6 loading DSP code for
+    Chip 1 Cores C & D
+UT 0:3 loading DSP code for
+    Chip 1 Cores C & D
+UT 0:1 loading DSP code for
+    Chip 1 Cores C & D
+UT 0:4 loading DSP code for
+    Chip 1 Cores C & D
+UT 0:5 loading DSP code for
+    Chip 1 Cores C & D
+UT 0:2 loading DSP code for
+    Chip 1 Cores C & D
+UT 0:0 loading DSP code for
+    Chip 1 Cores C & D
+UT 0:8 loading DSP code for
+    Chip 1 Cores C & D
+UT 0:9 loading DSP code for
+    Chip 1 Cores C & D
+UT 0:6 verifying DSP code for
+    Chip 1 Cores C & D
+UT 0:3 verifying DSP code for
+    Chip 1 Cores C & D
+UT 0:1 verifying DSP code for
+    Chip 1 Cores C & D
+UT 0:4 verifying DSP code for
+    Chip 1 Cores C & D
+UT 0:2 verifying DSP code for
+    Chip 1 Cores C & D
+UT 0:8 verifying DSP code for
+    Chip 1 Cores C & D
+UT 0:5 verifying DSP code for
+    Chip 1 Cores C & D
+UT 0:0 verifying DSP code for
+    Chip 1 Cores C & D
+UT 0:6 loading DSP code for
+    Chip 2 Cores A & B
+UT 0:3 loading DSP code for
+    Chip 2 Cores A & B
+UT 0:4 loading DSP code for
+    Chip 2 Cores A & B
+UT 0:1 loading DSP code for
+    Chip 2 Cores A & B
+UT 0:2 loading DSP code for
+    Chip 2 Cores A & B
+UT 0:5 loading DSP code for
+    Chip 2 Cores A & B
+UT 0:8 loading DSP code for
+    Chip 2 Cores A & B
+UT 0:0 loading DSP code for
+    Chip 2 Cores A & B
+UT 0:9 verifying DSP code for
+    Chip 1 Cores C & D
+UT 0:9 loading DSP code for
+    Chip 2 Cores A & B
+UT 0:6 verifying DSP code for
+    Chip 2 Cores A & B
+UT 0:3 verifying DSP code for
+    Chip 2 Cores A & B
+UT 0:4 verifying DSP code for
+    Chip 2 Cores A & B
+UT 0:1 verifying DSP code for
+    Chip 2 Cores A & B
+UT 0:2 verifying DSP code for
+    Chip 2 Cores A & B
+UT 0:5 verifying DSP code for
+    Chip 2 Cores A & B
+UT 0:8 verifying DSP code for
+    Chip 2 Cores A & B
+UT 0:0 verifying DSP code for
+    Chip 2 Cores A & B
+UT 0:6 loading DSP code for
+    Chip 2 Cores C & D
+UT 0:3 loading DSP code for
+    Chip 2 Cores C & D
+UT 0:4 loading DSP code for
+    Chip 2 Cores C & D
+UT 0:1 loading DSP code for
+    Chip 2 Cores C & D
+UT 0:2 loading DSP code for
+    Chip 2 Cores C & D
+UT 0:5 loading DSP code for
+    Chip 2 Cores C & D
+UT 0:0 loading DSP code for
+    Chip 2 Cores C & D
+UT 0:8 loading DSP code for
+    Chip 2 Cores C & D
+UT 0:9 verifying DSP code for
+    Chip 2 Cores A & B
+UT 0:6 verifying DSP code for
+    Chip 2 Cores C & D
+UT 0:4 verifying DSP code for
+    Chip 2 Cores C & D
+UT 0:3 verifying DSP code for
+    Chip 2 Cores C & D
+UT 0:1 verifying DSP code for
+    Chip 2 Cores C & D
+UT 0:2 verifying DSP code for
+    Chip 2 Cores C & D
+UT 0:5 verifying DSP code for
+    Chip 2 Cores C & D
+UT 0:0 verifying DSP code for
+    Chip 2 Cores C & D
+UT 0:8 verifying DSP code for
+    Chip 2 Cores C & D
+UT 0:9 loading DSP code for
+    Chip 2 Cores C & D
+UT 0:6 Chip: 1 Core: 1 Status 1-8
+UT 0:6 Chip: 1 Core: 2 Status 1-8
+UT 0:3 Chip: 1 Core: 1 Status 1-8
+UT 0:4 Chip: 1 Core: 1 Status 1-8
+UT 0:6 Chip: 1 Core: 3 Status 1-8
+UT 0:3 Chip: 1 Core: 2 Status 1-8
+UT 0:4 Chip: 1 Core: 2 Status 1-8
+UT 0:6 Chip: 1 Core: 4 Status 1-8
+UT 0:3 Chip: 1 Core: 3 Status 1-8
+UT 0:4 Chip: 1 Core: 3 Status 1-8
+UT 0:6 Chip: 2 Core: 1 Status 1-8
+UT 0:3 Chip: 1 Core: 4 Status 1-8
+UT 0:4 Chip: 1 Core: 4 Status 1-8
+UT 0:1 Chip: 1 Core: 1 Status 1-8
+UT 0:6 Chip: 2 Core: 2 Status 1-8
+UT 0:2 Chip: 1 Core: 1 Status 1-8
+UT 0:4 Chip: 2 Core: 1 Status 1-8
+UT 0:3 Chip: 2 Core: 1 Status 1-8
+UT 0:1 Chip: 1 Core: 2 Status 1-8
+UT 0:6 Chip: 2 Core: 3 Status 1-8
+UT 0:2 Chip: 1 Core: 2 Status 1-8
+UT 0:3 Chip: 2 Core: 2 Status 1-8
+UT 0:4 Chip: 2 Core: 2 Status 1-8
+UT 0:1 Chip: 1 Core: 3 Status 1-8
+UT 0:2 Chip: 1 Core: 3 Status 1-8
+UT 0:3 Chip: 2 Core: 3 Status 1-8
+UT 0:1 Chip: 1 Core: 4 Status 1-8
+UT 0:4 Chip: 2 Core: 3 Status 1-8
+UT 0:2 Chip: 1 Core: 4 Status 1-8
+UT 0:1 Chip: 2 Core: 1 Status 1-8
+UT 0:5 Chip: 1 Core: 1 Status 1-8
+UT 0:2 Chip: 2 Core: 1 Status 1-8
+UT 0:1 Chip: 2 Core: 2 Status 1-8
+UT 0:0 Chip: 1 Core: 1 Status 1-8
+UT 0:5 Chip: 1 Core: 2 Status 1-8
+UT 0:2 Chip: 2 Core: 2 Status 1-8
+UT 0:8 Chip: 1 Core: 1 Status 1-8
+UT 0:0 Chip: 1 Core: 2 Status 1-8
+UT 0:1 Chip: 2 Core: 3 Status 1-8
+UT 0:5 Chip: 1 Core: 3 Status 1-8
+UT 0:2 Chip: 2 Core: 3 Status 1-8
+UT 0:8 Chip: 1 Core: 2 Status 1-8
+UT 0:0 Chip: 1 Core: 3 Status 1-8
+UT 0:5 Chip: 1 Core: 4 Status 1-8
+UT 0:8 Chip: 1 Core: 3 Status 1-8
+UT 0:0 Chip: 1 Core: 4 Status 1-8
+UT 0:5 Chip: 2 Core: 1 Status 1-8
+UT 0:8 Chip: 1 Core: 4 Status 1-8
+UT 0:6 ~ /169.254.251.9 is ready.
+UT 0:0 Chip: 2 Core: 1 Status 1-8
+UT 0:5 Chip: 2 Core: 2 Status 1-8
+UT 0:8 Chip: 2 Core: 1 Status 1-8
+UT 0:0 Chip: 2 Core: 2 Status 1-8
+UT 0:5 Chip: 2 Core: 3 Status 1-8
+UT 0:8 Chip: 2 Core: 2 Status 1-8
+UT 0:3 ~ /169.254.251.0 is ready.
+UT 0:0 Chip: 2 Core: 3 Status 1-8
+UT 0:4 ~ /169.254.251.57 is ready.
+UT 0:8 Chip: 2 Core: 3 Status 1-8
+UT 0:1 ~ /169.254.117.38 is ready.
+UT 0:2 ~ /169.254.250.222 is ready.
+UT 0:5 ~ /169.254.118.125 is ready.
+UT 0:0 ~ /169.254.251.4 is ready.
+UT 0:8 ~ /169.254.251.3 is ready.
+UT 0:9 verifying DSP code for
+    Chip 2 Cores C & D
+UT 0:9 Chip: 1 Core: 1 Status 1-8
+UT 0:9 Chip: 1 Core: 2 Status 1-8
+UT 0:9 Chip: 1 Core: 3 Status 1-8
+UT 0:9 Chip: 1 Core: 4 Status 1-8
+UT 0:9 Chip: 2 Core: 1 Status 1-8
+UT 0:9 Chip: 2 Core: 2 Status 1-8
+UT 0:9 Chip: 2 Core: 3 Status 1-8
+UT 0:9 ~ /169.254.118.133 is ready.
