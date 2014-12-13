@@ -1,0 +1,62 @@
+
+---------------------------------------------------------------------
+Fri Dec 12 18:20:06 MST 2014
+
+Converting files to UTF-8:
+
+
+
+
+Validating conversions and cleaning up:
+
+Compare ignored -- there is no old file: .\Board Slot Overrides.ini
+Old file does not exist, temp file renamed to replace it: .\Board Slot Overrides.ini
+Success -- temp file renamed: .\Board Slot Overrides.ini
+
+
+
+All files converted successfully.
+
+---------------------------------------------------------------------
+Fri Dec 12 18:22:51 MST 2014
+
+Converting files to UTF-8:
+
+
+
+
+Validating conversions and cleaning up:
+
+Compare ignored -- there is no old file: .\Board Slot Overrides.ini
+Old file does not exist, temp file renamed to replace it: .\Board Slot Overrides.ini
+Success -- temp file renamed: .\Board Slot Overrides.ini
+Compare ignored -- there is no old file: .\Configuration - General.ini
+Old file does not exist, temp file renamed to replace it: .\Configuration - General.ini
+Success -- temp file renamed: .\Configuration - General.ini
+Compare ignored -- there is no old file: .\Configuration - Job Info Window.ini
+Old file does not exist, temp file renamed to replace it: .\Configuration - Job Info Window.ini
+Success -- temp file renamed: .\Configuration - Job Info Window.ini
+Files are identical: .\Graphics.ini
+Success -- temp file renamed: .\Graphics.ini
+Compare ignored -- there is no old file: .\Main Settings.ini
+Old file does not exist, temp file renamed to replace it: .\Main Settings.ini
+Success -- temp file renamed: .\Main Settings.ini
+
+
+
+All files converted successfully.
+
+---------------------------------------------------------------------
+Fri Dec 12 18:37:39 MST 2014
+
+Converting files to UTF-8:
+
+
+
+
+Validating conversions and cleaning up:
+
+
+
+
+All files converted successfully.
