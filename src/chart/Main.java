@@ -280,7 +280,7 @@ public void init()
 
     //convert all config files from UTF-16LE to UTF-8 format
     //(this does not convert files already in use in the job folders)
-    UTF16LEToUTF8Converter converter = new UTF16LEToUTF8Converter(FILE_FORMAT);
+    FileFormatConverter converter = new FileFormatConverter(FILE_FORMAT);
     converter.init();
 
     settings = new Settings(this, this);
@@ -674,7 +674,7 @@ private void configure()
     AtomicBoolean containsWindowsFlags = new AtomicBoolean(false); 
     
     try{
-        detectedFileFormat = UTF16LEToUTF8Converter.detectFileFormat(
+        detectedFileFormat = FileFormatConverter.detectFileFormat(
                                         configFilename, containsWindowsFlags);
     }
     catch(IOException e){

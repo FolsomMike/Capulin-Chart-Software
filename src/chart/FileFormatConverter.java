@@ -97,12 +97,12 @@ import java.util.logging.Logger;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-// class UTF16LEToUTF8Converter
+// class FileFormatConverter
 //
 // See notes at top of page for details.
 //
 
-public class UTF16LEToUTF8Converter extends FileConverter{
+public class FileFormatConverter extends FileConverter{
 
     private static final int NUMBER_OF_FILE_PATH_EXTENSION_COMBINATIONS = 3;
 
@@ -122,23 +122,23 @@ public class UTF16LEToUTF8Converter extends FileConverter{
     private static final byte[] UTF16BE_FLAG_BYTES = {(byte)0xfe, (byte)0xff};
     
 //-----------------------------------------------------------------------------
-// UTF16LEToUTF8Converter::UTF16LEToUTF8Converter (constructor)
+// FileFormatConverter::FileFormatConverter (constructor)
 //
 // pNewFormat specifies the format to which all files will be converted.
 //
 // Method init() MUST be called after instantiation.
 //
 
-public UTF16LEToUTF8Converter(String pNewFormat)
+public FileFormatConverter(String pNewFormat)
 {
 
     newFormat = pNewFormat;
 
-}//end of UTF16LEToUTF8Converter::UTF16LEToUTF8Converter (constructor)
+}//end of FileFormatConverter::FileFormatConverter (constructor)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTF16LEToUTF8Converter::init
+// FileFormatConverter::init
 //
 // Initializes the object.  MUST be called after instantiation.
 //
@@ -180,11 +180,11 @@ public void init()
     //call the parent class to perform the conversion
     super.init();
 
-}//end of UTF16LEToUTF8Converter::init
+}//end of FileFormatConverter::init
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTF16LEToUTF8Converter::convertFile
+// FileFormatConverter::convertFile
 //
 // If pOldFile is a normal file (not a directory) and is not of newFormat
 // format, the file is converted to newFormat as a new file pTempFile.
@@ -334,11 +334,11 @@ protected boolean convertFile(String pOldFile, String pTempFile)
 
     return(convertGood);
 
-}//end of UTF16LEToUTF8Converter::convertFile
+}//end of FileFormatConverter::convertFile
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTF16LEToUTF8Converter::checkForByteMatchAndRemoveBytes
+// FileFormatConverter::checkForByteMatchAndRemoveBytes
 //
 // pLine is converted to a byte array assuming character set pLineFormat.
 // Then checks to see if the first bytes in array matches those in pMatchBytes.
@@ -391,11 +391,11 @@ private String checkForByteMatchAndRemoveBytes(String pLine, String pLineFormat,
         return("");
     }        
 
-}//end of UTF16LEToUTF8Converter::checkForByteMatchAndRemoveBytes
+}//end of FileFormatConverter::checkForByteMatchAndRemoveBytes
 //-----------------------------------------------------------------------------
     
 //-----------------------------------------------------------------------------
-// UTF16LEToUTF8Converter::removeBeginningCharacters
+// FileFormatConverter::removeBeginningCharacters
 //
 // Removes pCount number of characters from the beginning of pString and
 // returns the result.
@@ -406,11 +406,11 @@ private String removeBeginningCharacters(String pString, int pCount)
 
     return(pString.substring(pCount));
     
-}//end of UTF16LEToUTF8Converter::removeBeginningCharacters
+}//end of FileFormatConverter::removeBeginningCharacters
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTF16LEToUTF8Converter::compareFileLastLines
+// FileFormatConverter::compareFileLastLines
 //
 // The last non-blank line of each file, pOldFile and pTempFile, are compared
 // to determine if the latter is most likely a successfully converted version
@@ -558,11 +558,11 @@ protected boolean compareFileLastLines(String pOldFile, String pTempFile)
 
     return(compareGood);
 
-}//end of UTF16LEToUTF8Converter::compareFileLastLines
+}//end of FileFormatConverter::compareFileLastLines
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTF16LEToUTF8Converter::detectFileFormat
+// FileFormatConverter::detectFileFormat
 //
 // Determines the file format of the specified file as ANSI, UTF-8, UTF-16LE,
 // or UTF-16BE by checking the first few bytes for flags stored by Windows
@@ -665,11 +665,11 @@ static public String detectFileFormat(String pFilename,
     
     return("UTF-8");
     
-}//end of UTF16LEToUTF8Converter::detectFileFormat
+}//end of FileFormatConverter::detectFileFormat
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTF16LEToUTF8Converter::logSevere
+// FileFormatConverter::logSevere
 //
 // Logs pMessage with level SEVERE using the Java logger.
 //
@@ -679,11 +679,11 @@ void logSevere(String pMessage)
 
     Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage);
 
-}//end of UTF16LEToUTF8Converter::logSevere
+}//end of FileFormatConverter::logSevere
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTF16LEToUTF8Converter::logStackTrace
+// FileFormatConverter::logStackTrace
 //
 // Logs stack trace info for exception pE with pMessage at level SEVERE using
 // the Java logger.
@@ -694,9 +694,9 @@ void logStackTrace(String pMessage, Exception pE)
 
     Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage, pE);
 
-}//end of UTF16LEToUTF8Converter::logStackTrace
+}//end of FileFormatConverter::logStackTrace
 //-----------------------------------------------------------------------------
 
-}//end of class UTF16LEToUTF8Converter
+}//end of class FileFormatConverter
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
