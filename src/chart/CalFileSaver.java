@@ -54,7 +54,7 @@ import javax.swing.JFrame;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-// class ControlBoard
+// class CalFileSaver
 //
 // See notes at top of page.
 //
@@ -112,8 +112,8 @@ public void init()
 //-----------------------------------------------------------------------------
 // CalFileSaver::run
 //
-// This thread loads the board with FPGA and DSP code.  Using a thread allows
-// multiple boards to be loaded simultaneously.
+// This thread saves the data in the background so that a status message can
+// be displayed during the action.
 //
 
 @Override

@@ -27,6 +27,58 @@
 *
 * *.language files are not converted as none were ever stored as UTF-16LE
 *
+* --- File Format Details and Flags used by Windows for Identification ---
+*
+* Windows Notepad (and probably other Windows programs), adds a multi-byte
+* flag to the start of all files in formats other than ANSI.
+* 
+* Windows Notepad loads Java files saved as UTF-8 files (which do not have the
+* Windows flags) as ANSI files. If they are then saved without changing the
+* file type, Notepad then saves them as Windows ANSI. Java does not utilize
+* the flags which Windows uses to detect UTF-8.
+*
+* The two formats are similar, especially for the standard character set, so
+* Java can load Windows ANSI files as if they were UTF-8, so the files can
+* be loaded, edited, and saved in Notepad with no problems.
+*
+* Windows UTF-8 files have an extra 3 bytes at the beginning which is used to
+* identify the format: 0xef 0xbb 0xbf
+*
+* The -16 variants have similar flags for Windows, and Notepad will load files
+* of those types saved by Java as ANSI (incorrectly) if the flag is missing:
+*
+* UTF-16LE (Windows calls this Unicode): 0xff 0xfe
+* UTF-16BE (Windows calls this Unicode big endian) : 0xfe 0xff 
+*
+* If a UTF-16LE file does not have the flag bytes, Notepad will still detect
+* it as a Unicode/UTF-16LE file, probably by detecting the zero bytes which
+* are part of the two byte basic characters. For some reason, it cannot do the
+* same for UTF-16BE. As for UTF-8 files missing the flag bytes, UTF-16BE files
+* are loaded as ANSI resulting in the zeroes of the upper byte of each
+* character being displayed as spaces between each character.
+*
+* If the first line of the file is blank or a comment line or some line not
+* used by the IniFile class, the flag bytes appear as trash at the beginning
+* of the line which is ignored anyway. If, however, the first line is
+* important, such as a section tag ([example section]), then the section tag
+* will not be recognized because of the flag bytes read in at the beginning of
+* the line.
+*
+* The problem could be solved by writing the flag when saving the file in Java.
+* When this program used UTF-16LE, the problem was solved by saving the files
+* in Notepad as UTF-16 to force insertion of the flag. A note was added to each
+* file warning not to delete the first line. This class ignored the flag because
+* the first line was not used so any unexpected flag bytes were ignored. When
+* this class saves the files, it writes out every line read in so the flags
+* were preserved. This unhandy workaround was used due to ignorance regarding
+* the flags.
+*
+* Saving the flags may prove to be prudent in the future to allow for other
+* languages which use the extended character set. ANSI and UTF-8 differ there,
+* so manipulating the files in Notepad (which will think they are ANSI) will
+* make them unreadable to Java.
+*
+*
 * Open Source Policy:
 *
 * This source code is Public Domain and free to any interested party.  Any
@@ -38,8 +90,8 @@
 
 package chart;
 
-import chart.mksystems.inifile.IniFile;
 import java.io.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -52,17 +104,35 @@ import java.util.logging.Logger;
 
 public class UTF16LEToUTF8Converter extends FileConverter{
 
-static int NUMBER_OF_FILE_PATH_EXTENSION_COMBINATIONS = 3;
+    private static final int NUMBER_OF_FILE_PATH_EXTENSION_COMBINATIONS = 3;
 
+    private static final byte UTF8_FLAG1 = (byte)0xef;
+    private static final byte UTF8_FLAG2 = (byte)0xbb;
+    private static final byte UTF8_FLAG3 = (byte)0xbf;
+
+    private static final byte UTF16LE_FLAG1 = (byte)0xff;
+    private static final byte UTF16LE_FLAG2 = (byte)0xfe;
+
+    private static final byte UTF16BE_FLAG1 = (byte)0xfe;
+    private static final byte UTF16BE_FLAG2 = (byte)0xff;
+
+    private static final byte[] UTF8_FLAG_BYTES = 
+                                        {(byte)0xef, (byte)0xbb, (byte)0xbf};
+    private static final byte[] UTF16LE_FLAG_BYTES = {(byte)0xff, (byte)0xfe};
+    private static final byte[] UTF16BE_FLAG_BYTES = {(byte)0xfe, (byte)0xff};
+    
 //-----------------------------------------------------------------------------
 // UTF16LEToUTF8Converter::UTF16LEToUTF8Converter (constructor)
+//
+// pNewFormat specifies the format to which all files will be converted.
 //
 // Method init() MUST be called after instantiation.
 //
 
-public UTF16LEToUTF8Converter()
+public UTF16LEToUTF8Converter(String pNewFormat)
 {
 
+    newFormat = pNewFormat;
 
 }//end of UTF16LEToUTF8Converter::UTF16LEToUTF8Converter (constructor)
 //-----------------------------------------------------------------------------
@@ -90,9 +160,10 @@ public UTF16LEToUTF8Converter()
 public void init()
 {
 
-    tempFileSuffix = " UTF-8";
-    logFileName = "Config file UTF-16LE to UTF-8 Conversion Log.txt";
-    conversionCompletedFlagFileName = "Configs Have Been Converted To UTF-8";
+    tempFileSuffix = " " + newFormat;
+    logFileName = "File Format Conversion Log.txt";
+    conversionCompletedFlagFileName = 
+                    "Config and Ini Files Have Been Converted To " + newFormat;
 
     pathList = new String[NUMBER_OF_FILE_PATH_EXTENSION_COMBINATIONS];
     extList = new String[NUMBER_OF_FILE_PATH_EXTENSION_COMBINATIONS];
@@ -102,9 +173,9 @@ public void init()
     //an extension is listed repeatedly if it is found in multiple paths
 
     //convert ini files in program root folder
-    pathList[0] = "."; extList[0] = "ini";
-    pathList[1] = "presets"; extList[1] = "preset";
-    pathList[2] = "configurations"; extList[2] = "config";
+    pathList[0] = "."; extList[0] = "ini"; //files in root folder
+    pathList[1] = "presets"; extList[1] = "preset"; //files in preset folder
+    pathList[2] = "configurations"; extList[2] = "config"; //in config folder
 
     //call the parent class to perform the conversion
     super.init();
@@ -115,9 +186,8 @@ public void init()
 //-----------------------------------------------------------------------------
 // UTF16LEToUTF8Converter::convertFile
 //
-// If pOldFile is a normal file (not a directory) and contains a phrase used in
-// all UTF-16LE files created by this program in the past, the file is converted
-// to UTF-8 as a new file pTempFile.
+// If pOldFile is a normal file (not a directory) and is not of newFormat
+// format, the file is converted to newFormat as a new file pTempFile.
 //
 // Returns true if no error, false if error.
 //
@@ -129,22 +199,26 @@ protected boolean convertFile(String pOldFile, String pTempFile)
 {
 
     boolean convertGood = true;
-
+    String oldFormat;
+    
     File oldFile = new File(pOldFile), tempFile = new File(pTempFile);
 
-    //if the file is not a UTF-16LE file saved by this program, skip it
-    //this is not an error, so return true
-
-    boolean result;
-
+    AtomicBoolean containsWindowsFlags = new AtomicBoolean(false);
+    
     try{
-        result = IniFile.detectUTF16LEFormat(pOldFile);
+        oldFormat = detectFileFormat(pOldFile, containsWindowsFlags);
     }
     catch(IOException e){
         return(false);
     }
 
-    if(!result) {return(convertGood);}
+    //exit if file already formatted as desired, unless it contains Windows
+    //flags in which case the file is converted anyway to remove the flags
+    //for consistency as all other formats will have the flags removed
+    
+    if(oldFormat.equals(newFormat) && !containsWindowsFlags.get()) {
+        return(convertGood);
+    }
 
     boolean addFormatTypeEntry = false;
 
@@ -162,45 +236,60 @@ protected boolean convertFile(String pOldFile, String pTempFile)
     OutputStreamWriter outputStreamWriter = null;
     BufferedWriter out = null;
 
-    boolean firstNonBlankLineReached = false;
-
     try{
 
-        //open the old UTF-16LE format file for reading
+        //open the old format file for reading
         fileInputStream = new FileInputStream(pOldFile);
-        inputStreamReader = new InputStreamReader(fileInputStream, "UTF-16LE");
+        inputStreamReader = new InputStreamReader(fileInputStream, oldFormat);
         in = new BufferedReader(inputStreamReader);
 
-        //open the new UTF-8 format file for writing
+        //open the new format file for writing
         // (append " UTF-8" to the file name to differentiate from the old file)
         fileOutputStream = new FileOutputStream(pTempFile);
-        outputStreamWriter = new OutputStreamWriter(fileOutputStream, "UTF-8");
+        outputStreamWriter = new OutputStreamWriter(fileOutputStream,newFormat);
         out = new BufferedWriter(outputStreamWriter);
 
         String line;
-
+        boolean firstLineDone = false;
+        
         //read lines from the old UTF-16LE file until end reached
 
         while ((line = in.readLine()) != null){
 
-            //set flag when first non-blank line reached (the first blank line
-            //actually contains a code byte left over from the UTF-16LE format
-            //so look for a line with length > 1)
-            if(line.length() > 1) {firstNonBlankLineReached = true;}
+            //if Windows format-type flags are present, they end up at the
+            //beginning of the first line; they are removed here as they are
+            //flags for the old format and Java does not use such flags anyways
+            
+            if(!firstLineDone){
+                
+                AtomicBoolean wasTrimmed = new AtomicBoolean(false);
+                
+                line = checkForByteMatchAndRemoveBytes(
+                      line, oldFormat, UTF8_FLAG_BYTES, newFormat, wasTrimmed);
+                
+                if(!wasTrimmed.get()){
+                    line = checkForByteMatchAndRemoveBytes(line, oldFormat,
+                                    UTF16LE_FLAG_BYTES, newFormat, wasTrimmed);
+                }
 
-            //toss all blank lines and the explanation lines at the beginning
-            //the old UTF-16LE files had an explanation header -- not needed now
-
-            if (!firstNonBlankLineReached) {continue;}
+                if(!wasTrimmed.get()){                
+                    line = checkForByteMatchAndRemoveBytes(line, oldFormat,
+                                    UTF16BE_FLAG_BYTES, newFormat, wasTrimmed);
+                }
+                    
+                firstLineDone = true;
+            }
+                
+            //do not copy format explanation lines which are no longer used
             if (line.startsWith(";Do not erase")) {continue;}
             if (line.startsWith(";To make a new")) {continue;}
 
-            //write each line to the new UTF-8 file
+            //write each line to the new format file
             out.write(line); out.newLine();
 
-            //for applicable files, add a line to specify new format of UTF-8
+            //for applicable files, add a line to specify new format
             if (addFormatTypeEntry && line.startsWith("[Main Configuration]")){
-                out.write("Job File Format=UTF-8");
+                out.write("Job File Format=" + newFormat);
                 out.newLine();
             }
 
@@ -249,17 +338,91 @@ protected boolean convertFile(String pOldFile, String pTempFile)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTF16LEToUTF8Converter::compareFile
+// UTF16LEToUTF8Converter::checkForByteMatchAndRemoveBytes
 //
-// The old UTF-16LE pOldFile and the new UTF-8 pTempFile are compared.
+// pLine is converted to a byte array assuming character set pLineFormat.
+// Then checks to see if the first bytes in array matches those in pMatchBytes.
+// If so, the bytes are removed from the pBytes array and it is returned as a
+// string using character set pOutputFormat.
+//
+// If the bytes do not match, pLine is returned untrimmed.
+//
+// If the string was trimmed, pWasTrimmed is set true else it is left unchanged;
+// the value should be passed in as false.
+//
+
+private String checkForByteMatchAndRemoveBytes(String pLine, String pLineFormat,
+          byte[] pMatchBytes, String pOutputFormat, AtomicBoolean pWasTrimmed)
+{        
+
+    byte[] bytes;
+    
+    try{
+        bytes = pLine.getBytes(pLineFormat);
+    }catch(UnsupportedEncodingException e){
+        return(pLine);
+    }
+    
+    boolean match = true;
+    
+    //check for matching bytes unless source is too short which is no match
+    if (bytes.length >= pMatchBytes.length){    
+        for (int i=0; i<pMatchBytes.length; i++){
+            if(bytes[i] != pMatchBytes[i]) {match = false; break;}        
+        }
+    }else{
+        return(pLine); //return line unchanged
+    }
+
+    if (!match){ return(pLine); } //return line changed
+    
+    byte[] trimmed;
+        
+    trimmed = new byte[bytes.length - pMatchBytes.length];
+
+    System.arraycopy(bytes, pMatchBytes.length,
+                         trimmed, 0, bytes.length - pMatchBytes.length);
+
+    pWasTrimmed.set(true);
+        
+    //return the byte array as a string
+    try{return(new String(trimmed, pLineFormat));}
+    catch(UnsupportedEncodingException e){
+        return("");
+    }        
+
+}//end of UTF16LEToUTF8Converter::checkForByteMatchAndRemoveBytes
+//-----------------------------------------------------------------------------
+    
+//-----------------------------------------------------------------------------
+// UTF16LEToUTF8Converter::removeBeginningCharacters
+//
+// Removes pCount number of characters from the beginning of pString and
+// returns the result.
+//
+
+private String removeBeginningCharacters(String pString, int pCount)
+{
+
+    return(pString.substring(pCount));
+    
+}//end of UTF16LEToUTF8Converter::removeBeginningCharacters
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTF16LEToUTF8Converter::compareFileLastLines
+//
+// The last non-blank line of each file, pOldFile and pTempFile, are compared
+// to determine if the latter is most likely a successfully converted version
+// of the former.
+//
+// Since converted files have Windows flags and format specific identifier
+// lines stripped out, a line-for-line comparison with the original file is not
+// possible. In lieu of this, comparing only the last non-blank lines is used
+// as a reasonable test.
 //
 // If both are normal files (not directories), the two are compared, taking
-// into account that the old file is in format UTF-16LE with header info and
-// the new file is in format UTF-8 without the header info.
-//
-// The files are compared line for line, ignoring header lines in the old file.
-// The old file must have the header lines and the new file cannot have extra
-// lines.
+// into account that the old file and new files may have different formats.
 //
 // If the two contain identical information and there are no errors, the
 // function returns true.  A failed comparison is thus considered to be an
@@ -269,7 +432,7 @@ protected boolean convertFile(String pOldFile, String pTempFile)
 //
 
 @Override
-protected boolean compareFile(String pOldFile, String pTempFile)
+protected boolean compareFileLastLines(String pOldFile, String pTempFile)
 {
 
     boolean compareGood = true;
@@ -293,7 +456,6 @@ protected boolean compareFile(String pOldFile, String pTempFile)
         return(compareGood);
     }
 
-
     //make sure old file is a normal file
     if (!oldFile.isFile()){
         logFile.log("Compare fail - old file is not a normal file.");
@@ -306,27 +468,14 @@ protected boolean compareFile(String pOldFile, String pTempFile)
         compareGood = false; return(compareGood);
     }
 
-    boolean result;
-
+    String detectedFileFormat;
+    AtomicBoolean containsWindowsFlags = new AtomicBoolean(false);
+    
     try{
-        result = IniFile.detectUTF16LEFormat(pOldFile);
+        detectedFileFormat = detectFileFormat(pOldFile, containsWindowsFlags);
     }
     catch(IOException e){
-        result = false;
-    }
-
-    //if the old file is not of the old style format, fail compare
-    if(!result){
-        logFile.log("Compare fail - old file is not in UTF-16LE format.");
-        compareGood = false; return(compareGood);
-    }
-
-    boolean ignoreFormatTypeEntry = false;
-
-    //for config files, add a line specifying the new format of UTF-8 when
-    //the proper section is reached
-    if (pOldFile.contains("configurations") && pOldFile.endsWith("config")) {
-        ignoreFormatTypeEntry = true;
+        detectedFileFormat = newFormat; //try default on error
     }
 
     FileInputStream oldInputStream = null;
@@ -337,71 +486,35 @@ protected boolean compareFile(String pOldFile, String pTempFile)
     InputStreamReader newInputStreamReader = null;
     BufferedReader newIn = null;
 
-    boolean firstNonBlankLineReached = false;
-
     try{
 
-        //open the old UTF-16LE format file for reading
+        //open the old format file for reading
         oldInputStream = new FileInputStream(pOldFile);
-        oldInputStreamReader = new InputStreamReader(oldInputStream, "UTF-16LE");
+        oldInputStreamReader = 
+                    new InputStreamReader(oldInputStream, detectedFileFormat);
         oldIn = new BufferedReader(oldInputStreamReader);
 
-        //open the new UTF-8 format file for reading
+        //open the new format file for reading
         newInputStream = new FileInputStream(pTempFile);
-        newInputStreamReader = new InputStreamReader(newInputStream, "UTF-8");
+        newInputStreamReader = new InputStreamReader(newInputStream, newFormat);
         newIn = new BufferedReader(newInputStreamReader);
 
-        String oldLine, newLine;
+        String line, oldLine="old", newLine="new";
 
-        //read lines from the old UTF-16LE file until end reached
+        //read all lines from each to obtain the last line in each file
 
-        while ((oldLine = oldIn.readLine()) != null){
-
-            //set flag when first non-blank line reached (the first blank line
-            //actually contains a code byte left over from the UTF-16LE format
-            //so look for a line with length > 1)
-            if(oldLine.length() > 1) {firstNonBlankLineReached = true;}
-
-            //toss all blank lines and the explanation lines at the beginning
-            //the old UTF-16LE files had an explanation header -- these will
-            //not be present in the new UTF-8 file
-
-            if (!firstNonBlankLineReached) {continue;}
-            if (oldLine.startsWith(";Do not erase")) {continue;}
-            if (oldLine.startsWith(";To make a new")) {continue;}
-
-            //read line from the new version to compare
-            newLine = newIn.readLine();
-
-            //for applicable files, ignore the format entry which was added
-            //to the new file by the convertFile method
-            if (ignoreFormatTypeEntry &&
-                            newLine.startsWith("Job File Format=UTF-8")){
-                newLine = newIn.readLine();
+        while ((line = oldIn.readLine()) != null){
+                if(!line.isEmpty()){ oldLine = line; }
             }
 
-            //if end of new file reached too soon, fail compare
-            if (newLine == null){
-                logFile.log("Compare fail - temp file is shorter.");
-                compareGood = false; return(compareGood);
+        while ((line = newIn.readLine()) != null){
+                if(!line.isEmpty()){ newLine = line; }
             }
-
-            //if lines don't match, then exit with error
-            if (!oldLine.equals(newLine)){
-                logFile.log("Compare fail - lines don't match.");
-                compareGood = false; return(compareGood);
-            }
-
-        }//while...
-
-        //try to read one more line from new file -- this should fail unless
-        //the new file has extra lines
-        newLine = newIn.readLine();
-
-        //if end of new file not reached, fail compare
-        if (newLine != null){
-            logFile.log("Compare fail - temp file is longer.");
-            compareGood = false;
+                
+        //if lines don't match, then exit with error
+        if (!oldLine.equals(newLine)){
+            logFile.log("Compare fail - lines don't match.");
+            compareGood = false; return(compareGood);
         }
 
     }//try
@@ -445,7 +558,114 @@ protected boolean compareFile(String pOldFile, String pTempFile)
 
     return(compareGood);
 
-}//end of UTF16LEToUTF8Converter::compareFile
+}//end of UTF16LEToUTF8Converter::compareFileLastLines
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTF16LEToUTF8Converter::detectFileFormat
+//
+// Determines the file format of the specified file as ANSI, UTF-8, UTF-16LE,
+// or UTF-16BE by checking the first few bytes for flags stored by Windows
+// or by looking at the zero value arrangement if the file has no flags and
+// was created by Java or similar.
+//
+// Returns the appropriate file format string.
+//
+// Returns newFormat if file not found.
+//
+// Regardless of the format detected, pContainsWindowsFlags is set true if
+// the file contains Window's format identifier flags at the beginning of the
+// file. The calling function can use this flag to determine if the flags
+// need to be stripped even if the format is the preferred format.
+//
+// Throws IOException on I/O error.
+//
+// See top of this file for details on the different formats and the flags
+// Window's uses for its identification purposes.
+//
+
+static public String detectFileFormat(String pFilename,
+                        AtomicBoolean pContainsWindowsFlags) throws IOException
+{
+
+    byte [] data = new byte[10];
+    for(int i=0; i<data.length; i++){ data[i] = (byte)0xff; }
+    
+    FileInputStream in = null;
+
+    try {
+
+        in = new FileInputStream(pFilename);
+
+        //even though an int is used here, only one byte at a time is loaded
+        int c, i=0;
+
+        //read in up to 10 bytes
+        while (((c = in.read()) != -1) && (i<data.length) ) {
+            
+            data[i++] = (byte) c;
+            
+        }
+
+    }//try
+    catch (FileNotFoundException e){
+        return(newFormat);
+    }//catch
+    catch(IOException e){
+        throw new IOException(e.getMessage() + " - Error: 1089");
+    }
+    finally {
+        if (in != null) {
+            try{
+                in.close();
+            }
+            catch(IOException e){
+                throw new IOException(e.getMessage() + " - Error: 1097");
+            }
+        }//if (in...
+    }//finally
+    
+    //if format determined by detecting Window's flags, set flag true and
+    //return
+    
+    if (data[0]==UTF8_FLAG1 && data[1]==UTF8_FLAG2 && data[2]==UTF8_FLAG3){
+        pContainsWindowsFlags.set(true);
+        return("UTF-8");
+    }
+
+    if (data[0]==UTF16LE_FLAG1 && data[1]==UTF16LE_FLAG2){
+        pContainsWindowsFlags.set(true);        
+        return("UTF-16LE");
+    }
+    
+    if (data[0]==UTF16BE_FLAG1 && data[1]==UTF16BE_FLAG2){
+        pContainsWindowsFlags.set(true);        
+        return("UTF-16BE");
+    }
+
+    //look for zero as first or second byte of first character -- probably
+    //UTF-16LE or UTF-16BE if found, but if first character is an extended
+    //character then it might not have a zero so the test will fail
+    //all files saved by this program would have had a non-extended character
+    //at the beginning, so the test should be valid
+    
+    //if second byte is a zero, probably MSB of UTF-16LE character
+    if (data[1]== 0){
+        return("UTF-16LE");
+    }
+    
+    //if first byte is a zero, probably MSB of UTF-16BE character
+    if (data[0]== 0){
+        return("UTF-16BE");
+    }
+
+    //files that fail the above tests could be ANSI or UTF-8
+    //no ANSI files were ever used by this program, so must be UTF-8
+    //empty files without format flags will end up here as well
+    
+    return("UTF-8");
+    
+}//end of UTF16LEToUTF8Converter::detectFileFormat
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

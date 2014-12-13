@@ -43,6 +43,7 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -235,6 +236,8 @@ class MainWindow implements WindowListener, ActionListener, ChangeListener,
 
     static final int ERROR_LOG_MAX_SIZE = 10000;
 
+    private static final String FILE_FORMAT = "UTF-8";
+    
 //-----------------------------------------------------------------------------
 // MainWindow::MainWindow (constructor)
 //
@@ -277,7 +280,7 @@ public void init()
 
     //convert all config files from UTF-16LE to UTF-8 format
     //(this does not convert files already in use in the job folders)
-    UTF16LEToUTF8Converter converter = new UTF16LEToUTF8Converter();
+    UTF16LEToUTF8Converter converter = new UTF16LEToUTF8Converter(FILE_FORMAT);
     converter.init();
 
     settings = new Settings(this, this);
@@ -656,6 +659,9 @@ private void saveMainSettings()
 // config file is passed to each child object to allow them to load their own
 // config data.
 //
+// Older versions have used other file formats, so when a job is loaded the
+// file format is set to that of the configuration file for that job.
+//
 
 private void configure()
 {
@@ -663,23 +669,24 @@ private void configure()
     String configFilename = settings.currentJobPrimaryPath + "01 - " +
                                 settings.currentJobName + " Configuration.ini";
 
-    boolean result;
+    String detectedFileFormat;
 
+    AtomicBoolean containsWindowsFlags = new AtomicBoolean(false); 
+    
     try{
-        result = IniFile.detectUTF16LEFormat(configFilename);
+        detectedFileFormat = UTF16LEToUTF8Converter.detectFileFormat(
+                                        configFilename, containsWindowsFlags);
     }
     catch(IOException e){
         logSevere(e.getMessage());
-        //on error while trying to determine format, try UTF-8
-        result = false;
+        //on error while trying to determine format, try default
+        detectedFileFormat = FILE_FORMAT;
     }
 
-    if(result) {
-        settings.jobFileFormat = "UTF-16LE";
-    }
-    else {
-        settings.jobFileFormat = "UTF-8";
-    }
+    // see notes in IniFile.detectUTF16LEFormat method for explanation of
+    //UTF-16LE/UTF-8/Windows ANSI/Windows UTF-8/Windows Unicode issues
+        
+    settings.jobFileFormat = detectedFileFormat;
 
     IniFile configFile;
 

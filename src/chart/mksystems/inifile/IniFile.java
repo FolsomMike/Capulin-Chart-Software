@@ -308,7 +308,7 @@ public class IniFile extends Object{
     private boolean modified;
 
     DecimalFormat[] DecimalFormats;
-
+    
 //-----------------------------------------------------------------------------
 // IniFile::IniFile (constructor)
 //
@@ -377,10 +377,10 @@ public void init() throws IOException
         //if an existing file was not found, add some header info to the buffer
         //so it will be saved when the file is created
         buffer.add("");
-        buffer.add(";Do not erase blank line above -"
-                   + " has hidden code needed by UTF-16 files.");
-        buffer.add(";To make a new file, copy an existing ini file and change"
-                   + " only data below this line.");
+        buffer.add(";Do not erase the blank line above -"
+             + " it starts with a hidden flag needed by Windows Notepad to");
+        buffer.add(";discern between ANSI, UTF-8, UTF-16LE (Unicode), "
+             + "and UTF-16BE (Unicode big endian).");
         buffer.add("");
 
     }
@@ -446,6 +446,48 @@ public void save()
     }
 
 }//end of IniFile::save
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// IniFile::setFileFormatAndSave
+//
+// Sets the file format to pFileFormat and saves the file using that format.
+// All future saves using save() will use that format until it is changed
+// again.
+//
+
+public void setFileFormatAndSave(String pFileFormat)
+{
+
+    fileFormat = pFileFormat;
+    
+    save();
+    
+}//end of IniFile::setFileFormatAndSave
+//-----------------------------------------------------------------------------
+    
+//-----------------------------------------------------------------------------
+// IniFile::removeAllLinesWhichStartsWith
+//
+// Deletes any line which starts with pPrefix
+//
+
+public void removeAllLinesWhichStartsWith(String pPrefix)
+{
+    
+    ListIterator i;
+
+    //write each line in the buffer to the file
+
+    for (i = buffer.listIterator(); i.hasNext(); ){
+
+        if (((String)i.next()).startsWith(pPrefix)){
+            i.remove();
+        }
+        
+    }
+
+}//end of IniFile::removeAllLinesWhichStartsWith
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -945,70 +987,6 @@ public void writeString(String pSection, String pKey, String pValue)
     writeValue(pSection, pKey, newEntry);
 
 }//end of IniFile::writeString
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// IniFile::detectUTF16LEFormat
-//
-// Determines if the specified file is a UTF-16LE file created by this program,
-// in which case it will have a readily identifiable header string which can
-// be read in UTF-16LE format.
-//
-// Returns true if file was created in UTF-16LE format, false if otherwise.
-//
-// Throws IOException if the file is not found or on I/O error.
-//
-
-static public boolean detectUTF16LEFormat(String pFilename) throws IOException
-{
-
-    FileInputStream fileInputStream = null;
-    InputStreamReader inputStreamReader = null;
-    BufferedReader in = null;
-
-    try{
-
-        fileInputStream = new FileInputStream(pFilename);
-
-        inputStreamReader = new InputStreamReader(fileInputStream, "UTF-16LE");
-
-        in = new BufferedReader(inputStreamReader);
-
-        int i = 0;
-
-        String line;
-
-        //read until header line found, max lines read, or end of file reached
-
-        while ((line = in.readLine()) != null){
-
-            //return true if the header line used in UTF-16LE files is found
-            if (line.startsWith(";Do not erase")) {return(true);}
-            //return false if header line not found near beginning
-            if (i++ >= 5) {return(false);}
-
-        }//while...
-
-        //return false if header line not found before EOF reached
-        return(false);
-
-    }//try
-    catch (FileNotFoundException e){
-        return(false);
-    }//catch
-    catch(IOException e){
-        throw new IOException(e.getMessage() + " - Error: 956");
-    }//catch
-    finally{
-        try{if (in != null) {in.close();}}
-            catch(IOException e){}
-        try{if (inputStreamReader != null) {inputStreamReader.close();}}
-            catch(IOException e){}
-        try{if (fileInputStream != null) {fileInputStream.close();}}
-            catch(IOException e){}
-    }//finally
-
-}//end of IniFile::detectUTF16LEFormat
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

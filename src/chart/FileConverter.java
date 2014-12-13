@@ -138,6 +138,8 @@ public abstract class FileConverter extends Object {
     LogFile logFile;
     boolean processGood = true;
 
+    static String newFormat = "UTF-8";    
+    
     String tempFileSuffix;
     String logFileName;
     String conversionCompletedFlagFileName;
@@ -187,7 +189,7 @@ protected void init()
     logFile.section();
 
     //convert all the different file combinations
-    logFile.log("Converting files:");
+    logFile.log("Converting files to " + newFormat + ":");
     logFile.log(""); // blank line
 
     for (int x = 0; x < pathList.length; x++){
@@ -196,29 +198,14 @@ protected void init()
     }
 
     //verify all the converted files, delete old version, rename new to old
+    //do clean up even if no files were converted in order to clean up after
+    //past failed attempts
+    
     logFile.log("Validating conversions and cleaning up:");
     logFile.log(""); // blank line
 
     for (int x = 0; x < pathList.length; x++){
         if (!compareFilesAndCleanUp(extList[x], pathList[x])) {
-            processGood = false;
-        }
-        logFile.log(""); //log a blank line between each path/ext group
-    }
-
-    //Sometimes the new version file will be left hanging after the old file
-    //has been deleted -- if this happens on a prior conversion attempt, the
-    //file name won't be found since only the temp file name exists. To catch
-    //these orphans, rerun compareFilesAndCleanUp looking for any files with
-    //the tempFileSuffix appended.  The method compareFilesAndCleanUp will
-    //automatically remove the suffix if it exists so the function can operate
-    //as normal -- expecting the files found to be without the suffix.
-
-    logFile.log("Validating conversions and cleaning up orphans:");
-    logFile.log(""); // blank line
-
-    for (int x = 0; x < pathList.length; x++){
-        if (!compareFilesAndCleanUp(extList[x] + tempFileSuffix, pathList[x])) {
             processGood = false;
         }
         logFile.log(""); //log a blank line between each path/ext group
@@ -294,8 +281,9 @@ private boolean convertFiles(String pExtension, String pPath)
 //-----------------------------------------------------------------------------
 // UTF16LEToUTF8Converter::compareFilesAndCleanUp
 //
-// The old UTF-16LE and the new UTF-8 versions for each file in the specified
-// folder with the specified extension are compared.
+// The old format and the new format versions for each file in the specified
+// folder with the specified extension are compared. Only the last non-blank 
+// lines are actually compared -- see compareFileLastLines for more expanation.
 //
 // For each set that match, the old version is deleted and the new version is
 // renamed to the name of the old version.  If the old version does not exist
@@ -303,36 +291,36 @@ private boolean convertFiles(String pExtension, String pPath)
 // temp file is simply renamed.
 //
 // It is expected that the new version of each file will have the same name
-// as the old version with " UTF-8" appended.
+// as the old version with the name of the new format appended (" UTF-8,
+// UTF-16LE, etc).
 //
-// Returns true if all files are identical, false if one or more are not
-// identical or if an error is encountered.
+// Returns true if the files are identical, false if not identical or if an
+// error is encountered.
 //
 
 private boolean compareFilesAndCleanUp(String pExtension, String pPath)
 {
 
-    File file;
     String oldFile, tempFile;
+    String tempFileExt = pExtension + tempFileSuffix;
     boolean compareFilesGood = true;
+    
 
     File jobDir = new File(pPath);
     //get a list of the files/folders in the directory
-    String[] files = jobDir.list(new MKSFilenameFilter(pExtension));
+    String[] files = jobDir.list(new MKSFilenameFilter(tempFileExt));
 
-    //if no files found, then do nothing -- this is not an error
+    //if no temp  files found, then do nothing -- this is not an error
     if (files == null){
-        logFile.log("No files found with extension '" + pExtension
-                + "' in folder '" + pPath + "'");
+        logFile.log("No temp files found with extension '" + tempFileExt
+         + "' in folder '" + pPath + "'");
         return(compareFilesGood);
     }
 
     for (int i = 0; i < files.length; i++){
 
-        //remove the tempFileSuffix if it is present -- this function is called
-        //with a list of suffixed files if temp files are orphaned after the
-        //old file is deleted -- removing the suffix allows the rest of the
-        //function to perform normally
+        //remove the tempFileSuffix in order to load old file version
+        
         if(files[i].endsWith(tempFileSuffix)){
            //strip off the suffix
            files[i] = files[i].substring(0,
@@ -345,7 +333,7 @@ private boolean compareFilesAndCleanUp(String pExtension, String pPath)
         //the new and old versions have identical content, then delete the old
         //version and rename the new version with the old filename
 
-        if (compareFile(oldFile, tempFile)){
+        if (compareFileLastLines(oldFile, tempFile)){
             if (deleteOldRenameNew(oldFile, tempFile) == false) {
                 compareFilesGood = false;
             }
@@ -402,6 +390,9 @@ protected boolean deleteOldRenameNew(String pOldFile, String pTempFile)
             cleanUpGood = false;
             return(cleanUpGood);
         }
+    }else{     
+        logFile.log(
+        "Old file does not exist, temp file renamed to replace it: " + oldFile);        
     }
 
     //if old file successfully deleted, rename new file to old name
@@ -435,20 +426,23 @@ protected abstract boolean convertFile(String pOldFile, String pTempFile);
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// FileConverter::compareFile
+// FileConverter::compareFileLastLines
 //
 // This file must be implemented by the subclass.  The implementation should
-// compare pOldFile with pTempFile taking into account any conversion changes.
+// compare the last line of pOldFile with pTempFile taking into account that
+// each file might be of a different format.
+//
 // The old version should not be deleted in this method.
 //
-// Should return true if files are identical in content and there is no error,
-// false on error.  If the files are not identical, it is considered and error.
+// Should return true if last lines are identical in content and there is no
+// error, false if lines are not identical or on encountering an error.
 //
 
-protected abstract boolean compareFile(String pOldFile, String pTempFile);
+protected abstract boolean compareFileLastLines(
+                                            String pOldFile, String pTempFile);
 
 
-//end of FileConverter::compareFile
+//end of FileConverter::compareFileLastLines
 //-----------------------------------------------------------------------------
 
 
