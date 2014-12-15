@@ -41,6 +41,7 @@ class CopyPreset extends JDialog implements ActionListener{
     Xfer xfer;
     String primaryDataPath, backupDataPath;
     String currentJobName;
+    String jobFileFormat;
 
 //-----------------------------------------------------------------------------
 // CopyPreset::CopyPreset (constructor)
@@ -48,7 +49,8 @@ class CopyPreset extends JDialog implements ActionListener{
 //
 
 public CopyPreset(JFrame pFrame, String pPrimaryDataPath,
-                     String pBackupDataPath, Xfer pXfer, String pCurrentJobName)
+                     String pBackupDataPath, Xfer pXfer, String pCurrentJobName,
+                     String pJobFileFormat)
 {
 
     super(pFrame, "Choose Job From Which to Copy Calibrations");
@@ -57,6 +59,7 @@ public CopyPreset(JFrame pFrame, String pPrimaryDataPath,
     primaryDataPath = pPrimaryDataPath; backupDataPath = pBackupDataPath;
     xfer = pXfer;
     currentJobName = pCurrentJobName;
+    jobFileFormat = pJobFileFormat;
 
 }//end of CopyPreset::CopyPreset (constructor)
 //-----------------------------------------------------------------------------
@@ -241,6 +244,11 @@ boolean copySelectedPreset()
 
     }
 
+    //if preset copied from an older job, it might not have the same file
+    //format as the current job, so convert it if necessary
+
+    convertJobIniFilesToCurrentFormat(primaryDataPath + currentJobName);
+    
     //signal the class which invoked this window that user has acted and pass
     //back the name of the file/folder acted on
 
@@ -295,6 +303,33 @@ boolean copyFile(String pSource, String pDest)
     return(true);
 
 }//end of CopyPreset::copyFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// CopyPreset::convertJobIniFilesToCurrentFormat
+//
+// Converts all ini files in the current primary job path to the job's
+// file format.
+//
+
+void convertJobIniFilesToCurrentFormat(String pPath)
+{
+
+    String [] pathList = new String[1];
+    String [] extList = new String[1];
+
+    //add path/extension to convert the calibration.ini file
+    //this will actually attempt to convert all ini files in the folder
+
+    pathList[0] = pPath;
+    extList[0] = "ini";
+
+    String logFilePath = pPath + File.separator;
+    
+    FileFormatConverter converter = new FileFormatConverter(jobFileFormat);
+    converter.init(pathList, extList, logFilePath);
+
+}//end of CopyPreset::convertJobIniFilesToCurrentFormat
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

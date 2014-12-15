@@ -160,11 +160,6 @@ public FileFormatConverter(String pNewFormat)
 public void init()
 {
 
-    tempFileSuffix = " " + newFormat;
-    logFileName = "File Format Conversion Log.txt";
-    conversionCompletedFlagFileName = 
-                    "Config and Ini Files Have Been Converted To " + newFormat;
-
     pathList = new String[NUMBER_OF_FILE_PATH_EXTENSION_COMBINATIONS];
     extList = new String[NUMBER_OF_FILE_PATH_EXTENSION_COMBINATIONS];
 
@@ -176,6 +171,44 @@ public void init()
     pathList[0] = "."; extList[0] = "ini"; //files in root folder
     pathList[1] = "presets"; extList[1] = "preset"; //files in preset folder
     pathList[2] = "configurations"; extList[2] = "config"; //in config folder
+
+    //call the parent class to perform the conversion
+    super.init();
+
+}//end of FileFormatConverter::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// FileFormatConverter::init
+//
+// Initializes the object.  MUST be called after instantiation.
+//
+// This method also performs the conversion operation.
+//
+// This version of init allows the path and extension lists to be supplied.
+// The paths specified in pPathList will be searched for files having the
+// extension in pExtList at the same index in the array as the path is
+// located in the pPathList.
+//
+// A log file documenting the conversion will be stored as pLogFilename.
+//
+// To process multiple extensions in a singe path, the path should be added
+// to the path list multiple times with each different extension added to the
+// extension list at the corresponding index. Exampe:
+//
+//    pathList[0] = "test"; extList[0] = "ini";  //ini files test folder
+//    pathList[1] = "test2"; extList[1] = "ini"; //ini files in test2 folder
+//    pathList[2] = "test2"; extList[2] = "txt"; //txt files in test2 folder
+//
+// See init() for more information.
+//
+
+public void init(String[] pPathList, String[] pExtList, String pLogFilePath)
+{
+
+    pathList = pPathList; extList = pExtList;
+    
+    logFilePath = pLogFilePath;
 
     //call the parent class to perform the conversion
     super.init();

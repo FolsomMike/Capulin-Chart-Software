@@ -137,11 +137,13 @@ public abstract class FileConverter extends Object {
 
     LogFile logFile;
     boolean processGood = true;
+    
+    String logFilePath = "";
 
     static String newFormat = "UTF-8";    
     
     String tempFileSuffix;
-    String logFileName;
+    String logFilename;
     String conversionCompletedFlagFileName;
 
     String[] pathList;
@@ -175,6 +177,11 @@ public FileConverter()
 protected void init()
 {
 
+    tempFileSuffix = " " + newFormat;
+    logFilename = logFilePath + "File Format Conversion Log.txt";
+    conversionCompletedFlagFileName = 
+       logFilePath + "Config and Ini Files Have Been Converted To " + newFormat;
+        
     processGood = true;
 
     //if the already converted flag file exists, exit without converting as the
@@ -185,7 +192,7 @@ protected void init()
 
     //track all changes in a log file
     logFile = new LogFile();
-    logFile.init(logFileName);
+    logFile.init(logFilename);
     logFile.section();
 
     //convert all the different file combinations

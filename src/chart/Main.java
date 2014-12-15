@@ -278,7 +278,7 @@ public void init()
     decimalFormats = new DecimalFormat[1];
     decimalFormats[0] = new  DecimalFormat("0000000");
 
-    //convert all config files from UTF-16LE to UTF-8 format
+    //convert all ini and config files from old formats to the current format
     //(this does not convert files already in use in the job folders)
     FileFormatConverter converter = new FileFormatConverter(FILE_FORMAT);
     converter.init();
@@ -1917,7 +1917,8 @@ public void copyPreset()
     saveEverything(); //save all data
 
     CopyPreset copyPreset = new CopyPreset(mainFrame, settings.primaryDataPath,
-                        settings.backupDataPath, xfer, settings.currentJobName);
+                        settings.backupDataPath, xfer, settings.currentJobName,
+                        settings.jobFileFormat);
 
     copyPreset.init(); //initialize and to the actual work
 
