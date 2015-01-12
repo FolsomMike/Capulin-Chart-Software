@@ -1620,6 +1620,23 @@ public void pulseAudibleAlarm()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Capulin1::pulseAlarmMarker
+//
+// Pulses the alarm/marker output specified by pChannel.
+//
+
+@Override
+public void pulseAlarmMarker(int pChannel)
+{
+
+    if (audibleAlarmController != null){
+            audibleAlarmController.pulseAlarmMarker(pChannel);
+        }
+
+}//end of Capulin1::pulseAlarmMarker
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Capulin1::turnOnAudibleAlarm
 //
 // Turns on the audible alarm.

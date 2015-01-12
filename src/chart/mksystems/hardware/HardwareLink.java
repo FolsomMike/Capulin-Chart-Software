@@ -74,6 +74,8 @@ void zeroEncoderCounts();
 
 void pulseAudibleAlarm();
 
+void pulseAlarmMarker(int pChannel);
+
 void turnOnAudibleAlarm();
 
 void turnOffAudibleAlarm();

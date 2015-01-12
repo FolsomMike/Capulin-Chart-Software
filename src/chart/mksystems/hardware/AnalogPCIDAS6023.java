@@ -247,6 +247,19 @@ public void pulseAudibleAlarm()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// AnalogPCIDAS6023::pulseAlarmMarker
+//
+// Pulses the maker/alarm output specified by pChannel
+//
+
+@Override
+public void pulseAlarmMarker(int pChannel)
+{
+
+}//end of AnalogPCIDAS6023::pulseAlarmMarker
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // AnalogPCIDAS6023::turnOnAudibleAlarm
 //
 // Turns on the audible alarm.

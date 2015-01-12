@@ -56,6 +56,7 @@ public class Threshold extends Object{
 
     public int thresholdLevel;
     int plotThresholdLevel;
+    public int alarmChannel;
     boolean invert;
 
     // references to point at the controls used to adjust the values - these
@@ -113,6 +114,8 @@ private void configure(IniFile pConfigFile)
 
     thresholdLevel = pConfigFile.readInt(section, "Default Level", 50);
 
+    alarmChannel = pConfigFile.readInt(section, "Alarm Channel", 0);
+    
 }//end of Threshold::configure
 //-----------------------------------------------------------------------------
 

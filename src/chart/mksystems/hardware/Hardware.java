@@ -640,17 +640,17 @@ public void zeroEncoderCounts()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Hardware::pulseAudibleAlarm
+// Hardware::pulseAlarmMarker
 //
-// Pulses the audible alarm.
+// Pulses the alarm/marker output specified by pChannel.
 //
 
-public void pulseAudibleAlarm()
+public void pulseAlarmMarker(int pChannel)
 {
 
-    analogDriver.pulseAudibleAlarm();
+    analogDriver.pulseAlarmMarker(pChannel);
 
-}//end of Hardware::pulseAudibleAlarm
+}//end of Hardware::pulseAlarmMarker
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1764,7 +1764,8 @@ public void startMarker(UTGate pGatePtr, int pWhichThreshold)
 
     if (pGatePtr.thresholds[pWhichThreshold].okToMark
                                                 || markerMode == CONTINUOUS){
-        pulseAudibleAlarm(); //fire the marker
+         //fire the alarm/marker output
+        pulseAlarmMarker(pGatePtr.thresholds[pWhichThreshold].alarmChannel);
     }
 
     pGatePtr.thresholds[pWhichThreshold].okToMark = false;

@@ -189,6 +189,22 @@ public void pulseAudibleAlarm()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// EthernetIOModules::pulseAlarmMarker
+//
+// Pulses the relay which fires the alarm/marker specified by pChannel for one
+/// second.
+//
+
+@Override
+public void pulseAlarmMarker(int pChannel)
+{
+    
+    pulseRelay(pChannel, audibleAlarmPulseDuration);
+
+}//end of EthernetIOModules::pulseAlarmMarker
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // EthernetIOModules::isAudibleAlarmController
 //
 // Returns audibleAlarmController.

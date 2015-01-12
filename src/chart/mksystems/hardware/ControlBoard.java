@@ -941,6 +941,22 @@ public void pulseAudibleAlarm()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ControlBoard::pulseAlarmMarker
+//
+// Pulses the output specified by pChannel which fires the output for one
+// second.
+//
+
+@Override
+public void pulseAlarmMarker(int pChannel)
+{
+
+    pulseOutput(pChannel);
+
+}//end of ControlBoard::pulseAlarmMarker
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ControlBoard::isAudibleAlarmController
 //
 // Returns audibleAlarmController.

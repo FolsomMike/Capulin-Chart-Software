@@ -29,6 +29,7 @@ public interface AudibleAlarmController {
 
     public boolean isAudibleAlarmController();
     public void pulseAudibleAlarm();
+    public void pulseAlarmMarker(int pChannel);
     public void turnOnAudibleAlarm();
     public void turnOffAudibleAlarm();
 
