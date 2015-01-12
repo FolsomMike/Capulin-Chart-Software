@@ -148,6 +148,8 @@ public abstract class FileConverter extends Object {
 
     String[] pathList;
     String[] extList;
+    
+    boolean convertEvenIfPreviouslyConverted = false;
 
 //-----------------------------------------------------------------------------
 // FileConverter::FileConverter (constructor)
@@ -186,9 +188,14 @@ protected void init()
 
     //if the already converted flag file exists, exit without converting as the
     //files have already been converted
+    //ignore this check if convertEvenIfPreviouslyConverted is true
 
-    File file = new File(conversionCompletedFlagFileName);
-    if (file.exists()) {return;}
+    File file;
+    
+    if (!convertEvenIfPreviouslyConverted){
+        file = new File(conversionCompletedFlagFileName);
+        if (file.exists()) {return;}
+    }
 
     //track all changes in a log file
     logFile = new LogFile();

@@ -163,6 +163,9 @@ public void init()
     pathList = new String[NUMBER_OF_FILE_PATH_EXTENSION_COMBINATIONS];
     extList = new String[NUMBER_OF_FILE_PATH_EXTENSION_COMBINATIONS];
 
+    //do not convert if the files have previously been converted
+    convertEvenIfPreviouslyConverted = false;
+    
     //add each path/extension combination to the lists
     //a path is listed repeatedly if multiple extensions targeted in that path
     //an extension is listed repeatedly if it is found in multiple paths
@@ -190,6 +193,9 @@ public void init()
 // extension in pExtList at the same index in the array as the path is
 // located in the pPathList.
 //
+// This version of init also allows caller to force conversion even if the
+// "files already converted" indicator file is present in the folder.
+//
 // A log file documenting the conversion will be stored as pLogFilename.
 //
 // To process multiple extensions in a singe path, the path should be added
@@ -203,12 +209,13 @@ public void init()
 // See init() for more information.
 //
 
-public void init(String[] pPathList, String[] pExtList, String pLogFilePath)
+public void init(String[] pPathList, String[] pExtList, String pLogFilePath,
+                                    boolean pConvertEvenIfPreviouslyConverted)
 {
 
     pathList = pPathList; extList = pExtList;
-    
-    logFilePath = pLogFilePath;
+    logFilePath = pLogFilePath; 
+    convertEvenIfPreviouslyConverted = pConvertEvenIfPreviouslyConverted;
 
     //call the parent class to perform the conversion
     super.init();

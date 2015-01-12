@@ -327,7 +327,12 @@ void convertJobIniFilesToCurrentFormat(String pPath)
     String logFilePath = pPath + File.separator;
     
     FileFormatConverter converter = new FileFormatConverter(jobFileFormat);
-    converter.init(pathList, extList, logFilePath);
+    
+    //pass true for convertEvenIfPreviouslyConverted to always convert even if
+    //a conversion has already been performed as the user may choose a preset
+    //more than once
+    
+    converter.init(pathList, extList, logFilePath, true);
 
 }//end of CopyPreset::convertJobIniFilesToCurrentFormat
 //-----------------------------------------------------------------------------
