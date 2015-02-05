@@ -59,6 +59,8 @@ public class Channel extends Object{
     public DACGate[] dacGates;
     public int numberOfDACGates;
 
+    public boolean freezeScopeWhenNotInFocus;
+    
     int scopeMax = 350;
 
     //used by the calibration window to store reference to the channel selectors
@@ -1984,6 +1986,16 @@ private void configure(IniFile pConfigFile)
     numberOfDACGates =
             pConfigFile.readInt(whichChannel, "Number Of DAC Gates", 10);
 
+    //This option controls whether the scope (AScan, etc.) is frozen when
+    //the Calibration Window is not in focus. For most channels, this should
+    //be true as the scope display requires excessive processing by the DSPs
+    //for the selected channel which will cause reduced rep rate. Some channels
+    //however are not as critical and it may be desired to monitor their scope
+    //signal at all times.
+    
+    freezeScopeWhenNotInFocus = pConfigFile.readBoolean(whichChannel, 
+                                    "Freeze Scope When Not in Focus", true);
+    
     //read the configuration file and create/setup the gates
     configureGates();
 

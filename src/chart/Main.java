@@ -140,14 +140,19 @@ public void run() {
 
             //if the calibration window is active, request aScan packets
             //thus, if the user clicks off the window, the AScan will freeze
-            if (calWindow.isActive()){
-
-                if (calWindow.channels[calWindow.currentChannelIndex] != null){
+            //if the currrently selected channel is configured to never freeze,
+            //then request aScan packets even if the window is not active
+            
+            if (calWindow.channels != null &&
+                    calWindow.channels[calWindow.currentChannelIndex] != null){
+            
+                if (calWindow.isActive() || 
+                       !calWindow.channels[calWindow.currentChannelIndex].
+                                                    freezeScopeWhenNotInFocus){
                     hardware.requestAScan(calWindow.
                          channels[calWindow.currentChannelIndex].channelIndex);
-                }
-
-            }// if (calWindow.isActive())
+                    }
+            }// if (calWindow.channels != null...
 
             hardware.sendDataChangesToRemotes();
 
