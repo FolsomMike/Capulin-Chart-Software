@@ -1,0 +1,47 @@
+
+--------------------------------------------------------------------
+Fri Jan 30 11:44:59 CST 2015
+
+Connecting With Chassis and Configuring
+
+Full list of Network Interfaces:
+    lo Software Loopback Interface 1
+        /127.0.0.1
+        /0:0:0:0:0:0:0:1
+    net0 WAN Miniport (SSTP)
+    net1 WAN Miniport (L2TP)
+    net2 WAN Miniport (PPTP)
+    ppp0 WAN Miniport (PPPOE)
+    eth0 WAN Miniport (IPv6)
+    eth1 WAN Miniport (Network Monitor)
+    eth2 WAN Miniport (IP)
+    ppp1 RAS Async Adapter
+    net3 WAN Miniport (IKEv2)
+    eth3 Broadcom NetXtreme 57xx Gigabit Controller
+        /fe80:0:0:0:5d59:3809:732c:60aa%eth3
+    wlan0 Intel(R) PRO/Wireless 3945ABG Network Connection
+        /192.168.1.118
+        /fe80:0:0:0:984c:5bdd:4b2e:48a7%wlan0
+    net4 Microsoft ISATAP Adapter
+        /fe80:0:0:0:0:5efe:c0a8:176%net4
+    net5 Microsoft ISATAP Adapter #2
+    wlan1 Intel(R) PRO/Wireless 3945ABG Network Connection-QoS Packet Scheduler-0000
+    eth4 Broadcom NetXtreme 57xx Gigabit Controller-QoS Packet Scheduler-0000
+    eth5 Broadcom NetXtreme 57xx Gigabit Controller-WFP LightWeight Filter-0000
+    eth6 WAN Miniport (Network Monitor)-QoS Packet Scheduler-0000
+    eth7 WAN Miniport (IP)-QoS Packet Scheduler-0000
+    eth8 WAN Miniport (IPv6)-QoS Packet Scheduler-0000
+    wlan2 Intel(R) PRO/Wireless 3945ABG Network Connection-Native WiFi Filter Driver-0000
+    wlan3 Intel(R) PRO/Wireless 3945ABG Network Connection-WFP LightWeight Filter-0000
+Broadcasting greeting to all Control boards...
+/169.254.1.1  Control Board present...
+Opening connection with Control board...
+Control Board IP Address: /169.254.1.1
+/169.254.1.1 says Hello from Control Board Simulator!
+Control /169.254.1.1 chassis & slot address: 0-0
+Control 0:0 is ready.
+All Control boards ready.
+Broadcasting greeting to all UT boards...
+
+Chassis configuration complete.
+

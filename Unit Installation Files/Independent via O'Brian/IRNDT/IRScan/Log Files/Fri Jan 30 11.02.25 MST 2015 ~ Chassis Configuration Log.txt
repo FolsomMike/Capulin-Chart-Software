@@ -1,0 +1,79 @@
+
+--------------------------------------------------------------------
+Fri Jan 30 11:02:14 MST 2015
+
+Connecting With Chassis and Configuring
+
+Full list of Network Interfaces:
+    lo Software Loopback Interface 1
+        /127.0.0.1
+        /0:0:0:0:0:0:0:1
+    net0 WAN Miniport (SSTP)
+    net1 WAN Miniport (L2TP)
+    net2 WAN Miniport (PPTP)
+    ppp0 WAN Miniport (PPPOE)
+    eth0 WAN Miniport (IPv6)
+    eth1 WAN Miniport (Network Monitor)
+    eth2 WAN Miniport (IP)
+    ppp1 RAS Async Adapter
+    net3 WAN Miniport (IKEv2)
+    net4 Bluetooth Device (RFCOMM Protocol TDI)
+    eth3 Bluetooth Device (Personal Area Network)
+        /fe80:0:0:0:6d87:3e1a:ea4b:d168%eth3
+    eth4 Realtek PCIe FE Family Controller
+        /fe80:0:0:0:a8cb:c70e:d9af:26df%eth4
+    wlan0 Intel(R) Centrino(R) Wireless-N 1030
+        /192.168.1.106
+        /fe80:0:0:0:e554:8b0:45ff:b695%wlan0
+    wlan1 Microsoft Virtual WiFi Miniport Adapter
+        /fe80:0:0:0:5075:30bc:e79f:498d%wlan1
+    wlan2 Microsoft Virtual WiFi Miniport Adapter #2
+        /fe80:0:0:0:9cb1:4d9e:4242:13a7%wlan2
+    eth5 Sierra Wireless HSPA Network Adapter
+    wlan3 NETGEAR WNA3100 N300 Wireless USB Adapter
+    wlan4 Microsoft Virtual WiFi Miniport Adapter #3
+    net5 Microsoft 6to4 Adapter
+    net6 Microsoft ISATAP Adapter
+    net7 Microsoft ISATAP Adapter #2
+    eth6 Remote NDIS based Internet Sharing Device
+    net8 Microsoft ISATAP Adapter #3
+        /fe80:0:0:0:0:5efe:c0a8:16a%net8
+    net9 Teredo Tunneling Pseudo-Interface
+        /2001:0:9d38:6ab8:24cd:3fa9:bc2e:2649
+        /fe80:0:0:0:24cd:3fa9:bc2e:2649%net9
+    net10 Microsoft ISATAP Adapter #4
+    net11 Microsoft ISATAP Adapter #7
+    net12 Microsoft ISATAP Adapter #5
+    eth7 Realtek PCIe FE Family Controller-QoS Packet Scheduler-0000
+    eth8 Realtek PCIe FE Family Controller-WFP LightWeight Filter-0000
+    wlan5 Intel(R) Centrino(R) Wireless-N 1030-Virtual WiFi Filter Driver-0000
+    wlan6 Intel(R) Centrino(R) Wireless-N 1030-QoS Packet Scheduler-0000
+    eth9 WAN Miniport (Network Monitor)-QoS Packet Scheduler-0000
+    eth10 WAN Miniport (IP)-QoS Packet Scheduler-0000
+    eth11 WAN Miniport (IPv6)-QoS Packet Scheduler-0000
+    wlan7 Intel(R) Centrino(R) Wireless-N 1030-Native WiFi Filter Driver-0000
+    wlan8 Intel(R) Centrino(R) Wireless-N 1030-WFP LightWeight Filter-0000
+    wlan9 Microsoft Virtual WiFi Miniport Adapter-Native WiFi Filter Driver-0000
+    wlan10 Microsoft Virtual WiFi Miniport Adapter-QoS Packet Scheduler-0000
+    wlan11 Microsoft Virtual WiFi Miniport Adapter-WFP LightWeight Filter-0000
+    wlan12 Microsoft Virtual WiFi Miniport Adapter #2-Native WiFi Filter Driver-0000
+    wlan13 Microsoft Virtual WiFi Miniport Adapter #2-QoS Packet Scheduler-0000
+    wlan14 Microsoft Virtual WiFi Miniport Adapter #2-WFP LightWeight Filter-0000
+
+Broadcasting greeting to all Control boards...
+/169.254.1.1  Control Board present...
+Opening connection with Control board...
+Control Board IP Address: /169.254.1.1
+/169.254.1.1 says Hello from Control Board Simulator!
+Control /169.254.1.1 chassis & slot address: 0-0
+Control 0:0 is ready.
+All Control boards ready.
+Broadcasting greeting to all UT boards...
+
+ 0 of 1 UT Boards responded.
+
+*** ERROR *** 1 UT Board(s) did not respond.
+
+
+Chassis configuration complete.
+

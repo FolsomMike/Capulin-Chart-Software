@@ -1,0 +1,128 @@
+Debugger Help
+-----------------------------------------------------------------------
+
+To view data, the "Sampling Enabled" button must be unchecked because
+the viewer and the sampling function of the FPGA both use the HPI bus.
+After viewing, the option should be checked again to allow data to
+be read into the DSPs from the A/D converters.
+
+The "DSPs Running" option actually places the DSPs into reset when
+unchecked. When it is checked again, the DSP code is restarted.
+
+NOTE: This erases all values which might have been set by the host.
+      Unchecking the "DSP Running" option is usually not helpful
+      except for special cases.
+
+
+-- MEMORY LOCATIONS --
+
+Each of the eight DSP cores runs its own program and has it own
+variable set.
+
+There are two DSP chips on each board (DSP1, DSP2) and four cores in
+each chip (Core A, Core B, Core C, Core D).
+
+Each chip has Local and Shared memory spaces with four pages to each
+(Page 0, Page 1, Page 2, Page 3).
+
+Note that some of the pages are actually shared (duplicated) between
+cores, so there is not actually eight pages of memory per core.
+
+The HPI bus is used by the debugger to read and write to the
+pages. The HPI bus cannot access every page of every core. 
+
+-- ADDRESSING --
+
+The starting points for the various data and code sections is defined
+in the source code's .cmd file.
+
+The offset locations for individual variables, vectors, or opcodes
+can be found in the assembler output .lst file.
+
+Add the offset to the section starting point to obtain the actual
+memory location.
+
+
+-- MAIN VARIABLES --
+
+Each core stores its main variable set on Local Page 0.
+
+0x80 is the staring point for the main variable set.
+
+0x81 is the heartbeat which is incremented regularly when the DSP is
+running. If the DSP is running, this value will change each time the
+"Display" button is clicked.
+
+The .lst assembler output file should be examined to determine the
+location of other variables. The offset address listed there should be
+added to 081h to find the actual location in memory.
+
+
+-- CODE and INTERRUPT VECTORS --
+
+Core A and Core B share the same code memory space on Shared Page 0.
+
+Core C and Core D share the same code memory space on Shared Page 0.
+
+The HPI bus can only view this page for Core A and Core C, but those
+are shared by Core B and Core D respectively and thus viewing the
+page for Core A is also viewing that for Core B, likewise for Core C
+and Core D.
+
+To view the code for Core A and Core B, choose either DSP1 or DSP2,
+then select "Core A / Shared / Page 0".
+
+To view the code for Core C and Core D, choose either DSP1 or DSP2,
+then select "Core C / Shared / Page 0".
+
+0x8000 is the starting point for the code.
+
+0xff80 is the starting point for the reset/interrupt vectors.
+
+-- BUFFERS FOR AD SAMPLES FROM FPGA --
+
+The FPGA stores the raw data samples in each core via the HPI bus.
+This data is packed two sample bytes per word.
+
+The DSP unpacks this data into a separate buffer which will be
+twice as long as the raw data buffer.
+
+If the "Sampling Enabled" option is checked, both of these buffers
+should show constantly changing data. Note that this option must
+be unchecked to view the data as the viewer must take control of
+the HPI bus. To view the changing data:
+
+  Uncheck the "Sampling Enabled" option.
+  View 0x4000 or 0x8000 on Local Page 0.
+  Repeatedly click "Sampling Enabled" option to refresh the data.
+
+
+0x4000 on Local Page 0 -- raw samples from FPGA
+0x8000 on Local Page 0 -- data unpacked by DSP
+
+
+-- ASCAN BUFFER --
+
+The DSP stores a compressed version of the data to send to the
+host for the AScan display.
+
+0x3700 on Local Page 0 -- AScan buffer
+
+
+-- SERIAL PORT BUFFERS -- 
+
+The DSP communicates with the FPGA, and thus with the Rabbit
+micro-controller and the host computer, via a serial port.
+
+All four cores share one serial port, so each must take and
+relinquish control of the port as needed.
+
+The data received and to be sent are stored in two different
+circular buffers.
+
+
+0x3000 on Local Page 0 -- circular buffer for serial port in data
+0x3500 on Local Page 0 -- circular buffer for serial port out data
+
+
+-----------------------------------------------------------------------
