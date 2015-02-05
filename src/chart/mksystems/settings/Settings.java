@@ -67,8 +67,11 @@ public class Settings extends Object implements ActionListener, ItemListener {
     public int mainWindowLocationX = 0;
     public int mainWindowLocationY = 0;
 
-    public int utCalWindowLocationX = 0;
-    public int utCalWindowLocationY = 0;
+    public int calWindowLocationX = 0;
+    public int calWindowLocationY = 0;
+
+    public int calWindowAltLocationX = 0;
+    public int calWindowAltLocationY = 0;
 
     public int numberOfChartGroups;
     public ChartGroup[] chartGroups;
@@ -301,6 +304,40 @@ public void setUTSettingsModifiedFlag(boolean pModified)
     optionsModified = true;
 
 }//end of Settings::setUTSettingsModifiedFlag
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Settings::setCalibrationWindowPrimaryLocation
+//
+// Sets the primary location for the Calibration Window. This location is
+// used to quickly move the window to a position where it is easily accessible
+// for adjustment of settings.
+//
+
+public void setCalibrationWindowPrimaryLocation(int pX, int pY)
+{
+
+    calWindowLocationX = pX;
+    calWindowLocationY = pY;
+
+}//end of Settings::setCalibrationWindowPrimaryLocation
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Settings::setCalibrationWindowAlternateLocation
+//
+// Sets the alternate location for the Calibration Window. This location is
+// used to quickly move the window to a position where it is out of the way
+// of the charts.
+//
+
+public void setCalibrationWindowAlternateLocation(int pX, int pY)
+{
+
+    calWindowAltLocationX = pX;
+    calWindowAltLocationY = pY;
+
+}//end of Settings::setCalibrationWindowAlternateLocation
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -557,6 +594,24 @@ public void actionPerformed(ActionEvent e)
                         startsWith("View Calibration Records")){
         actionListener.actionPerformed(new ActionEvent(this,
                     ActionEvent.ACTION_PERFORMED, "View Calibration Records"));
+        return;
+    }
+
+    //calls function in Main
+    if (source.getActionCommand().startsWith(
+                          "Set Primary Location for Calibration Window")){
+        actionListener.actionPerformed(new ActionEvent(this,
+                    ActionEvent.ACTION_PERFORMED, 
+                                "Set Primary Location for Calibration Window"));
+        return;
+    }
+        
+    //calls function in Main
+    if (source.getActionCommand().startsWith(
+                          "Set Alternate Location for Calibration Window")){
+        actionListener.actionPerformed(new ActionEvent(this,
+                    ActionEvent.ACTION_PERFORMED, 
+                    "Set Alternate Location for Calibration Window"));
         return;
     }
 

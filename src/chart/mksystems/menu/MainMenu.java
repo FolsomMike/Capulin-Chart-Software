@@ -71,11 +71,15 @@ public class MainMenu extends JMenuBar{
     JMenuItem createViewerPackage;
 
     JMenu optionsMenu, chartMenu, aScanMenu, reportOptionsMenu;
+    JMenu calWindowSettingsMenu;
     JCheckBoxMenuItem restartNewPieceAtLeftEdgeMenuCheck;
     JCheckBoxMenuItem showRedPeakLineInGateCenter;
     JCheckBoxMenuItem showRedPeakLineAtPeakLocation;
     JCheckBoxMenuItem showPseudoPeakAtPeakLocation;
     JCheckBoxMenuItem reportAllFlags;
+    
+    JMenuItem setPrimaryCalWindowPos, setAltCalWindowPos;
+    
 
     //JMenuItem languageMenu;
     //ButtonGroup languageGroup;
@@ -431,7 +435,7 @@ public MainMenu(Settings pSettings)
     //Options/Report Options Menu
     reportOptionsMenu = new JMenu("Report Options");
     reportOptionsMenu.setMnemonic(KeyEvent.VK_R);
-    aScanMenu.setToolTipText("Options used for printing reports.");
+    reportOptionsMenu.setToolTipText("Options used for printing reports.");
     optionsMenu.add(reportOptionsMenu);
 
     //Options/Report Options/Report All Flags
@@ -441,6 +445,35 @@ public MainMenu(Settings pSettings)
     reportAllFlags.addActionListener(settings);
     reportOptionsMenu.add(reportAllFlags);
 
+    //Options/Calibration Window Settings Menu
+    calWindowSettingsMenu = new JMenu("Calibration Window Settings");
+    calWindowSettingsMenu.setMnemonic(KeyEvent.VK_W);
+    calWindowSettingsMenu.setToolTipText(
+                                        "Settings for the Calibration Window.");
+    optionsMenu.add(calWindowSettingsMenu);
+
+    //Set Primary Calibration Window Position
+    setPrimaryCalWindowPos = new JMenuItem(
+                            "Set Primary Location for Calibration Window");
+    setPrimaryCalWindowPos.setMnemonic(KeyEvent.VK_P);
+    setPrimaryCalWindowPos.setToolTipText(
+                             "Set Primary Location for Calibration Window.");
+    setPrimaryCalWindowPos.setActionCommand(
+                            "Set Primary Location for Calibration Window");
+    setPrimaryCalWindowPos.addActionListener(settings);
+    calWindowSettingsMenu.add(setPrimaryCalWindowPos);    
+    
+    //Set Alternate Calibration Window Position
+    setAltCalWindowPos = new JMenuItem(
+                            "Set Alternate Location for Calibration Window");
+    setAltCalWindowPos.setMnemonic(KeyEvent.VK_A);
+    setAltCalWindowPos.setToolTipText(
+                             "Set Alternate Location for Calibration Window.");
+    setAltCalWindowPos.setActionCommand(
+                            "Set Alternate Location for Calibration Window");
+    setAltCalWindowPos.addActionListener(settings);
+    calWindowSettingsMenu.add(setAltCalWindowPos);
+    
     //Help menu
     helpMenu = new JMenu("Help");
     helpMenu.setMnemonic(KeyEvent.VK_H);

@@ -43,7 +43,7 @@ public class UTCalibrator extends JDialog implements ActionListener,
     JFrame frame;
     public Oscilloscope scope1;
     JPanel channelSelector, copyPanel;
-    JButton minMax, viewIP;
+    JButton minMax, moveToAltPos, viewIP;
     JToggleButton persist;
     Settings settings;
 
@@ -93,8 +93,7 @@ public void init()
     addComponentListener(this);
 
     //create red and black fonts for use with display objects
-    HashMap<TextAttribute, Object> map =
-                new HashMap<TextAttribute, Object>();
+    HashMap<TextAttribute, Object> map = new HashMap<>();
     blackFont = new Font("Dialog", Font.PLAIN, 12);
     map.put(TextAttribute.FOREGROUND, Color.RED);
     redFont = blackFont.deriveFont(map);
@@ -143,6 +142,15 @@ public void init()
     //add invisible filler to spread buttons
     alarms.add(Box.createVerticalGlue());
 
+    moveToAltPos = new JButton("Alt Loc");
+    moveToAltPos.setAlignmentX(Component.CENTER_ALIGNMENT);
+    moveToAltPos.addActionListener(this);
+    moveToAltPos.setActionCommand("Move to Alternate Location");
+    moveToAltPos.setToolTipText("Move this window to its alternate location.");
+    alarms.add(moveToAltPos);
+    
+    alarms.add(Box.createRigidArea(new Dimension(0,3))); //vertical spacer    
+    
     persist = new JToggleButton("Persist");
     persist.setAlignmentX(Component.CENTER_ALIGNMENT);
     persist.addActionListener(this);
@@ -175,7 +183,7 @@ public void init()
 
     contentPane.add(panel);
 
-    setLocation(settings.utCalWindowLocationX, settings.utCalWindowLocationY);
+    setLocation(settings.calWindowLocationX, settings.calWindowLocationY);
 
     pack();
 
@@ -1040,6 +1048,12 @@ if (e.getActionCommand().equals("Min / Max")){
     //adjust the size of the "Copy Items" window
     setCopyItemsWindowLocation();
     repaint();
+    return;
+    }
+
+//trap "Alt Loc" button to move the window to its alternate location
+if (e.getActionCommand().equals("Move to Alternate Location")){
+    setLocation(settings.calWindowAltLocationX, settings.calWindowAltLocationY);
     return;
     }
 

@@ -608,12 +608,18 @@ private void loadMainSettings()
     settings.mainWindowLocationY = configFile.readInt(
                             "Main Configuration", "Main Window Location Y", 0);
 
-    settings.utCalWindowLocationX = configFile.readInt(
-                   "Main Configuration", "UT Calibrator Window Location X", 0);
+    settings.calWindowLocationX = configFile.readInt(
+                   "Main Configuration", "Calibrator Window Location X", 0);
 
-    settings.utCalWindowLocationY = configFile.readInt(
-                   "Main Configuration", "UT Calibrator Window Location Y", 0);
+    settings.calWindowLocationY = configFile.readInt(
+                   "Main Configuration", "Calibrator Window Location Y", 0);
 
+    settings.calWindowAltLocationX = configFile.readInt(
+             "Main Configuration", "Calibrator Window Alternate Location X", 0);
+
+    settings.calWindowAltLocationY = configFile.readInt(
+             "Main Configuration", "Calibrator Window Alternate Location Y", 0);
+        
 }//end of MainWindow::loadMainSettings
 //-----------------------------------------------------------------------------
 
@@ -642,6 +648,18 @@ private void saveMainSettings()
     configFile.writeString("Main Configuration", "Current Work Order",
                                                       settings.currentJobName);
 
+    configFile.writeInt("Main Configuration", "Calibrator Window Location X",
+                                                  settings.calWindowLocationX);
+
+    configFile.writeInt("Main Configuration", "Calibrator Window Location Y",
+                                                   settings.calWindowLocationY);
+
+    configFile.writeInt("Main Configuration", 
+      "Calibrator Window Alternate Location X", settings.calWindowAltLocationX);
+
+    configFile.writeInt("Main Configuration", 
+      "Calibrator Window Alternate Location Y", settings.calWindowAltLocationY);
+        
     //force save
     configFile.save();
 
@@ -1524,6 +1542,18 @@ public void actionPerformed(ActionEvent e)
         logWindow.setVisible(true);
     }
 
+    if ("Set Primary Location for Calibration Window".equals(
+                                                    e.getActionCommand())){
+        settings.setCalibrationWindowPrimaryLocation(
+                    calWindow.getLocation().x, calWindow.getLocation().y);
+    }
+        
+    if ("Set Alternate Location for Calibration Window".equals(
+                                                    e.getActionCommand())){
+        settings.setCalibrationWindowAlternateLocation(
+                    calWindow.getLocation().x, calWindow.getLocation().y);
+    }
+        
     //handle timer calls
     if ("Timer".equals(e.getActionCommand())) {processMainTimerEvent();}
 
@@ -2136,6 +2166,17 @@ public void displayCalWindow(String pActionCommand)
                 [invokingChartGroupIndex].getStripChart(invokingChartIndex),
                 numberOfChannels, hardware.getChannels());
 
+    //if the cal window is currently at the alternate screen location, set
+    //it to the primary location -- this allows the user to quickly move the
+    //window to an easily accessible position...but if the user has moved the
+    //window somewhere specific then it will open at that location again
+    
+    if (calWindow.getLocation().x == settings.calWindowAltLocationX
+          && calWindow.getLocation().y == settings.calWindowAltLocationY){
+        calWindow.setLocation(
+                    settings.calWindowLocationX, settings.calWindowLocationY);
+    }
+
     calWindow.setVisible(true);
 
 }//end of MainWindow::displayCalWindow
@@ -2663,7 +2704,7 @@ private void deleteFileIfOverSizeLimit(String pFilename, int pLimit)
     Path p1 = Paths.get(pFilename);
 
     try {
-        if (Files.size(p1) > ERROR_LOG_MAX_SIZE){
+        if (Files.size(p1) > pLimit){
             Files.delete(p1);
         }
     }
