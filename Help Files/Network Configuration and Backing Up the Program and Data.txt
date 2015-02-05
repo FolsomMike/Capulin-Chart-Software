@@ -1,0 +1,43 @@
+
+=========================================================
+Networking Configuration
+
+The ethernet port connected to the electronics chassis must be configured as follows:
+
+Internet Protocol Version 4 (TCP/IPv4)
+
+	Obtain an IP address automatically
+
+	Obtain DNS server address automatically
+
+
+If the computer is to be connected to the Internet or a local network system at the same time, another Ethernet port must be installed. Typically, a USB-Ethernet port is used to connect to the UT chassis in that case.
+
+
+=========================================================
+Backup Up the IRScan program and/or Inspection Data Files
+
+
+My Documents
+  IRNDT
+    IR Scan Data Files -  Primary
+    IR Scan Data Files - Backup
+    IRScan
+
+
+For a simple setup, the IRScan program and data file folders are all stored together in a single folder (IRNDT) in My Documents.
+
+If the IRNDT folder is copied to a backup, the current program and all inspection data will be backed up.
+
+HOWEVER, this can be a lot of data after many jobs are inspected!
+
+To only back up the program, copy only the IRScan folder.
+
+The two data folders can actually be located anywhere. Sometimes, the Backup folder is stored on a separate drive for better reliability.
+
+If the data folders are moved, then the "Main Static Settings.ini" file in the IRScan folder must be updated. There are two entries related to this:
+
+Primary Data Path=..\IR Scan Data Files -  Primary\
+Backup Data Path=..\IR Scan Data Files - Backup\
+
+Note that there may be sample entries preceded by a semi-colon -- these are ignored by the program as a semi-colon specifies that the line is merely a comment. The entries which are NOT preceded by semi-colons are the entries which must be modified.
