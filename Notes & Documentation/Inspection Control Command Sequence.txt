@@ -1,0 +1,23 @@
+ Inspection Control Commands to Host
+
+   1 - no tube detected
+   2 - leading vertical eye is on tube
+   3 - head 1 lowered
+   4 - head 2 lowered
+   5 - head 1 raised
+   6 - head 2 raised
+
+   Each time the command changes to reflect a new action (such as
+   head 1 lowering), it stays at that value until a new action occurs
+   (such as head 2 lowering).
+
+	When inspecting in direction away from home, typical sequence is:
+   	1, 2, 3, 4, 5, 6, 1
+
+	For direction towards home:
+   	1, 2, 4, 3, 6, 5, 1
+
+      Note: These assume that carriage is not reversed off the tube
+      		or any action taken that causes the heads to be
+            raised/lowered out of sequence. In those cases, the
+            command sequence will vary accordingly.

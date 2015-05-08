@@ -16,6 +16,8 @@ Log Files/*.*
 
 Files Not Tracked by Git/
 
+Thumbs.db
+
 *.lock
 
 # ignore any jar file which might be in the executable directory
