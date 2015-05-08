@@ -436,7 +436,7 @@ public void connectControlBoard(NetworkInterface pNetworkInterface)
 
     outPacket = new DatagramPacket(outBuf, outBuf.length, group, 4446);
 
-    //force socket.receive to return if no packet available within 1 millisec
+    //force socket.receive to return if no packet available within 1 second
     try{
         socket.setSoTimeout(1000);
     }
@@ -457,6 +457,15 @@ public void connectControlBoard(NetworkInterface pNetworkInterface)
 
         waitSleep(1000); //sleep to delay between broadcasts
 
+        //debug mks NOTE NOTE NOTE
+        // The original intent of this code was to send the broadcast
+        // multiple times in case some boards didn't receive it. The outer
+        // loop above (loopCount++ < 5) controls this. However, the inner
+        // loop below will not exit until all the boards are found, so the
+        // outer loop will never execute again and thus the broadcast will never
+        // be repeated.
+        // debug mks end
+        
         //check for response packets from the remotes
         try{
             //read response packets until a timeout error exception occurs or

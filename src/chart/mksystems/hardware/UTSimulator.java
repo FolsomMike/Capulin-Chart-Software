@@ -7,8 +7,8 @@
 *
 * This class simulates a TCP/IP connection between the host and UT boards.
 *
-* This is a subclass of Socket and can be substituted for an instance
-* of that class when simulated data is needed.
+* This is a subclass of Simulator which subclasses Socket and can be substituted
+* for an instance of the Socket class when simulated data is needed.
 *
 * Open Source Policy:
 *

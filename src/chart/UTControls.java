@@ -2285,7 +2285,7 @@ public void handleMouseReleaseForDAC(MouseEvent e)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTControls::mouseDragged
+// UTControls::mouseDraggedOnScope
 //
 // Responds when the mouse is dragged on the scope.  If a gate has been
 // selected by clicking on its selection circle, then adjust the gate's
@@ -2354,13 +2354,13 @@ public void mouseDraggedOnScope(MouseEvent e)
         ch.getDACGate(draggingDACGate-1).gatePixEnd = xPos;
     }
 
-}//end of UTControls::mouseDragged
+}//end of UTControls::mouseDraggedOnScope
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // UTCalibrator::mouseClicked
 //
-// Responds when the mouse button is release while over a component which is
+// Responds when the mouse button is released while over a component which is
 // listening to the mouse.
 //
 // NOTE: The controls which trigger this event by right click are expected to
