@@ -1,0 +1,30 @@
+
+---------------------------------------------------------------------
+Tue Dec 16 13:52:03 MST 2014
+
+Converting files to UTF-8:
+
+File converted: .\Board Slot Overrides.ini
+File converted: .\Configuration - General.ini
+File converted: .\Configuration - Job Info Window.ini
+File converted: .\Graphics.ini
+File converted: .\Main Settings.ini
+
+
+
+Validating conversions and cleaning up:
+
+Files are identical: .\Board Slot Overrides.ini
+Success -- temp file renamed: .\Board Slot Overrides.ini
+Files are identical: .\Configuration - General.ini
+Success -- temp file renamed: .\Configuration - General.ini
+Files are identical: .\Configuration - Job Info Window.ini
+Success -- temp file renamed: .\Configuration - Job Info Window.ini
+Files are identical: .\Graphics.ini
+Success -- temp file renamed: .\Graphics.ini
+Files are identical: .\Main Settings.ini
+Success -- temp file renamed: .\Main Settings.ini
+
+
+
+All files converted successfully.
