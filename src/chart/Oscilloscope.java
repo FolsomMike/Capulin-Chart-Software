@@ -249,10 +249,9 @@ public void displayData(int pRange, int pInterfaceCrossingPosition,
     if(!persistMode){
         g2.setColor(bgColor);
         g2.fillRect(0, 0, getWidth(), getWidth());
+        //draw the grid lines on the screen before anything else
+        drawGrid(g2);
     }
-
-    //draw the grid lines on the screen before anything else
-    drawGrid(g2);
 
     g2.setColor(Color.BLACK);
 
