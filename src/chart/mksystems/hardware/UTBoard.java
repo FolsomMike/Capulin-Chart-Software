@@ -2212,8 +2212,8 @@ void readNextRAMDSP(int pDSPChip, int pDSPCore, byte[] pRetBuffer)
 // Transmits an ASCII hex file to the selected DSP and core.
 // Note that shared memory page 0 for core A & B is only accessible via core
 // A HPI bus while shared memory page 0 for core C & D is only accessible via
-// core C HPI bus.  Loading into cores A & B makes the code also available to
-// cores C & D since cores A & B / C & D share the same program memory.
+// core C HPI bus.  Loading into cores A & C makes the code also available to
+// cores B & D since cores A & B / C & D share the same program memory.
 //
 // The writeDPSRam function is used to write each code word.  This is not
 // very efficient and could be improved by use of a block write function.  Since
@@ -2374,13 +2374,16 @@ boolean verifyDSPCode(int pDSPChip, int pDSPCore)
     int checksum = 0;
 
     String core;
-    if (pDSPCore == 1) {core = "A & B";}
-    else
-    if (pDSPCore == 3) {core = "C & D";}
-    else {core = "";}
+    if (pDSPCore == 1) {
+        core = "A & B";
+    }else if (pDSPCore == 3) {
+        core = "C & D";
+    }else {
+        core = "";
+    }
 
     logger.logMessage("UT " + chassisSlotAddr + " verifying DSP code for" + "\n"
-            + "    Chip " + pDSPChip + " Cores " + core + "\n");
+    + "    Chip " + pDSPChip + " Cores " + core + "\n");
 
     byte[] buffer = new byte[2];
 
