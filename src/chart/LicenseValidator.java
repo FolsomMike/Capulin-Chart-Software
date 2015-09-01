@@ -204,12 +204,17 @@ private boolean validateLicenseFile()
 
         Date now = new Date(); //get the current date
         Date expire = new Date(expiryDate); //create the expiry date
-
-        //if the current date is after the expiry date, write a bogus expiry
+        
+        int daysLeftOnLicense = calculateDaysLeftOnLicense(now, expire);
+        
+        //if the valid remaining days are zero or negative, write a bogus expiry
         //date which will fail on validation every time due to integrity and not
         //expiration date
+        
+        //note that daysLeftOnLicense rounds off, so will generally report
+        //one less day than expected
 
-        if (now.after(expire)){
+        if (daysLeftOnLicense <= 0){
             saveLicenseFile(expiryDate, true);
             return(false);
         }
@@ -234,6 +239,41 @@ private boolean validateLicenseFile()
 }//end of LicenseValidator::validateLicenseFile
 //-----------------------------------------------------------------------------
 
+//----------------------------------------------------------------------------
+// LicenseValidator::calculateDaysLeftOnLicense
+//
+// Calculates the number of days between the current date and the license
+// expiration date and returns that value.
+//
+// If the returned value is positive, the license is still good and has that
+// many days of validity remaining.
+//
+// If the returned values is negative, the license is expired by that many
+// days.
+// 
+
+private int calculateDaysLeftOnLicense(Date pNowDate, Date pExpiryDate)
+{
+    
+    //milliseconds since 1/1/1970, 00:00:00 GMT
+    long nowTime =  pNowDate.getTime(); 
+    long expiryTime =  pExpiryDate.getTime();
+
+    long daysRemaining = expiryTime - nowTime; //time left in milliseconds
+    
+    daysRemaining /= 1000; //convert to seconds
+    daysRemaining /= 60; //convert to minutes
+    daysRemaining /= 60; //convert to hours
+    daysRemaining /= 24; //convert to days
+    
+    if (daysRemaining > Integer.MAX_VALUE) {daysRemaining = Integer.MAX_VALUE;}
+    if (daysRemaining < Integer.MIN_VALUE) {daysRemaining = Integer.MIN_VALUE;}
+    
+    return((int)daysRemaining);
+    
+}//end of LicenseValidator::calculateDaysLeftOnLicense
+//-----------------------------------------------------------------------------
+                
 //----------------------------------------------------------------------------
 // LicenseValidator::saveLicenseFile
 //
@@ -345,14 +385,14 @@ private long verifyRenewalCode(int pCipher, String pRenewalCode)
     //decode the renewal code
     renewalCode = encodeDecode(renewalCode);
 
-    //the number of days to renew is in the lower three decimal digits
+    //the number of days to renew is in the lower four decimal digits
     //the remaining digits are the code which matches the cipher
     //parse the renewal code into the days and match code
 
     //get the renewal length in days
-    long renewalLength = renewalCode % 1000; //get three lower digits
+    long renewalLength = renewalCode % 10000; //get four lower digits
     //get the match code
-    renewalCode /= 1000; //strip off lower three decimal digits
+    renewalCode /= 10000; //strip off lower four decimal digits
 
     if (renewalCode != pCipher){
         displayErrorMessage("Error L9003: Invalid code.");
