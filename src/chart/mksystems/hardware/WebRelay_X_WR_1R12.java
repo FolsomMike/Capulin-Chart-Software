@@ -48,6 +48,8 @@ public class WebRelay_X_WR_1R12 extends EthernetIOModules {
 
     static String relaySetBaseURL;
 
+    private boolean recentConnectionMade = false;
+    
 //-----------------------------------------------------------------------------
 // WebRelay_X_WR_1R12::WebRelay_X_WR_1R12 (constructor)
 //
@@ -80,10 +82,46 @@ public void init()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// WebRelay_X_WR_1R12::okayToConnect
+//
+// If too many connections are attempted too rapidly, the system will stutter
+// as the buffer fills or responses are delayed.
+//
+// Connection requests are limited to one every 0.3 seconds. If this function
+// has not been called within the past 0.3 seconds, it returns true to signal
+// that it is okay to connect.
+//
+// If a connection has been made in the last 0.3 seconds, this function returns
+// false to signal that no connection attempt should be made.
+//
+// This function sets a flag and starts a new thread to clear that flag in
+// 0.3 seconds as the control mechanism.
+//
+
+public boolean okayToConnect()
+{
+
+    if (recentConnectionMade) { return(false); }
+    
+    recentConnectionMade = true;
+    
+    //start thread to clear the flag after a delay
+    
+    new Thread(() -> {
+        try {Thread.sleep(300);} catch(InterruptedException e){}
+        recentConnectionMade = false;
+    }).start();
+
+    return(true); //okay to make a connection
+    
+}//end of WebRelay_X_WR_1R12::okayToConnect
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // WebRelay_X_WR_1R12::connectSendGetRequestClose
 //
 // Opens a connection with the module, sends an HTTP GET request to a url,
-// then closes the connectin.
+// then closes the connection.
 //
 // Returns the received data as a string.
 //
@@ -97,6 +135,8 @@ public void init()
 public String connectSendGetRequestClose(String pNetURL)
 {
 
+    if(!okayToConnect()) { return(""); }
+    
     String result = "";
 
     StringBuilder sb = null;
