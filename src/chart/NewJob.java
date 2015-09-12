@@ -392,18 +392,25 @@ void createJob()
 
     //create the "Piece Number File.ini" file in the new folders with starting
     //values of 1 for the next inspection piece and next cal piece numbers
-
+    //create the event log file and log creation events
+    
     try{
 
         ControlPanel.saveSettingsHelper(
                             primaryFolder + "/", newJobName, 1, 1, fileFormat);
         ControlPanel.saveSettingsHelper(
                             backupFolder + "/", newJobName, 1, 1, fileFormat);
+
+        createEventLogAndLogCreationEvents(
+               primaryFolder + "/06 - " + newJobName + " Event Log.txt");
+        createEventLogAndLogCreationEvents(
+               backupFolder + "/06 - " + newJobName + " Event Log.txt");    
+
     }
     catch(IOException e){
         logSevere(e.getMessage());
     }
-
+    
     //signal the class which invoked this window that a new job or jobs have
     //been created and pass back the name of the last valid job created
 
@@ -519,6 +526,75 @@ void createPlaceHolderCalFile(String pFilename)
     }
 
 }//end of NewJob::createPlaceHolderCalFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// NewJob::createEventLogAndLogCreationEvents
+//
+// Creates an event log text file for logging events. Events regarding the job's
+// creation are logged.
+//
+// Returns true if the copy was successful, false otherwise.
+//
+
+boolean createEventLogAndLogCreationEvents(String pFilename) throws IOException
+{
+
+    PrintWriter logFile = null;    
+    
+    try{
+
+        String sourceConfigFile = (String)configSelect.getSelectedItem();
+    
+        logFile = new PrintWriter(new FileWriter(pFilename, true));
+
+        logMessage(
+          logFile, "Job Created using config file: " + sourceConfigFile, true);
+    }
+    finally{
+        if (logFile != null) {logFile.close();}
+    }
+    
+    return(true);
+
+}//end of NewJob::createEventLogAndLogCreationEvents
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// NewJob::logMessage
+//
+// Appends pMessage to the text file pFile.  If pFile is null, does nothing.
+//
+// If pLogDate is true, the current date and time are prepended to the message.
+//
+// See logMessage method without the pLogDate parameter for a shorthand
+// way of logging a message with no date.
+//
+
+private void logMessage(PrintWriter pFile, String pMessage, boolean pLogDate)
+{
+
+    if (pLogDate) {pFile.print(new Date().toString() + " ~ ");}
+
+    pFile.println(pMessage);
+
+}//end of NewJob::logMessage
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// NewJob::logMessage
+//
+// Appends pMessage to the text file pFile.  If pFile is null, does nothing.
+//
+// Use this method to print a message without logging the date.
+//
+
+private void logMessage(PrintWriter pFile, String pMessage)
+{
+
+    logMessage(pFile, pMessage, false);
+
+}//end of NewJob::logMessage
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
