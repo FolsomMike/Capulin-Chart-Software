@@ -31,6 +31,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.font.TextAttribute;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -150,6 +151,8 @@ public class UTControls extends JTabbedPane
     CopyItemSelector copyItemSelector;
     UTCalibrator utCalibrator;
 
+    ArrayList<String> filterList;
+    
     Hardware hardware;
     Channel currentChannel;
     StripChart chart;
@@ -164,6 +167,8 @@ public class UTControls extends JTabbedPane
     JPanel gatesTab, signalTab, wallTab, dacTab, chartTab, processTab;
     JPanel configTab, transducerTab;
 
+    JComboBox <String>filterComboBox;
+    
     Font blackFont, redFont;
 
     int gridYCount;
@@ -271,6 +276,8 @@ public void init()
     map.put(TextAttribute.FOREGROUND, Color.RED);
     redFont = blackFont.deriveFont(map);
 
+    loadFilterList();
+    
     //create the panels blank at this time - they will be filled in later by
     //a call to setChannel
 
@@ -302,6 +309,34 @@ public void init()
     setSelectedIndex(0);
 
 }//end of UTControls::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTControls::loadFilterList
+//
+// Loads a list of the available filters for selection by the user.
+//
+
+private void loadFilterList()
+{
+
+    //directory containing the various pertinent files
+    File filtersDir = new File("filters");
+    //get a list of the files/folders in the directory
+    String[] filters = filtersDir.list();
+
+    //remove .txt from each file name for display
+    for (int i=0; i<filters.length; i++){        
+        filters[i] = filters[i].replace(".txt", "");        
+    }
+    
+    //create a list to hold the file/folder names
+    filterList = new ArrayList<>(1000);
+    filterList.addAll(Arrays.asList(filters));
+    //sort the items alphabetically
+    Collections.sort(filterList);
+
+}//end of UTControls::loadFilterList
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -792,7 +827,43 @@ void setupSignalTab()
     signalTab.add(panel1);
     signalTab.add(rectificationPanel);
 
+    filterComboBox = 
+            new JComboBox<>(filterList.toArray(new String[filterList.size()]));    
+    
+    JComboBox <String>jcb = filterComboBox; //use a short name
+    
+    setSizes(jcb, 400, 25);
+    jcb.setAlignmentX(Component.LEFT_ALIGNMENT);
+    jcb.setSelectedIndex(getFilterIndex());
+    jcb.setActionCommand("Signal Filtering");
+    jcb.addActionListener(this);
+    jcb.setName("Signal Filter Type");
+    jcb.addMouseListener(this);
+
+    signalTab.add(jcb);
+
 }//end of UTControls::setupSignalTab
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTControls::getFilterIndex
+//
+// Returns the index in the filter list of the current channel's selected
+// filter.
+//
+
+public int getFilterIndex()
+{
+    
+    //find the index of the current channel's filter name
+    int index = filterList.indexOf(currentChannel.getFilterName());
+
+    //if not found, index will be -1, set to 0 (the first item in the list
+    if (index == -1) {index = 0;}
+
+    return(index);
+
+}//end of UTControls::getFilterIndex
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1854,6 +1925,8 @@ public void updateAllSettings(boolean pForceUpdate)
     if (displayMode != UTBoard.CHANNEL_OFF) {ch.previousMode = displayMode;}
     setChannelSelectorColor(ch);
 
+    ch.setFilter((String)(filterComboBox.getSelectedItem()), pForceUpdate);
+    
     //always set range after setting gate position or width, delay and interface
     //tracking as these affect the range
     ch.setRange(

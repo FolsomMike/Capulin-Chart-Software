@@ -27,6 +27,7 @@ import chart.mksystems.threadsafe.*;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -94,7 +95,8 @@ public class Channel extends Object{
     public double uSPerDataPoint;
     public double nSPerPixel; //used by outside classes
     public double uSPerPixel; //used by outside classes
-
+    String filterName;
+    
     int firstGateEdgePos, lastGateEdgePos;
     boolean isWallChannel = false;
 
@@ -1427,8 +1429,7 @@ public void setMode(int pMode, boolean pForceUpdate)
 
     mode.setValue(pMode, pForceUpdate);
 
-    boolean lChannelOn =
-                    (mode.getValue() != UTBoard.CHANNEL_OFF) ? true : false;
+    boolean lChannelOn = (mode.getValue() != UTBoard.CHANNEL_OFF);
 
     //update the tranducer settings as the on/off status is set that way
     setTransducer(lChannelOn, pulseBank, pulseChannel, pForceUpdate);
@@ -1909,7 +1910,7 @@ void setTransducer(boolean pChannelOn, int pPulseBank, int pPulseChannel,
     channelOn =
             pChannelOn; pulseBank = pPulseBank; pulseChannel = pPulseChannel;
 
-    channelOn = (mode.getValue() != UTBoard.CHANNEL_OFF) ? true : false;
+    channelOn = (mode.getValue() != UTBoard.CHANNEL_OFF);
 
     if (utBoard != null && pForceUpdate) {
         utBoard.sendTransducer(boardChannel,
@@ -2987,6 +2988,38 @@ public void setAllDACGateDataChangedFlags(boolean pValue)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Channel::setFilter
+//
+// Sets the digital signal filter to pFilterName. The values for the filter are
+// loaded from the text file with that name and are transmitted to the DSP.
+//
+// If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
+// the flag is false, the value(s) will be sent only if they have changed.
+//
+
+public void setFilter(String pFilterName, boolean pForceUpdate)
+{
+    
+    filterName = pFilterName;
+
+}//end of Channel::setFilter
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::getFilterName
+//
+// Returns the name of the filter in use.
+//
+
+public String getFilterName()
+{
+
+    return(filterName);
+
+}//end of Channel::getFilterName
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Channel::warmReset
 //
 // Resets the UT board for this channel as well as the other channels on that
@@ -3028,10 +3061,13 @@ public void loadCalFile(IniFile pCalFile)
                                         section, "Interface Tracking", false);
     dacEnabled = pCalFile.readBoolean(section, "DAC Enabled", false);
     mode.setValue(pCalFile.readInt(section, "Signal Mode", 0), true);
+    
+    setFilter(pCalFile.readString(section, "Signal Filter", "No Filter"), true);
+    
     //default previousMode to mode if previousMode has never been saved
     previousMode =
             pCalFile.readInt(section, "Previous Signal Mode", mode.getValue());
-    channelOn = (mode.getValue() != UTBoard.CHANNEL_OFF) ? true : false;
+    channelOn = (mode.getValue() != UTBoard.CHANNEL_OFF);
     rejectLevel = pCalFile.readInt(section, "Reject Level", 0);
     aScanSmoothing.setValue(
                  pCalFile.readInt(section, "AScan Display Smoothing", 1), true);
@@ -3075,6 +3111,9 @@ public void saveCalFile(IniFile pCalFile)
     pCalFile.writeBoolean(section, "Interface Tracking", interfaceTracking);
     pCalFile.writeBoolean(section, "DAC Enabled", dacEnabled);
     pCalFile.writeInt(section, "Signal Mode", mode.getValue());
+    
+    pCalFile.writeString(section, "Signal Filter", filterName);
+    
     pCalFile.writeInt(section, "Previous Signal Mode", previousMode);
     pCalFile.writeInt(section, "Reject Level", rejectLevel);
     pCalFile.writeInt(
