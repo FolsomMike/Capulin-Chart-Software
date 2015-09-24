@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.ListIterator;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -3009,7 +3010,6 @@ public void setAllDACGateDataChangedFlags(boolean pValue)
 
 public void setFilter(String pFilterName, boolean pForceUpdate)
 {
-
     
     if (!filterName.equals(pFilterName)) {pForceUpdate = true;}
 
@@ -3022,6 +3022,22 @@ public void setFilter(String pFilterName, boolean pForceUpdate)
     filter.setValues(newValues, pForceUpdate);
     
 }//end of Channel::setFilter
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::createOneElementArrayContainingZero
+//
+// Returns an in array with a single element set to zero.
+//
+
+private int[] createOneElementArrayContainingZero()
+{
+    
+    int[] array = new int[1]; array[0] = 0;
+
+    return(array);
+
+}//end of Channel::createOneElementArrayContainingZero
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -3038,18 +3054,11 @@ public void setFilter(String pFilterName, boolean pForceUpdate)
 private int[] loadFilter(String pFilterName)
 {
 
-
     ArrayList<String> dataFromFile = new ArrayList<>();
     
     loadFromTextFile("filters\\"+ filterName + ".txt", dataFromFile);
     
-    //debug mks -- parse values to create array     
-    
-    //int[] values = new int[3]; values[0] = 0; values[1] = 1; values[2] = 2; //debug mks
-
-    int[] values = new int[1]; values[0] = 0; //debug mks
-    
-    return(values);
+    return(parseFilterFileData(dataFromFile));
     
 }//end of Channel::loadFilter
 //-----------------------------------------------------------------------------
@@ -3057,19 +3066,155 @@ private int[] loadFilter(String pFilterName)
 //-----------------------------------------------------------------------------
 // Channel::parseFilterFileData
 //
-// Parses the data loaded from the filter file to retrieve filter coefficients
-// and right shift amount.
+// Parses the data loaded from the filter file in pData to retrieve filter
+// coefficients and right shift amount.
+//
+// If no valid integer values are found, a one element array containing the
+// value 0 is returned.
+//
+// If invalid entries are encountered when expecting an integer, the value
+// will set to zero.
+//
+// The format of the returned array:
+//  byte 0 = number of filter coefficients
+//  byte 1 = number of bits to right shift during FIR processing
+//  byte 2~last = FIR filter coefficients
 //
 
-private int[] parseFilterFileData()
+private int[] parseFilterFileData(ArrayList<String> pData)
 {
 
+    boolean result; ArrayList<Integer>entryList = new ArrayList<>();
+    int[] filterValues;
     
-    int[]values = new int[1]; values[0] = 0; //debug mks
+    String line;
     
-    return(values);
+    ListIterator iter = pData.listIterator();
+    
+    //parse the number of bits each multiplication result is shifted during the
+    //FIR filter math to prevent overflow during the process
+        
+    result = searchListForString(
+                           "<FIR filter right shift bits amount start>" , iter);
+    
+    if (!result) { return(createOneElementArrayContainingZero()); }
+    
+    line = getNextNonBlankLineInList(iter);
+    
+    if(line.isEmpty()) { return(createOneElementArrayContainingZero()); }
+    
+    int numFIRFilterBitRightShifts; //debug mks -- move to class
+        
+    numFIRFilterBitRightShifts = parseInt(line);
+    
+    //parse the filter coefficients
+    
+    result = searchListForString("<start of coefficients>" , iter);
+    
+    if (!result) { return(createOneElementArrayContainingZero()); }
+    
+    boolean done = false;
+    
+    while(!done){
+        
+        int coeff;
+        
+        line = getNextNonBlankLineInList(iter);
+        if(line.isEmpty()) { return(createOneElementArrayContainingZero()); }        
+        coeff = parseInt(line);        
+        if (coeff == Integer.MAX_VALUE){ break; } //stop if non-integer
+        
+        entryList.add(coeff); //add each valid value to the list
+        
+    }
+
+    //the size of the entry list is the number of coefficients read, add this
+    //count as the first entry in the list
+    entryList.add(0, entryList.size());
+    //second entry is the FIR filter bit shift amount
+    entryList.add(1, numFIRFilterBitRightShifts);
+    
+    filterValues = new int[entryList.size()];
+    
+    for(int i=0; i<filterValues.length; i++){ 
+        filterValues[i] = entryList.get(i);
+    }
+    
+    return(filterValues);
 
 }//end of Channel::parseFilterFileData
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::parseInt
+//
+// Returns an integer parsed from String pString.
+// If an error occurs during parsing, Integer.MAX_VALUE is returned.
+//
+
+private int parseInt(String pString)
+{
+   
+    int value;
+    
+    try{
+        value = Integer.parseInt(pString.trim());
+    }
+    catch(NumberFormatException e){
+        value = Integer.MAX_VALUE;
+    }
+    
+    return(value);
+    
+}// end of Channel::parseInt
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::searchListForString
+//
+// Searches an ArrayList for pTarget iterating with pIter.
+//
+// Returns true if the target is found, leaving pIter ready to load next line.
+// Returns false if target not found, pIter will be at end of list.
+//
+
+private boolean searchListForString(String pTarget, ListIterator pIter)
+{
+    
+    while(pIter.hasNext()){
+
+        String input = (String)pIter.next();        
+        if (input.equals(pTarget)){ return(true); }
+
+    }
+    
+    return(false);
+
+}//end of Channel::searchListForString
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::getNextNonBlankLineInList
+//
+// Skips past any blank lines in an ArrayList iterating with pIter.
+//
+// Returns the contents of the next non-blank line.
+// Returns an empty string if no non-blank line is found.
+//
+
+private String getNextNonBlankLineInList(ListIterator pIter)
+{
+    
+    while(pIter.hasNext()){
+
+        String input = (String)pIter.next();        
+        if (!input.isEmpty()){ return(input); }
+
+    }
+    
+    return("");
+    
+}//end of Channel::getNextNonBlankLineInList
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

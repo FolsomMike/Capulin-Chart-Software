@@ -1,0 +1,41 @@
+Data Version: 1.0
+
+<FIR filter right shift bits amount start>
+
+5
+
+<FIR filter right shift bits amount end>
+
+<start of coefficients>
+-2024
+-1717
+-1172
+-355
+764
+2206
+3975
+6059
+8422
+11001
+13700
+16388
+18893
+20999
+22444
+22966
+22444
+20999
+18893
+16388
+13700
+11001
+8422
+6059
+3975
+2206
+764
+-355
+-1172
+-1717
+-2024
+<end of coefficients>
