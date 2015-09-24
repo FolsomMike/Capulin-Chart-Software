@@ -24,8 +24,11 @@ import chart.mksystems.stripchart.Threshold;
 import chart.mksystems.stripchart.Trace;
 import chart.mksystems.stripchart.TraceData;
 import chart.mksystems.threadsafe.*;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 
@@ -88,6 +91,7 @@ public class Channel extends Object{
     public SyncedInteger aScanScale;
     SyncedDouble softwareGain;
     SyncedInteger hardwareGain1, hardwareGain2;
+    SyncedIntArray filter;
     int rejectLevel;
     SyncedInteger aScanSmoothing;
     int dcOffset;
@@ -95,13 +99,18 @@ public class Channel extends Object{
     public double uSPerDataPoint;
     public double nSPerPixel; //used by outside classes
     public double uSPerPixel; //used by outside classes
-    String filterName;
+    String filterName = "";
     
     int firstGateEdgePos, lastGateEdgePos;
     boolean isWallChannel = false;
 
     int pulseChannel, pulseBank;
 
+    private String dataVersion = "1.0";
+    private FileInputStream fileInputStream = null;
+    private InputStreamReader inputStreamReader = null;
+    private BufferedReader in = null;
+        
 //-----------------------------------------------------------------------------
 // Channel::Channel (constructor)
 //
@@ -136,6 +145,7 @@ public Channel(IniFile pConfigFile, Settings pSettings, int pChannelIndex,
     dspControlFlags = new SyncedShortInt(syncedVarMgr); dspControlFlags.init();
     mode = new SyncedInteger(syncedVarMgr); mode.init();
     mode.setValue((int)UTBoard.POSITIVE_HALF, true);
+    filter = new SyncedIntArray(syncedVarMgr); filter.init();
     hardwareDelayFPGA =
                 new SyncedInteger(syncedVarMgr); hardwareDelayFPGA.init();
     hardwareDelayDSP =
@@ -2999,10 +3009,162 @@ public void setAllDACGateDataChangedFlags(boolean pValue)
 
 public void setFilter(String pFilterName, boolean pForceUpdate)
 {
-    
-    filterName = pFilterName;
 
+    
+    if (!filterName.equals(pFilterName)) {pForceUpdate = true;}
+
+    if (!pForceUpdate) {return;} //do nothing unless value change or forced
+
+    filterName = pFilterName;
+    
+    int []newValues = loadFilter(pFilterName);
+
+    filter.setValues(newValues, pForceUpdate);
+    
 }//end of Channel::setFilter
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::loadFilter
+//
+// Loads the values from the text file pFilterName and returns them in an
+// array.
+//
+// The first value in the array is the number of filter coefficients. If the
+// file cannot be loaded or does not contain valid numbers, a single element
+// array will be returned containing the value of 0 to denote no filtering.
+//
+
+private int[] loadFilter(String pFilterName)
+{
+
+
+    ArrayList<String> dataFromFile = new ArrayList<>();
+    
+    loadFromTextFile("filters\\"+ filterName + ".txt", dataFromFile);
+    
+    //debug mks -- parse values to create array     
+    
+    //int[] values = new int[3]; values[0] = 0; values[1] = 1; values[2] = 2; //debug mks
+
+    int[] values = new int[1]; values[0] = 0; //debug mks
+    
+    return(values);
+    
+}//end of Channel::loadFilter
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::parseFilterFileData
+//
+// Parses the data loaded from the filter file to retrieve filter coefficients
+// and right shift amount.
+//
+
+private int[] parseFilterFileData()
+{
+
+    
+    int[]values = new int[1]; values[0] = 0; //debug mks
+    
+    return(values);
+
+}//end of Channel::parseFilterFileData
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::loadFromTextFile
+//
+// Loads all text strings from  text file pFilename into pList.
+//
+
+public void loadFromTextFile(String pFilename, ArrayList<String> pList)
+{
+
+    try{
+
+        openTextInFile(pFilename);
+
+        readDataFromTextFile(pList);
+
+    }
+    catch (IOException e){
+        //display an error message and/or log the message
+    }
+    finally{
+        closeTextInFile();
+    }
+
+}//end of Channel::loadFromTextFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::openTextInFile
+//
+// Opens text file pFilename for reading.
+//
+
+private void openTextInFile(String pFilename) throws IOException
+{
+
+    fileInputStream = new FileInputStream(pFilename);
+    inputStreamReader = new InputStreamReader(fileInputStream);
+    in = new BufferedReader(inputStreamReader);
+
+}//end of Channel::openTextInFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::readDataFromTextFile
+//
+// Reads all strings from the text file into pList.
+//
+
+private void readDataFromTextFile(ArrayList<String> pList) throws IOException
+{
+
+    //read each data line or until end of file reached
+
+    String line;
+
+    if ((line = in.readLine()) != null){
+        dataVersion = line;
+    }
+    else{
+        return;
+    }
+
+    while((line = in.readLine()) != null){
+        pList.add(line);
+    }
+
+}//end of Channel::readDataFromTextFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::closeTextInFile
+//
+// Closes the text input file.
+//
+
+private void closeTextInFile()
+{
+
+    try{
+
+        if (in != null) {in.close();}
+        if (inputStreamReader != null) {inputStreamReader.close();}
+        if (fileInputStream != null) {fileInputStream.close();}
+
+    }
+    catch(IOException e){
+
+        //ignore error while trying to close the file
+        //could log the error message in the future
+
+    }
+
+}//end of Channel::closeTextInFile
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -3017,6 +3179,22 @@ public String getFilterName()
     return(filterName);
 
 }//end of Channel::getFilterName
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::sendFilter
+//
+// Sends the filter values to the DSP.
+//
+
+public void sendFilter()
+{
+
+    if (utBoard != null) {
+        //debug mks utBoard.sendFilter(boardChannel, 0);
+    }
+
+}//end of Channel::sendFilter
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -3062,8 +3240,12 @@ public void loadCalFile(IniFile pCalFile)
     dacEnabled = pCalFile.readBoolean(section, "DAC Enabled", false);
     mode.setValue(pCalFile.readInt(section, "Signal Mode", 0), true);
     
-    setFilter(pCalFile.readString(section, "Signal Filter", "No Filter"), true);
+    filterName = pCalFile.readString(section,
+                                            "Signal Filter Name", "No Filter");
     
+    filter.setValuesFromString(
+              pCalFile.readString(section, "Signal Filter Values", "0"), true);
+
     //default previousMode to mode if previousMode has never been saved
     previousMode =
             pCalFile.readInt(section, "Previous Signal Mode", mode.getValue());
@@ -3112,7 +3294,8 @@ public void saveCalFile(IniFile pCalFile)
     pCalFile.writeBoolean(section, "DAC Enabled", dacEnabled);
     pCalFile.writeInt(section, "Signal Mode", mode.getValue());
     
-    pCalFile.writeString(section, "Signal Filter", filterName);
+    pCalFile.writeString(section, "Signal Filter Name", filterName);
+    pCalFile.writeString(section, "Signal Filter Values", filter.toString());
     
     pCalFile.writeInt(section, "Previous Signal Mode", previousMode);
     pCalFile.writeInt(section, "Reject Level", rejectLevel);
