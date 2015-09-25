@@ -2877,6 +2877,8 @@ public void sendDataChangesToRemotes()
 
     if (mode.getDataChangedFlag()) {sendMode();}
 
+    if (filter.getDataChangedFlag()) {sendFilter();}    
+    
     if (hardwareDelayFPGA.getDataChangedFlag()) {sendHardwareDelayToFPGA();}
 
     if (softwareDelay.getDataChangedFlag() ||
@@ -3336,7 +3338,7 @@ public void sendFilter()
 {
 
     if (utBoard != null) {
-        //debug mks utBoard.sendFilter(boardChannel, 0);
+        utBoard.sendFilter(boardChannel, filter.applyValues());
     }
 
 }//end of Channel::sendFilter

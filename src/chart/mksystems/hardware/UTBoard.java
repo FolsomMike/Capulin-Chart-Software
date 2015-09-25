@@ -424,6 +424,7 @@ public class UTBoard extends Board{
     static byte DSP_GET_MAP_BLOCK_CMD = 18;
     static byte DSP_GET_MAP_COUNT_CMD = 19;
     static byte DSP_RESET_MAPPING_CMD = 20;
+    static byte DSP_SET_FILTER = 21;
     
     static byte DSP_ACKNOWLEDGE = 127;
 
@@ -3055,7 +3056,7 @@ public void setMap2D(Map2D pMap2D)
 //-----------------------------------------------------------------------------
 // UTBoard::sendMode
 //
-// Sends the signal mode to one of the following:
+// Sends the signal mode as one of the following:
 //
 // 0 = Positive half and RF (host computer shifts by half screen for RF)
 // 1 = Negative half
@@ -3072,6 +3073,85 @@ void sendMode(int pChannel, int pMode)
                (byte)0, (byte)0, (byte)0);
 
 }//end of UTBoard::sendMode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::sendFilter
+//
+// Sends the signal filter values to the DSP.
+//
+// The first byte after the command byte describes the type of filter values
+// contained in the packet:
+//
+//  00: the following byte contains the number of filter coefficients
+//      the byte after that contains the bit shift amount for convolution
+//  01: the following 8 bytes contain the first set of four coefficient words
+//  02: the following 8 bytes contain the second set of four coefficient words
+//  03: the following 8 bytes contain the third set of four coefficient words
+//  04: the following 8 bytes contain the fourth set of four coefficient words
+//  05: the following 8 bytes contain the fifth set of four coefficient words
+//  06: the following 8 bytes contain the sixth set of four coefficient words
+//  07: the following 8 bytes contain the seventh set of four coefficient words
+//  08: the following 8 bytes contain the eighth set of four coefficient words
+//
+// The number of FIR coefficients is always odd, so one or more of the words
+// in the last set sent will be ignored. The DSP uses the number of coefficients
+// specified using the 00 descriptor. It is not necessary to send 8 sets if
+// there are fewer coefficients.
+//
+// During the FIR filter convolution performed in the DSP, it is often necessary
+// to right shift after each multiplication to avoid overflowing the register.
+// The amount to be shifted is specified using the 00 descriptor as described
+// above.
+//
+// The number of coefficients should not be more than 31.
+// The number of bits to shift should not be more than 127.
+//
+// If the filter array is empty (a single element set to zero), the array size
+// zero will be sent with a zero bit shift value. No coefficients will be sent.
+//
+
+void sendFilter(int pChannel, int[]pFilter)
+{
+
+    int numBitsShift = 0;
+  
+    if (pFilter.length > 1){ numBitsShift = pFilter[1]; }
+    
+    //send the number of coefficients (first value in array) and the convolution
+    //bit shift amount (second value in array)
+    
+    sendChannelParam(pChannel, (byte) DSP_SET_FILTER,
+               (byte)0, (byte)pFilter[0], (byte)numBitsShift,
+               (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0);
+    
+    //send the coefficients four at a time using multiple calls
+    
+    byte set = 1; int i = 2; int length = pFilter.length;
+    int val1, val2, val3, val4;
+    
+    while(i < length){
+    
+        val1=val2=val3=val4=0;
+        
+        if(i<length){ val1 = pFilter[i++];}
+        if(i<length){ val2 = pFilter[i++];}
+        if(i<length){ val3 = pFilter[i++];}
+        if(i<length){ val4 = pFilter[i++];}
+        
+        sendChannelParam(pChannel, (byte) DSP_SET_FILTER,
+            (byte)set,
+            (byte)((val1 >> 8) & 0xff), (byte)(val1 & 0xff),
+            (byte)((val2 >> 8) & 0xff), (byte)(val2 & 0xff),
+            (byte)((val3 >> 8) & 0xff), (byte)(val3 & 0xff),
+            (byte)((val4 >> 8) & 0xff), (byte)(val4 & 0xff)
+            );
+    
+        set++;
+    
+    }
+
+}//end of UTBoard::sendFilter
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
