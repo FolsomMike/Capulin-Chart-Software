@@ -1827,17 +1827,13 @@ void sendHardwareGain(int pChannel, int pGain1, int pGain2)
     //   therefore the highest possible frequency response for that range
 
     if (gain1 == 15) {gain1 |= 0xc0;}
-    else
-    if (gain1 >= 10) {gain1 |= 0x80;}
-    else
-    if (gain1 >= 5)  {gain1 |= 0x40;}
+    else if (gain1 >= 10) {gain1 |= 0x80;}
+    else if (gain1 >= 5)  {gain1 |= 0x40;}
     // gains less than 6 (value of 5) have 00b compensation
 
-    if (gain2 == 15) {gain2 |= 0xc0;}
-    else
-    if (gain2 >= 10) {gain2 |= 0x80;}
-    else
-    if (gain2 >= 5)  {gain2 |= 0x40;}
+    if (gain2 == 15) { gain2 |= 0xc0; }
+    else if (gain2 >= 10) { gain2 |= 0x80; }
+    else if (gain2 >= 5) { gain2 |= 0x40; }
     // gains less than 6 (value of 5) have 00b compensation
 
     sendBytes((byte)SET_HDW_GAIN_CMD, (byte)pChannel, gain1, gain2);
@@ -2249,8 +2245,7 @@ void loadDSPCode(int pDSPChip, int pDSPCore)
 
     String core;
     if (pDSPCore == 1) {core = "A & B";}
-    else
-    if (pDSPCore == 3) {core = "C & D";}
+    else if (pDSPCore == 3) {core = "C & D";}
     else {core = "";}
 
     logger.logMessage("UT " + chassisSlotAddr + " loading DSP code for" + "\n"
@@ -2288,8 +2283,6 @@ void loadDSPCode(int pDSPChip, int pDSPCore)
                     (int)((n1<<4) & 0xf0) +
                     (int)(n0 & 0xf);
 
-                continue;
-
             }
             else{
 
@@ -2299,10 +2292,8 @@ void loadDSPCode(int pDSPChip, int pDSPCore)
                 c = fromHex(c);
 
                 if (place == 3) {value += (int)((c<<12) & 0xf000);}
-                else
-                if (place == 2) {value += (int)((c<<8)  & 0xf00);}
-                else
-                if (place == 1) {value += (int)((c<<4) & 0xf0);}
+                else if (place == 2) {value += (int)((c<<8)  & 0xf00);}
+                else if (place == 1) {value += (int)((c<<4) & 0xf0);}
                 else{
 
                     //fourth character converted, add it in and write word
@@ -2327,8 +2318,6 @@ void loadDSPCode(int pDSPChip, int pDSPCore)
                 //can't decrement in the if statements because they will do the
                 //dec even if the test fails
                 place--;
-
-                continue;
 
                 }
 
@@ -2445,8 +2434,6 @@ boolean verifyDSPCode(int pDSPChip, int pDSPCore)
                     (int)((n1<<4) & 0xf0) +
                     (int)(n0 & 0xf);
 
-                continue;
-
             }
             else{
 
@@ -2456,10 +2443,8 @@ boolean verifyDSPCode(int pDSPChip, int pDSPCore)
                 c = fromHex(c);
 
                 if (place == 3) {value += (int)((c<<12) & 0xf000);}
-                else
-                if (place == 2) {value += (int)((c<<8)  & 0xf00);}
-                else
-                if (place == 1) {value += (int)((c<<4) & 0xf0);}
+                else if (place == 2) {value += (int)((c<<8)  & 0xf00);}
+                else if (place == 1) {value += (int)((c<<4) & 0xf0);}
                 else{
 
                     //fourth character converted, add it in and write word
@@ -2475,8 +2460,6 @@ boolean verifyDSPCode(int pDSPChip, int pDSPCore)
                 //can't decrement in the if statements because they will do the
                 //dec even if the test fails
                 place--;
-
-                continue;
 
             }
         }//while ((c =
@@ -2539,8 +2522,7 @@ void verifyDSPCode2(int pDSPChip, int pDSPCore)
 
     String core;
     if (pDSPCore == 1) {core = "A & B";}
-    else
-    if (pDSPCore == 3) {core = "C & D";}
+    else if (pDSPCore == 3) {core = "C & D";}
     else {core = "";}
 
     logger.logMessage("UT " + chassisSlotAddr + " verifying DSP code for" + "\n"
@@ -2580,8 +2562,6 @@ void verifyDSPCode2(int pDSPChip, int pDSPCore)
                     (int)((n1<<4) & 0xf0) +
                     (int)(n0 & 0xf);
 
-                continue;
-
             }
             else{
 
@@ -2591,10 +2571,8 @@ void verifyDSPCode2(int pDSPChip, int pDSPCore)
                 c = fromHex(c);
 
                 if (place == 3) {value += (int)((c<<12) & 0xf000);}
-                else
-                if (place == 2) {value += (int)((c<<8)  & 0xf00);}
-                else
-                if (place == 1) {value += (int)((c<<4) & 0xf0);}
+                else if (place == 2) {value += (int)((c<<8)  & 0xf00);}
+                else if (place == 1) {value += (int)((c<<4) & 0xf0);}
                 else{
 
                     //fourth character converted, add it in and write word
@@ -2631,8 +2609,6 @@ void verifyDSPCode2(int pDSPChip, int pDSPCore)
                 //can't decrement in the if statements because they will do the
                 //dec even if the test fails
                 place--;
-
-                continue;
 
             }
         }//while ((c =
@@ -4723,8 +4699,7 @@ public int processAScanPacket()
            (int)((int)(inBuffer[i*2+4]<<8) + (inBuffer[(i*2)+5] & 0xff));
 
         if (raw > 0 && raw < bdChs[channel].rejectLevel) {raw = raw % 10;}
-        else
-        if (raw < 0 && raw > -bdChs[channel].rejectLevel) {raw = raw % 10;}
+        else if (raw < 0 && raw > -bdChs[channel].rejectLevel) {raw = raw % 10;}
 
         raw *= ASCAN_SCALE;
 
@@ -4873,7 +4848,7 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
 
             //did gate receive the host specified number of consecutive hits?
             boolean hitCountMet;
-            hitCountMet = (peakFlags & HIT_COUNT_MET) == 0 ? false : true;
+            hitCountMet = (peakFlags & HIT_COUNT_MET) != 0;
 
             //cast to short used to force sign extension for signed values
             peak =
