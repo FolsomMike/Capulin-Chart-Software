@@ -1,0 +1,43 @@
+Data Version: 1.0
+
+Generated with WinFilter 0.8 ~ www.winfilter.20m.com
+
+<FIR filter right shift bits amount start>
+
+5
+
+<FIR filter right shift bits amount end>
+
+<start of coefficients>
+-12590
+-13634
+-14019
+-13633
+-12407
+-10327
+-7446
+-3879
+  198
+ 4555
+ 8927
+13026
+16571
+19310
+21042
+21642
+21042
+19310
+16571
+13026
+ 8927
+ 4555
+  198
+-3879
+-7446
+-10327
+-12407
+-13633
+-14019
+-13634
+-12590
+<end of coefficients>

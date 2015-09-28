@@ -1,0 +1,44 @@
+Data Version: 1.0
+
+Generated with WinFilter 0.8 ~ www.winfilter.20m.com
+
+<FIR filter right shift bits amount start>
+
+5
+
+<FIR filter right shift bits amount end>
+
+<start of coefficients>
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+<end of coefficients>
