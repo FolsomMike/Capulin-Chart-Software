@@ -111,7 +111,9 @@ public class Channel extends Object{
     private FileInputStream fileInputStream = null;
     private InputStreamReader inputStreamReader = null;
     private BufferedReader in = null;
-        
+
+    static final int MAX_NUM_COEFFICIENTS = 31;
+    
 //-----------------------------------------------------------------------------
 // Channel::Channel (constructor)
 //
@@ -3122,14 +3124,21 @@ private int[] parseFilterFileData(ArrayList<String> pData)
         int coeff;
         
         line = getNextNonBlankLineInList(iter);
-        if(line.isEmpty()) { return(createOneElementArrayContainingZero()); }        
+        if(line.isEmpty()) { return(createOneElementArrayContainingZero()); }
         coeff = parseInt(line);        
         if (coeff == Integer.MAX_VALUE){ break; } //stop if non-integer
         
         entryList.add(coeff); //add each valid value to the list
         
     }
-
+    
+    //if number of coefficients exceeds max allowed, return single element
+    //set to zero array as the filter values cannot be trusted
+    
+    if(entryList.size() > MAX_NUM_COEFFICIENTS) {
+        return(createOneElementArrayContainingZero());
+    }
+        
     //the size of the entry list is the number of coefficients read, add this
     //count as the first entry in the list
     entryList.add(0, entryList.size());
@@ -3138,7 +3147,7 @@ private int[] parseFilterFileData(ArrayList<String> pData)
     
     filterValues = new int[entryList.size()];
     
-    for(int i=0; i<filterValues.length; i++){ 
+    for(int i=0; i<filterValues.length; i++){
         filterValues[i] = entryList.get(i);
     }
     
