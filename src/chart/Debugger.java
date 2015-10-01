@@ -22,6 +22,7 @@ import chart.mksystems.hardware.Hardware;
 import java.awt.*;
 import java.awt.event.*;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import javax.swing.*;
 
 //-----------------------------------------------------------------------------
@@ -42,6 +43,8 @@ class Debugger extends JDialog implements ActionListener, WindowListener {
 
     JCheckBox samplingEnabled, dspRunEnabled, testDataEnabled;
 
+    ArrayList<JTextField> registerFields;
+    
     static int FALSE = 0;
     static int TRUE = 1;
 
@@ -60,6 +63,13 @@ class Debugger extends JDialog implements ActionListener, WindowListener {
 
     static int DATABLOCK_SIZE = 128;
     byte[]dataBlock;
+    
+    //this is the address of the buffer holding the DSP register values
+    //which are saved by the code using the debug routines
+    //it should be adjusted whenever the buffer moves in memory due to adding
+    //more variables
+    
+    private static final int DSP_REGISTER_BUFFER_ADDR = 0x02c6;
 
 //-----------------------------------------------------------------------------
 // Debugger::Debugger (constructor)
@@ -419,11 +429,137 @@ public void init()
     //add the DSP Control panel to the window
     add(controlPanel);
 
+    add(createMonitorPanel());
+    
     pack();
 
 }//end of Debugger::init
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// Debugger::createMonitorPanel
+//
+// Creates a panel for viewing and editing the DSP registers and controlling
+// breakpoints.
+//
+// The register values are read from a known buffer in DSP memory when the
+// "Refresh" button is clicked. It is expected that the DSP code saves the
+// registers to that buffer periodically or when performing a debug halt.
+//
+// If the DPS is in a debug halt, it will be restarted when the "Continue"
+// button is clicked.
+//
+// Returns reference to the JPanel.
+//
+
+private JPanel createMonitorPanel(){
+    
+    JPanel monitorPanel;
+    
+    monitorPanel = new JPanel();
+    
+    monitorPanel.setBorder(BorderFactory.createTitledBorder("Monitor"));
+    monitorPanel.setLayout(new BoxLayout(monitorPanel, BoxLayout.PAGE_AXIS));
+    monitorPanel.setAlignmentY(Component.TOP_ALIGNMENT);
+
+    JButton b;
+    
+    b = new JButton("Refresh");
+    b.setActionCommand("Refresh Monitor Panel");
+    b.addActionListener(this);
+    b.setToolTipText("Updates values on the monitor panel.");
+    b.setAlignmentX(Component.LEFT_ALIGNMENT);
+    monitorPanel.add(b);
+    
+    monitorPanel.add(Box.createRigidArea(new Dimension(0,5))); //vertical spacer
+    
+    monitorPanel.add(createRegisterPanel());
+    
+    monitorPanel.add(Box.createRigidArea(new Dimension(0,5))); //vertical spacer    
+
+    b = new JButton("Restart");
+    b.setActionCommand("Restart DSP From Debug Halt");
+    b.addActionListener(this);
+    b.setToolTipText("Restarts DSP execution if in Debug Halt.");
+    b.setAlignmentX(Component.LEFT_ALIGNMENT);    
+    monitorPanel.add(b);
+        
+    monitorPanel.add(Box.createVerticalGlue()); //force components to the top
+
+    return(monitorPanel);
+
+}//end of Debugger::createMonitorPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Debugger::createRegisterPanel
+//
+// Creates a panel containing a grid to display the DSP register values.
+//
+// Returns reference to the JPanel.
+//
+
+private JPanel createRegisterPanel()
+{
+
+    JPanel registerPanel;
+    
+    registerPanel = new JPanel();
+    
+    setSizes(registerPanel, 200, 400);
+    registerPanel.setBorder(BorderFactory.createTitledBorder("DSP Registers"));
+    registerPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+    registerFields = new ArrayList<>();
+    ArrayList<JTextField> rf = registerFields; //use short name
+    
+    GridLayout gridLayout = new GridLayout(0,2);
+
+    gridLayout.setHgap(2);
+    gridLayout.setVgap(3);
+    
+    registerPanel.setLayout(gridLayout);
+
+    JTextField tf;
+    
+    //two empty labels to create a spacer
+    registerPanel.add(new JLabel(""));
+    registerPanel.add(new JLabel(""));
+    
+    registerPanel.add(new JLabel("Debug"));
+    registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);
+    registerPanel.add(new JLabel("A"));
+    registerPanel.add(tf = new JTextField("0x4ffff")); rf.add(tf);
+    registerPanel.add(new JLabel("B"));
+    registerPanel.add(tf = new JTextField("0x4ffff")); rf.add(tf);
+    registerPanel.add(new JLabel("ST0"));
+    registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);
+    registerPanel.add(new JLabel("ST1"));
+    registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);
+    registerPanel.add(new JLabel("PMST"));
+    registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);
+    registerPanel.add(new JLabel("AR0"));
+    registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);
+    registerPanel.add(new JLabel("AR1"));
+    registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);
+    registerPanel.add(new JLabel("AR2"));
+    registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);
+    registerPanel.add(new JLabel("AR3"));
+    registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);
+    registerPanel.add(new JLabel("AR4"));
+    registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);
+    registerPanel.add(new JLabel("AR5"));
+    registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);
+    registerPanel.add(new JLabel("AR6"));
+    registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);
+    registerPanel.add(new JLabel("AR7"));
+    registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);
+    
+    return(registerPanel);
+    
+}//end of Debugger::createRegisterGrid
+//-----------------------------------------------------------------------------
+                
 //-----------------------------------------------------------------------------
 // Debugger::actionPerformed
 //
@@ -461,8 +597,7 @@ public void actionPerformed(ActionEvent e)
         help.init();
         return;
     }
-
-
+        
     //DSP cores running or in reset
     if (e.getActionCommand().equalsIgnoreCase("DSP's Running")){
         hardware.setState(
@@ -510,8 +645,45 @@ public void actionPerformed(ActionEvent e)
 
     }
 
-    //parse the user settings
+    parseUserInputs();
 
+    if (e.getActionCommand().equalsIgnoreCase("Refresh Monitor Panel")){
+        refreshMonitorPanel();
+        return;
+    }
+
+    if (e.getActionCommand().equalsIgnoreCase("Restart DSP From Debug Halt")){
+        restartDSPFromDebugHalt();
+        refreshMonitorPanel();        
+        return;
+    }
+        
+    //write the data to the specified address
+    if (e.getActionCommand().equalsIgnoreCase("Modify")){
+        modifyData();
+    }
+
+    //fill a block of memory with the specified address and data
+    if (e.getActionCommand().equalsIgnoreCase("Fill")){
+        fillData();
+    }
+
+    //any button clicked or radio button change causes a screen refresh to
+    //display the data from the selected range
+    displayData();
+
+}//end of Debugger::actionPerformed
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Debugger::parseUserInputs
+//
+// Read user inputs and store in variables.
+//
+
+private void parseUserInputs()
+{        
+        
     try{
         displayAddr = Integer.parseInt(displayAddress.getText(), 16);
     }
@@ -568,22 +740,8 @@ public void actionPerformed(ActionEvent e)
     else if (ramPage1.isSelected()) {ramPage = 1;}
     else if (ramPage2.isSelected()) {ramPage = 2;}
     else if (ramPage3.isSelected()) {ramPage = 3;}
-
-    //write the data to the specified address
-    if (e.getActionCommand().equalsIgnoreCase("Modify")){
-        modifyData();
-    }
-
-    //fill a block of memory with the specified address and data
-    if (e.getActionCommand().equalsIgnoreCase("Fill")){
-        fillData();
-    }
-
-    //any button clicked or radio button change causes a screen refresh to
-    //display the data from the selected range
-    displayData();
-
-}//end of Debugger::actionPerformed
+    
+}//end of Debugger::parseUserInputs
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -622,7 +780,32 @@ void refreshVarsFromUserInputs()
 String toHexString(int pValue)
 {
 
-    String s = Integer.toString(pValue, 16);
+    String s = Integer.toString(pValue & 0xffff, 16);
+
+    //force length to be four characters
+    if (s.length() == 0) {return("0000" + s);}
+    else
+    if (s.length() == 1) {return("000" + s);}
+    else
+    if (s.length() == 2) {return("00" + s);}
+    else
+    if (s.length() == 3) {return("0" + s);}
+    else
+    {return (s);}
+
+}//end of Debugger::toHexString
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Debugger::toHexString
+//
+// Converts a long to a 9 character hex string.
+//
+
+String toHexString(long pValue)
+{
+
+    String s = Long.toString(pValue, 16);
 
     //force length to be four characters
     if (s.length() == 0) {return("0000" + s);}
@@ -708,6 +891,175 @@ void displayData()
     }// for (line = 0; line < 8; line++)
 
 }//end of Debugger::displayData
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Debugger::refreshMonitorPanel
+//
+// Refreshes the data in the Monitor panel such as DSP registers.
+//
+// Values read are from the currently selected DSP core in the currently
+// selected chip.
+//
+// The A&B registers are actually only 40 bits, but the transfer occurs in
+// words so they take up 48 bits (6 bytes) in the buffer. The top byte is
+// always zero.
+//
+
+void refreshMonitorPanel()
+{
+
+    //readRAM expects count to be in words, so divide number of bytes by 2
+    
+    //the register variables are always on Page 0 of Local memory at address
+    //specified by DSP_REGISTER_BUFFER_ADDR
+
+    hardware.readRAM(chassisNum, slotNum, whichDSPChip, whichDSPCore,
+            0 /* local memory */, 0 /* page*/,
+            DSP_REGISTER_BUFFER_ADDR, DATABLOCK_SIZE/2, dataBlock);
+
+    ArrayList<JTextField> rf = registerFields; //use short name
+    
+    int dbIndex = 0; int i = 0;
+    
+    //extract bytes from the buffer and display the values in text fields
+    
+    dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //status
+    dbIndex = setTextFieldTo6Bytes(rf.get(i++), dataBlock, dbIndex); //A reg
+    dbIndex = setTextFieldTo6Bytes(rf.get(i++), dataBlock, dbIndex); //B reg
+    dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //ST0
+    dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //ST1    
+    dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //PMST
+    dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //AR0
+    dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //AR1
+    dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //AR2
+    dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //AR3
+    dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //AR4
+    dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //AR5
+    dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //AR6
+    setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //AR7
+    
+}//end of Debugger::refreshMonitorPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Debugger::setTextFieldToInt
+//
+// Creates a word from the two bytes stored in pBuffer at pIndex, converts
+// it to a hexadecimal string and applies it to pField.
+//
+// pIndex is updated to point to the following buffer element and the new
+// value is returned.
+//
+// NOTE: Each byte is ANDed with 0xff variant to remove sign extension.
+//
+
+private int setTextFieldToInt(JTextField pField, byte[] pBuffer, int pIndex)
+{
+
+    pField.setText(
+        separateIntoPairs(
+            toHexString(
+                ((int)dataBlock[pIndex++]<<8) +
+                (dataBlock[pIndex++] & 0xff)))
+    );
+    
+    return(pIndex);
+    
+}//end of Debugger::setTextFieldToInt
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Debugger::setTextFieldTo6Bytes
+//
+// Creates a 48 bit value from the six bytes stored in pBuffer at pIndex,
+// converts it to a hexadecimal string and applies it to pField.
+//
+// pIndex is updated to point to the following buffer element and the new
+// value is returned.
+//
+// NOTE: Each byte is ANDed with 0xff variant to remove sign extension.
+//
+
+private int setTextFieldTo6Bytes(JTextField pField, byte[] pBuffer, int pIndex)
+{
+            
+    long r = ((long)dataBlock[pIndex++]<<40 & 0xff0000000000L) +
+             ((long)dataBlock[pIndex++]<<32 & 0xff00000000L) +                
+             ((long)dataBlock[pIndex++]<<24 & 0xff000000L) +                
+             ((long)dataBlock[pIndex++]<<16 & 0xff0000L) +                
+             ((long)dataBlock[pIndex++]<<8 & 0xff00L)  +
+             ((long)dataBlock[pIndex++] & 0xffL);
+
+    pField.setText(separateIntoPairs(toHexString(r)));
+    
+    return(pIndex);
+    
+}//end of Debugger::setTextFieldTo6Bytes
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Debugger::separateIntoPairs
+//
+// Starting from the right end of pIn, inserts a space after every two
+// two characters to separate the string into pairs.
+//
+
+private String separateIntoPairs(String pIn)
+{
+
+    String o = "";
+    
+    int j = 0;
+    
+    for(int i=pIn.length(); i>0; i--){
+        
+        o = pIn.substring(i-1,i) + o;
+        
+        if(j++ == 1){ o = " " + o; j = 0; }
+        
+    }
+    
+    return(o);
+        
+}//end of Debugger::separateIntoPairs
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Debugger::restartDSPFromDebugHalt
+//
+// Restarts the DSP if it is in Debug Halt.
+//
+// This only restarts the currently selected DSP core in the currently
+// selected chip.
+//
+
+void restartDSPFromDebugHalt()
+{
+
+    //clear the Debug Status word, the first word in the DSP register buffer
+    //the LSB controls the halt state
+    
+    hardware.writeRAM(chassisNum, slotNum, whichDSPChip, whichDSPCore, ramType,
+                                  ramPage, DSP_REGISTER_BUFFER_ADDR, 0x00);
+
+}//end of Debugger::restartDSPFromDebugHalt
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Debugger::setSizes
+//
+// Sets the min, max, and preferred sizes of pComponent to pWidth and pHeight.
+//
+
+public void setSizes(Component pComponent, int pWidth, int pHeight)
+{
+
+    pComponent.setMinimumSize(new Dimension(pWidth, pHeight));
+    pComponent.setPreferredSize(new Dimension(pWidth, pHeight));
+    pComponent.setMaximumSize(new Dimension(pWidth, pHeight));
+
+}//end of Debugger::setSizes
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
