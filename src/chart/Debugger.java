@@ -532,6 +532,8 @@ private JPanel createRegisterPanel()
     registerPanel.add(tf = new JTextField("0x4ffff")); rf.add(tf);
     registerPanel.add(new JLabel("B"));
     registerPanel.add(tf = new JTextField("0x4ffff")); rf.add(tf);
+    registerPanel.add(new JLabel("T"));
+    registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);
     registerPanel.add(new JLabel("ST0"));
     registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);
     registerPanel.add(new JLabel("ST1"));
@@ -927,6 +929,7 @@ void refreshMonitorPanel()
     dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //status
     dbIndex = setTextFieldTo6Bytes(rf.get(i++), dataBlock, dbIndex); //A reg
     dbIndex = setTextFieldTo6Bytes(rf.get(i++), dataBlock, dbIndex); //B reg
+    dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //T reg    
     dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //ST0
     dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //ST1    
     dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //PMST
