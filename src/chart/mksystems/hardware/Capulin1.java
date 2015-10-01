@@ -2108,23 +2108,32 @@ private void configureControlBoards()
 
     }//if (numberOfControlBoards > 0)
 
-    EncoderValues encoderValues = controlBoards[0].getEncoderValuesObject();
-    //copy various encoder related values so other objects can access them
-    encoderValues.photoEyeToPhotoEyeDistance = hdwVs.photoEyeToPhotoEyeDistance;
-    encoderValues.encoder1InchesPerCount = hdwVs.encoder1InchesPerCount;
-    encoderValues.encoder2InchesPerCount = hdwVs.encoder2InchesPerCount;
+    
+    
+    if(numberOfControlBoards > 0) {
+        
+        EncoderValues encoderValues;
+        
+        encoderValues = controlBoards[0].getEncoderValuesObject();
+        //copy various encoder related values so other objects can access them
+        encoderValues.photoEyeToPhotoEyeDistance =
+                                            hdwVs.photoEyeToPhotoEyeDistance;
+        encoderValues.encoder1InchesPerCount = hdwVs.encoder1InchesPerCount;
+        encoderValues.encoder2InchesPerCount = hdwVs.encoder2InchesPerCount;
 
-    encoderValues.photoEye1DistanceFrontOfHead1 =
-                                        hdwVs.photoEye1DistanceFrontOfHead1;
+        encoderValues.photoEye1DistanceFrontOfHead1 =
+                                            hdwVs.photoEye1DistanceFrontOfHead1;
 
-    encoderValues.photoEye1DistanceFrontOfHead2 =
-                                        hdwVs.photoEye1DistanceFrontOfHead2;
+        encoderValues.photoEye1DistanceFrontOfHead2 =
+                                            hdwVs.photoEye1DistanceFrontOfHead2;
 
-    encoderValues.photoEye2DistanceFrontOfHead1 =
-                                        hdwVs.photoEye2DistanceFrontOfHead1;
+        encoderValues.photoEye2DistanceFrontOfHead1 =
+                                            hdwVs.photoEye2DistanceFrontOfHead1;
 
-    encoderValues.photoEye2DistanceFrontOfHead2 =
-                                        hdwVs.photoEye2DistanceFrontOfHead2;
+        encoderValues.photoEye2DistanceFrontOfHead2 =
+                                            hdwVs.photoEye2DistanceFrontOfHead2;
+    
+    }
     
 }//end of Capulin1::configureControlBoards
 //-----------------------------------------------------------------------------
