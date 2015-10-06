@@ -69,7 +69,7 @@ class Debugger extends JDialog implements ActionListener, WindowListener {
     //it should be adjusted whenever the buffer moves in memory due to adding
     //more variables
     
-    private static final int DSP_REGISTER_BUFFER_ADDR = 0x02c6;
+    private static final int DSP_REGISTER_BUFFER_ADDR = 0x02c7;
 
 //-----------------------------------------------------------------------------
 // Debugger::Debugger (constructor)
@@ -477,8 +477,8 @@ private JPanel createMonitorPanel(){
     
     monitorPanel.add(Box.createRigidArea(new Dimension(0,5))); //vertical spacer    
 
-    b = new JButton("Restart");
-    b.setActionCommand("Restart DSP From Debug Halt");
+    b = new JButton("Continue");
+    b.setActionCommand("Continue DSP From Debug Halt");
     b.addActionListener(this);
     b.setToolTipText("Restarts DSP execution if in Debug Halt.");
     b.setAlignmentX(Component.LEFT_ALIGNMENT);    
@@ -541,6 +541,8 @@ private JPanel createRegisterPanel()
     registerPanel.add(new JLabel("PMST"));
     registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);
     registerPanel.add(new JLabel("BRC"));
+    registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);    
+    registerPanel.add(new JLabel("SP"));    
     registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);    
     registerPanel.add(new JLabel("AR0"));
     registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);
@@ -656,7 +658,7 @@ public void actionPerformed(ActionEvent e)
         return;
     }
 
-    if (e.getActionCommand().equalsIgnoreCase("Restart DSP From Debug Halt")){
+    if (e.getActionCommand().equalsIgnoreCase("Continue DSP From Debug Halt")){
         restartDSPFromDebugHalt();
         refreshMonitorPanel();        
         return;
@@ -936,6 +938,7 @@ void refreshMonitorPanel()
     dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //ST1    
     dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //PMST
     dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //BRC
+    dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //SP    
     dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //AR0
     dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //AR1
     dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //AR2
