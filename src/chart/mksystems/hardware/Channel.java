@@ -3094,12 +3094,26 @@ private int[] parseFilterFileData(ArrayList<String> pData)
     String line;
     
     ListIterator iter = pData.listIterator();
+
+    //parse the coefficient scaling vaue -- the filters often have a LOT of gain
+    //when used as is, so scaling down the coefficients is a simple method of
+    //allowing the user to adjust the gain by setting a value in the file
+        
+    result = searchListForString("<coefficient scaling start>" , iter);
+    
+    double coeffScaling = 1.0;
+    
+    if (result) {
+    
+        line = getNextNonBlankLineInList(iter);
+        if(!line.isEmpty()) { coeffScaling = parseDouble(line, 1.0); }
+        
+    }
     
     //parse the number of bits each multiplication result is shifted during the
     //FIR filter math to prevent overflow during the process
         
-    result = searchListForString(
-                           "<FIR filter right shift bits amount start>" , iter);
+    result = searchListForString("<FIR filter shift bits amount start>" , iter);
     
     if (!result) { return(createOneElementArrayContainingZero()); }
     
@@ -3107,9 +3121,9 @@ private int[] parseFilterFileData(ArrayList<String> pData)
     
     if(line.isEmpty()) { return(createOneElementArrayContainingZero()); }
     
-    int numFIRFilterBitRightShifts; //debug mks -- move to class
+    int numFIRFilterBitRightShifts;
         
-    numFIRFilterBitRightShifts = parseInt(line);
+    numFIRFilterBitRightShifts = parseInt(line, -5);
     
     //parse the filter coefficients
     
@@ -3125,8 +3139,10 @@ private int[] parseFilterFileData(ArrayList<String> pData)
         
         line = getNextNonBlankLineInList(iter);
         if(line.isEmpty()) { return(createOneElementArrayContainingZero()); }
-        coeff = parseInt(line);        
+        coeff = parseInt(line, Integer.MAX_VALUE);        
         if (coeff == Integer.MAX_VALUE){ break; } //stop if non-integer
+    
+        coeff = (int)Math.round(coeff * coeffScaling); //scale to adjust gain
         
         entryList.add(coeff); //add each valid value to the list
         
@@ -3160,10 +3176,10 @@ private int[] parseFilterFileData(ArrayList<String> pData)
 // Channel::parseInt
 //
 // Returns an integer parsed from String pString.
-// If an error occurs during parsing, Integer.MAX_VALUE is returned.
+// If an error occurs during parsing, pDefault is returned.
 //
 
-private int parseInt(String pString)
+private int parseInt(String pString, int pDefault)
 {
    
     int value;
@@ -3172,12 +3188,36 @@ private int parseInt(String pString)
         value = Integer.parseInt(pString.trim());
     }
     catch(NumberFormatException e){
-        value = Integer.MAX_VALUE;
+        value = pDefault;
     }
     
     return(value);
     
 }// end of Channel::parseInt
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::parseDouble
+//
+// Returns a double parsed from String pString.
+// If an error occurs during parsing, pDefault is returned.
+//
+
+private double parseDouble(String pString, double pDefault)
+{
+   
+    double value;
+    
+    try{
+        value = Double.parseDouble(pString.trim());
+    }
+    catch(NumberFormatException e){
+        value = pDefault;
+    }
+    
+    return(value);
+    
+}// end of Channel::parseDouble
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
