@@ -43,6 +43,8 @@ class Debugger extends JDialog implements ActionListener, WindowListener {
 
     JCheckBox samplingEnabled, dspRunEnabled, testDataEnabled;
 
+    JButton continueBtn;
+    
     ArrayList<JTextField> registerFields;
     
     static int FALSE = 0;
@@ -61,7 +63,7 @@ class Debugger extends JDialog implements ActionListener, WindowListener {
     JRadioButton ramPage0, ramPage1, ramPage2, ramPage3;
 
 
-    static int DATABLOCK_SIZE = 128;
+    static final int DATABLOCK_SIZE = 128;
     byte[]dataBlock;
     
     //this is the address of the buffer holding the DSP register values
@@ -71,6 +73,8 @@ class Debugger extends JDialog implements ActionListener, WindowListener {
     
     private static final int DSP_REGISTER_BUFFER_ADDR = 0x02c7;
 
+    private static final byte DSP_HALTED_FLAG = 0x01;
+    
 //-----------------------------------------------------------------------------
 // Debugger::Debugger (constructor)
 //
@@ -463,27 +467,34 @@ private JPanel createMonitorPanel(){
     monitorPanel.setAlignmentY(Component.TOP_ALIGNMENT);
 
     JButton b;
+        
+    monitorPanel.add(Box.createRigidArea(new Dimension(0,15)));//vertical spacer
+    
+    monitorPanel.add(createRegisterPanel());
+    
+    monitorPanel.add(Box.createRigidArea(new Dimension(0,10)));//vertical spacer    
+
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
+    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
     
     b = new JButton("Refresh");
     b.setActionCommand("Refresh Monitor Panel");
     b.addActionListener(this);
     b.setToolTipText("Updates values on the monitor panel.");
-    b.setAlignmentX(Component.LEFT_ALIGNMENT);
-    monitorPanel.add(b);
+    panel.add(b);
     
-    monitorPanel.add(Box.createRigidArea(new Dimension(0,5))); //vertical spacer
-    
-    monitorPanel.add(createRegisterPanel());
-    
-    monitorPanel.add(Box.createRigidArea(new Dimension(0,5))); //vertical spacer    
+    panel.add(Box.createRigidArea(new Dimension(5,0))); //horizontal spacer    
 
-    b = new JButton("Continue");
-    b.setActionCommand("Continue DSP From Debug Halt");
-    b.addActionListener(this);
-    b.setToolTipText("Restarts DSP execution if in Debug Halt.");
-    b.setAlignmentX(Component.LEFT_ALIGNMENT);    
-    monitorPanel.add(b);
-        
+    continueBtn = new JButton("Continue");
+    continueBtn.setActionCommand("Continue DSP From Debug Halt");
+    continueBtn.addActionListener(this);
+    continueBtn.setToolTipText("Restarts DSP execution if in Debug Halt.");
+    continueBtn.setEnabled(false);
+    panel.add(continueBtn);
+    
+    monitorPanel.add(panel);
+    
     monitorPanel.add(Box.createVerticalGlue()); //force components to the top
 
     return(monitorPanel);
@@ -521,11 +532,7 @@ private JPanel createRegisterPanel()
     registerPanel.setLayout(gridLayout);
 
     JTextField tf;
-    
-    //two empty labels to create a spacer
-    registerPanel.add(new JLabel(""));
-    registerPanel.add(new JLabel(""));
-    
+        
     registerPanel.add(new JLabel("Debug"));
     registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);
     registerPanel.add(new JLabel("A"));
@@ -660,7 +667,8 @@ public void actionPerformed(ActionEvent e)
 
     if (e.getActionCommand().equalsIgnoreCase("Continue DSP From Debug Halt")){
         restartDSPFromDebugHalt();
-        refreshMonitorPanel();        
+        refreshMonitorPanel(); //see note in at top of refresh... function about
+                               //enabling/disabling Continue button
         return;
     }
         
@@ -904,12 +912,27 @@ void displayData()
 //
 // Refreshes the data in the Monitor panel such as DSP registers.
 //
+// If bit 0 of the Debug Control memory location is 0, all the register
+// displays are set blank as the DSP is not currently at a breakpoint and thus
+// has not stored the registers, so their current value is unknown.
+// If bit 0 is 1, the DSP is currently halted and has just refreshed the
+// register list so they can be displayed.
+//
 // Values read are from the currently selected DSP core in the currently
 // selected chip.
 //
 // The A&B registers are actually only 40 bits, but the transfer occurs in
 // words so they take up 48 bits (6 bytes) in the buffer. The top byte is
 // always zero.
+//
+// If bit 0 of the Debug Control memory location is set, the "Continue" button
+// is enabled to allow the user to restart the DSP as it is at a breakpoint.
+//
+// When the user clicks the Continue button, it releases the DSP and calls
+// refresh again. If the DSP has already set the halt flag again by quickly
+// hitting another breakpoint, then the Continue button will remain enabled.
+// If not, then the Continue button is disabled until Refresh is clicked again.
+// In the future, a timer driven auto-Refresh  mode could be implemented.
 //
 
 void refreshMonitorPanel()
@@ -925,30 +948,73 @@ void refreshMonitorPanel()
             DSP_REGISTER_BUFFER_ADDR, DATABLOCK_SIZE/2, dataBlock);
 
     ArrayList<JTextField> rf = registerFields; //use short name
+
+    int debugControlValue = ((int)dataBlock[0]<<8) + (dataBlock[1] & 0xff);
     
-    int dbIndex = 0; int i = 0;
-    
-    //extract bytes from the buffer and display the values in text fields
-    
-    dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //status
-    dbIndex = setTextFieldTo6Bytes(rf.get(i++), dataBlock, dbIndex); //A reg
-    dbIndex = setTextFieldTo6Bytes(rf.get(i++), dataBlock, dbIndex); //B reg
-    dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //T reg    
-    dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //ST0
-    dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //ST1    
-    dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //PMST
-    dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //BRC
-    dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //SP    
-    dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //AR0
-    dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //AR1
-    dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //AR2
-    dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //AR3
-    dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //AR4
-    dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //AR5
-    dbIndex = setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //AR6
-    setTextFieldToInt(rf.get(i++), dataBlock, dbIndex); //AR7
+    if ((debugControlValue & DSP_HALTED_FLAG) != 0){ 
+
+        refreshRegisterDisplaysFromByteArray(dataBlock, registerFields);
+        continueBtn.setEnabled(true); //allow user to restart the DSP
+        
+    } else {
+        
+        setRegisterDisplaysBlank(dataBlock, registerFields);
+        continueBtn.setEnabled(false); //DSP not halted, nothing to continue
+        
+    }
     
 }//end of Debugger::refreshMonitorPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Debugger::refreshRegisterDisplaysFromByteArray
+//
+// Extracts bytes from pBuffer, converts them to strings, and displays the
+// values in text fields referenced in list pRegisterFields.
+//
+// The JTextFields contained in pRegisterFields should be in the same order
+// as the data is arranged in pBuffer.
+//
+
+private void refreshRegisterDisplaysFromByteArray(byte[] pBuffer, 
+                                         ArrayList<JTextField> pRegisterFields)
+{
+    
+    int dbIndex = 0; int fieldCount = 0;
+    
+    for(JTextField field : pRegisterFields){
+    
+        if(fieldCount == 1 || fieldCount == 2){
+            //A register and B register are 6 bytes
+            dbIndex = setTextFieldTo6Bytes(field, dataBlock, dbIndex);
+        }else {
+            dbIndex = setTextFieldToInt(field, pBuffer, dbIndex);
+        }
+    
+        fieldCount++; //use to catch register which need different handling
+        
+    }
+    
+}//end of Debugger::refreshRegisterDisplaysFromByteArray
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Debugger::setRegisterDisplaysBlank
+//
+// Places the Debug Control value extracted from pBuffer into the Debug
+// register and sets blank all other register textfields referenced in
+// pRegisterFields.
+//
+
+private void setRegisterDisplaysBlank(byte[]pBuffer, 
+                                        ArrayList<JTextField> pRegisterFields)
+{
+    
+    pRegisterFields.stream().forEach((field) -> { field.setText("");});
+    
+    setTextFieldToInt(pRegisterFields.get(0), pBuffer, 0);//display debug status    
+    
+}//end of Debugger::setRegisterDisplaysBlank
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
