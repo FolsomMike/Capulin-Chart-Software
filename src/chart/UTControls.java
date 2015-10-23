@@ -325,13 +325,19 @@ private void loadFilterList()
     //get a list of the files/folders in the directory
     String[] filters = filtersDir.list();
 
+    if(filters == null){
+        filterList = new ArrayList<>(20);
+        filterList.add("No Filters Available");
+        return;
+    }
+    
     //remove .txt from each file name for display
     for (int i=0; i<filters.length; i++){        
         filters[i] = filters[i].replace(".txt", "");        
     }
     
     //create a list to hold the file/folder names
-    filterList = new ArrayList<>(1000);
+    filterList = new ArrayList<>(20);
     filterList.addAll(Arrays.asList(filters));
     //sort the items alphabetically
     Collections.sort(filterList);
