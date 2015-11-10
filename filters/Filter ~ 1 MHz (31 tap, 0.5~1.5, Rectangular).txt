@@ -1,6 +1,6 @@
 Data Version: 1.0
 
-Generated with WinFilter 0.8 ~ www.winfilter.20m.com
+Generated with WinFilter dsPIC FD Lite
 
 FIR filter shift is applied to the output of each convolution. It is typically negative to scale the output down. FIR filter shift range: -16 ~ +15
 
@@ -8,7 +8,7 @@ The coefficient scaling value is multiplied by each coefficient to change the fi
 
 <coefficient scaling start>
 
-.005
+.067
 
 <coefficient scaling end>
 
@@ -19,35 +19,35 @@ The coefficient scaling value is multiplied by each coefficient to change the fi
 <FIR filter shift bits amount end>
 
 <start of coefficients>
--12590
--13634
--14019
--13633
--12407
--10327
--7446
--3879
-  198
- 4555
- 8927
-13026
-16571
-19310
-21042
-21642
-21042
-19310
-16571
-13026
- 8927
- 4555
-  198
--3879
--7446
--10327
--12407
--13633
--14019
--13634
--12590
+219
+364
+506
+645
+778
+904
+1023
+1132
+1231
+1319
+1396
+1459
+1509
+1545
+1567
+1574
+1567
+1545
+1509
+1459
+1396
+1319
+1231
+1132
+1023
+904
+778
+645
+506
+364
+219
 <end of coefficients>
