@@ -76,6 +76,8 @@ void pulseAudibleAlarm();
 
 void pulseAlarmMarker(int pChannel);
 
+void flipAnalogOutput(int pChannel);
+
 void turnOnAudibleAlarm();
 
 void turnOffAudibleAlarm();

@@ -164,6 +164,12 @@ public void init()
     pulseAudibleAlarm.setToolTipText("Pulse Audible Alarm");
     panel.add(pulseAudibleAlarm);
 
+    JButton setAnalogOutput = new JButton("Flip Analog Output");
+    setAnalogOutput.setActionCommand("Flip Analog Output");
+    setAnalogOutput.addActionListener(this);
+    setAnalogOutput.setToolTipText("Flip Analog Output between max and min.");
+    panel.add(setAnalogOutput);
+    
     pack();
 
 }//end of Monitor::init
@@ -174,28 +180,15 @@ public void init()
 //
 // Catches action events from buttons, etc.
 //
+// Passes some of them on to the specified actionListener.
 //
 
 @Override
 public void actionPerformed(ActionEvent e)
 {
 
-    JButton source = (JButton)(e.getSource());
-
-    //tells the Control board to zero the encoder counts
-    if (source.getToolTipText().equalsIgnoreCase("Zero Encoder Counts")){
-        //pass the command back to the main function
-        actionListener.actionPerformed(
-                              new ActionEvent(this, 1, "Zero Encoder Counts"));
-        return;
-    }
-
-    //tells the Control board to pulse output 1
-    if (source.getToolTipText().equalsIgnoreCase("Pulse Audible Alarm")){
-        //pass the command back to the main function
-        actionListener.actionPerformed(
-                              new ActionEvent(this, 1, "Pulse Audible Alarm"));
-    }
+    actionListener.actionPerformed(
+                               new ActionEvent(this, 1, e.getActionCommand()));
 
 }//end of Monitor::actionPerformed
 //-----------------------------------------------------------------------------

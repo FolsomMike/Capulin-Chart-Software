@@ -654,6 +654,23 @@ public void pulseAlarmMarker(int pChannel)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Hardware::flipAnalogOutput
+//
+// Flips the analog output specified by pChannel from min to max and vice
+// versa.
+//
+// Valid values for pWhichOutput are 0-3.
+//
+
+public void flipAnalogOutput(int pChannel)
+{
+
+    analogDriver.flipAnalogOutput(pChannel);
+
+}//end of Hardware::flipAnalogOutput
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Hardware::turnOnAudibleAlarm
 //
 // Turns on the audible alarm.

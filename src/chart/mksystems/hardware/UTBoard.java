@@ -325,6 +325,15 @@ public class UTBoard extends Board{
         int rejectLevel;
         boolean isWallChannel=false;
 
+        AnalogOutputController analogOutputController;
+        int analogOutputControllerChannel = -1;
+
+        void applyWallOnAnalogOutput(double pAnalogOutput){
+            if (analogOutputControllerChannel != -1){
+                analogOutputController.setOutput(
+                                analogOutputControllerChannel, pAnalogOutput);                
+            }
+        }
     }
 
     BoardChannel bdChs[];
@@ -2942,6 +2951,27 @@ void sendDSPMapResetCommand()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// UTBoard::setAnalogOutputController
+//
+// Sets the analog output controller and channel for the board channel
+// pChannel.
+//
+// The values reported for this channel will be output on the device.
+//
+
+public void setAnalogOutputController(int pChannel,
+                                AnalogOutputController pAnalogOutputController,
+                                int pOutputChannel)
+{
+
+    bdChs[pChannel].analogOutputController = pAnalogOutputController;
+    
+    bdChs[pChannel].analogOutputControllerChannel = pOutputChannel;
+    
+}//end of UTBoard::setAnalogOutputController
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // UTBoard::setWallChannelFlag
 //
 // Sets the flag which specifies the channel as being used for wall
@@ -5070,6 +5100,10 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
             bdChs[channel].gates[2].storeNewDataD(
                                          minThickness, wallMinTrack, clockPos);
 
+            if (bdChs[channel].analogOutputControllerChannel != -1){
+                outputWallThicknessOnAnalogOutput(channel, minThickness);
+            }
+            
         }// if (bdChs[channel].isWallChannel)
 
     }// for (int h=0; h < pNumberOfChannels; h++)
@@ -5077,6 +5111,41 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
     return 1;
 
 }//end of UTBoard::processPeakData
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::outputWallThicknessOnAnalogOutput
+//
+// If an IO Module output has been linked to board channel pChannel, the
+// wall thickness represented by pValue is applied to the output.
+//
+
+public void outputWallThicknessOnAnalogOutput(int pChannel, double pValue)
+{
+
+    //convert nanosecond time span to distance
+    double thickness = pValue * hdwVs.nSPerDataPoint * hdwVs.velocityNS /
+                                                (hdwVs.numberOfMultiples * 2);
+
+//    thickness = .260; //debug mks remove this
+    
+    //wip mks -- need to load nominal current offset and scale from config file
+    //           also need to load correction factor
+    
+    
+    //compute 4-20mA current loop output for the wall value where
+    //12mA is the nominalWall and each 0.001 of wall change is
+    //0.2 mA current change
+    
+    double analogOutput = 12.0 + (thickness - hdwVs.nominalWall) * 0.2 * 1000;
+
+    double correction = 1.0174418604651162790697674418605;
+    
+    analogOutput *= correction;
+    
+    bdChs[pChannel].applyWallOnAnalogOutput(analogOutput); 
+    
+}//end of UTBoard::outputWallThicknessOnAnalogOutput
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

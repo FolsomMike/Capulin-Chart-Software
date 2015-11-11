@@ -1456,6 +1456,12 @@ public void actionPerformed(ActionEvent e)
         return;
     }
 
+    //this part handles flipping Output Channel 0 between min and max
+    if ("Flip Analog Output".equals(e.getActionCommand())){
+        hardware.flipAnalogOutput(0);
+        return;
+    }
+    
     //this part handles repairing a job
     if ("Repair Job".equals(e.getActionCommand())) {
 

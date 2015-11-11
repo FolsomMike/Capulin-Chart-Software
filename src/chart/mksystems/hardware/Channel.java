@@ -65,6 +65,9 @@ public class Channel extends Object{
     public int numberOfDACGates;
 
     public boolean freezeScopeWhenNotInFocus;
+
+    AnalogOutputController analogOutputController;
+    int analogOutputControllerChannel;
     
     int scopeMax = 350;
 
@@ -263,6 +266,29 @@ public void initialize()
     sendDataChangesToRemotes();
 
 }//end of Channel::initialize
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::setAnalogOutputController
+//
+// Sets the analog output controller and channel for this UT channel.
+// The values reported for this channel will be output on the device.
+//
+
+public void setAnalogOutputController(
+                                AnalogOutputController pAnalogOutputController,
+                                int pOutputChannel)
+{
+
+    if(utBoard == null){ return; }
+    
+    analogOutputController = pAnalogOutputController;
+    analogOutputControllerChannel = pOutputChannel;
+    
+    utBoard.setAnalogOutputController(boardChannel, pAnalogOutputController,
+                                                                pOutputChannel);
+    
+}//end of Channel::setAnalogOutputController
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

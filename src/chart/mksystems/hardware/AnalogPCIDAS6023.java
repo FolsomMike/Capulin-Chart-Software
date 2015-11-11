@@ -260,6 +260,20 @@ public void pulseAlarmMarker(int pChannel)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// AnalogPCIDAS6023::flipAnalogOutput
+//
+// Flips the analog output specified by pChannel from min to max and vice
+// versa.
+//
+
+@Override
+public void flipAnalogOutput(int pChannel)
+{
+
+}//end of AnalogPCIDAS6023::flipAnalogOutput
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // AnalogPCIDAS6023::turnOnAudibleAlarm
 //
 // Turns on the audible alarm.

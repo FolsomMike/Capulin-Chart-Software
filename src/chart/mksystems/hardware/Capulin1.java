@@ -89,7 +89,7 @@ public class Capulin1 extends Object implements HardwareLink, MessageLink{
     ControlBoard[] controlBoards;
     int numberOfControlBoards;
 
-    EthernetIOModules [] ioModules;
+    EthernetIOModule [] ioModules;
     int numberOfIOModules;
 
     String fpgaCodeFilename;
@@ -255,6 +255,30 @@ private void configure(IniFile pConfigFile)
     configureChannels();
 
 }//end of Capulin1::configure
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::linkIOModuleAnalogOutputsToChannels
+//
+// Link IO module analog outputs to the appropriate sensor input channels.
+// This allows those channels to output data.
+//
+
+void linkIOModuleAnalogOutputsToChannels()
+{
+    
+    if (ioModules == null){ return; }
+
+    for(EthernetIOModule ioModule : ioModules){
+        for(int i=0; i<ioModule.numAnalogOutputChannels; i++){
+            int linkedChannel = ioModule.getLinkedChannel(i);                    
+            if(linkedChannel != -1){                        
+                channels[linkedChannel-1].setAnalogOutputController(ioModule,i);
+            }
+        }
+    }
+    
+}//end of Capulin1::linkIOModuleAnalogOutputsToChannels
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -814,6 +838,8 @@ public synchronized void connectUTBoards(NetworkInterface pNetworkInterface)
 
     initializeChannels();
 
+    linkIOModuleAnalogOutputsToChannels();    
+    
     logger.logMessage("All channels initialized...\n");
     logger.logMessage("All UT boards ready.\n");
 
@@ -1646,6 +1672,33 @@ public void pulseAlarmMarker(int pChannel)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Capulin1::flipAnalogOutput
+//
+// Flips the analog output specified by pChannel from min to max and vice
+// versa.
+//
+// Valid values for pWhichOutput are 0-3.
+//
+// NOTE: Only flips channel for the first "Analog Output" type module found
+// in the array. In the future, can also pass in a value to specify the desired
+// module.
+//
+
+@Override
+public void flipAnalogOutput(int pChannel)
+{
+
+    for(EthernetIOModule ioModule : ioModules){
+        if(ioModule.moduleFunction.equals("Analog Output")){
+            ioModule.flipAnalogOutput(pChannel);
+            break;
+        }
+    }
+    
+}//end of Capulin1::flipAnalogOutput
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Capulin1::turnOnAudibleAlarm
 //
 // Turns on the audible alarm.
@@ -2151,7 +2204,7 @@ private void configureIOModules()
     //create an array of IO modules per the config file setting
     if (numberOfIOModules > 0){
 
-        ioModules = new EthernetIOModules[numberOfIOModules];
+        ioModules = new EthernetIOModule[numberOfIOModules];
 
         String moduleType;
 
@@ -2160,8 +2213,13 @@ private void configureIOModules()
             moduleType =
              configFile.readString("IO Module " + i, "Module Type", "unknown");
 
-            if (moduleType.equals("WebRelay X-WR-1R12")){
-                ioModules[i] = new WebRelay_X_WR_1R12(i, configFile);
+            switch (moduleType) {
+                case "WebRelay X-WR-1R12":
+                    ioModules[i] = new WebRelay_X_WR_1R12(i, configFile);
+                    break;
+                case "X-317 Analog Output Module":
+                    ioModules[i] = new X_317_AnalogOutputModule(i, configFile);
+                    break;
             }
 
             if (ioModules[i] != null) {
@@ -2172,6 +2230,11 @@ private void configureIOModules()
                 if(ioModules[i].isAudibleAlarmController()){
                     audibleAlarmController = ioModules[i];
                 }
+                
+                //store IO module as audible alarm controller if designated
+                if(ioModules[i].isAudibleAlarmController()){
+                    audibleAlarmController = ioModules[i];
+                }                
             }
         }// for (int i = 0; i < numberOfIOModules; i++)
 
