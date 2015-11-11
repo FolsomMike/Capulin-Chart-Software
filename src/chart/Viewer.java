@@ -880,14 +880,9 @@ public int loadSegmentThreadSafe() throws InterruptedException
 
     //invoke the main event thread to load the segment
 
-    javax.swing.SwingUtilities.invokeLater(
-        new Runnable() {
-            @Override
-            public void run() {
-
-            loadSegment(true); //load segment without dialogs
-
-            }});
+    javax.swing.SwingUtilities.invokeLater(() -> {
+        loadSegment(true); //load segment without dialogs
+    });
 
     //halt here (this is running in printThread) and wait for the main event
     //thread to complete the segment load
@@ -915,14 +910,9 @@ public void printChartGroupThreadSafe(final Graphics pG,
 
     //invoke the main event thread to print the chart group
 
-    javax.swing.SwingUtilities.invokeLater(
-        new Runnable() {
-            @Override
-            public void run() {
-
-            printChartGroup(pG, pPF, pPage, pChartGroup);
-
-            }});
+    javax.swing.SwingUtilities.invokeLater(() -> {
+        printChartGroup(pG, pPF, pPage, pChartGroup);
+    });
 
     //halt here (this is running in printThread) and wait for the main event
     //thread to complete the print
@@ -1600,6 +1590,9 @@ public boolean isCalSelected()
 // from the config file as they are used as a starting point each time a new
 // piece is loaded for viewing.
 //
+// NOTE: it is sometimes more appropriate to set the size of the panel added
+// to the ScrollPane or the panel which contains the ScrollPane.
+//
 
 public void setScrollPaneSizes(int pWidth, int pHeight)
 {
@@ -1995,21 +1988,16 @@ private void configure(/*IniFile pConfigFile*/)
 public void setEnabledButtonsThreadSafe(final boolean pState)
 {
 
-    javax.swing.SwingUtilities.invokeLater(
-        new Runnable() {
-            @Override
-            public void run() {
-
-            infoDetails.setEnabled(pState);
-            first.setEnabled(pState); previous.setEnabled(pState);
-            next.setEnabled(pState); last.setEnabled(pState);
-            print.setEnabled(pState); printMultiple.setEnabled(pState);
-            layoutSelector.setEnabled(pState);
-            userMagnifySelector.setEnabled(pState);
-            calModeCheckBox.setEnabled(pState);
-            load.setEnabled(pState); list.setEnabled(pState);
-
-            }});
+    javax.swing.SwingUtilities.invokeLater(() -> {
+        infoDetails.setEnabled(pState);
+        first.setEnabled(pState); previous.setEnabled(pState);
+        next.setEnabled(pState); last.setEnabled(pState);
+        print.setEnabled(pState); printMultiple.setEnabled(pState);
+        layoutSelector.setEnabled(pState);
+        userMagnifySelector.setEnabled(pState);
+        calModeCheckBox.setEnabled(pState);
+        load.setEnabled(pState); list.setEnabled(pState);
+    });
 
 }//end of ViewerControlPanel::setEnabledButtonsThreadSafe
 //-----------------------------------------------------------------------------
