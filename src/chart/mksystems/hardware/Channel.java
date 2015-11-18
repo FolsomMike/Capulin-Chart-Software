@@ -2489,18 +2489,18 @@ public int getGateMissCount(int pGate)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Channel::getSigProcThreshold
+// Channel::getGateSigProcThreshold
 //
 // Returns the signal processing threshold value for the gate.  See
 // setSigProcThreshold for more info.
 //
 
-public int getSigProcThreshold(int pGate)
+public int getGateSigProcThreshold(int pGate)
 {
 
     return gates[pGate].sigProcThreshold.getValue();
 
-}//end of Channel::getSigProcThreshold
+}//end of Channel::getGateSigProcThreshold
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -2522,6 +2522,20 @@ public void setGateSigProc(int pGate, String pMode, boolean pForceUpdate)
     gates[pGate].setSignalProcessing(pMode);
 
 }//end of Channel::setGateSigProc
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::getGateSigProc
+//
+// Returns the signal processing mode for pGate to pMode.
+//
+
+public String getGateSigProc(int pGate)
+{
+
+    return(gates[pGate].getSignalProcessing());
+
+}//end of Channel::getGateSigProc
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -3052,6 +3066,20 @@ public void setFilter(String pFilterName, boolean pForceUpdate)
     filter.setValues(newValues, pForceUpdate);
     
 }//end of Channel::setFilter
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::getFilter
+//
+// Sets the digital signal filter name filterName.
+//
+
+public String getFilter()
+{
+
+    return(filterName);
+        
+}//end of Channel::getFilter
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

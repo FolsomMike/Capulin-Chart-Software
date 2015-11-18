@@ -1265,7 +1265,7 @@ void setupProcessTab()
             jcb.addActionListener(this);
             jcb.setName(gate.title + " Gate Signal Processing Type");
             jcb.addMouseListener(this);
-            gate.processSelector = jcb;
+            gate.processingSelector = jcb;
 
             processPanel.add(jcb);
 
@@ -1292,7 +1292,7 @@ void setupProcessTab()
 
             gate = currentChannel.getGate(i);
 
-            sp = new SpinnerPanel(currentChannel.getSigProcThreshold(i), 0,
+            sp = new SpinnerPanel(currentChannel.getGateSigProcThreshold(i), 0,
                  65535, 1, "##0", 60, -1, "", "", gate.title +
                             " Gate Signal Processing Threshold", this);
             sp.spinner.addChangeListener(this); //monitor changes to value
@@ -1894,7 +1894,7 @@ public void updateAllSettings(boolean pForceUpdate)
                        gate.gateMissCountAdjuster).getIntValue(), pForceUpdate);
 
         ch.setGateSigProc(i,
-            (String)(((JComboBox)gate.processSelector).getSelectedItem()),
+            (String)(((JComboBox)gate.processingSelector).getSelectedItem()),
                                                                  pForceUpdate);
 
         ch.setGateSigProcThreshold(i,

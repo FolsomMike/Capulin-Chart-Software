@@ -639,7 +639,14 @@ for (int g = 0; g < numberOfGates; g++){
     if(pCopyAll || itemCopySelected(sGate.gateMissCountAdjuster)) {
         pDestination.setGateMissCount(g, pSource.getGateMissCount(g), false);
     }
+    if(pCopyAll || itemCopySelected(sGate.processingSelector)) {
+        pDestination.setGateSigProc(g, pSource.getGateSigProc(g), false);
     }
+    if(pCopyAll || itemCopySelected(sGate.thresholdAdjuster)) {
+        pDestination.setGateSigProcThreshold(
+                                g, pSource.getGateSigProcThreshold(g), false);
+    }    
+}
 
 //copy the DAC gate info
 
@@ -689,6 +696,9 @@ if(pCopyAll || copyItemSelector.getItemState("AScan Smoothing")) {
     }
 if(pCopyAll || copyItemSelector.getItemState("DC Offset")) {
         pDestination.setDCOffset(pSource.getDCOffset(), false);
+    }
+if(pCopyAll || copyItemSelector.getItemState("Signal Filter Type")) {
+        pDestination.setFilter(pSource.getFilter(), false);
     }
 
 //updates the channel number color to match the channel's on/off state

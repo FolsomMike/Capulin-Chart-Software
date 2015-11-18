@@ -134,9 +134,10 @@ public class UTGate extends BasicGate{
 
     public Object gateHitCountAdjuster;
     public Object gateMissCountAdjuster;
-    public Object processSelector;
+    public Object processingSelector;
     public Object thresholdAdjuster;
-
+    public Object signalFilterSelector;
+  
     //constants
 
     static int MAX = 0;
@@ -196,12 +197,12 @@ public void init()
     flawGateProcessList.add("enhance above/trim baseline");
 
     //processing options for an interface gate
-    iFaceProcessList = new ArrayList<String>();
+    iFaceProcessList = new ArrayList<>();
     iFaceProcessList.add("ignore bad interface");
     iFaceProcessList.add("quench on bad interface");
 
     //processing options for a wall start/end gate
-    wallGateProcessList = new ArrayList<String>();
+    wallGateProcessList = new ArrayList<>();
     wallGateProcessList.add("first crossing");
     wallGateProcessList.add("peak");
 
@@ -655,7 +656,7 @@ public void setSignalProcessing(String pMode)
 public String getSignalProcessing()
 {
 
-    return signalProcessing;
+    return (signalProcessing);
 
 }//end of UTGate::getSignalProcessing
 //-----------------------------------------------------------------------------
@@ -1155,7 +1156,7 @@ private void configure(IniFile pConfigFile)
     triggerDirection = pConfigFile.readInt(whichGate, "Trigger Direction", 0);
 
     peakDirection = pConfigFile.readInt(whichGate, "Peak Direction", 0);
-    setMaxMin(peakDirection == MAX ? true : false);
+    setMaxMin((peakDirection == MAX));
 
     chartGroup = pConfigFile.readInt(whichGate, "Chart Group", 0) - 1;
 
