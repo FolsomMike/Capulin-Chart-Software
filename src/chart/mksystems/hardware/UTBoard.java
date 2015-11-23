@@ -330,7 +330,7 @@ public class UTBoard extends Board{
 
         void applyWallOnAnalogOutput(double pAnalogOutput){
             if (analogOutputControllerChannel != -1){
-                analogOutputController.setOutput(
+                analogOutputController.setOutputWithMinMaxPeakHold(
                                 analogOutputControllerChannel, pAnalogOutput);                
             }
         }

@@ -30,6 +30,8 @@ public interface AnalogOutputController {
     public boolean isAnalogOutputController();
     
     public void setOutput(int pWhichOutput, double pValue);
+    
+    public void setOutputWithMinMaxPeakHold(int pWhichOutput, double pValue);
 
 }//end of interface AnalogOutputController
 //-----------------------------------------------------------------------------

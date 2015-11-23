@@ -114,28 +114,77 @@ public void flipAnalogOutput(int pWhichOutput)
 //-----------------------------------------------------------------------------
 // X_317_AnalogOutputModule::setOutput
 //
-// Sets the output pWhichOutput's value to pValue.
+// Sets the output pOutputNum's value to pValue.
 //
-// Valid values for pWhichOutput are 0-3. These will be converted to 1-4
+// Valid values for pOutputNum are 0-3. These will be converted to 1-4
 // before transmitting to the module.
 //
 //  "raw:XMLNoHeader//" + moduleIPAddress + "/state.xml?an1State=1";
 //
 
 @Override
-public void setOutput(int pWhichOutput, double pValue)
+public void setOutput(int pOutputNum, double pValue)
 {
         
     String controlURL;
     
-    channels[pWhichOutput].outputValue = pValue;
+    channels[pOutputNum].outputValue = pValue;
     
-    controlURL = xmlBaseURL + "an" + (pWhichOutput+1) + "State=" + 
+    controlURL = xmlBaseURL + "an" + (pOutputNum+1) + "State=" + 
                                decimalFormat.format(pValue) + xmlBaseURLSuffix;
 
     connectSendGetRequestClose(controlURL, false);
 
 }//end of X_317_AnalogOutputModule::setOutput
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// X_317_AnalogOutputModule::setOutputWithMinMaxPeakHold
+//
+// Stores the peak min and max values from pValue so they are not lost if not
+// ready to send a new data point.
+//
+// If ready, alternates between setting output pOutputNum's value to the
+// min or the max so both are represented.
+//
+// Valid values for pOutputNum are 0-3. These will be converted to 1-4
+// before transmitting to the module.
+//
+//  "raw:XMLNoHeader//" + moduleIPAddress + "/state.xml?an1State=1";
+//
+
+@Override
+public void setOutputWithMinMaxPeakHold(int pOutputNum, double pValue)
+{
+        
+    String controlURL;
+    
+    IOModuleChannel ch = channels[pOutputNum];
+    
+    if (pValue > ch.maxValue){ ch.maxValue = pValue; }
+    if (pValue < ch.minValue){ ch.minValue = pValue; }
+
+     //do nothing if send recently performed
+    if (recentConnectionMade) { return; }
+    
+    //alternate between sending min and max values
+    ch.outputValue = ch.minMaxFlip ? ch.minValue : ch.maxValue;
+
+    controlURL = xmlBaseURL + "an" + (pOutputNum+1) + "State=" + 
+                        decimalFormat.format(ch.outputValue)+xmlBaseURLSuffix;
+
+    if (connectSendGetRequestClose(controlURL, false) != null){ 
+
+      //if send successful, clear the min/max value and flip to opposite        
+        
+      if(ch.minMaxFlip){ ch.minValue = Double.MAX_VALUE; }
+      else { ch.maxValue = Double.MIN_VALUE; }
+      
+      ch.minMaxFlip = !ch.minMaxFlip;
+        
+    }
+
+}//end of X_317_AnalogOutputModule::setOutputWithMinMaxPeakHold
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

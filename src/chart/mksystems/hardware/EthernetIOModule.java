@@ -74,14 +74,12 @@ public class EthernetIOModule extends Object
     static final int RELAY_ON = 1;
     static final int RELAY_PULSE = 2;
 
-    private boolean recentConnectionMade = false;
+    boolean recentConnectionMade = false;
     
     int delayBetweenAccesses; //time delay in ms between consecutive accesses
     
     static String xmlBaseURL = "";
     static String xmlBaseURLSuffix = "";
-    
-    
     
 //-----------------------------------------------------------------------------
 // EthernetIOModule::EthernetIOModule (constructor)
@@ -156,7 +154,7 @@ public boolean okayToConnect()
     //start thread to clear the flag after a delay
     
     new Thread(() -> {
-        try {Thread.sleep(300);} catch(InterruptedException e){}
+        try {Thread.sleep(delayBetweenAccesses);}catch(InterruptedException e){}
         recentConnectionMade = false;
     }).start();
 
@@ -173,7 +171,9 @@ public boolean okayToConnect()
 //
 // If pWaitForReply is true, waits for data and returns the received data as a
 // string.
-//
+// 
+// If the connection is not made because a previous access is still in play,
+// returns null.
 //
 // Example URL:
 //      raw:XMLNoHeader//169.254.1.3/state.xml?relayState=1
@@ -185,7 +185,7 @@ public boolean okayToConnect()
 public String connectSendGetRequestClose(String pNetURL, boolean pWaitForReply)
 {
 
-    if(!okayToConnect()) { return(""); }
+    if(!okayToConnect()) { return(null); }
     
     String result = "";
 
@@ -302,6 +302,22 @@ public void setOutput(int pWhichOutput, double pValue)
 {
 
 }//end of EthernetIOModule::setOutput
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// EthernetIOModule::setOutputWithMinMaxPeakHold
+//
+// Stores the peak min and max values from pValue so they are not lost if not
+// ready to send a new data point.
+//
+// If ready, alternates between setting output pWhichOutput's value to the
+// min or the max so both are transmitted.
+//
+
+public void setOutputWithMinMaxPeakHold(int pWhichOutput, double pValue)
+{
+        
+}//end of EthernetIOModule::setOutputWithMinMaxPeakHold
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -499,6 +515,8 @@ class IOModuleChannel {
     int outputMode;
     int linkedChannel;
     double outputValue;
+    double minValue = Double.MAX_VALUE, maxValue = Double.MIN_VALUE;
+    boolean minMaxFlip = true;
     
     final static int CURRENT_LOOP_4_20MA = 0;
     final static int VOLTAGE_0_5V = 1;
