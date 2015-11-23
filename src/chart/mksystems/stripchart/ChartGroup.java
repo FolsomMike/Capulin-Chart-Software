@@ -46,6 +46,7 @@ import javax.swing.*;
 public class ChartGroup extends JPanel implements MouseListener{
 
     Settings settings;
+    JFrame mainFrame;
     IniFile configFile;
     int chartGroupIndex;
     Hardware hardware;
@@ -72,13 +73,14 @@ public class ChartGroup extends JPanel implements MouseListener{
 // should already be opened and ready to access.
 //
 
-public ChartGroup(Settings pSettings, IniFile pConfigFile, int pChartGroupIndex,
+public ChartGroup(Settings pSettings, JFrame pMainFrame,
+                        IniFile pConfigFile, int pChartGroupIndex,
                         Hardware pHardware, ActionListener pActionListener,
                                         boolean pChartSizeEqualsBufferSize,
                                   TraceValueCalculator pTraceValueCalculator)
 {
 
-    settings = pSettings; configFile = pConfigFile;
+    settings = pSettings; mainFrame = pMainFrame; configFile = pConfigFile;
     chartGroupIndex = pChartGroupIndex;
     hardware = pHardware;
     actionListener = pActionListener;
@@ -159,9 +161,9 @@ private void configure(IniFile pConfigFile)
 
         for (int i = 0; i < numberOfStripCharts; i++){
             stripCharts[i] =
-                   new StripChart(settings, configFile, chartGroupIndex, i,
-                            hardware, actionListener, chartSizeEqualsBufferSize,
-                            traceValueCalculator);
+                   new StripChart(settings, mainFrame, configFile,
+                      chartGroupIndex, i, hardware, actionListener,
+                           chartSizeEqualsBufferSize, traceValueCalculator);
             stripCharts[i].init();
             add(stripCharts[i]);
             }

@@ -807,8 +807,8 @@ private void configure()
         settings.chartGroups = new ChartGroup[settings.numberOfChartGroups];
 
         for (int i = 0; i < settings.numberOfChartGroups; i++){
-            settings.chartGroups[i] = new ChartGroup(
-                      settings, configFile, i, hardware, this, false, hardware);
+            settings.chartGroups[i] = new ChartGroup(settings, mainFrame,
+                                configFile, i, hardware, this, false, hardware);
             mainFrame.add(settings.chartGroups[i]);
             }
 

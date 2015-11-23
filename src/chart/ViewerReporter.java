@@ -849,8 +849,8 @@ public void configure()
         //viewing
 
         for (int i = 0; i < numberOfChartGroups; i++){
-            chartGroups[i] = new ChartGroup(
-                 settings, configFile, i, null /*hardware*/, this, true, this);
+            chartGroups[i] = new ChartGroup(settings, mainFrame,
+                            configFile, i, null /*hardware*/, this, true, this);
             chartGroupPanel.add(chartGroups[i]);
             }
 

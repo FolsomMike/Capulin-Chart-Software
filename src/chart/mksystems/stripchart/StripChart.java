@@ -443,6 +443,7 @@ public class StripChart extends JPanel implements MouseListener,
     ChartCanvas canvas;
     public TitledBorder titledBorder;
     Settings settings;
+    JFrame mainFrame;
     IniFile configFile;
     int chartGroup;
     int chartIndex;
@@ -493,6 +494,8 @@ public class StripChart extends JPanel implements MouseListener,
 
     ActionListener actionListener;
 
+    private Dimension totalScreenSize, usableScreenSize;    
+    
 //-----------------------------------------------------------------------------
 // StripChart::StripChart (constructor)
 //
@@ -505,14 +508,14 @@ public class StripChart extends JPanel implements MouseListener,
 // same buffer size.
 //
 
-public StripChart(Settings pSettings, IniFile pConfigFile, int pChartGroup,
-       int pChartIndex, Hardware pHardware, ActionListener pActionListener,
-       boolean pChartSizeEqualsBufferSize,
+public StripChart(Settings pSettings, JFrame pMainFrame, IniFile pConfigFile,
+       int pChartGroup, int pChartIndex, Hardware pHardware,
+       ActionListener pActionListener, boolean pChartSizeEqualsBufferSize,
         TraceValueCalculator pTraceValueCalculator)
 {
 
-    settings = pSettings; configFile = pConfigFile; chartIndex = pChartIndex;
-    chartGroup = pChartGroup;
+    settings = pSettings; mainFrame = pMainFrame; configFile = pConfigFile;
+    chartIndex = pChartIndex; chartGroup = pChartGroup;
     hardware = pHardware; actionListener = pActionListener;
     traceValueCalculator = pTraceValueCalculator;
     traceGlobals = new PlotterGlobals();
@@ -677,7 +680,7 @@ private void configure(IniFile pConfigFile)
 
     setBorder(titledBorder = BorderFactory.createTitledBorder(title));
 
-    int chartWidth = pConfigFile.readInt(section, "Width", 1000);
+    int chartWidth = determineWidth(pConfigFile.readInt(section,"Width",1000));
 
     chartHeight = pConfigFile.readInt(section, "Height", 100);
 
@@ -712,6 +715,54 @@ private void configure(IniFile pConfigFile)
     }
 
 }//end of StripChart::configure
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// StripChart::determineWidth
+//
+// Returns the width for the chart. Returns pWidth number of pixels if pWidth
+// is not -1. If pWidth = -1, returns width value to fill the display's width.
+//
+// A bit less than the actual display width is returned to account for the
+// window frames.
+//
+
+private int determineWidth(int pWidth)
+{
+
+    if(pWidth != -1){ return(pWidth); }
+    
+    getScreenSize();
+
+    return(usableScreenSize.width - 35);
+    
+}//end of StripChart::determineWidth
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ChartGroup::getScreenSize
+//
+// Retrieves the current screen size along with the actual usable vertical
+// size after subtracting the size of the taskbar.
+//
+// This function calls getGraphicsConfiguration for this JPanel. Some examples
+// have called on the main JFrame. Is that preferred?
+//
+
+public void getScreenSize()
+{
+    
+    totalScreenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    
+    //height of the task bar
+    Insets scnMax = Toolkit.getDefaultToolkit().getScreenInsets(
+                                         mainFrame.getGraphicsConfiguration());
+    int taskBarHeight = scnMax.bottom;
+
+    usableScreenSize = new Dimension(
+                  totalScreenSize.width, totalScreenSize.height-taskBarHeight);
+
+}// end of ChartGroup::getScreenSize
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
