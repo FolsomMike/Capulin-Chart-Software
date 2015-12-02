@@ -5040,7 +5040,12 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
             //debug mks - gates[1] should use wallStartGate specified by user
             bdChs[channel].gates[1].storeNewDataD(
                                          maxThickness, wallMaxTrack, clockPos);
-
+            
+            //output as analog signal if enabled
+            if (bdChs[channel].analogOutputControllerChannel != -1){
+                outputWallThicknessOnAnalogOutput(channel, maxThickness);
+            }
+                        
             // Note that StartNum, StartDen, EndNum, and EndDen are no longer
             // used as the fractional math has been abandonded.
             // See Git commit tag VersionWithFractionalMathForThickness in the
@@ -5100,6 +5105,7 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
             bdChs[channel].gates[2].storeNewDataD(
                                          minThickness, wallMinTrack, clockPos);
 
+            //output as analog signal if enabled
             if (bdChs[channel].analogOutputControllerChannel != -1){
                 outputWallThicknessOnAnalogOutput(channel, minThickness);
             }
@@ -5118,6 +5124,10 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
 //
 // If an IO Module output has been linked to board channel pChannel, the
 // wall thickness represented by pValue is applied to the output.
+//
+// Both min and max values can be passed to this function for the same
+// channe...the analog controller object will track the min and max values and
+// ensure that they are transmitted.
 //
 
 public void outputWallThicknessOnAnalogOutput(int pChannel, double pValue)
