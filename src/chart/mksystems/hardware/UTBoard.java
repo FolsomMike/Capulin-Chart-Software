@@ -5147,7 +5147,10 @@ public void outputWallThicknessOnAnalogOutput(int pChannel, double pValue)
     //12mA is the nominalWall and each 0.001 of wall change is
     //0.2 mA current change
     
-    double analogOutput = 12.0 + (thickness - hdwVs.nominalWall) * 0.2 * 1000;
+    double OFFSET = 0.223; //debug mks -- allow user to adjust this
+    
+    double analogOutput = 12.0 + 
+                    (thickness - OFFSET) * 48.780487804878048780487804878049;
 
     double correction = 1.0174418604651162790697674418605;
     
