@@ -193,6 +193,7 @@ public class UTBoard extends Board{
 
 
     double prevMinThickness, prevMaxThickness;
+    double minThickTossThreshold = Double.MIN_VALUE;
     int minThickTossCount = 0;
 
     /*
@@ -5076,9 +5077,9 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
             //if the min value returns as max int, then the wall reading is
             //invalid (missed interface or echo, etc.)  use the previous reading
             //instead -- if value is good then save as the previous value
-
+            
             if (minThickness == 32767 || 
-               (minThickness<prevMinThickness-28 && minThickTossCount < 2)){
+               (minThickness<minThickTossThreshold && minThickTossCount < 2)){
                 minThickness = prevMinThickness;
                 minThickTossCount++;
             }
@@ -5093,6 +5094,7 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
                     }
                 
                 prevMinThickness = minThickness;
+                minThickTossThreshold = minThickness - (minThickness * .25);
                 minThickTossCount = 0;
                 }
 
