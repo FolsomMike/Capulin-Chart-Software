@@ -193,6 +193,7 @@ public class UTBoard extends Board{
 
 
     double prevMinThickness, prevMaxThickness;
+    int minThickTossCount = 0;
 
     /*
     // 5Mhz center pass, 6 order, 31 tap 4Mhz & 6 Mhz cutoff
@@ -5076,8 +5077,10 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
             //invalid (missed interface or echo, etc.)  use the previous reading
             //instead -- if value is good then save as the previous value
 
-            if (minThickness == 32767) {
+            if (minThickness == 32767 || 
+               (minThickness<prevMinThickness-28 && minThickTossCount < 2)){
                 minThickness = prevMinThickness;
+                minThickTossCount++;
             }
             else {
                 //if the modifier value is over the threshold, then modify the
@@ -5088,7 +5091,9 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
                     minThickness -= hdwVs.wallMinModifier;
                     hdwVs.wallMinModifier = Integer.MIN_VALUE;
                     }
+                
                 prevMinThickness = minThickness;
+                minThickTossCount = 0;
                 }
 
             //see notes above for peakTrack -- make this into a function?
