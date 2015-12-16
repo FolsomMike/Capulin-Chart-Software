@@ -1,0 +1,66 @@
+Data Version: 1.0
+
+Generated with dsPIC FD Lite
+
+FIR DESIGN
+SAMPLING FREQUENCY          0.660000E+08 HERTZ
+  31                  /* number of taps in decimal     */
+  1F                  /* number of taps in hexadecimal */
+  16                  /* number of bits in quantized coefficients (dec) */
+  10                  /* number of bits in quantized coefficients (hex) */
+   0                  /* shift count in decimal  */
+   0  0.100000000E+01 /* shift count (hex), gain multiplier */
+
+Rectangular Window
+
+FIR filter shift is applied to the output of each convolution. It is typically negative to scale the output down. FIR filter shift range: -16 ~ +15
+
+The coefficient scaling value is multiplied by each coefficient to change the filter gain. Usually, it is less than 1 to reduce the gain.
+
+<coefficient scaling start>
+
+1
+
+<coefficient scaling end>
+
+<FIR filter shift bits amount start>
+
+-5
+
+<FIR filter shift bits amount end>
+
+<start of coefficients>
+
+620
+-104
+-827
+-1467
+-1949
+-2220
+-2247
+-2025
+-1577
+-952
+-218
+543
+1247
+1815
+2183
+2311
+2183
+1815
+1247
+543
+-218
+-952
+-1577
+-2025
+-2247
+-2220
+-1949
+-1467
+-827
+-104
+620
+
+<end of coefficients>
