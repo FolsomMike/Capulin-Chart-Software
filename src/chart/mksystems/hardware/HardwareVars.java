@@ -125,6 +125,14 @@ public class HardwareVars extends Object{
     //trigger on-pipe and off-pipe signals
     public double photoEyeToPhotoEyeDistance;
 
+    //length of the end stop at the "toward" end of the unit
+    //if the away laser triggers on the start of this instead of the start of
+    //the tube, specify the length in the config file so it can be accounted
+    //for; if the away laser ignores the end stop and starts at the end of the
+    //tube, set this value to 0.0 in the config file
+    
+    double endStopLength;
+    
     double photoEye1DistanceFrontOfHead1;
     double photoEye1DistanceFrontOfHead2;
 

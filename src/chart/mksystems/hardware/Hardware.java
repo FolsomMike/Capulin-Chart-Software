@@ -158,6 +158,9 @@ private void configure(IniFile pConfigFile)
                 pConfigFile.readDouble("Hardware", "nS per Data Point", 15.0);
     hdwVs.uSPerDataPoint = hdwVs.nSPerDataPoint / 1000;
 
+    hdwVs.endStopLength = pConfigFile.readDouble("Hardware",
+                                                        "End Stop Length", 0.0);
+        
     hdwVs.photoEye1DistanceFrontOfHead1 = pConfigFile.readDouble("Hardware",
                           "Photo Eye 1 Distance to Front Edge of Head 1", 8.0);
 
@@ -331,6 +334,7 @@ void calculateTraceOffsetDelays()
                     plotterPtr = chartGroup.getStripChart(sc).getPlotter(tr);
                     if ((plotterPtr != null) && (plotterPtr.head == 1)){
                         plotterPtr.startFwdDelayDistance =
+                                hdwVs.endStopLength +
                                 hdwVs.photoEye1DistanceFrontOfHead1
                                 + plotterPtr.distanceSensorToFrontEdgeOfHead;
                         
@@ -341,6 +345,7 @@ void calculateTraceOffsetDelays()
                     }//if ((tracePtr != null) && (tracePtr.head == 1))
                     if ((plotterPtr != null) && (plotterPtr.head == 2)){
                         plotterPtr.startFwdDelayDistance =
+                                hdwVs.endStopLength +
                                 hdwVs.photoEye1DistanceFrontOfHead2
                                 + plotterPtr.distanceSensorToFrontEdgeOfHead;
                         
@@ -1328,9 +1333,13 @@ boolean collectEncoderDataInspectMode()
 
             //subtract the distance between the perpendicular eyes -- tracking
             //starts when lead eye hits pipe but ends when trailing eye clears,
-            //so the extra distance between the eyes must be accounted for
+            //so the extra distance between the eyes must be accounted for...
+            //also subtract the length of the end stop which will be non-zero
+            //for systems where the away laser triggers on that instead of the
+            //end of the tube
 
-            hdwVs.measuredLength -= hdwVs.photoEyeToPhotoEyeDistance;
+            hdwVs.measuredLength = hdwVs.measuredLength
+                    - hdwVs.photoEyeToPhotoEyeDistance - hdwVs.endStopLength;
 
             hdwVs.measuredLength /= 12; //convert to decimal feet
 

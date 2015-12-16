@@ -53,6 +53,8 @@ public class EncoderValues extends Object{
     public double encoder1InchesPerCount = 0;
     public double encoder2InchesPerCount = 0;
 
+    public double endStopLength = 0;
+    
     public double photoEye1DistanceFrontOfHead1 = 0;
     public double photoEye1DistanceFrontOfHead2 = 0;
     
@@ -246,30 +248,38 @@ private void writeEncoderValuesToOpenFile(BufferedWriter pOutFile)
     pOutFile.write("Encoder Position at On Pipe Signal=" 
                                                 + encoderPosAtOnPipeSignal);
     pOutFile.newLine();
+    
     pOutFile.write("Encoder Position at Off Pipe Signal=" 
-                                                +  encoderPosAtOffPipeSignal);
+                                                + encoderPosAtOffPipeSignal);
     pOutFile.newLine();
+    
     pOutFile.write("Encoder Position at Head 1 Down Signal=" 
-                                                +  encoderPosAtHead1DownSignal);
+                                                + encoderPosAtHead1DownSignal);
     pOutFile.newLine();
+    
     pOutFile.write("Encoder Position at Head 1 Up Signal=" 
-                                                +  encoderPosAtHead1UpSignal);
+                                                + encoderPosAtHead1UpSignal);
     pOutFile.newLine();
+    
     pOutFile.write("Encoder Position at Head 2 Down Signal=" 
-                                                +  encoderPosAtHead2DownSignal);
+                                                + encoderPosAtHead2DownSignal);
     pOutFile.newLine();
+    
     pOutFile.write("Encoder Position at Head 2 Up Signal=" 
-                                                +  encoderPosAtHead2UpSignal);
+                                                + encoderPosAtHead2UpSignal);
     pOutFile.newLine();
-
+    
+    pOutFile.write("End Stop Length=" + endStopLength);
+    pOutFile.newLine();
+    
     pOutFile.write("Vertical Photo Eye to Vertical Photo Eye Distance=" 
-                                                +  photoEyeToPhotoEyeDistance);
+                                                + photoEyeToPhotoEyeDistance);
     pOutFile.newLine();
-    pOutFile.write("Encoder 1 Inches per Count=" 
-                                                +  encoder1InchesPerCount);
+    
+    pOutFile.write("Encoder 1 Inches per Count=" + encoder1InchesPerCount);
     pOutFile.newLine();
-    pOutFile.write("Encoder 2 Inches per Count=" 
-                                                +  encoder2InchesPerCount);
+    
+    pOutFile.write("Encoder 2 Inches per Count=" + encoder2InchesPerCount);
     pOutFile.newLine();
     
 }//end of EncoderValues::writeEncoderValuesToOpenFile
@@ -384,7 +394,10 @@ public void readEncoderValuesFromOpenFile(BufferedReader pInFile)
 
     value = readNextValue(pInFile); if (value == null){return;}
     encoderPosAtHead2UpSignal = Integer.parseInt(value);
-    
+
+    value = readNextValue(pInFile); if (value == null){return;}
+    endStopLength = Double.parseDouble(value);
+        
     value = readNextValue(pInFile); if (value == null){return;}
     photoEyeToPhotoEyeDistance = Double.parseDouble(value);
 

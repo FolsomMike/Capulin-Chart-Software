@@ -2174,6 +2174,8 @@ private void configureControlBoards()
         encoderValues.encoder1InchesPerCount = hdwVs.encoder1InchesPerCount;
         encoderValues.encoder2InchesPerCount = hdwVs.encoder2InchesPerCount;
 
+        encoderValues.endStopLength = hdwVs.endStopLength;
+        
         encoderValues.photoEye1DistanceFrontOfHead1 =
                                             hdwVs.photoEye1DistanceFrontOfHead1;
 
@@ -3152,6 +3154,7 @@ public void calculateMapOffsetDelays()
         if (utBoard != null && utBoard.headForMapDataSensor == 1){
 
             utBoard.startFwdDelayDistance = 
+                    hdwVs.endStopLength + 
                     hdwVs.photoEye1DistanceFrontOfHead1
                     + utBoard.distanceMapSensorToFrontEdgeOfHead;
 
@@ -3161,9 +3164,10 @@ public void calculateMapOffsetDelays()
 
         }//if (utBoard != null && utBoard.headForMapDataSensor == 1)
         else
-            if (utBoard != null && utBoard.headForMapDataSensor == 1){
+            if (utBoard != null && utBoard.headForMapDataSensor == 2){
 
                 utBoard.startFwdDelayDistance = 
+                        hdwVs.endStopLength + 
                         hdwVs.photoEye1DistanceFrontOfHead2
                         + utBoard.distanceMapSensorToFrontEdgeOfHead;
 
@@ -3171,7 +3175,7 @@ public void calculateMapOffsetDelays()
                         hdwVs.photoEye2DistanceFrontOfHead2
                         - utBoard.distanceMapSensorToFrontEdgeOfHead;
 
-            }//if (utBoard != null && utBoard.headForMapDataSensor == 1)
+            }//if (utBoard != null && utBoard.headForMapDataSensor == 2)
     } //for (int i = 0; i < mapSourceBoards.length; i++)
 
 }//end of Capulin1::calculateMapOffsetDelays();
