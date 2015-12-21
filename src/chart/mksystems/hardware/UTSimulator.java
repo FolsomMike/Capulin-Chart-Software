@@ -428,8 +428,8 @@ private int processDSPMessage()
         return (setDSPFlags1(dspChip, dspCore));
     }
 
-    if ( dspMsgID == UTBoard.DSP_SET_GATE_SIG_PROC_THRESHOLD) {
-        return (setDSPGateSignalProcessingThreshold(dspChip, dspCore));
+    if ( dspMsgID == UTBoard.DSP_SET_GATE_SIG_PROC_TUNING) {
+        return (setDSPGateSigProcTuningValues(dspChip, dspCore));
     }
 
     if ( dspMsgID == UTBoard.DSP_SET_GAIN_CMD) {
@@ -744,12 +744,12 @@ int setDSPFlags1(int pDSPChip, int pDSPCore)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTSimulator::setDSPGateSignalProcessingThreshold
+// UTSimulator::setDSPGateSigProcTuningValues
 //
-// Sets DSP gate signal processing threshold for DSP core.
+// Sets DSP gate signal processing tuning values for specified core.
 //
 
-int setDSPGateSignalProcessingThreshold(int pDSPChip, int pDSPCore)
+int setDSPGateSigProcTuningValues(int pDSPChip, int pDSPCore)
 {
 
     //read return and receive packet size
@@ -761,15 +761,19 @@ int setDSPGateSignalProcessingThreshold(int pDSPChip, int pDSPCore)
     //read remainder of packet plus checksum byte
     readBytes(receivePktSize + 1);
 
-    //parse the word
-    int threshold = (int)((inBuffer[0]<<8) & 0xff00) + ((inBuffer[1]) & 0xff);
-
+    int x = 0;
+    
+    //parse the words
+    int value1 = (int)((inBuffer[x++]<<8) & 0xff00) + ((inBuffer[x++]) & 0xff);
+    int value2 = (int)((inBuffer[x++]<<8) & 0xff00) + ((inBuffer[x++]) & 0xff);
+    int value3 = (int)((inBuffer[x++]<<8) & 0xff00) + ((inBuffer[x++]) & 0xff);    
+    
     sendACK(pDSPChip, pDSPCore);
 
     //read packet + two size bytes + checksum byte
     return(receivePktSize + 3);
 
-}//end of UTSimulator::setDSPGateSignalProcessingThreshold
+}//end of UTSimulator::setDSPGateSigProcTuningValues
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

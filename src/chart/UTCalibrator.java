@@ -642,10 +642,19 @@ for (int g = 0; g < numberOfGates; g++){
     if(pCopyAll || itemCopySelected(sGate.processingSelector)) {
         pDestination.setGateSigProc(g, pSource.getGateSigProc(g), false);
     }
-    if(pCopyAll || itemCopySelected(sGate.thresholdAdjuster)) {
-        pDestination.setGateSigProcThreshold(
-                                g, pSource.getGateSigProcThreshold(g), false);
-    }    
+    if(pCopyAll || itemCopySelected(sGate.tuning1Adjuster)) {
+        pDestination.setGateSigProcTuningValue(
+                         g, 0, pSource.getGateSigProcTuningValue(g, 0), false);
+    }
+    if(pCopyAll || itemCopySelected(sGate.tuning2Adjuster)) {
+        pDestination.setGateSigProcTuningValue(
+                         g, 1, pSource.getGateSigProcTuningValue(g, 1), false);
+    }
+    if(pCopyAll || itemCopySelected(sGate.tuning3Adjuster)) {
+        pDestination.setGateSigProcTuningValue(
+                         g, 2, pSource.getGateSigProcTuningValue(g, 2), false);
+    }            
+    
 }
 
 //copy the DAC gate info

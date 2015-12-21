@@ -165,7 +165,7 @@ public class UTControls extends JTabbedPane
     JCheckBox interfaceTrackingCheckBox;
 
     JPanel gatesTab, signalTab, wallTab, dacTab, chartTab, processTab;
-    JPanel configTab, transducerTab;
+    JPanel tuningTab, configTab, transducerTab;
 
     JComboBox <String>filterComboBox;
     
@@ -302,6 +302,9 @@ public void init()
     processTab = new JPanel();
     addTab("Process", null, processTab, "Gate signal processing methods.");
 
+    tuningTab = new JPanel();
+    addTab("Tuning", null, tuningTab, "Gate tuning values.");
+        
     configTab = new JPanel();
     addTab("Config", null, configTab, "Configuration");
 
@@ -362,7 +365,7 @@ public void setChannel(StripChart pChart, Channel pChannel)
     //with no channels assigned the user will only see blank controls
     gatesTab.removeAll(); signalTab.removeAll(); wallTab.removeAll();
     dacTab.removeAll(); chartTab.removeAll(); processTab.removeAll();
-    configTab.removeAll();
+    tuningTab.removeAll(); configTab.removeAll();
 
     //set multiplier to 1.0 if displaying values in time base,
     //otherwise, set multiplier to speed of shear wave for use in converting
@@ -434,6 +437,8 @@ public void setChannel(StripChart pChart, Channel pChannel)
     //chartTab already setup above
 
     setupProcessTab();
+    
+    setupTuningTab();
 
     setupConfigTab();
 
@@ -1275,16 +1280,42 @@ void setupProcessTab()
 
     processTab.add(processPanel);
 
-    //horizontal spacer
-    processTab.add(Box.createRigidArea(new Dimension(10,0)));
+    //add invisible filler push everything to the left
+    processTab.add(Box.createHorizontalGlue());
 
-    //signal process threshold column -- create a row for each gate plus header
-    JPanel thresholdPanel = new JPanel();
-    thresholdPanel.setLayout(new GridLayout(gridYCount+1, 1, 10, 10));
-    //add the row title headers
-    label = new JLabel("Threshold");
-    label.setToolTipText("Threshold to trigger an event.");
-    thresholdPanel.add(label);
+}//end of UTControls::setupProcessTab
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTControls::setupTuningTab
+//
+// Sets up a panel for the gate tuning tab - adds all necessary components to
+// the panel.
+//
+// This provides adjuster for various tuning values.
+//
+
+void setupTuningTab()
+{
+
+    tuningTab.removeAll();
+
+    JLabel label;
+    JComboBox <String>jcb;
+    SpinnerPanel sp;
+    UTGate gate;
+
+    int numberOfGates = currentChannel.getNumberOfGates();
+
+    //layout for the tab
+    tuningTab.setLayout(new BoxLayout(tuningTab, BoxLayout.LINE_AXIS));
+
+    //gate label column -- create a row for each gate plus one for the header title
+    JPanel gateLabelPanel = new JPanel();
+    gateLabelPanel.setLayout(new GridLayout(gridYCount+1, 1, 10, 10));
+    //add the row title header
+    label = new JLabel("Gate"); label.setToolTipText("Gate");
+    gateLabelPanel.add(label);
 
     for (int i=0; i < gridYCount; i++){
         //add controls for each gate
@@ -1292,23 +1323,107 @@ void setupProcessTab()
 
             gate = currentChannel.getGate(i);
 
-            sp = new SpinnerPanel(currentChannel.getGateSigProcThreshold(i), 0,
-                 65535, 1, "##0", 60, -1, "", "", gate.title +
-                            " Gate Signal Processing Threshold", this);
-            sp.spinner.addChangeListener(this); //monitor changes to value
-            thresholdPanel.add(sp);
-            //save a pointer to this adjuster in the gate object
-            gate.thresholdAdjuster = sp.spinner;
+            label = new JLabel(gate.title);
+            label.setToolTipText(gate.title);
+            gateLabelPanel.add(label);
         }
-        else{thresholdPanel.add(new JLabel(""));}
+        else{gateLabelPanel.add(new JLabel(""));}
     }// for (int i=0; i < gridYCount; i++){
 
-    processTab.add(thresholdPanel);
+    tuningTab.add(gateLabelPanel);
 
+    //horizontal spacer
+    tuningTab.add(Box.createRigidArea(new Dimension(10,0)));
+
+    //signal process tuning value 1 column, create row for each gate plus header
+    JPanel tuningValue1Panel = new JPanel();
+    tuningValue1Panel.setLayout(new GridLayout(gridYCount+1, 1, 10, 10));
+    //add the row title headers
+    label = new JLabel("Tuning 1");
+    label.setToolTipText("Signal processing tuning value 1.");
+    tuningValue1Panel.add(label);
+
+    for (int i=0; i < gridYCount; i++){
+        //add controls for each gate
+        if (i < numberOfGates){
+
+            gate = currentChannel.getGate(i);
+
+            sp = new SpinnerPanel(
+                currentChannel.getGateSigProcTuningValue(i, 0), 0,
+                    65535, 1, "##0", 60, -1, "", "", gate.title +
+                            " Gate Signal Processing Tuning Value 1", this);
+            sp.spinner.addChangeListener(this); //monitor changes to value
+            tuningValue1Panel.add(sp);
+            //save a pointer to this adjuster in the gate object
+            gate.tuning1Adjuster = sp.spinner;
+        }
+        else{tuningValue1Panel.add(new JLabel(""));}
+    }// for (int i=0; i < gridYCount; i++){
+
+    tuningTab.add(tuningValue1Panel);
+
+    //signal process tuning value 2 column, create row for each gate plus header
+    JPanel tuningValue2Panel = new JPanel();
+    tuningValue2Panel.setLayout(new GridLayout(gridYCount+1, 1, 10, 10));
+    //add the row title headers
+    label = new JLabel("Tuning 2");
+    label.setToolTipText("Signal processing tuning value 2.");
+    tuningValue2Panel.add(label);
+
+    for (int i=0; i < gridYCount; i++){
+        //add controls for each gate
+        if (i < numberOfGates){
+
+            gate = currentChannel.getGate(i);
+
+            sp = new SpinnerPanel(
+                currentChannel.getGateSigProcTuningValue(i, 1), 0,
+                    65535, 1, "##0", 60, -1, "", "", gate.title +
+                            " Gate Signal Processing Tuning Value 2", this);
+            sp.spinner.addChangeListener(this); //monitor changes to value
+            tuningValue2Panel.add(sp);
+            //save a pointer to this adjuster in the gate object
+            gate.tuning2Adjuster = sp.spinner;
+        }
+        else{tuningValue2Panel.add(new JLabel(""));}
+    }// for (int i=0; i < gridYCount; i++){
+
+    tuningTab.add(tuningValue2Panel);
+
+    //signal process tuning value 3 column, create row for each gate plus header
+    JPanel tuningValue3Panel = new JPanel();
+    tuningValue3Panel.setLayout(new GridLayout(gridYCount+1, 1, 10, 10));
+    //add the row title headers
+    label = new JLabel("Tuning 3");
+    label.setToolTipText("Signal processing tuning value 3.");
+    tuningValue3Panel.add(label);
+
+    for (int i=0; i < gridYCount; i++){
+        //add controls for each gate
+        if (i < numberOfGates){
+
+            gate = currentChannel.getGate(i);
+
+            sp = new SpinnerPanel(
+                currentChannel.getGateSigProcTuningValue(i, 2), 0,
+                    65535, 1, "##0", 60, -1, "", "", gate.title +
+                            " Gate Signal Processing Tuning Value 3", this);
+            sp.spinner.addChangeListener(this); //monitor changes to value
+            tuningValue3Panel.add(sp);
+            //save a pointer to this adjuster in the gate object
+            gate.tuning3Adjuster = sp.spinner;
+        }
+        else{tuningValue3Panel.add(new JLabel(""));}
+    }// for (int i=0; i < gridYCount; i++){
+
+    tuningTab.add(tuningValue3Panel);
+    
+   
     //add invisible filler push everything to the left
-    processTab.add(Box.createHorizontalGlue());
+    tuningTab.add(Box.createHorizontalGlue());
 
-}//end of UTControls::setupShotCountTab
+}//end of UTControls::setupTuningTab
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1897,9 +2012,15 @@ public void updateAllSettings(boolean pForceUpdate)
             (String)(((JComboBox)gate.processingSelector).getSelectedItem()),
                                                                  pForceUpdate);
 
-        ch.setGateSigProcThreshold(i,
-          ((MFloatSpinner) gate.thresholdAdjuster).getIntValue(), pForceUpdate);
+        ch.setGateSigProcTuningValue(i, 0,
+          ((MFloatSpinner) gate.tuning1Adjuster).getIntValue(), pForceUpdate);
 
+        ch.setGateSigProcTuningValue(i, 1,
+          ((MFloatSpinner) gate.tuning2Adjuster).getIntValue(), pForceUpdate);
+        
+        ch.setGateSigProcTuningValue(i, 2,
+          ((MFloatSpinner) gate.tuning3Adjuster).getIntValue(), pForceUpdate);
+                
         //not all gates have a trigger check box (such as interface gates), so
         //check for null before using
 

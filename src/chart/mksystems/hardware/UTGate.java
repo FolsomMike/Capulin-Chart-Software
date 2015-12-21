@@ -65,8 +65,9 @@ public class UTGate extends BasicGate{
     boolean doIntegrateAboveGate = false;
     boolean doQuenchOnOverLimit = false;
     boolean isAScanTriggerGate = false;
-    boolean doSubsequentShotDifferential = false;
-
+    boolean doFindDualPeakCenter = false;
+    boolean doSignalAveraging = false;
+    
     int aScanSmoothing = 1;
 
     //if true, then data from this gate is stored where it can be used to modify
@@ -125,7 +126,7 @@ public class UTGate extends BasicGate{
 
     SyncedInteger gateHitCount;
     SyncedInteger gateMissCount;
-    SyncedInteger sigProcThreshold;
+    SyncedInteger sigProcTuning1, sigProcTuning2, sigProcTuning3;
     public String signalProcessing = "undefined";
 
     // references to point at the controls used to adjust the values - these
@@ -135,7 +136,7 @@ public class UTGate extends BasicGate{
     public Object gateHitCountAdjuster;
     public Object gateMissCountAdjuster;
     public Object processingSelector;
-    public Object thresholdAdjuster;
+    public Object tuning1Adjuster, tuning2Adjuster, tuning3Adjuster;
     public Object signalFilterSelector;
   
     //constants
@@ -178,7 +179,9 @@ public void init()
 
     gateHitCount = new SyncedInteger(syncedVarMgr); gateHitCount.init();
     gateMissCount = new SyncedInteger(syncedVarMgr); gateMissCount.init();
-    sigProcThreshold = new SyncedInteger(syncedVarMgr); sigProcThreshold.init();
+    sigProcTuning1 = new SyncedInteger(syncedVarMgr); sigProcTuning1.init();
+    sigProcTuning2 = new SyncedInteger(syncedVarMgr); sigProcTuning2.init();
+    sigProcTuning3 = new SyncedInteger(syncedVarMgr); sigProcTuning3.init();
 
     //read the configuration file and create/setup the charting/control elements
     configure(configFile);
@@ -190,12 +193,12 @@ public void init()
     //processing options for a normal gate
     flawGateProcessList = new ArrayList<>();
     flawGateProcessList.add("peak");
+    flawGateProcessList.add("peak / average");
     //option to integrate signal above the gate
     flawGateProcessList.add("enhance above gate");
-    //option to integrate signal above the gate, subtract value of each shot
-    //from recent previous shot
-    flawGateProcessList.add("enhance above/trim baseline");
-
+    //option to integrate signal above the gate and perform signal averaging
+    flawGateProcessList.add("enhance above / average");
+    
     //processing options for an interface gate
     iFaceProcessList = new ArrayList<>();
     iFaceProcessList.add("ignore bad interface");
@@ -205,7 +208,8 @@ public void init()
     wallGateProcessList = new ArrayList<>();
     wallGateProcessList.add("first crossing");
     wallGateProcessList.add("peak");
-
+    wallGateProcessList.add("center of dual peaks");
+    
     //set the gate active flag for each gate
     setActive(true);
 
@@ -420,13 +424,20 @@ private void setFlags()
         flags &= (~GATE_TRIGGER_ASCAN_SAVE);
     }
 
-    if (doSubsequentShotDifferential) {
-        flags |= SUBSEQUENT_SHOT_DIFFERENTIAL;
+    if (doFindDualPeakCenter) {
+        flags |= GATE_FIND_DUAL_PEAK_CENTER;
     }
     else {
-        flags &= (~SUBSEQUENT_SHOT_DIFFERENTIAL);
+        flags &= (~GATE_FIND_DUAL_PEAK_CENTER);
     }
 
+    if (doSignalAveraging) {
+        flags |= GATE_APPLY_SIGNAL_AVERAGING;
+    }
+    else {
+        flags &= (~GATE_APPLY_SIGNAL_AVERAGING);
+    }
+    
     //insert the AScan averaging value into the flags
 
     //all gates use the channel's aScanSmoothing value to determine
@@ -580,16 +591,28 @@ public void setSignalProcessing(String pMode)
         setFindPeak(true);
         setCrossingSearch(false);
         setIntegrateAboveGate(false);
-        setSubsequentShotDifferential(false);
+        setFindDualPeakCenter(false);
+        setDoSignalAveraging(false);        
         return;
     }
 
+    if (signalProcessing.equals("peak / average")){
+        //option to use unprocessed peak in the gate with signal averaging
+        setFindPeak(true);
+        setCrossingSearch(false);
+        setIntegrateAboveGate(false);
+        setFindDualPeakCenter(false);
+        setDoSignalAveraging(true);
+        return;
+    }
+        
     if (signalProcessing.equals("first crossing")){
         //option to find first crossing point in gate
         setFindPeak(false);
         setCrossingSearch(true);
         setIntegrateAboveGate(false);
-        setSubsequentShotDifferential(false);
+        setFindDualPeakCenter(false);
+        setDoSignalAveraging(false);        
         return;
     }
 
@@ -598,23 +621,34 @@ public void setSignalProcessing(String pMode)
         setFindPeak(false);
         setCrossingSearch(false);
         setIntegrateAboveGate(true);
-        setSubsequentShotDifferential(false);
+        setFindDualPeakCenter(false);
+        setDoSignalAveraging(false);
         return;
     }
 
-    if (signalProcessing.equals("enhance above/trim baseline")){
-        //option to integrate signal above the gate, subtract value of each shot
-        //from recent previous shot
+    if (signalProcessing.equals("enhance above / average")){
+        //option to integrate signal above the gate
         setFindPeak(false);
         setCrossingSearch(false);
         setIntegrateAboveGate(true);
-        setSubsequentShotDifferential(true);
+        setFindDualPeakCenter(false);
+        setDoSignalAveraging(true);
+        return;
+    }    
+    
+    if (signalProcessing.equals("center of dual peaks")){
+        setFindPeak(false);
+        setCrossingSearch(false);
+        setIntegrateAboveGate(false);
+        setFindDualPeakCenter(true);
+        setDoSignalAveraging(false);
         return;
     }
 
     if (signalProcessing.equals("ignore bad interface")){
         setQuenchOnOverLimit(false);
         setIntegrateAboveGate(false);
+        setDoSignalAveraging(false);
         return;
     }
 
@@ -636,6 +670,7 @@ public void setSignalProcessing(String pMode)
     if (signalProcessing.equals("quench on bad interface")){
         setQuenchOnOverLimit(true);
         setIntegrateAboveGate(true);
+        setDoSignalAveraging(false);        
         return;
     }
 
@@ -1000,24 +1035,49 @@ public void setIntegrateAboveGate(boolean pOn)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTGate::setSubsequentShotDifferential
+// UTGate::setFindDualPeakCenter
 //
-// Turns the subsequent shot differential noise cancelling algorithm on or off.
-// If pState is true, the data above the gate level will be integrated for the
-// result.
+// Turns the find dual peak center algorithm on or off.
+//
+// If pState is true, the center (timewise) between the two largest peaks in
+// the gate is determined and returned as the location of the peak. At least
+// one of the peaks must exceed the gate level.
 //
 // Does not set the flag in the DSP.
 //
 
-public void setSubsequentShotDifferential(boolean pState)
+public void setFindDualPeakCenter(boolean pState)
 {
 
-    doSubsequentShotDifferential = pState;
+    doFindDualPeakCenter = pState;
 
     //update the flags to reflect the change
     setFlags();
 
-}//end of UTGate::setSubsequentShotDifferential
+}//end of UTGate::setFindDualPeakCenter
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTGate::setDoSignalAveraging
+//
+// Turns the signal averaging algorithm on or off.
+//
+// If turned on, returned peak is the average of the peaks over a number
+// of samples. The number of samples averaged is determined by a value sent
+// from the host.
+//
+// Does not set the flag in the DSP.
+//
+
+public void setDoSignalAveraging(boolean pState)
+{
+
+    doSignalAveraging = pState;
+
+    //update the flags to reflect the change
+    setFlags();
+
+}//end of UTGate::setDoSignalAveraging
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1194,8 +1254,14 @@ public void loadCalFile(IniFile pCalFile)
     gateMissCount.setValue(
                         pCalFile.readInt(section, "Gate Miss Count", 0), true);
 
-    sigProcThreshold.setValue(
-            pCalFile.readInt(section, "Signal Processing Threshold", 0), true);
+    sigProcTuning1.setValue(
+        pCalFile.readInt(section, "Signal Processing Tuning Value 1", 0), true);
+
+    sigProcTuning2.setValue(
+        pCalFile.readInt(section, "Signal Processing Tuning Value 2", 0), true);
+    
+    sigProcTuning3.setValue(
+        pCalFile.readInt(section, "Signal Processing Tuning Value 3", 0), true);
 
     setSignalProcessing(
        pCalFile.readString(section, "Signal Processing Function", "undefined"));
@@ -1231,8 +1297,12 @@ public void saveCalFile(IniFile pCalFile)
     pCalFile.writeInt(section, "Gate Miss Count", gateMissCount.getValue());
 
     pCalFile.writeInt(section,
-                   "Signal Processing Threshold", sigProcThreshold.getValue());
-
+                "Signal Processing Tuning Value 1", sigProcTuning1.getValue());
+    pCalFile.writeInt(section,
+                "Signal Processing Tuning Value 2", sigProcTuning2.getValue());
+    pCalFile.writeInt(section,
+                "Signal Processing Tuning Value 3", sigProcTuning3.getValue());
+    
     pCalFile.writeString(section, "Signal Processing Function",
                                                         getSignalProcessing());
 
@@ -1266,7 +1336,10 @@ public void saveCalFileHumanReadable(BufferedWriter pOut) throws IOException
     String sigProc = Settings.postPad(getSignalProcessing(), 30);
     sigProc = Settings.truncate(sigProc, 30);
     pOut.write("   " + sigProc);
-    pOut.write(Settings.prePad("" + sigProcThreshold.getValue(), 12));
+    
+    pOut.write(Settings.prePad("" + sigProcTuning1.getValue(), 12));
+    pOut.write(Settings.prePad("" + sigProcTuning2.getValue(), 12));
+    pOut.write(Settings.prePad("" + sigProcTuning3.getValue(), 12));    
 
     pOut.newLine();
 

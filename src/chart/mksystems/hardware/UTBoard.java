@@ -431,7 +431,7 @@ public class UTBoard extends Board{
     static byte DSP_SET_RECTIFICATION = 14;
     static byte DSP_SET_FLAGS1 = 15;
     static byte DSP_UNUSED1 = 16;
-    static byte DSP_SET_GATE_SIG_PROC_THRESHOLD = 17;
+    static byte DSP_SET_GATE_SIG_PROC_TUNING = 17;
     static byte DSP_GET_MAP_BLOCK_CMD = 18;
     static byte DSP_GET_MAP_COUNT_CMD = 19;
     static byte DSP_RESET_MAPPING_CMD = 20;
@@ -2872,21 +2872,26 @@ public void sendGateFlags(int pChannel, int pGate, int pFlags)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTBoard::sendGateSigProcThreshold
+// UTBoard::sendGateSigProcTuningValues
 //
-// Sends the signal processing thresholds for pGate of pChannel.
+// Sends the signal processing tuning values for pGate of pChannel.
 //
 
-public void sendGateSigProcThreshold(int pChannel, int pGate, int pThreshold)
+public void sendGateSigProcTuningValues(int pChannel, int pGate,
+                                        int pValue1, int pValue2, int pValue3)
 {
 
-    sendChannelParam(pChannel, (byte) DSP_SET_GATE_SIG_PROC_THRESHOLD,
+    sendChannelParam(pChannel, (byte) DSP_SET_GATE_SIG_PROC_TUNING,
                (byte)pGate,
-               (byte)((pThreshold >> 8) & 0xff),
-               (byte)(pThreshold & 0xff),
-               (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0);
+               (byte)((pValue1 >> 8) & 0xff),
+               (byte)(pValue1 & 0xff),
+               (byte)((pValue2 >> 8) & 0xff),
+               (byte)(pValue2 & 0xff),
+               (byte)((pValue3 >> 8) & 0xff),
+               (byte)(pValue3 & 0xff),
+               (byte)0, (byte)0);
 
-}//end of UTBoard::sendGateSigProcThreshold
+}//end of UTBoard::sendGateSigProcTuningValues
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

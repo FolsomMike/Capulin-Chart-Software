@@ -2489,18 +2489,53 @@ public int getGateMissCount(int pGate)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Channel::getGateSigProcThreshold
+// Channel::setGateSigProcTuningValue
 //
-// Returns the signal processing threshold value for the gate.  See
-// setSigProcThreshold for more info.
+// Sets the signal processing tuning value specified by pWhichTuningValue for
+// pGate.  These values are used by various signal processing methods to
+// trigger events.
+//
+// If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
+// the flag is false, the value(s) will be sent only if they have changed.
+//
+// Note: pWhichTuningValue is zero based -- 0 returns tuning value 1
 //
 
-public int getGateSigProcThreshold(int pGate)
+public void setGateSigProcTuningValue(int pGate, int pWhichTuningValue,
+                                              int pValue, boolean pForceUpdate)
 {
 
-    return gates[pGate].sigProcThreshold.getValue();
+    switch (pWhichTuningValue){    
+        case 0: gates[pGate].sigProcTuning1.setValue(pValue, pForceUpdate);
+        case 1: gates[pGate].sigProcTuning2.setValue(pValue, pForceUpdate);
+        case 2: gates[pGate].sigProcTuning3.setValue(pValue, pForceUpdate);        
+    }
+    
+}//end of Channel::setGateSigProcTuningValue
+//-----------------------------------------------------------------------------
 
-}//end of Channel::getGateSigProcThreshold
+//-----------------------------------------------------------------------------
+// Channel::getGateSigProcTuningValue
+//
+// Returns the signal processing tuning value specified by pWhichTuningValue
+// for pGate.  See setSigProcTuningValue for more info.
+//
+// Note: pWhichTuningValue is zero based -- 0 returns tuning value 1
+//
+
+public int getGateSigProcTuningValue(int pGate, int pWhichTuningValue)
+{
+
+    switch (pWhichTuningValue){
+    
+        case 0: return gates[pGate].sigProcTuning1.getValue();
+        case 1: return gates[pGate].sigProcTuning2.getValue();
+        case 2: return gates[pGate].sigProcTuning3.getValue();
+        default: return(0);
+            
+    }
+            
+}//end of Channel::getGateSigProcTuningValue
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -2539,25 +2574,6 @@ public String getGateSigProc(int pGate)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Channel::setGateSigProcThreshold
-//
-// Sets the signal processing threshold for pGate.  This value is used by
-// various signal processing methods to trigger events.
-//
-// If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
-// the flag is false, the value(s) will be sent only if they have changed.
-//
-
-public void setGateSigProcThreshold(
-                               int pGate, int pThreshold, boolean pForceUpdate)
-{
-
-    gates[pGate].sigProcThreshold.setValue(pThreshold, pForceUpdate);
-
-}//end of Channel::setGateSigProcThreshold
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // Channel::isAnyGatePositionChanged
 //
 // Checks if any gate start, width, or level values have been changed.
@@ -2576,21 +2592,24 @@ private boolean isAnyGatePositionChanged()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Channel::isAnyGateSigProcThresholdChanged
+// Channel::isAnyGateSigProcTuningChanged
 //
-// Checks if any gate's signal processing threshold has changed.
+// Checks if any gate's signal processing tuning values have changed.
 //
 
-private boolean isAnyGateSigProcThresholdChanged()
+private boolean isAnyGateSigProcTuningChanged()
 {
 
     for (int i = 0; i < numberOfGates; i++) {
-        if (gates[i].sigProcThreshold.getDataChangedFlag()) {return(true);}
+        if (gates[i].sigProcTuning1.getDataChangedFlag()
+            ||gates[i].sigProcTuning2.getDataChangedFlag()
+            ||gates[i].sigProcTuning3.getDataChangedFlag()) {
+            return(true);}
     }
 
    return(false);
 
-}//end of Channel::isAnyGateSigProcThresholdChanged
+}//end of Channel::isAnyGateSigProcTuningChanged
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -2719,30 +2738,33 @@ public void sendGateFlags()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Channel::sendGateSigProcThreshold
+// Channel::sendGateSigProcTuningValues
 //
-// Sends gate signal processing thresholds to the remotes.
+// Sends gate signal processing tuning values to the remotes.
 //
 
-public void sendGateSigProcThreshold()
+public void sendGateSigProcTuningValues()
 {
 
     //unknown which gate(s) have changed data, so check them all
 
     for (int i = 0; i < numberOfGates; i++){
 
-        if (gates[i].sigProcThreshold.getDataChangedFlag()){
-
-            int threshold = gates[i].sigProcThreshold.applyValue();
+        if (gates[i].sigProcTuning1.getDataChangedFlag()
+             || gates[i].sigProcTuning2.getDataChangedFlag()
+             || gates[i].sigProcTuning3.getDataChangedFlag()){
 
             if (utBoard != null) {
-                utBoard.sendGateSigProcThreshold(boardChannel, i, threshold);
+                utBoard.sendGateSigProcTuningValues(boardChannel, i,
+                        gates[i].sigProcTuning1.applyValue(),
+                        gates[i].sigProcTuning2.applyValue(),
+                        gates[i].sigProcTuning3.applyValue());
             }
 
-        }//if (gates[i].sigProcThreshold.getDataChanged())
+        }//if (gates[i].sigProcTuningValue1.getDataChanged())
     }// for (int i = 0; i < numberOfGates; i++)
 
-}//end of Channel::sendGateSigProcThreshold
+}//end of Channel::sendGateSigProcTuningValues
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -2936,7 +2958,7 @@ public void sendDataChangesToRemotes()
 
     if (isAnyGateHitMissChanged()) {sendGateHitMiss();}
 
-    if (isAnyGateSigProcThresholdChanged()) {sendGateSigProcThreshold();}
+    if (isAnyGateSigProcTuningChanged()) {sendGateSigProcTuningValues();}
 
     if (isAnyDACGatePositionChanged()) {sendDACGateParameters();}
 

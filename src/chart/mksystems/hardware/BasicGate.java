@@ -84,8 +84,9 @@ public class BasicGate extends Object{
     static int GATE_INTEGRATE_ABOVE_PEAK = 0x0200;
     static int GATE_QUENCH_IF_OVERLIMIT = 0x0400;
     static int GATE_TRIGGER_ASCAN_SAVE = 0x0800;
-    static int SUBSEQUENT_SHOT_DIFFERENTIAL	= 0x1000;
-
+    static int GATE_FIND_DUAL_PEAK_CENTER = 0x1000;
+    static int GATE_APPLY_SIGNAL_AVERAGING = 0x2000;
+    
     // references to point at the controls used to adjust the values - these
     // references are set up by the object which handles the adjusters and used
     // to access those controls
