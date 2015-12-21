@@ -299,7 +299,7 @@ public void storeNewAScanPeak(int pPeak, int pAScanPeakFlightTime)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTGate::getAndClearAScanPeak()
+// UTGate::getAndClearAScanPeak
 //
 // Returns aScanPeak and resets it to its minimum so the next peak can be
 // captured.  The peak's flight time (time after the initial pulse
@@ -472,6 +472,21 @@ public SyncedInteger getFlags()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// UTGate::getCurrentDataPeak
+//
+// Returns the data currently stored in dataPeak without resetting it or
+// the newDataReady flag.
+//
+
+public int getCurrentDataPeak()
+{
+
+    return(dataPeak);
+    
+}//end of UTGate::getCurrentDataPeak
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // UTGate::getNewData
 //
 // This function prepares data for access. The data value(s) can be accessed in
@@ -482,6 +497,10 @@ public SyncedInteger getFlags()
 //  variable to avoid glitches when another thread is writing to the variable.
 //  Multiple calculations are okay, so long as each only depends on a single
 //  peak value.
+//
+// WIP MKS -- this function needs to return the peak data after calculation
+// rather than the calling function accessing the dataPeak (and others)
+// directly after making this call.
 //
 
 public void getNewData(HardwareVars hdwVs)
@@ -821,6 +840,23 @@ public void setMaxMin(boolean pOn)
     setFlags();
 
 }//end of UTGate::setMaxMin
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTGate::getMaxMin
+//
+// Returns the the gate maxMin flag.
+//
+// If true, the gate is a max peak catching gate.
+// If false, the gate is a min peak catching gate.
+//
+
+public boolean getMaxMin()
+{
+
+    return(maxMin);
+
+}//end of UTGate::getMaxMin
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

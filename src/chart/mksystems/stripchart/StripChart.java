@@ -454,6 +454,7 @@ public class StripChart extends JPanel implements MouseListener,
     public int chartHeight;
 
     boolean displayPeakChannel;
+    StringBuilder peakChannelText;
     ValueDisplay peakChannelDisplay;
     StringBuilder lastFlaggedText;
     boolean displayLastFlaggedChannel;
@@ -554,6 +555,9 @@ public void init()
     if (displayPeakChannel) {
         peakChannelDisplay =  new ValueDisplay(250, 23, 350, 23,
                            "Peak Channel:", "0.000", Color.BLACK, borderColor);
+        //a StringBuilder is used to avoid creating new strings during time
+        //critical code and thus creating excess garbage collection
+        peakChannelText = new StringBuilder(50);        
     }
 
     if (displayLastFlaggedChannel){
@@ -1057,8 +1061,16 @@ public void plotData()
 
     //if enabled, display the channel which is supplying the peak value
     if (displayPeakChannel) {
+        
+        peakChannelText.setLength(0);
+        peakChannelText.append(
+                            hardware.getChannels()[canvas.peakChannel].title);
+        peakChannelText.append(":");
+        peakChannelText.append(
+                  hardware.getChannels()[canvas.peakChannel].getPeakGate()+1);
+        
         peakChannelDisplay.updateString((Graphics2D) getGraphics(),
-                      hardware.getChannels()[canvas.peakChannel].title, false);
+                                            peakChannelText.toString(), false);
     }
 
     //if enabled and the channel or clock has changed, update the display for

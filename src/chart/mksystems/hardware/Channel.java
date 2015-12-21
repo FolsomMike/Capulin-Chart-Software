@@ -765,6 +765,32 @@ public boolean getNewData(int pGate, HardwareVars hdwVs)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Channel::getPeakGate
+//
+// Returns the index of the gate with the current highest stored peak value.
+//
+// NOTE: This method assumes that all the gates are max peak catching.
+//
+
+public int getPeakGate()
+{
+
+    int data, peak = Integer.MIN_VALUE;
+    int peakGate = -1;
+    
+    for(int i=0; i<gates.length; i++){        
+        data = gates[i].getCurrentDataPeak();
+        if (data >= peak){
+            peak = data; peakGate = i;
+        }
+    }
+    
+    return(peakGate);
+    
+}//end of Channel::getPeakGate
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Channel::getTrace
 //
 // Calls the getTrace function for the specified gate.  See the gate
