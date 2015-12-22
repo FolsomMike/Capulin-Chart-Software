@@ -311,6 +311,8 @@ public class UTBoard extends Board{
     //this class holds information for a channel on the board
     class BoardChannel{
 
+        boolean active = false;
+        
         byte dspChip;
         byte dspCore1;
         byte dspCore2;
@@ -2979,6 +2981,20 @@ public void setAnalogOutputController(int pChannel,
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// UTBoard::setBoardChannelActive
+//
+// Sets flag in a board channel which activates it for use.
+//
+
+public void setBoardChannelActive(int pChannel, boolean pValue)
+{
+
+    bdChs[pChannel].active = pValue;
+
+}//end of UTBoard::setBoardChannelActive
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // UTBoard::setWallChannelFlag
 //
 // Sets the flag which specifies the channel as being used for wall
@@ -3546,6 +3562,21 @@ public void clearDSPMessageAndAckCounters()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// UTBoard::checkDSPAckCountVsMessageCount
+//
+// Compares the number of DSP messages sent to the number of DSP ack packets
+// received and returns true if they match and false if not.
+//
+
+public boolean checkDSPAckCountVsMessageCount()
+{
+
+    return(dspMessageSentCounter == dspMessageAckCounter);
+
+}//end of UTBoard::checkDSPAckCountVsMessageCount
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // UTBoard::compareDSPAckCountToMessageCount
 //
 // Compares the number of DSP messages to the number of DSP ack packets
@@ -3843,6 +3874,9 @@ public void requestPeakData(int pChannel)
 // will read the peak data from both cores handling the specified channel and
 // return the worst case peak from the two.
 //
+// Any board channel which is inactive will be sent as channel number 255
+// (-1) so that the Rabbits will not attempt to retrieve data from them.
+//
 
 public void requestPeakData4(int pChannel0, int pChannel1, int pChannel2,
                                                                 int pChannel3)
@@ -3850,6 +3884,14 @@ public void requestPeakData4(int pChannel0, int pChannel1, int pChannel2,
 
     //if a request is not still pending, send request for new peak data packet
     if (peakDataRcvd){
+        
+        int ch0, ch1, ch2, ch3;
+        
+        //set any inactive channels to -1
+        if (bdChs[pChannel0].active){ ch0 = pChannel0;} else {ch0 = 255; }
+        if (bdChs[pChannel1].active){ ch1 = pChannel1;} else {ch1 = 255; }
+        if (bdChs[pChannel2].active){ ch2 = pChannel2;} else {ch2 = 255; }
+        if (bdChs[pChannel3].active){ ch3 = pChannel3;} else {ch3 = 255; }
 
         // for any channel setup for wall data, set corresponding bit to 1
         // this byte is then sent with the request
@@ -3862,10 +3904,10 @@ public void requestPeakData4(int pChannel0, int pChannel1, int pChannel2,
         if(bdChs[pChannel3].isWallChannel) {wallFlags |= 8;}
 
         sendBytes(GET_PEAK_DATA4_CMD,
-                (byte)pChannel0, (byte)bdChs[pChannel0].numberOfGates,
-                (byte)pChannel1, (byte)bdChs[pChannel1].numberOfGates,
-                (byte)pChannel2, (byte)bdChs[pChannel2].numberOfGates,
-                (byte)pChannel3, (byte)bdChs[pChannel3].numberOfGates,
+                (byte)ch0, (byte)bdChs[pChannel0].numberOfGates,
+                (byte)ch1, (byte)bdChs[pChannel1].numberOfGates,
+                (byte)ch2, (byte)bdChs[pChannel2].numberOfGates,
+                (byte)ch3, (byte)bdChs[pChannel3].numberOfGates,
                 wallFlags
                 );
 
@@ -4822,7 +4864,8 @@ public int processAScanPacket()
 // Extracts the peak data from a packet.
 //
 // Parameter pNumberOfChannels is the number of channels expected in the
-// packet.
+// packet. Any board channel which is not active have an empty data group
+// returned by the Rabbit.
 //
 // Parameter pBufPtr points to the next byte to be read from the packet.
 //
@@ -4849,12 +4892,16 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
         int channel = inBuffer[x++];
 
         // if the channel number is illegal, bail out - the code will resync to
-        // toss the unused bytes still in the socket
+        // toss the unused bytes still in the socket -- note that -1 designates
+        // an inactive channel and will have no data in the packet
 
-        if (channel < 0 || channel > NUMBER_OF_BOARD_CHANNELS-1) {return x;}
+        if ((channel < 0 || channel > NUMBER_OF_BOARD_CHANNELS-1)
+             && channel != -1) {return x;}
 
         int numberOfGates = inBuffer[x++]; //number of gates for the channel
 
+        if (channel == -1) continue; //skip inactive channel    
+        
         // if the gate count is illegal, bail out - the code will resync to
         // toss the unused bytes still in the socket
 

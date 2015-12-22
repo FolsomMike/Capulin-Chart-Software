@@ -206,6 +206,8 @@ public void initialize()
         if (gates[i].isWallEndGate) {wallEndGateSet = true;}
     }
 
+    if(utBoard!=null){utBoard.setBoardChannelActive(boardChannel, true);}
+    
     //if both wall start and end gates, set channel for wall data and
     //that data will be appended to peak data packets from the DSPs
 
@@ -3012,17 +3014,19 @@ public void sendDataChangesToRemotes()
 
     if (isAnyDACGateFlagsChanged()) {sendDACGateFlags();}
 
-    //wait one time to allow the DSPs to send the response ACK packets rather
-    //than having processAllAvailableDataPackets wait between each packet as
-    //this way is much faster
-
-    if (utBoard != null) {utBoard.waitSleep(300);}
-
-    //process the expected DSP ACK packets
-    if (utBoard != null) {utBoard.processAllAvailableDataPackets(false);}
+    if(utBoard == null){ return; }
+    
+    
+    //process packets until expected number of acks received or time out
+    
+    int count = 0;
+    while(!utBoard.checkDSPAckCountVsMessageCount() && count++ < 10){
+        utBoard.waitSleep(30);
+        utBoard.processAllAvailableDataPackets(false);
+    }
 
     //check to see if each message received and ACK
-    if (utBoard != null) {utBoard.compareDSPAckCountToMessageCount();}
+    utBoard.compareDSPAckCountToMessageCount();
 
 }//end of Channel::sendDataChangesToRemotes
 //-----------------------------------------------------------------------------
