@@ -749,6 +749,21 @@ public synchronized void sendDataChangesToRemotes()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// AnalogPCIDAS6023::setAllChannelsDataChangedTrue
+//
+// Sets the dataChanged flag for the synchronized softwareGain variable in each
+// channel true so that they will be sent to the DSP.
+//
+
+@Override
+public void setAllChannelsDataChangedTrue()
+{
+    
+
+}//end of AnalogPCIDAS6023::setAllChannelsDataChangedTrue
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // AnalogPCIDAS6023::doTasks
 //
 // Should be called by a timer so that various tasks can be performed as

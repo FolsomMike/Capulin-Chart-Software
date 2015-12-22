@@ -173,6 +173,11 @@ public class Settings extends Object implements ActionListener, ItemListener {
 
     public boolean triggerHardwareShutdown = false;
 
+    public boolean displayOptionsPanel = false;
+    public boolean displayPlus6dBBtn = false;
+    
+    public boolean plus6dBEnabled = false;
+    
     //if true, program will simulate data for debugging, training and demo
     //replaced by simulateMechanical, simulateUT, etc?
     public boolean simulationMode = false;

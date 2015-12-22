@@ -779,6 +779,12 @@ private void configure()
 
     mainFrame.setTitle(title);
 
+    settings.displayOptionsPanel = configFile.readBoolean(
+                         "Main Configuration", "Display Options Panel", false);
+
+    settings.displayPlus6dBBtn = configFile.readBoolean(
+                     "Main Configuration", "Display Plus 6 dB Button", false);
+        
     settings.simulationMode = configFile.readBoolean(
                                 "Main Configuration", "Simulation Mode", false);
 

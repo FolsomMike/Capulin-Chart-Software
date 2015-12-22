@@ -1090,8 +1090,8 @@ public void sendDataChangesToRemotes()
 
     //handle data changes in all the channels
 
-    for (int i = 0; i < numberOfChannels; i++) {
-        channels[i].sendDataChangesToRemotes();
+    for (Channel channel : channels) {
+        channel.sendDataChangesToRemotes();
     }
 
     //handle data changes in this class
@@ -1110,6 +1110,24 @@ public void sendDataChangesToRemotes()
     if (repRateInHertz.getDataChangedFlag()) {sendRepRate();}
 
 }//end of Capulin1::sendDataChangesToRemotes
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::setAllChannelsDataChangedTrue
+//
+// Sets the dataChanged flag for the synchronized softwareGain variable in each
+// channel true so that they will be sent to the DSP.
+//
+
+@Override
+public void setAllChannelsDataChangedTrue()
+{
+    
+    for (Channel channel : channels) {
+        channel.setSoftwareGainDataChangedTrue();
+    }
+
+}//end of Capulin1::setAllChannelsDataChangedTrue
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

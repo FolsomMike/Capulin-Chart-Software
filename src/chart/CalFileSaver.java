@@ -120,11 +120,9 @@ public void init()
 public void run() {
 
     //tell the GUI to update the status message
-    javax.swing.SwingUtilities.invokeLater(
-        new Runnable() {
-        @Override
-        public void run() {
-            createMessageWindow("Saving data to primary folder...");}});
+    javax.swing.SwingUtilities.invokeLater(() -> {
+        createMessageWindow("Saving data to primary folder...");
+    });
 
     //begin saving the data to the primary path
     if (!humanReadable) {
@@ -135,11 +133,9 @@ public void run() {
     }
 
     //tell the GUI to update the status message
-    javax.swing.SwingUtilities.invokeLater(
-        new Runnable() {
-        @Override
-        public void run() {
-           messageWindow.message.setText("Saving data to backup folder...");}});
+    javax.swing.SwingUtilities.invokeLater(() -> {
+        messageWindow.message.setText("Saving data to backup folder...");
+    });
 
     //begin saving the data to the backup path
     if (!humanReadable) {
@@ -150,10 +146,9 @@ public void run() {
     }
 
     //tell the GUI to dispose of the message window
-    javax.swing.SwingUtilities.invokeLater(
-        new Runnable() {
-        @Override
-        public void run() {disposeOfMessageWindow();}});
+    javax.swing.SwingUtilities.invokeLater(() -> {
+        disposeOfMessageWindow();
+    });
 
     //this thread is done - set the pointer to this object null to dispose it
     settings.fileSaver = null;

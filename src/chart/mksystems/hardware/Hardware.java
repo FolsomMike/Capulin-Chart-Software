@@ -835,6 +835,21 @@ public int getMode()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Hardware::setAllChannelsDataChangedTrue
+//
+// Sets the dataChanged flag for the synchronized softwareGain variable in each
+// channel true so that they will be sent to the DSP.
+//
+
+public void setAllChannelsDataChangedTrue()
+{
+
+    analogDriver.setAllChannelsDataChangedTrue();
+
+}//end of Hardware::setAllChannelsDataChangedTrue
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Hardware::collectData
 //
 // Collects analog data from all channels and stores it in the appropriate trace

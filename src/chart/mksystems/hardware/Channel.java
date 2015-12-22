@@ -1764,12 +1764,19 @@ public void setSoftwareGain(double pSoftwareGain, boolean pForceUpdate)
 //
 // Sends the software gain to the DSP.
 //
+// If the +6dB option is enabled, 6dB is added to the gain before sending.
+//
 
 public void sendSoftwareGain()
 {
 
     if (utBoard != null) {
-        utBoard.sendSoftwareGain(boardChannel, softwareGain.applyValue());
+        
+        double gain = softwareGain.applyValue();
+        
+        if (settings.plus6dBEnabled){ gain += 6; }
+        
+        utBoard.sendSoftwareGain(boardChannel, gain);
     }
 
 }//end of Channel::sendSoftwareGain
@@ -1787,6 +1794,21 @@ public double getSoftwareGain()
     return (softwareGain.getValue());
 
 }//end of Channel::getSoftwareGain
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::setSoftwareGainDataChangedTrue
+//
+// Sets the dataChanged flag for the synchronized variable true so that it
+// will be sent to the DSP.
+//
+
+public void setSoftwareGainDataChangedTrue()
+{
+
+    softwareGain.setDataChangedTrue();
+
+}//end of Channel::setSoftwareGainDataChangedTrue
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

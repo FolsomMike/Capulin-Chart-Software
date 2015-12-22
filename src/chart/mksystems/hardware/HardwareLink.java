@@ -119,6 +119,8 @@ public void setState(int pChassis, int pSlot, int pWhich, int pValue);
 
 public void sendDataChangesToRemotes();
 
+public void setAllChannelsDataChangedTrue();
+
 public void driveSimulation();
 
 public boolean getSimulate();

@@ -58,9 +58,11 @@ public class ControlPanel extends JPanel
     StatusPanel statusPanel;
     InfoPanel infoPanel;
     ScanSpeedPanel scanSpeedPanel;
+    OptionsPanel optionsPanel;
     DemoPanel demoPanel;
     ManualControlPanel manualControlPanel;
     String jobName;
+    boolean displayOptionsPanel;
     boolean simulateMechanical;
     boolean timerDrivenTracking;
     int previousMode = -1;
@@ -90,6 +92,7 @@ public ControlPanel(IniFile pConfigFile, String pCurrentJobPrimaryPath,
     jobName = pJobName;
     settings = pSettings;
     mechSimulator = pMechSimulator;
+    displayOptionsPanel = settings.displayOptionsPanel;
     simulateMechanical = settings.simulateMechanical;
     timerDrivenTracking = settings.timerDrivenTracking;
 
@@ -157,6 +160,11 @@ private void configure(IniFile pConfigFile)
     add(statusPanel = new StatusPanel(settings, this, this));
     add(infoPanel = new InfoPanel(this, jobName));
     add(scanSpeedPanel = new ScanSpeedPanel(settings, this, this));
+    
+    if(displayOptionsPanel){
+        add(optionsPanel = new OptionsPanel(settings, this, this, this));
+    }
+        
     if (simulateMechanical) {add(demoPanel = new DemoPanel(mechSimulator));}
     if (demoPanel != null) {demoPanel.init();}
     add(Box.createHorizontalGlue()); //force manual control to the right side
@@ -294,6 +302,12 @@ public void actionPerformed(ActionEvent e)
 
     }// if ("Next Run".equals(e.getActionCommand()))
 
+    if ("Add 6dB Gain".equals(e.getActionCommand())) {
+        //update flag and force resend of all gains to the DSPs
+        settings.plus6dBEnabled = optionsPanel.plus6dBBtn.isSelected();
+        hardware.setAllChannelsDataChangedTrue();
+    }
+    
 }//end of ControlPanel::actionPerformed
 //-----------------------------------------------------------------------------
 
@@ -891,6 +905,51 @@ public ScanSpeedPanel(Settings pSettings, JPanel pParent,
 //-----------------------------------------------------------------------------
 
 }//end of class ScanSpeedPanel
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// class OptionsPanel
+//
+// This class creates and controls a panel containing various option
+// controls which are displayed depending on settings in the config file.
+//
+
+class OptionsPanel extends JPanel{
+
+    JPanel parent;
+    public TitledBorder titledBorder;
+    JToggleButton plus6dBBtn;
+
+//-----------------------------------------------------------------------------
+// OptionsPanel::Options (constructor)
+//
+
+public OptionsPanel(Settings pSettings, JPanel pParent,
+               ActionListener pActionListener, ChangeListener pChangeListener)
+{
+
+    parent = pParent;
+
+    setBorder(titledBorder = BorderFactory.createTitledBorder("Options"));
+    setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+    
+    if(pSettings.displayPlus6dBBtn){
+        plus6dBBtn = new JToggleButton("+6dB");
+        plus6dBBtn.addActionListener(pActionListener);
+        plus6dBBtn.setActionCommand("Add 6dB Gain");
+        plus6dBBtn.setToolTipText("Adds 6dB gain to all channels.");
+        add(plus6dBBtn);
+    }
+
+    //add a spacer to force the box to be large enough for its title
+    add(Box.createRigidArea(new Dimension(15,0))); //horizontal spacer
+
+}//end of OptionsPanel::OptionsPanel (constructor)
+//-----------------------------------------------------------------------------
+
+}//end of class OptionsPanel
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
