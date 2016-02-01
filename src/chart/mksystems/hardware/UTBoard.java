@@ -5168,6 +5168,16 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
             if (bdChs[channel].analogOutputControllerChannel != -1){
                 outputWallThicknessOnAnalogOutput(channel, minThickness);
             }
+
+            
+            //debug mks -- sets max wall to min wall since max wall is so
+            //screwed up at Tejas
+            //store the max peak - overwrites info saved for this gate above
+            //debug mks - gates[1] should use wallStartGate specified by user
+            bdChs[channel].gates[1].storeNewDataD(
+                                         minThickness, wallMinTrack, clockPos);
+            //debug mks end
+            
             
         }// if (bdChs[channel].isWallChannel)
 
