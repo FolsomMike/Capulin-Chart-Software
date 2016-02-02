@@ -206,7 +206,6 @@ class MainWindow implements WindowListener, ActionListener, ChangeListener,
 
     JFrame mainFrame;
     JDialog measureDialog;
-    GridBagLayout gridBag;
     ControlPanel controlPanel;
 
     MainMenu mainMenu;
