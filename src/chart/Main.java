@@ -30,7 +30,6 @@ import chart.mksystems.settings.Settings;
 import chart.mksystems.stripchart.ChartGroup;
 import chart.mksystems.tools.MultipleInstancePreventer;
 import chart.mksystems.tools.SwissArmyKnife;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
@@ -1590,10 +1589,8 @@ public void startRabbitUpdater(int pWhichRabbits)
     String which = "";
 
     if (pWhichRabbits == Hardware.ALL_RABBITS) {which = "all";}
-    else
-    if (pWhichRabbits == Hardware.UT_RABBITS) {which = "the UT";}
-    else
-    if (pWhichRabbits == Hardware.CONTROL_RABBITS) {which = "the Control";}
+    else if (pWhichRabbits == Hardware.UT_RABBITS) {which = "the UT";}
+    else if (pWhichRabbits == Hardware.CONTROL_RABBITS) {which = "the Control";}
 
     int n = JOptionPane.showConfirmDialog( null,
     "Update " + which + " Rabbit micro-controllers?",
@@ -2257,8 +2254,7 @@ public void processMainTimerEvent()
             byte[] monitorBuffer = hardware.getMonitorPacket(true);
             monitorWindow.updateStatus(monitorBuffer);
     }
-    else
-    if (monitorMode){ //if in monitor mode and window closes, exit the mode
+    else if (monitorMode){ //if in monitor mode and window closes, exit the mode
         monitorMode = false;
         hardware.stopMonitor();
     }
@@ -2879,10 +2875,9 @@ public static void main(String[] args)
     //Schedule a job for the event-dispatching thread:
     //creating and showing this application's GUI.
 
-    javax.swing.SwingUtilities.invokeLater(
-            new Runnable() {
-                @Override
-                public void run() { createAndShowGUI(); } });
+    javax.swing.SwingUtilities.invokeLater(() -> {
+        createAndShowGUI();
+    });
 
 }//end of Main::main
 //-----------------------------------------------------------------------------
