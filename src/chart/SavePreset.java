@@ -234,21 +234,21 @@ boolean savePreset()
             "Confirm Overwrite",
             JOptionPane.YES_NO_OPTION);
 
-        if (n != JOptionPane.YES_OPTION){return(false);} //bail out if user cancels
+        if (n != JOptionPane.YES_OPTION){return(false);} //bail if user cancels
 
     }
 
     File primaryFolder = new File (primaryDataPath + currentJobName);
 
     //copy the selected preset file from the job folder to the Presets folder
-    //this is the Job Info file and stores user settings
+    //this is the Job Calibration file and stores user settings
     //note that the "00 - " prefix is to force the file to the top of the
     //explorer window when the files are alphabetized to make it easier to find
 
     if (presetSelected &&
         (!copyFile(primaryFolder + "/00 - "
                           + currentJobName + " Calibration File.ini",
-                                              "presets" + "/" + selectedItemName))){
+                                         "presets" + "/" + selectedItemName))){
 
             JOptionPane.showMessageDialog(frame,
             "The preset file could not be copied " +
@@ -258,8 +258,8 @@ boolean savePreset()
 
     }
 
-    //signal the class which invoked this window that user has acted and pass back
-    //the name of the file/folder acted on
+    //signal the class which invoked this window that user has acted and pass
+    //back the name of the file/folder acted on
 
     xfer.rBoolean1 = true; //set action completed flag true
     xfer.rString1 = selectedItemName; //pass back the target file/folder name
