@@ -1,0 +1,8 @@
+
+The new version of main.bin has glitch removal on the UT clock and sync lines.
+
+Some of the old boards at XXtreme won't respond to the clock pulses when the new main.bin is used.
+
+This is probably because the opto-isolators are different.
+
+Correct file: main.bin ~ 636 KB (651,848 bytes) ~ Date modified: 8/29/2009 3:36 PM
