@@ -1332,10 +1332,7 @@ public void actionPerformed(ActionEvent e)
 
     //this part handles saving current settings to a preset
     if ("Save Preset".equals(e.getActionCommand())) {
-        SavePreset savePreset = new SavePreset(mainFrame,
-                settings.primaryDataPath, settings.backupDataPath, xfer,
-                settings.currentJobName);
-        savePreset.init();
+        savePreset();
         return;
     }
 
@@ -1981,6 +1978,32 @@ public void copyPreset()
     }
 
 }//end of MainWindow::copyPreset
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MainWindow::savePreset
+//
+// Allows the user to save the current settings as a preset file.
+//
+// The calibration file will be copied from the current job folder to the
+// presets folder and renamed as specified by the user.
+//
+
+public void savePreset()
+{
+
+    // make sure the current settings have been saved to the calibration file
+    // before it is copied to the presets folder
+
+    saveEverything(); //save all data
+
+    SavePreset savePreset = new SavePreset(mainFrame,
+            settings.primaryDataPath, settings.backupDataPath, xfer,
+            settings.currentJobName);
+
+    savePreset.init();
+
+}//end of MainWindow::savePreset
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
