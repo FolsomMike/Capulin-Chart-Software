@@ -30,4 +30,24 @@ is 512.  The value of 38.0 dB is equivalant to a decimal value of 514
 which is the closest value which can be obtained with the resolution
 of 0.1 dB allowed for user entry.
 
+
+-- When the DAC Seems to Have no Effect --
+
+This is most commonly seen on channels with an Interface Gate.
+
+If the signal in the Interface Gate does not break the threshold,
+neither the Software Gain nor the DAC gain will applied. In such case,
+adjusting the Software Gain or the DAC gate levels will have no
+effect.
+
+Sometimes, turning the Tracking on and off appears to affect this
+operation. This is usually due to the position of the Interface Gate
+being set different for the tracking vs non-tracking mode. The
+positions are stored separately. Depending on the settings, turning
+the tracking on or off may cause the Interface Gate to shift to a
+place where the signal exceeds the gate, at which time the gains will
+be applied. Conversely, when the tracking is set to the opposite
+setting, the gate may shift to where the signal does not exceed the
+gate's level and the gains will not be applied.
+
 -----------------------------------------------------------------------
