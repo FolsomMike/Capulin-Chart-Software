@@ -1,12 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/1"/>
-    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="2">
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="4">
+        <file>
+            <url>src/chart/Main.java</url>
+            <bookmark id="4">
+                <name/>
+                <line>157</line>
+                <key/>
+            </bookmark>
+        </file>
+        <file>
+            <url>src/chart/mksystems/hardware/Hardware.java</url>
+            <bookmark id="3">
+                <name/>
+                <line>937</line>
+                <key/>
+            </bookmark>
+        </file>
         <file>
             <url>src/chart/mksystems/hardware/UTBoard.java</url>
             <bookmark id="1">
                 <name/>
-                <line>808</line>
+                <line>812</line>
                 <key/>
             </bookmark>
         </file>
@@ -14,12 +30,15 @@
             <url>src/chart/mksystems/hardware/UTSimulator.java</url>
             <bookmark id="2">
                 <name/>
-                <line>1514</line>
+                <line>1518</line>
                 <key/>
             </bookmark>
         </file>
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group/>
+        <group>
+            <file>file:/C:/Users/Mike/Documents/7%20-%20Java%20Projects/Chart/src/chart/mksystems/hardware/Hardware.java</file>
+            <file>file:/C:/Users/Mike/Documents/7%20-%20Java%20Projects/Chart/src/chart/Main.java</file>
+        </group>
     </open-files>
 </project-private>
