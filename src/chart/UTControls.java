@@ -2468,7 +2468,7 @@ public void handleMouseReleaseForDAC(MouseEvent e)
     //checkbox is checked
     if (!dacEnabled.isSelected() || dacLocked.isSelected()) {return;}
 
-    //process left click releases for the DAC gates
+    //process left click releases for the DAC gates if one was being dragged
     if (e.getButton() == MouseEvent.BUTTON1){
         //force recalc of all gate time locations and flag for sending
         //to remotes

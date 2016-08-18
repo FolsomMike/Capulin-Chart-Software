@@ -163,7 +163,7 @@ public boolean calculateGatePixelLocation(double pUSPerPixel, int pDelayPix,
     }
 
     int nGatePixEnd =
-             gatePixStart + (int)Math.round(gateWidth.getValue() / pUSPerPixel);
+         gatePixStart + (int)Math.round(gateWidth.getValue() / pUSPerPixel) - 1;
     if (gatePixEnd != nGatePixEnd){
         gatePixEnd = nGatePixEnd; valueChanged = true;
     }
@@ -208,7 +208,7 @@ public void calculateGateTimeLocation(double pUSPerPixel, int pDelayPix,
     double nGateStart =  (gatePixStart + pDelayPix) * pUSPerPixel;
     gateStart.setValue(nGateStart, false);
 
-    double nGateWidth = (gatePixEnd - gatePixStart) * pUSPerPixel;
+    double nGateWidth = (gatePixEnd - gatePixStart + 1) * pUSPerPixel;
     gateWidth.setValue(nGateWidth, false);
 
     int nPixLevel = gatePixLevel; //use a temp variable - don't modify original
