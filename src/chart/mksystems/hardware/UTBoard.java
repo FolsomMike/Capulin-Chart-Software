@@ -3509,7 +3509,7 @@ public boolean waitForPacketThenLogMessage(int pDSPChip, int pDSPCore,
         //displays status code in log window
         logger.logMessage("UT " + chassisSlotAddr + " Chip: " + pDSPChip
           + " Core: " + pDSPCore + " " + pMessagePhrase + " "
-          + dspMsgID + "-" + value + "\n");
+          + dspMsgID + "-" + toHexString(value) + "\n");
         return(true);
 
     }
@@ -5937,6 +5937,31 @@ public void logStatistics()
     catch(IOException e){}
 
 }//end of UTBoard::logStatistics
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::toHexString
+//
+// Converts an integer to a 4 character hex string.
+//
+
+String toHexString(int pValue)
+{
+
+    String s = Integer.toString(pValue & 0xffff, 16);
+
+    //force length to be four characters
+    if (s.length() == 0) {return("0000" + s);}
+    else
+    if (s.length() == 1) {return("000" + s);}
+    else
+    if (s.length() == 2) {return("00" + s);}
+    else
+    if (s.length() == 3) {return("0" + s);}
+    else
+    {return (s);}
+
+}//end of UTBoard::toHexString
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
