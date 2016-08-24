@@ -22,13 +22,13 @@ MKS -- try .06 for similar gain to other filter program?
 
 <coefficient scaling start>
 
-.03
+1
 
 <coefficient scaling end>
 
 <FIR filter shift bits amount start>
 
--5
+-12
 
 <FIR filter shift bits amount end>
 

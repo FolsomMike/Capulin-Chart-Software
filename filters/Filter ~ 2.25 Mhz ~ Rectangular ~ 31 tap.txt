@@ -17,17 +17,15 @@ FIR filter shift is applied to the output of each convolution. It is typically n
 
 The coefficient scaling value is multiplied by each coefficient to change the filter gain. Usually, it is less than 1 to reduce the gain.
 
-changed gain from 1 to .5 as a test
-
 <coefficient scaling start>
 
-.5
+1
 
 <coefficient scaling end>
 
 <FIR filter shift bits amount start>
 
--5
+-12
 
 <FIR filter shift bits amount end>
 

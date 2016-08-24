@@ -25,7 +25,7 @@ The coefficient scaling value is multiplied by each coefficient to change the fi
 
 <FIR filter shift bits amount start>
 
--5
+-12
 
 <FIR filter shift bits amount end>
 
