@@ -3199,10 +3199,10 @@ private int[] loadFilter(String pFilterName)
 // Channel::parseFilterFileData
 //
 // Parses the data loaded from the filter file in pData to retrieve filter
-// coefficients and right shift amount.
+// coefficients, scaling, right shift amount, preprocessing, etc.
 //
-// If no valid integer values are found, a one element array containing the
-// value 0 is returned.
+// If no valid integer filter coefficients are found, a one element array
+// containing the value 0 is returned.
 //
 // If invalid entries are encountered when expecting an integer, the value
 // will set to zero.
@@ -3210,7 +3210,8 @@ private int[] loadFilter(String pFilterName)
 // The format of the returned array:
 //  byte 0 = number of filter coefficients
 //  byte 1 = number of bits to right shift during FIR processing
-//  byte 2~last = FIR filter coefficients
+//  byte 2 = 0: no preprocessing 1: absolute value preprocessing
+//  byte 3~last = FIR filter coefficients
 //
 
 private int[] parseFilterFileData(ArrayList<String> pData)
@@ -3221,40 +3222,48 @@ private int[] parseFilterFileData(ArrayList<String> pData)
     
     String line;
     
-    ListIterator iter = pData.listIterator();
+    ListIterator iter;
 
-    //parse the coefficient scaling vaue -- the filters often have a LOT of gain
-    //when used as is, so scaling down the coefficients is a simple method of
-    //allowing the user to adjust the gain by setting a value in the file
+    //parse the coefficient scaling vaue
         
+    iter = pData.listIterator(); //start from top of file each time
     result = searchListForString("<coefficient scaling start>" , iter);
     
     double coeffScaling = 1.0;
     
-    if (result) {
-    
+    if (result) {    
         line = getNextNonBlankLineInList(iter);
         if(!line.isEmpty()) { coeffScaling = parseDouble(line, 1.0); }
-        
     }
     
-    //parse the number of bits each multiplication result is shifted during the
-    //FIR filter math to prevent overflow during the process
+    //parse the number of bits each result is shifted after each convolution
+    //pass
         
+    iter = pData.listIterator(); //start from top of file each time    
     result = searchListForString("<FIR filter shift bits amount start>" , iter);
     
-    if (!result) { return(createOneElementArrayContainingZero()); }
+    int numFIRFilterBitRightShifts = -12;
     
-    line = getNextNonBlankLineInList(iter);
+    if (result) {    
+        line = getNextNonBlankLineInList(iter);
+        if(!line.isEmpty()) { numFIRFilterBitRightShifts = parseInt(line, -12);}
+    }
     
-    if(line.isEmpty()) { return(createOneElementArrayContainingZero()); }
-    
-    int numFIRFilterBitRightShifts;
+    //parse the number of bits each result is shifted after each convolution
+    //pass
         
-    numFIRFilterBitRightShifts = parseInt(line, -5);
+    iter = pData.listIterator(); //start from top of file each time    
+    result = searchListForString("<preprocessing mode start>" , iter);
     
+    int preprocessingMode = 0;
+    
+    if (result) {    
+        line = getNextNonBlankLineInList(iter);
+        if(!line.isEmpty()) { preprocessingMode = parseInt(line, 0);}
+    }
+
     //parse the filter coefficients
-    
+    iter = pData.listIterator(); //start from top of file each time        
     result = searchListForString("<start of coefficients>" , iter);
     
     if (!result) { return(createOneElementArrayContainingZero()); }
@@ -3288,7 +3297,10 @@ private int[] parseFilterFileData(ArrayList<String> pData)
     entryList.add(0, entryList.size());
     //second entry is the FIR filter bit shift amount
     entryList.add(1, numFIRFilterBitRightShifts);
-    
+    //third entry is the preprocessing mode
+    entryList.add(2, preprocessingMode);
+
+    //convert to an array
     filterValues = new int[entryList.size()];
     
     for(int i=0; i<filterValues.length; i++){

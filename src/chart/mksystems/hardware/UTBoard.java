@@ -438,6 +438,7 @@ public class UTBoard extends Board{
     static byte DSP_GET_MAP_COUNT_CMD = 19;
     static byte DSP_RESET_MAPPING_CMD = 20;
     static byte DSP_SET_FILTER = 21;
+    static byte DSP_SET_FILTER_ABS_PREPROCESSING = 22;
     
     static byte DSP_ACKNOWLEDGE = 127;
 
@@ -3105,15 +3106,39 @@ void sendMode(int pChannel, int pMode)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// UTBoard::sendFilterABSPreProcessingMode
+//
+// Sends the on/off state for absolute-value processing of raw samples before
+// being digitally filtered:
+//
+// 0 = no processing performed
+// 1 = absolute value performed
+//
+// If no filter is active, this setting has no effect.
+//
+
+void sendFilterABSPreProcessingMode(int pChannel, int pMode)
+{
+
+    sendChannelParam(pChannel, (byte) DSP_SET_FILTER_ABS_PREPROCESSING,
+                (byte)(pMode & 0xff),
+               (byte)0, (byte)0, (byte)0, (byte)0, (byte)0,
+               (byte)0, (byte)0, (byte)0);
+
+}//end of UTBoard::sendFilterABSPreProcessingMode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // UTBoard::sendFilter
 //
-// Sends the signal filter values to the DSP.
+// Sends the signal filter values to the DSP. The filter parameters and the
+// coefficients are sent using several packets.
 //
-// The first byte after the command byte describes the type of filter values
-// contained in the packet:
+// The first byte after the command byte describes the data contained in the
+// packet (iterated by groupNum variable):
 //
-//  00: the following byte contains the number of filter coefficients
-//      the byte after that contains the bit shift amount for convolution
+//  00: the packet contains the number of filter coefficients, the bit shift
+//       amount for convolution, and the preprocessing mode
 //  01: the following 8 bytes contain the first set of four coefficient words
 //  02: the following 8 bytes contain the second set of four coefficient words
 //  03: the following 8 bytes contain the third set of four coefficient words
@@ -3129,12 +3154,10 @@ void sendMode(int pChannel, int pMode)
 // there are fewer coefficients.
 //
 // During the FIR filter convolution performed in the DSP, it is often necessary
-// to right shift after each multiplication to avoid overflowing the register.
-// The amount to be shifted is specified using the 00 descriptor as described
-// above.
+// to right shift after each pass to reduce the gain.
 //
 // The number of coefficients should not be more than 31.
-// The number of bits to shift should not be more than 127.
+// The number of bits to shift should be in the range –16 <= ASM <= 15.
 //
 // If the filter array is empty (a single element set to zero), the array size
 // zero will be sent with a zero bit shift value. No coefficients will be sent.
@@ -3143,20 +3166,28 @@ void sendMode(int pChannel, int pMode)
 void sendFilter(int pChannel, int[]pFilter)
 {
 
-    int numBitsShift = 0;
+    byte groupNum = 0; int numBitsShift = 0; int preProcessMode = 0;
   
-    if (pFilter.length > 1){ numBitsShift = pFilter[1]; }
+    //only extract from filter if it is not length of 1 (empty filter)
     
-    //send the number of coefficients (first value in array) and the convolution
-    //bit shift amount (second value in array)
+    if (pFilter.length > 1){
+        numBitsShift = pFilter[1];
+        preProcessMode = pFilter[2];
+    }
+    
+    //send the number of coefficients (first value in array), the convolution
+    //bit shift amount (second value in array), and the preprocessing mode
+    //(third value in array)
     
     sendChannelParam(pChannel, (byte) DSP_SET_FILTER,
-               (byte)0, (byte)pFilter[0], (byte)numBitsShift,
-               (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0);
+               (byte)groupNum, (byte)pFilter[0], (byte)numBitsShift,
+               (byte)preProcessMode, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0);
+    
+    groupNum++;
     
     //send the coefficients four at a time using multiple calls
     
-    byte set = 1; int i = 2; int length = pFilter.length;
+    int i = 2; int length = pFilter.length;
     int val1, val2, val3, val4;
     
     while(i < length){
@@ -3169,14 +3200,14 @@ void sendFilter(int pChannel, int[]pFilter)
         if(i<length){ val4 = pFilter[i++];}
         
         sendChannelParam(pChannel, (byte) DSP_SET_FILTER,
-            (byte)set,
+            (byte)groupNum,
             (byte)((val1 >> 8) & 0xff), (byte)(val1 & 0xff),
             (byte)((val2 >> 8) & 0xff), (byte)(val2 & 0xff),
             (byte)((val3 >> 8) & 0xff), (byte)(val3 & 0xff),
             (byte)((val4 >> 8) & 0xff), (byte)(val4 & 0xff)
             );
     
-        set++;
+        groupNum++;
     
     }
 
