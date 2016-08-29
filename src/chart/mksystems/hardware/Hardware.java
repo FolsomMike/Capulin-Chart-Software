@@ -73,6 +73,8 @@ public class Hardware extends Object implements TraceValueCalculator, Runnable,
     JTextArea log;
     int scanRateCounter;
 
+    PLCEthernetController plcComLink = null;
+    
     int flaggingEnableDelay1, flaggingEnableDelay2 = 0;
 
     InspectControlVars inspectCtrlVars;
@@ -211,6 +213,11 @@ private void configure(IniFile pConfigFile)
 
     createAnalogDriver(analogDriverName);
 
+    plcComLink = new PLCEthernetController("192.168.15.100", 10002,
+                                                                logger, false);
+    
+    plcComLink.init();
+    
 }//end of Hardware::configure
 //-----------------------------------------------------------------------------
 
