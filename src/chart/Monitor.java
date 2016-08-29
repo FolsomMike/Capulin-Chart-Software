@@ -91,7 +91,7 @@ public void init()
     setMaximumSize(new Dimension(panelWidth, panelHeight));
 
     //create red and black fonts for use with display objects
-    Hashtable<TextAttribute, Object> map = new Hashtable<>();
+    HashMap<TextAttribute, Object> map = new HashMap<>();
     blackFont = new Font("Dialog", Font.PLAIN, 12);
     map.put(TextAttribute.FOREGROUND, Color.RED);
     redFont = blackFont.deriveFont(map);
