@@ -1,0 +1,18 @@
+
+---------------------------------------------------------------------
+Sun Jan 11 16:31:30 PST 2015
+
+Converting files to UTF-8:
+
+File converted: .\Main Settings.ini
+
+
+
+Validating conversions and cleaning up:
+
+Files are identical: .\Main Settings.ini
+Success -- temp file renamed: .\Main Settings.ini
+
+
+
+All files converted successfully.
