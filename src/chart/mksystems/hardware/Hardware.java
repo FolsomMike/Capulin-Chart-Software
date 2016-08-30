@@ -111,6 +111,8 @@ public class Hardware extends Object implements TraceValueCalculator, Runnable,
     public static int PULSE = 0, CONTINUOUS = 1;
     public int markerMode = PULSE;
 
+    private int timerCount = 0; //debug mks
+    
 //-----------------------------------------------------------------------------
 // Hardware::Hardware (constructor)
 //
@@ -2049,6 +2051,15 @@ public void doTasks()
 
     analogDriver.doTasks();
 
+    //debug mks
+    
+    if(plcComLink != null && timerCount++ > 3000){
+        timerCount = 0;
+        plcComLink.sendTestMessages();        
+    }
+    
+    //debug mks
+    
 }//end of Hardware::doTasks
 //-----------------------------------------------------------------------------
 

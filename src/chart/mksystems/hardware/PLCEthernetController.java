@@ -54,6 +54,8 @@ public class PLCEthernetController {
 
     ThreadSafeLogger logger;
     boolean simulate;
+
+    int messageCount = 0;
     
 //-----------------------------------------------------------------------------
 // PLCEthernetController::PLCEthernetController (constructor)
@@ -115,42 +117,53 @@ private void establishLink()
 
     openSocket();
 
-    sendString("@Hello from VScan!         ");
+    sendString("@Hello from VScan!       ");
 
-//debug mks
-
-    sendString("*LL:03:009:0100:00090:001:0");
-
-    sendString("*TT:02:023:3422:01240:002:1");
-
-    sendString("*WT:01:023:3422:01240:004:2");
-
-    sendString("*WL:01:009:0100:00090:003:3");
-
-    sendString("*TT:02:023:3422:01240:001:4");
-
-    sendString("*TT:02:023:3422:01240:002:5");
-
-    sendString("*TT:02:023:3422:01240:001:6");
-
-    sendString("*TT:02:023:3422:01240:003:7");
-
-    sendString("*LL:03:009:0100:00090:001:8");
-
-    sendString("*TT:02:023:3422:01240:002:9");
-
-    sendString("*TT:02:023:3422:01240:003:0");
-
-    sendString("*TT:02:023:3422:01240:001:1");
-
-    sendString("*TT:02:023:3422:01240:003:2");
-
-    sendString("*LL:03:009:0100:00090:002:3");
-
-//debug mks end
-
+    sendTestMessages(); //debug mks -- remove this
 
 }//end of EthernetIOModule::establishLink
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// PLCEthernetController::sendTestMessages
+//
+// Sends a batch of messages for testing purposes.
+//
+
+public void sendTestMessages()
+{
+
+    sendString("@Block of test messages: ");
+
+    sendString("*LL|03|009|0100|00090|001");
+
+    sendString("*TT|02|023|3422|01240|002");
+
+    sendString("*WT|01|023|3422|01240|004");
+
+    sendString("*WL|01|009|0100|00090|003");
+
+    sendString("*TT|02|023|3422|01240|001");
+
+    sendString("*TT|02|023|3422|01240|002");
+
+    sendString("*TT|02|023|3422|01240|001");
+
+    sendString("*TT|02|023|3422|01240|003");
+
+    sendString("*LL|03|009|0100|00090|001");
+
+    sendString("*TT|02|023|3422|01240|002");
+
+    sendString("*TT|02|023|3422|01240|003");
+
+    sendString("*TT|02|023|3422|01240|001");
+
+    sendString("*TT|02|023|3422|01240|003");
+
+    sendString("*LL|03|009|0100|00090|002");
+
+}//end of EthernetIOModule::sendTestMessages
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -159,7 +172,7 @@ private void establishLink()
 // Opens a socket with the PLC.
 //
 
-public void openSocket()
+private void openSocket()
 {
 
     if (plcIPAddr == null){
@@ -221,14 +234,17 @@ public void openSocket()
 //-----------------------------------------------------------------------------
 // EthernetIOModule::sendString
 //
-// Sends a string via the socket.
+// Sends a string via the socket. A | symbol and single digit alpha message
+// count will be appended to the message.
 //
 
-void sendString(String pValue)
+public void sendString(String pValue)
 {
 
-    if (byteOut == null){ return; }
+   if (byteOut == null){ return; }
 
+    pValue = pValue + "|" + getAndIncrementMessageCount();
+    
     try{
         for(int i = 0; i < pValue.length(); i++){
           byteOut.writeByte((byte) pValue.charAt(i));
@@ -236,10 +252,31 @@ void sendString(String pValue)
         byteOut.flush();
     }
     catch (IOException e) {
-        logSevere(e.getMessage() + " - Error: 206");
+        logSevere(e.getMessage() + " - Error: 255");
     }
 
 }//end of EthernetIOModule::sendString
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// EthernetIOModule::getAndIncrementMessageCount
+//
+// Returns the current message count value as a string and increments it for
+// the next use. Rolls back to 0 when value of 10 reached; range is 0~9
+//
+
+private String getAndIncrementMessageCount()
+{
+
+    int value = messageCount;
+
+    messageCount++;
+    
+    if (messageCount == 10){ messageCount = 0; }
+
+    return(Integer.toString(value));
+
+}//end of EthernetIOModule::getAndIncrementMessageCount
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -275,7 +312,7 @@ public void shutDown()
 // Sleeps for pTime milliseconds.
 //
 
-public void waitSleep(int pTime)
+private void waitSleep(int pTime)
 {
 
     try {Thread.sleep(pTime);} catch (InterruptedException e) { }
@@ -289,7 +326,7 @@ public void waitSleep(int pTime)
 // Logs pMessage with level SEVERE using the Java logger.
 //
 
-void logSevere(String pMessage)
+private void logSevere(String pMessage)
 {
 
     Logger.getLogger(getClass().getName()).log(Level.SEVERE, pMessage);
