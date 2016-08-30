@@ -417,6 +417,21 @@ private void loadMainStaticSettings()
     settings.mapFilesPath = SwissArmyKnife.formatPath(configFile.readString(
                            "Main Configuration", "Map Files Path", ""));
 
+    settings.establishPLCComLink = configFile.readBoolean(
+             "PLC Communication", "Establish PLC Communications Link", false);
+
+    settings.plcIPAddressString = configFile.readString(
+             "PLC Communication", "PLC Ethernet IP address", "192.168.15.100");
+
+    settings.plcEthernetPort = configFile.readInt(
+                            "PLC Communication", "PLC Ethernet Port", 10002);
+
+    settings.panelViewIPAddressString = configFile.readString(
+      "PLC Communication", "Panel View Ethernet IP address", "192.168.15.150");
+
+    settings.plcSubnetMask = configFile.readString(
+             "PLC Communication", "Ethernet IP Subnet Mask", "255.255.255.0");
+
 }//end of MainWindow::loadMainStaticSettings
 //-----------------------------------------------------------------------------
 

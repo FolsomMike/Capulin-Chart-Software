@@ -115,7 +115,7 @@ private void establishLink()
 
     openSocket();
 
-    sendString("$Hello from VScan!         ");
+    sendString("@Hello from VScan!         ");
 
 //debug mks
 
@@ -149,7 +149,7 @@ private void establishLink()
 
 //debug mks end
 
-    
+
 }//end of EthernetIOModule::establishLink
 //-----------------------------------------------------------------------------
 
@@ -228,14 +228,11 @@ void sendString(String pValue)
 {
 
     if (byteOut == null){ return; }
-    
-//    try{byteOut.writeByte((byte)'*');}catch(IOException e){} //debug mks
-    
+
     try{
         for(int i = 0; i < pValue.length(); i++){
           byteOut.writeByte((byte) pValue.charAt(i));
         }
-//        byteOut.writeByte((byte)'2'); //debug mks
         byteOut.flush();
     }
     catch (IOException e) {
@@ -243,6 +240,33 @@ void sendString(String pValue)
     }
 
 }//end of EthernetIOModule::sendString
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// PLCEthernetController::shutDown
+//
+// This function should be called before exiting the program.  Overriding the
+// "finalize" method does not work as it does not get called reliably upon
+// program exit.
+//
+
+public void shutDown()
+{
+
+    //close everything - the order of closing may be important
+
+    try{
+        if (byteOut != null) {byteOut.close();}
+        if (byteIn != null) {byteIn.close();}
+        if (out != null) {out.close();}
+        if (in != null) {in.close();}
+        if (socket != null) {socket.close();}
+    }
+    catch(IOException e){
+        logSevere(e.getMessage() + " - Error: 267");
+    }
+
+}//end of PLCEthernetController::shutDown
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

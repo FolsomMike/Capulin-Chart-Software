@@ -213,12 +213,28 @@ private void configure(IniFile pConfigFile)
 
     createAnalogDriver(analogDriverName);
 
-    plcComLink = new PLCEthernetController("192.168.15.100", 10002,
-                                                                logger, false);
-    
-    plcComLink.init();
-    
+    openPLCComLink();
+
 }//end of Hardware::configure
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::openPLCComLink
+//
+// If specified in Settings, establish a communications link with the PLC.
+//
+
+private void openPLCComLink()
+{
+
+    if (!settings.establishPLCComLink) { return; }
+
+    plcComLink = new PLCEthernetController(settings.plcIPAddressString,
+                                    settings.plcEthernetPort, logger, false);
+
+    plcComLink.init();
+
+}//end of Hardware::openPLCComLink
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -2077,6 +2093,8 @@ public void shutDown()
 
     active = false;
 
+    if(plcComLink != null) { plcComLink.shutDown(); }
+    
     analogDriver.shutDown();
 
 }//end of Hardware::shutDown

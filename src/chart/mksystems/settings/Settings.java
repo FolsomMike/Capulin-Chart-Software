@@ -239,6 +239,13 @@ public class Settings extends Object implements ActionListener, ItemListener {
     public String towardsHome, awayFromHome;
     public String inspectionDirectionDescription = "unknown";
 
+    public boolean establishPLCComLink = false;
+    public String plcIPAddressString = null;
+    public String panelViewIPAddressString = null;
+    public String plcSubnetMask = null;
+
+    public int plcEthernetPort = 0;
+
 
 //-----------------------------------------------------------------------------
 // Settings::Settings (constructor)
@@ -813,8 +820,7 @@ public void configure(IniFile pConfigFile)
         //prepended for padding -- add the necessary space padding here
         number = Integer.toString(i+1);
         if (number.length() == 1) {number = "  " + number;}
-        else
-        if (number.length() == 2) {number = " " + number;}
+        else if (number.length() == 2) {number = " " + number;}
 
         line = pConfigFile.readString(section, "Line " + number, "");
         configInfo.add(line);
