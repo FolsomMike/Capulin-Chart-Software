@@ -42,6 +42,13 @@ public class UTGate extends BasicGate{
     // over the gate, 1 if data is flagged for going below the gate
     int triggerDirection;
 
+    //string loaded from config file specifying which markers are to be fired
+    //when a signal in the gate exceeds a threshold on the chart
+    String markersTriggeredS = null;
+    //byte parsed from markersTriggeredS which specifies which markers are
+    //fired...each bit controls a separate marker bit0:marker1,1:2,2:3, etc.
+    byte markersTriggered = 0;
+    
     // Variable peakDirection = 0 if peak is up, 1 if peak is down.  If the peak
     // is up, the worst case values are considered to be the higher ones and
     // vice versa.
@@ -1251,6 +1258,10 @@ private void configure(IniFile pConfigFile)
 
     triggerDirection = pConfigFile.readInt(whichGate, "Trigger Direction", 0);
 
+    markersTriggeredS = pConfigFile.readString(
+                                          whichGate, "Markers Triggered", "0");
+    markersTriggered = parseMarkersTriggered(markersTriggeredS);
+    
     peakDirection = pConfigFile.readInt(whichGate, "Peak Direction", 0);
     setMaxMin((peakDirection == MAX));
 
@@ -1263,6 +1274,56 @@ private void configure(IniFile pConfigFile)
 }//end of UTGate::configure
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// UTGate::parseMarkersTriggered
+//
+// Parses the string pText to set the bits in the return byte to specify
+// which markers are to be fired when the signal in the gate exceeds a
+// chart threshold.
+//
+// Input text format examples (up to 8 markers: 1-8):
+//
+//  0               (no marker fired)
+//  1               (marker 1 fired)
+//  1,2             (markers 1&2 fired)
+//  1,2,3,4,5,6,7,8 (all markers fired)
+//
+// Return byte format:
+//
+// bit 0: 1 = marker 1 fired
+// bit 1: 1 = marker 1 fired
+// ...
+// bit 7: 1 = marker 8 fired
+//
+
+private byte parseMarkersTriggered(String pText)
+{
+
+    byte result = 0;
+    
+    String[] split = pText.split(",");
+    
+    if(split.length > 0){
+     
+        for (String markerNumS : split) {
+            try {
+                
+                int markerNum = Integer.parseInt(markerNumS.trim());
+                
+                if (markerNum > 0){
+                    result += Math.pow(2, markerNum - 1);
+                }
+            }catch(NumberFormatException e){
+                //ignore value if invalid
+            }
+        }
+    }
+
+    return(result);
+    
+}//end of UTGate::parseMarkersTriggered
+//-----------------------------------------------------------------------------
+    
 //-----------------------------------------------------------------------------
 // UTGate::loadCalFile
 //
