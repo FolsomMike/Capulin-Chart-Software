@@ -114,14 +114,41 @@ private void establishLink()
 {
 
     openSocket();
-    
-    //waitSleep(500);
 
-    sendString("Hello from VScan!");
-    
-    sendString("message 3");
-    
-    sendString("message 4");
+    sendString("$Hello from VScan!         ");
+
+//debug mks
+
+    sendString("*LL:03:009:0100:00090:001:0");
+
+    sendString("*TT:02:023:3422:01240:002:1");
+
+    sendString("*WT:01:023:3422:01240:004:2");
+
+    sendString("*WL:01:009:0100:00090:003:3");
+
+    sendString("*TT:02:023:3422:01240:001:4");
+
+    sendString("*TT:02:023:3422:01240:002:5");
+
+    sendString("*TT:02:023:3422:01240:001:6");
+
+    sendString("*TT:02:023:3422:01240:003:7");
+
+    sendString("*LL:03:009:0100:00090:001:8");
+
+    sendString("*TT:02:023:3422:01240:002:9");
+
+    sendString("*TT:02:023:3422:01240:003:0");
+
+    sendString("*TT:02:023:3422:01240:001:1");
+
+    sendString("*TT:02:023:3422:01240:003:2");
+
+    sendString("*LL:03:009:0100:00090:002:3");
+
+//debug mks end
+
     
 }//end of EthernetIOModule::establishLink
 //-----------------------------------------------------------------------------
