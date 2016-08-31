@@ -1260,7 +1260,11 @@ private void configure(IniFile pConfigFile)
 
     markersTriggeredS = pConfigFile.readString(
                                           whichGate, "Markers Triggered", "0");
-    markersTriggered = parseMarkersTriggered(markersTriggeredS);
+    
+    // parse string to set the bits in a byte to specify which markers are to
+    //be fired when the signal in the gate exceeds a chart threshold
+
+    markersTriggered = parseListToBits(markersTriggeredS);
     
     peakDirection = pConfigFile.readInt(whichGate, "Peak Direction", 0);
     setMaxMin((peakDirection == MAX));
@@ -1275,28 +1279,27 @@ private void configure(IniFile pConfigFile)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTGate::parseMarkersTriggered
+// UTGate::parseListToBits
 //
-// Parses the string pText to set the bits in the return byte to specify
-// which markers are to be fired when the signal in the gate exceeds a
-// chart threshold.
+// Parses the comma delimited list in string pText to set the bits in the
+// return byte.
 //
-// Input text format examples (up to 8 markers: 1-8):
+// Input text format examples (up to 8 bits: 1-8):
 //
-//  0               (no marker fired)
-//  1               (marker 1 fired)
-//  1,2             (markers 1&2 fired)
-//  1,2,3,4,5,6,7,8 (all markers fired)
+//  0               (no bits set)
+//  1               (bit 1 set)
+//  1,2             (bits 1&2 set)
+//  1,2,3,4,5,6,7,8 (all bits set)
 //
 // Return byte format:
 //
-// bit 0: 1 = marker 1 fired
-// bit 1: 1 = marker 1 fired
+// bit 0: 1 if 1 listed in input text
+// bit 1: 1 if 2 listed in input text
 // ...
-// bit 7: 1 = marker 8 fired
+// bit 7: 1 if 8 listed in input text
 //
 
-private byte parseMarkersTriggered(String pText)
+private byte parseListToBits(String pText)
 {
 
     byte result = 0;
@@ -1305,13 +1308,13 @@ private byte parseMarkersTriggered(String pText)
     
     if(split.length > 0){
      
-        for (String markerNumS : split) {
+        for (String bitNumS : split) {
             try {
                 
-                int markerNum = Integer.parseInt(markerNumS.trim());
+                int bitNum = Integer.parseInt(bitNumS.trim());
                 
-                if (markerNum > 0){
-                    result += Math.pow(2, markerNum - 1);
+                if (bitNum > 0){
+                    result += Math.pow(2, bitNum - 1);
                 }
             }catch(NumberFormatException e){
                 //ignore value if invalid
@@ -1321,7 +1324,7 @@ private byte parseMarkersTriggered(String pText)
 
     return(result);
     
-}//end of UTGate::parseMarkersTriggered
+}//end of UTGate::parseListToBits
 //-----------------------------------------------------------------------------
     
 //-----------------------------------------------------------------------------
