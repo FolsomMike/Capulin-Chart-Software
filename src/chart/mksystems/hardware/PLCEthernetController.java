@@ -56,6 +56,8 @@ public class PLCEthernetController {
     boolean simulate;
 
     int messageCount = 0;
+
+    private static final int PLC_MESSAGE_LENGTH = 28;
     
 //-----------------------------------------------------------------------------
 // PLCEthernetController::PLCEthernetController (constructor)
@@ -117,7 +119,7 @@ private void establishLink()
 
     openSocket();
 
-    sendString("@Hello from VScan!       ");
+    sendString("@Hello from VScan!        ");
 
     sendTestMessages(); //debug mks -- remove this
 
@@ -133,35 +135,41 @@ private void establishLink()
 public void sendTestMessages()
 {
 
-    sendString("@Block of test messages: ");
+    sendString("@Block of test messages:  ");
 
-    sendString("*LL|03|009|0100|00090|001");
+    sendString("#001|                     ");
 
-    sendString("*TT|02|023|3422|01240|002");
+    sendString("#002|                     ");
 
-    sendString("*WT|01|023|3422|01240|004");
+    sendString("#003|                     ");
+    
+    sendString("*LL |03|009|0100|00090|001");
 
-    sendString("*WL|01|009|0100|00090|003");
+    sendString("*TT |02|023|3422|01240|002");
 
-    sendString("*TT|02|023|3422|01240|001");
+    sendString("*WT |01|023|3422|01240|004");
 
-    sendString("*TT|02|023|3422|01240|002");
+    sendString("*WL |01|009|0100|00090|003");
 
-    sendString("*TT|02|023|3422|01240|001");
+    sendString("*TL |02|023|3422|01240|001");
 
-    sendString("*TT|02|023|3422|01240|003");
+    sendString("*LT |02|023|3422|01240|002");
 
-    sendString("*LL|03|009|0100|00090|001");
+    sendString("*22L|02|023|3422|01240|001");
 
-    sendString("*TT|02|023|3422|01240|002");
+    sendString("*22T|02|023|3422|01240|003");
 
-    sendString("*TT|02|023|3422|01240|003");
+    sendString("*12L|03|009|0100|00090|001");
 
-    sendString("*TT|02|023|3422|01240|001");
+    sendString("*12T|02|023|3422|01240|002");
 
-    sendString("*TT|02|023|3422|01240|003");
+    sendString("*12L|02|023|3422|01240|003");
 
-    sendString("*LL|03|009|0100|00090|002");
+    sendString("*45L |02|023|3422|01240|001");
+
+    sendString("*45T|02|023|3422|01240|003");
+
+    sendString("*LL |03|009|0100|00090|002");
 
 }//end of EthernetIOModule::sendTestMessages
 //-----------------------------------------------------------------------------
@@ -241,9 +249,11 @@ private void openSocket()
 public void sendString(String pValue)
 {
 
-   if (byteOut == null){ return; }
+    if (byteOut == null){ return; }
 
     pValue = pValue + "|" + getAndIncrementMessageCount();
+  
+    assert(pValue.length() == PLC_MESSAGE_LENGTH);
     
     try{
         for(int i = 0; i < pValue.length(); i++){
@@ -256,6 +266,21 @@ public void sendString(String pValue)
     }
 
 }//end of EthernetIOModule::sendString
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// EthernetIOModule::sendMarkerControlMessage
+//
+// Sends a string via the socket with information regarding a marker/alarm
+// to be fired along with various data related to the event.
+//
+
+public void sendMarkerControlMessage(ViolationInfo pViolationInfo)
+{
+
+
+
+}//end of EthernetIOModule::sendMarkerControlMessage
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
