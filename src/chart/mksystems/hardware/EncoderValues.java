@@ -48,7 +48,9 @@ public class EncoderValues extends Object{
     public int encoderPosAtHead1UpSignal = 0;
     public int encoderPosAtHead2DownSignal = 0;
     public int encoderPosAtHead2UpSignal = 0;
-    
+    public int encoderPosAtHead3DownSignal = 0;
+    public int encoderPosAtHead3UpSignal = 0;
+
     public double photoEyeToPhotoEyeDistance = 0;
     public double encoder1InchesPerCount = 0;
     public double encoder2InchesPerCount = 0;
@@ -57,10 +59,11 @@ public class EncoderValues extends Object{
     
     public double photoEye1DistanceFrontOfHead1 = 0;
     public double photoEye1DistanceFrontOfHead2 = 0;
+    public double photoEye1DistanceFrontOfHead3 = 0;    
     
     public double photoEye2DistanceFrontOfHead1 = 0;
     public double photoEye2DistanceFrontOfHead2 = 0;
-
+    public double photoEye2DistanceFrontOfHead3 = 0;
     
 //-----------------------------------------------------------------------------
 // EncoderValues::EncoderValues (constructor)
@@ -101,7 +104,9 @@ public void setAllToMaxValue()
     encoderPosAtHead1UpSignal = Integer.MAX_VALUE;
     encoderPosAtHead2DownSignal = Integer.MAX_VALUE;
     encoderPosAtHead2UpSignal = Integer.MAX_VALUE;
-
+    encoderPosAtHead3DownSignal = Integer.MAX_VALUE;
+    encoderPosAtHead3UpSignal = Integer.MAX_VALUE;
+    
 }//end of EncoderValues::setAllToMaxValue
 //-----------------------------------------------------------------------------
 
@@ -268,7 +273,15 @@ private void writeEncoderValuesToOpenFile(BufferedWriter pOutFile)
     pOutFile.write("Encoder Position at Head 2 Up Signal=" 
                                                 + encoderPosAtHead2UpSignal);
     pOutFile.newLine();
+
+    pOutFile.write("Encoder Position at Head 3 Down Signal=" 
+                                                + encoderPosAtHead3DownSignal);
+    pOutFile.newLine();
     
+    pOutFile.write("Encoder Position at Head 3 Up Signal=" 
+                                                + encoderPosAtHead3UpSignal);
+    pOutFile.newLine();
+        
     pOutFile.write("End Stop Length=" + endStopLength);
     pOutFile.newLine();
     
@@ -395,6 +408,12 @@ public void readEncoderValuesFromOpenFile(BufferedReader pInFile)
     value = readNextValue(pInFile); if (value == null){return;}
     encoderPosAtHead2UpSignal = Integer.parseInt(value);
 
+    value = readNextValue(pInFile); if (value == null){return;}
+    encoderPosAtHead3DownSignal = Integer.parseInt(value);
+
+    value = readNextValue(pInFile); if (value == null){return;}
+    encoderPosAtHead3UpSignal = Integer.parseInt(value);
+        
     value = readNextValue(pInFile); if (value == null){return;}
     endStopLength = Double.parseDouble(value);
         

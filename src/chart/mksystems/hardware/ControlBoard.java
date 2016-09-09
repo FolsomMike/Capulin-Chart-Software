@@ -125,7 +125,7 @@ public class ControlBoard extends Board implements MessageLink,
     static byte NO_STATUS = 0;
 
     static int MONITOR_PACKET_SIZE = 25;
-    static int ALL_ENCODERS_PACKET_SIZE = 24;    
+    static int ALL_ENCODERS_PACKET_SIZE = 32;    
     static int RUNTIME_PACKET_SIZE = 2048;
 
     //Masks for the Control Board inputs
@@ -571,6 +571,14 @@ public int processAllEncoderValuesPacket()
                         allEncoderValuesBuf[x++], allEncoderValuesBuf[x++],
                         allEncoderValuesBuf[x++], allEncoderValuesBuf[x++]);
 
+    encoderValues.encoderPosAtHead3DownSignal = encoderValues.convertBytesToInt(
+                        allEncoderValuesBuf[x++], allEncoderValuesBuf[x++],
+                        allEncoderValuesBuf[x++], allEncoderValuesBuf[x++]);
+
+    encoderValues.encoderPosAtHead3UpSignal = encoderValues.convertBytesToInt(
+                        allEncoderValuesBuf[x++], allEncoderValuesBuf[x++],
+                        allEncoderValuesBuf[x++], allEncoderValuesBuf[x++]);
+        
     return(ALL_ENCODERS_PACKET_SIZE);
 
 }//end of ControlBoard::processAllEncoderValuesPacket
