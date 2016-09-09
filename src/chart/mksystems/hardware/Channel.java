@@ -57,7 +57,7 @@ public class Channel extends Object{
 
     public UTBoard utBoard;
 
-    public int channelIndex;
+    public int channelNum;
     public UTGate[] gates;
     public int numberOfGates;
 
@@ -110,6 +110,9 @@ public class Channel extends Object{
 
     int pulseChannel, pulseBank;
 
+    int headNum = -1;
+    public double distanceSensorToFrontEdgeOfHead = -1;
+    
     private String dataVersion = "1.0";
     private FileInputStream fileInputStream = null;
     private InputStreamReader inputStreamReader = null;
@@ -128,12 +131,12 @@ public class Channel extends Object{
 // remotes so that they will be managed in a threadsafe manner.
 //
 
-public Channel(IniFile pConfigFile, Settings pSettings, int pChannelIndex,
+public Channel(IniFile pConfigFile, Settings pSettings, int pChannelNum,
                                               SyncedVariableSet pSyncedVarMgr)
 {
 
     configFile = pConfigFile; settings = pSettings;
-    channelIndex = pChannelIndex;
+    channelNum = pChannelNum;
 
     //if a SyncedVariableSet manager is provided use it, if not then create one
 
@@ -2046,14 +2049,14 @@ private void configure(IniFile pConfigFile)
       pConfigFile.readDouble("Hardware", "nS per Data Point", 15.0);
     uSPerDataPoint = nSPerDataPoint / 1000;
 
-    String whichChannel = "Channel " + (channelIndex + 1);
+    String whichChannel = "Channel " + (channelNum + 1);
 
     title =
           pConfigFile.readString(
-                         whichChannel, "Title", "Channel " + (channelIndex+1));
+                         whichChannel, "Title", "Channel " + (channelNum+1));
 
     shortTitle = pConfigFile.readString(
-                        whichChannel, "Short Title", "Ch " + (channelIndex+1));
+                        whichChannel, "Short Title", "Ch " + (channelNum+1));
 
     detail = pConfigFile.readString(whichChannel, "Detail", title);
 
@@ -2067,6 +2070,11 @@ private void configure(IniFile pConfigFile)
 
     pulseBank = pConfigFile.readInt(whichChannel, "Pulse Bank", 1) - 1;
 
+    headNum = pConfigFile.readInt(whichChannel, "Head", 1);
+
+    distanceSensorToFrontEdgeOfHead = pConfigFile.readDouble(whichChannel,
+                              "Distance From Sensor to Front Edge of Head", 10);
+    
     enabled = pConfigFile.readBoolean(whichChannel, "Enabled", true);
 
     type = pConfigFile.readString(whichChannel, "Type", "Other");
@@ -2086,8 +2094,8 @@ private void configure(IniFile pConfigFile)
     freezeScopeWhenNotInFocus = pConfigFile.readBoolean(whichChannel, 
                                     "Freeze Scope When Not in Focus", true);
     
-    //read the configuration file and create/setup the gates
-    configureGates();
+    //read the configuration file and create/setup the UT gates
+    configureUTGates();
 
     //read the configuration file and create/setup the DAC gates
     configureDACGates();
@@ -2096,13 +2104,13 @@ private void configure(IniFile pConfigFile)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Channel::configureGates
+// Channel::configureUTGates
 //
 // Loads configuration settings from the configuration.ini file relating to
-// the gates and creates/sets them up.
+// the UT gates and creates/sets them up.
 //
 
-private void configureGates()
+private void configureUTGates()
 {
 
     //create an array of gates per the config file setting
@@ -2115,13 +2123,32 @@ private void configureGates()
 
         for (int i = 0; i < numberOfGates; i++) {
             gates[i] =
-                    new UTGate(configFile, channelIndex, i, syncedVarMgr);
-            gates[i].init();
+                    new UTGate(channelNum, i, syncedVarMgr);
+            gates[i].init(); 
+            gates[i].configure(configFile, headNum, channelNum,
+                                            calculateEncoderCountsToMarker());
         }
 
     }//if (numberOfGates > 0)
 
-}//end of Channel::configureGates
+}//end of Channel::configureUTGates
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::calculateEncoderCountsToMarker
+//
+// Calculates the distance from the sensor to the marker in encoder counts using
+// the distance in inches.
+//
+
+private int calculateEncoderCountsToMarker()
+{
+
+    // debug mks -- add code to calculate encoder counts
+    
+    return((int)distanceSensorToFrontEdgeOfHead);
+    
+}//end of Channel::calculateEncoderCountsToMarker
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -2143,7 +2170,7 @@ private void configureDACGates()
         dacGates = new DACGate[numberOfDACGates];
 
         for (int i = 0; i < numberOfDACGates; i++) {
-            dacGates[i] = new DACGate(configFile, channelIndex, i,
+            dacGates[i] = new DACGate(configFile, channelNum, i,
                                                     syncedVarMgr, scopeMax);
             dacGates[i].init();
         }
@@ -3562,7 +3589,7 @@ public void warmReset()
 public void loadCalFile(IniFile pCalFile)
 {
 
-    String section = "Channel " + (channelIndex + 1);
+    String section = "Channel " + (channelNum + 1);
 
     aScanDelay = pCalFile.readDouble(section, "Sample Delay", 0);
     aScanRange = pCalFile.readDouble(section, "Range", 53.0);
@@ -3617,7 +3644,7 @@ public void loadCalFile(IniFile pCalFile)
 public void saveCalFile(IniFile pCalFile)
 {
 
-    String section = "Channel " + (channelIndex + 1);
+    String section = "Channel " + (channelNum + 1);
 
     pCalFile.writeDouble(section, "Sample Delay", aScanDelay);
     pCalFile.writeDouble(section, "Range", aScanRange);
@@ -3670,7 +3697,7 @@ public void saveCalFileHumanReadable(BufferedWriter pOut) throws IOException
     pOut.write(" Delay | Range | Mode | Reject");
     pOut.newLine();
 
-    pOut.write(Settings.postPad(" " + (channelIndex + 1), 7));
+    pOut.write(Settings.postPad(" " + (channelNum + 1), 7));
 
     pOut.write(
         Settings.prePad(decimalFormats[2].format(softwareGain.getValue()), 12));

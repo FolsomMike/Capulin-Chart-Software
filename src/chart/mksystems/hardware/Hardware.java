@@ -49,7 +49,7 @@ public class Hardware extends Object implements TraceValueCalculator, Runnable,
     int opMode = STOPPED;
 
     ThreadSafeLogger logger;
-
+    
     public boolean startUTRabbitUpdater, startControlRabbitUpdater;
 
     //debug mks -- needs to be loaded from config file -- specifies if carriage
@@ -130,10 +130,26 @@ public Hardware(IniFile pConfigFile, Settings pSettings, JTextArea pLog)
 
     inspectCtrlVars = new InspectControlVars();
 
+}//end of Hardware::Hardware (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::init
+//
+// Initializes the object.  MUST be called by sub classes after instantiation.
+//
+
+public void init()
+{        
+
     //load configuration settings
     configure(configFile);
+    
+    createAnalogDriver(analogDriverName);
 
-}//end of Hardware::Hardware (constructor)
+    openPLCComLink();
+      
+}//end of Hardware::init
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -212,10 +228,6 @@ private void configure(IniFile pConfigFile)
                     "Hardware", "Manual Inspection Start/Stop Control", false);
 
     if (numberOfAnalogChannels > 100) {numberOfAnalogChannels = 100;}
-
-    createAnalogDriver(analogDriverName);
-
-    openPLCComLink();
 
 }//end of Hardware::configure
 //-----------------------------------------------------------------------------
@@ -1843,7 +1855,9 @@ public void startMarker(UTGate pGatePtr, int pWhichThreshold)
 // Hardware::endMarker
 //
 // For pulse mode, the flag which allows another marker pulse is enabled.
-// For continuous mode, the marker is turned off if it was on.
+//
+// Since the marker is fired as a pulse, there is no need to actually turn
+// it off.
 //
 
 public void endMarker(UTGate pGatePtr, int pWhichThreshold)
@@ -1852,6 +1866,25 @@ public void endMarker(UTGate pGatePtr, int pWhichThreshold)
     pGatePtr.thresholds[pWhichThreshold].okToMark = true;
 
 }//end of Hardware::endMarker
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::sendMarkerMessage
+//
+// Sends a marker control message to a remote device such as a PLC.
+//
+// Currently calls a PLCEthernetController object only, but in the future
+// different objects could be created depending on the need.
+//
+
+public void sendMarkerMessage(UTGate pGatePtr, int pWhichThreshold)
+{
+
+    if(plcComLink == null){ return; }
+    
+    plcComLink.sendMarkerControlMessage(pGatePtr.getViolationInfo());
+                
+}//end of Hardware::sendMarkerMessage
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

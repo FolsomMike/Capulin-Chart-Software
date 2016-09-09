@@ -42,13 +42,8 @@ public class UTGate extends BasicGate{
     // over the gate, 1 if data is flagged for going below the gate
     int triggerDirection;
 
-    //string loaded from config file specifying which markers are to be fired
-    //when a signal in the gate exceeds a threshold on the chart
-    String markersTriggeredS = null;
-    //byte parsed from markersTriggeredS which specifies which markers are
-    //fired...each bit controls a separate marker bit0:marker1,1:2,2:3, etc.
-    byte markersTriggered = 0;
-    
+    ViolationInfo violationInfo;
+        
     // Variable peakDirection = 0 if peak is up, 1 if peak is down.  If the peak
     // is up, the worst case values are considered to be the higher ones and
     // vice versa.
@@ -154,21 +149,16 @@ public class UTGate extends BasicGate{
 //-----------------------------------------------------------------------------
 // UTGate::UTGate (constructor)
 //
-// The parameter configFile is used to load configuration data.  The IniFile
-// should already be opened and ready to access.
-//
 // The constructing class should pass a pointer to a SyncedVariableSet for the
 // values in this class which can be changed by the user and are sent to the
 // remotes so that they will be managed in a threadsafe manner.
 //
 
-public UTGate(IniFile pConfigFile, int pChannelIndex,
-                            int pGateIndex, SyncedVariableSet pSyncedVarMgr)
+public UTGate(int pChannelIndex,int pGateIndex, SyncedVariableSet pSyncedVarMgr)
 {
 
     super(pSyncedVarMgr);
 
-    configFile = pConfigFile;
     channelIndex = pChannelIndex; gateIndex = pGateIndex;
 
 }//end of UTGate::UTGate (constructor)
@@ -190,8 +180,7 @@ public void init()
     sigProcTuning2 = new SyncedInteger(syncedVarMgr); sigProcTuning2.init();
     sigProcTuning3 = new SyncedInteger(syncedVarMgr); sigProcTuning3.init();
 
-    //read the configuration file and create/setup the charting/control elements
-    configure(configFile);
+    violationInfo = new ViolationInfo();
 
     //create list of process type which can be applied to the gates
     //WARNING: dont' make text entries into the list too long or it will widen
@@ -1235,9 +1224,13 @@ public void linkPlotters(int pChartGroup, int pChart, int pTrace,
 // Loads configuration settings from the configuration.ini file.
 // The various child objects are then created as specified by the config data.
 //
-//
+// The values pHeadNum, pChannelNum, and pEncoderCountsToMarker are passed in
+// by the owner object to be stored as additional configuration info.
+// 
 
-private void configure(IniFile pConfigFile)
+public void configure(IniFile pConfigFile, int pHeadNum, int pChannelNum,
+            int pEncoderCountsToMarker)
+        
 {
 
     String whichGate = "Channel " + (channelIndex+1) + " Gate " + (gateIndex+1);
@@ -1257,14 +1250,6 @@ private void configure(IniFile pConfigFile)
     modifyWall = pConfigFile.readBoolean(whichGate, "Modify Wall", false);
 
     triggerDirection = pConfigFile.readInt(whichGate, "Trigger Direction", 0);
-
-    markersTriggeredS = pConfigFile.readString(
-                                          whichGate, "Markers Triggered", "0");
-    
-    // parse string to set the bits in a byte to specify which markers are to
-    //be fired when the signal in the gate exceeds a chart threshold
-
-    markersTriggered = parseListToBits(markersTriggeredS);
     
     peakDirection = pConfigFile.readInt(whichGate, "Peak Direction", 0);
     setMaxMin((peakDirection == MAX));
@@ -1275,58 +1260,28 @@ private void configure(IniFile pConfigFile)
 
     trace = pConfigFile.readInt(whichGate, "Trace", 0) -1;
 
+    violationInfo.configure(pConfigFile, whichGate, pHeadNum,
+                                          pChannelNum, pEncoderCountsToMarker);
+            
+
 }//end of UTGate::configure
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTGate::parseListToBits
+// UTGate::getViolationInfo
 //
-// Parses the comma delimited list in string pText to set the bits in the
-// return byte.
-//
-// Input text format examples (up to 8 bits: 1-8):
-//
-//  0               (no bits set)
-//  1               (bit 1 set)
-//  1,2             (bits 1&2 set)
-//  1,2,3,4,5,6,7,8 (all bits set)
-//
-// Return byte format:
-//
-// bit 0: 1 if 1 listed in input text
-// bit 1: 1 if 2 listed in input text
-// ...
-// bit 7: 1 if 8 listed in input text
+// Returns various data useful when signals from this gate cause a violation
+// such as exceeding threshold or similar event.
 //
 
-private byte parseListToBits(String pText)
+public ViolationInfo getViolationInfo()
 {
+    
+    return(violationInfo);
 
-    byte result = 0;
-    
-    String[] split = pText.split(",");
-    
-    if(split.length > 0){
-     
-        for (String bitNumS : split) {
-            try {
-                
-                int bitNum = Integer.parseInt(bitNumS.trim());
-                
-                if (bitNum > 0){
-                    result += Math.pow(2, bitNum - 1);
-                }
-            }catch(NumberFormatException e){
-                //ignore value if invalid
-            }
-        }
-    }
-
-    return(result);
-    
-}//end of UTGate::parseListToBits
+}//end of UTGate::getViolationInfo
 //-----------------------------------------------------------------------------
-    
+
 //-----------------------------------------------------------------------------
 // UTGate::loadCalFile
 //

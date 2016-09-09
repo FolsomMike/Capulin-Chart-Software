@@ -31,7 +31,7 @@ import java.text.DecimalFormat;
 
 public class BasicGate extends Object{
 
-    IniFile configFile;
+    IniFile configFile; //remove this after DACGate changed so that owner object calls config method and passes configFile in
 
     DecimalFormat[] decimalFormats;
 

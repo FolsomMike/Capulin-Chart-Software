@@ -149,7 +149,7 @@ public void run() {
                        !calWindow.channels[calWindow.currentChannelIndex].
                                                     freezeScopeWhenNotInFocus){
                     hardware.requestAScan(calWindow.
-                         channels[calWindow.currentChannelIndex].channelIndex);
+                         channels[calWindow.currentChannelIndex].channelNum);
                     }
             }// if (calWindow.channels != null...
 
@@ -757,6 +757,7 @@ private void configure()
 
     //create the hardware interface first so the traces can link to it
     hardware = new Hardware(configFile, settings, logWindow.textArea);
+    hardware.init();
     //store a pointer in settings for use by other objects
     settings.hardware = hardware;
 
@@ -2308,7 +2309,7 @@ public void processMainTimerEvent()
         if (calWindow.channels[calWindow.currentChannelIndex] != null){
 
             aScan = hardware.getAScan(
-                calWindow.channels[calWindow.currentChannelIndex].channelIndex);
+                calWindow.channels[calWindow.currentChannelIndex].channelNum);
 
             if (aScan != null) {
                 calWindow.displayData(aScan.range,
