@@ -269,21 +269,6 @@ public void sendString(String pValue)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// EthernetIOModule::sendMarkerControlMessage
-//
-// Sends a string via the socket with information regarding a marker/alarm
-// to be fired along with various data related to the event.
-//
-
-public void sendMarkerControlMessage(ViolationInfo pViolationInfo)
-{
-
-
-
-}//end of EthernetIOModule::sendMarkerControlMessage
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // EthernetIOModule::getAndIncrementMessageCount
 //
 // Returns the current message count value as a string and increments it for

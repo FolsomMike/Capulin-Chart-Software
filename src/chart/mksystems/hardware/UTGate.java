@@ -81,6 +81,9 @@ public class UTGate extends BasicGate{
 
     public boolean modifyWall;
 
+    int headNum = -1;
+    public double distanceSensorToFrontEdgeOfHead = -1;
+    
     // Variables chart and trace specify where the data for this gate will be
     // displayed.  If trace is a negative number, the data will not be displayed
     // but a flag will be triggered and an event reported for a violation.
@@ -1213,6 +1216,8 @@ public void linkPlotters(int pChartGroup, int pChart, int pTrace,
 
         tracePtr = pTracePtr;
 
+        tracePtr.applyValuesFromGate(headNum, distanceSensorToFrontEdgeOfHead);
+
     }
 
 }//end of UTGate::linkPlotters
@@ -1223,16 +1228,17 @@ public void linkPlotters(int pChartGroup, int pChart, int pTrace,
 //
 // Loads configuration settings from the configuration.ini file.
 // The various child objects are then created as specified by the config data.
-//
-// The values pHeadNum, pChannelNum, and pEncoderCountsToMarker are passed in
-// by the owner object to be stored as additional configuration info.
 // 
 
 public void configure(IniFile pConfigFile, int pHeadNum, int pChannelNum,
-            int pEncoderCountsToMarker)
+      double pDistanceSensorToFrontEdgeOfHead, double pDistanceToMarkerInInches,
+                                                    int pEncoderCountsToMarker)
         
 {
 
+    headNum = pHeadNum; 
+    distanceSensorToFrontEdgeOfHead = pDistanceSensorToFrontEdgeOfHead;
+    
     String whichGate = "Channel " + (channelIndex+1) + " Gate " + (gateIndex+1);
 
     title =
@@ -1261,10 +1267,24 @@ public void configure(IniFile pConfigFile, int pHeadNum, int pChannelNum,
     trace = pConfigFile.readInt(whichGate, "Trace", 0) -1;
 
     violationInfo.configure(pConfigFile, whichGate, pHeadNum,
-                                          pChannelNum, pEncoderCountsToMarker);
-            
+                pChannelNum, pDistanceToMarkerInInches, pEncoderCountsToMarker);
 
 }//end of UTGate::configure
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTGate::getMarkerMessage
+//
+// Returns a string containing info related to marking anomalies detected in
+// the gate.
+//
+
+public String getMarkerMessage()
+{
+    
+    return(violationInfo.getMarkerMessage());
+
+}//end of UTGate::getMarkerMessage
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

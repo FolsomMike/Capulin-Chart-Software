@@ -31,7 +31,7 @@ public class ViolationInfo extends Object{
     String orientation = "";
     int headNum = -1;
     int channelNum = -1;
-    double distanceToMarker = -1;
+    double distanceToMarkerInInches = -1;
     int encoderCountsToMarker = -1;
     
     //string loaded from config file specifying which markers are to be fired
@@ -41,6 +41,8 @@ public class ViolationInfo extends Object{
 
     String markersTriggeredList = "";
     byte markersTriggered = 0;
+
+    String markerMessage = "";
     
 //-----------------------------------------------------------------------------
 // ViolationInfo::init
@@ -65,13 +67,14 @@ public void init()
 // 
 
 public void configure(IniFile pConfigFile, String pSection, int pHeadNum,
-                                int pChannelNum, int pEncoderCountsToMarker)
+  int pChannelNum, double pDistanceToMarkerInInches, int pEncoderCountsToMarker)
 {
 
     headNum = pHeadNum;
     channelNum = pChannelNum;
+    distanceToMarkerInInches = pDistanceToMarkerInInches;
     encoderCountsToMarker = pEncoderCountsToMarker;
-        
+    
     orientation = pConfigFile.readString(pSection, "Orientation", "???");
 
     markersTriggeredList = pConfigFile.readString(
@@ -81,10 +84,97 @@ public void configure(IniFile pConfigFile, String pSection, int pHeadNum,
     //be fired when the signal in the gate exceeds a chart threshold
 
     markersTriggered = parseListToBits(markersTriggeredList);
+
+    createMarkerMessage();
     
 }//end of ViolationInfo::configure
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ViolationInfo::createMarkerMessage
+//
+// Creates a string formatted for transmission to a remote device such as a PLC
+// which contains all information related to the marking of an anomaly.
+//
+// Creating the string in advance saves time over creating it each time it is
+// needed and all the values are unchanging.
+//
+
+public void createMarkerMessage()
+{        
+
+    markerMessage = "*" + postPad(orientation, 3, " ");
+            
+    markerMessage = markerMessage + "|" + prePad(""+headNum, 2, "0");
     
+    markerMessage = markerMessage + "|" + prePad(""+channelNum, 3, "0");
+ 
+    //convert distance to tenths of an inch
+    int tenths = (int) Math.round(distanceToMarkerInInches * 10);
+    
+    markerMessage = markerMessage + "|" + prePad(""+tenths, 4, "0");
+
+    markerMessage = markerMessage + "|" + 
+                                  prePad(""+encoderCountsToMarker, 5, "0");
+    
+    markerMessage = markerMessage + "|" + 
+                                  prePad(""+markersTriggered, 3, "0");
+
+}//end of ViolationInfo::createMarkerMessage
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ViolationInfo::getMarkerMessage
+//
+// Returns a string containing info related to marking anomalies.
+//
+
+public String getMarkerMessage()
+{
+    
+    return(markerMessage);
+
+}//end of ViolationInfo::getMarkerMessage
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ViolationInfo::prePad
+//
+// Pads pString to be at least pLength by prepending the required number of
+// characters specified by pPadChar.
+// 
+// Returns the padded string.
+//
+
+private String prePad(String pString, int pLength, String pPadChar)
+{
+        
+    while(pString.length() < pLength){ pString = pPadChar + pString; }
+    
+    return(pString);
+        
+}//end of ViolationInfo::prePad
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ViolationInfo::postPad
+//
+// Pads pString to be at least pLength by appending the required number of
+// characters specified by pPadChar.
+// 
+// Returns the padded string.
+//
+
+private String postPad(String pString, int pLength, String pPadChar)
+{
+        
+    while(pString.length() < pLength){ pString = pString + pPadChar; }
+    
+    return(pString);
+        
+}//end of ViolationInfo::postPad
+//-----------------------------------------------------------------------------
+
 //-----------------------------------------------------------------------------
 // ViolationInfo::parseListToBits
 //

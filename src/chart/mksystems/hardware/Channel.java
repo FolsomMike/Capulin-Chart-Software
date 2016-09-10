@@ -112,6 +112,10 @@ public class Channel extends Object{
 
     int headNum = -1;
     public double distanceSensorToFrontEdgeOfHead = -1;
+    int distanceAdjustmentForSensorToMarker = -1;
+    double distanceToMarkerInInches;
+    int encoderCountsToMarker;
+    
     
     private String dataVersion = "1.0";
     private FileInputStream fileInputStream = null;
@@ -2074,7 +2078,10 @@ private void configure(IniFile pConfigFile)
 
     distanceSensorToFrontEdgeOfHead = pConfigFile.readDouble(whichChannel,
                               "Distance From Sensor to Front Edge of Head", 10);
-    
+
+    distanceAdjustmentForSensorToMarker = pConfigFile.readInt(whichChannel,
+                              "Distance Adjustment for Sensor to Marker", 0);
+        
     enabled = pConfigFile.readBoolean(whichChannel, "Enabled", true);
 
     type = pConfigFile.readString(whichChannel, "Type", "Other");
@@ -2125,8 +2132,10 @@ private void configureUTGates()
             gates[i] =
                     new UTGate(channelNum, i, syncedVarMgr);
             gates[i].init(); 
-            gates[i].configure(configFile, headNum, channelNum,
-                                            calculateEncoderCountsToMarker());
+            calculateDistancesToMarker();
+            gates[i].configure(configFile, headNum, channelNum, 
+                     distanceSensorToFrontEdgeOfHead, distanceToMarkerInInches,
+                                                        encoderCountsToMarker);
         }
 
     }//if (numberOfGates > 0)
@@ -2135,20 +2144,22 @@ private void configureUTGates()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Channel::calculateEncoderCountsToMarker
+// Channel::calculateDistancesToMarker
 //
-// Calculates the distance from the sensor to the marker in encoder counts using
-// the distance in inches.
+// Calculates the distance from the sensor to the marker in inches and encoder
+// counts.
 //
 
-private int calculateEncoderCountsToMarker()
+private void calculateDistancesToMarker()
 {
 
-    // debug mks -- add code to calculate encoder counts
+    // debug mks -- currently, the adjustment value is used for the distance
+    // this allows the marker distance to be set independently of the
+    // linear location of the sensor to allow for marker spray delays
     
-    return((int)distanceSensorToFrontEdgeOfHead);
+    encoderCountsToMarker = distanceAdjustmentForSensorToMarker;
     
-}//end of Channel::calculateEncoderCountsToMarker
+}//end of Channel::calculateDistancesToMarker
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

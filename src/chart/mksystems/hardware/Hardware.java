@@ -369,7 +369,7 @@ void calculateTraceOffsetDelays()
                 int nTr = chartGroup.getStripChart(sc).getNumberOfPlotters();
                 for (int tr = 0; tr < nTr; tr++) {
                     plotterPtr = chartGroup.getStripChart(sc).getPlotter(tr);
-                    if ((plotterPtr != null) && (plotterPtr.head == 1)){
+                    if ((plotterPtr != null) && (plotterPtr.headNum == 1)){
                         plotterPtr.startFwdDelayDistance =
                                 hdwVs.endStopLength +
                                 hdwVs.photoEye1DistanceFrontOfHead1
@@ -380,7 +380,7 @@ void calculateTraceOffsetDelays()
                                 plotterPtr.distanceSensorToFrontEdgeOfHead;
                         
                     }//if ((tracePtr != null) && (tracePtr.head == 1))
-                    if ((plotterPtr != null) && (plotterPtr.head == 2)){
+                    if ((plotterPtr != null) && (plotterPtr.headNum == 2)){
                         plotterPtr.startFwdDelayDistance =
                                 hdwVs.endStopLength +
                                 hdwVs.photoEye1DistanceFrontOfHead2
@@ -1712,7 +1712,7 @@ void enableHeadTraceFlagging(int pHead, boolean pEnable)
                 int nTr = chartGroup.getStripChart(sc).getNumberOfPlotters();
                 for (int tr = 0; tr < nTr; tr++) {
                     plotterPtr = chartGroup.getStripChart(sc).getPlotter(tr);
-                    if ((plotterPtr != null) && (plotterPtr.head == pHead)){
+                    if ((plotterPtr != null) && (plotterPtr.headNum == pHead)){
                         
                         plotterPtr.flaggingEnabled = pEnable;
                         
@@ -1844,6 +1844,10 @@ public void startMarker(UTGate pGatePtr, int pWhichThreshold)
                                                 || markerMode == CONTINUOUS){
          //fire the alarm/marker output
         pulseAlarmMarker(pGatePtr.thresholds[pWhichThreshold].alarmChannel);
+        
+        //trigger alternate marker system
+        sendMarkerMessage(pGatePtr, pWhichThreshold);
+        
     }
 
     pGatePtr.thresholds[pWhichThreshold].okToMark = false;
@@ -1882,7 +1886,7 @@ public void sendMarkerMessage(UTGate pGatePtr, int pWhichThreshold)
 
     if(plcComLink == null){ return; }
     
-    plcComLink.sendMarkerControlMessage(pGatePtr.getViolationInfo());
+    plcComLink.sendString(pGatePtr.getMarkerMessage());
                 
 }//end of Hardware::sendMarkerMessage
 //-----------------------------------------------------------------------------
