@@ -109,6 +109,45 @@ public void init()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Trace::applyValuesFromGate
+//
+// Uses values from the connected gate instead of those specifically loaded
+// for the trace.
+//
+// If the trace values are default then the supplied values are used.
+//
+// If multiple gates are tied to the trace, the values from the last gate
+// will be used.
+//
+// When multiple gates are tied to a single trace, some values are loaded
+// specifically for the trace from the config file and all gates are considered
+// to have the same values such as head number and position.
+//
+// In cases where single gates are tied to one or more traces, those values are
+// set to -1 for the trace in the config file. In that case the associated
+// gate supplies the values from settings read for the gate from the config
+// file. This makes it simpler when a single channel is tied to multiple traces
+// as ajusting the values for that channel (and thus its gates) adjusts it
+// for all connected traces. An example is Wall channels which may have gates
+// tied to a thickness trace and a gate tied to a lamination trace. The gates
+// share the values read for the channel and pass them on to their attached
+// traces.
+//
+
+public void applyValuesFromGate(int pHeadNum,
+                                    double pDistanceSensorToFrontEdgeOfHead)
+{        
+        
+    if (headNum == -1){ headNum = pHeadNum; }
+    
+    if (distanceSensorToFrontEdgeOfHead == -1){
+        distanceSensorToFrontEdgeOfHead = pDistanceSensorToFrontEdgeOfHead;
+    }
+
+}//end of Trace::applyValuesFromGate
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Trace::configure
 //
 // Loads configuration settings from the configuration.ini file.
