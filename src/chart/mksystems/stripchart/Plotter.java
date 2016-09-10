@@ -63,7 +63,7 @@ public class Plotter extends Object{
     public String keyLabel;
     int keyXPosition, keyYPosition;
     public Rectangle2D keyBounds;
-    public int head;
+    public int headNum;
     public double distanceSensorToFrontEdgeOfHead;
     int pixelOffset;
     double pixelScaling;
@@ -163,7 +163,7 @@ void configure(IniFile pConfigFile)
 
     keyYPosition = pConfigFile.readInt(section, "Key Y Position", 23);
 
-    head = pConfigFile.readInt(section, "Head", 1);
+    headNum = pConfigFile.readInt(section, "Head", 1);
 
     distanceSensorToFrontEdgeOfHead = pConfigFile.readDouble(section,
                              "Distance From Sensor to Front Edge of Head", 0.0);
