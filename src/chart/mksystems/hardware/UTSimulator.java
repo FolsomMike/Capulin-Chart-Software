@@ -472,6 +472,14 @@ private int processDSPMessage()
         return (setDSPDACFlags(dspChip, dspCore));
     }
 
+    if ( dspMsgID == UTBoard.DSP_SET_FILTER_ABS_PREPROCESSING) {
+        return (setFilterABSPreProcessingMode(dspChip, dspCore));
+    }
+    
+    if ( dspMsgID == UTBoard.DSP_SET_FILTER) {
+        return (setDSPFilter(dspChip, dspCore));
+    }
+        
     //clear out the remaining bytes of any unhandled DSP message
     tossDSPMessageRemainder();
 
@@ -513,8 +521,7 @@ private int resetForNextRun()
     if (simulationType == RANDOM){
         prepareNextSimulationDataSetFromRandom();
     }
-    else
-    if (simulationType == FROM_FILE){
+    else if (simulationType == FROM_FILE){
         prepareNextSimulationDataSetFromFiles();
     }
     
@@ -1053,6 +1060,73 @@ int setDSPDACFlags(int pDSPChip, int pDSPCore)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// UTSimulator::setFilterABSPreProcessingMode
+//
+// Sends the on/off state for absolute-value processing of raw samples before
+// being digitally filtered:
+//
+// 0 = no processing performed
+// 1 = absolute value performed
+//
+// If no filter is active, this setting has no effect.
+//
+// Note: this setting is also sent with the filter data using the DSP_SET_FILTER
+// command, so setDSPFilter may actually never be called.
+//
+
+int setFilterABSPreProcessingMode(int pDSPChip, int pDSPCore)
+{
+
+    //read return and receive packet size
+    readBytes(2);
+
+    int returnPktSize = inBuffer[0];
+    int receivePktSize = inBuffer[1];
+
+    //read remainder of packet plus checksum byte
+    readBytes(receivePktSize + 1);
+    
+    //wip mks -- add code to store the data
+
+    sendACK(pDSPChip, pDSPCore);
+
+    //read packet + two size bytes + checksum byte
+    return(receivePktSize + 3);
+
+}//end of UTSimulator::setFilterABSPreProcessingMode
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTSimulator::setDSPFilter
+//
+// Stores the coefficients and related settings for the Digital Signal Filter.
+//
+// Currently, this simulation ignores the data and simply returns an ACK packet.
+//
+
+int setDSPFilter(int pDSPChip, int pDSPCore)
+{
+
+    //read return and receive packet size
+    readBytes(2);
+
+    int returnPktSize = inBuffer[0];
+    int receivePktSize = inBuffer[1];
+
+    //read remainder of packet plus checksum byte
+    readBytes(receivePktSize + 1);
+    
+    //wip mks -- add code to store the data
+
+    sendACK(pDSPChip, pDSPCore);
+
+    //read packet + two size bytes + checksum byte
+    return(receivePktSize + 3);
+
+}//end of UTSimulator::setDSPFilter
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // UTSimulator::setDSPAScanScale
 //
 // Sets AScan compression scale for the DSP core and the size of each batch
@@ -1382,10 +1456,10 @@ public void getPeakData4()
     //retrieve wall flags - specify which channel return wall data
     int wallFlags = getByteFromSocket();
 
-    channelPeakSets[0].isWallChannel = (wallFlags & 1) != 0 ? true : false;
-    channelPeakSets[1].isWallChannel = (wallFlags & 2) != 0 ? true : false;
-    channelPeakSets[2].isWallChannel = (wallFlags & 4) != 0 ? true : false;
-    channelPeakSets[3].isWallChannel = (wallFlags & 8) != 0 ? true : false;
+    channelPeakSets[0].isWallChannel = (wallFlags & 1) != 0;
+    channelPeakSets[1].isWallChannel = (wallFlags & 2) != 0;
+    channelPeakSets[2].isWallChannel = (wallFlags & 4) != 0;
+    channelPeakSets[3].isWallChannel = (wallFlags & 8) != 0;
 
     //send standard packet header
     //use 0 for DSP chip and core because the data is from multiple cores

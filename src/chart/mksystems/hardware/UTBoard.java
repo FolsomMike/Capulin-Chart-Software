@@ -3116,6 +3116,9 @@ void sendMode(int pChannel, int pMode)
 //
 // If no filter is active, this setting has no effect.
 //
+// Note: this setting is also sent with the filter data using the sendFilter
+// function, so sendFilterABSPreProcessingMode may actually never be called.
+//
 
 void sendFilterABSPreProcessingMode(int pChannel, int pMode)
 {
