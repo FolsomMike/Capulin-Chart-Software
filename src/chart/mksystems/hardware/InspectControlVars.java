@@ -47,6 +47,7 @@ public class InspectControlVars extends Object{
     public boolean onPipeFlag = false;
     public boolean head1Down = false;
     public boolean head2Down = false;
+    public boolean head3Down = false;    
     public boolean tdcFlag = false;
 
 }//end of class InspectControlVars

@@ -2200,11 +2200,18 @@ private void configureControlBoards()
         encoderValues.photoEye1DistanceFrontOfHead2 =
                                             hdwVs.photoEye1DistanceFrontOfHead2;
 
+        encoderValues.photoEye1DistanceFrontOfHead3 =
+                                            hdwVs.photoEye1DistanceFrontOfHead3;
+
         encoderValues.photoEye2DistanceFrontOfHead1 =
                                             hdwVs.photoEye2DistanceFrontOfHead1;
 
         encoderValues.photoEye2DistanceFrontOfHead2 =
                                             hdwVs.photoEye2DistanceFrontOfHead2;
+        
+        encoderValues.photoEye2DistanceFrontOfHead3 =
+                                            hdwVs.photoEye2DistanceFrontOfHead3;
+
     
     }
     
@@ -3166,6 +3173,9 @@ public void calculateMapOffsetDelays()
 {
 
     if(mapSourceBoards == null) { return; }
+
+    //debug mks shrink this code - use switch to set variables for hdwVs.photoEye*DistanceFrontOfHead*
+    // then use same code block using those variables
     
     for (MapSourceBoard mapSourceBoard : mapSourceBoards) {
         UTBoard utBoard = mapSourceBoard.utBoard;
@@ -3181,8 +3191,7 @@ public void calculateMapOffsetDelays()
                     utBoard.distanceMapSensorToFrontEdgeOfHead;
 
         }//if (utBoard != null && utBoard.headForMapDataSensor == 1)
-        else
-            if (utBoard != null && utBoard.headForMapDataSensor == 2){
+        else if (utBoard != null && utBoard.headForMapDataSensor == 2){
 
                 utBoard.startFwdDelayDistance = 
                         hdwVs.endStopLength + 
@@ -3193,7 +3202,20 @@ public void calculateMapOffsetDelays()
                         hdwVs.photoEye2DistanceFrontOfHead2
                         - utBoard.distanceMapSensorToFrontEdgeOfHead;
 
-            }//if (utBoard != null && utBoard.headForMapDataSensor == 2)
+        }//if (utBoard != null && utBoard.headForMapDataSensor == 2)
+        else if (utBoard != null && utBoard.headForMapDataSensor == 3){
+
+                utBoard.startFwdDelayDistance = 
+                        hdwVs.endStopLength + 
+                        hdwVs.photoEye1DistanceFrontOfHead3
+                        + utBoard.distanceMapSensorToFrontEdgeOfHead;
+
+                utBoard.startRevDelayDistance = 
+                        hdwVs.photoEye2DistanceFrontOfHead3
+                        - utBoard.distanceMapSensorToFrontEdgeOfHead;
+
+            }//if (utBoard != null && utBoard.headForMapDataSensor == 3)
+
     } //for (int i = 0; i < mapSourceBoards.length; i++)
 
 }//end of Capulin1::calculateMapOffsetDelays();

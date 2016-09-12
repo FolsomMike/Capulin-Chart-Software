@@ -75,14 +75,17 @@ public class Hardware extends Object implements TraceValueCalculator, Runnable,
 
     PLCEthernetController plcComLink = null;
     
-    int flaggingEnableDelay1, flaggingEnableDelay2 = 0;
+    int flaggingEnableDelay1 = 0;
+    int flaggingEnableDelay2 = 0; 
+    int flaggingEnableDelay3 = 0;
 
     InspectControlVars inspectCtrlVars;
 
     public static int NO_HEAD = 0;
     public static int HEAD_1 = 1;
     public static int HEAD_2 = 2;
-
+    public static int HEAD_3 = 3;
+    
     public static int ALL_RABBITS = 0;
     public static int UT_RABBITS = 1;
     public static int CONTROL_RABBITS = 2;
@@ -187,12 +190,18 @@ private void configure(IniFile pConfigFile)
     hdwVs.photoEye1DistanceFrontOfHead2 = pConfigFile.readDouble("Hardware",
                          "Photo Eye 1 Distance to Front Edge of Head 2", 32.0);
 
+    hdwVs.photoEye1DistanceFrontOfHead3 = pConfigFile.readDouble("Hardware",
+                         "Photo Eye 1 Distance to Front Edge of Head 3", 56.0);
+
     hdwVs.photoEye2DistanceFrontOfHead1 = pConfigFile.readDouble("Hardware",
                          "Photo Eye 2 Distance to Front Edge of Head 1", 46.0);
 
     hdwVs.photoEye2DistanceFrontOfHead2 = pConfigFile.readDouble("Hardware",
                          "Photo Eye 2 Distance to Front Edge of Head 2", 22.0);
 
+    hdwVs.photoEye2DistanceFrontOfHead3 = pConfigFile.readDouble("Hardware",
+                         "Photo Eye 2 Distance to Front Edge of Head 3", 56.0);
+        
     hdwVs.photoEyeToPhotoEyeDistance = pConfigFile.readDouble("Hardware",
                          "Distance Between Perpendicular Photo Eyes", 53.4375);
 
@@ -391,6 +400,16 @@ void calculateTraceOffsetDelays()
                                 plotterPtr.distanceSensorToFrontEdgeOfHead;
                         
                     }//if ((tracePtr != null) && (tracePtr.head == 2))
+                    if ((plotterPtr != null) && (plotterPtr.headNum == 3)){
+                        plotterPtr.startFwdDelayDistance =
+                                hdwVs.endStopLength +
+                                hdwVs.photoEye1DistanceFrontOfHead3
+                                + plotterPtr.distanceSensorToFrontEdgeOfHead;
+                        
+                        plotterPtr.startRevDelayDistance =
+                                hdwVs.photoEye2DistanceFrontOfHead3 -
+                                plotterPtr.distanceSensorToFrontEdgeOfHead;                        
+                    }//if ((tracePtr != null) && (tracePtr.head == 3))
                 } //for (int tr = 0; tr < nTr; tr++)
             } //for (int sc = 0; sc < nSC; sc++)
         } //for (int cg = 0; cg < chartGroups.length; cg++)
@@ -845,6 +864,7 @@ public void setMode(int pOpMode)
         //enable flagging always for timer driven mode
         hdwVs.head1Down = true; enableHeadTraceFlagging(1, true);
         hdwVs.head2Down = true; enableHeadTraceFlagging(2, true);
+        hdwVs.head3Down = true; enableHeadTraceFlagging(3, true);        
     }
         
     //handle SCAN mode
@@ -852,6 +872,7 @@ public void setMode(int pOpMode)
         //enable flagging always for scan mode
         hdwVs.head1Down = true; enableHeadTraceFlagging(1, true);
         hdwVs.head2Down = true; enableHeadTraceFlagging(2, true);
+        hdwVs.head3Down = true; enableHeadTraceFlagging(3, true);        
     }
 
 }//end of Hardware::setMode
@@ -1285,6 +1306,7 @@ boolean collectEncoderDataInspectMode()
             flaggingEnableDelay1 = 0; flaggingEnableDelay2 = 0;
             hdwVs.head1Down = false; enableHeadTraceFlagging(1, false);
             hdwVs.head2Down = false; enableHeadTraceFlagging(2, false);
+            hdwVs.head3Down = false; enableHeadTraceFlagging(3, false);
             }
         }
 
@@ -1306,7 +1328,8 @@ boolean collectEncoderDataInspectMode()
             flaggingEnableDelay1 = 0; flaggingEnableDelay2 = 0;
             hdwVs.head1Down = false; enableHeadTraceFlagging(1, false);
             hdwVs.head2Down = false; enableHeadTraceFlagging(2, false);
-
+            hdwVs.head3Down = false; enableHeadTraceFlagging(3, false);
+            
             //set the text description for the direction of inspection
             if (inspectCtrlVars.encoder2FwdDir == awayDirection) {
                 settings.inspectionDirectionDescription = settings.awayFromHome;
@@ -1327,6 +1350,7 @@ boolean collectEncoderDataInspectMode()
     if (manualInspectControl){
         inspectCtrlVars.head1Down = true;
         inspectCtrlVars.head2Down = true;
+        inspectCtrlVars.head3Down = true;
     }
 
     //if head 1 is up and goes down, enable flagging for all traces on head 1
@@ -1340,12 +1364,22 @@ boolean collectEncoderDataInspectMode()
     //a small distance delay is used to prevent flagging of the initial
     //transition; also enable track sync pulses from Control Board and saving
     //of map data; UT Boards already enabled to send map data
+    
+    //debug mks -- why is mapping hardcoded to head 2 here? Fix?
+    
     if (!hdwVs.head2Down && inspectCtrlVars.head2Down){
         hdwVs.head2Down = true; flaggingEnableDelay2 = 6;
         analogDriver.setTrackPulsesEnabledFlag(true);
         analogDriver.setDataBufferIsEnabled(true);
     }
 
+    //if head 3 is up and goes down, enable flagging for all traces on head 3
+    //a small distance delay is used to prevent flagging of the initial
+    //transition
+    if (!hdwVs.head3Down && inspectCtrlVars.head3Down){
+        hdwVs.head3Down = true; flaggingEnableDelay3 = 6;
+    }
+        
     //if head 1 is down and goes up, disable flagging for all traces on head 1
     if (hdwVs.head1Down && !inspectCtrlVars.head1Down){
         hdwVs.head1Down = false; enableHeadTraceFlagging(1, false);
@@ -1354,6 +1388,9 @@ boolean collectEncoderDataInspectMode()
 
     //if head 2 is down and goes up, disable flagging for all traces on head 2
     //disable saving to the map buffer and disable remote sending of map data
+    
+    //debug mks -- why is mapping hardcoded to head 2 here?
+    
     if (hdwVs.head2Down && !inspectCtrlVars.head2Down){
         hdwVs.head2Down = false; enableHeadTraceFlagging(2, false);
         recordStopPositionForHead = HEAD_2;
@@ -1361,6 +1398,12 @@ boolean collectEncoderDataInspectMode()
         analogDriver.enableWallMapPackets(false);
     }
 
+    //if head 3 is down and goes up, disable flagging for all traces on head 3
+    if (hdwVs.head3Down && !inspectCtrlVars.head3Down){
+        hdwVs.head3Down = false; enableHeadTraceFlagging(3, false);
+        recordStopPositionForHead = HEAD_3;
+    }
+        
     //watch for piece to exit head
     if (hdwVs.watchForOffPipe){
         if (!inspectCtrlVars.onPipeFlag){
@@ -1424,6 +1467,9 @@ boolean collectEncoderDataInspectMode()
 // If pRecordStopPositionForHead == HEAD_2, the current position is recorded
 // as the stop inspect location for sensors in head 2.
 //
+// If pRecordStopPositionForHead == HEAD_3, the current position is recorded
+// as the stop inspect location for sensors in head 3.
+//
 // If pRecordStopPositionForHead == NO_HEAD, no location is recorded.
 //
 // Note 1:
@@ -1463,6 +1509,9 @@ void moveEncoders(int pRecordStopPositionForHead)
     }
     else if (pRecordStopPositionForHead == HEAD_2){
         analogDriver.recordStopLocation(2, position);
+    }
+    else if (pRecordStopPositionForHead == HEAD_3){
+        analogDriver.recordStopLocation(3, position);
     }
 
     //calculate the number of pixels moved since the last check

@@ -529,13 +529,15 @@ private void calculateDistanceInspectedAndAvgHelix()
         headUpPosition = encoderValues.encoderPosAtHead1UpSignal;
         headDownPosition = encoderValues.encoderPosAtHead1DownSignal;
         
-    }else{
+    }else if (mapSourceBoards[0].utBoard.headForMapDataSensor == 2){
 
         headUpPosition = encoderValues.encoderPosAtHead2UpSignal;
         headDownPosition = encoderValues.encoderPosAtHead2DownSignal;
         
+    }else{
+        headUpPosition = encoderValues.encoderPosAtHead3UpSignal;
+        headDownPosition = encoderValues.encoderPosAtHead3DownSignal;        
     }
-    
     
     distanceInspected = 
         encoderValues.convertEncoder2CountsToInches(
@@ -905,11 +907,16 @@ private void calculateEndOfInspectionDistances()
         encoderPosAtHeadDownSignal = encoderValues.encoderPosAtHead1DownSignal;
         photoEye1DistanceFrontOfHead = 
                                     encoderValues.photoEye1DistanceFrontOfHead1;
-    }else{
+    }else if (mapSourceBoards[3].utBoard.headForMapDataSensor == 2){
         encoderPosAtHeadDownSignal = encoderValues.encoderPosAtHead2DownSignal;
         photoEye1DistanceFrontOfHead = 
                                     encoderValues.photoEye1DistanceFrontOfHead2;        
-    }
+    }else {
+        encoderPosAtHeadDownSignal = encoderValues.encoderPosAtHead3DownSignal;
+        photoEye1DistanceFrontOfHead = 
+                                    encoderValues.photoEye1DistanceFrontOfHead3;        
+    }    
+    
         
     //calculate position in inches of the leading mapping transducer from the
     //end of the tube when its head begins inspection for "Go Away From Home"
@@ -942,10 +949,14 @@ private void calculateEndOfInspectionDistances()
         encoderPosAtHeadUpSignal = encoderValues.encoderPosAtHead1UpSignal;
         photoEye1DistanceFrontOfHead = 
                                     encoderValues.photoEye1DistanceFrontOfHead1;
-    }else{
+    }else if (mapSourceBoards[0].utBoard.headForMapDataSensor == 2) {
         encoderPosAtHeadUpSignal = encoderValues.encoderPosAtHead2UpSignal;
         photoEye1DistanceFrontOfHead = 
                                     encoderValues.photoEye1DistanceFrontOfHead2;        
+    }else {
+        encoderPosAtHeadUpSignal = encoderValues.encoderPosAtHead3UpSignal;
+        photoEye1DistanceFrontOfHead = 
+                                    encoderValues.photoEye1DistanceFrontOfHead3;        
     }
     
     double awayXOffset =

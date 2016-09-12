@@ -53,6 +53,7 @@ public class ControlSimulator extends Simulator implements MessageLink{
     boolean onPipeFlag = false;
     boolean head1Down = false;
     boolean head2Down = false;
+    boolean head3Down = false;    
     boolean inspectMode = false;
     int simulationMode = MessageLink.STOP;
     int encoder1 = 0, encoder2 = 0;
@@ -406,6 +407,7 @@ void resetAll()
     onPipeFlag = false;
     head1Down = false;
     head2Down = false;
+    head3Down = false;
     encoder1 = 0; encoder2 = 0;
     inspectPacketCount = 0;
     delayBetweenPackets = DELAY_BETWEEN_INSPECT_PACKETS;
@@ -473,8 +475,7 @@ void simulateInspection()
     if (simulationMode == MessageLink.FORWARD){
         positionTrack++;
     }
-    else
-    if (simulationMode == MessageLink.REVERSE){
+    else if (simulationMode == MessageLink.REVERSE){
         positionTrack--;
     }
 
@@ -493,11 +494,17 @@ void simulateInspection()
     //after head 2 reaches position, give head 2 down signal
     if (triggerTrack >= 50) {head2Down = true;} else {head2Down = false;}
 
+    //after head 3 reaches position, give head 3 down signal
+    if (triggerTrack >= 75) {head3Down = true;} else {head3Down = false;}
+        
     //after head 1 reaches pick up position, give head 1 up signal
-    if (triggerTrack >= LENGTH_OF_JOINT_IN_PACKETS-100) {head1Down = false;}
+    if (triggerTrack >= LENGTH_OF_JOINT_IN_PACKETS-75) {head1Down = false;}
 
     //after head 2 reaches pick up position, give head 2 up signal
     if (triggerTrack >= LENGTH_OF_JOINT_IN_PACKETS-50) {head2Down = false;}
+
+    //after head 3 reaches pick up position, give head 3 up signal
+    if (triggerTrack >= LENGTH_OF_JOINT_IN_PACKETS-25) {head3Down = false;}
 
     //after photo eye reaches end of piece, turn off "on pipe" signal
     if (triggerTrack >= LENGTH_OF_JOINT_IN_PACKETS) {onPipeFlag = false;}
@@ -517,6 +524,8 @@ void simulateInspection()
         {controlFlags = (byte)(controlFlags | ControlBoard.HEAD1_DOWN_CTRL);}
     if (head2Down)
         {controlFlags = (byte)(controlFlags | ControlBoard.HEAD2_DOWN_CTRL);}
+    if (head3Down)
+        {controlFlags = (byte)(controlFlags | ControlBoard.HEAD3_DOWN_CTRL);}
 
     //move the encoders the forward or backward the amount expected by the host
     if (simulationMode == MessageLink.FORWARD){

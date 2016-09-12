@@ -65,6 +65,7 @@ public class ControlBoard extends Board implements MessageLink,
     boolean inspectControlFlag = false;
     boolean head1Down = false;
     boolean head2Down = false;
+    boolean head3Down = false;    
     boolean tdcFlag = false;
     boolean unused1Flag = false;
     boolean unused2Flag = false;
@@ -142,7 +143,7 @@ public class ControlBoard extends Board implements MessageLink,
     static byte ON_PIPE_CTRL =      (byte)0x01;
     static byte HEAD1_DOWN_CTRL =   (byte)0x02;
     static byte HEAD2_DOWN_CTRL =   (byte)0x04;
-    static byte UNUSED1_CTRL =      (byte)0x08;
+    static byte HEAD3_DOWN_CTRL =   (byte)0x08;
     static byte UNUSED2_CTRL =      (byte)0x10;
     static byte UNUSED3_CTRL =      (byte)0x20;
     static byte UNUSED4_CTRL =      (byte)0x40;
@@ -547,6 +548,8 @@ public int processAllEncoderValuesPacket()
 
     int x = 0;
 
+    //wip mks -- shrink this by calling function to convert bytes
+    
     encoderValues.encoderPosAtOnPipeSignal = encoderValues.convertBytesToInt(
                         allEncoderValuesBuf[x++], allEncoderValuesBuf[x++],
                         allEncoderValuesBuf[x++], allEncoderValuesBuf[x++]);
@@ -804,6 +807,12 @@ public int processInspectPacket()
             head2Down = false;
         }
 
+        if ((processControlFlags & HEAD3_DOWN_CTRL) != 0) {
+            head3Down = true;
+        } else {
+            head3Down = false;
+        }
+                
         //port E inputs are active low
 
         if ((controlPortE & TDC_MASK) == 0) {
@@ -1300,6 +1309,8 @@ public void getInspectControlVars(InspectControlVars pICVars)
 
     pICVars.head2Down = head2Down;
 
+    pICVars.head3Down = head3Down;
+    
     pICVars.encoder1 = encoder1; pICVars.prevEncoder1 = prevEncoder1;
 
     pICVars.encoder2 = encoder2; pICVars.prevEncoder2 = prevEncoder2;

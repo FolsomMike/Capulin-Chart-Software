@@ -65,7 +65,8 @@ public class HardwareVars extends Object{
     boolean watchForOffPipe = false;
     boolean head1Down = false;
     boolean head2Down = false;
-
+    boolean head3Down = false;
+    
     //used to track count from photo eye clear to end of piece
 
     //Usually, the end of pipe signal comes from a photo eye which reaches the
@@ -135,9 +136,11 @@ public class HardwareVars extends Object{
     
     double photoEye1DistanceFrontOfHead1;
     double photoEye1DistanceFrontOfHead2;
-
+    double photoEye1DistanceFrontOfHead3;
+    
     double photoEye2DistanceFrontOfHead1;
     double photoEye2DistanceFrontOfHead2;
+    double photoEye2DistanceFrontOfHead3;
 
 //-----------------------------------------------------------------------------
 // HardwareVars::convertEncoder1CountsToFeet
