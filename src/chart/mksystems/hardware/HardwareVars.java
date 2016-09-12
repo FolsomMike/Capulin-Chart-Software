@@ -121,7 +121,12 @@ public class HardwareVars extends Object{
 
     double encoder1InchesPerCount;
     double encoder2InchesPerCount;
-    
+
+    double photoEye1DistanceToEncoder1;
+    double photoEye1DistanceToEncoder2;
+    double photoEye1DistanceToMarker;
+    double distanceAfterEncoder2ToSwitchEncoders;
+
     //distance between the laser spots of the two perpendicular eyes used to
     //trigger on-pipe and off-pipe signals
     public double photoEyeToPhotoEyeDistance;

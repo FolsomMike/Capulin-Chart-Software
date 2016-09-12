@@ -75,9 +75,9 @@ public class Hardware extends Object implements TraceValueCalculator, Runnable,
 
     PLCEthernetController plcComLink = null;
     
-    int flaggingEnableDelay1 = 0;
-    int flaggingEnableDelay2 = 0; 
-    int flaggingEnableDelay3 = 0;
+    int flaggingEnableDelayHead1 = 0;
+    int flaggingEnableDelayHead2 = 0; 
+    int flaggingEnableDelayHead3 = 0;
 
     InspectControlVars inspectCtrlVars;
 
@@ -175,7 +175,7 @@ private void configure(IniFile pConfigFile)
 
     numberOfAnalogChannels = pConfigFile.readInt(
                                 "Hardware", "Number of Analog Channels", 50);
-
+    
     //load the nS per data point value and compute the uS per data point as well
     hdwVs.nSPerDataPoint =
                 pConfigFile.readDouble("Hardware", "nS per Data Point", 15.0);
@@ -200,8 +200,20 @@ private void configure(IniFile pConfigFile)
                          "Photo Eye 2 Distance to Front Edge of Head 2", 22.0);
 
     hdwVs.photoEye2DistanceFrontOfHead3 = pConfigFile.readDouble("Hardware",
-                         "Photo Eye 2 Distance to Front Edge of Head 3", 56.0);
+                         "Photo Eye 2 Distance to Front Edge of Head 3", 16.0);
         
+    hdwVs.photoEye1DistanceToEncoder1 = pConfigFile.readDouble("Hardware",
+                                "Photo Eye 1 To Encoder 1 Distance", 9.0);
+     
+    hdwVs.photoEye1DistanceToEncoder2 = pConfigFile.readDouble("Hardware",
+                                "Photo Eye 1 To Encoder 2 Distance", 42.0);
+
+    hdwVs.photoEye1DistanceToMarker = pConfigFile.readDouble("Hardware",
+                                        "Photo Eye 1 To Marker Distance", 33.0);
+
+    hdwVs.distanceAfterEncoder2ToSwitchEncoders = pConfigFile.readDouble(
+       "Hardware", "Distance after Encoder 2 to Switch Between Encoders", 12.0);
+    
     hdwVs.photoEyeToPhotoEyeDistance = pConfigFile.readDouble("Hardware",
                          "Distance Between Perpendicular Photo Eyes", 53.4375);
 
@@ -862,17 +874,17 @@ public void setMode(int pOpMode)
     //handle INSPECT_WITH_TIMER_TRACKING mode
     if (opMode == Hardware.INSPECT_WITH_TIMER_TRACKING){
         //enable flagging always for timer driven mode
-        hdwVs.head1Down = true; enableHeadTraceFlagging(1, true);
-        hdwVs.head2Down = true; enableHeadTraceFlagging(2, true);
-        hdwVs.head3Down = true; enableHeadTraceFlagging(3, true);        
+        hdwVs.head1Down = true; enableHeadTraceFlagging(HEAD_1, true);
+        hdwVs.head2Down = true; enableHeadTraceFlagging(HEAD_2, true);
+        hdwVs.head3Down = true; enableHeadTraceFlagging(HEAD_3, true);        
     }
         
     //handle SCAN mode
     if (opMode == Hardware.SCAN){
         //enable flagging always for scan mode
-        hdwVs.head1Down = true; enableHeadTraceFlagging(1, true);
-        hdwVs.head2Down = true; enableHeadTraceFlagging(2, true);
-        hdwVs.head3Down = true; enableHeadTraceFlagging(3, true);        
+        hdwVs.head1Down = true; enableHeadTraceFlagging(HEAD_1, true);
+        hdwVs.head2Down = true; enableHeadTraceFlagging(HEAD_2, true);
+        hdwVs.head3Down = true; enableHeadTraceFlagging(HEAD_3, true);        
     }
 
 }//end of Hardware::setMode
@@ -1303,10 +1315,11 @@ boolean collectEncoderDataInspectMode()
             hdwVs.waitForOffPipe = false;
             hdwVs.waitForOnPipe = true;
             //assume all heads up if off pipe and disable flagging
-            flaggingEnableDelay1 = 0; flaggingEnableDelay2 = 0;
-            hdwVs.head1Down = false; enableHeadTraceFlagging(1, false);
-            hdwVs.head2Down = false; enableHeadTraceFlagging(2, false);
-            hdwVs.head3Down = false; enableHeadTraceFlagging(3, false);
+            flaggingEnableDelayHead1 = 0; flaggingEnableDelayHead2 = 0;
+            flaggingEnableDelayHead3 = 0;
+            hdwVs.head1Down = false; enableHeadTraceFlagging(HEAD_1, false);
+            hdwVs.head2Down = false; enableHeadTraceFlagging(HEAD_1, false);
+            hdwVs.head3Down = false; enableHeadTraceFlagging(HEAD_1, false);
             }
         }
 
@@ -1325,10 +1338,11 @@ boolean collectEncoderDataInspectMode()
             inspectCtrlVars.encoder2FwdDir = inspectCtrlVars.encoder2Dir;
 
             //heads are up, flagging disabled upon start
-            flaggingEnableDelay1 = 0; flaggingEnableDelay2 = 0;
-            hdwVs.head1Down = false; enableHeadTraceFlagging(1, false);
-            hdwVs.head2Down = false; enableHeadTraceFlagging(2, false);
-            hdwVs.head3Down = false; enableHeadTraceFlagging(3, false);
+            flaggingEnableDelayHead1 = 0; flaggingEnableDelayHead2 = 0;
+            flaggingEnableDelayHead3 = 0;
+            hdwVs.head1Down = false; enableHeadTraceFlagging(HEAD_1, false);
+            hdwVs.head2Down = false; enableHeadTraceFlagging(HEAD_2, false);
+            hdwVs.head3Down = false; enableHeadTraceFlagging(HEAD_3, false);
             
             //set the text description for the direction of inspection
             if (inspectCtrlVars.encoder2FwdDir == awayDirection) {
@@ -1357,7 +1371,7 @@ boolean collectEncoderDataInspectMode()
     //a small distance delay is used to prevent flagging of the initial
     //transition
     if (!hdwVs.head1Down && inspectCtrlVars.head1Down){
-        hdwVs.head1Down = true; flaggingEnableDelay1 = 6;
+        hdwVs.head1Down = true; flaggingEnableDelayHead1 = 6;
     }
 
     //if head 2 is up and goes down, enable flagging for all traces on head 2
@@ -1368,7 +1382,7 @@ boolean collectEncoderDataInspectMode()
     //debug mks -- why is mapping hardcoded to head 2 here? Fix?
     
     if (!hdwVs.head2Down && inspectCtrlVars.head2Down){
-        hdwVs.head2Down = true; flaggingEnableDelay2 = 6;
+        hdwVs.head2Down = true; flaggingEnableDelayHead2 = 6;
         analogDriver.setTrackPulsesEnabledFlag(true);
         analogDriver.setDataBufferIsEnabled(true);
     }
@@ -1377,12 +1391,12 @@ boolean collectEncoderDataInspectMode()
     //a small distance delay is used to prevent flagging of the initial
     //transition
     if (!hdwVs.head3Down && inspectCtrlVars.head3Down){
-        hdwVs.head3Down = true; flaggingEnableDelay3 = 6;
+        hdwVs.head3Down = true; flaggingEnableDelayHead3 = 6;
     }
         
     //if head 1 is down and goes up, disable flagging for all traces on head 1
     if (hdwVs.head1Down && !inspectCtrlVars.head1Down){
-        hdwVs.head1Down = false; enableHeadTraceFlagging(1, false);
+        hdwVs.head1Down = false; enableHeadTraceFlagging(HEAD_1, false);
         recordStopPositionForHead = HEAD_1;
     }
 
@@ -1392,7 +1406,7 @@ boolean collectEncoderDataInspectMode()
     //debug mks -- why is mapping hardcoded to head 2 here?
     
     if (hdwVs.head2Down && !inspectCtrlVars.head2Down){
-        hdwVs.head2Down = false; enableHeadTraceFlagging(2, false);
+        hdwVs.head2Down = false; enableHeadTraceFlagging(HEAD_2, false);
         recordStopPositionForHead = HEAD_2;
         analogDriver.setDataBufferIsEnabled(false);
         analogDriver.enableWallMapPackets(false);
@@ -1400,7 +1414,7 @@ boolean collectEncoderDataInspectMode()
 
     //if head 3 is down and goes up, disable flagging for all traces on head 3
     if (hdwVs.head3Down && !inspectCtrlVars.head3Down){
-        hdwVs.head3Down = false; enableHeadTraceFlagging(3, false);
+        hdwVs.head3Down = false; enableHeadTraceFlagging(HEAD_3, false);
         recordStopPositionForHead = HEAD_3;
     }
         
@@ -1528,16 +1542,21 @@ void moveEncoders(int pRecordStopPositionForHead)
 
     prevPixPosition = pixPosition;
 
-    if (flaggingEnableDelay1 != 0 && --flaggingEnableDelay1 == 0){
-        enableHeadTraceFlagging(1, true);
-        analogDriver.recordStartLocation(1, position);
+    if (flaggingEnableDelayHead1 != 0 && --flaggingEnableDelayHead1 == 0){
+        enableHeadTraceFlagging(HEAD_1, true);
+        analogDriver.recordStartLocation(HEAD_1, position);
     }
 
-    if (flaggingEnableDelay2 != 0 && --flaggingEnableDelay2 == 0){
-        enableHeadTraceFlagging(2, true);
-        analogDriver.recordStartLocation(2, position);
+    if (flaggingEnableDelayHead2 != 0 && --flaggingEnableDelayHead2 == 0){
+        enableHeadTraceFlagging(HEAD_2, true);
+        analogDriver.recordStartLocation(HEAD_2, position);
     }
 
+    if (flaggingEnableDelayHead3 != 0 && --flaggingEnableDelayHead3 == 0){
+        enableHeadTraceFlagging(HEAD_3, true);
+        analogDriver.recordStartLocation(HEAD_3, position);
+    }
+        
     moveTraces(pixelsMoved, position);
 
     // advance all maps not linked to specific channels
