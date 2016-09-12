@@ -217,6 +217,7 @@ void updateString(Graphics2D pG2, String pNewValue, boolean pForceUpdate)
 
 class ChartCanvas extends JPanel {
 
+    int chartNum;
     Settings settings;
     Color backgroundColor;
     Color gridColor;
@@ -239,13 +240,14 @@ class ChartCanvas extends JPanel {
 // ChartCanvas::ChartCanvas (constructor)
 //
 
-public ChartCanvas(Settings pSettings, int pWidth, int pHeight,
+public ChartCanvas(int pChartNum, Settings pSettings, int pWidth, int pHeight,
                                Color pBackgroundColor, Color pGridColor,
                                int pNumberOfPlotters, Plotter[] pPlotters,
                                int pNumberOfThresholds, Threshold[] pThresholds,
                                MouseMotionListener pMouseMotionListener)
 {
 
+    chartNum = pChartNum;
     settings = pSettings;
     width = pWidth; height = pHeight;
 
@@ -446,7 +448,7 @@ public class StripChart extends JPanel implements MouseListener,
     JFrame mainFrame;
     IniFile configFile;
     int chartGroup;
-    int chartIndex;
+    int chartNum;
     TraceValueCalculator traceValueCalculator;
     Hardware hardware;
     Color borderColor;
@@ -510,13 +512,13 @@ public class StripChart extends JPanel implements MouseListener,
 //
 
 public StripChart(Settings pSettings, JFrame pMainFrame, IniFile pConfigFile,
-       int pChartGroup, int pChartIndex, Hardware pHardware,
+       int pChartGroup, int pChartNum, Hardware pHardware,
        ActionListener pActionListener, boolean pChartSizeEqualsBufferSize,
         TraceValueCalculator pTraceValueCalculator)
 {
 
     settings = pSettings; mainFrame = pMainFrame; configFile = pConfigFile;
-    chartIndex = pChartIndex; chartGroup = pChartGroup;
+    chartNum = pChartNum; chartGroup = pChartGroup;
     hardware = pHardware; actionListener = pActionListener;
     traceValueCalculator = pTraceValueCalculator;
     traceGlobals = new PlotterGlobals();
@@ -612,12 +614,12 @@ private void configure(IniFile pConfigFile)
 {
 
     String section = "Chart Group " + (chartGroup + 1)
-                                          + " Strip Chart " + (chartIndex + 1);
+                                          + " Strip Chart " + (chartNum + 1);
 
-    title = pConfigFile.readString(section, "Title", "Chart " + (chartIndex+1));
+    title = pConfigFile.readString(section, "Title", "Chart " + (chartNum+1));
 
     shortTitle = pConfigFile.readString(
-                               section, "Short Title", "Ch " + (chartIndex+1));
+                               section, "Short Title", "Ch " + (chartNum+1));
 
     borderColor = new Color(238,238,238);
 
@@ -698,7 +700,7 @@ private void configure(IniFile pConfigFile)
     //create a Canvas object to be placed on the main panel - the Canvas object
     //provides a panel and methods for drawing data - all the work is actually
     //done by the Canvas object
-    canvas = new ChartCanvas(settings, chartWidth, chartHeight,
+    canvas = new ChartCanvas(chartNum, settings, chartWidth, chartHeight,
                      backgroundColor, gridColor, numberOfPlotters, plotters,
                      numberOfThresholds, thresholds, this);
 
@@ -843,14 +845,14 @@ private Plotter createPlotter(int pIndex)
 
     if(typeOfPlotters == Plotter.TRACE){
 
-        plotter = new Trace(settings, configFile, chartGroup, this, chartIndex,
+        plotter = new Trace(settings, configFile, chartGroup, this, chartNum,
            pIndex, traceGlobals, backgroundColor, gridColor, gridXSpacing,
                                                         thresholds, hardware);
     }
 
     if(typeOfPlotters == Plotter.MAP_2D){
 
-        plotter = new Map2D(settings, configFile, chartGroup, this, chartIndex,
+        plotter = new Map2D(settings, configFile, chartGroup, this, chartNum,
            pIndex, traceGlobals, backgroundColor, gridColor, gridXSpacing,
                                                         thresholds, hardware);
 
@@ -890,7 +892,7 @@ private void configureThresholds(IniFile pConfigFile)
 
         for (int i = 0; i < numberOfThresholds; i++) {
             thresholds[i] = new Threshold(settings, configFile, chartGroup,
-                                                                chartIndex, i);
+                                                                chartNum, i);
         }
 
     }//if (numberOfThresholds > 0)
@@ -1205,7 +1207,7 @@ public void saveSegment(BufferedWriter pOut) throws IOException
 {
 
     pOut.write("[Chart]"); pOut.newLine();
-    pOut.write("Chart Index=" + chartIndex); pOut.newLine();
+    pOut.write("Chart Index=" + chartNum); pOut.newLine();
     pOut.write("Chart Title=" + title); pOut.newLine();
     pOut.write("Chart Short Title=" + shortTitle); pOut.newLine();
     pOut.newLine();
@@ -1328,7 +1330,7 @@ private String processStripChartEntries(BufferedReader pIn, String pLastLine)
     if (!success) {
         throw new IOException(
             "The file could not be read - section not found for Chart Group "
-                                       + chartGroup + " Chart " + chartIndex);
+                                       + chartGroup + " Chart " + chartNum);
     }
 
     //set defaults
@@ -1379,16 +1381,16 @@ private String processStripChartEntries(BufferedReader pIn, String pLastLine)
     if (!success) {
         throw new IOException(
         "The file could not be read - missing end of section for Chart Group "
-                                         + chartGroup + " Chart " + chartIndex);
+                                         + chartGroup + " Chart " + chartNum);
     }
 
     //if the index number in the file does not match the index number for this
     //strip chart, abort the file read
 
-    if (chartIndexRead != chartIndex) {
+    if (chartIndexRead != chartNum) {
         throw new IOException(
             "The file could not be read - section not found for Chart Group "
-                                        + chartGroup + " Chart " + chartIndex);
+                                        + chartGroup + " Chart " + chartNum);
     }
 
     return(line); //should be "[xxxx]" tag on success, unknown value if not
@@ -1558,7 +1560,7 @@ public void loadCalFile(IniFile pCalFile)
 {
 
     String section = "Chart Group " + (chartGroup + 1)
-                                         + " Strip Chart " + (chartIndex + 1);
+                                         + " Strip Chart " + (chartNum + 1);
 
     // a title is loaded from the configuration file but this is replaced when
     // the job file is loaded - the user can modify the title inside the
@@ -1603,7 +1605,7 @@ public void saveCalFile(IniFile pCalFile)
 {
 
     String section = "Chart Group " + (chartGroup + 1)
-                                         + " Strip Chart " + (chartIndex + 1);
+                                         + " Strip Chart " + (chartNum + 1);
 
 
     // a title is loaded from the configuration file but this is replaced when
@@ -2033,7 +2035,7 @@ public void mouseClicked(MouseEvent e)
                 // trigger event to open the calibration window
                 actionListener.actionPerformed(new ActionEvent(this,
                                          ActionEvent.ACTION_PERFORMED,
-                    "Open Calibration Window ~" + chartGroup + "~" + chartIndex));
+                    "Open Calibration Window ~" + chartGroup + "~" + chartNum));
                 break;
             }
         }//for (int i = 0;...
