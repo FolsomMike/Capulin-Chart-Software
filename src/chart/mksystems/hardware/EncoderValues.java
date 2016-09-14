@@ -18,6 +18,7 @@ package chart.mksystems.hardware;
 
 //-----------------------------------------------------------------------------
 
+import chart.mksystems.inifile.IniFile;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileInputStream;
@@ -55,6 +56,12 @@ public class EncoderValues extends Object{
     public double encoder1InchesPerCount = 0;
     public double encoder2InchesPerCount = 0;
 
+    //length of the end stop at the "toward" end of the unit
+    //if the away laser triggers on the start of this instead of the start of
+    //the tube, specify the length in the config file so it can be accounted
+    //for; if the away laser ignores the end stop and starts at the end of the
+    //tube, set this value to 0.0 in the config file
+        
     public double endStopLength = 0;
     
     public double photoEye1DistanceFrontOfHead1 = 0;
@@ -65,6 +72,11 @@ public class EncoderValues extends Object{
     public double photoEye2DistanceFrontOfHead2 = 0;
     public double photoEye2DistanceFrontOfHead3 = 0;
     
+    double photoEye1DistanceToEncoder1;
+    double photoEye1DistanceToEncoder2;
+    double photoEye1DistanceToMarker;
+    double distanceAfterEncoder2ToSwitchEncoders;
+        
 //-----------------------------------------------------------------------------
 // EncoderValues::EncoderValues (constructor)
 //
@@ -189,6 +201,21 @@ public double convertEncoder2CountsToInches(int pCounts)
     return(pCounts * encoder2InchesPerCount);
     
 }//end of EncoderValues::convertEncoder2CountsToInches
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// EncoderValues::setEncodersInchesPerCount
+//
+// Sets the inches per count value for both encoders.
+//
+
+public void setEncodersInchesPerCount(double pEncoder1, double pEncoder2)
+{
+
+    encoder1InchesPerCount = pEncoder1;
+    encoder2InchesPerCount = pEncoder2;
+
+}//end of EncoderValues::setEncodersInchesPerCount
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -427,6 +454,67 @@ public void readEncoderValuesFromOpenFile(BufferedReader pInFile)
     encoder2InchesPerCount = Double.parseDouble(value);            
             
 }//end of EncoderValues::readEncoderValuesFromOpenFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// EncoderValues::configure
+//
+// Loads configuration settings from the configuration.ini file.
+//
+// Only configuration data for this class are loaded here.  Each
+// child object should be allowed to load its own data.
+//
+
+public void configure(IniFile pConfigFile)
+{
+    
+    endStopLength = pConfigFile.readDouble("Hardware", "End Stop Length", 0.0);
+        
+    photoEye1DistanceFrontOfHead1 = pConfigFile.readDouble("Hardware",
+                          "Photo Eye 1 Distance to Front Edge of Head 1", 8.0);
+
+    photoEye1DistanceFrontOfHead2 = pConfigFile.readDouble("Hardware",
+                         "Photo Eye 1 Distance to Front Edge of Head 2", 32.0);
+
+    photoEye1DistanceFrontOfHead3 = pConfigFile.readDouble("Hardware",
+                         "Photo Eye 1 Distance to Front Edge of Head 3", 56.0);
+
+    photoEye2DistanceFrontOfHead1 = pConfigFile.readDouble("Hardware",
+                         "Photo Eye 2 Distance to Front Edge of Head 1", 46.0);
+
+    photoEye2DistanceFrontOfHead2 = pConfigFile.readDouble("Hardware",
+                         "Photo Eye 2 Distance to Front Edge of Head 2", 22.0);
+
+    photoEye2DistanceFrontOfHead3 = pConfigFile.readDouble("Hardware",
+                         "Photo Eye 2 Distance to Front Edge of Head 3", 16.0);
+        
+    photoEye1DistanceToEncoder1 = pConfigFile.readDouble("Hardware",
+                                "Photo Eye 1 To Encoder 1 Distance", 9.0);
+     
+    photoEye1DistanceToEncoder2 = pConfigFile.readDouble("Hardware",
+                                "Photo Eye 1 To Encoder 2 Distance", 42.0);
+
+    photoEye1DistanceToMarker = pConfigFile.readDouble("Hardware",
+                                        "Photo Eye 1 To Marker Distance", 33.0);
+
+    distanceAfterEncoder2ToSwitchEncoders = pConfigFile.readDouble(
+       "Hardware", "Distance after Encoder 2 to Switch Between Encoders", 12.0);
+    
+    photoEyeToPhotoEyeDistance = pConfigFile.readDouble(
+            "Hardware", "Distance Between Perpendicular Photo Eyes", 53.4375);
+
+    //the control board sends packets every so many counts and is susceptible to
+    //cumulative round off error, but the values below can be tweaked to give
+    //accurate results over the length of the piece -- the packet send trigger
+    //counts are often the same as the values below
+
+    encoder1InchesPerCount =
+        pConfigFile.readDouble("Hardware", "Encoder 1 Inches Per Count", 0.003);
+
+    encoder2InchesPerCount =
+        pConfigFile.readDouble("Hardware", "Encoder 2 Inches Per Count", 0.003);
+
+}//end of EncoderValues::configure
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

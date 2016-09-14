@@ -126,7 +126,8 @@ public class Hardware extends Object implements TraceValueCalculator, Runnable,
 public Hardware(IniFile pConfigFile, Settings pSettings, JTextArea pLog)
 {
 
-    hdwVs = new HardwareVars(); configFile = pConfigFile; log = pLog;
+    hdwVs = new HardwareVars(); hdwVs.init();
+    configFile = pConfigFile; log = pLog;
     settings = pSettings;
 
     logger = new ThreadSafeLogger(pLog);
@@ -175,48 +176,9 @@ private void configure(IniFile pConfigFile)
 
     numberOfAnalogChannels = pConfigFile.readInt(
                                 "Hardware", "Number of Analog Channels", 50);
-    
-    //load the nS per data point value and compute the uS per data point as well
-    hdwVs.nSPerDataPoint =
-                pConfigFile.readDouble("Hardware", "nS per Data Point", 15.0);
-    hdwVs.uSPerDataPoint = hdwVs.nSPerDataPoint / 1000;
 
-    hdwVs.endStopLength = pConfigFile.readDouble("Hardware",
-                                                        "End Stop Length", 0.0);
+    if (numberOfAnalogChannels > 100) {numberOfAnalogChannels = 100;}
         
-    hdwVs.photoEye1DistanceFrontOfHead1 = pConfigFile.readDouble("Hardware",
-                          "Photo Eye 1 Distance to Front Edge of Head 1", 8.0);
-
-    hdwVs.photoEye1DistanceFrontOfHead2 = pConfigFile.readDouble("Hardware",
-                         "Photo Eye 1 Distance to Front Edge of Head 2", 32.0);
-
-    hdwVs.photoEye1DistanceFrontOfHead3 = pConfigFile.readDouble("Hardware",
-                         "Photo Eye 1 Distance to Front Edge of Head 3", 56.0);
-
-    hdwVs.photoEye2DistanceFrontOfHead1 = pConfigFile.readDouble("Hardware",
-                         "Photo Eye 2 Distance to Front Edge of Head 1", 46.0);
-
-    hdwVs.photoEye2DistanceFrontOfHead2 = pConfigFile.readDouble("Hardware",
-                         "Photo Eye 2 Distance to Front Edge of Head 2", 22.0);
-
-    hdwVs.photoEye2DistanceFrontOfHead3 = pConfigFile.readDouble("Hardware",
-                         "Photo Eye 2 Distance to Front Edge of Head 3", 16.0);
-        
-    hdwVs.photoEye1DistanceToEncoder1 = pConfigFile.readDouble("Hardware",
-                                "Photo Eye 1 To Encoder 1 Distance", 9.0);
-     
-    hdwVs.photoEye1DistanceToEncoder2 = pConfigFile.readDouble("Hardware",
-                                "Photo Eye 1 To Encoder 2 Distance", 42.0);
-
-    hdwVs.photoEye1DistanceToMarker = pConfigFile.readDouble("Hardware",
-                                        "Photo Eye 1 To Marker Distance", 33.0);
-
-    hdwVs.distanceAfterEncoder2ToSwitchEncoders = pConfigFile.readDouble(
-       "Hardware", "Distance after Encoder 2 to Switch Between Encoders", 12.0);
-    
-    hdwVs.photoEyeToPhotoEyeDistance = pConfigFile.readDouble("Hardware",
-                         "Distance Between Perpendicular Photo Eyes", 53.4375);
-
     settings.awayFromHome =
         pConfigFile.readString(
             "Hardware",
@@ -229,27 +191,11 @@ private void configure(IniFile pConfigFile)
             "Description for inspecting in the direction leading toward the"
             + " operator's compartment", "Toward Home");
 
-    //the control board sends packets every so many counts and is susceptible to
-    //cumulative round off error, but the values below can be tweaked to give
-    //accurate results over the length of the piece -- the packet send trigger
-    //counts are often the same as the values below
-
-    hdwVs.encoder1InchesPerCount =
-        pConfigFile.readDouble("Hardware", "Encoder 1 Inches Per Count", 0.003);
-
-    hdwVs.encoder2InchesPerCount =
-        pConfigFile.readDouble("Hardware", "Encoder 2 Inches Per Count", 0.003);
-
-    hdwVs.pixelsPerInch =
-                    pConfigFile.readDouble("Hardware", "Pixels per Inch", 1.0);
-
-    hdwVs.decimalFeetPerPixel = 1/(hdwVs.pixelsPerInch * 12);
-
     manualInspectControl = pConfigFile.readBoolean(
                     "Hardware", "Manual Inspection Start/Stop Control", false);
 
-    if (numberOfAnalogChannels > 100) {numberOfAnalogChannels = 100;}
-
+    hdwVs.configure(pConfigFile);
+    
 }//end of Hardware::configure
 //-----------------------------------------------------------------------------
 
@@ -392,35 +338,35 @@ void calculateTraceOffsetDelays()
                     plotterPtr = chartGroup.getStripChart(sc).getPlotter(tr);
                     if ((plotterPtr != null) && (plotterPtr.headNum == 1)){
                         plotterPtr.startFwdDelayDistance =
-                                hdwVs.endStopLength +
-                                hdwVs.photoEye1DistanceFrontOfHead1
-                                + plotterPtr.distanceSensorToFrontEdgeOfHead;
+                            hdwVs.encoderValues.endStopLength +
+                            hdwVs.encoderValues.photoEye1DistanceFrontOfHead1
+                            + plotterPtr.distanceSensorToFrontEdgeOfHead;
                         
                         plotterPtr.startRevDelayDistance =
-                                hdwVs.photoEye2DistanceFrontOfHead1 -
-                                plotterPtr.distanceSensorToFrontEdgeOfHead;
+                            hdwVs.encoderValues.photoEye2DistanceFrontOfHead1 -
+                            plotterPtr.distanceSensorToFrontEdgeOfHead;
                         
                     }//if ((tracePtr != null) && (tracePtr.head == 1))
                     if ((plotterPtr != null) && (plotterPtr.headNum == 2)){
                         plotterPtr.startFwdDelayDistance =
-                                hdwVs.endStopLength +
-                                hdwVs.photoEye1DistanceFrontOfHead2
-                                + plotterPtr.distanceSensorToFrontEdgeOfHead;
-                        
+                            hdwVs.encoderValues.endStopLength +
+                            hdwVs.encoderValues.photoEye1DistanceFrontOfHead2
+                            + plotterPtr.distanceSensorToFrontEdgeOfHead;
+
                         plotterPtr.startRevDelayDistance =
-                                hdwVs.photoEye2DistanceFrontOfHead2 -
-                                plotterPtr.distanceSensorToFrontEdgeOfHead;
+                            hdwVs.encoderValues.photoEye2DistanceFrontOfHead2 -
+                            plotterPtr.distanceSensorToFrontEdgeOfHead;
                         
                     }//if ((tracePtr != null) && (tracePtr.head == 2))
                     if ((plotterPtr != null) && (plotterPtr.headNum == 3)){
                         plotterPtr.startFwdDelayDistance =
-                                hdwVs.endStopLength +
-                                hdwVs.photoEye1DistanceFrontOfHead3
-                                + plotterPtr.distanceSensorToFrontEdgeOfHead;
+                            hdwVs.encoderValues.endStopLength +
+                            hdwVs.encoderValues.photoEye1DistanceFrontOfHead3
+                            + plotterPtr.distanceSensorToFrontEdgeOfHead;
                         
                         plotterPtr.startRevDelayDistance =
-                                hdwVs.photoEye2DistanceFrontOfHead3 -
-                                plotterPtr.distanceSensorToFrontEdgeOfHead;                        
+                            hdwVs.encoderValues.photoEye2DistanceFrontOfHead3 -
+                            plotterPtr.distanceSensorToFrontEdgeOfHead;                        
                     }//if ((tracePtr != null) && (tracePtr.head == 3))
                 } //for (int tr = 0; tr < nTr; tr++)
             } //for (int sc = 0; sc < nSC; sc++)
@@ -1448,7 +1394,8 @@ boolean collectEncoderDataInspectMode()
             //end of the tube
 
             hdwVs.measuredLength = hdwVs.measuredLength
-                    - hdwVs.photoEyeToPhotoEyeDistance - hdwVs.endStopLength;
+                - hdwVs.encoderValues.photoEyeToPhotoEyeDistance
+                    - hdwVs.encoderValues.endStopLength;
 
             hdwVs.measuredLength /= 12; //convert to decimal feet
 
@@ -2157,12 +2104,12 @@ public void doTasks()
     analogDriver.doTasks();
 
     //debug mks
-    
+    /*
     if(plcComLink != null && timerCount++ > 3000){
         timerCount = 0;
         plcComLink.sendTestMessages();        
     }
-    
+    */
     //debug mks
     
 }//end of Hardware::doTasks
@@ -2305,6 +2252,20 @@ public double getLinearDecimalFeetPerPixel()
     return(hdwVs.decimalFeetPerPixel);
 
 }//end of Hardware::getLinearDecimalFeetPerPixel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::setEncodersInchesPerCount
+//
+// Sets the inches per count value for both encoders.
+//
+
+public void setEncodersInchesPerCount(double pEncoder1, double pEncoder2)
+{
+
+    hdwVs.encoderValues.setEncodersInchesPerCount(pEncoder1, pEncoder2);
+
+}//end of Hardware::setEncodersInchesPerCount
 //-----------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------

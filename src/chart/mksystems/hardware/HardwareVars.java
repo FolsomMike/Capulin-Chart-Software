@@ -18,6 +18,7 @@
 
 package chart.mksystems.hardware;
 
+import chart.mksystems.inifile.IniFile;
 import chart.mksystems.stripchart.ChartGroup;
 import chart.mksystems.stripchart.Plotter;
 import chart.mksystems.stripchart.StripChart;
@@ -34,6 +35,8 @@ public class HardwareVars extends Object{
     int nextIndex;
     PlotterHdwVars hdwVs;
     Threshold[] thresholds;
+    
+    EncoderValues encoderValues;
 
     UTGate gatePtr;
 
@@ -119,34 +122,20 @@ public class HardwareVars extends Object{
     public int wallMaxModifier;
     public int wallMinModifier =  Integer.MIN_VALUE;
 
-    double encoder1InchesPerCount;
-    double encoder2InchesPerCount;
+//-----------------------------------------------------------------------------
+// EncoderValues::init
+//
+// Initializes the object.  MUST be called by sub classes after instantiation.
+//
 
-    double photoEye1DistanceToEncoder1;
-    double photoEye1DistanceToEncoder2;
-    double photoEye1DistanceToMarker;
-    double distanceAfterEncoder2ToSwitchEncoders;
+public void init()
+{
 
-    //distance between the laser spots of the two perpendicular eyes used to
-    //trigger on-pipe and off-pipe signals
-    public double photoEyeToPhotoEyeDistance;
+    encoderValues = new EncoderValues(); encoderValues.init();
 
-    //length of the end stop at the "toward" end of the unit
-    //if the away laser triggers on the start of this instead of the start of
-    //the tube, specify the length in the config file so it can be accounted
-    //for; if the away laser ignores the end stop and starts at the end of the
-    //tube, set this value to 0.0 in the config file
+}//end of EncoderValues::init
+//-----------------------------------------------------------------------------
     
-    double endStopLength;
-    
-    double photoEye1DistanceFrontOfHead1;
-    double photoEye1DistanceFrontOfHead2;
-    double photoEye1DistanceFrontOfHead3;
-    
-    double photoEye2DistanceFrontOfHead1;
-    double photoEye2DistanceFrontOfHead2;
-    double photoEye2DistanceFrontOfHead3;
-
 //-----------------------------------------------------------------------------
 // HardwareVars::convertEncoder1CountsToFeet
 //
@@ -157,7 +146,7 @@ public class HardwareVars extends Object{
 public double convertEncoder1CountsToFeet(int pCounts)
 {
     
-    return(pCounts * encoder1InchesPerCount / 12);
+    return(pCounts * encoderValues.encoder1InchesPerCount / 12);
     
 }//end of HardwareVars::convertEncoder1CountsToFeet
 //-----------------------------------------------------------------------------
@@ -172,7 +161,7 @@ public double convertEncoder1CountsToFeet(int pCounts)
 public double convertEncoder1CountsToInches(int pCounts)
 {
     
-    return(pCounts * encoder1InchesPerCount);
+    return(pCounts * encoderValues.encoder1InchesPerCount);
     
 }//end of HardwareVars::convertEncoder1CountsToInches
 //-----------------------------------------------------------------------------
@@ -187,7 +176,7 @@ public double convertEncoder1CountsToInches(int pCounts)
 public double convertEncoder2CountsToFeet(int pCounts)
 {
     
-    return(pCounts * encoder2InchesPerCount / 12);
+    return(pCounts * encoderValues.encoder2InchesPerCount / 12);
     
 }//end of HardwareVars::convertEncoder2CountsToFeet
 //-----------------------------------------------------------------------------
@@ -202,11 +191,38 @@ public double convertEncoder2CountsToFeet(int pCounts)
 public double convertEncoder2CountsToInches(int pCounts)
 {
     
-    return(pCounts * encoder2InchesPerCount);
+    return(pCounts * encoderValues.encoder2InchesPerCount);
     
 }//end of HardwareVars::convertEncoder2CountsToInches
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// HardwareVars::configure
+//
+// Loads configuration settings from the configuration.ini file.
+//
+// Only configuration data for this class are loaded here.  Each
+// child object should be allowed to load its own data.
+//
+
+public void configure(IniFile pConfigFile)
+{
     
+    //load the nS per data point value and compute the uS per data point as well
+    nSPerDataPoint =
+                pConfigFile.readDouble("Hardware", "nS per Data Point", 15.0);
+
+    uSPerDataPoint = nSPerDataPoint / 1000;
+
+    pixelsPerInch = pConfigFile.readDouble("Hardware", "Pixels per Inch", 1.0);
+
+    decimalFeetPerPixel = 1/(pixelsPerInch * 12);
+
+    encoderValues.configure(pConfigFile);
+    
+}//end of HardwareVars::configure
+//-----------------------------------------------------------------------------
+
     
 }//end of class HardwareVars
 //-----------------------------------------------------------------------------

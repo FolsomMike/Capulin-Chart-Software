@@ -452,10 +452,18 @@ public void actionPerformed(ActionEvent e)
         return;
     }
 
+    //sets a variable in Settings
+    if (source.getActionCommand().equalsIgnoreCase(
+                                         "Show Peak Symbol at Peak Location")){
+        showPseudoPeakAtPeakLocation =
+                             ((JCheckBoxMenuItem)(e.getSource())).isSelected();
+        return;
+    }
+        
     //calls function in Main
-    if (source.getActionCommand().equalsIgnoreCase("Debugger")){
-        actionListener.actionPerformed(
-              new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Debugger"));
+    if (source.getActionCommand().equalsIgnoreCase("Encoders")){
+        actionListener.actionPerformed(new ActionEvent(
+                  this, ActionEvent.ACTION_PERFORMED, "Calibrate Encoders"));
         return;
     }
 

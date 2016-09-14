@@ -2179,40 +2179,12 @@ private void configureControlBoards()
 
     }//if (numberOfControlBoards > 0)
 
-    
-    
     if(numberOfControlBoards > 0) {
         
-        EncoderValues encoderValues;
+        for (ControlBoard controlBoard : controlBoards) {
+            controlBoard.setEncoderValuesObject(hdwVs.encoderValues);
+        }
         
-        encoderValues = controlBoards[0].getEncoderValuesObject();
-        //copy various encoder related values so other objects can access them
-        encoderValues.photoEyeToPhotoEyeDistance =
-                                            hdwVs.photoEyeToPhotoEyeDistance;
-        encoderValues.encoder1InchesPerCount = hdwVs.encoder1InchesPerCount;
-        encoderValues.encoder2InchesPerCount = hdwVs.encoder2InchesPerCount;
-
-        encoderValues.endStopLength = hdwVs.endStopLength;
-        
-        encoderValues.photoEye1DistanceFrontOfHead1 =
-                                            hdwVs.photoEye1DistanceFrontOfHead1;
-
-        encoderValues.photoEye1DistanceFrontOfHead2 =
-                                            hdwVs.photoEye1DistanceFrontOfHead2;
-
-        encoderValues.photoEye1DistanceFrontOfHead3 =
-                                            hdwVs.photoEye1DistanceFrontOfHead3;
-
-        encoderValues.photoEye2DistanceFrontOfHead1 =
-                                            hdwVs.photoEye2DistanceFrontOfHead1;
-
-        encoderValues.photoEye2DistanceFrontOfHead2 =
-                                            hdwVs.photoEye2DistanceFrontOfHead2;
-        
-        encoderValues.photoEye2DistanceFrontOfHead3 =
-                                            hdwVs.photoEye2DistanceFrontOfHead3;
-
-    
     }
     
 }//end of Capulin1::configureControlBoards
@@ -3182,36 +3154,36 @@ public void calculateMapOffsetDelays()
         if (utBoard != null && utBoard.headForMapDataSensor == 1){
 
             utBoard.startFwdDelayDistance = 
-                    hdwVs.endStopLength + 
-                    hdwVs.photoEye1DistanceFrontOfHead1
+                    hdwVs.encoderValues.endStopLength + 
+                    hdwVs.encoderValues.photoEye1DistanceFrontOfHead1
                     + utBoard.distanceMapSensorToFrontEdgeOfHead;
 
             utBoard.startRevDelayDistance = 
-                    hdwVs.photoEye2DistanceFrontOfHead1 -
+                    hdwVs.encoderValues.photoEye2DistanceFrontOfHead1 -
                     utBoard.distanceMapSensorToFrontEdgeOfHead;
 
         }//if (utBoard != null && utBoard.headForMapDataSensor == 1)
         else if (utBoard != null && utBoard.headForMapDataSensor == 2){
 
                 utBoard.startFwdDelayDistance = 
-                        hdwVs.endStopLength + 
-                        hdwVs.photoEye1DistanceFrontOfHead2
+                        hdwVs.encoderValues.endStopLength + 
+                        hdwVs.encoderValues.photoEye1DistanceFrontOfHead2
                         + utBoard.distanceMapSensorToFrontEdgeOfHead;
 
                 utBoard.startRevDelayDistance = 
-                        hdwVs.photoEye2DistanceFrontOfHead2
+                        hdwVs.encoderValues.photoEye2DistanceFrontOfHead2
                         - utBoard.distanceMapSensorToFrontEdgeOfHead;
 
         }//if (utBoard != null && utBoard.headForMapDataSensor == 2)
         else if (utBoard != null && utBoard.headForMapDataSensor == 3){
 
                 utBoard.startFwdDelayDistance = 
-                        hdwVs.endStopLength + 
-                        hdwVs.photoEye1DistanceFrontOfHead3
+                        hdwVs.encoderValues.endStopLength + 
+                        hdwVs.encoderValues.photoEye1DistanceFrontOfHead3
                         + utBoard.distanceMapSensorToFrontEdgeOfHead;
 
                 utBoard.startRevDelayDistance = 
-                        hdwVs.photoEye2DistanceFrontOfHead3
+                        hdwVs.encoderValues.photoEye2DistanceFrontOfHead3
                         - utBoard.distanceMapSensorToFrontEdgeOfHead;
 
             }//if (utBoard != null && utBoard.headForMapDataSensor == 3)

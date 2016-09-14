@@ -588,6 +588,20 @@ public int processAllEncoderValuesPacket()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// ControlBoard::setEncoderValuesObject
+//
+// Sets the EncoderValues object.
+//
+
+public void setEncoderValuesObject(EncoderValues pEncoderValues)
+{
+
+    encoderValues = pEncoderValues;
+
+}//end of ControlBoard::setEncoderValuesObject
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // ControlBoard::getEncoderValuesObject
 //
 // Returns an object containing the encoder values retrieved from the remote.

@@ -223,8 +223,10 @@ class MainWindow implements WindowListener, ActionListener, ChangeListener,
     Debugger debugger;
     UTCalibrator calWindow;
     Monitor monitorWindow;
-    boolean monitorMode = false;
-
+    boolean monitorActive = false;
+    EncoderCalibrator encoderCalibrator;
+    boolean encoderCalibratorActive = false;
+   
     FlagReportPrinter printFlagReportDialog = null;
     int closePrintFlagReportDialogTimer = 0;
 
@@ -755,6 +757,10 @@ private void configure()
     monitorWindow = new Monitor(mainFrame, configFile, this);
     monitorWindow.init();
 
+    //create a window for monitoring status and inputs
+    encoderCalibrator = new EncoderCalibrator(mainFrame, configFile, this);
+    encoderCalibrator.init();    
+    
     //create the hardware interface first so the traces can link to it
     hardware = new Hardware(configFile, settings, logWindow.textArea);
     hardware.init();
@@ -1443,6 +1449,13 @@ public void actionPerformed(ActionEvent e)
         return;
     }
 
+    //this part handles starting the encoder calibrator
+    if ("Calibrate Encoders".equals(e.getActionCommand())) {
+        encoderCalibrator.setVisible(true);
+        hardware.startMonitor();
+        return;
+    }
+        
     //this part handles opening the debugger window
     if ("Debugger".equals(e.getActionCommand())) {
         debugger.setVisible(true);
@@ -1467,6 +1480,18 @@ public void actionPerformed(ActionEvent e)
         return;
     }
 
+    //this part transfers encoder calibration data from the encoder calibration
+    //window to the hardware object
+    if ("Transfer Encoder Calibration Data".equals(e.getActionCommand())) {
+        
+        hardware.setEncodersInchesPerCount(
+            encoderCalibrator.getEncoder1InchesPerCount(),
+            encoderCalibrator.getEncoder2InchesPerCount()
+            );
+                
+        return;
+    }
+        
     //this part handles pulsing Output Channel 0
     if ("Pulse Audible Alarm".equals(e.getActionCommand())) {
         hardware.pulseAlarmMarker(0);
@@ -2289,15 +2314,28 @@ public void processMainTimerEvent()
 
     //if in monitor mode, retrieve I/O status info from Capulin1
     if (monitorWindow.isVisible()) {
-            monitorMode = true;
+            monitorActive = true;
             byte[] monitorBuffer = hardware.getMonitorPacket(true);
             monitorWindow.updateStatus(monitorBuffer);
     }
-    else if (monitorMode){ //if in monitor mode and window closes, exit the mode
-        monitorMode = false;
-        hardware.stopMonitor();
+    else if (monitorActive){ //if in monitor mode and window closes, exit mode
+        monitorActive = false;
+        if (!encoderCalibratorActive) { hardware.stopMonitor(); }
     }
 
+    //if Encoder Calibrator visible, update I/O status from the hardware
+    //using the same functions as the Monitor window
+    if (encoderCalibrator.isVisible()) {
+            encoderCalibratorActive = true;
+            byte[] monitorBuffer = hardware.getMonitorPacket(true);
+            encoderCalibrator.updateStatus(monitorBuffer);
+    }
+    else if (encoderCalibratorActive){
+        //if Encoder Calibrator visible and window closes, exit the mode
+        encoderCalibratorActive = false;
+        if (!monitorActive) { hardware.stopMonitor(); }
+    }
+        
     //if the cal window is opened, allow it to update it's display with the latest
     //A-Scan from the currently selected channel
     if (calWindow.isVisible()){

@@ -121,7 +121,7 @@ private void establishLink()
 
     sendString("@Hello from VScan!        ");
 
-    sendTestMessages(); //debug mks -- remove this
+    //sendTestMessages(); //debug mks
 
 }//end of EthernetIOModule::establishLink
 //-----------------------------------------------------------------------------
@@ -165,7 +165,7 @@ public void sendTestMessages()
 
     sendString("*12L|02|023|3422|01240|003");
 
-    sendString("*45L |02|023|3422|01240|001");
+    sendString("*45L|02|023|3422|01240|001");
 
     sendString("*45T|02|023|3422|01240|003");
 
@@ -191,7 +191,7 @@ private void openSocket()
     try {
 
         //displays message on bottom panel of IDE
-        logger.logMessage("Connecting to PLC at" + plcIPAddrS + "...\n");
+        logger.logMessage("Connecting to PLC at: " + plcIPAddrS + "...\n");
 
         if (!simulate) {socket = new Socket(plcIPAddr, plcPortNum);}
         else {
@@ -205,14 +205,6 @@ private void openSocket()
         // the buffer size is not changed here as the default ends up being
         // large enough - use this code if it needs to be increased
         //socket.setReceiveBufferSize(10240 or as needed);
-
-        //allow verification that the hinted size is actually used
-        logger.logMessage("PLC receive buffer size: " +
-                                      socket.getReceiveBufferSize() + "...\n");
-
-        //allow verification that the hinted size is actually used
-        logger.logMessage("PLC send buffer size: " +
-                                        socket.getSendBufferSize() + "...\n");
 
         out = new PrintWriter(socket.getOutputStream(), true);
 
@@ -236,6 +228,8 @@ private void openSocket()
     }
     
 
+    logger.logMessage("PLC connected.\n");
+    
 }//end of EthernetIOModule::establishLink
 //-----------------------------------------------------------------------------
 

@@ -65,11 +65,13 @@ public class MainMenu extends JMenuBar{
     JMenuItem reportFinalMenuItem;
     JMenuItem calibrationRecords;
 
-
     JMenu viewMenu;
     JMenuItem viewSegmentMenuItem, viewIDInfoMenuItem;
     JMenuItem createViewerPackage;
 
+    JMenu calibrationMenu;
+    JMenuItem calEncoders;
+        
     JMenu optionsMenu, chartMenu, aScanMenu, reportOptionsMenu;
     JMenu calWindowSettingsMenu;
     JCheckBoxMenuItem restartNewPieceAtLeftEdgeMenuCheck;
@@ -313,6 +315,19 @@ public MainMenu(Settings pSettings)
     calibrationRecords.setActionCommand("View Calibration Records");
     calibrationRecords.addActionListener(settings);
     reportMenu.add(calibrationRecords);
+
+    //Calibration menu
+    calibrationMenu = new JMenu("Calibration");
+    calibrationMenu.setMnemonic(KeyEvent.VK_C);
+    calibrationMenu.setToolTipText("Various calibration tools.");
+    add(calibrationMenu);
+
+    //Calibration/Encoders
+    calEncoders = new JMenuItem("Encoders");
+    calEncoders.setMnemonic(KeyEvent.VK_E);
+    calEncoders.setToolTipText("Calibrate the distance tracking encoders.");
+    calEncoders.addActionListener(settings);
+    calibrationMenu.add(calEncoders);
 
     //View menu
     viewMenu = new JMenu("View");
