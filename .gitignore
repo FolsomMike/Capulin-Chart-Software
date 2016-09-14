@@ -11,6 +11,7 @@ dist/
 DSP/
 Rabbit/
 Log Files/*.*
+fpga/
 
 # put miscellaneous files not to be tracked in this folder
 
