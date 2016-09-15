@@ -445,6 +445,9 @@ public void loadCalFile(IniFile pCalFile)
        "Marker pulses once for each threshold violation (" + PULSE +
        ") or fires continuously during the violation (" + CONTINUOUS + ")", 0);
 
+
+    hdwVs.loadCalFile(pCalFile);
+    
     analogDriver.loadCalFile(pCalFile);
 
 }//end of Hardware::loadCalFile
@@ -494,6 +497,13 @@ public void saveCalFile(IniFile pCalFile)
        ") or fires continuously during the violation (" + CONTINUOUS + ")",
                                                                    markerMode);
 
+    pCalFile.writeInt("Hardware",
+       "Marker pulses once for each threshold violation (" + PULSE +
+       ") or fires continuously during the violation (" + CONTINUOUS + ")",
+                                                                   markerMode);
+    
+    hdwVs.saveCalFile(pCalFile);
+    
     analogDriver.saveCalFile(pCalFile);
 
 }//end of Hardware::saveCalFile

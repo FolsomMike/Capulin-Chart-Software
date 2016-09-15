@@ -197,6 +197,42 @@ public double convertEncoder2CountsToInches(int pCounts)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// HardwareVars::loadCalFile
+//
+// This loads the file used for storing calibration information pertinent to a
+// job, such as gains, offsets, thresholds, etc.
+//
+// Each object is passed a pointer to the file so that they may load their
+// own data.
+//
+
+public void loadCalFile(IniFile pCalFile)
+{
+
+    encoderValues.loadCalFile(pCalFile);
+    
+}//end of HardwareVars::loadCalFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// EncoderValues::saveCalFile
+//
+// This saves the file used for storing calibration information pertinent to a
+// job, such as gains, offsets, thresholds, etc.
+//
+// Each object is passed a pointer to the file so that they may save their
+// own data.
+//
+
+public void saveCalFile(IniFile pCalFile)
+{
+
+    encoderValues.saveCalFile(pCalFile);
+
+}//end of EncoderValues::saveCalFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // HardwareVars::configure
 //
 // Loads configuration settings from the configuration.ini file.

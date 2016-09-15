@@ -53,8 +53,18 @@ public class EncoderValues extends Object{
     public int encoderPosAtHead3UpSignal = 0;
 
     public double photoEyeToPhotoEyeDistance = 0;
+
     public double encoder1InchesPerCount = 0;
+    public void setEncoder1InchesPerCount(double pV){
+        encoder1InchesPerCount = pV;
+    }    
+    public double getEncoder1InchesPerCount(){ return encoder1InchesPerCount;}
+    
     public double encoder2InchesPerCount = 0;
+    public void setEncoder2InchesPerCount(double pV){
+        encoder2InchesPerCount = pV;
+    }        
+    public double getEncoder2InchesPerCount(){ return encoder2InchesPerCount;}    
 
     //length of the end stop at the "toward" end of the unit
     //if the away laser triggers on the start of this instead of the start of
@@ -454,6 +464,67 @@ public void readEncoderValuesFromOpenFile(BufferedReader pInFile)
     encoder2InchesPerCount = Double.parseDouble(value);            
             
 }//end of EncoderValues::readEncoderValuesFromOpenFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// EncoderValues::loadCalFile
+//
+// This loads the file used for storing calibration information pertinent to a
+// job, such as gains, offsets, thresholds, etc.
+//
+// Each object is passed a pointer to the file so that they may load their
+// own data.
+//
+
+public void loadCalFile(IniFile pCalFile)
+{
+
+    //if the value read from the cal file is the default, then don't overwrite
+    //the value read from the config file -- the config file version will be
+    //written to the cal file later and will be used from then on unless an
+    //encoder calibration is performed to explicitly set new values -- new
+    //jobs will end up with the config value being used until the first cal
+    
+    double encoderInchesPerCount;
+    
+    encoderInchesPerCount = pCalFile.readDouble("Hardware",
+                            "Encoder 1 Inches Per Count", Double.MIN_VALUE );
+    
+    if(encoderInchesPerCount != Double.MIN_VALUE){
+        encoder1InchesPerCount = encoderInchesPerCount;
+    }
+    
+    encoderInchesPerCount = pCalFile.readDouble("Hardware",
+                            "Encoder 2 Inches Per Count", Double.MIN_VALUE );
+
+    if(encoderInchesPerCount != Double.MIN_VALUE){
+        encoder2InchesPerCount = encoderInchesPerCount;
+    }
+
+    
+}//end of EncoderValues::loadCalFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// EncoderValues::saveCalFile
+//
+// This saves the file used for storing calibration information pertinent to a
+// job, such as gains, offsets, thresholds, etc.
+//
+// Each object is passed a pointer to the file so that they may save their
+// own data.
+//
+
+public void saveCalFile(IniFile pCalFile)
+{
+
+    pCalFile.writeDouble("Hardware", "Encoder 1 Inches Per Count",
+                                                    encoder1InchesPerCount);
+    
+    pCalFile.writeDouble("Hardware", "Encoder 2 Inches Per Count",
+                                                    encoder2InchesPerCount);
+
+}//end of EncoderValues::saveCalFile
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
