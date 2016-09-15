@@ -216,16 +216,13 @@ public int processDataPacketsHelper(boolean pWaitForPkt)
 
         byte pktID = inBuffer[0];
 
-        if (pktID == ControlBoard.GET_STATUS_CMD) {getStatus();}
-        else
-        if (pktID == ControlBoard.SET_ENCODERS_DELTA_TRIGGER_CMD)
+        if (pktID == ControlBoard.GET_STATUS_CMD)
+            {getStatus();}
+        else if (pktID == ControlBoard.SET_ENCODERS_DELTA_TRIGGER_CMD)
             {setEncodersDeltaTrigger(pktID);}
-        else
-        if (pktID == ControlBoard.START_INSPECT_CMD) {startInspect(pktID);}
-        else
-        if (pktID == ControlBoard.STOP_INSPECT_CMD) {stopInspect(pktID);}
-        else
-        if (pktID == ControlBoard.GET_CHASSIS_SLOT_ADDRESS_CMD)
+        else if (pktID == ControlBoard.START_INSPECT_CMD) {startInspect(pktID);}
+        else if (pktID == ControlBoard.STOP_INSPECT_CMD) {stopInspect(pktID);}
+        else if (pktID == ControlBoard.GET_CHASSIS_SLOT_ADDRESS_CMD)
             {getChassisSlotAddress();}
 
         return 0;
@@ -532,8 +529,7 @@ void simulateInspection()
         encoder1 += encoder1DeltaTrigger;
         encoder2 += encoder2DeltaTrigger;
     }
-    else
-    if (simulationMode == MessageLink.REVERSE){
+    else if (simulationMode == MessageLink.REVERSE){
         encoder1 -= encoder1DeltaTrigger;
         encoder2 -= encoder2DeltaTrigger;
     }
