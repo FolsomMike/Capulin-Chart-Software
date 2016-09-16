@@ -113,8 +113,6 @@ public class Hardware extends Object implements TraceValueCalculator, Runnable,
 
     public static int PULSE = 0, CONTINUOUS = 1;
     public int markerMode = PULSE;
-
-    private int timerCount = 0; //debug mks
     
 //-----------------------------------------------------------------------------
 // Hardware::Hardware (constructor)
@@ -2265,17 +2263,36 @@ public double getLinearDecimalFeetPerPixel()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Hardware::setEncodersInchesPerCount
+// Hardware::setEncoderCalValues
 //
-// Sets the inches per count value for both encoders.
+// Sets the various values which are related to calibration.
 //
 
-public void setEncodersInchesPerCount(double pEncoder1, double pEncoder2)
+public void setEncoderCalValues(EncoderCalValues pEncoderCalValues)
+    
 {
 
-    hdwVs.encoderValues.setEncodersInchesPerCount(pEncoder1, pEncoder2);
+    hdwVs.encoderValues.setEncoderCalValues(pEncoderCalValues);
 
-}//end of Hardware::setEncodersInchesPerCount
+}//end of Hardware::setEncoderCalValues
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::getEncoderCalValues
+//
+// Returns all encoder calibrations via pEncoderCalValues. The function itself
+// returns a reference to pEncoderValues.
+//
+
+public EncoderCalValues getEncoderCalValues(EncoderCalValues pEncoderCalValues)
+    
+{
+
+    hdwVs.encoderValues.getEncoderCalValues(pEncoderCalValues);
+
+    return(pEncoderCalValues);
+    
+}//end of Hardware::getEncoderCalValues
 //-----------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------

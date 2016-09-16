@@ -19,6 +19,7 @@
 
 package chart;
 
+import chart.mksystems.hardware.EncoderCalValues;
 import chart.mksystems.inifile.IniFile;
 import java.awt.*;
 import java.awt.event.*;
@@ -46,12 +47,20 @@ class EncoderCalibrator extends JDialog implements ActionListener {
 
     private int encoder1Count, encoder2Count;
     
+
     private double encoder1CountsPerInch, encoder2CountsPerInch;
     private double encoder1InchesPerCount, encoder2InchesPerCount;
+    private double encoder1CountsPerSecInput, encoder2CountsPerSecInput;
+    private double encoder1CountsPerSec, encoder2CountsPerSec;
     
+
+    public double getEncoder1CountsPerInch(){return encoder1CountsPerInch; }
+    public double getEncoder2CountsPerInch(){return encoder2CountsPerInch; }    
     public double getEncoder1InchesPerCount(){return encoder1InchesPerCount; }
     public double getEncoder2InchesPerCount(){return encoder2InchesPerCount; }    
-    
+    public double getEncoder1CountsPerSec(){return encoder1CountsPerSec; }
+    public double getEncoder2CountsPerSec(){return encoder2CountsPerSec; }    
+
     private double encoder1CountsPerRev, encoder2CountsPerRev;
     
     private JTextField distanceEntryBox, revolutionsEntryBox;
@@ -64,9 +73,15 @@ class EncoderCalibrator extends JDialog implements ActionListener {
         
     private JLabel encoder1CountLabel, encoder2CountLabel;
     private String encoder1CountText, encoder2CountText;
+    
+    JLabel encoder1CountsPerSecInputLbl, encoder2CountsPerSecInputLbl;
+    JLabel encoder1CountsPerSecLbl, encoder2CountsPerSecLbl;
+    String encoder1CountsPerSecText, encoder2CountsPerSecText;
 
     private JButton linearCalStartBtn, linearCalFinishBtn;
     private JButton rotaryCalStartBtn, rotaryCalFinishBtn;
+    
+    JLabel countsPerSecLabel;
     
 //-----------------------------------------------------------------------------
 // EncoderCalibrator::EncoderCalibrator (constructor)
@@ -110,7 +125,10 @@ public void init()
     
     encoder1CountsPerRevText = encoder1CountText + " counts per revolution:  ";
     encoder2CountsPerRevText = encoder2CountText + " counts per revolution:  ";
-    
+
+    encoder1CountsPerSecText = encoder1CountText + " counts per second:  ";
+    encoder2CountsPerSecText = encoder2CountText + " counts per second:  ";
+        
     setupGUI();
     
     pack();
@@ -138,6 +156,8 @@ private void setupGUI()
     
     setupRotaryCalPanel(mainPanel);
     
+    setupRateCalPanel(mainPanel);
+    
 }//end of EncoderCalibrator::setupGUI
 //-----------------------------------------------------------------------------
 
@@ -155,12 +175,14 @@ private void setupEncodersPanel(JPanel pPanel)
     mainPanel.add(panel);
         
     setupEncoderPanel(panel, encoder1CountText,
-                    encoder1CountLabel = new JLabel("Counts : "));
+                    encoder1CountLabel = new JLabel("Counts : "),
+                    encoder1CountsPerSecInputLbl = new JLabel("Counts/sec : "));
     
     panel.add(Box.createHorizontalGlue()); //force space between buttons
     
     setupEncoderPanel(panel, encoder2CountText,
-                    encoder2CountLabel = new JLabel("Counts : "));
+                    encoder2CountLabel = new JLabel("Counts : "),
+                    encoder2CountsPerSecInputLbl = new JLabel("Counts/sec : "));
     
 }//end of EncoderCalibrator::setupEncodersPanel
 //-----------------------------------------------------------------------------
@@ -188,23 +210,29 @@ private void setupOutputPanel(JPanel pPanel)
     encoder1CountsPerInchLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
     panel.add(encoder1CountsPerInchLbl);
     
-    panel.add(Box.createRigidArea(new Dimension(0,10)));//vertical spacer    
-    
     encoder2CountsPerInchLbl = new JLabel(encoder2CountsPerInchText);
     encoder2CountsPerInchLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
     panel.add(encoder2CountsPerInchLbl);
         
-    panel.add(Box.createRigidArea(new Dimension(0,20)));//vertical spacer
+    panel.add(Box.createRigidArea(new Dimension(0,10)));//vertical spacer
 
     encoder1CountsPerRevLbl = new JLabel(encoder1CountsPerRevText);
     encoder1CountsPerRevLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
     panel.add(encoder1CountsPerRevLbl);
     
-    panel.add(Box.createRigidArea(new Dimension(0,10)));//vertical spacer    
-    
     encoder2CountsPerRevLbl = new JLabel(encoder2CountsPerRevText);
     encoder2CountsPerRevLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
     panel.add(encoder2CountsPerRevLbl);
+    
+    panel.add(Box.createRigidArea(new Dimension(0,10)));//vertical spacer
+
+    encoder1CountsPerSecLbl = new JLabel(encoder1CountsPerSecText);
+    encoder1CountsPerSecLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
+    panel.add(encoder1CountsPerSecLbl);
+        
+    encoder2CountsPerSecLbl = new JLabel(encoder2CountsPerSecText);
+    encoder2CountsPerSecLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
+    panel.add(encoder2CountsPerSecLbl);
     
     panel.add(Box.createRigidArea(new Dimension(0,10)));//vertical spacer
         
@@ -329,28 +357,80 @@ private void setupRotaryCalPanel(JPanel pPanel)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// EncoderCalibrator::setupRateCalPanel
+//
+// Displays the controls for performing the count/sec rate calibration.
+//
+
+private void setupRateCalPanel(JPanel pPanel)
+{
+
+    JPanel panel = new JPanel();
+    panel.setBorder(
+          BorderFactory.createTitledBorder("Encoder Rate Calibration"));
+    setSizes(panel, 300, 75);
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    panel.setOpaque(true);
+    panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    mainPanel.add(panel);
+
+    panel.add(Box.createRigidArea(new Dimension(0,10)));//vertical spacer
+        
+    JButton setBtn = new JButton("Set Counts/Inch");
+    setBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+    setBtn.setActionCommand("Set Counts per Second");
+    setBtn.addActionListener(this);
+    rotaryCalStartBtn.setToolTipText(
+             "Start tube running at inspection speed, then click this button.");
+    panel.add(setBtn);
+        
+    panel.add(Box.createRigidArea(new Dimension(0,10)));//vertical spacer                
+    
+}//end of EncoderCalibrator::setupRateCalPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // EncoderCalibrator::setupEncoderPanel
 //
 
 private void setupEncoderPanel(JPanel pPanel, String pPanelTitle, 
-                                                          JLabel pEncoderLabel)
+                JLabel pEncoderCountsLabel, JLabel pEncoderCountsPerSecLabel)
 {
 
     JPanel subPanel = new JPanel();
     subPanel.setLayout(new BoxLayout(subPanel, BoxLayout.Y_AXIS));
     subPanel.setBorder(BorderFactory.createTitledBorder(pPanelTitle));
-    setSizes(subPanel, 140, 60);
+    setSizes(subPanel, 140, 85);
     
     subPanel.add(Box.createRigidArea(new Dimension(0,10)));//vertical spacer
         
-    subPanel.add(pEncoderLabel);
-    pEncoderLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    subPanel.add(pEncoderCountsLabel);
+    pEncoderCountsLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    
+    subPanel.add(Box.createRigidArea(new Dimension(0,7)));//vertical spacer    
+
+    subPanel.add(pEncoderCountsPerSecLabel);
+    pEncoderCountsPerSecLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
     
     subPanel.add(Box.createRigidArea(new Dimension(0,10)));//vertical spacer    
-    
+        
     pPanel.add(subPanel);
 
 }//end of EncoderCalibrator::setupEncoderPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// EncoderCalibrator::setLabelWithFormattedValue
+//
+//
+
+public void setLabelWithFormattedValue(JLabel pLabel, String pText, 
+                                                                 double pValue)
+{
+    
+    pLabel.setText(pText + new  DecimalFormat("#.####").format(pValue));
+
+}//end of EncoderCalibrator::setLabelWithFormattedValue
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -381,18 +461,14 @@ private void startLinearCal()
 
 private void finishLinearCal()
 {
+
+    if (distanceEntryBox.getText().trim().isEmpty()) { return; }
     
     double distanceMoved;
     
     try{
         distanceMoved = Double.parseDouble(distanceEntryBox.getText().trim());
-    
-        //debug mks -- remove this
-       // if(distanceMoved > 1000000 || distanceMoved < 1000000){
-       //     distanceMoved = Double.MIN_VALUE;
-       // }
-        //debug mks -- end
-        
+            
     }catch(NumberFormatException ec){
         distanceMoved = Double.MIN_VALUE;
     }
@@ -411,13 +487,9 @@ private void finishLinearCal()
     }
     
     if(distanceMoved > 0){
-        
-        encoder1CountsPerInchLbl.setText(encoder1CountsPerInchText +
-            new  DecimalFormat("#.####").format(encoder1CountsPerInch));
 
-        encoder2CountsPerInchLbl.setText(encoder2CountsPerInchText +
-            new  DecimalFormat("#.####").format(encoder2CountsPerInch));
-                
+        refreshAllLabels(); //update all labels with current values
+                        
     }else{
         encoder1CountsPerInchLbl.setText(
                           encoder1CountsPerInchText + "*** invalid entry ***");
@@ -467,6 +539,8 @@ private void startRotaryCal()
 private void finishRotaryCal()
 {
 
+    if (revolutionsEntryBox.getText().trim().isEmpty()) { return; }    
+    
     int revsCompleted;
     
     try{
@@ -475,17 +549,13 @@ private void finishRotaryCal()
         revsCompleted = Integer.MIN_VALUE;
     }
 
-    encoder1CountsPerRev = encoder1Count / revsCompleted;
-    encoder2CountsPerRev = encoder2Count / revsCompleted;
+    encoder1CountsPerRev = (double)encoder1Count / (double)revsCompleted;
+    encoder2CountsPerRev = (double)encoder2Count / (double)revsCompleted;
     
     if(revsCompleted > 0){
         
-        encoder1CountsPerRevLbl.setText(encoder1CountsPerRevText +
-            new  DecimalFormat("#.####").format(encoder1CountsPerRev));
-
-        encoder2CountsPerRevLbl.setText(encoder2CountsPerRevText +
-            new  DecimalFormat("#.####").format(encoder2CountsPerRev));
-                
+        refreshAllLabels(); //update all labels with current values        
+                        
     }else{
         encoder1CountsPerRevLbl.setText(
                           encoder1CountsPerRevText + "*** invalid entry ***");
@@ -503,6 +573,106 @@ private void finishRotaryCal()
                 new ActionEvent(this, 1, "Transfer Encoder Calibration Data"));
         
 }//end of EncoderCalibrator::finishRotaryCal
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// EncoderCalibrator::setCountsPerSecond
+//
+// Stores the current counts per second for both encoders.
+//
+
+private void setCountsPerSecond()
+{
+
+    encoder1CountsPerSec = encoder1CountsPerSecInput;    
+    encoder2CountsPerSec = encoder2CountsPerSecInput;
+    
+    refreshAllLabels(); //update all labels with current values    
+
+    actionListener.actionPerformed(
+                new ActionEvent(this, 1, "Transfer Encoder Calibration Data"));
+        
+}//end of EncoderCalibrator::setCountsPerSecond
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// EncoderCalibrator::getEncoderCalValues
+//
+// Returns all encoder calibrations via pEncoderCalValues. The function itself
+// returns a reference to pEncoderValues.
+//
+
+public EncoderCalValues getEncoderCalValues(EncoderCalValues pEncoderCalValues)
+{
+ 
+    pEncoderCalValues.encoder1CountsPerInch = encoder1CountsPerInch;
+    pEncoderCalValues.encoder1InchesPerCount = encoder1InchesPerCount;
+    pEncoderCalValues.encoder1CountsPerRev = encoder1CountsPerRev;        
+    pEncoderCalValues.encoder1CountsPerSec = encoder1CountsPerSec;
+
+    pEncoderCalValues.encoder2CountsPerInch = encoder2CountsPerInch;
+    pEncoderCalValues.encoder2InchesPerCount = encoder2InchesPerCount;
+    pEncoderCalValues.encoder2CountsPerRev = encoder2CountsPerRev;        
+    pEncoderCalValues.encoder2CountsPerSec = encoder2CountsPerSec;
+            
+    return(pEncoderCalValues);
+    
+}//end of EncoderCalibrator::getEncoderCalValues
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// EncoderCalibrator::setEncoderCalValues
+//
+// Sets all encoder calibrations via pEncoderCalValues and updates labels to
+// reflect the data.
+//
+
+public void setEncoderCalValues(EncoderCalValues pEncoderCalValues)
+{
+ 
+    encoder1CountsPerInch = pEncoderCalValues.encoder1CountsPerInch;    
+    encoder1InchesPerCount = pEncoderCalValues.encoder1InchesPerCount;
+    encoder1CountsPerRev = pEncoderCalValues.encoder1CountsPerRev;    
+    encoder1CountsPerSec = pEncoderCalValues.encoder1CountsPerSec;
+
+    encoder2CountsPerInch = pEncoderCalValues.encoder2CountsPerInch;    
+    encoder2InchesPerCount = pEncoderCalValues.encoder2InchesPerCount;
+    encoder2CountsPerRev = pEncoderCalValues.encoder2CountsPerRev;        
+    encoder2CountsPerSec = pEncoderCalValues.encoder2CountsPerSec;
+        
+    refreshAllLabels();
+    
+}//end of EncoderCalibrator::setEncoderCalValues
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// EncoderCalibrator::refreshAllLabels
+//
+// Updates all labels with their associated variable values.
+//
+
+public void refreshAllLabels()
+{
+
+    setLabelWithFormattedValue(encoder1CountsPerInchLbl,
+                        encoder1CountsPerInchText, encoder1CountsPerInch);
+
+    setLabelWithFormattedValue(encoder2CountsPerInchLbl,
+                        encoder2CountsPerInchText, encoder2CountsPerInch);
+
+    setLabelWithFormattedValue(encoder1CountsPerRevLbl,
+                        encoder1CountsPerRevText, encoder1CountsPerRev);
+
+    setLabelWithFormattedValue(encoder2CountsPerRevLbl,
+                        encoder2CountsPerRevText, encoder2CountsPerRev);
+
+    setLabelWithFormattedValue(encoder1CountsPerSecLbl,
+                            encoder1CountsPerSecText, encoder1CountsPerSec);
+        
+    setLabelWithFormattedValue(encoder2CountsPerSecLbl,
+                            encoder2CountsPerSecText, encoder2CountsPerSec);
+                
+}//end of EncoderCalibrator::refreshAllLabels
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -537,6 +707,10 @@ public void actionPerformed(ActionEvent e)
         return;
     }
 
+    if ("Set Counts per Second".equals(e.getActionCommand())) {
+        setCountsPerSecond();
+        return;
+    }
     
 //    actionListener.actionPerformed(
 //                               new ActionEvent(this, 1, e.getActionCommand()));
@@ -573,6 +747,18 @@ public void updateStatus(byte[] pMonitorBuffer)
 
     encoder2CountLabel.setText("Counts : " + encoder2Count);
 
+    encoder1CountsPerSecInput =  //cast to short to force sign extension
+    (short)((pMonitorBuffer[x++]<<8) & 0xff00) + (pMonitorBuffer[x++] & 0xff);
+
+    encoder1CountsPerSecInputLbl.setText(
+                                  "Counts/sec : " + encoder1CountsPerSecInput);
+    
+    encoder2CountsPerSecInput =  //cast to short to force sign extension
+    (short)((pMonitorBuffer[x++]<<8) & 0xff00) + (pMonitorBuffer[x++] & 0xff);
+    
+    encoder2CountsPerSecInputLbl.setText(
+                                "Counts/sec : " + encoder2CountsPerSecInput);    
+    
 }//end of EncoderCalibrator::updateStatus
 //-----------------------------------------------------------------------------
 

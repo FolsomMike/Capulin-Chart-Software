@@ -86,7 +86,16 @@ public class ControlSimulator extends Simulator implements MessageLink{
     //packets as inspection does not occur during that time
     public static int LENGTH_OF_JOINT_IN_PACKETS =
                                                 1400 + START_DELAY_IN_PACKETS;
-    
+
+    byte enc1AInput = 0, enc1BInput = 1, enc2AInput = 1, enc2BInput = 0;
+    byte padrUnused1 = 0, padrUnused2 = 0, padrUnused3 = 0, padrUnused4 = 0;
+    byte padrInspect = 0, pedrTDC = 0;
+    byte inspectionStatus = 0;
+    short rpm = 123, rpmVariance = 2;
+    int enc1Count = 0, enc2Count = 0;
+    short enc1CountsPerSec = 0, enc2CountsPerSec = 0;
+    int monitorSimRateCounter = 0;
+        
 //-----------------------------------------------------------------------------
 // ControlSimulator::ControlSimulator (constructor)
 //
@@ -224,6 +233,10 @@ public int processDataPacketsHelper(boolean pWaitForPkt)
         else if (pktID == ControlBoard.STOP_INSPECT_CMD) {stopInspect(pktID);}
         else if (pktID == ControlBoard.GET_CHASSIS_SLOT_ADDRESS_CMD)
             {getChassisSlotAddress();}
+        else if (pktID == ControlBoard.GET_MONITOR_PACKET_CMD)
+            {getMonitorPacket();}
+        else if (pktID == ControlBoard.ZERO_ENCODERS_CMD)
+            {zeroEncoderCounts();}
 
         return 0;
 
@@ -252,6 +265,141 @@ void getStatus()
     sendBytes(status, (byte)0);
 
 }//end of ControlSimulator::getStatus
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlSimulator::zeroEncoderCounts
+//
+// Sets the encoder counts to zero.
+//
+
+void zeroEncoderCounts()
+{
+
+    enc1Count = 0; enc2Count = 0;
+    
+}//end of ControlSimulator::zeroEncoderCounts
+//-----------------------------------------------------------------------------
+    
+//-----------------------------------------------------------------------------
+// ControlSimulator::getMonitorPacket
+//
+// Simulates returning of a packet of monitor values.
+//
+
+void getMonitorPacket()
+{
+
+    simulateMonitorPacket();
+        
+    //send standard packet header
+    sendPacketHeader(ControlBoard.GET_MONITOR_PACKET_CMD);
+
+    if (enc1AInput == 0) sendBytes((byte)0); else sendBytes((byte)1);
+
+    if (enc1BInput == 0) sendBytes((byte)0); else sendBytes((byte)1);
+
+    if (enc2AInput == 0) sendBytes((byte)0); else sendBytes((byte)1);
+
+    if (enc2BInput == 0) sendBytes((byte)0); else sendBytes((byte)1);
+
+    if (padrUnused1 == 0) sendBytes((byte)0); else sendBytes((byte)1);      
+
+    if (padrUnused2 == 0) sendBytes((byte)0); else sendBytes((byte)1);      
+
+    if (padrInspect == 0) sendBytes((byte)0); else sendBytes((byte)1);      
+
+    if (padrUnused3 == 0) sendBytes((byte)0); else sendBytes((byte)1);      
+
+    if (pedrTDC == 0) sendBytes((byte)0); else sendBytes((byte)1);      
+
+    if (padrUnused4 == 0) sendBytes((byte)0); else sendBytes((byte)1);            
+
+    sendBytes((byte)chassisAddr);
+
+    sendBytes((byte)slotAddr);
+
+    sendBytes((byte)inspectionStatus);
+
+    sendShortInt(rpm);
+
+    sendShortInt(rpmVariance);
+    
+    sendInteger(enc1Count);
+      
+    sendInteger(enc2Count);
+
+    sendShortInt(enc1CountsPerSec);
+      
+    sendShortInt(enc2CountsPerSec);
+
+}//end of ControlSimulator::getMonitorPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlSimulator::simulateMonitorPacket
+//
+// Simulates data in values sent via the monitor packet.
+//
+// In the future, these should be simulated elsewhere so that the encoder
+// values only change when the Demo controls are in forward mode, etc.
+//
+
+private void simulateMonitorPacket()
+{
+    
+    enc1AInput = flip0And1(enc1AInput);
+    enc1BInput = flip0And1(enc1BInput);
+    enc2AInput = flip0And1(enc2AInput);
+    enc2BInput = flip0And1(enc2BInput);
+
+    if (monitorSimRateCounter++ == 10){ monitorSimRateCounter = 0;}
+    
+    if(monitorSimRateCounter == 5){ padrInspect = 1; } else{ padrInspect = 0; }
+        
+    if(monitorSimRateCounter == 10){ pedrTDC = 1; } else{ pedrTDC = 0; }    
+    
+    inspectionStatus = 0;
+    
+    rpm = (short)getRandomValue(118, 5);
+    
+    rpmVariance = (short)getRandomValue(2, 3);
+    
+    enc1Count++; enc2Count = getRandomValue(enc1Count - 3, 6);
+    
+    enc1CountsPerSec = (short)getRandomValue(1700, 23);
+    enc2CountsPerSec = (short)getRandomValue(1700, 23);
+    
+}//end of ControlSimulator::simulateMonitorPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlSimulator::flip0And1
+//
+// If pV is 0 then function will return 1 and viceversa.
+//
+
+private byte flip0And1(byte pV)
+{
+    
+    if(pV == 0) { return(1); } else { return(0); }
+        
+}//end of ControlSimulator::flip0And1
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ControlSimulator::getRandomValue
+//
+// Returns a random number from pBase to pBase plus random variance of
+// pVariance.
+//
+
+private int getRandomValue(int pBase, int pVariance)
+{
+    
+    return((int)Math.round(pBase + Math.random() * pVariance));
+        
+}//end of ControlSimulator::getRandomValue
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

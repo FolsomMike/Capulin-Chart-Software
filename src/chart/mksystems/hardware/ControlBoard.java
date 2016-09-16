@@ -125,7 +125,7 @@ public class ControlBoard extends Board implements MessageLink,
 
     static byte NO_STATUS = 0;
 
-    static int MONITOR_PACKET_SIZE = 25;
+    static int MONITOR_PACKET_SIZE = 29;
     static int ALL_ENCODERS_PACKET_SIZE = 32;    
     static int RUNTIME_PACKET_SIZE = 2048;
 

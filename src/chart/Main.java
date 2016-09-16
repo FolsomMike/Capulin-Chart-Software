@@ -22,6 +22,7 @@ package chart;
 
 import chart.mksystems.hardware.AScan;
 import chart.mksystems.hardware.Channel;
+import chart.mksystems.hardware.EncoderCalValues;
 import chart.mksystems.hardware.Hardware;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.menu.MainMenu;
@@ -217,6 +218,8 @@ class MainWindow implements WindowListener, ActionListener, ChangeListener,
 
     Hardware hardware;
 
+    EncoderCalValues encoderCalValues = new EncoderCalValues();
+    
     Log logWindow;
     JobInfo jobInfo;
     PieceInfo pieceIDInfo;
@@ -756,16 +759,16 @@ private void configure()
     //create a window for monitoring status and inputs
     monitorWindow = new Monitor(mainFrame, configFile, this);
     monitorWindow.init();
-
-    //create a window for monitoring status and inputs
-    encoderCalibrator = new EncoderCalibrator(mainFrame, configFile, this);
-    encoderCalibrator.init();    
     
     //create the hardware interface first so the traces can link to it
     hardware = new Hardware(configFile, settings, logWindow.textArea);
     hardware.init();
     //store a pointer in settings for use by other objects
     settings.hardware = hardware;
+
+    //create a window for monitoring status and inputs
+    encoderCalibrator = new EncoderCalibrator(mainFrame, configFile, this);
+    encoderCalibrator.init();    
 
     //create a debugger window with a link to the hardware object
     debugger = new Debugger(mainFrame, hardware);
@@ -851,6 +854,8 @@ private void configure()
 
     //load user adjustable settings
     loadCalFile();
+    
+    transferEncoderCalDataFromHardware();
 
     //force menu settings to match any variables loaded from disk
     mainMenu.refreshMenuSettings();
@@ -1483,12 +1488,7 @@ public void actionPerformed(ActionEvent e)
     //this part transfers encoder calibration data from the encoder calibration
     //window to the hardware object
     if ("Transfer Encoder Calibration Data".equals(e.getActionCommand())) {
-        
-        hardware.setEncodersInchesPerCount(
-            encoderCalibrator.getEncoder1InchesPerCount(),
-            encoderCalibrator.getEncoder2InchesPerCount()
-            );
-                
+        transferEncoderCalDataToHardware();        
         return;
     }
         
@@ -1611,6 +1611,36 @@ public void actionPerformed(ActionEvent e)
     if ("Timer".equals(e.getActionCommand())) {processMainTimerEvent();}
 
 }//end of MainWindow::actionPerformed
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Main::transferEncoderCalDataToHardware
+//
+// Transfers data from the EncoderCalibrator window to the hardware object.
+//
+
+public void transferEncoderCalDataToHardware()
+{
+        
+    hardware.setEncoderCalValues(
+                      encoderCalibrator.getEncoderCalValues(encoderCalValues));
+        
+}//end of Main::transferEncoderCalDataToHardware
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Main::transferEncoderCalDataFromHardware
+//
+// Transfers data to the EncoderCalibrator window from the hardware object.
+//
+
+public void transferEncoderCalDataFromHardware()
+{
+    
+    encoderCalibrator.setEncoderCalValues(
+                               hardware.getEncoderCalValues(encoderCalValues));
+
+}//end of MainWindow::transferEncoderCalDataFromHardware
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

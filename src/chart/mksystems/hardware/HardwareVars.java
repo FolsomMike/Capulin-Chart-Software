@@ -146,7 +146,7 @@ public void init()
 public double convertEncoder1CountsToFeet(int pCounts)
 {
     
-    return(pCounts * encoderValues.encoder1InchesPerCount / 12);
+    return(pCounts * encoderValues.getEncoder1InchesPerCount() / 12);
     
 }//end of HardwareVars::convertEncoder1CountsToFeet
 //-----------------------------------------------------------------------------
@@ -161,7 +161,7 @@ public double convertEncoder1CountsToFeet(int pCounts)
 public double convertEncoder1CountsToInches(int pCounts)
 {
     
-    return(pCounts * encoderValues.encoder1InchesPerCount);
+    return(pCounts * encoderValues.getEncoder1InchesPerCount());
     
 }//end of HardwareVars::convertEncoder1CountsToInches
 //-----------------------------------------------------------------------------
@@ -176,7 +176,7 @@ public double convertEncoder1CountsToInches(int pCounts)
 public double convertEncoder2CountsToFeet(int pCounts)
 {
     
-    return(pCounts * encoderValues.encoder2InchesPerCount / 12);
+    return(pCounts * encoderValues.getEncoder2InchesPerCount() / 12);
     
 }//end of HardwareVars::convertEncoder2CountsToFeet
 //-----------------------------------------------------------------------------
@@ -191,7 +191,7 @@ public double convertEncoder2CountsToFeet(int pCounts)
 public double convertEncoder2CountsToInches(int pCounts)
 {
     
-    return(pCounts * encoderValues.encoder2InchesPerCount);
+    return(pCounts * encoderValues.getEncoder2InchesPerCount());
     
 }//end of HardwareVars::convertEncoder2CountsToInches
 //-----------------------------------------------------------------------------

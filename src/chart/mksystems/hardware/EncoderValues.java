@@ -54,17 +54,43 @@ public class EncoderValues extends Object{
 
     public double photoEyeToPhotoEyeDistance = 0;
 
-    public double encoder1InchesPerCount = 0;
+    private double encoder1CountsPerRev, encoder2CountsPerRev;
+    
+    private double encoder1CountsPerInch = 0;
+    public void setEncoder1CountsPerInch(double pV){
+        encoder1CountsPerInch = pV;
+    }    
+    public double getEncoder1CountsPerInch(){ return encoder1CountsPerInch;}
+    
+    private double encoder2CountsPerInch = 0;
+    public void setEncoder2CountsPerInch(double pV){
+        encoder2CountsPerInch = pV;
+    }    
+    public double getEncoder2CountsPerInch(){ return encoder2CountsPerInch;}
+    
+    private double encoder1InchesPerCount = 0;
     public void setEncoder1InchesPerCount(double pV){
         encoder1InchesPerCount = pV;
     }    
     public double getEncoder1InchesPerCount(){ return encoder1InchesPerCount;}
     
-    public double encoder2InchesPerCount = 0;
+    private double encoder2InchesPerCount = 0;
     public void setEncoder2InchesPerCount(double pV){
         encoder2InchesPerCount = pV;
     }        
     public double getEncoder2InchesPerCount(){ return encoder2InchesPerCount;}    
+
+    private double encoder1CountsPerSec = 0;
+    public void setEncoder1CountsPerSec(double pV){
+        encoder1CountsPerSec = pV;
+    }    
+    public double getEncoder1CountsPerSec(){ return encoder1CountsPerSec;}
+
+    private double encoder2CountsPerSec = 0;
+    public void setEncoder2CountsPerSec(double pV){
+        encoder2CountsPerSec = pV;
+    }    
+    public double getEncoder2CountsPerSec(){ return encoder2CountsPerSec;}
 
     //length of the end stop at the "toward" end of the unit
     //if the away laser triggers on the start of this instead of the start of
@@ -214,18 +240,51 @@ public double convertEncoder2CountsToInches(int pCounts)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// EncoderValues::setEncodersInchesPerCount
+// EncoderValues::setEncoderCalValues
 //
-// Sets the inches per count value for both encoders.
+// Sets the various values which are related to calibration.
 //
 
-public void setEncodersInchesPerCount(double pEncoder1, double pEncoder2)
+public void setEncoderCalValues(EncoderCalValues pEncoderCalValues)
+    
 {
 
-    encoder1InchesPerCount = pEncoder1;
-    encoder2InchesPerCount = pEncoder2;
+    encoder1CountsPerInch = pEncoderCalValues.encoder1CountsPerInch;    
+    encoder1InchesPerCount = pEncoderCalValues.encoder1InchesPerCount;
+    encoder1CountsPerRev = pEncoderCalValues.encoder1CountsPerRev;    
+    encoder1CountsPerSec = pEncoderCalValues.encoder1CountsPerSec;
 
-}//end of EncoderValues::setEncodersInchesPerCount
+    encoder2CountsPerInch = pEncoderCalValues.encoder2CountsPerInch;    
+    encoder2InchesPerCount = pEncoderCalValues.encoder2InchesPerCount;
+    encoder2CountsPerRev = pEncoderCalValues.encoder2CountsPerRev;        
+    encoder2CountsPerSec = pEncoderCalValues.encoder2CountsPerSec;
+    
+}//end of EncoderValues::setEncoderCalValues
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// EncoderValues::getEncoderCalValues
+//
+// Returns all encoder calibrations via pEncoderCalValues. The function itself
+// returns a reference to pEncoderValues.
+//
+
+public EncoderCalValues getEncoderCalValues(EncoderCalValues pEncoderCalValues)
+{
+ 
+    pEncoderCalValues.encoder1CountsPerInch = encoder1CountsPerInch;
+    pEncoderCalValues.encoder1InchesPerCount = encoder1InchesPerCount;
+    pEncoderCalValues.encoder1CountsPerRev = encoder1CountsPerRev;    
+    pEncoderCalValues.encoder1CountsPerSec = encoder1CountsPerSec;
+
+    pEncoderCalValues.encoder2CountsPerInch = encoder2CountsPerInch;
+    pEncoderCalValues.encoder2InchesPerCount = encoder2InchesPerCount;
+    pEncoderCalValues.encoder2CountsPerRev = encoder2CountsPerRev;        
+    pEncoderCalValues.encoder2CountsPerSec = encoder2CountsPerSec;
+            
+    return(pEncoderCalValues);
+    
+}//end of EncoderValues::getEncoderCalValues
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -488,19 +547,36 @@ public void loadCalFile(IniFile pCalFile)
     double encoderInchesPerCount;
     
     encoderInchesPerCount = pCalFile.readDouble("Hardware",
-                            "Encoder 1 Inches Per Count", Double.MIN_VALUE );
+                            "Encoder 1 Inches per Count", Double.MIN_VALUE );
     
     if(encoderInchesPerCount != Double.MIN_VALUE){
         encoder1InchesPerCount = encoderInchesPerCount;
     }
     
     encoderInchesPerCount = pCalFile.readDouble("Hardware",
-                            "Encoder 2 Inches Per Count", Double.MIN_VALUE );
+                            "Encoder 2 Inches per Count", Double.MIN_VALUE );
 
     if(encoderInchesPerCount != Double.MIN_VALUE){
         encoder2InchesPerCount = encoderInchesPerCount;
     }
 
+    encoder1CountsPerInch = pCalFile.readDouble("Hardware",
+                                            "Encoder 1 Counts per Inch", -1.0);
+
+    encoder2CountsPerInch = pCalFile.readDouble("Hardware",
+                                            "Encoder 2 Counts per Inch", -1.0);
+
+    encoder1CountsPerRev = pCalFile.readDouble("Hardware",
+                                        "Encoder 1 Counts per Revolution", -1);
+
+    encoder2CountsPerRev = pCalFile.readDouble("Hardware",
+                                        "Encoder 2 Counts per Revolution", -1);
+        
+    encoder1CountsPerSec = pCalFile.readDouble("Hardware",
+                                            "Encoder 1 Counts per Second", -1);
+
+    encoder2CountsPerSec = pCalFile.readDouble("Hardware",
+                                            "Encoder 2 Counts per Second", -1);
     
 }//end of EncoderValues::loadCalFile
 //-----------------------------------------------------------------------------
@@ -518,11 +594,29 @@ public void loadCalFile(IniFile pCalFile)
 public void saveCalFile(IniFile pCalFile)
 {
 
-    pCalFile.writeDouble("Hardware", "Encoder 1 Inches Per Count",
+    pCalFile.writeDouble("Hardware", "Encoder 1 Inches per Count",
                                                     encoder1InchesPerCount);
     
-    pCalFile.writeDouble("Hardware", "Encoder 2 Inches Per Count",
+    pCalFile.writeDouble("Hardware", "Encoder 2 Inches per Count",
                                                     encoder2InchesPerCount);
+
+    pCalFile.writeDouble("Hardware", "Encoder 1 Counts per Inch", 
+                                                        encoder1CountsPerInch);
+
+     pCalFile.writeDouble("Hardware", "Encoder 2 Counts per Inch", 
+                                                        encoder2CountsPerInch);
+
+    pCalFile.writeDouble("Hardware",
+                      "Encoder 1 Counts per Revolution", encoder1CountsPerRev);
+
+    pCalFile.writeDouble("Hardware",
+                      "Encoder 2 Counts per Revolution", encoder2CountsPerRev);
+          
+    pCalFile.writeDouble("Hardware", "Encoder 1 Counts per Second",
+                                                        encoder1CountsPerSec);
+    
+    pCalFile.writeDouble("Hardware", "Encoder 2 Counts per Second",
+                                                        encoder2CountsPerSec);
 
 }//end of EncoderValues::saveCalFile
 //-----------------------------------------------------------------------------
