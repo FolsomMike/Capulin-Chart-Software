@@ -100,18 +100,23 @@ public class EncoderValues extends Object{
         
     public double endStopLength = 0;
     
-    public double photoEye1DistanceFrontOfHead1 = 0;
-    public double photoEye1DistanceFrontOfHead2 = 0;
-    public double photoEye1DistanceFrontOfHead3 = 0;    
-    
-    public double photoEye2DistanceFrontOfHead1 = 0;
-    public double photoEye2DistanceFrontOfHead2 = 0;
-    public double photoEye2DistanceFrontOfHead3 = 0;
-    
+    public int numHeads = 3;
+    public double photoEye1DistanceFrontOfHead[] = new double[numHeads];
+    public double photoEye2DistanceFrontOfHead[] = new double[numHeads];    
+        
     double photoEye1DistanceToEncoder1;
     double photoEye1DistanceToEncoder2;
     double photoEye1DistanceToMarker;
     double distanceAfterEncoder2ToSwitchEncoders;
+        
+    private double markerTimeAdjustSpeedRatio = 0.0;
+
+    public void setMarkerTimeAdjustSpeedRatio(double pV){
+        markerTimeAdjustSpeedRatio = pV;
+    }    
+    public double getMarkerTimeAdjustSpeedRatio(){ 
+        return markerTimeAdjustSpeedRatio;
+    }
         
 //-----------------------------------------------------------------------------
 // EncoderValues::EncoderValues (constructor)
@@ -133,7 +138,13 @@ public EncoderValues()
 public void init()
 {
 
-
+    for(int i=0; i<numHeads; i++){
+        
+        photoEye1DistanceFrontOfHead[i] = 0.0;
+        photoEye2DistanceFrontOfHead[i] = 0.0;
+    
+    }
+    
 }//end of EncoderValues::init
 //-----------------------------------------------------------------------------
 
@@ -635,22 +646,22 @@ public void configure(IniFile pConfigFile)
     
     endStopLength = pConfigFile.readDouble("Hardware", "End Stop Length", 0.0);
         
-    photoEye1DistanceFrontOfHead1 = pConfigFile.readDouble("Hardware",
+    photoEye1DistanceFrontOfHead[0] = pConfigFile.readDouble("Hardware",
                           "Photo Eye 1 Distance to Front Edge of Head 1", 8.0);
 
-    photoEye1DistanceFrontOfHead2 = pConfigFile.readDouble("Hardware",
+    photoEye1DistanceFrontOfHead[1] = pConfigFile.readDouble("Hardware",
                          "Photo Eye 1 Distance to Front Edge of Head 2", 32.0);
 
-    photoEye1DistanceFrontOfHead3 = pConfigFile.readDouble("Hardware",
+    photoEye1DistanceFrontOfHead[2] = pConfigFile.readDouble("Hardware",
                          "Photo Eye 1 Distance to Front Edge of Head 3", 56.0);
 
-    photoEye2DistanceFrontOfHead1 = pConfigFile.readDouble("Hardware",
+    photoEye2DistanceFrontOfHead[0] = pConfigFile.readDouble("Hardware",
                          "Photo Eye 2 Distance to Front Edge of Head 1", 46.0);
 
-    photoEye2DistanceFrontOfHead2 = pConfigFile.readDouble("Hardware",
+    photoEye2DistanceFrontOfHead[1] = pConfigFile.readDouble("Hardware",
                          "Photo Eye 2 Distance to Front Edge of Head 2", 22.0);
 
-    photoEye2DistanceFrontOfHead3 = pConfigFile.readDouble("Hardware",
+    photoEye2DistanceFrontOfHead[2] = pConfigFile.readDouble("Hardware",
                          "Photo Eye 2 Distance to Front Edge of Head 3", 16.0);
         
     photoEye1DistanceToEncoder1 = pConfigFile.readDouble("Hardware",
@@ -679,6 +690,9 @@ public void configure(IniFile pConfigFile)
     encoder2InchesPerCount =
         pConfigFile.readDouble("Hardware", "Encoder 2 Inches Per Count", 0.003);
 
+    markerTimeAdjustSpeedRatio = pConfigFile.readDouble(
+                            "Hardware", "Marker Time Adjust Speed Ratio", 0.1);    
+            
 }//end of EncoderValues::configure
 //-----------------------------------------------------------------------------
 

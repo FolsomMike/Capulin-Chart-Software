@@ -39,7 +39,6 @@ public class AnalogPCIDAS6023 extends Object implements HardwareLink{
 
     String boardName = "CBIncPCIBoard";
     IniFile configFile;
-    int numberOfAnalogChannels;
 
     boolean simulationMode = false;
     int[] simData;
@@ -58,14 +57,13 @@ public class AnalogPCIDAS6023 extends Object implements HardwareLink{
 // If pSimulationMode is true, signals will be simulated.
 
 AnalogPCIDAS6023(IniFile pConfigFile, boolean pSimulationMode,
-                              int pNumberOfAnalogChannels, HardwareVars pHdwVs)
+                                                        HardwareVars pHdwVs)
 {
 
     configFile = pConfigFile; simulationMode = pSimulationMode;
-    numberOfAnalogChannels = pNumberOfAnalogChannels;
     hdwVs = pHdwVs;
 
-    simData = new int[numberOfAnalogChannels];
+    simData = new int[10]; //wip mks -- load number of analog channels from config file and use here
     for(int i=0; i<simData.length; i++) {simData[i] = -1;}
 
     //load configuration settings
@@ -1083,6 +1081,22 @@ public void requestAllEncoderValues()
 {
     
 }//end of AnalogPCIDAS6023::requestAllEncoderValues
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// AnalogPCIDAS6023::setChannelsEncoderCountDistanceToMarker
+//
+// Calculates the distance in encoder counts from each channel to the marker.
+// The counts are adjusted based on the counts/sec to include a time offset
+// to account for delays.
+//
+
+@Override
+public void setChannelsEncoderCountDistanceToMarker(
+                                                  EncoderValues pEncoderValues)
+{
+    
+}//end of AnalogPCIDAS6023::setChannelsEncoderCountDistanceToMarker()
 //-----------------------------------------------------------------------------
 
 }//end of class AnalogPCIDAS6023

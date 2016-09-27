@@ -1625,6 +1625,8 @@ public void transferEncoderCalDataToHardware()
     hardware.setEncoderCalValues(
                       encoderCalibrator.getEncoderCalValues(encoderCalValues));
         
+    hardware.setChannelsEncoderCountDistanceToMarker();
+    
 }//end of Main::transferEncoderCalDataToHardware
 //-----------------------------------------------------------------------------
 

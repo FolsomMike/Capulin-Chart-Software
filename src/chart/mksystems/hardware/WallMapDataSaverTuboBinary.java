@@ -903,21 +903,20 @@ private void calculateEndOfInspectionDistances()
     
     //choose encoder position and distances based on which head holds
     //leading sensor in "Go Away From Home" direction
-    if (mapSourceBoards[3].utBoard.headForMapDataSensor == 1){
+        
+    int mapHeadNum = mapSourceBoards[3].utBoard.headForMapDataSensor;
+    
+    photoEye1DistanceFrontOfHead = 
+                      encoderValues.photoEye1DistanceFrontOfHead[mapHeadNum-1];
+    
+    if (mapHeadNum == 1){
         encoderPosAtHeadDownSignal = encoderValues.encoderPosAtHead1DownSignal;
-        photoEye1DistanceFrontOfHead = 
-                                    encoderValues.photoEye1DistanceFrontOfHead1;
-    }else if (mapSourceBoards[3].utBoard.headForMapDataSensor == 2){
+    }else if (mapHeadNum == 2){
         encoderPosAtHeadDownSignal = encoderValues.encoderPosAtHead2DownSignal;
-        photoEye1DistanceFrontOfHead = 
-                                    encoderValues.photoEye1DistanceFrontOfHead2;        
     }else {
         encoderPosAtHeadDownSignal = encoderValues.encoderPosAtHead3DownSignal;
-        photoEye1DistanceFrontOfHead = 
-                                    encoderValues.photoEye1DistanceFrontOfHead3;        
     }    
     
-        
     //calculate position in inches of the leading mapping transducer from the
     //end of the tube when its head begins inspection for "Go Away From Home"
     //direction
@@ -945,18 +944,18 @@ private void calculateEndOfInspectionDistances()
     
     //choose encoder position and distances based on which head holds
     //leading sensor in "Go Home" direction
-    if (mapSourceBoards[0].utBoard.headForMapDataSensor == 1){
+    
+    mapHeadNum = mapSourceBoards[0].utBoard.headForMapDataSensor;
+    
+    photoEye1DistanceFrontOfHead = 
+                       encoderValues.photoEye1DistanceFrontOfHead[mapHeadNum-1];
+    
+    if (mapHeadNum == 1){
         encoderPosAtHeadUpSignal = encoderValues.encoderPosAtHead1UpSignal;
-        photoEye1DistanceFrontOfHead = 
-                                    encoderValues.photoEye1DistanceFrontOfHead1;
-    }else if (mapSourceBoards[0].utBoard.headForMapDataSensor == 2) {
+    }else if (mapHeadNum == 2) {
         encoderPosAtHeadUpSignal = encoderValues.encoderPosAtHead2UpSignal;
-        photoEye1DistanceFrontOfHead = 
-                                    encoderValues.photoEye1DistanceFrontOfHead2;        
     }else {
         encoderPosAtHeadUpSignal = encoderValues.encoderPosAtHead3UpSignal;
-        photoEye1DistanceFrontOfHead = 
-                                    encoderValues.photoEye1DistanceFrontOfHead3;        
     }
     
     double awayXOffset =

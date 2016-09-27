@@ -69,7 +69,6 @@ public class Hardware extends Object implements TraceValueCalculator, Runnable,
     IniFile configFile;
     HardwareLink analogDriver;
     HardwareLink digitalDriver;
-    int numberOfAnalogChannels;
     JTextArea log;
     int scanRateCounter;
 
@@ -171,11 +170,6 @@ private void configure(IniFile pConfigFile)
 
     digitalDriverName = pConfigFile.readString(
                     "Hardware", "Digital Input Driver Name", "PCI-QUAD04");
-
-    numberOfAnalogChannels = pConfigFile.readInt(
-                                "Hardware", "Number of Analog Channels", 50);
-
-    if (numberOfAnalogChannels > 100) {numberOfAnalogChannels = 100;}
         
     settings.awayFromHome =
         pConfigFile.readString(
@@ -245,13 +239,13 @@ private void createAnalogDriver(String pDriverName)
 
     if (pDriverName.equalsIgnoreCase("PCI-DAS6023")) {
         analogDriver =
-        new AnalogPCIDAS6023(configFile, true, numberOfAnalogChannels, hdwVs);
+        new AnalogPCIDAS6023(configFile, true, hdwVs);
         analogDriver.init();
     }
 
     if (pDriverName.equalsIgnoreCase("Capulin 1")) {
         analogDriver =
-        new Capulin1(configFile, settings, true, numberOfAnalogChannels, hdwVs,
+        new Capulin1(configFile, settings, true, hdwVs,
                           log, settings.jobFileFormat, Settings.mainFileFormat);
         analogDriver.init();
     }
@@ -334,38 +328,23 @@ void calculateTraceOffsetDelays()
                 int nTr = chartGroup.getStripChart(sc).getNumberOfPlotters();
                 for (int tr = 0; tr < nTr; tr++) {
                     plotterPtr = chartGroup.getStripChart(sc).getPlotter(tr);
-                    if ((plotterPtr != null) && (plotterPtr.headNum == 1)){
+                    if (plotterPtr != null){
+                        double photoEye1DistanceFrontOfHead = 
+                            hdwVs.encoderValues.photoEye1DistanceFrontOfHead[
+                                                          plotterPtr.headNum-1];
+                        double photoEye2DistanceFrontOfHead = 
+                            hdwVs.encoderValues.photoEye2DistanceFrontOfHead[
+                                                          plotterPtr.headNum-1];
                         plotterPtr.startFwdDelayDistance =
                             hdwVs.encoderValues.endStopLength +
-                            hdwVs.encoderValues.photoEye1DistanceFrontOfHead1
+                            photoEye1DistanceFrontOfHead
                             + plotterPtr.distanceSensorToFrontEdgeOfHead;
                         
                         plotterPtr.startRevDelayDistance =
-                            hdwVs.encoderValues.photoEye2DistanceFrontOfHead1 -
+                            photoEye2DistanceFrontOfHead -
                             plotterPtr.distanceSensorToFrontEdgeOfHead;
                         
-                    }//if ((tracePtr != null) && (tracePtr.head == 1))
-                    if ((plotterPtr != null) && (plotterPtr.headNum == 2)){
-                        plotterPtr.startFwdDelayDistance =
-                            hdwVs.encoderValues.endStopLength +
-                            hdwVs.encoderValues.photoEye1DistanceFrontOfHead2
-                            + plotterPtr.distanceSensorToFrontEdgeOfHead;
-
-                        plotterPtr.startRevDelayDistance =
-                            hdwVs.encoderValues.photoEye2DistanceFrontOfHead2 -
-                            plotterPtr.distanceSensorToFrontEdgeOfHead;
-                        
-                    }//if ((tracePtr != null) && (tracePtr.head == 2))
-                    if ((plotterPtr != null) && (plotterPtr.headNum == 3)){
-                        plotterPtr.startFwdDelayDistance =
-                            hdwVs.encoderValues.endStopLength +
-                            hdwVs.encoderValues.photoEye1DistanceFrontOfHead3
-                            + plotterPtr.distanceSensorToFrontEdgeOfHead;
-                        
-                        plotterPtr.startRevDelayDistance =
-                            hdwVs.encoderValues.photoEye2DistanceFrontOfHead3 -
-                            plotterPtr.distanceSensorToFrontEdgeOfHead;                        
-                    }//if ((tracePtr != null) && (tracePtr.head == 3))
+                    }//if ((tracePtr != null)
                 } //for (int tr = 0; tr < nTr; tr++)
             } //for (int sc = 0; sc < nSC; sc++)
         } //for (int cg = 0; cg < chartGroups.length; cg++)
@@ -448,6 +427,8 @@ public void loadCalFile(IniFile pCalFile)
     
     analogDriver.loadCalFile(pCalFile);
 
+    setChannelsEncoderCountDistanceToMarker();
+    
 }//end of Hardware::loadCalFile
 //-----------------------------------------------------------------------------
 
@@ -2293,6 +2274,22 @@ public EncoderCalValues getEncoderCalValues(EncoderCalValues pEncoderCalValues)
     return(pEncoderCalValues);
     
 }//end of Hardware::getEncoderCalValues
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::setChannelsEncoderCountDistanceToMarker
+//
+// Calculates the distance in encoder counts from each channel to the marker.
+// The counts are adjusted based on the counts/sec to include a time offset
+// to account for delays.
+//
+
+public void setChannelsEncoderCountDistanceToMarker()
+{
+
+    analogDriver.setChannelsEncoderCountDistanceToMarker(hdwVs.encoderValues);
+    
+}//end of Hardware::setChannelsEncoderCountDistanceToMarker()
 //-----------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------

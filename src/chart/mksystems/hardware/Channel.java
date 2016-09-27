@@ -112,7 +112,7 @@ public class Channel extends Object{
 
     int headNum = -1;
     public double distanceSensorToFrontEdgeOfHead = -1;
-    int distanceAdjustmentForSensorToMarker = -1;
+    double timeAdjustmentForSensorToMarker = -1;
     double distanceToMarkerInInches;
     int encoderCountsToMarker;
     
@@ -2079,8 +2079,8 @@ private void configure(IniFile pConfigFile)
     distanceSensorToFrontEdgeOfHead = pConfigFile.readDouble(whichChannel,
                               "Distance From Sensor to Front Edge of Head", 10);
 
-    distanceAdjustmentForSensorToMarker = pConfigFile.readInt(whichChannel,
-                              "Distance Adjustment for Sensor to Marker", 0);
+    timeAdjustmentForSensorToMarker = pConfigFile.readDouble(whichChannel,
+                              "Time Adjustment for Sensor to Marker", 0.0);
         
     enabled = pConfigFile.readBoolean(whichChannel, "Enabled", true);
 
@@ -2132,10 +2132,10 @@ private void configureUTGates()
             gates[i] =
                     new UTGate(channelNum, i, syncedVarMgr);
             gates[i].init(); 
-            calculateDistancesToMarker();
             gates[i].configure(configFile, headNum, channelNum, 
                      distanceSensorToFrontEdgeOfHead, distanceToMarkerInInches,
                                                         encoderCountsToMarker);
+
         }
 
     }//if (numberOfGates > 0)
@@ -2144,22 +2144,38 @@ private void configureUTGates()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Channel::calculateDistancesToMarker
+// Channel::calculateDistanceToMarker
 //
 // Calculates the distance from the sensor to the marker in inches and encoder
 // counts.
 //
+// wip mks -- need to calculate two sets of values -- one for encoder 1 and one
+// for encoder 2? Units which must switch between encoders will need this.
+//
 
-private void calculateDistancesToMarker()
+public void calculateDistanceToMarker(EncoderValues pEncoderValues)
 {
 
-    // debug mks -- currently, the adjustment value is used for the distance
-    // this allows the marker distance to be set independently of the
-    // linear location of the sensor to allow for marker spray delays
+    //calculate distance in inches from the sensor to the marker
     
-    encoderCountsToMarker = distanceAdjustmentForSensorToMarker;
+    double distanceSensorToMarker = 
+            pEncoderValues.photoEye1DistanceToMarker
+            - pEncoderValues.photoEye1DistanceFrontOfHead[headNum-1]
+            - distanceSensorToFrontEdgeOfHead;
+                
+    //convert to encoder counts
     
-}//end of Channel::calculateDistancesToMarker
+    encoderCountsToMarker = 
+      (int)(distanceSensorToMarker * pEncoderValues.getEncoder1CountsPerInch());
+    
+    //add a time shift (could be positive or [usually] negative) to account for
+    //surface speed and time delays of communication and marker action
+    
+    encoderCountsToMarker += 
+         pEncoderValues.getEncoder1CountsPerSec() 
+            * pEncoderValues.getMarkerTimeAdjustSpeedRatio();
+    
+}//end of Channel::calculateDistanceToMarker
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

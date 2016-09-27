@@ -99,7 +99,6 @@ public class Capulin1 extends Object implements HardwareLink, MessageLink{
     IniFile configFile;
     HardwareVars hdwVs;
     boolean simulationMode = false;
-    int numberOfAnalogChannels;
 
     Channel[] channels;
     public int numberOfChannels;
@@ -143,14 +142,13 @@ public class Capulin1 extends Object implements HardwareLink, MessageLink{
 //
 
 Capulin1(IniFile pConfigFile, Settings pSettings, boolean pSimulationMode,
-               int pNumberOfAnalogChannels, HardwareVars pHdwVs, JTextArea pLog,
+               HardwareVars pHdwVs, JTextArea pLog,
                String pJobFileFormat, String pMainFileFormat)
 
 {
 
     configFile = pConfigFile; settings = pSettings;
     simulationMode = pSimulationMode;
-    numberOfAnalogChannels = pNumberOfAnalogChannels;
     hdwVs = pHdwVs;
     log = pLog;
     jobFileFormat = pJobFileFormat;
@@ -231,11 +229,11 @@ private void configure(IniFile pConfigFile)
 
     numberOfChannels =
                 pConfigFile.readInt("Hardware", "Number of Analog Channels", 1);
+    
+    if (numberOfChannels > 1500) {numberOfChannels = 1500;}    
 
     fpgaCodeFilename = pConfigFile.readString(
                         "Hardware", "UT FPGA Code Filename", "not specified");
-
-    if (numberOfChannels > 1500) {numberOfUTBoards = 1500;}
 
     String value = pConfigFile.readString(
                          "Data Output", "Wall Map File Format", "IRNDT Text");
@@ -1751,6 +1749,28 @@ public void turnOffAudibleAlarm()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Capulin1::setChannelsEncoderCountDistanceToMarker
+//
+// Calculates the distance in encoder counts from each channel to the marker.
+// The counts are adjusted based on the counts/sec to include a time offset
+// to account for delays.
+//
+// In the future, multiple marker positions should be accounted for.
+//
+
+@Override
+public void setChannelsEncoderCountDistanceToMarker(
+                                                  EncoderValues pEncoderValues)
+{
+
+    for(Channel channel : channels){
+        channel.calculateDistanceToMarker(pEncoderValues);
+    }
+    
+}//end of Capulin1::setChannelsEncoderCountDistanceToMarker()
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Capulin1::requestAllEncoderValues
 //
 // Requests a packet from the remote with all encoder values saved at different
@@ -3151,43 +3171,20 @@ public void calculateMapOffsetDelays()
     
     for (MapSourceBoard mapSourceBoard : mapSourceBoards) {
         UTBoard utBoard = mapSourceBoard.utBoard;
-        if (utBoard != null && utBoard.headForMapDataSensor == 1){
-
+        if (utBoard != null){
+            
             utBoard.startFwdDelayDistance = 
                     hdwVs.encoderValues.endStopLength + 
-                    hdwVs.encoderValues.photoEye1DistanceFrontOfHead1
+                    hdwVs.encoderValues.photoEye1DistanceFrontOfHead[
+                                                utBoard.headForMapDataSensor-1]
                     + utBoard.distanceMapSensorToFrontEdgeOfHead;
 
             utBoard.startRevDelayDistance = 
-                    hdwVs.encoderValues.photoEye2DistanceFrontOfHead1 -
-                    utBoard.distanceMapSensorToFrontEdgeOfHead;
+                    hdwVs.encoderValues.photoEye2DistanceFrontOfHead[
+                                                utBoard.headForMapDataSensor-1]
+                    - utBoard.distanceMapSensorToFrontEdgeOfHead;
 
-        }//if (utBoard != null && utBoard.headForMapDataSensor == 1)
-        else if (utBoard != null && utBoard.headForMapDataSensor == 2){
-
-                utBoard.startFwdDelayDistance = 
-                        hdwVs.encoderValues.endStopLength + 
-                        hdwVs.encoderValues.photoEye1DistanceFrontOfHead2
-                        + utBoard.distanceMapSensorToFrontEdgeOfHead;
-
-                utBoard.startRevDelayDistance = 
-                        hdwVs.encoderValues.photoEye2DistanceFrontOfHead2
-                        - utBoard.distanceMapSensorToFrontEdgeOfHead;
-
-        }//if (utBoard != null && utBoard.headForMapDataSensor == 2)
-        else if (utBoard != null && utBoard.headForMapDataSensor == 3){
-
-                utBoard.startFwdDelayDistance = 
-                        hdwVs.encoderValues.endStopLength + 
-                        hdwVs.encoderValues.photoEye1DistanceFrontOfHead3
-                        + utBoard.distanceMapSensorToFrontEdgeOfHead;
-
-                utBoard.startRevDelayDistance = 
-                        hdwVs.encoderValues.photoEye2DistanceFrontOfHead3
-                        - utBoard.distanceMapSensorToFrontEdgeOfHead;
-
-            }//if (utBoard != null && utBoard.headForMapDataSensor == 3)
-
+        }//if (utBoard != null)
     } //for (int i = 0; i < mapSourceBoards.length; i++)
 
 }//end of Capulin1::calculateMapOffsetDelays();

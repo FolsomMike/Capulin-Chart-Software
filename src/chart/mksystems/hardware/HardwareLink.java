@@ -171,6 +171,10 @@ public void setDataBufferIsEnabled(boolean pState);
 
 public void requestAllEncoderValues();
 
+public void setChannelsEncoderCountDistanceToMarker(
+                                                  EncoderValues pEncoderValues);
+
+
 }//end of interface HardwareLink
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
