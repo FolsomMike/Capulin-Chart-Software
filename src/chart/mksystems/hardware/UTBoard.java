@@ -319,6 +319,7 @@ public class UTBoard extends Board{
 
         byte delayReg0, delayReg1, delayReg2, delayReg3;
         byte ducerSetupReg;
+        byte dcOffsetReg;
         byte countReg0, countReg1, countReg2;
         byte bufStart0, bufStart1, bufStart2;
 
@@ -510,6 +511,9 @@ public class UTBoard extends Board{
 
     static byte CHASSIS_SLOT_ADDRESS = 0x08;
 
+    static byte STATUS1_REG = 0x19; //HPI1 ready, Pulse Sync, Pulse Sync Reset
+    static byte STATUS2_REG = 0x1a; //HPI2 ready, Track Sync, Track Sync Reset
+        
     static byte CH1_SAMPLE_DELAY_0 = 0x1b;
     static byte CH1_SAMPLE_DELAY_1 = 0x1c;
     static byte CH1_SAMPLE_DELAY_2 = 0x1d;
@@ -574,18 +578,20 @@ public class UTBoard extends Board{
     static byte TRIG_WIDTH_2_REG = 0x4a;
     static byte TRIG_WIDTH_3_REG = 0x4b;
 
+    static byte PROGRAMMABLE_GAIN_CH1_CH2 = 0x4c;
+    static byte PROGRAMMABLE_GAIN_CH3_CH4 = 0x4d;
+        
     static byte PULSE_DELAY_0_REG = 0x50;
     static byte PULSE_DELAY_1_REG = 0x51;
 
     static byte SYNC_WIDTH_0_REG = 0x6e;
     static byte SYNC_WIDTH_1_REG = 0x6f;
 
-    static byte PROGRAMMABLE_GAIN_CH1_CH2 = 0x4c;
-    static byte PROGRAMMABLE_GAIN_CH3_CH4 = 0x4d;
-
-    static byte STATUS1_REG = 0x19; //HPI1 ready, Pulse Sync, Pulse Sync Reset
-    static byte STATUS2_REG = 0x1a; //HPI2 ready, Track Sync, Track Sync Reset
-
+    static byte CH1_DC_OFFSET_REG = (byte)0x70;
+    static byte CH2_DC_OFFSET_REG = (byte)0x71;
+    static byte CH3_DC_OFFSET_REG = (byte)0x72;
+    static byte CH4_DC_OFFSET_REG = (byte)0x73;
+    
     //FPGA Master Control Register Bit Masks for the UT Board
 
     static byte SETUP_RUN_MODE = 0x01;
@@ -793,6 +799,11 @@ private void setupBoardChannels() {
     bdChs[2].ducerSetupReg = DUCER_SETUP_3_REG;
     bdChs[3].ducerSetupReg = DUCER_SETUP_4_REG;
 
+    bdChs[0].dcOffsetReg = CH1_DC_OFFSET_REG;
+    bdChs[1].dcOffsetReg = CH2_DC_OFFSET_REG;
+    bdChs[2].dcOffsetReg = CH3_DC_OFFSET_REG;
+    bdChs[3].dcOffsetReg = CH4_DC_OFFSET_REG;
+    
 }//end of UTBoard::setupBoardChannels
 //-----------------------------------------------------------------------------
 
@@ -1697,6 +1708,21 @@ public int getRepRateInHertz()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// UTBoard::sendADOffset
+//
+// Writes the offset correction pValue for pChannel to the UT Board's FPGA.
+// -128 >= pValue <= 127
+//
+
+void sendADOffset(int pChannel, byte pValue)
+{
+
+    writeFPGAReg(bdChs[pChannel].dcOffsetReg, (byte)pValue);
+
+}//end of UTBoard::sendADOffset
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // UTBoard::sendTransducer
 //
 // Sends the transducer's pulse on/off, firing bank, and specifies which
@@ -1714,8 +1740,8 @@ void sendTransducer(int pChannel, byte pOnOff, byte pPulseBank,
 
     int setup = pOnOff + (pPulseBank << 1) + (pPulseChannel << 4);
 
-    //   *  Bit 0 : 0 = transducer is inactive, 1 = transducer is active
-    //   * Bits 1:3 : time slot for the transducer see Number of Time Slots
+    //   * Bit  0:0 : transducer is inactive, 1 = transducer is active
+    //   * Bits 1:3 : bank number for the transducer
     //   * Bits 4:7 :specifies channel of pulser to be fired for this transducer
 
     writeFPGAReg(bdChs[pChannel].ducerSetupReg, (byte)setup);
@@ -1901,8 +1927,8 @@ void setRejectLevel(int pChannel, int pRejectLevel)
 void sendDCOffset(int pChannel, int pDCOffset)
 {
 
-//wip mks - add code to send DC offset to the FPGA or the DSP
-
+    writeFPGAReg(bdChs[pChannel].ducerSetupReg, (byte)pDCOffset);
+    
 }//end of UTBoard::sendDCOffset
 //-----------------------------------------------------------------------------
 

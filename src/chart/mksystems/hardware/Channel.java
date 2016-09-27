@@ -95,10 +95,10 @@ public class Channel extends Object{
     public SyncedInteger aScanScale;
     SyncedDouble softwareGain;
     SyncedInteger hardwareGain1, hardwareGain2;
+    SyncedInteger dcOffset;
     SyncedIntArray filter;
     int rejectLevel;
     SyncedInteger aScanSmoothing;
-    int dcOffset;
     public double nSPerDataPoint;
     public double uSPerDataPoint;
     public double nSPerPixel; //used by outside classes
@@ -154,6 +154,7 @@ public Channel(IniFile pConfigFile, Settings pSettings, int pChannelNum,
     softwareGain = new SyncedDouble(syncedVarMgr); softwareGain.init();
     hardwareGain1 = new SyncedInteger(syncedVarMgr); hardwareGain1.init();
     hardwareGain2 = new SyncedInteger(syncedVarMgr); hardwareGain2.init();
+    dcOffset = new SyncedInteger(syncedVarMgr); dcOffset.init();    
     aScanSmoothing = new SyncedInteger(syncedVarMgr); aScanSmoothing.init();
     dspControlFlags = new SyncedShortInt(syncedVarMgr); dspControlFlags.init();
     mode = new SyncedInteger(syncedVarMgr); mode.init();
@@ -232,7 +233,7 @@ public void initialize()
     //NOTE: If some but not all channels in a system have interface tracking,
     // using "Copy to All" will copy the interface tracking setting to all
     // channels. This will disable the channels without an interface gate
-    // the progam is restarted and this piece of code gets executed.
+    // until the progam is restarted and this piece of code gets executed.
 
     if (!interfaceGatePresent) {interfaceTracking = false;}
 
@@ -257,7 +258,6 @@ public void initialize()
     //setup various things
     setAScanSmoothing(aScanSmoothing.getValue(), true);
     setRejectLevel(rejectLevel, true);
-    setDCOffset(dcOffset, true);
     setMode(mode.getValue(), true);  //setMode also calls setTransducer
     setInterfaceTracking(interfaceTracking, true);
     setDelay(aScanDelay, true);
@@ -1442,25 +1442,16 @@ public void sendAScanSmoothing()
 //-----------------------------------------------------------------------------
 // Channel::setDCOffset
 //
-// Sets the DC offset.
+// Sets the DC offset to account for any offset in the electronics.
+//
+// If pForceUpdate is true, the value(s) will always be sent to the remote.  If
+// the flag is false, the value(s) will be sent only if they have changed.
 //
 
 public void setDCOffset(int pDCOffset, boolean pForceUpdate)
 {
 
-    if (pDCOffset != dcOffset) {pForceUpdate = true;}
-
-    dcOffset = pDCOffset;
-
-    //divide the input value by 4.857 mv/Count
-    //AD converter span is 1.2 V, 256 counts
-    //this will give a value of zero offset until input value is +/-5, then it
-    //will equal 1 - the value will only change every 5 or so counts because the
-    //AD resolution is 4+ mV and the input value is mV
-
-    if (utBoard != null && pForceUpdate) {
-        utBoard.sendDCOffset(boardChannel, (int)(dcOffset / 4.6875));
-    }
+    dcOffset.setValue(pDCOffset, pForceUpdate);    
 
 }//end of Channel::setDCOffset
 //-----------------------------------------------------------------------------
@@ -1474,7 +1465,7 @@ public void setDCOffset(int pDCOffset, boolean pForceUpdate)
 public int getDCOffset()
 {
 
-    return dcOffset;
+    return dcOffset.getValue();
 
 }//end of Channel::getDCOffset
 //-----------------------------------------------------------------------------
@@ -1882,6 +1873,22 @@ public int getHardwareGain2()
     return hardwareGain2.getValue();
 
 }//end of Channel::getHardwareGain2
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::sendDCOffset
+//
+// Sends the DC offset to the DSP and/or FPGA.
+//
+
+public void sendDCOffset()
+{
+
+    if (utBoard != null) {
+        utBoard.sendDCOffset(boardChannel, dcOffset.applyValue());
+    }
+
+}//end of Channel::sendDCOffset
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -3041,6 +3048,8 @@ public void sendDataChangesToRemotes()
 
     if (hardwareGain2.getDataChangedFlag()) {sendHardwareGain();}
 
+    if (dcOffset.getDataChangedFlag()) {sendDCOffset();}    
+    
     if (aScanSmoothing.getDataChangedFlag()) {sendAScanSmoothing();}
 
     if (mode.getDataChangedFlag()) {sendMode();}
@@ -3625,6 +3634,7 @@ public void loadCalFile(IniFile pCalFile)
                 pCalFile.readInt(section, "Hardware Gain Stage 1", 2), true);
     hardwareGain2.setValue(
                   pCalFile.readInt(section, "Hardware Gain Stage 2", 1), true);
+    dcOffset.setValue(pCalFile.readInt(section, "DC Offset", 1), true);
     interfaceTracking = pCalFile.readBoolean(
                                         section, "Interface Tracking", false);
     dacEnabled = pCalFile.readBoolean(section, "DAC Enabled", false);
@@ -3680,6 +3690,7 @@ public void saveCalFile(IniFile pCalFile)
                     section, "Hardware Gain Stage 1", hardwareGain1.getValue());
     pCalFile.writeInt(
                     section, "Hardware Gain Stage 2", hardwareGain2.getValue());
+    pCalFile.writeInt(section, "DC Offset", dcOffset.getValue());
     pCalFile.writeBoolean(section, "Interface Tracking", interfaceTracking);
     pCalFile.writeBoolean(section, "DAC Enabled", dacEnabled);
     pCalFile.writeInt(section, "Signal Mode", mode.getValue());
