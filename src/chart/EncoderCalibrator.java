@@ -52,8 +52,8 @@ class EncoderCalibrator extends JDialog implements ActionListener {
     private double encoder1InchesPerCount, encoder2InchesPerCount;
     private double encoder1CountsPerSecInput, encoder2CountsPerSecInput;
     private double encoder1CountsPerSec, encoder2CountsPerSec;
+    private double helix;
     
-
     public double getEncoder1CountsPerInch(){return encoder1CountsPerInch; }
     public double getEncoder2CountsPerInch(){return encoder2CountsPerInch; }    
     public double getEncoder1InchesPerCount(){return encoder1InchesPerCount; }
@@ -78,6 +78,9 @@ class EncoderCalibrator extends JDialog implements ActionListener {
     JLabel encoder1CountsPerSecLbl, encoder2CountsPerSecLbl;
     String encoder1CountsPerSecText, encoder2CountsPerSecText;
 
+    JLabel helixLbl;
+    String helixLblText = "Helix inches/rev: ";
+    
     private JButton linearCalStartBtn, linearCalFinishBtn;
     private JButton rotaryCalStartBtn, rotaryCalFinishBtn;
     
@@ -198,7 +201,7 @@ private void setupOutputPanel(JPanel pPanel)
 
     JPanel panel = new JPanel();
     panel.setBorder(BorderFactory.createTitledBorder("Calculations"));
-    setSizes(panel, 300, 155);
+    setSizes(panel, 300, 185);
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
     panel.setOpaque(true);
     panel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -233,7 +236,13 @@ private void setupOutputPanel(JPanel pPanel)
     encoder2CountsPerSecLbl = new JLabel(encoder2CountsPerSecText);
     encoder2CountsPerSecLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
     panel.add(encoder2CountsPerSecLbl);
-    
+
+    panel.add(Box.createRigidArea(new Dimension(0,10)));//vertical spacer
+
+    helixLbl = new JLabel(helixLblText);
+    helixLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
+    panel.add(helixLbl);
+        
     panel.add(Box.createRigidArea(new Dimension(0,10)));//vertical spacer
         
 }//end of EncoderCalibrator::setupOutputPanel
@@ -646,6 +655,28 @@ public void setEncoderCalValues(EncoderCalValues pEncoderCalValues)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// EncoderCalibrator::calculateHelix
+//
+// Calculates the helical advance rate in inches/rev and returns the values as
+// a string.
+//
+
+private String calculateHelix()
+{
+
+    if (encoder1CountsPerInch > 0 && encoder1CountsPerRev > 0){
+    
+        return(new  DecimalFormat("#.##").format(
+                                encoder1CountsPerRev / encoder1CountsPerInch ));
+                
+    }else{
+        return("");
+    }
+        
+}//end of EncoderCalibrator::calculateHelix
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // EncoderCalibrator::refreshAllLabels
 //
 // Updates all labels with their associated variable values.
@@ -672,6 +703,8 @@ public void refreshAllLabels()
     setLabelWithFormattedValue(encoder2CountsPerSecLbl,
                             encoder2CountsPerSecText, encoder2CountsPerSec);
                 
+    helixLbl.setText(helixLblText + calculateHelix());
+    
 }//end of EncoderCalibrator::refreshAllLabels
 //-----------------------------------------------------------------------------
 
