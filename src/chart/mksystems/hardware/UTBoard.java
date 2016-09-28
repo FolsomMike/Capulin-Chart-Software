@@ -1927,7 +1927,7 @@ void setRejectLevel(int pChannel, int pRejectLevel)
 void sendDCOffset(int pChannel, int pDCOffset)
 {
 
-    writeFPGAReg(bdChs[pChannel].ducerSetupReg, (byte)pDCOffset);
+    writeFPGAReg(bdChs[pChannel].dcOffsetReg, (byte)pDCOffset);
     
 }//end of UTBoard::sendDCOffset
 //-----------------------------------------------------------------------------

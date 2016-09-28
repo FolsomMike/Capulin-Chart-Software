@@ -3634,7 +3634,7 @@ public void loadCalFile(IniFile pCalFile)
                 pCalFile.readInt(section, "Hardware Gain Stage 1", 2), true);
     hardwareGain2.setValue(
                   pCalFile.readInt(section, "Hardware Gain Stage 2", 1), true);
-    dcOffset.setValue(pCalFile.readInt(section, "DC Offset", 1), true);
+    dcOffset.setValue(pCalFile.readInt(section, "DC Offset", 0), true);
     interfaceTracking = pCalFile.readBoolean(
                                         section, "Interface Tracking", false);
     dacEnabled = pCalFile.readBoolean(section, "DAC Enabled", false);
