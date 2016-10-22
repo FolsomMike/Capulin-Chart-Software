@@ -2181,7 +2181,7 @@ public void calculateDistanceToMarker(EncoderValues pEncoderValues)
     encoderCountsToMarker += 
          pEncoderValues.getEncoder1CountsPerSec() 
             * pEncoderValues.getMarkerTimeAdjustSpeedRatio();
-    
+
 }//end of Channel::calculateDistanceToMarker
 //-----------------------------------------------------------------------------
 
@@ -2909,27 +2909,47 @@ public void sendGateHitMiss()
 // Channel::sendDACGateParameters
 //
 // Sends DAC gate start, width, and level to the remotes.
+// All DACs are sent even if some are not changed because the gate starts
+// may all need to be adjusted to handle round-off errors as described:
+//
+// Due to round-off errors, sometimes the start + width of a gate will
+// overrun the start of the following gate after conversion to data points.
+// This causes double gain to be applied to the overrun area. To prevent this,
+// the gate start for every gate after the first one is forced to gate+width
+// of the previous gate. This should only shift the start of each gate by a few
+// data points...each shifted start may cause the following gate to be
+// shifted as well so in certain cases all the gates after the first one may
+// be shifted. It would be better to adjust the widths of the previous gate,
+// but it is easier to adjust the start of the following gate since the previous
+// gate parameters have already been transmitted when the values for the
+// following gate are computed.
 //
 
 public void sendDACGateParameters()
 {
+
+    if (utBoard == null){ return; }
+
+    int nextGateStart = 0, gateStart, gateWidth;
 
     //unknown which gate(s) have changed data, so check them all
     //clear the flags even if utBoard is null so they won't be checked again
 
     for (int i = 0; i < numberOfDACGates; i++){
 
-        if (dacGates[i].isPositionChanged()){
+        gateStart = (int)Math.round(dacGates[i].gateStart.applyValue()
+                                                             / uSPerDataPoint);
 
-            if (utBoard != null){
+        gateWidth = (int)Math.round(dacGates[i].gateWidth.applyValue()
+                                                             / uSPerDataPoint);
 
-                utBoard.sendDAC(boardChannel, i,
-                    (int)(dacGates[i].gateStart.applyValue() / uSPerDataPoint),
-                    (int)(dacGates[i].gateWidth.applyValue() / uSPerDataPoint),
-                    dacGates[i].gainForRemote.applyValue());
+        if(i!=0){ gateStart = nextGateStart; }
 
-            }//if (utBoard != null)
-        }//if (dacGates[i].isPositionChanged())
+        nextGateStart = gateStart + gateWidth;
+
+        utBoard.sendDAC(boardChannel, i, gateStart, gateWidth,
+                                       dacGates[i].gainForRemote.applyValue());
+
     }// for (int i = 0; i < numberOfDACGates; i++)
 
 }//end of Channel::sendDACGateParameters
