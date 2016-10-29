@@ -183,7 +183,7 @@ public void init()
     sigProcTuning2 = new SyncedInteger(syncedVarMgr); sigProcTuning2.init();
     sigProcTuning3 = new SyncedInteger(syncedVarMgr); sigProcTuning3.init();
 
-    violationInfo = new ViolationInfo();
+    violationInfo = new ViolationInfo(); violationInfo.init();
 
     //create list of process type which can be applied to the gates
     //WARNING: dont' make text entries into the list too long or it will widen
@@ -1231,8 +1231,7 @@ public void linkPlotters(int pChartGroup, int pChart, int pTrace,
 // 
 
 public void configure(IniFile pConfigFile, int pHeadNum, int pChannelNum,
-      double pDistanceSensorToFrontEdgeOfHead, double pDistanceToMarkerInInches,
-                                                    int pEncoderCountsToMarker)
+      double pDistanceSensorToFrontEdgeOfHead, double pDistanceToMarkerInInches)
         
 {
 
@@ -1267,7 +1266,7 @@ public void configure(IniFile pConfigFile, int pHeadNum, int pChannelNum,
     trace = pConfigFile.readInt(whichGate, "Trace", 0) -1;
 
     violationInfo.configure(pConfigFile, whichGate, pHeadNum,
-                pChannelNum, pDistanceToMarkerInInches, pEncoderCountsToMarker);
+                pChannelNum, pDistanceToMarkerInInches);
 
 }//end of UTGate::configure
 //-----------------------------------------------------------------------------
@@ -1300,6 +1299,21 @@ public ViolationInfo getViolationInfo()
     return(violationInfo);
 
 }//end of UTGate::getViolationInfo
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTGate::createMarkerMessage
+//
+// Creates the message to be sent to the remote device such as a PLC with
+// info related to firing a marker.
+//
+
+public void createMarkerMessage(int pEncoderCountsToMarker)
+{
+
+    violationInfo.createMarkerMessage(pEncoderCountsToMarker);
+
+}//end of UTGate::createMarkerMessage
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

@@ -7,6 +7,13 @@
 *
 * This class encapsulates variables related to violation events, such as
 * exceeding a threshold or other cases which require alarm or marker firing.
+* 
+* It provides a text marker message for sending to a remote marker control
+* device which instructs which marker to fire and the distance to the marker.
+* Each violation object can fire multiple markers, but the marker message only
+* holds distance information for the marker designated as the Primary Marker.
+* If multiple markers are fired, they will fire at the same time as the Primary
+* Marker.
 *
 * Open Source Policy:
 *
@@ -42,6 +49,8 @@ public class ViolationInfo extends Object{
     String markersTriggeredList = "";
     byte markersTriggered = 0;
 
+    int primaryMarker = 0;
+    
     String markerMessage = "";
     
 //-----------------------------------------------------------------------------
@@ -62,18 +71,17 @@ public void init()
 //
 // Loads configuration settings from section pSection in the file pConfigFile.
 //
-// The values pHeadNum, pChannelNum, and pEncoderCountsToMarker are passed in
-// by the owner object to be stored as additional configuration info.
+// The values pHeadNum and pChannelNum are passed in by the owner object to be
+// stored as additional configuration info.
 // 
 
 public void configure(IniFile pConfigFile, String pSection, int pHeadNum,
-  int pChannelNum, double pDistanceToMarkerInInches, int pEncoderCountsToMarker)
+  int pChannelNum, double pDistanceToMarkerInInches)
 {
 
     headNum = pHeadNum;
     channelNum = pChannelNum;
     distanceToMarkerInInches = pDistanceToMarkerInInches;
-    encoderCountsToMarker = pEncoderCountsToMarker;
     
     orientation = pConfigFile.readString(pSection, "Orientation", "???");
 
@@ -85,7 +93,7 @@ public void configure(IniFile pConfigFile, String pSection, int pHeadNum,
 
     markersTriggered = parseListToBits(markersTriggeredList);
 
-    createMarkerMessage();
+    primaryMarker = pConfigFile.readInt(pSection, "Primary Marker", 0);
     
 }//end of ViolationInfo::configure
 //-----------------------------------------------------------------------------
@@ -99,27 +107,37 @@ public void configure(IniFile pConfigFile, String pSection, int pHeadNum,
 // Creating the string in advance saves time over creating it each time it is
 // needed and all the values are unchanging.
 //
+// Note that the string only specifies the distance to the primary marker.
+// If multiple markers are fired, they will all be fired at the same time as
+// the pirmary marker.
+//
 
-public void createMarkerMessage()
+public void createMarkerMessage(int pEncoderCountsToMarker)
 {        
 
-    markerMessage = "*" + postPad(orientation, 3, " ");
+    encoderCountsToMarker = pEncoderCountsToMarker;
+    
+    markerMessage = "^*" + postPad(orientation, 3, " ");
             
     markerMessage = markerMessage + "|" + prePad(""+headNum, 2, "0");
     
-    markerMessage = markerMessage + "|" + prePad(""+channelNum, 3, "0");
+    markerMessage = markerMessage + "|" + prePad(""+500 /*channelNum*/, 3, "0");
  
     //convert distance to tenths of an inch
     int tenths = (int) Math.round(distanceToMarkerInInches * 10);
     
+    tenths = 999; //debug mks
+    
     markerMessage = markerMessage + "|" + prePad(""+tenths, 4, "0");
 
+    encoderCountsToMarker = 10000; //debug mks -- sends same encoder counts value everytime for testing
+    
     markerMessage = markerMessage + "|" + 
                                   prePad(""+encoderCountsToMarker, 5, "0");
     
     markerMessage = markerMessage + "|" + 
                                   prePad(""+markersTriggered, 3, "0");
-
+    
 }//end of ViolationInfo::createMarkerMessage
 //-----------------------------------------------------------------------------
 

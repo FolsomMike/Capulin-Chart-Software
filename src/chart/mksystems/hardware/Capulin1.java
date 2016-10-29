@@ -1764,7 +1764,7 @@ public void setChannelsEncoderCountDistanceToMarker(
 {
 
     for(Channel channel : channels){
-        channel.calculateDistanceToMarker(pEncoderValues);
+        channel.calculateDistanceToMarkerInEncoderCounts(pEncoderValues);
     }
     
 }//end of Capulin1::setChannelsEncoderCountDistanceToMarker()
@@ -2310,7 +2310,8 @@ private void configureChannels()
         channels = new Channel[numberOfChannels];
 
         for (int i = 0; i < numberOfChannels; i++) {
-            channels[i] = new Channel(configFile, settings, i, null);
+            channels[i] = new Channel(
+                        configFile, settings, hdwVs.encoderValues, i, null);
         }
 
     }//if (numberOfChannels > 0)

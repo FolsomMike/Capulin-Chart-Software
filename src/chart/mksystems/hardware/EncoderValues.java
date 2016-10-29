@@ -571,6 +571,11 @@ public void loadCalFile(IniFile pCalFile)
         encoder2InchesPerCount = encoderInchesPerCount;
     }
 
+    //wip mks -- need have a flag in the config file to always use
+    // encoder values from the config and not allow cal file to override?
+    // or store them in a special config file so the unit can be calibrated
+    // only rarely?
+    
     encoder1CountsPerInch = pCalFile.readDouble("Hardware",
                                             "Encoder 1 Counts per Inch", -1.0);
 

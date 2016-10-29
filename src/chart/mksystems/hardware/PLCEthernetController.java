@@ -57,7 +57,7 @@ public class PLCEthernetController {
 
     int messageCount = 0;
 
-    private static final int PLC_MESSAGE_LENGTH = 28;
+    private static final int PLC_MESSAGE_LENGTH = 29;
     
 //-----------------------------------------------------------------------------
 // PLCEthernetController::PLCEthernetController (constructor)
@@ -119,10 +119,38 @@ private void establishLink()
 
     openSocket();
 
-    sendString("@Hello from VScan!        ");
+    sendString("^@Hello from VScan!        ");
 
+/*    
+
+    //debug mks
+    
+    sendString("^@Line 2                  !"); //debug mks
+
+    sendString("^*Line 2.1                !"); //debug mks
+
+    sendString("^*Line 2.1a               !"); //debug mks    
+    
+    sendString("^#Line 2.2                !"); //debug mks
+    
+    sendString("^@Line 3       !"); //debug mks
+    
+    sendString("^@Line 4                  !"); //debug mks
+    
+    sendString("^@Line 5       !"); //debug mks
+    
+    sendString("^@Line 6       !"); //debug mks
+    
+    sendString("^@Line 7                  !"); //debug mks    
+
+    sendString("^@Line 8                       !"); //debug mks    
+    
+    sendString("^@Line 9                  !"); //debug mks    
+    
+*/
+        
     //sendTestMessages(); //debug mks
-
+      
 }//end of EthernetIOModule::establishLink
 //-----------------------------------------------------------------------------
 

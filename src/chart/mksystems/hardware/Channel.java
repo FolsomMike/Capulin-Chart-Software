@@ -45,6 +45,8 @@ public class Channel extends Object{
     IniFile configFile;
     Settings settings;
 
+    EncoderValues encoderValues;
+
     SyncedVariableSet syncedVarMgr;
 
     public boolean gateSigProcThresholdChanged;
@@ -114,7 +116,6 @@ public class Channel extends Object{
     public double distanceSensorToFrontEdgeOfHead = -1;
     double timeAdjustmentForSensorToMarker = -1;
     double distanceToMarkerInInches;
-    int encoderCountsToMarker;
     
     
     private String dataVersion = "1.0";
@@ -135,12 +136,12 @@ public class Channel extends Object{
 // remotes so that they will be managed in a threadsafe manner.
 //
 
-public Channel(IniFile pConfigFile, Settings pSettings, int pChannelNum,
-                                              SyncedVariableSet pSyncedVarMgr)
+public Channel(IniFile pConfigFile, Settings pSettings,
+  EncoderValues pEncoderValues,int pChannelNum, SyncedVariableSet pSyncedVarMgr)
 {
 
     configFile = pConfigFile; settings = pSettings;
-    channelNum = pChannelNum;
+    encoderValues = pEncoderValues; channelNum = pChannelNum;
 
     //if a SyncedVariableSet manager is provided use it, if not then create one
 
@@ -2081,6 +2082,8 @@ private void configure(IniFile pConfigFile)
 
     pulseBank = pConfigFile.readInt(whichChannel, "Pulse Bank", 1) - 1;
 
+    detail += " ~ bank " + (pulseBank + 1);
+
     headNum = pConfigFile.readInt(whichChannel, "Head", 1);
 
     distanceSensorToFrontEdgeOfHead = pConfigFile.readDouble(whichChannel,
@@ -2107,7 +2110,9 @@ private void configure(IniFile pConfigFile)
     
     freezeScopeWhenNotInFocus = pConfigFile.readBoolean(whichChannel, 
                                     "Freeze Scope When Not in Focus", true);
-    
+
+    calculateDistanceToMarkerInInches(encoderValues);
+
     //read the configuration file and create/setup the UT gates
     configureUTGates();
 
@@ -2136,12 +2141,10 @@ private void configureUTGates()
         gates = new UTGate[numberOfGates];
 
         for (int i = 0; i < numberOfGates; i++) {
-            gates[i] =
-                    new UTGate(channelNum, i, syncedVarMgr);
+            gates[i] = new UTGate(channelNum, i, syncedVarMgr);
             gates[i].init(); 
             gates[i].configure(configFile, headNum, channelNum, 
-                     distanceSensorToFrontEdgeOfHead, distanceToMarkerInInches,
-                                                        encoderCountsToMarker);
+                     distanceSensorToFrontEdgeOfHead, distanceToMarkerInInches);
 
         }
 
@@ -2151,38 +2154,55 @@ private void configureUTGates()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Channel::calculateDistanceToMarker
+// Channel::calculateDistanceToMarkerInEncoderCounts
 //
-// Calculates the distance from the sensor to the marker in inches and encoder
-// counts.
+// Calculates the distance from the sensor to the marker in encoder
+// counts and updates relevant info such as the marker messages for each
+// gate.
 //
-// wip mks -- need to calculate two sets of values -- one for encoder 1 and one
-// for encoder 2? Units which must switch between encoders will need this.
+// This needs to be done whenever input is switched from one encoder to another
+// or any time the encoder counts/inch are recalibrated...during set up or
+// real time.
 //
 
-public void calculateDistanceToMarker(EncoderValues pEncoderValues)
+public void calculateDistanceToMarkerInEncoderCounts(
+                                                EncoderValues pEncoderValues)
 {
-
-    //calculate distance in inches from the sensor to the marker
-    
-    double distanceSensorToMarker = 
-            pEncoderValues.photoEye1DistanceToMarker
-            - pEncoderValues.photoEye1DistanceFrontOfHead[headNum-1]
-            - distanceSensorToFrontEdgeOfHead;
                 
     //convert to encoder counts
     
-    encoderCountsToMarker = 
-      (int)(distanceSensorToMarker * pEncoderValues.getEncoder1CountsPerInch());
-    
+    int encoderCountsToMarker = (int)(distanceToMarkerInInches *
+                                    pEncoderValues.getEncoder1CountsPerInch());
+
     //add a time shift (could be positive or [usually] negative) to account for
     //surface speed and time delays of communication and marker action
-    
+
     encoderCountsToMarker += 
          pEncoderValues.getEncoder1CountsPerSec() 
             * pEncoderValues.getMarkerTimeAdjustSpeedRatio();
 
-}//end of Channel::calculateDistanceToMarker
+    for(UTGate gate : gates){ gate.createMarkerMessage(encoderCountsToMarker); }
+
+}//end of Channel::calculateDistanceToMarkerInEncoderCounts
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::calculateDistanceToMarkerInInches
+//
+// Calculates the distance from the sensor to the marker in inches.
+//
+
+public void calculateDistanceToMarkerInInches(EncoderValues pEncoderValues)
+{
+
+    //calculate distance in inches from the sensor to the marker
+
+    distanceToMarkerInInches =
+            pEncoderValues.photoEye1DistanceToMarker
+            - pEncoderValues.photoEye1DistanceFrontOfHead[headNum-1]
+            - distanceSensorToFrontEdgeOfHead;
+
+}//end of Channel::calculateDistanceToMarkerInInches
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
