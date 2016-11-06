@@ -2269,6 +2269,17 @@ public void calculateDistanceToMarkerInEncoderCounts(
 // The distance to the front edge of the head and angular position of the
 // transducer is determined by the specified head type.
 //
+// Time Shift Correction Factor
+//
+// The timeAdjustSpeedRatio factor is meant to be a time shift to account for
+// communication and marker mechanics delays. It's use of Encoder1CountsPerSec
+// is not meant to adjust for surface speed. Rather than send a timing offset
+// to the PLC to factor, it is much easier to add or subtract from the encoder
+// count value sent over. The number of encoder counts to adjust to achieve
+// a specific time shift depends on the encoder counts per second. So this
+// value is used to create a constant time shift regardless of the speed of
+// the drive rollers and tube.
+//
 
 private int calculateDistanceToMarker(int pPrimaryMarker,
                                     EncoderValues pEncoderValues, int pHeadType)
@@ -2323,10 +2334,7 @@ private int calculateDistanceToMarker(int pPrimaryMarker,
     int countsLinearToMarkerInInches = 
      (int) Math.round(distanceToMarkerInInches * eV.getEncoder1CountsPerInch());
 
-    //adjust counts to factor in a time correction based on the surface speed
-    //of the tube (as determined by the counts per second calibration)
-    //this adjustment is used to account for communication and mechanical
-    //delays such as marker spray delay
+    //adjust counts to factor in a time correction -- see notes in header above
 
     countsLinearToMarkerInInches += 
       (int)Math.round(eV.getEncoder1CountsPerSec()*marker.timeAdjustSpeedRatio);
