@@ -27,6 +27,7 @@ import chart.mksystems.stripchart.Trace;
 import chart.mksystems.stripchart.TraceData;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -1098,6 +1099,51 @@ public void setChannelsEncoderCountDistanceToMarker(
     
 }//end of AnalogPCIDAS6023::setChannelsEncoderCountDistanceToMarker()
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// AnalogPCIDAS6023::getHeadTypeList
+//
+// Returns the list of head types.
+//
+
+@Override
+public ArrayList<String> getHeadTypeList()
+{
+
+    return(null);
+
+}//end of AnalogPCIDAS6023::getHeadTypeList
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// AnalogPCIDAS6023::getSelectedHeadType
+//
+// Returns the currently selected head type.
+//
+
+@Override
+public String getSelectedHeadType()
+{
+
+    return("");
+
+}//end of AnalogPCIDAS6023::getSelectedHeadType
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::setSelectedHeadType
+//
+// Sets the currently selected head type.
+//
+
+@Override
+public void setSelectedHeadType(String pSelected, boolean pForceUpdate)
+{
+
+
+}//end of AnalogPCIDAS6023::setSelectedHeadType
+//-----------------------------------------------------------------------------
+
 
 }//end of class AnalogPCIDAS6023
 //-----------------------------------------------------------------------------

@@ -36,6 +36,8 @@ import chart.mksystems.threadsafe.SyncedVariableSet;
 import chart.mksystems.tools.SwissArmyKnife;
 import java.io.*;
 import java.net.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -105,6 +107,12 @@ public class Capulin1 extends Object implements HardwareLink, MessageLink{
 
     UTBoard[] utBoards;
     int numberOfUTBoards;
+
+    Marker[] markers;
+    public int numMarkers;
+
+    ArrayList<String> headTypes;
+    String selectedHeadType = "unspecified";
 
     JTextArea log;
 
@@ -232,6 +240,17 @@ private void configure(IniFile pConfigFile)
     
     if (numberOfChannels > 1500) {numberOfChannels = 1500;}    
 
+    String headTypeList = pConfigFile.readString(
+                                      "Hardware", "Head Types", "unspecified");
+    
+    parseListToHeadTypes(headTypeList);
+    
+    numMarkers = pConfigFile.readInt("Hardware", "Number of Markers", 0);
+    
+    if (numMarkers > 100) {numMarkers = 100;}
+    
+    if (numberOfChannels > 1500) {numberOfChannels = 1500;}    
+        
     fpgaCodeFilename = pConfigFile.readString(
                         "Hardware", "UT FPGA Code Filename", "not specified");
 
@@ -240,10 +259,13 @@ private void configure(IniFile pConfigFile)
 
     parseWallMapFileFormat(value);
 
-    //create and setup the Control boards
+    //create and set up the markers
+    configureMarkers(pConfigFile);
+    
+    //create and set up the Control boards
     configureControlBoards();
 
-    //create and setup the UT boards
+    //create and set up the UT boards
     configureUTBoards();
 
     //create and set up other IO module types
@@ -253,6 +275,80 @@ private void configure(IniFile pConfigFile)
     configureChannels();
 
 }//end of Capulin1::configure
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::parseListToHeadTypes
+//
+// Parses the comma delimited list in string pText to create a list of head
+// types.
+//
+
+private void parseListToHeadTypes(String pText)
+{
+    
+    String[] split = pText.split(",");
+    
+    if(split.length > 0){
+        headTypes = new ArrayList<>(split.length);
+        headTypes.addAll(Arrays.asList(split));
+    }else{
+        headTypes = new ArrayList<>(1); //empty list
+    }
+    
+}//end of Capulin1::parseListToHeadTypes
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::getHeadTypeList
+//
+// Returns the list of head types.
+//
+
+@Override
+public ArrayList<String> getHeadTypeList()
+{
+
+    return(headTypes);
+
+}//end of Capulin1::getHeadTypeList
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::getSelectedHeadType
+//
+// Returns the currently selected head type.
+//
+
+@Override
+public String getSelectedHeadType()
+{
+
+    return(selectedHeadType);
+
+}//end of Capulin1::getSelectedHeadType
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::setSelectedHeadType
+//
+// Sets the currently selected head type.
+//
+// Also recalcultes all distances from transducers to markers.
+//
+
+@Override
+public void setSelectedHeadType(String pSelected, boolean pForceUpdate)
+{
+
+    if (!selectedHeadType.equals(pSelected)){ pForceUpdate = true; }
+    
+    if (pForceUpdate) { 
+        selectedHeadType = pSelected;
+        setChannelsEncoderCountDistanceToMarker(hdwVs.encoderValues);
+    }
+    
+}//end of Capulin1::setSelectedHeadType
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1271,11 +1367,19 @@ public void loadCalFile(IniFile pCalFile)
     repRateInHertz.setValue(
           pCalFile.readInt("Hardware", "Pulse Rep Rate in Hertz", 2000), true);
 
+    String selectedHeadTypeSetting = pCalFile.readString(
+                                "Hardware", "Selected Head Type","unspecified");
+    
     // call each channel to load its data
     for (int i = 0; i < numberOfChannels; i++) {
         channels[i].loadCalFile(pCalFile);
     }
 
+    //set the head type AFTER channels load their cals as this call causes
+    //distances to be calculated which requires values loaded by channels
+    
+    setSelectedHeadType(selectedHeadTypeSetting, true);
+    
 }//end of Capulin1::loadCalFile
 //-----------------------------------------------------------------------------
 
@@ -1296,6 +1400,8 @@ public void saveCalFile(IniFile pCalFile)
     pCalFile.writeInt(
             "Hardware", "Pulse Rep Rate in Hertz", repRateInHertz.getValue());
 
+    pCalFile.writeString("Hardware", "Selected Head Type", selectedHeadType);
+    
     // call each channel to save its data
     for (int i = 0; i < numberOfChannels; i++) {
         channels[i].saveCalFile(pCalFile);
@@ -1755,8 +1861,6 @@ public void turnOffAudibleAlarm()
 // The counts are adjusted based on the counts/sec to include a time offset
 // to account for delays.
 //
-// In the future, multiple marker positions should be accounted for.
-//
 
 @Override
 public void setChannelsEncoderCountDistanceToMarker(
@@ -1764,10 +1868,30 @@ public void setChannelsEncoderCountDistanceToMarker(
 {
 
     for(Channel channel : channels){
-        channel.calculateDistanceToMarkerInEncoderCounts(pEncoderValues);
+        channel.calculateDistanceToMarkerInEncoderCounts(
+                                   pEncoderValues, getSelectedHeadTypeIndex());
     }
     
 }//end of Capulin1::setChannelsEncoderCountDistanceToMarker()
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Capulin1::getSelectedHeadTypeIndex
+//
+// Returns the index in the head type list of the currently selected entry.
+//
+
+public int getSelectedHeadTypeIndex()
+{
+
+    int index = headTypes.indexOf(selectedHeadType);
+
+    //if not found, index will be -1, set to 0 (the first item in the list
+    if (index == -1) {index = 0;}
+
+    return(index);
+
+}//end of Capulin1::getSelectedHeadTypeIndex
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -2170,6 +2294,32 @@ public void setChartGroups(ChartGroup pChartGroups [])
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Capulin1::configureMarkers
+//
+// Loads configuration settings from the configuration.ini file relating to
+// the markers and creates/sets them up.
+//
+
+private void configureMarkers(IniFile pConfigFile)
+{
+
+    //create an array of boards per the config file setting
+    if (numMarkers > 0){
+
+        markers = new Marker[numMarkers];
+
+        for (int i = 0; i < markers.length; i++) {
+            markers[i] = new Marker(i);
+            markers[i].init();
+            markers[i].configure(pConfigFile);
+        }
+        
+    }
+    
+}//end of Capulin1::configureMarkers
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Capulin1::configureControlBoards
 //
 // Loads configuration settings from the configuration.ini file relating to
@@ -2311,7 +2461,7 @@ private void configureChannels()
 
         for (int i = 0; i < numberOfChannels; i++) {
             channels[i] = new Channel(
-                        configFile, settings, hdwVs.encoderValues, i, null);
+                  configFile, settings, hdwVs.encoderValues, markers, i, null);
         }
 
     }//if (numberOfChannels > 0)

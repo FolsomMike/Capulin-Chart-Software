@@ -27,6 +27,7 @@ import chart.mksystems.stripchart.Trace;
 import chart.mksystems.stripchart.TraceData;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -174,6 +175,11 @@ public void requestAllEncoderValues();
 public void setChannelsEncoderCountDistanceToMarker(
                                                   EncoderValues pEncoderValues);
 
+public ArrayList<String> getHeadTypeList();
+
+public String getSelectedHeadType();
+
+public void setSelectedHeadType(String pSelected, boolean pForceUpdate);
 
 }//end of interface HardwareLink
 //-----------------------------------------------------------------------------

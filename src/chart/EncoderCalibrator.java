@@ -52,14 +52,15 @@ class EncoderCalibrator extends JDialog implements ActionListener {
     private double encoder1InchesPerCount, encoder2InchesPerCount;
     private double encoder1CountsPerSecInput, encoder2CountsPerSecInput;
     private double encoder1CountsPerSec, encoder2CountsPerSec;
-    private double helix;
+    private double encoder1Helix;
     
     public double getEncoder1CountsPerInch(){return encoder1CountsPerInch; }
     public double getEncoder2CountsPerInch(){return encoder2CountsPerInch; }    
     public double getEncoder1InchesPerCount(){return encoder1InchesPerCount; }
     public double getEncoder2InchesPerCount(){return encoder2InchesPerCount; }    
     public double getEncoder1CountsPerSec(){return encoder1CountsPerSec; }
-    public double getEncoder2CountsPerSec(){return encoder2CountsPerSec; }    
+    public double getEncoder2CountsPerSec(){return encoder2CountsPerSec; }
+    private double encoder2Helix;    
 
     private double encoder1CountsPerRev, encoder2CountsPerRev;
     
@@ -618,12 +619,14 @@ public EncoderCalValues getEncoderCalValues(EncoderCalValues pEncoderCalValues)
     pEncoderCalValues.encoder1InchesPerCount = encoder1InchesPerCount;
     pEncoderCalValues.encoder1CountsPerRev = encoder1CountsPerRev;        
     pEncoderCalValues.encoder1CountsPerSec = encoder1CountsPerSec;
-
+    pEncoderCalValues.encoder1Helix = encoder1Helix;
+    
     pEncoderCalValues.encoder2CountsPerInch = encoder2CountsPerInch;
     pEncoderCalValues.encoder2InchesPerCount = encoder2InchesPerCount;
     pEncoderCalValues.encoder2CountsPerRev = encoder2CountsPerRev;        
     pEncoderCalValues.encoder2CountsPerSec = encoder2CountsPerSec;
-            
+    pEncoderCalValues.encoder2Helix = encoder2Helix;            
+    
     return(pEncoderCalValues);
     
 }//end of EncoderCalibrator::getEncoderCalValues
@@ -660,17 +663,25 @@ public void setEncoderCalValues(EncoderCalValues pEncoderCalValues)
 // Calculates the helical advance rate in inches/rev and returns the values as
 // a string.
 //
+// The helix using both encoder 1 and encoder 2 are calculated, but the only
+// the value for encoder 1 is returned.
+//
 
 private String calculateHelix()
 {
 
-    if (encoder1CountsPerInch > 0 && encoder1CountsPerRev > 0){
-    
-        return(new  DecimalFormat("#.##").format(
-                                encoder1CountsPerRev / encoder1CountsPerInch ));
-                
+    if (encoder2CountsPerInch > 0 && encoder2CountsPerRev >= 0){  
+        encoder2Helix = encoder2CountsPerRev / encoder2CountsPerInch;
     }else{
-        return("");
+        encoder2Helix = 0;
+    }
+
+    if (encoder1CountsPerInch > 0 && encoder1CountsPerRev >= 0){
+        encoder1Helix = encoder1CountsPerRev / encoder1CountsPerInch;
+        return(new  DecimalFormat("#.##").format(encoder1Helix));
+    }else{
+        encoder1Helix = 0;
+        return("invalid");
     }
         
 }//end of EncoderCalibrator::calculateHelix
@@ -744,9 +755,6 @@ public void actionPerformed(ActionEvent e)
         setCountsPerSecond();
         return;
     }
-    
-//    actionListener.actionPerformed(
-//                               new ActionEvent(this, 1, e.getActionCommand()));
 
 }//end of EncoderCalibrator::actionPerformed
 //-----------------------------------------------------------------------------

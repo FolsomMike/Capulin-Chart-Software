@@ -86,12 +86,20 @@ public class EncoderValues extends Object{
     }    
     public double getEncoder1CountsPerSec(){ return encoder1CountsPerSec;}
 
+    private double encoder1Helix = 0.0;
+    public void setEncoder1Helix(double pV){ encoder1Helix = pV; }    
+    public double getEncoder1Helix(){ return encoder1Helix;}
+        
     private double encoder2CountsPerSec = 0;
     public void setEncoder2CountsPerSec(double pV){
         encoder2CountsPerSec = pV;
     }    
     public double getEncoder2CountsPerSec(){ return encoder2CountsPerSec;}
 
+    private double encoder2Helix = 0.0;
+    public void setEncoder2Helix(double pV){ encoder2Helix = pV; }    
+    public double getEncoder2Helix(){ return encoder2Helix;}
+        
     //length of the end stop at the "toward" end of the unit
     //if the away laser triggers on the start of this instead of the start of
     //the tube, specify the length in the config file so it can be accounted
@@ -106,17 +114,7 @@ public class EncoderValues extends Object{
         
     double photoEye1DistanceToEncoder1;
     double photoEye1DistanceToEncoder2;
-    double photoEye1DistanceToMarker;
     double distanceAfterEncoder2ToSwitchEncoders;
-        
-    private double markerTimeAdjustSpeedRatio = 0.0;
-
-    public void setMarkerTimeAdjustSpeedRatio(double pV){
-        markerTimeAdjustSpeedRatio = pV;
-    }    
-    public double getMarkerTimeAdjustSpeedRatio(){ 
-        return markerTimeAdjustSpeedRatio;
-    }
         
 //-----------------------------------------------------------------------------
 // EncoderValues::EncoderValues (constructor)
@@ -264,11 +262,13 @@ public void setEncoderCalValues(EncoderCalValues pEncoderCalValues)
     encoder1InchesPerCount = pEncoderCalValues.encoder1InchesPerCount;
     encoder1CountsPerRev = pEncoderCalValues.encoder1CountsPerRev;    
     encoder1CountsPerSec = pEncoderCalValues.encoder1CountsPerSec;
-
+    encoder1Helix = pEncoderCalValues.encoder1Helix;
+    
     encoder2CountsPerInch = pEncoderCalValues.encoder2CountsPerInch;    
     encoder2InchesPerCount = pEncoderCalValues.encoder2InchesPerCount;
     encoder2CountsPerRev = pEncoderCalValues.encoder2CountsPerRev;        
     encoder2CountsPerSec = pEncoderCalValues.encoder2CountsPerSec;
+    encoder2Helix = pEncoderCalValues.encoder2Helix;
     
 }//end of EncoderValues::setEncoderCalValues
 //-----------------------------------------------------------------------------
@@ -285,13 +285,15 @@ public EncoderCalValues getEncoderCalValues(EncoderCalValues pEncoderCalValues)
  
     pEncoderCalValues.encoder1CountsPerInch = encoder1CountsPerInch;
     pEncoderCalValues.encoder1InchesPerCount = encoder1InchesPerCount;
-    pEncoderCalValues.encoder1CountsPerRev = encoder1CountsPerRev;    
+    pEncoderCalValues.encoder1CountsPerRev = encoder1CountsPerRev;
     pEncoderCalValues.encoder1CountsPerSec = encoder1CountsPerSec;
+    pEncoderCalValues.encoder1Helix = encoder1Helix;
 
     pEncoderCalValues.encoder2CountsPerInch = encoder2CountsPerInch;
     pEncoderCalValues.encoder2InchesPerCount = encoder2InchesPerCount;
-    pEncoderCalValues.encoder2CountsPerRev = encoder2CountsPerRev;        
+    pEncoderCalValues.encoder2CountsPerRev = encoder2CountsPerRev;
     pEncoderCalValues.encoder2CountsPerSec = encoder2CountsPerSec;
+    pEncoderCalValues.encoder2Helix = encoder2Helix;
             
     return(pEncoderCalValues);
     
@@ -593,6 +595,13 @@ public void loadCalFile(IniFile pCalFile)
 
     encoder2CountsPerSec = pCalFile.readDouble("Hardware",
                                             "Encoder 2 Counts per Second", -1);
+
+    encoder1Helix = pCalFile.readDouble("Hardware",
+                                  "Encoder 1 Helix Inches per Revolution", -1);
+    
+    encoder2Helix = pCalFile.readDouble("Hardware",
+                                  "Encoder 2 Helix Inches per Revolution", -1);
+        
     
 }//end of EncoderValues::loadCalFile
 //-----------------------------------------------------------------------------
@@ -633,6 +642,12 @@ public void saveCalFile(IniFile pCalFile)
     
     pCalFile.writeDouble("Hardware", "Encoder 2 Counts per Second",
                                                         encoder2CountsPerSec);
+
+    pCalFile.writeDouble("Hardware",
+                       "Encoder 1 Helix Inches per Revolution", encoder1Helix);
+
+    pCalFile.writeDouble("Hardware",
+                       "Encoder 2 Helix Inches per Revolution", encoder2Helix);
 
 }//end of EncoderValues::saveCalFile
 //-----------------------------------------------------------------------------
@@ -675,9 +690,6 @@ public void configure(IniFile pConfigFile)
     photoEye1DistanceToEncoder2 = pConfigFile.readDouble("Hardware",
                                 "Photo Eye 1 To Encoder 2 Distance", 42.0);
 
-    photoEye1DistanceToMarker = pConfigFile.readDouble("Hardware",
-                                        "Photo Eye 1 To Marker Distance", 33.0);
-
     distanceAfterEncoder2ToSwitchEncoders = pConfigFile.readDouble(
        "Hardware", "Distance after Encoder 2 to Switch Between Encoders", 12.0);
     
@@ -694,9 +706,6 @@ public void configure(IniFile pConfigFile)
 
     encoder2InchesPerCount =
         pConfigFile.readDouble("Hardware", "Encoder 2 Inches Per Count", 0.003);
-
-    markerTimeAdjustSpeedRatio = pConfigFile.readDouble(
-                            "Hardware", "Marker Time Adjust Speed Ratio", 0.1);    
             
 }//end of EncoderValues::configure
 //-----------------------------------------------------------------------------

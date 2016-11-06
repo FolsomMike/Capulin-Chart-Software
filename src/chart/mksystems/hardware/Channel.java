@@ -46,6 +46,7 @@ public class Channel extends Object{
     Settings settings;
 
     EncoderValues encoderValues;
+    Marker markers[];
 
     SyncedVariableSet syncedVarMgr;
 
@@ -113,10 +114,9 @@ public class Channel extends Object{
     int pulseChannel, pulseBank;
 
     int headNum = -1;
-    public double distanceSensorToFrontEdgeOfHead = -1;
-    double timeAdjustmentForSensorToMarker = -1;
+    public ArrayList<Double> distancesSensorToFrontEdgeOfHead;
+    public ArrayList<Integer> angularPositionsFromTDC;
     double distanceToMarkerInInches;
-    
     
     private String dataVersion = "1.0";
     private FileInputStream fileInputStream = null;
@@ -137,11 +137,13 @@ public class Channel extends Object{
 //
 
 public Channel(IniFile pConfigFile, Settings pSettings,
-  EncoderValues pEncoderValues,int pChannelNum, SyncedVariableSet pSyncedVarMgr)
+           EncoderValues pEncoderValues, Marker pMarkers[], int pChannelNum,
+           SyncedVariableSet pSyncedVarMgr)
 {
 
     configFile = pConfigFile; settings = pSettings;
-    encoderValues = pEncoderValues; channelNum = pChannelNum;
+    encoderValues = pEncoderValues; markers = pMarkers;
+    channelNum = pChannelNum;
 
     //if a SyncedVariableSet manager is provided use it, if not then create one
 
@@ -2063,6 +2065,8 @@ private void configure(IniFile pConfigFile)
 
     String whichChannel = "Channel " + (channelNum + 1);
 
+    String inputLine;
+    
     title =
           pConfigFile.readString(
                          whichChannel, "Title", "Channel " + (channelNum+1));
@@ -2086,12 +2090,16 @@ private void configure(IniFile pConfigFile)
 
     headNum = pConfigFile.readInt(whichChannel, "Head", 1);
 
-    distanceSensorToFrontEdgeOfHead = pConfigFile.readDouble(whichChannel,
-                              "Distance From Sensor to Front Edge of Head", 10);
+    inputLine = pConfigFile.readString(whichChannel,
+                          "Distance From Sensor to Front Edge of Head", "0.0");
 
-    timeAdjustmentForSensorToMarker = pConfigFile.readDouble(whichChannel,
-                              "Time Adjustment for Sensor to Marker", 0.0);
+    parseListToDistancesToFrontEdgeOfHead(inputLine);
+    
+    inputLine = pConfigFile.readString(whichChannel,
+                                   "Angular Position of Sensor from TDC", "0");
         
+    parseListToAngularPositions(inputLine);
+    
     enabled = pConfigFile.readBoolean(whichChannel, "Enabled", true);
 
     type = pConfigFile.readString(whichChannel, "Type", "Other");
@@ -2110,8 +2118,6 @@ private void configure(IniFile pConfigFile)
     
     freezeScopeWhenNotInFocus = pConfigFile.readBoolean(whichChannel, 
                                     "Freeze Scope When Not in Focus", true);
-
-    calculateDistanceToMarkerInInches(encoderValues);
 
     //read the configuration file and create/setup the UT gates
     configureUTGates();
@@ -2143,14 +2149,82 @@ private void configureUTGates()
         for (int i = 0; i < numberOfGates; i++) {
             gates[i] = new UTGate(channelNum, i, syncedVarMgr);
             gates[i].init(); 
-            gates[i].configure(configFile, headNum, channelNum, 
-                     distanceSensorToFrontEdgeOfHead, distanceToMarkerInInches);
+            gates[i].configure(configFile, headNum, channelNum);
 
         }
 
     }//if (numberOfGates > 0)
 
 }//end of Channel::configureUTGates
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::parseListToDistancesToFrontEdgeOfHead
+//
+// Parses the comma delimited list in string pText to create a list of distances
+// from the sensor to the front edge of the head...there should be one entry
+// for each head size.
+//
+
+private void parseListToDistancesToFrontEdgeOfHead(String pText)
+{
+
+    String[] split = pText.split(",");
+
+    if(split.length > 0){
+        
+        distancesSensorToFrontEdgeOfHead = new ArrayList<>(split.length);
+        
+        for (String entry : split) {
+            try{
+                double v = Double.parseDouble(entry.trim());
+                distancesSensorToFrontEdgeOfHead.add(v);
+            }catch(NumberFormatException e){
+                distancesSensorToFrontEdgeOfHead.add(0.0);
+            }
+        }
+    }else{
+        //create one entry in case no entry in config
+        distancesSensorToFrontEdgeOfHead = new ArrayList<>(1);
+        distancesSensorToFrontEdgeOfHead.add(0.0);
+    }
+    
+}//end of Hardware::parseListToDistancesToFrontEdgeOfHead
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::parseListToAngularPositions
+//
+// Parses the comma delimited list in string pText to create a list of distances
+// from the sensor to the front edge of the head...there should be one entry
+// for each head size.
+//
+
+
+private void parseListToAngularPositions(String pText)
+{
+
+    String[] split = pText.split(",");
+
+    if(split.length > 0){
+        
+        angularPositionsFromTDC = new ArrayList<>(split.length);
+        
+        for (String entry : split) {
+            try{
+                int v = Integer.parseInt(entry.trim());
+                angularPositionsFromTDC.add(v);
+            }catch(NumberFormatException e){
+                angularPositionsFromTDC.add(0);
+            }
+        }
+    }else{
+        //create one entry in case no entry in config
+        angularPositionsFromTDC = new ArrayList<>(1); //empty list
+        angularPositionsFromTDC.add(0);
+    }
+    
+}//end of Hardware::parseListToAngularPositions
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -2166,43 +2240,138 @@ private void configureUTGates()
 //
 
 public void calculateDistanceToMarkerInEncoderCounts(
-                                                EncoderValues pEncoderValues)
+                                   EncoderValues pEncoderValues, int pHeadType)
 {
-                
-    //convert to encoder counts
+
+    for(UTGate gate : gates){     
     
-    int encoderCountsToMarker = (int)(distanceToMarkerInInches *
-                                    pEncoderValues.getEncoder1CountsPerInch());
+        //refresh calculation to account for user input
+        
+        int encoderCountsToMarker = calculateDistanceToMarker(
+                gate.getPrimaryMarker(), encoderValues, pHeadType);
 
-    //add a time shift (could be positive or [usually] negative) to account for
-    //surface speed and time delays of communication and marker action
-
-    encoderCountsToMarker += 
-         pEncoderValues.getEncoder1CountsPerSec() 
-            * pEncoderValues.getMarkerTimeAdjustSpeedRatio();
-
-    for(UTGate gate : gates){ gate.createMarkerMessage(encoderCountsToMarker); }
-
+        gate.updateDistances(getDucerDistToFrontOfHead(pHeadType),
+                            encoderCountsToMarker, distanceToMarkerInInches);
+    }
+        
 }//end of Channel::calculateDistanceToMarkerInEncoderCounts
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Channel::calculateDistanceToMarkerInInches
+// Channel::calculateDistanceToMarker
 //
-// Calculates the distance from the sensor to the marker in inches.
+// Calculates the linear distance from the sensor to the marker in inches and
+// the actual helical distance in encoder counts.
+//
+// A class variable is updated to reflect the linear distance and the 
+// helical distance is returned.
+//
+// The distance to the front edge of the head and angular position of the
+// transducer is determined by the specified head type.
 //
 
-public void calculateDistanceToMarkerInInches(EncoderValues pEncoderValues)
+private int calculateDistanceToMarker(int pPrimaryMarker,
+                                    EncoderValues pEncoderValues, int pHeadType)
+{
+    
+    //if the marker is not set, then use zero for distances
+    
+    if (markers.length == 0 || 
+                       pPrimaryMarker < 0 || pPrimaryMarker >= markers.length){
+        distanceToMarkerInInches = 0;
+        return(0);
+    }
+    
+    //use a shorter names
+    EncoderValues eV = pEncoderValues;
+    Marker marker = markers[pPrimaryMarker];
+    
+    double ducerDistToFrontEdgeOfHead = getDucerDistToFrontOfHead(pHeadType);
+    int ducerAngularPosition = getDucerAngularPosition(pHeadType);
+    
+    double markerToPhotoEye1Distance = marker.getPhotoEye1DistanceInInches();
+    int markerAngularPosition = marker.getAngularPositionInDegrees();
+        
+    //linear distance between transducer and the marker in inches
+    
+    distanceToMarkerInInches =
+            markerToPhotoEye1Distance
+            - pEncoderValues.photoEye1DistanceFrontOfHead[headNum-1]
+            - ducerDistToFrontEdgeOfHead;
+    
+    //calculate encoder counts to rotate anomaly to marker angle
+    //then calculate the linear distance moved during that rotation
+    
+    //calculate the angular position difference between the ducer and the marker
+    int angDiff = markerAngularPosition - ducerAngularPosition;
+
+    //account for ducer angle greater than marker angle...must rotate around
+    //to achieve angular alignment
+    if(angDiff < 0) { angDiff = 360 + angDiff; }
+    
+    //percent of full rotation required to align with marker
+    double rotation = (double)angDiff / 360;
+    
+    //calculate linear distance traveled while rotating into position
+    double distLinearForAngularAlign = rotation * eV.getEncoder1Helix();
+    
+    //subtract amount moved during alignment from the linear distance to marker
+    distanceToMarkerInInches -= distLinearForAngularAlign;
+
+    //convert final linear distance to marker to encoder counts
+    
+    int countsLinearToMarkerInInches = 
+     (int) Math.round(distanceToMarkerInInches * eV.getEncoder1CountsPerInch());
+
+    //adjust counts to factor in a time correction based on the surface speed
+    //of the tube (as determined by the counts per second calibration)
+    //this adjustment is used to account for communication and mechanical
+    //delays such as marker spray delay
+
+    countsLinearToMarkerInInches += 
+      (int)Math.round(eV.getEncoder1CountsPerSec()*marker.timeAdjustSpeedRatio);
+    
+    return(countsLinearToMarkerInInches);
+
+}//end of Channel::calculateDistanceToMarker
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::getDucerDistToFrontOfHead
+//
+// Returns the distance between the transducer and the front edge of the head
+// based on the specified head type.
+//
+
+private double getDucerDistToFrontOfHead(int pHeadType)
 {
 
-    //calculate distance in inches from the sensor to the marker
+    if(pHeadType >= distancesSensorToFrontEdgeOfHead.size()){
+        return(0);
+    }else{
+        return(distancesSensorToFrontEdgeOfHead.get(pHeadType));
+    }
+        
+}//end of Channel::getDucerDistToFrontOfHead
+//-----------------------------------------------------------------------------
 
-    distanceToMarkerInInches =
-            pEncoderValues.photoEye1DistanceToMarker
-            - pEncoderValues.photoEye1DistanceFrontOfHead[headNum-1]
-            - distanceSensorToFrontEdgeOfHead;
+//-----------------------------------------------------------------------------
+// Channel::getDucerAngularPosition
+//
+// Returns the transducers angular position from top-dead-center based on the
+// specified head type.
+//
 
-}//end of Channel::calculateDistanceToMarkerInInches
+private int getDucerAngularPosition(int pHeadType)
+{
+
+    if(pHeadType >= angularPositionsFromTDC.size()){
+        return(0);
+    }else{
+        return(angularPositionsFromTDC.get(pHeadType));
+    }
+        
+}//end of Channel::getDucerAngularPosition
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

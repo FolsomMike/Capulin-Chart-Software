@@ -48,9 +48,12 @@ public class ViolationInfo extends Object{
 
     String markersTriggeredList = "";
     byte markersTriggered = 0;
-
+    
     int primaryMarker = 0;
     
+    public int getMarkersTriggered(){ return markersTriggered; }
+    public int getPrimaryMarker(){ return primaryMarker; }
+        
     String markerMessage = "";
     
 //-----------------------------------------------------------------------------
@@ -76,12 +79,11 @@ public void init()
 // 
 
 public void configure(IniFile pConfigFile, String pSection, int pHeadNum,
-  int pChannelNum, double pDistanceToMarkerInInches)
+                                                                int pChannelNum)
 {
 
     headNum = pHeadNum;
     channelNum = pChannelNum;
-    distanceToMarkerInInches = pDistanceToMarkerInInches;
     
     orientation = pConfigFile.readString(pSection, "Orientation", "???");
 
@@ -93,7 +95,7 @@ public void configure(IniFile pConfigFile, String pSection, int pHeadNum,
 
     markersTriggered = parseListToBits(markersTriggeredList);
 
-    primaryMarker = pConfigFile.readInt(pSection, "Primary Marker", 0);
+    primaryMarker = pConfigFile.readInt(pSection, "Primary Marker", 0) - 1;
     
 }//end of ViolationInfo::configure
 //-----------------------------------------------------------------------------
@@ -109,34 +111,33 @@ public void configure(IniFile pConfigFile, String pSection, int pHeadNum,
 //
 // Note that the string only specifies the distance to the primary marker.
 // If multiple markers are fired, they will all be fired at the same time as
-// the pirmary marker.
+// the primary marker.
 //
 
-public void createMarkerMessage(int pEncoderCountsToMarker)
-{        
-
+public void createMarkerMessage(int pEncoderCountsToMarker, 
+                                               double pDistanceToMarkerInInches)
+{
+    
     encoderCountsToMarker = pEncoderCountsToMarker;
     
+    distanceToMarkerInInches = pDistanceToMarkerInInches;
+   
     markerMessage = "^*" + postPad(orientation, 3, " ");
             
-    markerMessage = markerMessage + "|" + prePad(""+headNum, 2, "0");
+    markerMessage = markerMessage + "|" + prePad("" + headNum, 2, "0");
     
-    markerMessage = markerMessage + "|" + prePad(""+500 /*channelNum*/, 3, "0");
+    markerMessage = markerMessage + "|" + prePad("" + channelNum, 3, "0");
  
     //convert distance to tenths of an inch
     int tenths = (int) Math.round(distanceToMarkerInInches * 10);
     
-    tenths = 999; //debug mks
-    
-    markerMessage = markerMessage + "|" + prePad(""+tenths, 4, "0");
-
-    encoderCountsToMarker = 10000; //debug mks -- sends same encoder counts value everytime for testing
+    markerMessage = markerMessage + "|" + prePad("" + tenths, 4, "0");
     
     markerMessage = markerMessage + "|" + 
-                                  prePad(""+encoderCountsToMarker, 5, "0");
+                                  prePad("" + encoderCountsToMarker, 5, "0");
     
     markerMessage = markerMessage + "|" + 
-                                  prePad(""+markersTriggered, 3, "0");
+                                  prePad("" + markersTriggered, 3, "0");
     
 }//end of ViolationInfo::createMarkerMessage
 //-----------------------------------------------------------------------------

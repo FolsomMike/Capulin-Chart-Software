@@ -120,11 +120,11 @@ private void establishLink()
     openSocket();
 
     sendString("^@Hello from VScan!        ");
-
-/*    
-
-    //debug mks
     
+//    sendTestMessages(); //debug mks
+    
+    //debug mks
+/*    
     sendString("^@Line 2                  !"); //debug mks
 
     sendString("^*Line 2.1                !"); //debug mks
@@ -146,11 +146,10 @@ private void establishLink()
     sendString("^@Line 8                       !"); //debug mks    
     
     sendString("^@Line 9                  !"); //debug mks    
-    
-*/
         
     //sendTestMessages(); //debug mks
-      
+  */
+        
 }//end of EthernetIOModule::establishLink
 //-----------------------------------------------------------------------------
 
@@ -163,41 +162,41 @@ private void establishLink()
 public void sendTestMessages()
 {
 
-    sendString("@Block of test messages:  ");
+    sendString("^@Block of test messages:  ");
 
-    sendString("#001|                     ");
+    sendString("^#001|                     ");
 
-    sendString("#002|                     ");
+    sendString("^#002|                     ");
 
-    sendString("#003|                     ");
+    sendString("^#003|                     ");
     
-    sendString("*LL |03|009|0100|00090|001");
+    sendString("^*LL |03|009|0100|00090|001");
 
-    sendString("*TT |02|023|3422|01240|002");
+    sendString("^*TT |02|023|3422|00120|002");
 
-    sendString("*WT |01|023|3422|01240|004");
+    sendString("^*WT |01|023|3422|00150|001");
 
-    sendString("*WL |01|009|0100|00090|003");
+    sendString("^*WL |01|009|0100|00180|002");
 
-    sendString("*TL |02|023|3422|01240|001");
+    sendString("^*TL |02|023|3422|00210|001");
 
-    sendString("*LT |02|023|3422|01240|002");
+    sendString("^*LT |02|023|3422|00240|002");
 
-    sendString("*22L|02|023|3422|01240|001");
+    sendString("^*22L|02|023|3422|00270|001");
 
-    sendString("*22T|02|023|3422|01240|003");
+    sendString("^*22T|02|023|3422|01240|003");
 
-    sendString("*12L|03|009|0100|00090|001");
+    sendString("^*12L|03|009|0100|00090|001");
 
-    sendString("*12T|02|023|3422|01240|002");
+    sendString("^*12T|02|023|3422|01240|002");
 
-    sendString("*12L|02|023|3422|01240|003");
+    sendString("^*12L|02|023|3422|01240|003");
 
-    sendString("*45L|02|023|3422|01240|001");
+    sendString("^*45L|02|023|3422|01240|001");
 
-    sendString("*45T|02|023|3422|01240|003");
+    sendString("^*45T|02|023|3422|01240|003");
 
-    sendString("*LL |03|009|0100|00090|002");
+    sendString("^*LL |03|009|0100|00090|002");
 
 }//end of EthernetIOModule::sendTestMessages
 //-----------------------------------------------------------------------------

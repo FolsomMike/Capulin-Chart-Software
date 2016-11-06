@@ -109,7 +109,24 @@ public void init()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Trace::applyValuesFromGate
+// Trace::setHeadNum
+//
+// If headNum is -1, the headNum supplied by the associated gate(s) is used.
+//
+// See notes for applyValuesFromGate for details on cases where the trace's
+// values are overridden by the gate's values.
+//
+
+public void setHeadNum(int pHeadNum)
+{
+
+    if (headNum == -1){ headNum = pHeadNum; }
+
+}//end of Trace::setHeadNum
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Trace::setDistanceSensorToFrontEdgeOfHead
 //
 // Uses values from the connected gate instead of those specifically loaded
 // for the trace.
@@ -134,17 +151,15 @@ public void init()
 // traces.
 //
 
-public void applyValuesFromGate(int pHeadNum,
-                                    double pDistanceSensorToFrontEdgeOfHead)
+public void setDistanceSensorToFrontEdgeOfHead(
+                                        double pDistanceSensorToFrontEdgeOfHead)
 {        
-        
-    if (headNum == -1){ headNum = pHeadNum; }
-    
-    if (distanceSensorToFrontEdgeOfHead == -1){
+
+    if (distanceSensorToFrontEdgeOfHeadOverridden){
         distanceSensorToFrontEdgeOfHead = pDistanceSensorToFrontEdgeOfHead;
     }
 
-}//end of Trace::applyValuesFromGate
+}//end of Trace::setDistanceSensorToFrontEdgeOfHead
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

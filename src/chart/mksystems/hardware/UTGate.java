@@ -38,12 +38,18 @@ import java.util.*;
 
 public class UTGate extends BasicGate{
 
+    String orientation = "";
+    
     // Variable triggerDirection = 0 if the data is to be flagged if it goes
     // over the gate, 1 if data is flagged for going below the gate
     int triggerDirection;
 
     ViolationInfo violationInfo;
-        
+    
+    public int getMarkersTriggered(){ 
+                                return violationInfo.getMarkersTriggered(); }
+    public int getPrimaryMarker(){ return violationInfo.getPrimaryMarker(); }
+
     // Variable peakDirection = 0 if peak is up, 1 if peak is down.  If the peak
     // is up, the worst case values are considered to be the higher ones and
     // vice versa.
@@ -1216,7 +1222,7 @@ public void linkPlotters(int pChartGroup, int pChart, int pTrace,
 
         tracePtr = pTracePtr;
 
-        tracePtr.applyValuesFromGate(headNum, distanceSensorToFrontEdgeOfHead);
+        tracePtr.setHeadNum(headNum);
 
     }
 
@@ -1230,13 +1236,11 @@ public void linkPlotters(int pChartGroup, int pChart, int pTrace,
 // The various child objects are then created as specified by the config data.
 // 
 
-public void configure(IniFile pConfigFile, int pHeadNum, int pChannelNum,
-      double pDistanceSensorToFrontEdgeOfHead, double pDistanceToMarkerInInches)
+public void configure(IniFile pConfigFile, int pHeadNum, int pChannelNum)
         
 {
 
     headNum = pHeadNum; 
-    distanceSensorToFrontEdgeOfHead = pDistanceSensorToFrontEdgeOfHead;
     
     String whichGate = "Channel " + (channelIndex+1) + " Gate " + (gateIndex+1);
 
@@ -1245,7 +1249,10 @@ public void configure(IniFile pConfigFile, int pHeadNum, int pChannelNum,
 
     shortTitle = pConfigFile.readString(
                                 whichGate, "Short Title", "G " + (gateIndex+1));
-
+    
+    orientation = pConfigFile.readString(
+                                whichGate, "Orientation", "" + (gateIndex+1));
+            
     setInterfaceGate(
                 pConfigFile.readBoolean(whichGate, "Interface Gate", false));
     setWallStart(pConfigFile.readBoolean(whichGate, "Wall Start Gate", false));
@@ -1265,8 +1272,7 @@ public void configure(IniFile pConfigFile, int pHeadNum, int pChannelNum,
 
     trace = pConfigFile.readInt(whichGate, "Trace", 0) -1;
 
-    violationInfo.configure(pConfigFile, whichGate, pHeadNum,
-                pChannelNum, pDistanceToMarkerInInches);
+    violationInfo.configure(pConfigFile, whichGate, pHeadNum, pChannelNum);
 
 }//end of UTGate::configure
 //-----------------------------------------------------------------------------
@@ -1302,16 +1308,62 @@ public ViolationInfo getViolationInfo()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// UTGate::updateDistances
+//
+// Updates various transducer related distances such as distance to front
+// edge of head, etc.
+//
+// Updates associated plotters, etc.
+//
+// Updates the marker message to reflect new distances.
+//
+
+public void updateDistances(double pDistanceSensorToFrontEdgeOfHead,
+                  int pEncoderCountsToMarker, double pDistanceToMarkerInInches)
+{
+
+    distanceSensorToFrontEdgeOfHead = pDistanceSensorToFrontEdgeOfHead;
+    
+    setTraceDistanceSensorToFrontEdgeOfHead(distanceSensorToFrontEdgeOfHead);
+    
+    createMarkerMessage(pEncoderCountsToMarker, pDistanceToMarkerInInches);
+
+}//end of UTGate::updateDistances
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTGate::setTraceDistanceSensorToFrontEdgeOfHead
+//
+// Applies various values to the trace associated with the gate.
+//
+// Some gates are not associated with a trace and nothing is done.
+//
+
+public void setTraceDistanceSensorToFrontEdgeOfHead(
+                                       double pDistanceSensorToFrontEdgeOfHead)
+{
+
+    if(tracePtr != null) {
+        tracePtr.setDistanceSensorToFrontEdgeOfHead(
+                                            pDistanceSensorToFrontEdgeOfHead);
+    }
+        
+}//end of UTGate::setTraceDistanceSensorToFrontEdgeOfHead
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // UTGate::createMarkerMessage
 //
 // Creates the message to be sent to the remote device such as a PLC with
 // info related to firing a marker.
 //
 
-public void createMarkerMessage(int pEncoderCountsToMarker)
+public void createMarkerMessage(int pEncoderCountsToMarker, 
+                                             double pDistanceToMarkerInInches)
 {
 
-    violationInfo.createMarkerMessage(pEncoderCountsToMarker);
+    violationInfo.createMarkerMessage(pEncoderCountsToMarker, 
+                                                    pDistanceToMarkerInInches);
 
 }//end of UTGate::createMarkerMessage
 //-----------------------------------------------------------------------------

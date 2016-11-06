@@ -31,6 +31,7 @@ import chart.mksystems.stripchart.Trace;
 import chart.mksystems.stripchart.TraceData;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import javax.swing.*;
 //-----------------------------------------------------------------------------
 
@@ -71,7 +72,7 @@ public class Hardware extends Object implements TraceValueCalculator, Runnable,
     HardwareLink digitalDriver;
     JTextArea log;
     int scanRateCounter;
-
+    
     PLCEthernetController plcComLink = null;
     
     int flaggingEnableDelayHead1 = 0;
@@ -426,8 +427,6 @@ public void loadCalFile(IniFile pCalFile)
     hdwVs.loadCalFile(pCalFile);
     
     analogDriver.loadCalFile(pCalFile);
-
-    setChannelsEncoderCountDistanceToMarker();
     
 }//end of Hardware::loadCalFile
 //-----------------------------------------------------------------------------
@@ -506,6 +505,48 @@ public void saveCalFileHumanReadable(BufferedWriter pOut) throws IOException
     analogDriver.saveCalFileHumanReadable(pOut);
 
 }//end of Hardware::saveCalFileHumanReadable
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::getHeadTypeList
+//
+// Returns the list of head types.
+//
+
+public ArrayList<String> getHeadTypeList()
+{
+
+    return(analogDriver.getHeadTypeList());
+
+}//end of Hardware::getHeadTypeList
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::getSelectedHeadType
+//
+// Returns the currently selected head type.
+//
+
+public String getSelectedHeadType()
+{
+
+    return(analogDriver.getSelectedHeadType());
+
+}//end of Hardware::getSelectedHeadType
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::setSelectedHeadType
+//
+// Sets the currently selected head type.
+//
+
+public void setSelectedHeadType(String pSelected, boolean pForceUpdate)
+{
+
+    analogDriver.setSelectedHeadType(pSelected, pForceUpdate);
+
+}//end of Hardware::setSelectedHeadType
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

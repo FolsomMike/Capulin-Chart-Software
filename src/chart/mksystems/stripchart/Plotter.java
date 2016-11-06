@@ -65,6 +65,7 @@ public class Plotter extends Object{
     public Rectangle2D keyBounds;
     public int headNum;
     public double distanceSensorToFrontEdgeOfHead;
+    boolean distanceSensorToFrontEdgeOfHeadOverridden = false;
     int pixelOffset;
     double pixelScaling;
     double preScaling;
@@ -168,6 +169,10 @@ void configure(IniFile pConfigFile)
     distanceSensorToFrontEdgeOfHead = pConfigFile.readDouble(section,
                              "Distance From Sensor to Front Edge of Head", 0.0);
 
+    if (distanceSensorToFrontEdgeOfHead == -1){
+        distanceSensorToFrontEdgeOfHeadOverridden = true;
+    }
+    
     pixelOffset = pConfigFile.readInt(section, "Pixel Offset", 0);
 
     pixelScaling = pConfigFile.readDouble(section, "Pixel Scaling", 1.0);

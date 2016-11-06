@@ -27,12 +27,13 @@ public class EncoderCalValues extends Object{
     public double encoder1InchesPerCount = 0;
     public double encoder1CountsPerRev = 0;    
     public double encoder1CountsPerSec = 0;
+    public double encoder1Helix = 0;
 
     public double encoder2CountsPerInch = 0; 
     public double encoder2InchesPerCount = 0;
     public double encoder2CountsPerRev = 0;        
     public double encoder2CountsPerSec = 0;
-    
+    public double encoder2Helix = 0;    
     
 //-----------------------------------------------------------------------------
 // EncoderCaValues::EncoderCalValues (constructor)

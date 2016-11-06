@@ -193,7 +193,7 @@ public class UTControls extends JTabbedPane
 
     SpinnerPanel delaySpin, rangeSpin, gainSpin, repRateSpin;
     SpinnerPanel hardwareGainSpin1, hardwareGainSpin2, rejectSpin;
-    SpinnerPanel smoothingSpin, dcOffsetSpin;
+    SpinnerPanel smoothingSpin;
     SpinnerPanel nomWallSpin, nomWallPosSpin, wallScaleSpin, velocitySpin;
     SpinnerPanel numMultiplesSpin;
 
@@ -233,13 +233,15 @@ public class UTControls extends JTabbedPane
 
     //components on Configuration tab
 
-    SpinnerPanel velocityShearSpin;
+    SpinnerPanel velocityShearSpin, dcOffsetSpin;
     JRadioButton inchesRadioButton, mmRadioButton;
     JRadioButton timeRadioButton, distanceRadioButton;
     JRadioButton markerPulseButton, markerContinuousButton;
     JButton resetChannelButton;
     JCheckBox distanceAdjustedForReturnTripCheckBox;
-
+    
+    JComboBox <String>headTypeComboBox;
+    
     //end of components on Configuration tab
 
 //-----------------------------------------------------------------------------
@@ -1451,7 +1453,7 @@ void setupConfigTab()
 
     JPanel topLeftPanel = new JPanel();
     topLeftPanel.setLayout(new BoxLayout(topLeftPanel, BoxLayout.PAGE_AXIS));
-    setSizes(topLeftPanel, 170, 180);
+    setSizes(topLeftPanel, 170, 183);
     topLeftPanel.setAlignmentY(Component.TOP_ALIGNMENT);
 
     topLeftPanel.add(Box.createRigidArea(new Dimension(0,7))); //vertical spacer
@@ -1493,11 +1495,33 @@ void setupConfigTab()
     topLeftPanel.add(Box.createRigidArea(new Dimension(0,7))); //vertical spacer
 
     //add an entry for DC offset
+    
     topLeftPanel.add(dcOffsetSpin = new SpinnerPanel(
                     currentChannel.getDCOffset(), -127, 127, 1, "##0", 60, 23,
                                       "DC Offset ", " mV", "DC Offset", this));
     dcOffsetSpin.spinner.addChangeListener(this); //monitor changes to value
     dcOffsetSpin.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+    topLeftPanel.add(Box.createRigidArea(new Dimension(0,7))); //vertical spacer    
+    
+    //add an entry for selecting the head type
+    
+    ArrayList<String> types = hardware.getHeadTypeList();
+    
+    headTypeComboBox = new JComboBox<>(types.toArray(new String[types.size()]));
+    
+    JComboBox <String>jcb = headTypeComboBox; //use a short name
+    
+    setSizes(jcb, 80, 25);
+    jcb.setAlignmentX(Component.LEFT_ALIGNMENT);
+    jcb.setSelectedIndex(getSelectedHeadTypeIndex());
+    jcb.setActionCommand("Head Type");
+    jcb.addActionListener(this);
+    jcb.setName("Head Type");
+    jcb.setToolTipText("Select the head type.");
+    jcb.addMouseListener(this);
+
+    topLeftPanel.add(jcb);
 
     //create a panel for the right column
 
@@ -1630,6 +1654,27 @@ void setupConfigTab()
     configTab.add(topRightPanel);
 
 }//end of UTControls::setupConfigTab
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTControls::getSelectedHeadTypeIndex
+//
+// Returns the index in the head type list of the currently selected entry.
+//
+
+public int getSelectedHeadTypeIndex()
+{
+    
+    ArrayList<String> list = hardware.getHeadTypeList();
+
+    int index = list.indexOf(hardware.getSelectedHeadType());
+
+    //if not found, index will be -1, set to 0 (the first item in the list
+    if (index == -1) {index = 0;}
+
+    return(index);
+
+}//end of UTControls::getSelectedHeadTypeIndex
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -2101,6 +2146,9 @@ public void updateAllSettings(boolean pForceUpdate)
     ch.setAScanSmoothing(smoothingSpin.spinner.getIntValue(), pForceUpdate);
     ch.setDCOffset(dcOffsetSpin.spinner.getIntValue(), pForceUpdate);
 
+    hardware.setSelectedHeadType((String)headTypeComboBox.getSelectedItem(), 
+                                                                 pForceUpdate);
+    
     //recalculate everything that is based on the controls
     calculateAllUTValues();
 
