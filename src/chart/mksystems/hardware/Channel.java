@@ -2287,7 +2287,7 @@ private int calculateDistanceToMarker(int pPrimaryMarker,
     
     //if the marker is not set, then use zero for distances
     
-    if (markers.length == 0 || 
+    if (markers == null || markers.length == 0 || 
                        pPrimaryMarker < 0 || pPrimaryMarker >= markers.length){
         distanceToMarkerInInches = 0;
         return(0);
