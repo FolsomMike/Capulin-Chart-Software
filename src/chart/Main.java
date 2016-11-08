@@ -229,6 +229,7 @@ class MainWindow implements WindowListener, ActionListener, ChangeListener,
     boolean monitorActive = false;
     EncoderCalibrator encoderCalibrator;
     boolean encoderCalibratorActive = false;
+    JackStandSetup jackStandSetup;
    
     FlagReportPrinter printFlagReportDialog = null;
     int closePrintFlagReportDialogTimer = 0;
@@ -770,7 +771,11 @@ private void configure()
     encoderCalibrator = new EncoderCalibrator(mainFrame, configFile, this);
     encoderCalibrator.init();    
 
-    //create a debugger window with a link to the hardware object
+    //create a window for entering jack stand distances
+    jackStandSetup = new JackStandSetup(mainFrame, configFile, this);
+    jackStandSetup.init();    
+
+//create a debugger window with a link to the hardware object
     debugger = new Debugger(mainFrame, hardware);
     debugger.init();
 
@@ -1460,7 +1465,13 @@ public void actionPerformed(ActionEvent e)
         hardware.startMonitor();
         return;
     }
-        
+
+    //this part handles starting the jack stand setup window
+    if ("Set Up Jack Stands".equals(e.getActionCommand())) {
+        jackStandSetup.setVisible(true);
+        return;
+    }
+
     //this part handles opening the debugger window
     if ("Debugger".equals(e.getActionCommand())) {
         debugger.setVisible(true);

@@ -71,6 +71,7 @@ public class MainMenu extends JMenuBar{
 
     JMenu calibrationMenu;
     JMenuItem calEncoders;
+    JMenuItem setupJackStands;
         
     JMenu optionsMenu, chartMenu, aScanMenu, reportOptionsMenu;
     JMenu calWindowSettingsMenu;
@@ -329,6 +330,14 @@ public MainMenu(Settings pSettings)
     calEncoders.addActionListener(settings);
     calibrationMenu.add(calEncoders);
 
+    //Calibration/Setup Jack Stands
+
+    setupJackStands = new JMenuItem("Set Up Jack Stands");
+    setupJackStands.setMnemonic(KeyEvent.VK_S);
+    setupJackStands.setToolTipText("Enter distances to the jack stands.");
+    setupJackStands.addActionListener(settings);
+    calibrationMenu.add(setupJackStands);
+    
     //View menu
     viewMenu = new JMenu("View");
     viewMenu.setMnemonic(KeyEvent.VK_V);

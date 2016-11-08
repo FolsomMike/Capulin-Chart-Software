@@ -468,6 +468,13 @@ public void actionPerformed(ActionEvent e)
     }
 
     //calls function in Main
+    if (source.getActionCommand().equalsIgnoreCase("Set Up Jack Stands")){
+        actionListener.actionPerformed(new ActionEvent(
+                  this, ActionEvent.ACTION_PERFORMED, "Set Up Jack Stands"));
+        return;
+    }
+        
+    //calls function in Main
     if (source.getActionCommand().equalsIgnoreCase("Repair Job")){
         actionListener.actionPerformed(
             new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Repair Job"));
