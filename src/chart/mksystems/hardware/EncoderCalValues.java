@@ -34,6 +34,11 @@ public class EncoderCalValues extends Object{
     public double encoder2CountsPerRev = 0;        
     public double encoder2CountsPerSec = 0;
     public double encoder2Helix = 0;    
+
+    private String textMsg = "";
+    
+    public String getTextMsg(){ return textMsg; }
+    public void setTextMsg(String pTextMsg){ textMsg = pTextMsg; }
     
 //-----------------------------------------------------------------------------
 // EncoderCaValues::EncoderCalValues (constructor)

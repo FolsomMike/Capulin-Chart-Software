@@ -19,6 +19,7 @@
 
 package chart;
 
+import chart.mksystems.hardware.EncoderCalValues;
 import chart.mksystems.inifile.IniFile;
 import java.awt.*;
 import java.awt.event.*;
@@ -41,7 +42,7 @@ class JackStandSetup extends JDialog implements ActionListener {
 
     private JPanel displayPanel;
 
-    private JLabel calMessage;
+    private JLabel calMessageLbl;
 
     JCheckBox displayMonitorCB, enableEyeDistanceInputsCB;
     
@@ -273,9 +274,9 @@ private void setupMsgDisplayPanel(JPanel pParentPanel)
     panel.setAlignmentX(Component.CENTER_ALIGNMENT);
     pParentPanel.add(panel);
         
-    calMessage = new JLabel("waiting for message...");
-    calMessage.setAlignmentX(Component.LEFT_ALIGNMENT);
-    panel.add(calMessage);
+    calMessageLbl = new JLabel("waiting for message...");
+    calMessageLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
+    panel.add(calMessageLbl);
     
 }//end of JackStandSetup::setupMsgDisplayPanel
 //-----------------------------------------------------------------------------
@@ -444,6 +445,35 @@ private void setJackStandsEyeDistanceEditingEnabled(boolean pEnabled)
     });
         
 }//end of JackStandSetup::setJackStandsEyeDistanceEditingEnabled
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// JackStandSetup::setEncoderCalValues
+//
+// Sets all encoder calibrations via pEncoderCalValues and updates labels to
+// reflect the data.
+//
+
+public void setEncoderCalValues(EncoderCalValues pEncoderCalValues)
+{
+ 
+    if (calMessageLbl != null){ 
+        calMessageLbl.setText(pEncoderCalValues.getTextMsg());
+    }
+    
+    //encoder1CountsPerInch = pEncoderCalValues.encoder1CountsPerInch;    
+    //encoder1InchesPerCount = pEncoderCalValues.encoder1InchesPerCount;
+    //encoder1CountsPerRev = pEncoderCalValues.encoder1CountsPerRev;    
+    //encoder1CountsPerSec = pEncoderCalValues.encoder1CountsPerSec;
+
+    //encoder2CountsPerInch = pEncoderCalValues.encoder2CountsPerInch;    
+    //encoder2InchesPerCount = pEncoderCalValues.encoder2InchesPerCount;
+    //encoder2CountsPerRev = pEncoderCalValues.encoder2CountsPerRev;        
+    //encoder2CountsPerSec = pEncoderCalValues.encoder2CountsPerSec;
+        
+    refreshAllLabels();
+    
+}//end of JackStandSetup::setEncoderCalValues
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

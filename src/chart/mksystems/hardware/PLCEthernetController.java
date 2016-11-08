@@ -51,25 +51,46 @@ public class PLCEthernetController {
     byte[] outBuffer;
     DataOutputStream byteOut = null;
     DataInputStream byteIn = null;
+    EncoderValues encoderValues;
 
+    boolean reSynced;
+    int pktID;
+    int reSyncCount;
+    int reSyncPktID;
+    
+    int msgBodyLen;
+    
     ThreadSafeLogger logger;
     boolean simulate;
 
     int messageCount = 0;
 
+    private static final int TIMEOUT = 5;
     private static final int PLC_MESSAGE_LENGTH = 29;
+    private static final int PLC_MSG_PACKET_SIZE = 50;
+    
+    private static final int HEADER_BYTE = '^';
+    private static final int ENCODER_EYE_CAL_CMD = '#';
     
 //-----------------------------------------------------------------------------
 // PLCEthernetController::PLCEthernetController (constructor)
 //
 
 public PLCEthernetController(String pPLCIPAddrS, int pPLCPortNum,
-                                    ThreadSafeLogger pLogger, boolean pSimulate)
+     EncoderValues pEncoderValues, ThreadSafeLogger pLogger, boolean pSimulate)
 {
 
     plcIPAddrS = pPLCIPAddrS; plcPortNum = pPLCPortNum;
+    encoderValues = pEncoderValues;
     logger = pLogger; simulate = pSimulate;
         
+    inBuffer = new byte[PLC_MSG_PACKET_SIZE];
+    outBuffer = new byte[PLC_MSG_PACKET_SIZE];
+
+    //body length is message length minus header byte and packet type byte
+    msgBodyLen = PLC_MESSAGE_LENGTH - 2;
+
+    
 }//end of PLCEthernetController::PLCEthernetController (constructor)
 //-----------------------------------------------------------------------------
 
@@ -308,6 +329,191 @@ private String getAndIncrementMessageCount()
     return(Integer.toString(value));
 
 }//end of EthernetIOModule::getAndIncrementMessageCount
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// PLCEthernetController::processOneDataPacket
+//
+// This function processes a single data packet if it is available.  If
+// pWaitForPkt is true, the function will wait until data is available.
+//
+// The amount of time the function is to wait for a packet is specified by
+// pTimeOut.  Each count of pTimeOut equals 10 ms.
+//
+// This function should be called often to allow processing of data packets
+// received from the remotes and stored in the socket buffer.
+//
+// All packets received from the remote devices should begin with the value
+// stored in the constant HEADER_BYTE, followed by the packet type identifier.
+//
+// Returns number of bytes retrieved from the socket, not including the
+// header byte and the packet type identifier.
+//
+// Thus, if a non-zero value is returned, a packet was processed.  If zero
+// is returned, some bytes may have been read but a packet was not successfully
+// processed due to missing bytes or header corruption.
+// A return value of -1 means that the buffer does not contain a packet.
+//
+// Currently, incoming packets do not have checksums. Data integrity is left to
+// the TCP/IP protocol.
+//
+
+public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
+{
+
+    if (byteIn == null) {return -1;}  //do nothing if the port is closed
+
+    try{
+
+        int timeOutWFP;
+        
+        //wait a while for a packet if parameter is true
+        if (pWaitForPkt){
+            timeOutWFP = 0;
+            while(byteIn.available() < 7 && timeOutWFP++ < pTimeOut){
+                waitSleep(10);
+            }
+        }
+
+        //wait until 2 bytes are available - this should be the header byte
+        //and the packet identifier
+        if (byteIn.available() < 2) {return -1;}
+
+        //read the bytes in one at a time so that if an invalid byte is
+        //encountered it won't corrupt the next valid sequence in the case
+        //where it occurs within 3 bytes of the invalid byte
+
+        //check the byte to see if it is a valid header byte
+        //if not, jump to resync which deletes bytes until a valid first header
+        //byte is reached
+
+        //if the reSynced flag is true, the buffer has been resynced and a
+        //header byte has already been read from the buffer so it shouldn't be
+        //read again
+
+        //after a resync, the function exits without processing any packets
+
+        if (!reSynced){
+            //look for the 0xaa byte unless buffer just resynced
+            byteIn.read(inBuffer, 0, 1);
+            if (inBuffer[0] != (byte)HEADER_BYTE) {reSync(); return 0;}
+        }
+        else {reSynced = false;}
+
+        //read in the packet identifier
+        byteIn.read(inBuffer, 0, 1);
+
+        //store the ID of the packet (the packet type)
+        pktID = inBuffer[0];
+
+        if ( pktID == ENCODER_EYE_CAL_CMD) {return processEncoderEyeCalCmd();}
+
+    }
+    catch(IOException e){
+        logSevere(e.getMessage() + " - Error: 3453");
+    }
+
+    return 0;
+
+}//end of PLCEthernetController::processOneDataPacket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// PLCEthernetController::reSync
+//
+// Clears bytes from the socket buffer until header byte reached which signals
+// the *possible* start of a new valid packet header or until the buffer is
+// empty.
+//
+// If a header byte is found, the flag reSynced is set true so that other
+// functions will know that the header byte has already been removed from the
+// stream, signalling the possible start of a new packet header.
+//
+// There is a special case where an erroneous header byte is found just before
+// the valid header byte which starts a new packet - the first header byte is
+// the last byte of the previous packet.  In this case, the next packet will be
+// lost as well.  This should happen rarely.
+//
+
+public void reSync()
+{
+
+    reSynced = false;
+
+    //track the number of times this function is called, even if a resync is not
+    //successful - this will track the number of sync errors
+    reSyncCount++;
+
+    //store info pertaining to what preceded the reSync - these values will be
+    //overwritten by the next reSync, so they only reflect the last error
+    //NOTE: when a reSync occurs, these values are left over from the PREVIOUS
+    // good packet, so they indicate what PRECEDED the sync error.
+
+    reSyncPktID = pktID;
+
+    try{
+        while (byteIn.available() > 0) {
+            byteIn.read(inBuffer, 0, 1);
+            if (inBuffer[0] == (byte)HEADER_BYTE) {reSynced = true; break;}
+            }
+        }
+    catch(IOException e){
+        logSevere(e.getMessage() + " - Error: 448");
+    }
+
+}//end of PLCEthernetController::reSync
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// PLCEthernetController::processEncoderEyeCalCmd
+//
+// Handles messages from the PLC which indicate that a sensor has changed
+// state and includes the encoder counts at the time of change along with the
+// current state of the sensor and the conveyor direction.
+//
+
+private int processEncoderEyeCalCmd()
+{
+
+    int timeOutProcess = 0;
+    
+    try{
+        while(timeOutProcess++ < TIMEOUT){
+            if (byteIn.available() >= msgBodyLen) {break;}
+            waitSleep(10);
+            }
+        if (timeOutProcess < TIMEOUT && byteIn.available() >= msgBodyLen){
+            int c = byteIn.read(inBuffer, 0, msgBodyLen);
+            parseEncoderEyeCalMsg(c, inBuffer);
+            return(c);
+            }
+        else {
+            
+            }
+        }// try
+    catch(IOException e){
+        logSevere(e.getMessage() + " - Error: 486");
+    }
+
+    return 0;
+
+}//end of PLCEthernetController::processEncoderEyeCalCmd
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// PLCEthernetController::parseEncoderEyeCalMsg
+//
+
+private void parseEncoderEyeCalMsg(int numBytes, byte[] pBuf)
+{
+
+    if(numBytes <= 0){ return; }
+    
+    String msg = new String(pBuf, 0, msgBodyLen);
+
+    encoderValues.setTextMsg(msg);
+    
+}//end of PLCEthernetController::parseEncoderEyeCalMsg
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

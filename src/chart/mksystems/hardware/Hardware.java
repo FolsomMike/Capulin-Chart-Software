@@ -204,7 +204,7 @@ private void openPLCComLink()
     if (!settings.establishPLCComLink) { return; }
 
     plcComLink = new PLCEthernetController(settings.plcIPAddressString,
-                                    settings.plcEthernetPort, logger, false);
+                 settings.plcEthernetPort, hdwVs.encoderValues, logger, false);
 
     plcComLink.init();
 
@@ -925,8 +925,14 @@ public void setAllChannelsDataChangedTrue()
 public void collectData()
 {
 
-    //process all available packets - this is done with every call so that all
-    //types of packets get handled for functions that need them
+    //process one PLC message if it is available; the transmission rate
+    //should be low so it is not necessary to clean up all waiting messages
+    //with each call
+    
+    if (plcComLink != null) { plcComLink.processOneDataPacket(false, 0); }
+    
+    //process all available inspection packets - this is done with every call
+    //so that all types of packets get handled for functions that need them
     //if analogDriver.prepareData() returns true, then peak data is ready to be
     //processed
 

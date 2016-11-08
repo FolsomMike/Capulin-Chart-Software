@@ -4467,7 +4467,7 @@ private void handleDSPMessageErrors()
 // the *possible* start of a new valid packet header or until the buffer is
 // empty.
 //
-// If an 0xaa byte is found, the flag reSynced is set true to that other
+// If an 0xaa byte is found, the flag reSynced is set true so that other
 // functions will know that an 0xaa byte has already been removed from the
 // stream, signalling the possible start of a new packet header.
 //

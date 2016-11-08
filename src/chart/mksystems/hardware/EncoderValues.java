@@ -99,7 +99,11 @@ public class EncoderValues extends Object{
     private double encoder2Helix = 0.0;
     public void setEncoder2Helix(double pV){ encoder2Helix = pV; }    
     public double getEncoder2Helix(){ return encoder2Helix;}
-        
+    
+    private String textMsg;
+    public String getTextMsg(){ return textMsg; }
+    public void setTextMsg(String pTextMsg){ textMsg = pTextMsg; }
+
     //length of the end stop at the "toward" end of the unit
     //if the away laser triggers on the start of this instead of the start of
     //the tube, specify the length in the config file so it can be accounted
@@ -270,6 +274,8 @@ public void setEncoderCalValues(EncoderCalValues pEncoderCalValues)
     encoder2CountsPerSec = pEncoderCalValues.encoder2CountsPerSec;
     encoder2Helix = pEncoderCalValues.encoder2Helix;
     
+    setTextMsg(pEncoderCalValues.getTextMsg());    
+    
 }//end of EncoderValues::setEncoderCalValues
 //-----------------------------------------------------------------------------
 
@@ -294,7 +300,9 @@ public EncoderCalValues getEncoderCalValues(EncoderCalValues pEncoderCalValues)
     pEncoderCalValues.encoder2CountsPerRev = encoder2CountsPerRev;
     pEncoderCalValues.encoder2CountsPerSec = encoder2CountsPerSec;
     pEncoderCalValues.encoder2Helix = encoder2Helix;
-            
+
+    pEncoderCalValues.setTextMsg(textMsg);
+    
     return(pEncoderCalValues);
     
 }//end of EncoderValues::getEncoderCalValues

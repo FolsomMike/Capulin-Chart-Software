@@ -230,6 +230,7 @@ class MainWindow implements WindowListener, ActionListener, ChangeListener,
     EncoderCalibrator encoderCalibrator;
     boolean encoderCalibratorActive = false;
     JackStandSetup jackStandSetup;
+    boolean jackStandSetupActive = false;
    
     FlagReportPrinter printFlagReportDialog = null;
     int closePrintFlagReportDialogTimer = 0;
@@ -2357,9 +2358,9 @@ public void processMainTimerEvent()
 
     //if in monitor mode, retrieve I/O status info from Capulin1
     if (monitorWindow.isVisible()) {
-            monitorActive = true;
-            byte[] monitorBuffer = hardware.getMonitorPacket(true);
-            monitorWindow.updateStatus(monitorBuffer);
+        monitorActive = true;
+        byte[] monitorBuffer = hardware.getMonitorPacket(true);
+        monitorWindow.updateStatus(monitorBuffer);
     }
     else if (monitorActive){ //if in monitor mode and window closes, exit mode
         monitorActive = false;
@@ -2369,14 +2370,25 @@ public void processMainTimerEvent()
     //if Encoder Calibrator visible, update I/O status from the hardware
     //using the same functions as the Monitor window
     if (encoderCalibrator.isVisible()) {
-            encoderCalibratorActive = true;
-            byte[] monitorBuffer = hardware.getMonitorPacket(true);
-            encoderCalibrator.updateStatus(monitorBuffer);
+        encoderCalibratorActive = true;
+        byte[] monitorBuffer = hardware.getMonitorPacket(true);
+        encoderCalibrator.updateStatus(monitorBuffer);
     }
     else if (encoderCalibratorActive){
         //if Encoder Calibrator visible and window closes, exit the mode
         encoderCalibratorActive = false;
         if (!monitorActive) { hardware.stopMonitor(); }
+    }
+
+    //if Jack Stand Setup window is visible, update I/O status Hardware object
+    if (jackStandSetup.isVisible()) {
+        jackStandSetupActive = true;
+        jackStandSetup.setEncoderCalValues(
+                               hardware.getEncoderCalValues(encoderCalValues));
+    }
+    else if (jackStandSetupActive){
+        //if window visible and window closes, exit the mode
+        jackStandSetupActive = false;
     }
         
     //if the cal window is opened, allow it to update it's display with the latest
