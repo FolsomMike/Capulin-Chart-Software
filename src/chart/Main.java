@@ -942,7 +942,8 @@ private void loadCalFile()
         settings.chartGroups[i].loadCalFile(calFile);
     }
 
-    hardware.loadCalFile(calFile);
+    hardware.loadCalFile(calFile, settings.currentJobPrimaryPath, 
+                                                    settings.primaryDataPath);
 
 }//end of MainWindow::loadCalFile
 //-----------------------------------------------------------------------------

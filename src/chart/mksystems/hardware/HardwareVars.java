@@ -206,10 +206,10 @@ public double convertEncoder2CountsToInches(int pCounts)
 // own data.
 //
 
-public void loadCalFile(IniFile pCalFile)
+public void loadCalFile(IniFile pCalFile, String pDataPath)
 {
 
-    encoderValues.loadCalFile(pCalFile);
+    encoderValues.loadCalFile(pCalFile, pDataPath);
     
 }//end of HardwareVars::loadCalFile
 //-----------------------------------------------------------------------------
@@ -224,10 +224,10 @@ public void loadCalFile(IniFile pCalFile)
 // own data.
 //
 
-public void saveCalFile(IniFile pCalFile)
+public void saveCalFile(IniFile pCalFile, String pJobPath)
 {
 
-    encoderValues.saveCalFile(pCalFile);
+    encoderValues.saveCalFile(pCalFile, pJobPath);
 
 }//end of EncoderValues::saveCalFile
 //-----------------------------------------------------------------------------

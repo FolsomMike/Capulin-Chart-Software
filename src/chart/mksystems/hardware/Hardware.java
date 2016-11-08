@@ -383,7 +383,7 @@ public void saveAllMapDataSetsToTextFile(
 // own data.
 //
 
-public void loadCalFile(IniFile pCalFile)
+public void loadCalFile(IniFile pCalFile, String pJobPath, String pDataPath)
 {
 
     hdwVs.nominalWall = pCalFile.readDouble("Hardware", "Nominal Wall", 0.250);
@@ -424,7 +424,7 @@ public void loadCalFile(IniFile pCalFile)
        ") or fires continuously during the violation (" + CONTINUOUS + ")", 0);
 
 
-    hdwVs.loadCalFile(pCalFile);
+    hdwVs.loadCalFile(pCalFile, pDataPath);
     
     analogDriver.loadCalFile(pCalFile);
     
@@ -441,7 +441,7 @@ public void loadCalFile(IniFile pCalFile)
 // own data.
 //
 
-public void saveCalFile(IniFile pCalFile)
+public void saveCalFile(IniFile pCalFile, String pJobPath, String pDataPath)
 {
 
     pCalFile.writeDouble("Hardware", "Nominal Wall", hdwVs.nominalWall);
@@ -480,7 +480,7 @@ public void saveCalFile(IniFile pCalFile)
        ") or fires continuously during the violation (" + CONTINUOUS + ")",
                                                                    markerMode);
     
-    hdwVs.saveCalFile(pCalFile);
+    hdwVs.saveCalFile(pCalFile, pDataPath);
     
     analogDriver.saveCalFile(pCalFile);
 

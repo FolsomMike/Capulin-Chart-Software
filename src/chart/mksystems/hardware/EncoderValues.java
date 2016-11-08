@@ -21,6 +21,7 @@ package chart.mksystems.hardware;
 import chart.mksystems.inifile.IniFile;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -119,7 +120,13 @@ public class EncoderValues extends Object{
     double photoEye1DistanceToEncoder1;
     double photoEye1DistanceToEncoder2;
     double distanceAfterEncoder2ToSwitchEncoders;
-        
+
+    private static final String UNIT_CAL_FILE_FOLDER_NAME = 
+                                      "00 - Calibration Files - Do Not Delete";
+    
+    private static final String UNIT_CAL_FILE_NAME = 
+                                        "Encoder and Distance Calibrations.ini";
+    
 //-----------------------------------------------------------------------------
 // EncoderValues::EncoderValues (constructor)
 //
@@ -549,14 +556,54 @@ public void readEncoderValuesFromOpenFile(BufferedReader pInFile)
 //-----------------------------------------------------------------------------
 // EncoderValues::loadCalFile
 //
+// This saves the file used for storing calibration information pertinent to a
+// job, such as gains, offsets, thresholds, etc.
+//
+// The data is loaded from "Encoder and Distance Calibrations.ini" file in the
+// "00 - Calibration Files - Do Not Delete" in the pDataPath data
+// folders. Although the data is also stored in the job's calibration file,
+// that data is used for reference purposes only.
+//
+// Each object is passed a pointer to the file so that they may save their
+// own data.
+//
+
+public void loadCalFile(IniFile pCalFile, String pDataPath)
+{
+    
+    IniFile calFile;
+    
+    //if the ini file cannot be opened and loaded, exit without action
+    try {
+        calFile = new IniFile(pDataPath + UNIT_CAL_FILE_FOLDER_NAME +
+                                File.separator + UNIT_CAL_FILE_NAME, "UTF-8");
+        calFile.init();
+    }
+    catch(IOException e){
+        logSevere(e.getMessage() + " - Error: 720");
+        return;
+    }
+
+    //load data from the opened file
+    loadCalFileFromOpenFile(calFile);
+    
+}//end of EncoderValues::loadCalFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// EncoderValues::loadCalFileFromOpenFile
+//
 // This loads the file used for storing calibration information pertinent to a
 // job, such as gains, offsets, thresholds, etc.
+//
+// This loads data from already opened file pCalFile. See loadCalFile function
+// for more details.
 //
 // Each object is passed a pointer to the file so that they may load their
 // own data.
 //
 
-public void loadCalFile(IniFile pCalFile)
+public void loadCalFileFromOpenFile(IniFile pCalFile)
 {
 
     //if the value read from the cal file is the default, then don't overwrite
@@ -580,11 +627,6 @@ public void loadCalFile(IniFile pCalFile)
     if(encoderInchesPerCount != Double.MIN_VALUE){
         encoder2InchesPerCount = encoderInchesPerCount;
     }
-
-    //wip mks -- need have a flag in the config file to always use
-    // encoder values from the config and not allow cal file to override?
-    // or store them in a special config file so the unit can be calibrated
-    // only rarely?
     
     encoder1CountsPerInch = pCalFile.readDouble("Hardware",
                                             "Encoder 1 Counts per Inch", -1.0);
@@ -611,7 +653,7 @@ public void loadCalFile(IniFile pCalFile)
                                   "Encoder 2 Helix Inches per Revolution", -1);
         
     
-}//end of EncoderValues::loadCalFile
+}//end of EncoderValues::loadCalFileFromOpenFile
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -620,11 +662,42 @@ public void loadCalFile(IniFile pCalFile)
 // This saves the file used for storing calibration information pertinent to a
 // job, such as gains, offsets, thresholds, etc.
 //
+// The data is first saved to the already opened file pCalFile. This is usually
+// the calibration file in the job folder -- it is stored there for future
+// reference.
+//
+// The data is then saved to "Encoder and Distance Calibrations.ini" file in the
+// "00 - Calibration Files - Do Not Delete" in the pDataPath data
+// folders. This is the file from which the values are reloaded. This allows
+// the calibration data to be stored for a unit and used regardless of which
+// job is loaded...the cal data is unit specific, not job specific.
+//
 // Each object is passed a pointer to the file so that they may save their
 // own data.
 //
 
-public void saveCalFile(IniFile pCalFile)
+public void saveCalFile(IniFile pCalFile, String pDataPath)
+{
+    //save a copy of the data in the already opened file
+    saveCalFileToOpenFile(pCalFile);
+
+    //save the data to pPrimaryFileName and pBackupFileName
+    saveCalFileToCalFolder(pDataPath);
+    
+}//end of EncoderValues::saveCalFile
+//-----------------------------------------------------------------------------
+    
+//-----------------------------------------------------------------------------
+// EncoderValues::saveCalFileToOpenFile
+//
+// This saves data to already opened file pCalFile. See saveCalFile function
+// for more details.
+//
+// Each object is passed a pointer to the file so that they may save their
+// own data.
+//
+
+public void saveCalFileToOpenFile(IniFile pCalFile)
 {
 
     pCalFile.writeDouble("Hardware", "Encoder 1 Inches per Count",
@@ -657,7 +730,48 @@ public void saveCalFile(IniFile pCalFile)
     pCalFile.writeDouble("Hardware",
                        "Encoder 2 Helix Inches per Revolution", encoder2Helix);
 
-}//end of EncoderValues::saveCalFile
+}//end of EncoderValues::saveCalFileToOpenFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// EncoderValues::saveCalFileToCalFolder
+//
+// This saves the file used for storing calibration information pertinent to a
+// job, such as gains, offsets, thresholds, etc.
+//
+// The data is saved to "Encoder and Distance Calibrations.ini" file in the
+// "00 - Calibration Files - Do Not Delete" in the pDataPath data
+// folders. This is the file from which the values are reloaded. This allows
+// the calibration data to be stored for a unit and used regardless of which
+// job is loaded...the cal data is unit specific, not job specific.
+//
+// Each object is passed a pointer to the file so that they may save their
+// own data.
+//
+
+public void saveCalFileToCalFolder(String pDataPath)
+{
+    
+    IniFile calFile;
+    
+    //if the ini file cannot be opened and loaded, exit without action
+    try {
+        calFile = new IniFile(pDataPath + UNIT_CAL_FILE_FOLDER_NAME +
+                                File.separator + UNIT_CAL_FILE_NAME, "UTF-8");
+        calFile.init();
+    }
+    catch(IOException e){
+        logSevere(e.getMessage() + " - Error: 720");
+        return;
+    }
+
+    //save a copy of the data in the opened file
+    saveCalFileToOpenFile(calFile);
+    
+    //force save buffer to disk
+    calFile.save();
+
+}//end of EncoderValues::saveCalFileToCalFolder
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

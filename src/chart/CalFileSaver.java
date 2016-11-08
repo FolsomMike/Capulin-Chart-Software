@@ -126,7 +126,7 @@ public void run() {
 
     //begin saving the data to the primary path
     if (!humanReadable) {
-        saveFile(settings.currentJobPrimaryPath);
+        saveFile(settings.currentJobPrimaryPath, settings.primaryDataPath);
     }
     else {
         saveFileHumanReadable(settings.currentJobPrimaryPath);
@@ -139,7 +139,7 @@ public void run() {
 
     //begin saving the data to the backup path
     if (!humanReadable) {
-        saveFile(settings.currentJobBackupPath);
+        saveFile(settings.currentJobBackupPath, settings.backupDataPath);
     }
     else {
         saveFileHumanReadable(settings.currentJobBackupPath);
@@ -169,7 +169,7 @@ public void run() {
 // own data.
 //
 
-protected void saveFile(String pJobPath)
+protected void saveFile(String pJobPath, String pDataPath)
 {
 
     //if the job path has not been set, don't save anything or it will be saved in
@@ -223,7 +223,7 @@ protected void saveFile(String pJobPath)
         settings.chartGroups[i].saveCalFile(calFile);
     }
 
-    hardware.saveCalFile(calFile);
+    hardware.saveCalFile(calFile, pJobPath, pDataPath);
 
     //force save buffer to disk
     calFile.save();
