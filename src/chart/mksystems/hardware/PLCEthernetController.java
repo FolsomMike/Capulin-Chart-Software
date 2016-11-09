@@ -52,7 +52,7 @@ public class PLCEthernetController {
     DataOutputStream byteOut = null;
     DataInputStream byteIn = null;
     EncoderValues encoderValues;
-
+    
     boolean reSynced;
     int pktID;
     int reSyncCount;
@@ -71,6 +71,23 @@ public class PLCEthernetController {
     
     private static final int HEADER_BYTE = '^';
     private static final int ENCODER_EYE_CAL_CMD = '#';
+    
+    private static final int MAX_NUM_JACKS_ON_EITHER_END = 10;
+
+    public static final int INCOMING = 0;
+    public static final int OUTGOING = 1;
+    public static final int UNIT = 2;
+
+    public static final int EYE_A = 0;
+    public static final int EYE_B = 1;
+    public static final int SELF = 2;
+    
+    public static final int UNDEFINED_DIR = 0;
+    public static final int STOPPED = 1;
+    public static final int FWD = 2;
+    public static final int REV = 3;
+
+    public static final int DIR_CHAR_POS = 24;
     
 //-----------------------------------------------------------------------------
 // PLCEthernetController::PLCEthernetController (constructor)
@@ -504,7 +521,7 @@ private int processEncoderEyeCalCmd()
 // PLCEthernetController::parseEncoderEyeCalMsg
 //
 
-private void parseEncoderEyeCalMsg(int numBytes, byte[] pBuf)
+public void parseEncoderEyeCalMsg(int numBytes, byte[] pBuf) //debug mks -- set this to private
 {
 
     if(numBytes <= 0){ return; }
@@ -512,10 +529,140 @@ private void parseEncoderEyeCalMsg(int numBytes, byte[] pBuf)
     String msg = new String(pBuf, 0, msgBodyLen);
 
     encoderValues.setTextMsg(msg);
+
+    SensorData sensor = parseSensorID(msg.substring(0,9));
     
+    //if sensor ID invalid, then ignore message
+    if(sensor == null){ return; }
+
+    //parse direction
+    
+    if (msg.charAt(DIR_CHAR_POS) == 'F'){ sensor.direction = FWD; }
+    else if (msg.charAt(DIR_CHAR_POS) == 'R'){ sensor.direction = REV; }
+    else if (msg.charAt(DIR_CHAR_POS) == 'S'){ sensor.direction = STOPPED; }
+    else{  sensor.direction = UNDEFINED_DIR; }
+    
+    //parse encoder counts; value of Integer.MIN_VALUE means parse failed
+    sensor.encoder1Cnt = parseEncoderCount(msg, 10);
+    sensor.encoder2Cnt = parseEncoderCount(msg, 17);
+
 }//end of PLCEthernetController::parseEncoderEyeCalMsg
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// PLCEthernetController::parseEncoderCount
+//
+// Parses the 6 digit substring in pMsg starting at pStart location. Returns
+// the value as an integer.
+//
+// On error, returns Integer.MIN_VALUE.
+
+private int parseEncoderCount(String pMsg, int pStart)
+{        
+
+    String s = pMsg.substring(pStart, pStart + 6); //debug mks -- remove this
+    
+    try{
+        return(Integer.valueOf(pMsg.substring(pStart, pStart + 6).trim()));
+    }
+    catch(NumberFormatException nfe){
+        return(Integer.MIN_VALUE); //error parsing
+    }
+    
+}//end of PLCEthernetController::parseEncoderCount
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// PLCEthernetController::parseSensorID
+//
+// Parses the phrase in pID to determine which SensorData object in the
+// sensorData ArrayList is addressed -- a reference to that SensorData object
+// is returned.
+//
+// The format of the ID string is: *Sensor**
+// Where * is:
+//  I -> entry jack sensor; O -> exit jack sensor; 
+//  U -> unit sensor (mounted on center-section or trailer)
+//
+// and ** is a two digit number which IDs the sensor in the group.
+// For the entry sensor and exit sensor, that number is ignored.
+// Each jack has two sensors 0:1, 2:3, 4:5, etc.
+//
+// As each jack has two eyes, lastEyeChanged is set to show which eye last
+// changed state (EYE_A OR EYE_B). For cases such as a Unit eye which represents
+// a single sensor, lastEyeChanged is set to SELF.
+//
+// The entry sensor is that used to trigger start of inspection.
+// The exit sensor is that used to trigger end of inspection.
+// The entry and exit sensors are stored in the SensorData object in the middle
+// of the list, the entry jack sensors fill the list before the middle and
+// the exit jack sensors fill the list after the middle:
+//
+//  0: entry jack sensor 18 & 19  
+//     ...
+//  8: entry jack sensor 02 & 03
+//  9: entry jack sensor 00 & 01
+// 10: unit sensor 00 (entry inspection start sensor)
+// 11: exit sensor 01 (exit inspection end sensor)
+// 12: exit jack sensor 00 & 01
+// 13: exit jack sensor 02 & 03
+//      ...
+// 21: exit jack sensor 18 & 19
+//
+
+private SensorData parseSensorID(String pID)
+{
+
+    int sensorNum;
+            
+    try{
+        sensorNum = Integer.valueOf(pID.substring(7,9).trim());
+        if ((sensorNum < 0) || (sensorNum >= MAX_NUM_JACKS_ON_EITHER_END * 2)){
+            return(null);
+        }
+    }
+    catch(NumberFormatException nfe){
+        return(null); //do nothing if number is invalid
+    }
+
+    SensorData sensorData = null;
+    
+    //entry sensor on unit 
+    if (pID.charAt(0) == 'U'){
+        sensorData = encoderValues.getSensorData().get(sensorNum + 10);
+        sensorData.sensorNum = sensorNum; sensorData.lastEyeChanged = SELF;
+        return(sensorData);
+    }
+    
+    // for jacks, EyeA is always towards the incoming side
+    // thus for the entry jacks, sensor 0 starts at the unit and will be
+    // an EyeB and then alternate outwards; for outgoing jacks, sensor 0
+    // also starts at the unit but sensor 0 for that group is an EyeA and
+    // alternates outward away from the unit
+    
+    //handle entry jack sensors which are numbered 0-10 starting from unit
+    if (pID.charAt(0) == 'I'){
+        int i = 9 - sensorNum / 2;
+        sensorData = encoderValues.getSensorData().get(i);
+        sensorData.sensorNum = sensorNum; 
+        sensorData.lastEyeChanged = sensorNum % 2 == 0 ? EYE_B : EYE_A;
+        return(sensorData);
+    }
+
+    //handle exit jack sensors which are numbered 0-10 starting from unit
+    if (pID.charAt(0) == 'O'){
+        int i = 12 + sensorNum / 2;
+        sensorData.sensorNum = sensorNum;
+        sensorData = encoderValues.getSensorData().get(i);
+        sensorData.lastEyeChanged = sensorNum % 2 == 0 ? EYE_A : EYE_B;
+        return(sensorData);
+    }
+        
+    return(sensorData);
+
+}//end of PLCEthernetController::parseSensorID
+//-----------------------------------------------------------------------------
+    
 //-----------------------------------------------------------------------------
 // PLCEthernetController::shutDown
 //

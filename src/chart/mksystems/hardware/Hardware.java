@@ -925,6 +925,101 @@ public void setAllChannelsDataChangedTrue()
 public void collectData()
 {
 
+    //debug mks
+    
+    String msg;
+            
+    msg = "ISensor00|000010|000011|F|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "ISensor01|000020|000021|R|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "ISensor02|000030|000031|F|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "ISensor03|000040|000041|R|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "ISensor04|000050|000051|F|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "ISensor05|000060|000061|R|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "ISensor06|000070|000071|F|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "ISensor07|000080|000081|R|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "ISensor08|000090|000091|F|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "ISensor09|000100|000101|R|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "ISensor10|000110|000111|F|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "ISensor11|000120|000121|R|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "ISensor12|000130|000131|F|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "ISensor13|000140|000141|R|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "ISensor14|000150|000151|F|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "ISensor15|000160|000161|R|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "ISensor16|000170|000171|F|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "ISensor17|000180|000181|R|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "ISensor18|000190|000191|F|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "ISensor19|000200|000201|R|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+
+    msg = "USensor00|000066|000077|F|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    
+    msg = "USensor01|000088|000099|R|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    
+    msg = "OSensor00|100010|100011|F|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "OSensor01|100020|100021|R|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "OSensor02|100030|100031|F|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "OSensor03|100040|100041|R|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "OSensor04|100050|100051|F|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "OSensor05|100060|100061|R|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "OSensor06|100070|100071|F|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "OSensor07|100080|100081|R|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "OSensor08|100090|100091|F|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "OSensor09|100100|100101|R|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "OSensor10|100110|100111|F|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "OSensor11|100120|100121|R|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "OSensor12|100130|100131|F|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "OSensor13|100140|100141|R|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "OSensor14|100150|100151|F|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "OSensor15|100160|100161|R|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "OSensor16|100170|100171|F|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "OSensor17|100180|100181|R|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "OSensor18|100190|100191|F|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    msg = "OSensor19|100200|100201|R|0";
+    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+        
+    //debug mks end
+    
+    
     //process one PLC message if it is available; the transmission rate
     //should be low so it is not necessary to clean up all waiting messages
     //with each call

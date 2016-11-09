@@ -27,9 +27,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+//-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 // class Encoder Values
 //
@@ -43,7 +45,13 @@ import java.util.logging.Logger;
 public class EncoderValues extends Object{
 
     String inspectionDirection;
-    
+
+    private int numEntryJackStands;
+    public int getNumEntryJackStands(){ return (numEntryJackStands); }
+
+    private int numExitJackStands;
+    public int getNumExitJackStands(){ return (numExitJackStands); }
+        
     public int encoderPosAtOnPipeSignal = 0;
     public int encoderPosAtOffPipeSignal = 0;
     public int encoderPosAtHead1DownSignal = 0;
@@ -120,13 +128,25 @@ public class EncoderValues extends Object{
     double photoEye1DistanceToEncoder1;
     double photoEye1DistanceToEncoder2;
     double distanceAfterEncoder2ToSwitchEncoders;
-
+    
+    //size list to hold 10 entry jacks, 10 exit jacks & the entry & exit sensors
+    
+    private final ArrayList<SensorData> sensorData = 
+                                            new ArrayList<>(TOTAL_NUM_SENSORS);
+    
+    public ArrayList<SensorData> getSensorData(){ return(sensorData); }
+    
+    private static final int MAX_NUM_JACKS_ON_EITHER_END = 10;
+    
+    private static final int TOTAL_NUM_SENSORS = 
+                                        MAX_NUM_JACKS_ON_EITHER_END * 2 + 2;
+    
     private static final String UNIT_CAL_FILE_FOLDER_NAME = 
                                       "00 - Calibration Files - Do Not Delete";
     
     private static final String UNIT_CAL_FILE_NAME = 
                                         "Encoder and Distance Calibrations.ini";
-    
+
 //-----------------------------------------------------------------------------
 // EncoderValues::EncoderValues (constructor)
 //
@@ -134,6 +154,9 @@ public class EncoderValues extends Object{
 public EncoderValues()
 {
 
+    for (int i=0; i<TOTAL_NUM_SENSORS; i++){
+        sensorData.add(new SensorData());
+    }
 
 }//end of EncoderValues::EncoderValues (constructor)
 //-----------------------------------------------------------------------------
@@ -281,7 +304,9 @@ public void setEncoderCalValues(EncoderCalValues pEncoderCalValues)
     encoder2CountsPerSec = pEncoderCalValues.encoder2CountsPerSec;
     encoder2Helix = pEncoderCalValues.encoder2Helix;
     
-    setTextMsg(pEncoderCalValues.getTextMsg());    
+    numEntryJackStands = pEncoderCalValues.numEntryJackStands;    
+    numExitJackStands = pEncoderCalValues.numExitJackStands;
+    textMsg = pEncoderCalValues.textMsg;
     
 }//end of EncoderValues::setEncoderCalValues
 //-----------------------------------------------------------------------------
@@ -308,7 +333,11 @@ public EncoderCalValues getEncoderCalValues(EncoderCalValues pEncoderCalValues)
     pEncoderCalValues.encoder2CountsPerSec = encoder2CountsPerSec;
     pEncoderCalValues.encoder2Helix = encoder2Helix;
 
-    pEncoderCalValues.setTextMsg(textMsg);
+    pEncoderCalValues.numEntryJackStands = numEntryJackStands;
+    pEncoderCalValues.numExitJackStands = numExitJackStands;    
+    pEncoderCalValues.textMsg = textMsg;
+    
+    pEncoderCalValues.sensorData = sensorData;
     
     return(pEncoderCalValues);
     
@@ -651,7 +680,12 @@ public void loadCalFileFromOpenFile(IniFile pCalFile)
     
     encoder2Helix = pCalFile.readDouble("Hardware",
                                   "Encoder 2 Helix Inches per Revolution", -1);
-        
+
+    numEntryJackStands = pCalFile.readInt("Hardware",
+                                             "Number of Entry Jack Stands", 0);
+
+    numExitJackStands = pCalFile.readInt("Hardware",
+                                              "Number of Exit Jack Stands", 0);
     
 }//end of EncoderValues::loadCalFileFromOpenFile
 //-----------------------------------------------------------------------------
@@ -730,6 +764,13 @@ public void saveCalFileToOpenFile(IniFile pCalFile)
     pCalFile.writeDouble("Hardware",
                        "Encoder 2 Helix Inches per Revolution", encoder2Helix);
 
+    pCalFile.writeInt("Hardware",
+                       "Number of Entry Jack Stands", numEntryJackStands);
+
+    pCalFile.writeInt("Hardware",
+                       "Number of Exit Jack Stands", numExitJackStands);
+
+    
 }//end of EncoderValues::saveCalFileToOpenFile
 //-----------------------------------------------------------------------------
 

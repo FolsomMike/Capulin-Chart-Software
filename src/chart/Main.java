@@ -774,8 +774,8 @@ private void configure()
 
     //create a window for entering jack stand distances
     jackStandSetup = new JackStandSetup(mainFrame, configFile, this);
-    jackStandSetup.init();    
-
+    jackStandSetup.init();
+    
 //create a debugger window with a link to the hardware object
     debugger = new Debugger(mainFrame, hardware);
     debugger.init();
@@ -1498,13 +1498,20 @@ public void actionPerformed(ActionEvent e)
         return;
     }
 
-    //this part transfers encoder calibration data from the encoder calibration
+    //transfers encoder calibration data from the encoder calibration
     //window to the hardware object
     if ("Transfer Encoder Calibration Data".equals(e.getActionCommand())) {
         transferEncoderCalDataToHardware();        
         return;
     }
-        
+
+    //transfers jack stand calibration data from the Jack Stand Setup
+    //window to the hardware object
+    if ("Transfer Jack Stand Setup Data".equals(e.getActionCommand())) {
+        transferJackStandCalDataToHardware();
+        return;
+    }
+    
     //this part handles pulsing Output Channel 0
     if ("Pulse Audible Alarm".equals(e.getActionCommand())) {
         hardware.pulseAlarmMarker(0);
@@ -1629,7 +1636,7 @@ public void actionPerformed(ActionEvent e)
 //-----------------------------------------------------------------------------
 // Main::transferEncoderCalDataToHardware
 //
-// Transfers data from the EncoderCalibrator window to the hardware object.
+// Transfers data from the EncoderCalibrator window to the Hardware object.
 //
 
 public void transferEncoderCalDataToHardware()
@@ -1641,6 +1648,23 @@ public void transferEncoderCalDataToHardware()
     hardware.setChannelsEncoderCountDistanceToMarker();
     
 }//end of Main::transferEncoderCalDataToHardware
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Main::transferJackStandCalDataToHardware
+//
+// Transfers data from the JackStandSetup window to the Hardware object.
+//
+// The values are transfered via an EncoderCalValues object.
+//
+
+public void transferJackStandCalDataToHardware()
+{
+        
+    hardware.setEncoderCalValues(
+                      jackStandSetup.getEncoderCalValues(encoderCalValues));
+    
+}//end of Main::transferJackStandCalDataToHardware
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

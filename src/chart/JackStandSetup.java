@@ -55,8 +55,14 @@ class JackStandSetup extends JDialog implements ActionListener {
 
     int numEntryJackStands, numExitJackStands;
     
+    JTextField numEntryJackStandsTF, numExitJackStandsTF;
+    
     ArrayList<SensorSetGUI> sensorSetGUIs = new ArrayList<>(1);
 
+    KeyAdapter keyAdapter;    
+
+    private static final int MAX_NUM_JACKS_ON_EITHER_END = 10;    
+    
 //-----------------------------------------------------------------------------
 // JackStandSetup::JackStandSetup (constructor)
 //
@@ -71,6 +77,8 @@ public JackStandSetup(JFrame frame, IniFile pConfigFile,
     actionListener = pActionListener;
     configFile = pConfigFile;
 
+    createKeyAdapter();
+    
 }//end of JackStandSetup::JackStandSetup (constructor)
 //-----------------------------------------------------------------------------
 
@@ -82,8 +90,6 @@ public JackStandSetup(JFrame frame, IniFile pConfigFile,
 
 public void init()
 {
-
-    configure(configFile);
         
     setupGUI();
     
@@ -120,6 +126,8 @@ private void setupGUI()
         
     mainPanel.add(Box.createRigidArea(new Dimension(0,7))); //vertical spacer    
     
+    setupNumJacksInputPanel(mainPanel);
+    
     setupControlsPanel(mainPanel);
     
 }//end of JackStandSetup::setupGUI
@@ -141,6 +149,8 @@ private void resetDisplayPanel()
     displayPanel.removeAll();
   
     setupDisplayPanel(displayPanel);
+
+    refreshAllLabels(true);
     
     pack();
     
@@ -282,6 +292,40 @@ private void setupMsgDisplayPanel(JPanel pParentPanel)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// JackStandSetup::setupNumJacksInputPanel
+//
+// Creates a panel with inputs for the number of entry and exit jack stands.
+//
+
+private void setupNumJacksInputPanel(JPanel pParentPanel)
+{
+    
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+    panel.setOpaque(true);
+    panel.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pParentPanel.add(panel);
+        
+    JPanel leftPanel = new JPanel();
+    leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.X_AXIS));
+    setSizes(leftPanel, 250, 25);
+    leftPanel.add(new JLabel("Number of entry jacks: "));
+    numEntryJackStandsTF = new JTextField(3);
+    numEntryJackStandsTF.addKeyListener(keyAdapter);
+    leftPanel.add(numEntryJackStandsTF);
+    leftPanel.add(new JLabel("exit jacks: "));
+    numExitJackStandsTF = new JTextField(3);
+    numExitJackStandsTF.addKeyListener(keyAdapter);
+    leftPanel.add(numExitJackStandsTF);
+    panel.add(leftPanel);
+    
+    panel.add(Box.createHorizontalGlue());
+    
+
+}//end of JackStandSetup::setupNumJacksInputPanel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // JackStandSetup::setupControlsPanel
 //
 // Creates a panel with various controls.
@@ -360,7 +404,7 @@ private void setupEntryJackStandGUIs(JPanel pPanel)
 
         SensorSetGUI set;
         
-        set = new JackStandGUI(i, pPanel, this);
+        set = new JackStandGUI(i, pPanel, keyAdapter, this);
         
         set.init("Entry Jack", 
          enableEyeDistanceInputsCB.isSelected(), displayMonitorCB.isSelected());
@@ -387,7 +431,7 @@ private void setupExitJackStandGUIs(JPanel pPanel)
 
         SensorSetGUI set;
         
-        set = new JackStandGUI(i, pPanel, this);
+        set = new JackStandGUI(i, pPanel, keyAdapter, this);
         
         set.init("Exit Jack", 
          enableEyeDistanceInputsCB.isSelected(), displayMonitorCB.isSelected());
@@ -414,14 +458,14 @@ private void setUpUnitSensorGUIs(JPanel pPanel)
     //use negative set numbers so the numbers are not displayed or used to
     //load cal data...the sensor title is explicit and does need a number
     
-    set = new SensorGUI(-1, pPanel, this);
+    set = new SensorGUI(-1, pPanel, keyAdapter, this);
 
     set.init("Entry Sensor", 
      enableEyeDistanceInputsCB.isSelected(), displayMonitorCB.isSelected());
 
     sensorSetGUIs.add(set);
                 
-    set = new SensorGUI(-2, pPanel, this);
+    set = new SensorGUI(-2, pPanel, keyAdapter, this);
 
     set.init("Exit Sensor", 
      enableEyeDistanceInputsCB.isSelected(), displayMonitorCB.isSelected());
@@ -453,27 +497,85 @@ private void setJackStandsEyeDistanceEditingEnabled(boolean pEnabled)
 // Sets all encoder calibrations via pEncoderCalValues and updates labels to
 // reflect the data.
 //
+// If required, the GUI is reset to reflect changes such as the number of
+// entry or exit jacks.
+//
 
 public void setEncoderCalValues(EncoderCalValues pEncoderCalValues)
 {
  
+    boolean refreshGUI = false;
+    
     if (calMessageLbl != null){ 
-        calMessageLbl.setText(pEncoderCalValues.getTextMsg());
+        calMessageLbl.setText(pEncoderCalValues.textMsg);
+    }
+
+    if (pEncoderCalValues.numEntryJackStands > MAX_NUM_JACKS_ON_EITHER_END){
+        pEncoderCalValues.numEntryJackStands = MAX_NUM_JACKS_ON_EITHER_END;
     }
     
-    //encoder1CountsPerInch = pEncoderCalValues.encoder1CountsPerInch;    
-    //encoder1InchesPerCount = pEncoderCalValues.encoder1InchesPerCount;
-    //encoder1CountsPerRev = pEncoderCalValues.encoder1CountsPerRev;    
-    //encoder1CountsPerSec = pEncoderCalValues.encoder1CountsPerSec;
+    if (pEncoderCalValues.numEntryJackStands != numEntryJackStands){
+        refreshGUI = true;
+        numEntryJackStands = pEncoderCalValues.numEntryJackStands;
+    }
 
-    //encoder2CountsPerInch = pEncoderCalValues.encoder2CountsPerInch;    
-    //encoder2InchesPerCount = pEncoderCalValues.encoder2InchesPerCount;
-    //encoder2CountsPerRev = pEncoderCalValues.encoder2CountsPerRev;        
-    //encoder2CountsPerSec = pEncoderCalValues.encoder2CountsPerSec;
+    if (pEncoderCalValues.numExitJackStands > MAX_NUM_JACKS_ON_EITHER_END){
+        pEncoderCalValues.numExitJackStands = MAX_NUM_JACKS_ON_EITHER_END;
+    }
         
-    refreshAllLabels();
+    if(pEncoderCalValues.numExitJackStands != numExitJackStands){
+        refreshGUI = true;
+        numExitJackStands = pEncoderCalValues.numExitJackStands;
+    }
+
+    if(refreshGUI){ resetDisplayPanel(); }
+    
+    refreshAllLabels(false);
     
 }//end of JackStandSetup::setEncoderCalValues
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// JackStandSetup::getEncoderCalValues
+//
+// Returns all jack stand calibrations via pEncoderCalValues. The function
+// itself returns a reference to pEncoderValues.
+//
+
+public EncoderCalValues getEncoderCalValues(EncoderCalValues pEncoderCalValues)
+{
+ 
+    pEncoderCalValues.numEntryJackStands = numEntryJackStands;
+    pEncoderCalValues.numExitJackStands = numExitJackStands;    
+    
+    return(pEncoderCalValues);
+    
+}//end of JackStandSetup::getEncoderCalValues
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// JackStandSetup::createKeyAdapter
+//
+// Creates a KeyAdapter which can be used to monitor when the user makes
+// changes in a Text Field.
+//
+
+private void createKeyAdapter()
+{
+    
+    keyAdapter = new KeyAdapter(){
+        
+        @Override
+        public void keyPressed(KeyEvent ke)
+        {
+            //this section will execute only when user is editing the JTextField
+            if(!(ke.getKeyChar()==27||ke.getKeyChar()==65535)){
+                actionPerformed(new ActionEvent(this, 1, "Text Field Changed"));
+            }
+        }
+    };
+
+}//end of JackStandSetup::createKeyAdapter
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -495,10 +597,25 @@ private void setLabelWithFormattedValue(JLabel pLabel, String pText,
 //
 // Updates all labels with their associated variable values.
 //
+// Input boxes are only updated if pUpdateInputBoxes is true. This function
+// is called constantly by setEncoderCalValues during normal operation...if it
+// updates the input boxes each time it will overwrite whatever the user has
+// entered. They should be updated whenever the display panel is reset as that
+// destroys and recreates all the boxes and they must be refreshed. This also
+// serves to populate the boxes the first time setEncoderCalValues is called
+// as that call will force a reset of the display panel due to the number of
+// jacks being changed with the data loaded from cal file.
+//
 
-public void refreshAllLabels()
+public void refreshAllLabels(boolean pUpdateInputBoxes)
 {
-
+    
+    if(pUpdateInputBoxes){
+        
+        numEntryJackStandsTF.setText("" + numEntryJackStands);
+        numExitJackStandsTF.setText("" + numExitJackStands);
+        
+    }
     
 }//end of JackStandSetup::refreshAllLabels
 //-----------------------------------------------------------------------------
@@ -561,8 +678,72 @@ private void handleApplyButton()
 {
 
     applyBtn.setEnabled(false);
+  
+    handleNumJacksEntries();
+        
+    //transfer all data to the Hardware object
+    actionListener.actionPerformed(
+                  new ActionEvent(this, 1, "Transfer Jack Stand Setup Data"));
     
 }//end of JackStandSetup::handleApplyButton
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// JackStandSetup::handleNumJacksEntries
+//
+// Parses the text in the text fields and transfers to the variables.
+// If the value of either has changed, then the GUI is reset to reflect the
+// change.
+//
+
+private void handleNumJacksEntries()
+{
+
+    boolean refreshGUI = false;
+    int val;
+    
+    //handle entry jacks
+    
+    try{
+        val = Integer.valueOf(numEntryJackStandsTF.getText().trim());
+    }
+    catch(NumberFormatException nfe){
+        val = numEntryJackStands; //do not change value if invalid entry
+    }
+
+    if (val > MAX_NUM_JACKS_ON_EITHER_END){ 
+        val = MAX_NUM_JACKS_ON_EITHER_END;
+        numEntryJackStandsTF.setText("" + val);
+    }
+
+    //number of jacks changed so GUI must be updated
+    if (val != numEntryJackStands){ refreshGUI = true; }
+    
+    numEntryJackStands = val;
+
+    //handle exit jacks
+    
+    try{
+        val = Integer.valueOf(numExitJackStandsTF.getText().trim());
+    }
+    catch(NumberFormatException nfe){
+        val = numExitJackStands; //do not change value if invalid entry
+    }
+
+    if (val > MAX_NUM_JACKS_ON_EITHER_END){ 
+        val = MAX_NUM_JACKS_ON_EITHER_END;
+        numExitJackStandsTF.setText("" + val);
+    }
+    
+    //number of jacks changed so GUI must be updated
+    if (val != numExitJackStands){ refreshGUI = true; }
+    
+    numExitJackStands = val;
+    
+    //if number of entry or exit jacks changed, refresh the display
+    if(refreshGUI){ resetDisplayPanel(); }
+    
+}//end of JackStandSetup::handleNumJacksEntries
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -582,22 +763,20 @@ static void setSizes(Component pComponent, int pWidth, int pHeight)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// JackStandSetup::configure
+// JackStandSetup::setNumJackStands
 //
-// Loads configuration settings from the configuration.ini file and configures
-// the object.
+// Sets the number of entry and exit jack stands. The GUI is reset to reflect
+// the change.
 //
 
-private void configure(IniFile pConfigFile)
+public void setNumJackStands(int pNumEntryJackStands, int pNumExitJackStands)
 {
 
-    numEntryJackStands =
-            pConfigFile.readInt("Hardware", "Number of Entry Jack Stands", 4); //debug mks -- set to 0
+    numEntryJackStands = pNumEntryJackStands;
 
-    numExitJackStands =
-            pConfigFile.readInt("Hardware", "Number of Exit Jack Stands", 4); //debug mks -- set to 0
+    numExitJackStands = pNumExitJackStands;
     
-}//end of JackStandSetup::configure
+}//end of JackStandSetup::setNumJackStands
 //-----------------------------------------------------------------------------
 
 }//end of class JackStandSetup
@@ -639,15 +818,14 @@ class SensorSetGUI{
 //
 
 public SensorSetGUI(
-                int pSetNum, JPanel pMainPanel, ActionListener pActionListener)
+                int pSetNum, JPanel pMainPanel, KeyAdapter pKeyAdapter,
+                                                ActionListener pActionListener)
 {
 
-    mainPanel = pMainPanel; setNum = pSetNum;
+    setNum = pSetNum; mainPanel = pMainPanel; keyAdapter = pKeyAdapter;
 
     actionListener = pActionListener;
-    
-    createKeyAdapter();
-        
+
 }//end of SensorSetGUI::SensorSetGUI (constructor)
 //-----------------------------------------------------------------------------
 
@@ -665,7 +843,7 @@ public void init(String pTitle, boolean pEnableEyeDistanceInputs,
     //in such case, the title is expected to be unique without the number
     
     if (setNum >= 0){
-        title = pTitle + " " + setNum;
+        title = pTitle + " " + (setNum + 1);
     }else{
         title = pTitle;
     }
@@ -688,32 +866,6 @@ void setEyeDistanceEditingEnabled(boolean pEnabled)
 }//end of SensorSetGUI::setEyeDistanceEditingEnabled
 //-----------------------------------------------------------------------------
 
-//-----------------------------------------------------------------------------
-// SensorSetGUI::createKeyAdapter
-//
-// Creates a KeyAdapter which can be used to monitor when the user makes
-// changes in a Text Field.
-//
-
-private void createKeyAdapter()
-{
-    
-    keyAdapter = new KeyAdapter(){
-        
-        @Override
-        public void keyPressed(KeyEvent ke)
-        {
-            //this section will execute only when user is editing the JTextField
-            if(!(ke.getKeyChar()==27||ke.getKeyChar()==65535)){
-                actionListener.actionPerformed(
-                                new ActionEvent(this, 1, "Text Field Changed"));
-            }
-        }
-    };
-
-}//end of SensorSetGUI::createKeyAdapter
-//-----------------------------------------------------------------------------
-
 }//end of class SensorSetGUI
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -732,11 +884,11 @@ class JackStandGUI extends SensorSetGUI{
 //
 //
 
-public JackStandGUI(int pJackNum, JPanel pMainPanel,
+public JackStandGUI(int pJackNum, JPanel pMainPanel,KeyAdapter pKeyAdapter,
                                                 ActionListener pActionListener)
 {
 
-    super(pJackNum, pMainPanel, pActionListener);
+    super(pJackNum, pMainPanel, pKeyAdapter, pActionListener);
         
 }//end of JackStandGUI::JackStandGUI (constructor)
 //-----------------------------------------------------------------------------
@@ -804,11 +956,11 @@ class SensorGUI extends SensorSetGUI{
 //
 //
 
-public SensorGUI(int pSensorNum, JPanel pMainPanel,
+public SensorGUI(int pSensorNum, JPanel pMainPanel, KeyAdapter pKeyAdapter,
                                                 ActionListener pActionListener)
 {
 
-    super(pSensorNum, pMainPanel, pActionListener);
+    super(pSensorNum, pMainPanel, pKeyAdapter, pActionListener);
         
 }//end of SensorGUI::SensorGUI (constructor)
 //-----------------------------------------------------------------------------

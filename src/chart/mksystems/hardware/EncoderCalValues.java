@@ -17,6 +17,9 @@
 package chart.mksystems.hardware;
 
 //-----------------------------------------------------------------------------
+
+import java.util.ArrayList;
+
 // class EncoderCalValues
 //
 //
@@ -35,11 +38,12 @@ public class EncoderCalValues extends Object{
     public double encoder2CountsPerSec = 0;
     public double encoder2Helix = 0;    
 
-    private String textMsg = "";
+    public int numEntryJackStands = 0;
+    public int numExitJackStands = 0;    
+    public String textMsg = "";
     
-    public String getTextMsg(){ return textMsg; }
-    public void setTextMsg(String pTextMsg){ textMsg = pTextMsg; }
-    
+    ArrayList<SensorData> sensorData;
+
 //-----------------------------------------------------------------------------
 // EncoderCaValues::EncoderCalValues (constructor)
 //
