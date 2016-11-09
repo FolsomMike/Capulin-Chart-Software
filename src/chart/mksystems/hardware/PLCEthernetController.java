@@ -74,19 +74,26 @@ public class PLCEthernetController {
     
     private static final int MAX_NUM_JACKS_ON_EITHER_END = 10;
 
+
+    public static final int UNDEFINED_GROUP = -1;
     public static final int INCOMING = 0;
     public static final int OUTGOING = 1;
     public static final int UNIT = 2;
 
+    public static final int UNDEFINED_EYE = -1;
     public static final int EYE_A = 0;
     public static final int EYE_B = 1;
     public static final int SELF = 2;
     
-    public static final int UNDEFINED_DIR = 0;
-    public static final int STOPPED = 1;
-    public static final int FWD = 2;
-    public static final int REV = 3;
+    public static final int UNDEFINED_DIR = -1;
+    public static final int STOPPED = 0;
+    public static final int FWD = 1;
+    public static final int REV = 2;
 
+    public static final int UNDEFINED_STATE = -1;    
+    public static final int UNBLOCKED = 0;
+    public static final int BLOCKED = 1;
+        
     public static final int DIR_CHAR_POS = 24;
     
 //-----------------------------------------------------------------------------
@@ -530,7 +537,7 @@ public void parseEncoderEyeCalMsg(int numBytes, byte[] pBuf) //debug mks -- set 
 
     encoderValues.setTextMsg(msg);
 
-    SensorData sensor = parseSensorID(msg.substring(0,9));
+    SensorData sensor = parseSensorID(msg.substring(0,4));
     
     //if sensor ID invalid, then ignore message
     if(sensor == null){ return; }
@@ -579,12 +586,13 @@ private int parseEncoderCount(String pMsg, int pStart)
 // sensorData ArrayList is addressed -- a reference to that SensorData object
 // is returned.
 //
-// The format of the ID string is: *Sensor**
-// Where * is:
-//  I -> entry jack sensor; O -> exit jack sensor; 
+// The format of the ID string is: g|nn
+// Where g is:
+//  I -> entry jack sensor
+//  O -> exit jack sensor; 
 //  U -> unit sensor (mounted on center-section or trailer)
 //
-// and ** is a two digit number which IDs the sensor in the group.
+// and nn is a two digit number which IDs the sensor in the group.
 // For the entry sensor and exit sensor, that number is ignored.
 // Each jack has two sensors 0:1, 2:3, 4:5, etc.
 //
@@ -616,7 +624,7 @@ private SensorData parseSensorID(String pID)
     int sensorNum;
             
     try{
-        sensorNum = Integer.valueOf(pID.substring(7,9).trim());
+        sensorNum = Integer.valueOf(pID.substring(2,4).trim());
         if ((sensorNum < 0) || (sensorNum >= MAX_NUM_JACKS_ON_EITHER_END * 2)){
             return(null);
         }
@@ -652,8 +660,8 @@ private SensorData parseSensorID(String pID)
     //handle exit jack sensors which are numbered 0-10 starting from unit
     if (pID.charAt(0) == 'O'){
         int i = 12 + sensorNum / 2;
-        sensorData.sensorNum = sensorNum;
         sensorData = encoderValues.getSensorData().get(i);
+        sensorData.sensorNum = sensorNum;        
         sensorData.lastEyeChanged = sensorNum % 2 == 0 ? EYE_A : EYE_B;
         return(sensorData);
     }
