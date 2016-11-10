@@ -677,6 +677,8 @@ private void refreshSensorDisplays()
         
     refreshEntryJackDisplays(sensorData);
     
+    refreshUnitSensorDisplays(sensorData);    
+    
     refreshExitJackDisplays(sensorData);
     
 }//end of JackStandSetup::refreshSensorDisplays
@@ -723,8 +725,8 @@ private void refreshEntryJackDisplays(ArrayList<SensorData> pSensorData)
 //
 // Updates all displays related to the entry jacks from encoderCalValues.
 //
-// the entry jack GUIs are in their list in forward order
-// the entry jack SensorSets are in list in forward order
+// the exit jack GUIs are in their list in forward order
+// the exit jack SensorSets are in list in forward order
 // starting from the zeroeth jack at near the middle of the first list
 // and near the middle of the second list, data is copied from one to the
 // other
@@ -755,6 +757,38 @@ private void refreshExitJackDisplays(ArrayList<SensorData> pSensorData)
     }
 
 }//end of JackStandSetup::refreshExitJackDisplays
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// JackStandSetup::refreshUnitSensorDisplays
+//
+// Updates all displays related to the unit sensors from encoderCalValues.
+//
+// the SensorData list contains all the entry jacks, the unit sensors, and
+// the exit jacks; the unit sensors are at the middle of the list
+// the SensorData
+
+private void refreshUnitSensorDisplays(ArrayList<SensorData> pSensorData)
+{
+    
+    int j=10; //first unit sensor in sensorData list
+ 
+    //unit sensor starts after entry jacks, subtract one to zero-base index
+    int firstUnitSensorPos = numEntryJackStands + 1 - 1;
+    int lastUnitSensorPos = firstUnitSensorPos + 1;
+     
+    
+    for (int i=firstUnitSensorPos; i<=lastUnitSensorPos; i++){
+        
+        SensorSetGUI setGUI = sensorSetGUIs.get(i);
+
+        SensorData sensorDatum = pSensorData.get(j++);
+        
+        refreshSensorDatum(sensorDatum, setGUI);        
+         
+    }
+
+}//end of JackStandSetup::refreshUnitSensorDisplays
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
