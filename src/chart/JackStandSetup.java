@@ -705,47 +705,11 @@ private void refreshEntryJackDisplays(ArrayList<SensorData> pSensorData)
     
     for (int i=numEntryJackStands-1; i>=0; i--){
         
-        String s;
-        
         SensorSetGUI setGUI = sensorSetGUIs.get(i);
         //zeroeth entry is at the end of the first group (entry jacks)
         SensorData sensorDatum = pSensorData.get(j--);
-
-        //the last eye changed for the jack is prepended to the state
         
-        if (sensorDatum.lastEyeChanged == EYE_A) { s = "A - "; }
-        else if (sensorDatum.lastEyeChanged == EYE_B) { s = "B - "; }
-        else{ s = ""; }
-
-        //state is appended to last eye changed
-        
-        if (sensorDatum.sensorState == BLOCKED) { s += "blocked"; }
-        else if (sensorDatum.sensorState == UNBLOCKED) { s += "unblocked"; }
-        else{ s = "---"; }
-        
-        setGUI.stateLbl.setText(s);
-        
-        if(sensorDatum.encoder1Cnt == Integer.MAX_VALUE) { s = "---";}
-        else { s = "" + sensorDatum.encoder1Cnt; }
-        
-        setGUI.encoder1Lbl.setText(s);
-        
-        if(sensorDatum.encoder2Cnt == Integer.MAX_VALUE) { s = "---";}
-        else { s = "" + sensorDatum.encoder2Cnt; }
-        
-        setGUI.encoder2Lbl.setText(s);
-
-        if (sensorDatum.direction == STOPPED) { s = "stopped"; }
-        else if (sensorDatum.direction == FWD) { s = "forward"; }
-        else if (sensorDatum.direction == REV) { s = "reverse"; }
-        else{ s = "---"; }
-
-        setGUI.directionLbl.setText(s);
-
-        if (sensorDatum.percentChange == Double.MAX_VALUE) { s = "---"; }
-        else{ s = new DecimalFormat("00.0").format(sensorDatum.percentChange); }
-
-        setGUI.percentChangeLbl.setText(s);
+        refreshSensorDatum(sensorDatum, setGUI);        
          
     }
 
@@ -782,51 +746,67 @@ private void refreshExitJackDisplays(ArrayList<SensorData> pSensorData)
     
     for (int i=firstExitJackPos; i<lastExitJackPos; i++){
         
-        String s;
-        
         SensorSetGUI setGUI = sensorSetGUIs.get(i);
         //zeroeth entry is at the end of the first group (entry jacks)
         SensorData sensorDatum = pSensorData.get(j++);
 
-        //the last eye changed for the jack is prepended to the state
-        
-        if (sensorDatum.lastEyeChanged == EYE_A) { s = "A - "; }
-        else if (sensorDatum.lastEyeChanged == EYE_B) { s = "B - "; }
-        else{ s = ""; }
-
-        //state is appended to last eye changed
-        
-        if (sensorDatum.sensorState == BLOCKED) { s += "blocked"; }
-        else if (sensorDatum.sensorState == UNBLOCKED) { s += "unblocked"; }
-        else{ s = "---"; }
-        
-        setGUI.stateLbl.setText(s);
-        
-        if(sensorDatum.encoder1Cnt == Integer.MAX_VALUE) { s = "---";}
-        else { s = "" + sensorDatum.encoder1Cnt; }
-        
-        setGUI.encoder1Lbl.setText(s);
-        
-        if(sensorDatum.encoder2Cnt == Integer.MAX_VALUE) { s = "---";}
-        else { s = "" + sensorDatum.encoder2Cnt; }
-        
-        setGUI.encoder2Lbl.setText(s);
-
-        if (sensorDatum.direction == STOPPED) { s = "stopped"; }
-        else if (sensorDatum.direction == FWD) { s = "forward"; }
-        else if (sensorDatum.direction == REV) { s = "reverse"; }
-        else{ s = "---"; }
-
-        setGUI.directionLbl.setText(s);
-
-        if (sensorDatum.percentChange == Double.MAX_VALUE) { s = "---"; }
-        else{ s = new DecimalFormat("00.0").format(sensorDatum.percentChange); }
-
-        setGUI.percentChangeLbl.setText(s);
+        refreshSensorDatum(sensorDatum, setGUI);
          
     }
 
 }//end of JackStandSetup::refreshExitJackDisplays
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// JackStandSetup::refreshSensorDatum
+//
+// Updates the displays for a sensor, transferring the data from pSensorDatum
+// to the components of pSensorSetGUI.
+//
+
+private void refreshSensorDatum(SensorData pSensorDatum,
+                                                    SensorSetGUI pSensorSetGUI)
+{
+
+        String s;       
+
+       //the last eye changed for the jack is prepended to the state
+
+       if (pSensorDatum.lastEyeChanged == EYE_A) { s = "A - "; }
+       else if (pSensorDatum.lastEyeChanged == EYE_B) { s = "B - "; }
+       else{ s = ""; }
+
+       //state is appended to last eye changed
+
+       if (pSensorDatum.sensorState == BLOCKED) { s += "blocked"; }
+       else if (pSensorDatum.sensorState == UNBLOCKED) { s += "unblocked"; }
+       else{ s = "---"; }
+
+       pSensorSetGUI.stateLbl.setText(s);
+
+       if(pSensorDatum.encoder1Cnt == Integer.MAX_VALUE) { s = "---";}
+       else { s = "" + pSensorDatum.encoder1Cnt; }
+
+       pSensorSetGUI.encoder1Lbl.setText(s);
+
+       if(pSensorDatum.encoder2Cnt == Integer.MAX_VALUE) { s = "---";}
+       else { s = "" + pSensorDatum.encoder2Cnt; }
+
+       pSensorSetGUI.encoder2Lbl.setText(s);
+
+       if (pSensorDatum.direction == STOPPED) { s = "stopped"; }
+       else if (pSensorDatum.direction == FWD) { s = "forward"; }
+       else if (pSensorDatum.direction == REV) { s = "reverse"; }
+       else{ s = "---"; }
+
+       pSensorSetGUI.directionLbl.setText(s);
+
+       if (pSensorDatum.percentChange == Double.MAX_VALUE) { s = "---"; }
+       else{ s = new DecimalFormat("00.0").format(pSensorDatum.percentChange); }
+
+       pSensorSetGUI.percentChangeLbl.setText(s);
+
+}//end of JackStandSetup::refreshSensorDatum
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
