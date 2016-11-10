@@ -26,9 +26,12 @@ package chart.mksystems.hardware;
 
 public class SensorData extends Object{
 
-    int eyeA=0, jack=0, eyeB=0, lastEyeChanged=0;
-    int state=0, encoder1Cnt=0, encoder2Cnt=0, direction=0, percentChange=0;
-    int sensorNum=0;
+    public int eyeA=0, jack=0, eyeB=0, lastEyeChanged=0;
+    public int sensorState = UNDEFINED_STATE;
+    public int encoder1Cnt = Integer.MAX_VALUE, encoder2Cnt = Integer.MAX_VALUE;
+    public int direction = UNDEFINED_DIR;
+    public int sensorNum = Integer.MAX_VALUE;
+    public double percentChange = Double.MAX_VALUE;
 
     public static final int UNDEFINED_GROUP = -1;
     public static final int INCOMING = 0;

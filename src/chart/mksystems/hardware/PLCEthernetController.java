@@ -94,6 +94,7 @@ public class PLCEthernetController {
     public static final int UNBLOCKED = 0;
     public static final int BLOCKED = 1;
         
+    public static final int STATE_CHAR_POS = 5;
     public static final int DIR_CHAR_POS = 24;
     
 //-----------------------------------------------------------------------------
@@ -508,6 +509,7 @@ private int processEncoderEyeCalCmd()
             }
         if (timeOutProcess < TIMEOUT && byteIn.available() >= msgBodyLen){
             int c = byteIn.read(inBuffer, 0, msgBodyLen);
+            encoderValues.setSensorTransitionDataChanged(true);
             parseEncoderEyeCalMsg(c, inBuffer);
             return(c);
             }
@@ -548,8 +550,15 @@ public void parseEncoderEyeCalMsg(int numBytes, byte[] pBuf) //debug mks -- set 
     else if (msg.charAt(DIR_CHAR_POS) == 'R'){ sensor.direction = REV; }
     else if (msg.charAt(DIR_CHAR_POS) == 'S'){ sensor.direction = STOPPED; }
     else{  sensor.direction = UNDEFINED_DIR; }
+ 
+   //parse direction
+    
+    if (msg.charAt(STATE_CHAR_POS) == 'U'){ sensor.sensorState = UNBLOCKED; }
+    else if (msg.charAt(STATE_CHAR_POS) == 'B'){ sensor.sensorState = BLOCKED; }
+    else{  sensor.sensorState = UNDEFINED_STATE; }
     
     //parse encoder counts; value of Integer.MIN_VALUE means parse failed
+
     sensor.encoder1Cnt = parseEncoderCount(msg, 10);
     sensor.encoder2Cnt = parseEncoderCount(msg, 17);
 

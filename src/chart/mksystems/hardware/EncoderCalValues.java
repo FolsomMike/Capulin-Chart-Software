@@ -25,6 +25,8 @@ import java.util.ArrayList;
 //
 
 public class EncoderCalValues extends Object{
+    
+    public boolean sensorTransitionDataChanged = false;
   
     public double encoder1CountsPerInch = 0; 
     public double encoder1InchesPerCount = 0;
@@ -42,7 +44,7 @@ public class EncoderCalValues extends Object{
     public int numExitJackStands = 0;    
     public String textMsg = "";
     
-    ArrayList<SensorData> sensorData;
+    public ArrayList<SensorData> sensorData;
 
 //-----------------------------------------------------------------------------
 // EncoderCaValues::EncoderCalValues (constructor)

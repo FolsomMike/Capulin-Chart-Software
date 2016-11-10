@@ -976,45 +976,45 @@ public void collectData()
     msg = "U|01|U|--|000088|000099|R|0";
     plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
     
-    msg = "O|00|B|--|100010|100011|F|0";
+    msg = "O|00|B|--|100010|100011|R|0";
     plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
-    msg = "O|01|U|--|100020|100021|R|0";
+    msg = "O|01|U|--|100020|100021|F|0";
     plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
-    msg = "O|02|B|--|100030|100031|F|0";
+    msg = "O|02|B|--|100030|100031|R|0";
     plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
-    msg = "O|03|U|--|100040|100041|R|0";
+    msg = "O|03|U|--|100040|100041|F|0";
     plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
-    msg = "O|04|B|--|100050|100051|F|0";
+    msg = "O|04|B|--|100050|100051|R|0";
     plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
-    msg = "O|05|U|--|100060|100061|R|0";
+    msg = "O|05|U|--|100060|100061|F|0";
     plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
-    msg = "O|06|B|--|100070|100071|F|0";
+    msg = "O|06|B|--|100070|100071|R|0";
     plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
-    msg = "O|07|U|--|100080|100081|R|0";
+    msg = "O|07|U|--|100080|100081|F|0";
     plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
-    msg = "O|08|B|--|100090|100091|F|0";
+    msg = "O|08|B|--|100090|100091|R|0";
     plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
-    msg = "O|09|U|--|100100|100101|R|0";
+    msg = "O|09|U|--|100100|100101|F|0";
     plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
-    msg = "O|10|B|--|100110|100111|F|0";
+    msg = "O|10|B|--|100110|100111|R|0";
     plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
-    msg = "O|11|U|--|100120|100121|R|0";
+    msg = "O|11|U|--|100120|100121|F|0";
     plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
-    msg = "O|12|B|--|100130|100131|F|0";
+    msg = "O|12|B|--|100130|100131|R|0";
     plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
-    msg = "O|13|U|--|100140|100141|R|0";
+    msg = "O|13|U|--|100140|100141|F|0";
     plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
-    msg = "O|14|B|--|100150|100151|F|0";
+    msg = "O|14|B|--|100150|100151|R|0";
     plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
-    msg = "O|15|U|--|100160|100161|R|0";
+    msg = "O|15|U|--|100160|100161|F|0";
     plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
-    msg = "O|16|B|--|100170|100171|F|0";
+    msg = "O|16|B|--|100170|100171|R|0";
     plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
-    msg = "O|17|U|--|100180|100181|R|0";
+    msg = "O|17|U|--|100180|100181|F|0";
     plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
-    msg = "O|18|B|--|100190|100191|F|0";
+    msg = "O|18|B|--|100190|100191|R|0";
     plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
-    msg = "O|19|U|--|100200|100201|R|0";
+    msg = "O|19|U|--|100200|100201|F|0";
     plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
         
     //debug mks end
@@ -2405,6 +2405,12 @@ public void setEncoderCalValues(EncoderCalValues pEncoderCalValues)
 //
 // Returns all encoder calibrations via pEncoderCalValues. The function itself
 // returns a reference to pEncoderValues.
+//
+// NOTE: This function is often called from a different thread than the one
+// transferring the data from the input buffer -- erroneous values for some of
+// the multibyte values may occur due to thread collision but they are for
+// display/debugging only and an occasional glitch in the displayed values
+// should not be of major concern.
 //
 
 public EncoderCalValues getEncoderCalValues(EncoderCalValues pEncoderCalValues)

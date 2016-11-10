@@ -128,7 +128,16 @@ public class EncoderValues extends Object{
     double photoEye1DistanceToEncoder1;
     double photoEye1DistanceToEncoder2;
     double distanceAfterEncoder2ToSwitchEncoders;
+  
+    private boolean sensorTransitionDataChanged = false;
     
+    public boolean getSensorTransitionDataChanged(){ 
+        return(sensorTransitionDataChanged);
+    }
+    public void setSensorTransitionDataChanged(boolean pValue){ 
+        sensorTransitionDataChanged = pValue;
+    }
+
     //size list to hold 10 entry jacks, 10 exit jacks & the entry & exit sensors
     
     private final ArrayList<SensorData> sensorData = 
@@ -321,6 +330,11 @@ public void setEncoderCalValues(EncoderCalValues pEncoderCalValues)
 public EncoderCalValues getEncoderCalValues(EncoderCalValues pEncoderCalValues)
 {
  
+    //transfer the data changed flag and then clear it
+    //the display code can use this flag to determine if the GUI needs refreshed
+    pEncoderCalValues.sensorTransitionDataChanged = sensorTransitionDataChanged;
+    setSensorTransitionDataChanged(false);
+    
     pEncoderCalValues.encoder1CountsPerInch = encoder1CountsPerInch;
     pEncoderCalValues.encoder1InchesPerCount = encoder1InchesPerCount;
     pEncoderCalValues.encoder1CountsPerRev = encoder1CountsPerRev;

@@ -20,6 +20,7 @@
 package chart;
 
 import chart.mksystems.hardware.EncoderCalValues;
+import chart.mksystems.hardware.SensorData;
 import chart.mksystems.inifile.IniFile;
 import java.awt.*;
 import java.awt.event.*;
@@ -37,6 +38,9 @@ import javax.swing.border.EmptyBorder;
 //
 
 class JackStandSetup extends JDialog implements ActionListener {
+
+        
+    private EncoderCalValues encoderCalValues;
 
     private JPanel mainPanel;
 
@@ -62,7 +66,26 @@ class JackStandSetup extends JDialog implements ActionListener {
     KeyAdapter keyAdapter;    
 
     private static final int MAX_NUM_JACKS_ON_EITHER_END = 10;    
+
+    public static final int UNDEFINED_GROUP = -1;
+    public static final int INCOMING = 0;
+    public static final int OUTGOING = 1;
+    public static final int UNIT = 2;
+
+    public static final int UNDEFINED_EYE = -1;
+    public static final int EYE_A = 0;
+    public static final int EYE_B = 1;
+    public static final int SELF = 2;
     
+    public static final int UNDEFINED_DIR = -1;
+    public static final int STOPPED = 0;
+    public static final int FWD = 1;
+    public static final int REV = 2;
+
+    public static final int UNDEFINED_STATE = -1;    
+    public static final int UNBLOCKED = 0;
+    public static final int BLOCKED = 1;
+        
 //-----------------------------------------------------------------------------
 // JackStandSetup::JackStandSetup (constructor)
 //
@@ -246,7 +269,10 @@ private void setupDisplayGrid(JPanel pParentPanel)
         addLabel(panel, "% change",
                                 "% calibration change since last calculation");        
     }
-        
+    
+    
+    sensorSetGUIs.clear(); //remove all entries
+    
     addLabels(panel, numGridCols, "");
     
     setupEntryJackStandGUIs(panel);
@@ -503,12 +529,10 @@ private void setJackStandsEyeDistanceEditingEnabled(boolean pEnabled)
 
 public void setEncoderCalValues(EncoderCalValues pEncoderCalValues)
 {
+    
+    encoderCalValues = pEncoderCalValues;
  
     boolean refreshGUI = false;
-    
-    if (calMessageLbl != null){ 
-        calMessageLbl.setText(pEncoderCalValues.textMsg);
-    }
 
     if (pEncoderCalValues.numEntryJackStands > MAX_NUM_JACKS_ON_EITHER_END){
         pEncoderCalValues.numEntryJackStands = MAX_NUM_JACKS_ON_EITHER_END;
@@ -527,10 +551,17 @@ public void setEncoderCalValues(EncoderCalValues pEncoderCalValues)
         refreshGUI = true;
         numExitJackStands = pEncoderCalValues.numExitJackStands;
     }
-
-    if(refreshGUI){ resetDisplayPanel(); }
     
-    refreshAllLabels(false);
+    if(refreshGUI){ resetDisplayPanel(); }
+
+    //if the GUI was changed or data in pEncoderCalValues has changed, then
+    //refresh all labels with data
+    
+    pEncoderCalValues.sensorTransitionDataChanged = true; //debug mks -- remove this
+    
+    if (refreshGUI || pEncoderCalValues.sensorTransitionDataChanged){
+        refreshAllLabels(false);
+    }
     
 }//end of JackStandSetup::setEncoderCalValues
 //-----------------------------------------------------------------------------
@@ -609,7 +640,11 @@ private void setLabelWithFormattedValue(JLabel pLabel, String pText,
 
 public void refreshAllLabels(boolean pUpdateInputBoxes)
 {
-    
+
+    if (calMessageLbl != null){ 
+        calMessageLbl.setText(encoderCalValues.textMsg);
+    }
+        
     if(pUpdateInputBoxes){
         
         numEntryJackStandsTF.setText("" + numEntryJackStands);
@@ -617,7 +652,181 @@ public void refreshAllLabels(boolean pUpdateInputBoxes)
         
     }
     
+    refreshSensorDisplays();
+    
 }//end of JackStandSetup::refreshAllLabels
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// JackStandSetup::refreshSensorDisplays
+//
+// Updates all displays related to the sensors with values from     
+// encoderCalValues.
+//
+// NOTE: the SensorData ArrayList is a reference back to the copy being
+// modified by the PLCEthernetController object on a continuing basis. That
+// updating may be occurring in a different thread...may have occasional
+// glitches in the displayed data.
+//
+
+private void refreshSensorDisplays()
+{
+    ArrayList<SensorData> sensorData;
+    
+    sensorData = encoderCalValues.sensorData;
+        
+    refreshEntryJackDisplays(sensorData);
+    
+    refreshExitJackDisplays(sensorData);
+    
+}//end of JackStandSetup::refreshSensorDisplays
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// JackStandSetup::refreshEntryJackDisplays
+//
+// Updates all displays related to the entry jacks from encoderCalValues.
+//
+// the entry jack GUIs are in their list in reverse order
+// the entry jack SensorSets are in list in reverse order
+// starting from the zeroeth jack at the bottom of the first list
+// and near the middle of the second list, data is copied from one to the
+// other
+// the SensorData list contains all the entry jacks, the unit sensors, and
+// the exit jacks; the unit sensors are at the middle of the list
+// the SensorData list may contain up to 10 entry and 10 exit jacks; if
+// the display is set to a lesser number, the extra entries will be ignored
+//
+
+private void refreshEntryJackDisplays(ArrayList<SensorData> pSensorData)
+{
+    
+    int j=9; //first entry jack in sensorData list
+    
+    for (int i=numEntryJackStands-1; i>=0; i--){
+        
+        String s;
+        
+        SensorSetGUI setGUI = sensorSetGUIs.get(i);
+        //zeroeth entry is at the end of the first group (entry jacks)
+        SensorData sensorDatum = pSensorData.get(j--);
+
+        //the last eye changed for the jack is prepended to the state
+        
+        if (sensorDatum.lastEyeChanged == EYE_A) { s = "A - "; }
+        else if (sensorDatum.lastEyeChanged == EYE_B) { s = "B - "; }
+        else{ s = ""; }
+
+        //state is appended to last eye changed
+        
+        if (sensorDatum.sensorState == BLOCKED) { s += "blocked"; }
+        else if (sensorDatum.sensorState == UNBLOCKED) { s += "unblocked"; }
+        else{ s = "---"; }
+        
+        setGUI.stateLbl.setText(s);
+        
+        if(sensorDatum.encoder1Cnt == Integer.MAX_VALUE) { s = "---";}
+        else { s = "" + sensorDatum.encoder1Cnt; }
+        
+        setGUI.encoder1Lbl.setText(s);
+        
+        if(sensorDatum.encoder2Cnt == Integer.MAX_VALUE) { s = "---";}
+        else { s = "" + sensorDatum.encoder2Cnt; }
+        
+        setGUI.encoder2Lbl.setText(s);
+
+        if (sensorDatum.direction == STOPPED) { s = "stopped"; }
+        else if (sensorDatum.direction == FWD) { s = "forward"; }
+        else if (sensorDatum.direction == REV) { s = "reverse"; }
+        else{ s = "---"; }
+
+        setGUI.directionLbl.setText(s);
+
+        if (sensorDatum.percentChange == Double.MAX_VALUE) { s = "---"; }
+        else{ s = new DecimalFormat("00.0").format(sensorDatum.percentChange); }
+
+        setGUI.percentChangeLbl.setText(s);
+         
+    }
+
+}//end of JackStandSetup::refreshEntryJackDisplays
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// JackStandSetup::refreshExitJackDisplays
+//
+// Updates all displays related to the exit jacks from encoderCalValues.
+//
+// Updates all displays related to the entry jacks from encoderCalValues.
+//
+// the entry jack GUIs are in their list in forward order
+// the entry jack SensorSets are in list in forward order
+// starting from the zeroeth jack at near the middle of the first list
+// and near the middle of the second list, data is copied from one to the
+// other
+// the SensorData list contains all the entry jacks, the unit sensors, and
+// the exit jacks; the unit sensors are at the middle of the list
+// the SensorData list may contain up to 10 entry and 10 exit jacks; if
+// the display is set to a lesser number, the extra entries will be ignored
+//
+
+private void refreshExitJackDisplays(ArrayList<SensorData> pSensorData)
+{
+    
+    int j=12; //first exit jack in sensorData list
+    
+    //first exit jack is past all entry jacks and past the two unit sensors
+    //subtract one to use as zero-based index
+    int firstExitJackPos = numEntryJackStands + 3 - 1;
+    int lastExitJackPos = firstExitJackPos + numExitJackStands;
+    
+    for (int i=firstExitJackPos; i<lastExitJackPos; i++){
+        
+        String s;
+        
+        SensorSetGUI setGUI = sensorSetGUIs.get(i);
+        //zeroeth entry is at the end of the first group (entry jacks)
+        SensorData sensorDatum = pSensorData.get(j++);
+
+        //the last eye changed for the jack is prepended to the state
+        
+        if (sensorDatum.lastEyeChanged == EYE_A) { s = "A - "; }
+        else if (sensorDatum.lastEyeChanged == EYE_B) { s = "B - "; }
+        else{ s = ""; }
+
+        //state is appended to last eye changed
+        
+        if (sensorDatum.sensorState == BLOCKED) { s += "blocked"; }
+        else if (sensorDatum.sensorState == UNBLOCKED) { s += "unblocked"; }
+        else{ s = "---"; }
+        
+        setGUI.stateLbl.setText(s);
+        
+        if(sensorDatum.encoder1Cnt == Integer.MAX_VALUE) { s = "---";}
+        else { s = "" + sensorDatum.encoder1Cnt; }
+        
+        setGUI.encoder1Lbl.setText(s);
+        
+        if(sensorDatum.encoder2Cnt == Integer.MAX_VALUE) { s = "---";}
+        else { s = "" + sensorDatum.encoder2Cnt; }
+        
+        setGUI.encoder2Lbl.setText(s);
+
+        if (sensorDatum.direction == STOPPED) { s = "stopped"; }
+        else if (sensorDatum.direction == FWD) { s = "forward"; }
+        else if (sensorDatum.direction == REV) { s = "reverse"; }
+        else{ s = "---"; }
+
+        setGUI.directionLbl.setText(s);
+
+        if (sensorDatum.percentChange == Double.MAX_VALUE) { s = "---"; }
+        else{ s = new DecimalFormat("00.0").format(sensorDatum.percentChange); }
+
+        setGUI.percentChangeLbl.setText(s);
+         
+    }
+
+}//end of JackStandSetup::refreshExitJackDisplays
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
