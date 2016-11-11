@@ -138,8 +138,6 @@ public class EncoderValues extends Object{
         sensorTransitionDataChanged = pValue;
     }
 
-    //size list to hold 10 entry jacks, 10 exit jacks & the entry & exit sensors
-    
     private final ArrayList<SensorData> sensorData;
     
     public ArrayList<SensorData> getSensorData(){ return(sensorData); }

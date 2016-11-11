@@ -67,7 +67,7 @@ class JackStandSetup extends JDialog implements ActionListener {
 
     private final static int ENTRY_JACK_GROUP = 0;
     private final static int EXIT_JACK_GROUP = 1;
-    private final static int UNIT_SENSOR_GROUP = 2;    
+    static final int UNIT_SENSOR_GROUP = 2;    
     
     private static int MAX_NUM_UNIT_SENSORS;    
     private static int NUM_UNIT_SENSORS;
@@ -271,7 +271,8 @@ private void setupDisplayGrid(JPanel pParentPanel)
     //jackstands, unit entry eye, unit exit eye, and two rows for a header
     //and blank separator row, and two separator rows between groups
     
-    int numGridRows = numEntryJackStands + numExitJackStands + 2 + 4;
+    int numGridRows = 
+                numEntryJackStands + numExitJackStands + NUM_UNIT_SENSORS + 4;
     
     int numGridCols;
     
@@ -463,7 +464,7 @@ private void setupEntryJackStandGUIs(JPanel pPanel)
 
         SensorSetGUI set;
         
-        set = new JackStandGUI(i, pPanel, keyAdapter, this);
+        set = new JackStandGUI(ENTRY_JACK_GROUP, i, pPanel, keyAdapter, this);
         
         set.init("Entry Jack", 
          enableEyeDistanceInputsCB.isSelected(), displayMonitorCB.isSelected());
@@ -490,7 +491,7 @@ private void setupExitJackStandGUIs(JPanel pPanel)
 
         SensorSetGUI set;
         
-        set = new JackStandGUI(i, pPanel, keyAdapter, this);
+        set = new JackStandGUI(EXIT_JACK_GROUP, i, pPanel, keyAdapter, this);
         
         set.init("Exit Jack", 
          enableEyeDistanceInputsCB.isSelected(), displayMonitorCB.isSelected());
@@ -517,16 +518,23 @@ private void setUpUnitSensorGUIs(JPanel pPanel)
     //use negative set numbers so the numbers are not displayed or used to
     //load cal data...the sensor title is explicit and does need a number
     
-    set = new SensorGUI(-1, pPanel, keyAdapter, this);
+    set = new SensorGUI(UNIT_SENSOR_GROUP, 0, pPanel, keyAdapter, this);
 
     set.init("Entry Sensor", 
      enableEyeDistanceInputsCB.isSelected(), displayMonitorCB.isSelected());
 
     sensorSetGUIs.add(set);
                 
-    set = new SensorGUI(-2, pPanel, keyAdapter, this);
+    set = new SensorGUI(UNIT_SENSOR_GROUP, 1, pPanel, keyAdapter, this);
 
     set.init("Exit Sensor", 
+     enableEyeDistanceInputsCB.isSelected(), displayMonitorCB.isSelected());
+
+    sensorSetGUIs.add(set);
+
+    set = new SensorGUI(UNIT_SENSOR_GROUP, 2, pPanel, keyAdapter, this);
+
+    set.init("After Drive", 
      enableEyeDistanceInputsCB.isSelected(), displayMonitorCB.isSelected());
 
     sensorSetGUIs.add(set);
@@ -613,7 +621,7 @@ public EncoderCalValues getEncoderCalValues(EncoderCalValues pEncoderCalValues)
     pEncoderCalValues.numExitJackStands = numExitJackStands;    
 
     //transfer all user inputs to pEncoderCalValues
-    parseSensorInputs();
+    parseAllSensorInputs();
     
     return(pEncoderCalValues);
     
@@ -621,114 +629,50 @@ public EncoderCalValues getEncoderCalValues(EncoderCalValues pEncoderCalValues)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// JackStandSetup::parseSensorInputs
+// JackStandSetup::parseAllSensorInputs
 //
-// Transfers sensor data from all input boxes to pEncoderCalValues
+// Transfers sensor data from all input boxes of all sensors of all groups
+// to pEncoderCalValues.
 //
 
-private void parseSensorInputs()
+private void parseAllSensorInputs()
 {
-    ArrayList<SensorData> sensorData;
+
+    parseSensorSetGroupInputs(ENTRY_JACK_GROUP);
     
-    sensorData = encoderCalValues.sensorData;
-        
-    parseEntryJackInputs(sensorData);
+    parseSensorSetGroupInputs(EXIT_JACK_GROUP);
     
-    parseUnitSensorInputs(sensorData);    
+    parseSensorSetGroupInputs(UNIT_SENSOR_GROUP);
     
-    parseExitJackInputs(sensorData);
-    
-}//end of JackStandSetup::parseSensorInputs
+}//end of JackStandSetup::parseAllSensorInputs
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// JackStandSetup::parseEntryJackInputs
+// JackStandSetup::parseSensorSetGroupInputs
 //
-// Transfers entry jack stand data from all input boxes to pEncoderCalValues.
-//
-// See refreshEntryJackDisplays for details on how the jacks and sensors are
-// ordered in the lists.
+// Transfers sensor data from  all input boxes for all sensor sets in the group
+// specified by pGroupNum to pEncoderCalValues.
 //
 
-private void parseEntryJackInputs(ArrayList<SensorData> pSensorData)
+private void parseSensorSetGroupInputs(int pGroupNum)
 {
     
-    int j=9; //first entry jack in sensorData list
-    
-    for (int i=numEntryJackStands-1; i>=0; i--){
-        
-        SensorSetGUI setGUI = sensorSetGUIs.get(i);
-        //zeroeth entry is at the end of the first group (entry jacks)
-        SensorData sensorDatum = pSensorData.get(j--);
-        
+    int numSensors = 0;
+
+    if (pGroupNum == ENTRY_JACK_GROUP){ numSensors = numEntryJackStands; }
+    else if (pGroupNum == EXIT_JACK_GROUP){ numSensors = numExitJackStands; }
+    else if (pGroupNum == UNIT_SENSOR_GROUP){ numSensors = NUM_UNIT_SENSORS; }    
+
+    for (int i=0; i<numSensors; i++){
+        //get object which handles GUI
+        SensorSetGUI setGUI = getSensorSetFromGUIList(pGroupNum, i);
+        //get object with sensor data
+        SensorData sensorDatum = getSensorDatumFromSensorDataList(pGroupNum, i);
+        //transfer data from inputs to encoderCalValue
         parseSensorDatum(sensorDatum, setGUI);
-         
     }
 
-}//end of JackStandSetup::parseEntryJackInputs
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// JackStandSetup::parseExitJackInputs
-//
-// Transfers exit jack stand data from all input boxes to pEncoderCalValues.
-//
-// See refreshExitJackDisplays for details on how the jacks and sensors are
-// ordered in the lists.
-//
-
-private void parseExitJackInputs(ArrayList<SensorData> pSensorData)
-{
-    
-    int j=12; //first exit jack in sensorData list
-    
-    //first exit jack is past all entry jacks and past the two unit sensors
-    //subtract one to use as zero-based index
-    int firstExitJackPos = numEntryJackStands + 3 - 1;
-    int lastExitJackPos = firstExitJackPos + numExitJackStands;
-    
-    for (int i=firstExitJackPos; i<lastExitJackPos; i++){
-        
-        SensorSetGUI setGUI = sensorSetGUIs.get(i);
-        //zeroeth entry is at the end of the first group (entry jacks)
-        SensorData sensorDatum = pSensorData.get(j++);
-
-        parseSensorDatum(sensorDatum, setGUI);
-         
-    }
-
-}//end of JackStandSetup::parseExitJackInputs
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// JackStandSetup::parseUnitSensorInputs
-//
-// Transfers unit sensor data from all input boxes to pEncoderCalValues.
-//
-// See refreshUnitSensorDisplays for details on how the jacks and sensors are
-// ordered in the lists.
-//
-
-private void parseUnitSensorInputs(ArrayList<SensorData> pSensorData)
-{
-    
-    int j=10; //first unit sensor in sensorData list
- 
-    //unit sensor starts after entry jacks, subtract one to zero-base index
-    int firstUnitSensorPos = numEntryJackStands + 1 - 1;
-    int lastUnitSensorPos = firstUnitSensorPos + 1;
-         
-    for (int i=firstUnitSensorPos; i<=lastUnitSensorPos; i++){
-        
-        SensorSetGUI setGUI = sensorSetGUIs.get(i);
-
-        SensorData sensorDatum = pSensorData.get(j++);
-        
-        parseSensorDatum(sensorDatum, setGUI);
-         
-    }
-
-}//end of JackStandSetup::parseUnitSensorInputs
+}//end of JackStandSetup::parseSensorSetGroupInputs
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -870,7 +814,6 @@ public void refreshAllGUI(boolean pUpdateInputBoxes)
 
 private void refreshSensorDisplays(boolean pUpdateInputBoxes)
 {
-    ArrayList<SensorData> sensorData;
     
     refreshSensorSetGroupDisplay(ENTRY_JACK_GROUP, pUpdateInputBoxes);
     
@@ -946,7 +889,7 @@ SensorSetGUI getSensorSetFromGUIList(int pGroupNum, int pSensorNum)
     
     if(pGroupNum == EXIT_JACK_GROUP){
         //stored in forward order after entry jacks and unit sensors
-        int firstExitJack = numEntryJackStands + NUM_UNIT_SENSORS - 1;
+        int firstExitJack = numEntryJackStands + NUM_UNIT_SENSORS;
         int jackPos = firstExitJack + pSensorNum;
         return(sensorSetGUIs.get(jackPos));
     }
@@ -1005,7 +948,7 @@ SensorData getSensorDatumFromSensorDataList(int pGroupNum, int pSensorNum)
     
     if(pGroupNum == EXIT_JACK_GROUP){
         //stored in forward order after entry jacks and unit sensors
-        int firstExitJack = MAX_NUM_JACKS_ANY_GROUP + MAX_NUM_UNIT_SENSORS - 1;
+        int firstExitJack = MAX_NUM_JACKS_ANY_GROUP + MAX_NUM_UNIT_SENSORS;
         int jackPos = firstExitJack + pSensorNum;
         return(encoderCalValues.sensorData.get(jackPos));
     }
@@ -1325,6 +1268,7 @@ class SensorSetGUI{
     
     JPanel mainPanel;
 
+    int groupNum;
     int setNum;
     String title;
     
@@ -1343,12 +1287,12 @@ class SensorSetGUI{
 //
 //
 
-public SensorSetGUI(
-                int pSetNum, JPanel pMainPanel, KeyAdapter pKeyAdapter,
-                                                ActionListener pActionListener)
+public SensorSetGUI(int pGroupNum, int pSetNum, JPanel pMainPanel,
+                        KeyAdapter pKeyAdapter, ActionListener pActionListener)
 {
 
-    setNum = pSetNum; mainPanel = pMainPanel; keyAdapter = pKeyAdapter;
+    groupNum = pGroupNum; setNum = pSetNum; mainPanel = pMainPanel;
+    keyAdapter = pKeyAdapter;
 
     actionListener = pActionListener;
 
@@ -1365,13 +1309,13 @@ public void init(String pTitle, boolean pEnableEyeDistanceInputs,
                                                        boolean pDisplayMonitor)
 {
             
-    //if the set number is negative, it is not used in the title
+    //if unit sensor, the set number is not used in the title
     //in such case, the title is expected to be unique without the number
     
-    if (setNum >= 0){
-        title = pTitle + " " + (setNum + 1);
-    }else{
+    if (groupNum == JackStandSetup.UNIT_SENSOR_GROUP){
         title = pTitle;
+    }else{
+        title = pTitle + " " + (setNum + 1);
     }
     
 }//end of SensorSetGUI::init
@@ -1410,11 +1354,11 @@ class JackStandGUI extends SensorSetGUI{
 //
 //
 
-public JackStandGUI(int pJackNum, JPanel pMainPanel,KeyAdapter pKeyAdapter,
-                                                ActionListener pActionListener)
+public JackStandGUI(int pGroupNum, int pJackNum, JPanel pMainPanel,
+                        KeyAdapter pKeyAdapter, ActionListener pActionListener)
 {
 
-    super(pJackNum, pMainPanel, pKeyAdapter, pActionListener);
+    super(pGroupNum, pJackNum, pMainPanel, pKeyAdapter, pActionListener);
         
 }//end of JackStandGUI::JackStandGUI (constructor)
 //-----------------------------------------------------------------------------
@@ -1481,11 +1425,11 @@ class SensorGUI extends SensorSetGUI{
 //
 //
 
-public SensorGUI(int pSensorNum, JPanel pMainPanel, KeyAdapter pKeyAdapter,
-                                                ActionListener pActionListener)
+public SensorGUI(int pGroupNum, int pSensorNum, JPanel pMainPanel,
+                        KeyAdapter pKeyAdapter, ActionListener pActionListener)
 {
 
-    super(pSensorNum, pMainPanel, pKeyAdapter, pActionListener);
+    super(pGroupNum, pSensorNum, pMainPanel, pKeyAdapter, pActionListener);
         
 }//end of SensorGUI::SensorGUI (constructor)
 //-----------------------------------------------------------------------------
