@@ -173,7 +173,7 @@ private void resetDisplayPanel()
   
     setupDisplayPanel(displayPanel);
 
-    refreshAllLabels(true);
+    refreshAllGUI(true);
     
     pack();
     
@@ -560,7 +560,7 @@ public void setEncoderCalValues(EncoderCalValues pEncoderCalValues)
     pEncoderCalValues.sensorTransitionDataChanged = true; //debug mks -- remove this
     
     if (refreshGUI || pEncoderCalValues.sensorTransitionDataChanged){
-        refreshAllLabels(false);
+        refreshAllGUI(false);
     }
     
 }//end of JackStandSetup::setEncoderCalValues
@@ -578,10 +578,173 @@ public EncoderCalValues getEncoderCalValues(EncoderCalValues pEncoderCalValues)
  
     pEncoderCalValues.numEntryJackStands = numEntryJackStands;
     pEncoderCalValues.numExitJackStands = numExitJackStands;    
+
+    //transfer all user inputs to pEncoderCalValues
+    parseSensorInputs();
     
     return(pEncoderCalValues);
     
 }//end of JackStandSetup::getEncoderCalValues
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// JackStandSetup::parseSensorInputs
+//
+// Transfers sensor data from all input boxes to pEncoderCalValues
+//
+
+private void parseSensorInputs()
+{
+    ArrayList<SensorData> sensorData;
+    
+    sensorData = encoderCalValues.sensorData;
+        
+    parseEntryJackInputs(sensorData);
+    
+    parseUnitSensorInputs(sensorData);    
+    
+    parseExitJackInputs(sensorData);
+    
+}//end of JackStandSetup::parseSensorInputs
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// JackStandSetup::parseEntryJackInputs
+//
+// Transfers entry jack stand data from all input boxes to pEncoderCalValues.
+//
+// See refreshEntryJackDisplays for details on how the jacks and sensors are
+// ordered in the lists.
+//
+
+private void parseEntryJackInputs(ArrayList<SensorData> pSensorData)
+{
+    
+    int j=9; //first entry jack in sensorData list
+    
+    for (int i=numEntryJackStands-1; i>=0; i--){
+        
+        SensorSetGUI setGUI = sensorSetGUIs.get(i);
+        //zeroeth entry is at the end of the first group (entry jacks)
+        SensorData sensorDatum = pSensorData.get(j--);
+        
+        parseSensorDatum(sensorDatum, setGUI);
+         
+    }
+
+}//end of JackStandSetup::parseEntryJackInputs
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// JackStandSetup::parseExitJackInputs
+//
+// Transfers exit jack stand data from all input boxes to pEncoderCalValues.
+//
+// See refreshExitJackDisplays for details on how the jacks and sensors are
+// ordered in the lists.
+//
+
+private void parseExitJackInputs(ArrayList<SensorData> pSensorData)
+{
+    
+    int j=12; //first exit jack in sensorData list
+    
+    //first exit jack is past all entry jacks and past the two unit sensors
+    //subtract one to use as zero-based index
+    int firstExitJackPos = numEntryJackStands + 3 - 1;
+    int lastExitJackPos = firstExitJackPos + numExitJackStands;
+    
+    for (int i=firstExitJackPos; i<lastExitJackPos; i++){
+        
+        SensorSetGUI setGUI = sensorSetGUIs.get(i);
+        //zeroeth entry is at the end of the first group (entry jacks)
+        SensorData sensorDatum = pSensorData.get(j++);
+
+        parseSensorDatum(sensorDatum, setGUI);
+         
+    }
+
+}//end of JackStandSetup::parseExitJackInputs
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// JackStandSetup::parseUnitSensorInputs
+//
+// Transfers unit sensor data from all input boxes to pEncoderCalValues.
+//
+// See refreshUnitSensorDisplays for details on how the jacks and sensors are
+// ordered in the lists.
+//
+
+private void parseUnitSensorInputs(ArrayList<SensorData> pSensorData)
+{
+    
+    int j=10; //first unit sensor in sensorData list
+ 
+    //unit sensor starts after entry jacks, subtract one to zero-base index
+    int firstUnitSensorPos = numEntryJackStands + 1 - 1;
+    int lastUnitSensorPos = firstUnitSensorPos + 1;
+         
+    for (int i=firstUnitSensorPos; i<=lastUnitSensorPos; i++){
+        
+        SensorSetGUI setGUI = sensorSetGUIs.get(i);
+
+        SensorData sensorDatum = pSensorData.get(j++);
+        
+        parseSensorDatum(sensorDatum, setGUI);
+         
+    }
+
+}//end of JackStandSetup::parseUnitSensorInputs
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// JackStandSetup::parseSensorDatum
+//
+// Transfers unit sensor data from inputs boxes of pSensorDatum to
+// pEncoderCalValues.
+//
+
+private void parseSensorDatum(SensorData pSensorDatum,
+                                                     SensorSetGUI pSensorSetGUI)
+{
+
+    pSensorDatum.eyeADistToJackCenter = 
+                            parseDoubleFromTextField(pSensorSetGUI.eyeADistTF);
+
+    pSensorDatum.eyeBDistToJackCenter = 
+                            parseDoubleFromTextField(pSensorSetGUI.eyeBDistTF);
+    
+    pSensorDatum.jackCenterDistToEye1 = 
+                       parseDoubleFromTextField(pSensorSetGUI.jackStandDistTF);
+       
+}//end of JackStandSetup::parseSensorDatum
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// JackStandSetup::parseDoubleFromTextField
+//
+// Converts the text in pTextField to a double and returns the value. If the
+// parsing fails, returns 0.
+//
+
+private double parseDoubleFromTextField(JTextField pTextField)
+{
+ 
+    if(pTextField == null){ return(0.0); }
+    
+    double val;
+
+    try{
+        val = Double.valueOf(pTextField.getText().trim());
+    }
+    catch(NumberFormatException nfe){
+        val = 0.0;
+    }
+
+    return(val);
+
+}//end of JackStandSetup::parseDoubleFromTextField
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -618,15 +781,15 @@ private void setLabelWithFormattedValue(JLabel pLabel, String pText,
                                                                  double pValue)
 {
     
-    pLabel.setText(pText + new  DecimalFormat("#.####").format(pValue));
+    pLabel.setText(pText + new DecimalFormat("#.####").format(pValue));
 
 }//end of JackStandSetup::setLabelWithFormattedValue
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// JackStandSetup::refreshAllLabels
+// JackStandSetup::refreshAllGUI
 //
-// Updates all labels with their associated variable values.
+// Updates all GUI components with their associated variable values.
 //
 // Input boxes are only updated if pUpdateInputBoxes is true. This function
 // is called constantly by setEncoderCalValues during normal operation...if it
@@ -638,7 +801,7 @@ private void setLabelWithFormattedValue(JLabel pLabel, String pText,
 // jacks being changed with the data loaded from cal file.
 //
 
-public void refreshAllLabels(boolean pUpdateInputBoxes)
+public void refreshAllGUI(boolean pUpdateInputBoxes)
 {
 
     if (calMessageLbl != null){ 
@@ -652,9 +815,9 @@ public void refreshAllLabels(boolean pUpdateInputBoxes)
         
     }
     
-    refreshSensorDisplays();
+    refreshSensorDisplays(pUpdateInputBoxes);
     
-}//end of JackStandSetup::refreshAllLabels
+}//end of JackStandSetup::refreshAllGUI
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -663,23 +826,26 @@ public void refreshAllLabels(boolean pUpdateInputBoxes)
 // Updates all displays related to the sensors with values from     
 // encoderCalValues.
 //
+// Input boxes are only updated if pUpdateInputBoxes is true. See notes for
+// refreshAllGUI for more details.
+//
 // NOTE: the SensorData ArrayList is a reference back to the copy being
 // modified by the PLCEthernetController object on a continuing basis. That
 // updating may be occurring in a different thread...may have occasional
 // glitches in the displayed data.
 //
 
-private void refreshSensorDisplays()
+private void refreshSensorDisplays(boolean pUpdateInputBoxes)
 {
     ArrayList<SensorData> sensorData;
     
     sensorData = encoderCalValues.sensorData;
         
-    refreshEntryJackDisplays(sensorData);
+    refreshEntryJackDisplays(sensorData, pUpdateInputBoxes);
     
-    refreshUnitSensorDisplays(sensorData);    
+    refreshUnitSensorDisplays(sensorData, pUpdateInputBoxes);    
     
-    refreshExitJackDisplays(sensorData);
+    refreshExitJackDisplays(sensorData, pUpdateInputBoxes);
     
 }//end of JackStandSetup::refreshSensorDisplays
 //-----------------------------------------------------------------------------
@@ -688,6 +854,9 @@ private void refreshSensorDisplays()
 // JackStandSetup::refreshEntryJackDisplays
 //
 // Updates all displays related to the entry jacks from encoderCalValues.
+//
+// Input boxes are only updated if pUpdateInputBoxes is true. See notes for
+// refreshAllGUI for more details.
 //
 // the entry jack GUIs are in their list in reverse order
 // the entry jack SensorSets are in list in reverse order
@@ -700,7 +869,8 @@ private void refreshSensorDisplays()
 // the display is set to a lesser number, the extra entries will be ignored
 //
 
-private void refreshEntryJackDisplays(ArrayList<SensorData> pSensorData)
+private void refreshEntryJackDisplays(ArrayList<SensorData> pSensorData,
+                                                    boolean pUpdateInputBoxes)
 {
     
     int j=9; //first entry jack in sensorData list
@@ -711,7 +881,7 @@ private void refreshEntryJackDisplays(ArrayList<SensorData> pSensorData)
         //zeroeth entry is at the end of the first group (entry jacks)
         SensorData sensorDatum = pSensorData.get(j--);
         
-        refreshSensorDatum(sensorDatum, setGUI);        
+        refreshSensorDatum(sensorDatum, setGUI, pUpdateInputBoxes);
          
     }
 
@@ -723,7 +893,8 @@ private void refreshEntryJackDisplays(ArrayList<SensorData> pSensorData)
 //
 // Updates all displays related to the exit jacks from encoderCalValues.
 //
-// Updates all displays related to the entry jacks from encoderCalValues.
+// Input boxes are only updated if pUpdateInputBoxes is true. See notes for
+// refreshAllGUI for more details.
 //
 // the exit jack GUIs are in their list in forward order
 // the exit jack SensorSets are in list in forward order
@@ -736,7 +907,8 @@ private void refreshEntryJackDisplays(ArrayList<SensorData> pSensorData)
 // the display is set to a lesser number, the extra entries will be ignored
 //
 
-private void refreshExitJackDisplays(ArrayList<SensorData> pSensorData)
+private void refreshExitJackDisplays(ArrayList<SensorData> pSensorData,
+                                                     boolean pUpdateInputBoxes)
 {
     
     int j=12; //first exit jack in sensorData list
@@ -752,7 +924,7 @@ private void refreshExitJackDisplays(ArrayList<SensorData> pSensorData)
         //zeroeth entry is at the end of the first group (entry jacks)
         SensorData sensorDatum = pSensorData.get(j++);
 
-        refreshSensorDatum(sensorDatum, setGUI);
+        refreshSensorDatum(sensorDatum, setGUI, pUpdateInputBoxes);
          
     }
 
@@ -764,11 +936,15 @@ private void refreshExitJackDisplays(ArrayList<SensorData> pSensorData)
 //
 // Updates all displays related to the unit sensors from encoderCalValues.
 //
+// Input boxes are only updated if pUpdateInputBoxes is true. See notes for
+// refreshAllGUI for more details.
+//
 // the SensorData list contains all the entry jacks, the unit sensors, and
 // the exit jacks; the unit sensors are at the middle of the list
 // the SensorData
 
-private void refreshUnitSensorDisplays(ArrayList<SensorData> pSensorData)
+private void refreshUnitSensorDisplays(ArrayList<SensorData> pSensorData,
+                                                     boolean pUpdateInputBoxes)
 {
     
     int j=10; //first unit sensor in sensorData list
@@ -784,7 +960,7 @@ private void refreshUnitSensorDisplays(ArrayList<SensorData> pSensorData)
 
         SensorData sensorDatum = pSensorData.get(j++);
         
-        refreshSensorDatum(sensorDatum, setGUI);        
+        refreshSensorDatum(sensorDatum, setGUI, pUpdateInputBoxes);        
          
     }
 
@@ -799,47 +975,69 @@ private void refreshUnitSensorDisplays(ArrayList<SensorData> pSensorData)
 //
 
 private void refreshSensorDatum(SensorData pSensorDatum,
-                                                    SensorSetGUI pSensorSetGUI)
+                         SensorSetGUI pSensorSetGUI, boolean pUpdateInputBoxes)
 {
 
-        String s;       
+    String s;       
 
-       //the last eye changed for the jack is prepended to the state
+    //the last eye changed for the jack is prepended to the state
 
-       if (pSensorDatum.lastEyeChanged == EYE_A) { s = "A - "; }
-       else if (pSensorDatum.lastEyeChanged == EYE_B) { s = "B - "; }
-       else{ s = ""; }
+    if (pSensorDatum.lastEyeChanged == EYE_A) { s = "A - "; }
+    else if (pSensorDatum.lastEyeChanged == EYE_B) { s = "B - "; }
+    else{ s = ""; }
 
-       //state is appended to last eye changed
+    //state is appended to last eye changed
 
-       if (pSensorDatum.sensorState == BLOCKED) { s += "blocked"; }
-       else if (pSensorDatum.sensorState == UNBLOCKED) { s += "unblocked"; }
-       else{ s = "---"; }
+    if (pSensorDatum.sensorState == BLOCKED) { s += "blocked"; }
+    else if (pSensorDatum.sensorState == UNBLOCKED) { s += "unblocked"; }
+    else{ s = "---"; }
 
-       pSensorSetGUI.stateLbl.setText(s);
+    pSensorSetGUI.stateLbl.setText(s);
 
-       if(pSensorDatum.encoder1Cnt == Integer.MAX_VALUE) { s = "---";}
-       else { s = "" + pSensorDatum.encoder1Cnt; }
+    if(pSensorDatum.encoder1Cnt == Integer.MAX_VALUE) { s = "---";}
+    else { s = "" + pSensorDatum.encoder1Cnt; }
 
-       pSensorSetGUI.encoder1Lbl.setText(s);
+    pSensorSetGUI.encoder1Lbl.setText(s);
 
-       if(pSensorDatum.encoder2Cnt == Integer.MAX_VALUE) { s = "---";}
-       else { s = "" + pSensorDatum.encoder2Cnt; }
+    if(pSensorDatum.encoder2Cnt == Integer.MAX_VALUE) { s = "---";}
+    else { s = "" + pSensorDatum.encoder2Cnt; }
 
-       pSensorSetGUI.encoder2Lbl.setText(s);
+    pSensorSetGUI.encoder2Lbl.setText(s);
 
-       if (pSensorDatum.direction == STOPPED) { s = "stopped"; }
-       else if (pSensorDatum.direction == FWD) { s = "forward"; }
-       else if (pSensorDatum.direction == REV) { s = "reverse"; }
-       else{ s = "---"; }
+    if (pSensorDatum.direction == STOPPED) { s = "stopped"; }
+    else if (pSensorDatum.direction == FWD) { s = "forward"; }
+    else if (pSensorDatum.direction == REV) { s = "reverse"; }
+    else{ s = "---"; }
 
-       pSensorSetGUI.directionLbl.setText(s);
+    pSensorSetGUI.directionLbl.setText(s);
 
-       if (pSensorDatum.percentChange == Double.MAX_VALUE) { s = "---"; }
-       else{ s = new DecimalFormat("00.0").format(pSensorDatum.percentChange); }
+    if (pSensorDatum.percentChange == Double.MAX_VALUE) { s = "---"; }
+    else{ s = new DecimalFormat("00.0").format(pSensorDatum.percentChange); }
 
-       pSensorSetGUI.percentChangeLbl.setText(s);
+     pSensorSetGUI.percentChangeLbl.setText(s);
 
+    if (pUpdateInputBoxes){
+
+        if (pSensorSetGUI.eyeADistTF != null){
+            s = new DecimalFormat("#.####").format(
+                                        pSensorDatum.eyeADistToJackCenter);
+            pSensorSetGUI.eyeADistTF.setText(s);
+        }
+
+        if (pSensorSetGUI.jackStandDistTF != null){
+            s = new DecimalFormat("#.####").format(
+                                        pSensorDatum.jackCenterDistToEye1);
+            pSensorSetGUI.jackStandDistTF.setText(s);
+        }
+
+        if (pSensorSetGUI.eyeBDistTF != null){
+            s = new DecimalFormat("#.####").format(
+                                        pSensorDatum.eyeBDistToJackCenter);
+            pSensorSetGUI.eyeBDistTF.setText(s);
+        }
+
+    }
+       
 }//end of JackStandSetup::refreshSensorDatum
 //-----------------------------------------------------------------------------
 
@@ -903,6 +1101,8 @@ private void handleApplyButton()
     applyBtn.setEnabled(false);
   
     handleNumJacksEntries();
+    
+    handleDistanceEntries();
         
     //transfer all data to the Hardware object
     actionListener.actionPerformed(
@@ -970,6 +1170,54 @@ private void handleNumJacksEntries()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// JackStandSetup::handleDistanceEntries
+//
+// Parses the text in the text fields and transfers to the variables.
+// Reformats as a formatted double value and overwrites the entry in the
+// text field.
+//
+
+private void handleDistanceEntries()
+{
+
+    for(SensorSetGUI sensorSetGUI : sensorSetGUIs){
+
+        formatDistanceEntry(sensorSetGUI.eyeADistTF);
+        formatDistanceEntry(sensorSetGUI.jackStandDistTF);        
+        formatDistanceEntry(sensorSetGUI.eyeBDistTF);
+          
+    }
+
+}//end of JackStandSetup::handleDistanceEntries
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// JackStandSetup::formatDistanceEntry
+//
+// Converts the text in pTextField to a double, formats it, and overwrites
+// the original text with the formatted version.
+//
+
+private void formatDistanceEntry(JTextField pTextField)
+{
+ 
+    if(pTextField == null){ return; }
+    
+    double val;
+
+    try{
+        val = Double.valueOf(pTextField.getText().trim());
+    }
+    catch(NumberFormatException nfe){
+        val = 0.0;
+    }
+
+    pTextField.setText(new DecimalFormat("#.####").format(val));
+
+}//end of JackStandSetup::formatDistanceEntry
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // JackStandSetup::setSizes
 //
 // Sets the min, max, and preferred sizes of pComponent to pWidth and pHeight.
@@ -1026,9 +1274,9 @@ class SensorSetGUI{
     String title;
     
     JLabel rowLabel;
-    JTextField eyeATF;
-    JTextField jackStandTF;
-    JTextField eyeBTF;
+    JTextField eyeADistTF;
+    JTextField jackStandDistTF;
+    JTextField eyeBDistTF;
     JLabel stateLbl;
     JLabel encoder1Lbl;
     JLabel encoder2Lbl;
@@ -1083,8 +1331,8 @@ public void init(String pTitle, boolean pEnableEyeDistanceInputs,
 void setEyeDistanceEditingEnabled(boolean pEnabled)
 {
 
-    if(eyeATF != null) { eyeATF.setEnabled(pEnabled); }
-    if(eyeBTF != null) { eyeBTF.setEnabled(pEnabled); }
+    if(eyeADistTF != null) { eyeADistTF.setEnabled(pEnabled); }
+    if(eyeBDistTF != null) { eyeBDistTF.setEnabled(pEnabled); }
         
 }//end of SensorSetGUI::setEyeDistanceEditingEnabled
 //-----------------------------------------------------------------------------
@@ -1130,9 +1378,10 @@ public void init(String pTitle, boolean pEnableEyeDistanceInputs,
     super.init(pTitle, pEnableEyeDistanceInputs, pDisplayMonitor);
     
     rowLabel = new JLabel(title);
-    eyeATF = new JTextField(4); eyeATF.addKeyListener(keyAdapter);
-    jackStandTF = new JTextField(4); jackStandTF.addKeyListener(keyAdapter);
-    eyeBTF = new JTextField(4); eyeBTF.addKeyListener(keyAdapter);
+    eyeADistTF = new JTextField(4); eyeADistTF.addKeyListener(keyAdapter);
+    jackStandDistTF = new JTextField(4); 
+    jackStandDistTF.addKeyListener(keyAdapter);
+    eyeBDistTF = new JTextField(4); eyeBDistTF.addKeyListener(keyAdapter);
     stateLbl = new JLabel("?");
     encoder1Lbl = new JLabel("?");
     encoder2Lbl = new JLabel("?");
@@ -1141,12 +1390,10 @@ public void init(String pTitle, boolean pEnableEyeDistanceInputs,
     
     setEyeDistanceEditingEnabled(pEnableEyeDistanceInputs);
     
-    if(eyeATF != null) { eyeATF.setText("12454"); } //debug mks -- remove this
-    
     mainPanel.add(rowLabel);
-    mainPanel.add(eyeATF);
-    mainPanel.add(jackStandTF);
-    mainPanel.add(eyeBTF);
+    mainPanel.add(eyeADistTF);
+    mainPanel.add(jackStandDistTF);
+    mainPanel.add(eyeBDistTF);
 
     //these only visible if Display Monitor checkbox is checked
     if (pDisplayMonitor){
@@ -1209,8 +1456,6 @@ public void init(String pTitle, boolean pEnableEyeDistanceInputs,
     percentChangeLbl = new JLabel("?");
     
     setEyeDistanceEditingEnabled(pEnableEyeDistanceInputs);
-    
-    if(eyeATF != null) { eyeATF.setText("12454"); } //debug mks -- remove this
     
     mainPanel.add(rowLabel);
     mainPanel.add(new JLabel(""));

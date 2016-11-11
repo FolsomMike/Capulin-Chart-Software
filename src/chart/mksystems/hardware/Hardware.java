@@ -926,7 +926,7 @@ public void collectData()
 {
 
     //debug mks
-    
+/*    
     String msg;
             
     msg = "I|00|U|--|000010|000011|F|0";
@@ -1018,7 +1018,7 @@ public void collectData()
     plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
         
     //debug mks end
-    
+  */  
     
     //process one PLC message if it is available; the transmission rate
     //should be low so it is not necessary to clean up all waiting messages

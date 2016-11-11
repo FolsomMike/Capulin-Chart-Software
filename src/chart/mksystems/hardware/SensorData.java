@@ -25,8 +25,16 @@ package chart.mksystems.hardware;
 //
 
 public class SensorData extends Object{
+    
+    public int sensorDataNum = 0;
+    public String pTitle = "";
+    
+    //Eye1 is the entry/start inspection eye
+    public double jackCenterDistToEye1 = 0; 
+    public double eyeADistToJackCenter = 0;
+    public double eyeBDistToJackCenter = 0;
 
-    public int eyeA=0, jack=0, eyeB=0, lastEyeChanged=0;
+    public int lastEyeChanged=0;
     public int sensorState = UNDEFINED_STATE;
     public int encoder1Cnt = Integer.MAX_VALUE, encoder2Cnt = Integer.MAX_VALUE;
     public int direction = UNDEFINED_DIR;
@@ -56,10 +64,11 @@ public class SensorData extends Object{
 // SensorData::SensorData (constructor)
 //
 
-public SensorData()
+public SensorData(int pSensorDataNum)
 {
 
-
+    sensorDataNum = pSensorDataNum;
+    
 }//end of SensorData::SensorData (constructor)
 //-----------------------------------------------------------------------------
 
@@ -75,6 +84,9 @@ public void init()
 
 }//end of SensorData::init
 //-----------------------------------------------------------------------------
+
+
+
 
 }//end of class SensorData
 //-----------------------------------------------------------------------------

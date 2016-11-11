@@ -164,7 +164,7 @@ public EncoderValues()
 {
 
     for (int i=0; i<TOTAL_NUM_SENSORS; i++){
-        sensorData.add(new SensorData());
+        sensorData.add(new SensorData(i));
     }
 
 }//end of EncoderValues::EncoderValues (constructor)
@@ -657,49 +657,65 @@ public void loadCalFileFromOpenFile(IniFile pCalFile)
     
     double encoderInchesPerCount;
     
-    encoderInchesPerCount = pCalFile.readDouble("Hardware",
+    encoderInchesPerCount = pCalFile.readDouble("Calibration",
                             "Encoder 1 Inches per Count", Double.MIN_VALUE );
     
     if(encoderInchesPerCount != Double.MIN_VALUE){
         encoder1InchesPerCount = encoderInchesPerCount;
     }
     
-    encoderInchesPerCount = pCalFile.readDouble("Hardware",
+    encoderInchesPerCount = pCalFile.readDouble("Calibration",
                             "Encoder 2 Inches per Count", Double.MIN_VALUE );
 
     if(encoderInchesPerCount != Double.MIN_VALUE){
         encoder2InchesPerCount = encoderInchesPerCount;
     }
     
-    encoder1CountsPerInch = pCalFile.readDouble("Hardware",
+    encoder1CountsPerInch = pCalFile.readDouble("Calibration",
                                             "Encoder 1 Counts per Inch", -1.0);
 
-    encoder2CountsPerInch = pCalFile.readDouble("Hardware",
+    encoder2CountsPerInch = pCalFile.readDouble("Calibration",
                                             "Encoder 2 Counts per Inch", -1.0);
 
-    encoder1CountsPerRev = pCalFile.readDouble("Hardware",
+    encoder1CountsPerRev = pCalFile.readDouble("Calibration",
                                         "Encoder 1 Counts per Revolution", -1);
 
-    encoder2CountsPerRev = pCalFile.readDouble("Hardware",
+    encoder2CountsPerRev = pCalFile.readDouble("Calibration",
                                         "Encoder 2 Counts per Revolution", -1);
         
-    encoder1CountsPerSec = pCalFile.readDouble("Hardware",
+    encoder1CountsPerSec = pCalFile.readDouble("Calibration",
                                             "Encoder 1 Counts per Second", -1);
 
-    encoder2CountsPerSec = pCalFile.readDouble("Hardware",
+    encoder2CountsPerSec = pCalFile.readDouble("Calibration",
                                             "Encoder 2 Counts per Second", -1);
 
-    encoder1Helix = pCalFile.readDouble("Hardware",
+    encoder1Helix = pCalFile.readDouble("Calibration",
                                   "Encoder 1 Helix Inches per Revolution", -1);
     
-    encoder2Helix = pCalFile.readDouble("Hardware",
+    encoder2Helix = pCalFile.readDouble("Calibration",
                                   "Encoder 2 Helix Inches per Revolution", -1);
 
-    numEntryJackStands = pCalFile.readInt("Hardware",
+    numEntryJackStands = pCalFile.readInt("Distances",
                                              "Number of Entry Jack Stands", 0);
 
-    numExitJackStands = pCalFile.readInt("Hardware",
+    numExitJackStands = pCalFile.readInt("Distances",
                                               "Number of Exit Jack Stands", 0);
+
+    for(SensorData datum : sensorData){
+    
+        String key;
+        int datumNum = datum.sensorDataNum;
+        
+        key = "Sensor " + datumNum + " Jack Center Distance to Entry Eye";
+        datum.jackCenterDistToEye1 = pCalFile.readDouble("Distances", key, 0);
+        
+        key = "Sensor " + datumNum + " Eye A Distance to Jack Center";
+        datum.eyeADistToJackCenter = pCalFile.readDouble("Distances", key, 0);
+        
+        key = "Sensor " + datumNum + " Eye B Distance to Jack Center";        
+        datum.eyeBDistToJackCenter = pCalFile.readDouble("Distances", key, 0);
+   
+    }
     
 }//end of EncoderValues::loadCalFileFromOpenFile
 //-----------------------------------------------------------------------------
@@ -748,44 +764,77 @@ public void saveCalFile(IniFile pCalFile, String pDataPath)
 public void saveCalFileToOpenFile(IniFile pCalFile)
 {
 
-    pCalFile.writeDouble("Hardware", "Encoder 1 Inches per Count",
+    pCalFile.writeDouble("Calibration", "Encoder 1 Inches per Count",
                                                     encoder1InchesPerCount);
     
-    pCalFile.writeDouble("Hardware", "Encoder 2 Inches per Count",
+    pCalFile.writeDouble("Calibration", "Encoder 2 Inches per Count",
                                                     encoder2InchesPerCount);
 
-    pCalFile.writeDouble("Hardware", "Encoder 1 Counts per Inch", 
+    pCalFile.writeDouble("Calibration", "Encoder 1 Counts per Inch", 
                                                         encoder1CountsPerInch);
 
-     pCalFile.writeDouble("Hardware", "Encoder 2 Counts per Inch", 
+     pCalFile.writeDouble("Calibration", "Encoder 2 Counts per Inch", 
                                                         encoder2CountsPerInch);
 
-    pCalFile.writeDouble("Hardware",
+    pCalFile.writeDouble("Calibration",
                       "Encoder 1 Counts per Revolution", encoder1CountsPerRev);
 
-    pCalFile.writeDouble("Hardware",
+    pCalFile.writeDouble("Calibration",
                       "Encoder 2 Counts per Revolution", encoder2CountsPerRev);
           
-    pCalFile.writeDouble("Hardware", "Encoder 1 Counts per Second",
+    pCalFile.writeDouble("Calibration", "Encoder 1 Counts per Second",
                                                         encoder1CountsPerSec);
     
-    pCalFile.writeDouble("Hardware", "Encoder 2 Counts per Second",
+    pCalFile.writeDouble("Calibration", "Encoder 2 Counts per Second",
                                                         encoder2CountsPerSec);
 
-    pCalFile.writeDouble("Hardware",
+    pCalFile.writeDouble("Calibration",
                        "Encoder 1 Helix Inches per Revolution", encoder1Helix);
 
-    pCalFile.writeDouble("Hardware",
+    pCalFile.writeDouble("Calibration",
                        "Encoder 2 Helix Inches per Revolution", encoder2Helix);
 
-    pCalFile.writeInt("Hardware",
+    pCalFile.writeInt("Distances",
                        "Number of Entry Jack Stands", numEntryJackStands);
 
-    pCalFile.writeInt("Hardware",
+    pCalFile.writeInt("Distances",
                        "Number of Exit Jack Stands", numExitJackStands);
 
+    saveSensorDataToOpenFile(pCalFile);
     
 }//end of EncoderValues::saveCalFileToOpenFile
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// EncoderValues::saveSensorDataToOpenFile
+//
+// Saves variables from the SensorData list which need to be retained to the
+// file pCalFile.
+//
+
+private void saveSensorDataToOpenFile(IniFile pCalFile)
+{
+           
+    for(SensorData datum : sensorData){
+    
+        String key;
+        int datumNum = datum.sensorDataNum;
+        
+        key = "Sensor " + datumNum + " Jack Center Distance to Entry Eye";
+        pCalFile.writeDoubleFormatted(
+                            "Distances", key, datum.jackCenterDistToEye1, 4);
+        
+        key = "Sensor " + datumNum + " Eye A Distance to Jack Center";
+        pCalFile.writeDoubleFormatted(
+                            "Distances", key, datum.eyeADistToJackCenter, 4);
+        
+        key = "Sensor " + datumNum + " Eye B Distance to Jack Center";        
+        pCalFile.writeDoubleFormatted(
+                            "Distances", key, datum.eyeBDistToJackCenter, 4);
+   
+    }
+ 
+}//end of EncoderValues::saveSensorDataToOpenFile
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
