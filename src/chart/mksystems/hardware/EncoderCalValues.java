@@ -50,10 +50,10 @@ public class EncoderCalValues extends Object{
     
     public static final int NUM_UNIT_SENSORS = 3;
     
-    public static final int MAX_NUM_JACKS_ON_EITHER_END = 10;
+    public static final int MAX_NUM_JACKS_ANY_GROUP = 10;
     
     public static final int TOTAL_NUM_SENSORS = 
-                     MAX_NUM_JACKS_ON_EITHER_END * 2 + MAX_NUM_UNIT_SENSORS;
+                            MAX_NUM_JACKS_ANY_GROUP * 2 + MAX_NUM_UNIT_SENSORS;
 
     public static final int UNDEFINED_GROUP = -1;
     public static final int INCOMING = 0;

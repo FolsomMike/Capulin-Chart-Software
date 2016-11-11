@@ -64,10 +64,14 @@ class JackStandSetup extends JDialog implements ActionListener {
     ArrayList<SensorSetGUI> sensorSetGUIs = new ArrayList<>(1);
 
     KeyAdapter keyAdapter;    
+
+    private final static int ENTRY_JACK_GROUP = 0;
+    private final static int EXIT_JACK_GROUP = 1;
+    private final static int UNIT_SENSOR_GROUP = 2;    
     
     private static int MAX_NUM_UNIT_SENSORS;    
     private static int NUM_UNIT_SENSORS;
-    private static int MAX_NUM_JACKS_ON_EITHER_END;
+    private static int MAX_NUM_JACKS_ANY_GROUP;
     private static int TOTAL_NUM_SENSORS;
 
     private static int UNDEFINED_GROUP;
@@ -104,7 +108,7 @@ public JackStandSetup(JFrame frame, IniFile pConfigFile,
     
     MAX_NUM_UNIT_SENSORS = EncoderCalValues.MAX_NUM_UNIT_SENSORS;
     NUM_UNIT_SENSORS = EncoderCalValues.NUM_UNIT_SENSORS;
-    MAX_NUM_JACKS_ON_EITHER_END = EncoderCalValues.MAX_NUM_JACKS_ON_EITHER_END;
+    MAX_NUM_JACKS_ANY_GROUP = EncoderCalValues.MAX_NUM_JACKS_ANY_GROUP;
     TOTAL_NUM_SENSORS = EncoderCalValues.TOTAL_NUM_SENSORS;
 
     UNDEFINED_GROUP = EncoderCalValues.UNDEFINED_GROUP;
@@ -561,34 +565,34 @@ public void setEncoderCalValues(EncoderCalValues pEncoderCalValues)
     
     encoderCalValues = pEncoderCalValues;
  
-    boolean refreshGUI = false;
+    boolean relayoutGUI = false;
 
-    if (pEncoderCalValues.numEntryJackStands > MAX_NUM_JACKS_ON_EITHER_END){
-        pEncoderCalValues.numEntryJackStands = MAX_NUM_JACKS_ON_EITHER_END;
+    if (pEncoderCalValues.numEntryJackStands > MAX_NUM_JACKS_ANY_GROUP){
+        pEncoderCalValues.numEntryJackStands = MAX_NUM_JACKS_ANY_GROUP;
     }
     
     if (pEncoderCalValues.numEntryJackStands != numEntryJackStands){
-        refreshGUI = true;
+        relayoutGUI = true;
         numEntryJackStands = pEncoderCalValues.numEntryJackStands;
     }
 
-    if (pEncoderCalValues.numExitJackStands > MAX_NUM_JACKS_ON_EITHER_END){
-        pEncoderCalValues.numExitJackStands = MAX_NUM_JACKS_ON_EITHER_END;
+    if (pEncoderCalValues.numExitJackStands > MAX_NUM_JACKS_ANY_GROUP){
+        pEncoderCalValues.numExitJackStands = MAX_NUM_JACKS_ANY_GROUP;
     }
         
     if(pEncoderCalValues.numExitJackStands != numExitJackStands){
-        refreshGUI = true;
+        relayoutGUI = true;
         numExitJackStands = pEncoderCalValues.numExitJackStands;
     }
     
-    if(refreshGUI){ resetDisplayPanel(); }
+    if(relayoutGUI){ resetDisplayPanel(); }
 
     //if the GUI was changed or data in pEncoderCalValues has changed, then
     //refresh all labels with data
     
     pEncoderCalValues.sensorTransitionDataChanged = true; //debug mks -- remove this
     
-    if (refreshGUI || pEncoderCalValues.sensorTransitionDataChanged){
+    if (relayoutGUI || pEncoderCalValues.sensorTransitionDataChanged){
         refreshAllGUI(false);
     }
     
@@ -868,132 +872,154 @@ private void refreshSensorDisplays(boolean pUpdateInputBoxes)
 {
     ArrayList<SensorData> sensorData;
     
-    sensorData = encoderCalValues.sensorData;
-        
-    refreshEntryJackDisplays(sensorData, pUpdateInputBoxes);
+    refreshSensorSetGroupDisplay(ENTRY_JACK_GROUP, pUpdateInputBoxes);
     
-    refreshUnitSensorDisplays(sensorData, pUpdateInputBoxes);    
+    refreshSensorSetGroupDisplay(EXIT_JACK_GROUP, pUpdateInputBoxes);    
     
-    refreshExitJackDisplays(sensorData, pUpdateInputBoxes);
+    refreshSensorSetGroupDisplay(UNIT_SENSOR_GROUP, pUpdateInputBoxes);
     
 }//end of JackStandSetup::refreshSensorDisplays
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// JackStandSetup::refreshEntryJackDisplays
+// JackStandSetup::refreshSensorSetGroupDisplay
 //
-// Updates all displays related to the entry jacks from encoderCalValues.
+// Updates all displays for all sensor sets in the group specified by pGroupNum.
 //
 // Input boxes are only updated if pUpdateInputBoxes is true. See notes for
 // refreshAllGUI for more details.
 //
-// the entry jack GUIs are in their list in reverse order
-// the entry jack SensorSets are in list in reverse order
-// starting from the zeroeth jack at the bottom of the first list
-// and near the middle of the second list, data is copied from one to the
-// other
-// the SensorData list contains all the entry jacks, the unit sensors, and
-// the exit jacks; the unit sensors are at the middle of the list
-// the SensorData list may contain up to 10 entry and 10 exit jacks; if
-// the display is set to a lesser number, the extra entries will be ignored
-//
 
-private void refreshEntryJackDisplays(ArrayList<SensorData> pSensorData,
-                                                    boolean pUpdateInputBoxes)
+private void refreshSensorSetGroupDisplay(
+                                    int pGroupNum, boolean pUpdateInputBoxes)
 {
     
-    int j=9; //first entry jack in sensorData list
-    
-    for (int i=numEntryJackStands-1; i>=0; i--){
-        
-        SensorSetGUI setGUI = sensorSetGUIs.get(i);
-        //zeroeth entry is at the end of the first group (entry jacks)
-        SensorData sensorDatum = pSensorData.get(j--);
-        
+    int numSensors = 0;
+
+    if (pGroupNum == ENTRY_JACK_GROUP){ numSensors = numEntryJackStands; }
+    else if (pGroupNum == EXIT_JACK_GROUP){ numSensors = numExitJackStands; }
+    else if (pGroupNum == UNIT_SENSOR_GROUP){ numSensors = NUM_UNIT_SENSORS; }    
+
+    for (int i=0; i<numSensors; i++){
+        //get object which handles GUI
+        SensorSetGUI setGUI = getSensorSetFromGUIList(pGroupNum, i);
+        //get object with sensor data
+        SensorData sensorDatum = getSensorDatumFromSensorDataList(pGroupNum, i);
+        //display data on GUI
         refreshSensorDatum(sensorDatum, setGUI, pUpdateInputBoxes);
-         
     }
 
 }//end of JackStandSetup::refreshEntryJackDisplays
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// JackStandSetup::refreshExitJackDisplays
+// JackStandSetup::getSensorSetFromGUIList
 //
-// Updates all displays related to the exit jacks from encoderCalValues.
+// Retrieves a sensor set GUI object from the sensorSetGUIs list based on
+// the sensor group number and the sensor's number in that group. The object
+// contains references to GUI components for displaying data related to the
+// sensor.
 //
-// Input boxes are only updated if pUpdateInputBoxes is true. See notes for
-// refreshAllGUI for more details.
+// There are three groups, all stored in the same sensorSetGUIs list:
+//      entry jacks, unit sensors, exit jacks.
 //
-// the exit jack GUIs are in their list in forward order
-// the exit jack SensorSets are in list in forward order
-// starting from the zeroeth jack at near the middle of the first list
-// and near the middle of the second list, data is copied from one to the
-// other
-// the SensorData list contains all the entry jacks, the unit sensors, and
-// the exit jacks; the unit sensors are at the middle of the list
-// the SensorData list may contain up to 10 entry and 10 exit jacks; if
-// the display is set to a lesser number, the extra entries will be ignored
+// Each jack is represented by a sensor set GUI.
+// Each unit sensor is also represented by a sensor set GUI even though it is
+// only a single sensor; some of the variables are not used in that case.
+//
+// List Ordering:
+//
+// the entry jack GUIs are at the top of the list in reverse order
+// the unit sensors follw the entry jacks and are in forward order
+// the exit jack SensorSets follow the unit sensors and are in forward order
 //
 
-private void refreshExitJackDisplays(ArrayList<SensorData> pSensorData,
-                                                     boolean pUpdateInputBoxes)
+SensorSetGUI getSensorSetFromGUIList(int pGroupNum, int pSensorNum)
 {
-    
-    int j=12; //first exit jack in sensorData list
-    
-    //first exit jack is past all entry jacks and past the two unit sensors
-    //subtract one to use as zero-based index
-    int firstExitJackPos = numEntryJackStands + 3 - 1;
-    int lastExitJackPos = firstExitJackPos + numExitJackStands;
-    
-    for (int i=firstExitJackPos; i<lastExitJackPos; i++){
         
-        SensorSetGUI setGUI = sensorSetGUIs.get(i);
-        //zeroeth entry is at the end of the first group (entry jacks)
-        SensorData sensorDatum = pSensorData.get(j++);
-
-        refreshSensorDatum(sensorDatum, setGUI, pUpdateInputBoxes);
-         
+    if(pGroupNum == ENTRY_JACK_GROUP){
+        //stored in reverse order at top of list
+        int firstEntryJack = numEntryJackStands - 1;
+        int jackPos = firstEntryJack - pSensorNum;
+        return(sensorSetGUIs.get(jackPos));
+    }
+    
+    if(pGroupNum == EXIT_JACK_GROUP){
+        //stored in forward order after entry jacks and unit sensors
+        int firstExitJack = numEntryJackStands + NUM_UNIT_SENSORS - 1;
+        int jackPos = firstExitJack + pSensorNum;
+        return(sensorSetGUIs.get(jackPos));
     }
 
-}//end of JackStandSetup::refreshExitJackDisplays
+    if(pGroupNum == UNIT_SENSOR_GROUP){
+        //stored in forward order after entry jacks
+        int firstUnitSensor = numEntryJackStands;
+        int jackPos = firstUnitSensor + pSensorNum;
+        return(sensorSetGUIs.get(jackPos));
+    }
+
+    return(null);
+    
+}//end of JackStandSetup::getSensorSetFromGUIList
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// JackStandSetup::refreshUnitSensorDisplays
+// JackStandSetup::getSensorDatumFromSensorDataList
 //
-// Updates all displays related to the unit sensors from encoderCalValues.
+// Retrieves a sensor set data object from the sensorData list based on
+// the sensor group number and the sensor's number in that group. The object
+// contains values for the sensor set and jack stand.
 //
-// Input boxes are only updated if pUpdateInputBoxes is true. See notes for
-// refreshAllGUI for more details.
+// There are three groups, all stored in the same sensorData list:
+//      entry jacks, unit sensors, exit jacks.
 //
-// the SensorData list contains all the entry jacks, the unit sensors, and
-// the exit jacks; the unit sensors are at the middle of the list
-// the SensorData
+// Each jack is represented by a sensor data object.
+// Each unit sensor is also represented by a sensor data object even though it
+// is only a single sensor; some of the variables are not used in that case.
+//
+// DIFFERENCE BETWEEN THE ORDERING IN sensorSetGUIs LIST AND sensorData LIST:
+//
+// The sensorSetGUIs list has exactly the number of entries as needed for each
+// group. The sensorData list has enough entries to contain the maximum number
+// allowed for each group. Thus there are often more entries in the latter than
+// the former.
+//
+// List Ordering:
+//
+// the entry jack GUIs are at the top of the list in reverse order, extra
+//  positions at the top
+// the unit sensors follw the entry jacks and are in forward order
+// the exit jack SensorSets follow the unit sensors and are in forward order,
+//  extra positions at the bottom
+//
 
-private void refreshUnitSensorDisplays(ArrayList<SensorData> pSensorData,
-                                                     boolean pUpdateInputBoxes)
+SensorData getSensorDatumFromSensorDataList(int pGroupNum, int pSensorNum)
 {
-    
-    int j=10; //first unit sensor in sensorData list
- 
-    //unit sensor starts after entry jacks, subtract one to zero-base index
-    int firstUnitSensorPos = numEntryJackStands + 1 - 1;
-    int lastUnitSensorPos = firstUnitSensorPos + 1;
-     
-    
-    for (int i=firstUnitSensorPos; i<=lastUnitSensorPos; i++){
         
-        SensorSetGUI setGUI = sensorSetGUIs.get(i);
-
-        SensorData sensorDatum = pSensorData.get(j++);
-        
-        refreshSensorDatum(sensorDatum, setGUI, pUpdateInputBoxes);        
-         
+    if(pGroupNum == ENTRY_JACK_GROUP){
+        //stored in reverse order at top of list
+        int firstEntryJack = MAX_NUM_JACKS_ANY_GROUP - 1;
+        int jackPos = firstEntryJack - pSensorNum;
+        return(encoderCalValues.sensorData.get(jackPos));
+    }
+    
+    if(pGroupNum == EXIT_JACK_GROUP){
+        //stored in forward order after entry jacks and unit sensors
+        int firstExitJack = MAX_NUM_JACKS_ANY_GROUP + MAX_NUM_UNIT_SENSORS - 1;
+        int jackPos = firstExitJack + pSensorNum;
+        return(encoderCalValues.sensorData.get(jackPos));
     }
 
-}//end of JackStandSetup::refreshUnitSensorDisplays
+    if(pGroupNum == UNIT_SENSOR_GROUP){
+        //stored in forward order after entry jacks
+        int firstUnitSensor = MAX_NUM_JACKS_ANY_GROUP;
+        int jackPos = firstUnitSensor + pSensorNum;
+        return(encoderCalValues.sensorData.get(jackPos));
+    }
+
+    return(null);
+    
+}//end of JackStandSetup::getSensorDatumFromSensorDataList
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1163,8 +1189,8 @@ private void handleNumJacksEntries()
         val = numEntryJackStands; //do not change value if invalid entry
     }
 
-    if (val > MAX_NUM_JACKS_ON_EITHER_END){ 
-        val = MAX_NUM_JACKS_ON_EITHER_END;
+    if (val > MAX_NUM_JACKS_ANY_GROUP){ 
+        val = MAX_NUM_JACKS_ANY_GROUP;
         numEntryJackStandsTF.setText("" + val);
     }
 
@@ -1182,8 +1208,8 @@ private void handleNumJacksEntries()
         val = numExitJackStands; //do not change value if invalid entry
     }
 
-    if (val > MAX_NUM_JACKS_ON_EITHER_END){ 
-        val = MAX_NUM_JACKS_ON_EITHER_END;
+    if (val > MAX_NUM_JACKS_ANY_GROUP){ 
+        val = MAX_NUM_JACKS_ANY_GROUP;
         numExitJackStandsTF.setText("" + val);
     }
     

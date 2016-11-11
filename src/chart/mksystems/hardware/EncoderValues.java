@@ -146,7 +146,7 @@ public class EncoderValues extends Object{
     
     private static int MAX_NUM_UNIT_SENSORS;
     private static int NUM_UNIT_SENSORS;
-    private static int MAX_NUM_JACKS_ON_EITHER_END;
+    private static int MAX_NUM_JACKS_ANY_GROUP;
     private static int TOTAL_NUM_SENSORS;
     
     private static final String UNIT_CAL_FILE_FOLDER_NAME = 
@@ -166,7 +166,7 @@ public EncoderValues()
     
     MAX_NUM_UNIT_SENSORS = EncoderCalValues.MAX_NUM_UNIT_SENSORS;    
     NUM_UNIT_SENSORS = EncoderCalValues.NUM_UNIT_SENSORS;
-    MAX_NUM_JACKS_ON_EITHER_END = EncoderCalValues.MAX_NUM_JACKS_ON_EITHER_END;
+    MAX_NUM_JACKS_ANY_GROUP = EncoderCalValues.MAX_NUM_JACKS_ANY_GROUP;
     TOTAL_NUM_SENSORS = EncoderCalValues.TOTAL_NUM_SENSORS;
  
     sensorData = new ArrayList<>(TOTAL_NUM_SENSORS);
