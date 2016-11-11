@@ -140,15 +140,14 @@ public class EncoderValues extends Object{
 
     //size list to hold 10 entry jacks, 10 exit jacks & the entry & exit sensors
     
-    private final ArrayList<SensorData> sensorData = 
-                                            new ArrayList<>(TOTAL_NUM_SENSORS);
+    private final ArrayList<SensorData> sensorData;
     
     public ArrayList<SensorData> getSensorData(){ return(sensorData); }
     
-    private static final int MAX_NUM_JACKS_ON_EITHER_END = 10;
-    
-    private static final int TOTAL_NUM_SENSORS = 
-                                        MAX_NUM_JACKS_ON_EITHER_END * 2 + 2;
+    private static int MAX_NUM_UNIT_SENSORS;
+    private static int NUM_UNIT_SENSORS;
+    private static int MAX_NUM_JACKS_ON_EITHER_END;
+    private static int TOTAL_NUM_SENSORS;
     
     private static final String UNIT_CAL_FILE_FOLDER_NAME = 
                                       "00 - Calibration Files - Do Not Delete";
@@ -163,6 +162,15 @@ public class EncoderValues extends Object{
 public EncoderValues()
 {
 
+    //get a local copy of constants for easier use
+    
+    MAX_NUM_UNIT_SENSORS = EncoderCalValues.MAX_NUM_UNIT_SENSORS;    
+    NUM_UNIT_SENSORS = EncoderCalValues.NUM_UNIT_SENSORS;
+    MAX_NUM_JACKS_ON_EITHER_END = EncoderCalValues.MAX_NUM_JACKS_ON_EITHER_END;
+    TOTAL_NUM_SENSORS = EncoderCalValues.TOTAL_NUM_SENSORS;
+ 
+    sensorData = new ArrayList<>(TOTAL_NUM_SENSORS);
+    
     for (int i=0; i<TOTAL_NUM_SENSORS; i++){
         sensorData.add(new SensorData(i));
     }

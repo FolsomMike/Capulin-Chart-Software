@@ -74,7 +74,6 @@ public class PLCEthernetController {
     
     private static final int MAX_NUM_JACKS_ON_EITHER_END = 10;
 
-
     public static final int UNDEFINED_GROUP = -1;
     public static final int INCOMING = 0;
     public static final int OUTGOING = 1;

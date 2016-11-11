@@ -64,27 +64,30 @@ class JackStandSetup extends JDialog implements ActionListener {
     ArrayList<SensorSetGUI> sensorSetGUIs = new ArrayList<>(1);
 
     KeyAdapter keyAdapter;    
-
-    private static final int MAX_NUM_JACKS_ON_EITHER_END = 10;    
-
-    public static final int UNDEFINED_GROUP = -1;
-    public static final int INCOMING = 0;
-    public static final int OUTGOING = 1;
-    public static final int UNIT = 2;
-
-    public static final int UNDEFINED_EYE = -1;
-    public static final int EYE_A = 0;
-    public static final int EYE_B = 1;
-    public static final int SELF = 2;
     
-    public static final int UNDEFINED_DIR = -1;
-    public static final int STOPPED = 0;
-    public static final int FWD = 1;
-    public static final int REV = 2;
+    private static int MAX_NUM_UNIT_SENSORS;    
+    private static int NUM_UNIT_SENSORS;
+    private static int MAX_NUM_JACKS_ON_EITHER_END;
+    private static int TOTAL_NUM_SENSORS;
 
-    public static final int UNDEFINED_STATE = -1;    
-    public static final int UNBLOCKED = 0;
-    public static final int BLOCKED = 1;
+    private static int UNDEFINED_GROUP;
+    private static int INCOMING;
+    private static int OUTGOING;
+    private static int UNIT;
+
+    private static int UNDEFINED_EYE;
+    private static int EYE_A;
+    private static int EYE_B;
+    private static int SELF;
+    
+    private static int UNDEFINED_DIR;
+    private static int STOPPED;
+    private static int FWD;
+    private static int REV;
+
+    private static int UNDEFINED_STATE;
+    private static int UNBLOCKED;
+    private static int BLOCKED;
         
 //-----------------------------------------------------------------------------
 // JackStandSetup::JackStandSetup (constructor)
@@ -97,6 +100,32 @@ public JackStandSetup(JFrame frame, IniFile pConfigFile,
 
     super(frame, "Jack Stand Setup");
 
+    //get a local copy of constants for easier use
+    
+    MAX_NUM_UNIT_SENSORS = EncoderCalValues.MAX_NUM_UNIT_SENSORS;
+    NUM_UNIT_SENSORS = EncoderCalValues.NUM_UNIT_SENSORS;
+    MAX_NUM_JACKS_ON_EITHER_END = EncoderCalValues.MAX_NUM_JACKS_ON_EITHER_END;
+    TOTAL_NUM_SENSORS = EncoderCalValues.TOTAL_NUM_SENSORS;
+
+    UNDEFINED_GROUP = EncoderCalValues.UNDEFINED_GROUP;
+    INCOMING = EncoderCalValues.INCOMING;
+    OUTGOING = EncoderCalValues.OUTGOING;
+    UNIT = EncoderCalValues.UNIT;
+
+    UNDEFINED_EYE = EncoderCalValues.UNDEFINED_EYE;
+    EYE_A = EncoderCalValues.EYE_A;
+    EYE_B = EncoderCalValues.EYE_B;
+    SELF = EncoderCalValues.SELF;
+
+    UNDEFINED_DIR = EncoderCalValues.UNDEFINED_DIR;
+    STOPPED = EncoderCalValues.STOPPED;
+    FWD = EncoderCalValues.FWD;
+    REV = EncoderCalValues.REV;
+
+    UNDEFINED_STATE = EncoderCalValues.UNDEFINED_STATE;
+    UNBLOCKED = EncoderCalValues.UNBLOCKED;
+    BLOCKED = EncoderCalValues.BLOCKED;
+    
     actionListener = pActionListener;
     configFile = pConfigFile;
 

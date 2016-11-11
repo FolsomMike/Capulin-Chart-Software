@@ -46,6 +46,34 @@ public class EncoderCalValues extends Object{
     
     public ArrayList<SensorData> sensorData;
 
+    public static final int MAX_NUM_UNIT_SENSORS = 3;
+    
+    public static final int NUM_UNIT_SENSORS = 3;
+    
+    public static final int MAX_NUM_JACKS_ON_EITHER_END = 10;
+    
+    public static final int TOTAL_NUM_SENSORS = 
+                     MAX_NUM_JACKS_ON_EITHER_END * 2 + MAX_NUM_UNIT_SENSORS;
+
+    public static final int UNDEFINED_GROUP = -1;
+    public static final int INCOMING = 0;
+    public static final int OUTGOING = 1;
+    public static final int UNIT = 2;
+
+    public static final int UNDEFINED_EYE = -1;
+    public static final int EYE_A = 0;
+    public static final int EYE_B = 1;
+    public static final int SELF = 2;
+    
+    public static final int UNDEFINED_DIR = -1;
+    public static final int STOPPED = 0;
+    public static final int FWD = 1;
+    public static final int REV = 2;
+
+    public static final int UNDEFINED_STATE = -1;    
+    public static final int UNBLOCKED = 0;
+    public static final int BLOCKED = 1;
+                
 //-----------------------------------------------------------------------------
 // EncoderCaValues::EncoderCalValues (constructor)
 //
