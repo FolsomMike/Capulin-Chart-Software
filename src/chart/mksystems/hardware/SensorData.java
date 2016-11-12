@@ -34,11 +34,24 @@ public class SensorData extends Object{
     public double eyeADistToJackCenter = 0;
     public double eyeBDistToJackCenter = 0;
 
-    public int lastEyeChanged=0;
-    public int sensorState = UNDEFINED_STATE;
-    public int encoder1Cnt = Integer.MAX_VALUE, encoder2Cnt = Integer.MAX_VALUE;
+    public int lastEyeChanged=UNDEFINED_EYE;
+    
+    public int lastState = UNDEFINED_STATE;
+    public int eyeAState = UNDEFINED_STATE;
+    public int eyeBState = UNDEFINED_STATE;    
+    
+    //last encoder count reported for either eye
+    public int lastEncoder1Cnt = Integer.MAX_VALUE;
+    public int lastEncoder2Cnt = Integer.MAX_VALUE;        
+    
+    public int eyeAEncoder1Cnt = Integer.MAX_VALUE;
+    public int eyeAEncoder2Cnt = Integer.MAX_VALUE;    
+    public int eyeBEncoder1Cnt = Integer.MAX_VALUE;    
+    public int eyeBEncoder2Cnt = Integer.MAX_VALUE;
+ 
     public int direction = UNDEFINED_DIR;
     public int sensorNum = Integer.MAX_VALUE;
+    public double countsPerInch = Double.MAX_VALUE;
     public double percentChange = Double.MAX_VALUE;
 
     public static final int UNDEFINED_GROUP = -1;
@@ -81,12 +94,70 @@ public SensorData(int pSensorDataNum)
 public void init()
 {
 
+     resetAll();
 
 }//end of SensorData::init
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// SensorData::resetAll
+//
+// Resets all values to default.
+//
 
+public void resetAll()
+{
 
+    lastEyeChanged=UNDEFINED_EYE;
+    lastState = UNDEFINED_STATE;
+    eyeAState = UNDEFINED_STATE;
+    eyeBState = UNDEFINED_STATE;    
+
+    lastEncoder1Cnt = Integer.MAX_VALUE;
+    lastEncoder2Cnt = Integer.MAX_VALUE;        
+
+    eyeAEncoder1Cnt = Integer.MAX_VALUE;
+    eyeAEncoder2Cnt = Integer.MAX_VALUE;    
+    eyeBEncoder1Cnt = Integer.MAX_VALUE;    
+    eyeBEncoder2Cnt = Integer.MAX_VALUE;
+
+    direction = UNDEFINED_DIR;
+    sensorNum = Integer.MAX_VALUE;
+    countsPerInch = Double.MAX_VALUE;
+    percentChange = Double.MAX_VALUE;
+
+}//end of SensorData::resetAll
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SensorData::setStateAndEncoderCounts
+//
+// Stores the pState and pEncoder*Cnt values in the lastState and 
+// lastEncoder*Cnt variables and in the eye*State and eye*Encoder*Cnt variables
+// specific to the value in lastEyeChanged.
+//
+// Variable lastEyeChanged should already be set before calling.
+//
+
+public void setEncoderCounts(int pState, int pEncoder1Cnt, int pEncoder2Cnt)
+{
+
+    lastState = pState;
+    lastEncoder1Cnt = pEncoder1Cnt; lastEncoder2Cnt = pEncoder2Cnt;
+    
+        switch (lastEyeChanged) {
+        case EYE_A :
+                eyeAState = pState;
+                eyeAEncoder1Cnt = pEncoder1Cnt; eyeAEncoder2Cnt = pEncoder2Cnt;
+            break;
+        case EYE_B:
+                eyeBState = pState;            
+                eyeBEncoder1Cnt = pEncoder1Cnt; eyeBEncoder2Cnt = pEncoder2Cnt;            
+            break;
+    }
+
+}//end of SensorData::setEncoderCounts
+//-----------------------------------------------------------------------------
 
 }//end of class SensorData
 //-----------------------------------------------------------------------------

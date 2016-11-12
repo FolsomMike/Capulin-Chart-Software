@@ -277,7 +277,7 @@ private void setupDisplayGrid(JPanel pParentPanel)
     int numGridCols;
     
     if(displayMonitorCB.isSelected()){
-        numGridCols = 9;
+        numGridCols = 10;
     }else{
         numGridCols = 4;
     }
@@ -300,6 +300,8 @@ private void setupDisplayGrid(JPanel pParentPanel)
         addLabel(panel, "Encoder 2", "counts at time of state change");
         addLabel(panel, "Direction",
                                 "conveyor direction at time of state change");
+        addLabel(panel, "Counts/Inch",
+            "counts per inch calculated between last two sensor state changes");
         addLabel(panel, "% change",
                                 "% calibration change since last calculation");        
     }
@@ -986,19 +988,19 @@ private void refreshSensorDatum(SensorData pSensorDatum,
 
     //state is appended to last eye changed
 
-    if (pSensorDatum.sensorState == BLOCKED) { s += "blocked"; }
-    else if (pSensorDatum.sensorState == UNBLOCKED) { s += "unblocked"; }
+    if (pSensorDatum.lastState == BLOCKED) { s += "blocked"; }
+    else if (pSensorDatum.lastState == UNBLOCKED) { s += "unblocked"; }
     else{ s = "---"; }
 
     pSensorSetGUI.stateLbl.setText(s);
 
-    if(pSensorDatum.encoder1Cnt == Integer.MAX_VALUE) { s = "---";}
-    else { s = "" + pSensorDatum.encoder1Cnt; }
+    if(pSensorDatum.lastEncoder1Cnt == Integer.MAX_VALUE) { s = "---";}
+    else { s = "" + pSensorDatum.lastEncoder1Cnt; }
 
     pSensorSetGUI.encoder1Lbl.setText(s);
 
-    if(pSensorDatum.encoder2Cnt == Integer.MAX_VALUE) { s = "---";}
-    else { s = "" + pSensorDatum.encoder2Cnt; }
+    if(pSensorDatum.lastEncoder2Cnt == Integer.MAX_VALUE) { s = "---";}
+    else { s = "" + pSensorDatum.lastEncoder2Cnt; }
 
     pSensorSetGUI.encoder2Lbl.setText(s);
 
@@ -1009,6 +1011,11 @@ private void refreshSensorDatum(SensorData pSensorDatum,
 
     pSensorSetGUI.directionLbl.setText(s);
 
+    if (pSensorDatum.countsPerInch == Double.MAX_VALUE) { s = "---"; }
+    else{ s = new DecimalFormat("00.0").format(pSensorDatum.countsPerInch); }
+
+     pSensorSetGUI.countsPerInchLbl.setText(s);
+        
     if (pSensorDatum.percentChange == Double.MAX_VALUE) { s = "---"; }
     else{ s = new DecimalFormat("00.0").format(pSensorDatum.percentChange); }
 
@@ -1280,6 +1287,7 @@ class SensorSetGUI{
     JLabel encoder1Lbl;
     JLabel encoder2Lbl;
     JLabel directionLbl;
+    JLabel countsPerInchLbl;    
     JLabel percentChangeLbl;        
     
 //-----------------------------------------------------------------------------
@@ -1385,6 +1393,7 @@ public void init(String pTitle, boolean pEnableEyeDistanceInputs,
     encoder1Lbl = new JLabel("?");
     encoder2Lbl = new JLabel("?");
     directionLbl = new JLabel("?");
+    countsPerInchLbl = new JLabel("?");
     percentChangeLbl = new JLabel("?");
     
     setEyeDistanceEditingEnabled(pEnableEyeDistanceInputs);
@@ -1401,6 +1410,7 @@ public void init(String pTitle, boolean pEnableEyeDistanceInputs,
         mainPanel.add(encoder1Lbl);
         mainPanel.add(encoder2Lbl);    
         mainPanel.add(directionLbl);
+        mainPanel.add(countsPerInchLbl);        
         mainPanel.add(percentChangeLbl);        
     }
             
@@ -1452,6 +1462,7 @@ public void init(String pTitle, boolean pEnableEyeDistanceInputs,
     encoder1Lbl = new JLabel("?");
     encoder2Lbl = new JLabel("?");
     directionLbl = new JLabel("?");
+    countsPerInchLbl = new JLabel("?");
     percentChangeLbl = new JLabel("?");
     
     setEyeDistanceEditingEnabled(pEnableEyeDistanceInputs);
@@ -1468,6 +1479,7 @@ public void init(String pTitle, boolean pEnableEyeDistanceInputs,
         mainPanel.add(encoder1Lbl);
         mainPanel.add(encoder2Lbl);    
         mainPanel.add(directionLbl);
+        mainPanel.add(countsPerInchLbl);
         mainPanel.add(percentChangeLbl);        
     }
             

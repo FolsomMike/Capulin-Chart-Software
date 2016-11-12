@@ -550,16 +550,19 @@ public void parseEncoderEyeCalMsg(int numBytes, byte[] pBuf) //debug mks -- set 
     else if (msg.charAt(DIR_CHAR_POS) == 'S'){ sensor.direction = STOPPED; }
     else{  sensor.direction = UNDEFINED_DIR; }
  
-   //parse direction
+   //parse state
     
-    if (msg.charAt(STATE_CHAR_POS) == 'U'){ sensor.sensorState = UNBLOCKED; }
-    else if (msg.charAt(STATE_CHAR_POS) == 'B'){ sensor.sensorState = BLOCKED; }
-    else{  sensor.sensorState = UNDEFINED_STATE; }
+    int sensorState;
     
-    //parse encoder counts; value of Integer.MIN_VALUE means parse failed
+    if (msg.charAt(STATE_CHAR_POS) == 'U'){ sensorState = UNBLOCKED; }
+    else if (msg.charAt(STATE_CHAR_POS) == 'B'){ sensorState = BLOCKED; }
+    else{ sensorState = UNDEFINED_STATE; }
+    
+    //parse and store encoder counts along with the sensor state
 
-    sensor.encoder1Cnt = parseEncoderCount(msg, 10);
-    sensor.encoder2Cnt = parseEncoderCount(msg, 17);
+    sensor.setEncoderCounts(sensorState,
+                            parseEncoderCount(msg, 10),
+                            parseEncoderCount(msg, 17));
 
 }//end of PLCEthernetController::parseEncoderEyeCalMsg
 //-----------------------------------------------------------------------------
@@ -570,7 +573,7 @@ public void parseEncoderEyeCalMsg(int numBytes, byte[] pBuf) //debug mks -- set 
 // Parses the 6 digit substring in pMsg starting at pStart location. Returns
 // the value as an integer.
 //
-// On error, returns Integer.MIN_VALUE.
+// On error, returns Integer.MAX_VALUE.
 
 private int parseEncoderCount(String pMsg, int pStart)
 {        
@@ -581,7 +584,7 @@ private int parseEncoderCount(String pMsg, int pStart)
         return(Integer.valueOf(pMsg.substring(pStart, pStart + 6).trim()));
     }
     catch(NumberFormatException nfe){
-        return(Integer.MIN_VALUE); //error parsing
+        return(Integer.MAX_VALUE); //error parsing
     }
     
 }//end of PLCEthernetController::parseEncoderCount

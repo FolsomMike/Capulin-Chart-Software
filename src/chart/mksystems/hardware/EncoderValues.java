@@ -170,7 +170,8 @@ public EncoderValues()
     sensorData = new ArrayList<>(TOTAL_NUM_SENSORS);
     
     for (int i=0; i<TOTAL_NUM_SENSORS; i++){
-        sensorData.add(new SensorData(i));
+        SensorData datum = new SensorData(i); datum.init();
+        sensorData.add(datum);
     }
 
 }//end of EncoderValues::EncoderValues (constructor)
