@@ -926,7 +926,9 @@ public void collectData()
 {
 
     //debug mks
-/*    
+/*
+   // plcComLink.handleEncoderEyeCalculations();
+    
     String msg;
             
     msg = "I|00|U|--|000010|000011|F|0";
