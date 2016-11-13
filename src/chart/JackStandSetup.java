@@ -72,7 +72,7 @@ class JackStandSetup extends JDialog implements ActionListener {
     private static int MAX_NUM_UNIT_SENSORS;    
     private static int NUM_UNIT_SENSORS;
     private static int MAX_NUM_JACKS_ANY_GROUP;
-    private static int TOTAL_NUM_SENSORS;
+    private static int MAX_TOTAL_NUM_SENSORS;
 
     private static int UNDEFINED_GROUP;
     private static int INCOMING;
@@ -109,7 +109,7 @@ public JackStandSetup(JFrame frame, IniFile pConfigFile,
     MAX_NUM_UNIT_SENSORS = EncoderCalValues.MAX_NUM_UNIT_SENSORS;
     NUM_UNIT_SENSORS = EncoderCalValues.NUM_UNIT_SENSORS;
     MAX_NUM_JACKS_ANY_GROUP = EncoderCalValues.MAX_NUM_JACKS_ANY_GROUP;
-    TOTAL_NUM_SENSORS = EncoderCalValues.TOTAL_NUM_SENSORS;
+    MAX_TOTAL_NUM_SENSORS = EncoderCalValues.MAX_TOTAL_NUM_SENSORS;
 
     UNDEFINED_GROUP = EncoderCalValues.UNDEFINED_GROUP;
     INCOMING = EncoderCalValues.INCOMING;

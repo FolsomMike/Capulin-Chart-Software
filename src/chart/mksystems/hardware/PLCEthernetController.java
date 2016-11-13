@@ -52,13 +52,14 @@ public class PLCEthernetController {
     DataOutputStream byteOut = null;
     DataInputStream byteIn = null;
     EncoderValues encoderValues;
+
+    SensorData datumByNum = null;
+    int eyeByNum = UNDEFINED_EYE;    
     
     boolean reSynced;
     int pktID;
     int reSyncCount;
     int reSyncPktID;
-    
-    int msgBodyLen;
     
     ThreadSafeLogger logger;
     boolean simulate;
@@ -67,32 +68,38 @@ public class PLCEthernetController {
 
     private static final int TIMEOUT = 5;
     private static final int PLC_MESSAGE_LENGTH = 29;
+    private static final int MSG_BODY_LEN = PLC_MESSAGE_LENGTH - 2;
     private static final int PLC_MSG_PACKET_SIZE = 50;
     
     private static final int HEADER_BYTE = '^';
     private static final int ENCODER_EYE_CAL_CMD = '#';
+
+    private static int MAX_NUM_UNIT_SENSORS;    
+    private static int NUM_UNIT_SENSORS;
+    private static int MAX_NUM_JACKS_ANY_GROUP;
+    private static int MAX_TOTAL_NUM_SENSORS;
+
+    private static int UNDEFINED_GROUP;
+    private static int INCOMING;
+    private static int OUTGOING;
+    private static int UNIT;
+
+    private static int UNDEFINED_EYE;
+    private static int EYE_A;
+    private static int EYE_B;
+    private static int SELF;
     
-    private static final int MAX_NUM_JACKS_ON_EITHER_END = 10;
+    private static int UNDEFINED_DIR;
+    private static int STOPPED;
+    private static int FWD;
+    private static int REV;
 
-    public static final int UNDEFINED_GROUP = -1;
-    public static final int INCOMING = 0;
-    public static final int OUTGOING = 1;
-    public static final int UNIT = 2;
-
-    public static final int UNDEFINED_EYE = -1;
-    public static final int EYE_A = 0;
-    public static final int EYE_B = 1;
-    public static final int SELF = 2;
-    
-    public static final int UNDEFINED_DIR = -1;
-    public static final int STOPPED = 0;
-    public static final int FWD = 1;
-    public static final int REV = 2;
-
-    public static final int UNDEFINED_STATE = -1;    
-    public static final int UNBLOCKED = 0;
-    public static final int BLOCKED = 1;
+    private static int UNDEFINED_STATE;
+    private static int UNBLOCKED;
+    private static int BLOCKED;
         
+    private static int ENTRY_SENSOR_INDEX;
+    
     public static final int STATE_CHAR_POS = 5;
     public static final int DIR_CHAR_POS = 24;
     
@@ -111,9 +118,33 @@ public PLCEthernetController(String pPLCIPAddrS, int pPLCPortNum,
     inBuffer = new byte[PLC_MSG_PACKET_SIZE];
     outBuffer = new byte[PLC_MSG_PACKET_SIZE];
 
-    //body length is message length minus header byte and packet type byte
-    msgBodyLen = PLC_MESSAGE_LENGTH - 2;
+    //get a local copy of constants for easier use
+    
+    MAX_NUM_UNIT_SENSORS = EncoderCalValues.MAX_NUM_UNIT_SENSORS;
+    NUM_UNIT_SENSORS = EncoderCalValues.NUM_UNIT_SENSORS;
+    MAX_NUM_JACKS_ANY_GROUP = EncoderCalValues.MAX_NUM_JACKS_ANY_GROUP;
+    MAX_TOTAL_NUM_SENSORS = EncoderCalValues.MAX_TOTAL_NUM_SENSORS;
 
+    UNDEFINED_GROUP = EncoderCalValues.UNDEFINED_GROUP;
+    INCOMING = EncoderCalValues.INCOMING;
+    OUTGOING = EncoderCalValues.OUTGOING;
+    UNIT = EncoderCalValues.UNIT;
+
+    UNDEFINED_EYE = EncoderCalValues.UNDEFINED_EYE;
+    EYE_A = EncoderCalValues.EYE_A;
+    EYE_B = EncoderCalValues.EYE_B;
+    SELF = EncoderCalValues.SELF;
+
+    UNDEFINED_DIR = EncoderCalValues.UNDEFINED_DIR;
+    STOPPED = EncoderCalValues.STOPPED;
+    FWD = EncoderCalValues.FWD;
+    REV = EncoderCalValues.REV;
+
+    UNDEFINED_STATE = EncoderCalValues.UNDEFINED_STATE;
+    UNBLOCKED = EncoderCalValues.UNBLOCKED;
+    BLOCKED = EncoderCalValues.BLOCKED;
+        
+    ENTRY_SENSOR_INDEX = EncoderCalValues.ENTRY_SENSOR_INDEX;
     
 }//end of PLCEthernetController::PLCEthernetController (constructor)
 //-----------------------------------------------------------------------------
@@ -430,7 +461,7 @@ public int processOneDataPacket(boolean pWaitForPkt, int pTimeOut)
         //store the ID of the packet (the packet type)
         pktID = inBuffer[0];
 
-        if ( pktID == ENCODER_EYE_CAL_CMD) {return processEncoderEyeCalCmd();}
+        if ( pktID == ENCODER_EYE_CAL_CMD) {return handleEncoderEyeCalCmd();}
 
     }
     catch(IOException e){
@@ -489,11 +520,130 @@ public void reSync()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// PLCEthernetController::handleEncoderEyeCalCmd
+//
+
+private int handleEncoderEyeCalCmd()
+{
+
+    int status = processEncoderEyeCalCmd();
+
+    if (status == 0){ return(status); }
+    
+    handleEncoderEyeValueReset();
+    
+    handleEncoderEyeCalculations();
+    
+    return(status);
+    
+}//end of PLCEthernetController::handleEncoderEyeCalCmd
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// PLCEthernetController::handleEncoderEyeValueReset
+//
+// Any time the entry start inspection eye is unblocked or in unknown state,
+// reset all values for all sensors.
+//
+
+private void handleEncoderEyeValueReset()
+{
+    
+    if(encoderValues.getSensorData().get(ENTRY_SENSOR_INDEX).lastState
+                                                                != BLOCKED){
+        for(SensorData datum : encoderValues.getSensorData()){
+            datum.resetAll();
+        }
+    }
+      
+}//end of PLCEthernetController::handleEncoderEyeValueReset
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// PLCEthernetController::handleEncoderEyeCalculations
+//
+
+public void handleEncoderEyeCalculations() //debug mks -- make this private
+{
+
+    for(int i=0; i<encoderValues.getTotalNumSensors(); i++){
+        
+        getSensorByNumber(i);
+        
+    }
+    
+}//end of PLCEthernetController::handleEncoderEyeCalculations
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// PLCEthernetController::getSensorByNumber
+//
+// Sets class variables SensorData datumByNum and eyeByNum based on the
+// value of pSensorNum. pSensorNum equal to 0 is the first entry jack while
+// a value of TOTAL_NUM_SENSORS - 1 is the last exit jack.
+//
+// The sensors are treated as a single series starting at number 0 (the first
+// entry jack), running through all the entry jacks, through the unit sensors,
+// through the exit jacks and ending with the last exit jack.
+//
+// If pSensorNum refers to one of the unit sensors, eyeByNum is set to SELF
+// as there is only a single eye.
+//
+// If pSensorNum is less than zero or greater than the index of the last
+// sensor, datumByNum is set null and eyeByNum is set to UNDEFINED_EYE.
+
+private void getSensorByNumber(int pSensorNum)
+{
+
+    int numEntryJackStands = encoderValues.getNumEntryJackStands();
+    int numExitJackStands = encoderValues.getNumExitJackStands();    
+    int totalNumSensors = encoderValues.getTotalNumSensors();                    
+    
+    if(pSensorNum < 0 || pSensorNum >= totalNumSensors){ 
+        datumByNum = null; eyeByNum = UNDEFINED_EYE; return;
+    }
+    
+    int index;
+    
+    
+    //handle references to entry jack group at first of list
+    
+    if(pSensorNum < numEntryJackStands * 2){
+        index = ENTRY_SENSOR_INDEX - (numEntryJackStands - pSensorNum / 2);
+        datumByNum = encoderValues.getSensorData().get(index);
+        eyeByNum = pSensorNum % 2 == 0 ? EYE_A : EYE_B;
+        return;
+    }
+    
+    //handle references to exit jack group at end of list    
+
+    if(pSensorNum >= numEntryJackStands * 2 + NUM_UNIT_SENSORS){
+        index = ENTRY_SENSOR_INDEX + NUM_UNIT_SENSORS +
+                ((pSensorNum - numEntryJackStands * 2 - NUM_UNIT_SENSORS) / 2); 
+        datumByNum = encoderValues.getSensorData().get(index);
+        eyeByNum = (pSensorNum+NUM_UNIT_SENSORS) % 2 == 0 ? EYE_A : EYE_B;
+        return;
+    }
+    
+    //handle references to unit sensor group at end of list        
+    //anything not caught above must be a unit sensor in the middle of the list
+    
+    index = ENTRY_SENSOR_INDEX + (pSensorNum - numEntryJackStands * 2);
+    datumByNum = encoderValues.getSensorData().get(index);
+    eyeByNum = SELF;
+    
+}//end of PLCEthernetController::getSensorByNumber
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // PLCEthernetController::processEncoderEyeCalCmd
 //
 // Handles messages from the PLC which indicate that a sensor has changed
 // state and includes the encoder counts at the time of change along with the
 // current state of the sensor and the conveyor direction.
+//
+// Returns the number of bytes read from the buffer on success.
+// Returns 0 on failure.
 //
 
 private int processEncoderEyeCalCmd()
@@ -503,11 +653,11 @@ private int processEncoderEyeCalCmd()
     
     try{
         while(timeOutProcess++ < TIMEOUT){
-            if (byteIn.available() >= msgBodyLen) {break;}
+            if (byteIn.available() >= MSG_BODY_LEN) {break;}
             waitSleep(10);
             }
-        if (timeOutProcess < TIMEOUT && byteIn.available() >= msgBodyLen){
-            int c = byteIn.read(inBuffer, 0, msgBodyLen);
+        if (timeOutProcess < TIMEOUT && byteIn.available() >= MSG_BODY_LEN){
+            int c = byteIn.read(inBuffer, 0, MSG_BODY_LEN);
             encoderValues.setSensorTransitionDataChanged(true);
             parseEncoderEyeCalMsg(c, inBuffer);
             return(c);
@@ -534,7 +684,7 @@ public void parseEncoderEyeCalMsg(int numBytes, byte[] pBuf) //debug mks -- set 
 
     if(numBytes <= 0){ return; }
     
-    String msg = new String(pBuf, 0, msgBodyLen);
+    String msg = new String(pBuf, 0, MSG_BODY_LEN);
 
     encoderValues.setTextMsg(msg);
 
@@ -636,7 +786,7 @@ private SensorData parseSensorID(String pID)
             
     try{
         sensorNum = Integer.valueOf(pID.substring(2,4).trim());
-        if ((sensorNum < 0) || (sensorNum >= MAX_NUM_JACKS_ON_EITHER_END * 2)){
+        if ((sensorNum < 0) || (sensorNum >= MAX_NUM_JACKS_ANY_GROUP * 2)){
             return(null);
         }
     }

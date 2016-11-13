@@ -145,7 +145,7 @@ public class EncoderValues extends Object{
     private static int MAX_NUM_UNIT_SENSORS;
     private static int NUM_UNIT_SENSORS;
     private static int MAX_NUM_JACKS_ANY_GROUP;
-    private static int TOTAL_NUM_SENSORS;
+    private static int MAX_TOTAL_NUM_SENSORS;
     
     private static final String UNIT_CAL_FILE_FOLDER_NAME = 
                                       "00 - Calibration Files - Do Not Delete";
@@ -165,11 +165,11 @@ public EncoderValues()
     MAX_NUM_UNIT_SENSORS = EncoderCalValues.MAX_NUM_UNIT_SENSORS;    
     NUM_UNIT_SENSORS = EncoderCalValues.NUM_UNIT_SENSORS;
     MAX_NUM_JACKS_ANY_GROUP = EncoderCalValues.MAX_NUM_JACKS_ANY_GROUP;
-    TOTAL_NUM_SENSORS = EncoderCalValues.TOTAL_NUM_SENSORS;
+    MAX_TOTAL_NUM_SENSORS = EncoderCalValues.MAX_TOTAL_NUM_SENSORS;
  
-    sensorData = new ArrayList<>(TOTAL_NUM_SENSORS);
+    sensorData = new ArrayList<>(MAX_TOTAL_NUM_SENSORS);
     
-    for (int i=0; i<TOTAL_NUM_SENSORS; i++){
+    for (int i=0; i<MAX_TOTAL_NUM_SENSORS; i++){
         SensorData datum = new SensorData(i); datum.init();
         sensorData.add(datum);
     }
@@ -194,6 +194,22 @@ public void init()
     }
     
 }//end of EncoderValues::init
+//-----------------------------------------------------------------------------
+
+
+//-----------------------------------------------------------------------------
+// EncoderValues::getTotalNumSensors
+//
+// Returns the total number of sensors including the user specified number of
+// entry and exit jacks (2 each) along with the number of unit sensors (1 each).
+//
+
+public int getTotalNumSensors()
+{
+
+    return(numEntryJackStands*2 + numExitJackStands*2 + NUM_UNIT_SENSORS);
+    
+}//end of EncoderValues::getTotalNumSensors
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
