@@ -25,31 +25,39 @@ package chart.mksystems.hardware;
 
 public class InspectControlVars extends Object{
 
-    public int encoder1, prevEncoder1;
-    public int encoder2, prevEncoder2;
-
-    //encoder2 (linear tracking) value at start of piece inspection
-    public int encoder2Start;
-
-    public static int INCREASING = 0, DECREASING = 1;
-
-    // specifies if last change of the encoder count was increasing or
-    //decreasing
-    public int encoder1Dir = INCREASING;
-    public int encoder2Dir = INCREASING;
-
-    // specifies if increasing or decreasing encoder count is the forward
-    // direction this alternates depending on which end the carriage starts
-    // from and is determined by the encoder direction when the inspection of a
-    //new piece starts
-    public int encoder2FwdDir;
-
+    public EncoderHandler encoderHandler;    
+    
     public boolean onPipeFlag = false;
     public boolean head1Down = false;
     public boolean head2Down = false;
     public boolean head3Down = false;    
     public boolean tdcFlag = false;
 
+//-----------------------------------------------------------------------------
+// InspectControlVars::InspectControlVars (constructor)
+//
+
+public InspectControlVars(EncoderHandler pEncoderHandler)
+{
+
+    encoderHandler = pEncoderHandler;
+    
+}//end of InspectControlVars::InspectControlVars (constructor)
+//-----------------------------------------------------------------------------
+    
+//-----------------------------------------------------------------------------
+// InspectControlVars::init
+//
+// Initializes the object.  MUST be called by sub classes after instantiation.
+//
+
+public void init()
+{
+
+
+}//end of InspectControlVars::init
+//-----------------------------------------------------------------------------
+    
 }//end of class InspectControlVars
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

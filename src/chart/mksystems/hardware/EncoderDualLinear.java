@@ -35,9 +35,10 @@ public class EncoderDualLinear extends EncoderHandler{
 // EncoderDualLinear::EncoderDualLinear (constructor)
 //
 
-public EncoderDualLinear()
+public EncoderDualLinear(EncoderValues pEncVals)
 {
 
+    super(pEncVals);
 
 }//end of EncoderDualLinear::EncoderDualLinear (constructor)
 //-----------------------------------------------------------------------------

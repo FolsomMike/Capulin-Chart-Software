@@ -135,66 +135,6 @@ public void init()
 
 }//end of EncoderValues::init
 //-----------------------------------------------------------------------------
-    
-//-----------------------------------------------------------------------------
-// HardwareVars::convertEncoder1CountsToFeet
-//
-// Converts pCounts number of encoder 1 counts to decimal feet and returns that
-// value by scaling by the counts-per-inch value for that encoder.
-//
-
-public double convertEncoder1CountsToFeet(int pCounts)
-{
-    
-    return(pCounts * encoderValues.getEncoder1InchesPerCount() / 12);
-    
-}//end of HardwareVars::convertEncoder1CountsToFeet
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// HardwareVars::convertEncoder1CountsToInches
-//
-// Converts pCounts number of encoder 1 counts to decimal inches and returns
-// that value by scaling by the counts-per-inch value for that encoder.
-//
-
-public double convertEncoder1CountsToInches(int pCounts)
-{
-    
-    return(pCounts * encoderValues.getEncoder1InchesPerCount());
-    
-}//end of HardwareVars::convertEncoder1CountsToInches
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// HardwareVars::convertEncoder2CountsToFeet
-//
-// Converts pCounts number of encoder 2 counts to decimal feet and returns that
-// value by scaling by the counts-per-inch value for that encoder.
-//
-
-public double convertEncoder2CountsToFeet(int pCounts)
-{
-    
-    return(pCounts * encoderValues.getEncoder2InchesPerCount() / 12);
-    
-}//end of HardwareVars::convertEncoder2CountsToFeet
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// HardwareVars::convertEncoder2CountsToInches
-//
-// Converts pCounts number of encoder 2 counts to decimal inches and returns
-// that value by scaling by the counts-per-inch value for that encoder.
-//
-
-public double convertEncoder2CountsToInches(int pCounts)
-{
-    
-    return(pCounts * encoderValues.getEncoder2InchesPerCount());
-    
-}//end of HardwareVars::convertEncoder2CountsToInches
-//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // HardwareVars::loadCalFile

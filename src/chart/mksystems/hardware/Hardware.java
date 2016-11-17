@@ -53,10 +53,6 @@ public class Hardware extends Object implements TraceValueCalculator, Runnable,
     
     public boolean startUTRabbitUpdater, startControlRabbitUpdater;
 
-    //debug mks -- needs to be loaded from config file -- specifies if carriage
-    //moving away is increasing or decreasing encoder counts
-    int awayDirection = 0;
-
     int prevPixPosition;
 
     boolean output1On = false;
@@ -67,6 +63,7 @@ public class Hardware extends Object implements TraceValueCalculator, Runnable,
     ChartGroup chartGroups[];
 
     public HardwareVars hdwVs;
+    private final EncoderHandler encoders;
     IniFile configFile;
     HardwareLink analogDriver;
     HardwareLink digitalDriver;
@@ -125,12 +122,14 @@ public Hardware(IniFile pConfigFile, Settings pSettings, JTextArea pLog)
 {
 
     hdwVs = new HardwareVars(); hdwVs.init();
+    encoders = new EncoderLinearAndRotational(hdwVs.encoderValues);
+    encoders.init();
     configFile = pConfigFile; log = pLog;
     settings = pSettings;
 
     logger = new ThreadSafeLogger(pLog);
 
-    inspectCtrlVars = new InspectControlVars();
+    inspectCtrlVars = new InspectControlVars(encoders); inspectCtrlVars.init();
 
 }//end of Hardware::Hardware (constructor)
 //-----------------------------------------------------------------------------
@@ -827,23 +826,9 @@ public void setMode(int pOpMode)
         //tube which as been scanned (if any) so that the tube will have a valid
         //number for length -- necessary for units without photoeyes for which
         //the end of the tube is denoted by going to Stop mode
-
-        //the distance between the vertical eyes is not accounted for
-        //when calculating the distance travelled when the STOP mode is
-        //entered -- the trailing photo-eye may not even have reached the
-        //end of the test piece -- the calculation in this case is merely
-        //a rough estimate
         
         if (hdwVs.measuredLength == 0){
-
-            //calculate number counts recorded between start/stop eye triggers
-            int pieceLengthEncoderCounts =
-             Math.abs(inspectCtrlVars.encoder2 - inspectCtrlVars.encoder2Start);
-            
-            //convert to inches
-            hdwVs.measuredLength =
-                 hdwVs.convertEncoder2CountsToFeet(pieceLengthEncoderCounts);
-                        
+            hdwVs.measuredLength = encoders.calculateTruncatedTally();                                    
         }
     }//end of if (opMode == Hardware.STOP)
 
@@ -1410,11 +1395,11 @@ boolean collectEncoderDataInspectMode()
         if (!inspectCtrlVars.onPipeFlag) {return false;}
         else {
             hdwVs.waitForOnPipe = false; hdwVs.watchForOffPipe = true;
-            initializePlotterOffsetDelays(inspectCtrlVars.encoder2Dir);
+            initializePlotterOffsetDelays(encoders.encoder2Dir);
             //the direction of the linear encoder at the start of the inspection
             //sets the forward direction (increasing or decreasing encoder
             //count)
-            inspectCtrlVars.encoder2FwdDir = inspectCtrlVars.encoder2Dir;
+            encoders.encoder2FwdDir = encoders.encoder2Dir;
 
             //heads are up, flagging disabled upon start
             flaggingEnableDelayHead1 = 0; flaggingEnableDelayHead2 = 0;
@@ -1424,7 +1409,8 @@ boolean collectEncoderDataInspectMode()
             hdwVs.head3Down = false; enableHeadTraceFlagging(HEAD_3, false);
             
             //set the text description for the direction of inspection
-            if (inspectCtrlVars.encoder2FwdDir == awayDirection) {
+            if (encoders.getDirectionSetForLinearFoward() == 
+                                                      encoders.awayDirection) {
                 settings.inspectionDirectionDescription = settings.awayFromHome;
             }
             else {
@@ -1432,10 +1418,7 @@ boolean collectEncoderDataInspectMode()
             }
 
             //record the value of linear encoder at start of inspection
-            //(this needs so be changed to store the value with each piece for
-            // future units which might have multiple pieces in the system at
-            //once)
-            inspectCtrlVars.encoder2Start = inspectCtrlVars.encoder2;
+            encoders.recordLinearStartCount();
             prevPixPosition = 0;
         }
     }
@@ -1508,29 +1491,10 @@ boolean collectEncoderDataInspectMode()
             //start counting down to near end of piece modifier apply start
             //position
             hdwVs.trackToNearEndofPiece = true;
-
+            //calculate length of tube
             analogDriver.requestAllEncoderValues();
-            
-            //calculate number counts recorded between start/stop eye triggers
-            int pieceLengthEncoderCounts =
-             Math.abs(inspectCtrlVars.encoder2 - inspectCtrlVars.encoder2Start);
 
-            //convert to inches
-            hdwVs.measuredLength =
-                  hdwVs.convertEncoder2CountsToInches(pieceLengthEncoderCounts);
-
-            //subtract the distance between the perpendicular eyes -- tracking
-            //starts when lead eye hits pipe but ends when trailing eye clears,
-            //so the extra distance between the eyes must be accounted for...
-            //also subtract the length of the end stop which will be non-zero
-            //for systems where the away laser triggers on that instead of the
-            //end of the tube
-
-            hdwVs.measuredLength = hdwVs.measuredLength
-                - hdwVs.encoderValues.photoEyeToPhotoEyeDistance
-                    - hdwVs.encoderValues.endStopLength;
-
-            hdwVs.measuredLength /= 12; //convert to decimal feet
+            hdwVs.measuredLength = encoders.calculateTally();
 
             hdwVs.watchForOffPipe = false;
 
@@ -1589,14 +1553,8 @@ void moveEncoders(int pRecordStopPositionForHead)
     //Sometimes, a packet will arrive which skips a pixel.  In that case, the
     //skipped pixels are filled with data from the previous pixel.
 
-    //calculate the position in inches
-    double position = hdwVs.convertEncoder2CountsToInches(
-                    inspectCtrlVars.encoder2 - inspectCtrlVars.encoder2Start);
-
-    //take absolute value so head moving in reverse works the same as forward
-    position = Math.abs(position);
-
-
+    double position = encoders.getAbsValueLinearDistanceMovedInches();
+    
     //this code must be before if (pixelsMoved == 0) {return;}...see Note 1
     if (pRecordStopPositionForHead == HEAD_1){
         analogDriver.recordStopLocation(1, position);
@@ -1886,7 +1844,7 @@ public void initializePlotterOffsetDelays(int pDirection)
 
     initializeTraceOffsetDelays(pDirection);
 
-    analogDriver.initializeMapOffsetDelays(pDirection, awayDirection);
+    analogDriver.initializeMapOffsetDelays(pDirection, encoders.awayDirection);
 
 }//end of Hardware::initializePlotterOffsetDelays
 //-----------------------------------------------------------------------------
@@ -1945,7 +1903,7 @@ public void initializeTraceOffsetDelays(int pDirection)
                         //start with all false, one will be set true
                         plotterPtr.leadPlotter = false;
                         
-                        if (pDirection == awayDirection) {
+                        if (pDirection == encoders.awayDirection) {
                             plotterPtr.delayDistance =
                                     plotterPtr.startFwdDelayDistance;
                         }

@@ -779,18 +779,18 @@ public int processInspectPacket()
         //has been a change of encoder count
 
         if (encoder1 > prevEncoder1) {
-            encoder1Dir = InspectControlVars.INCREASING;
+            encoder1Dir = EncoderHandler.INCREASING;
         }
         else {
-            encoder1Dir = InspectControlVars.DECREASING;
+            encoder1Dir = EncoderHandler.DECREASING;
         }
 
         //flag if encoder count was increased or decreased
         if (encoder2 > prevEncoder2) {
-            encoder2Dir = InspectControlVars.INCREASING;
+            encoder2Dir = EncoderHandler.INCREASING;
         }
         else {
-            encoder2Dir = InspectControlVars.DECREASING;
+            encoder2Dir = EncoderHandler.DECREASING;
         }
 
         //update the previous encoder values for use next time
@@ -1325,12 +1325,14 @@ public void getInspectControlVars(InspectControlVars pICVars)
 
     pICVars.head3Down = head3Down;
     
-    pICVars.encoder1 = encoder1; pICVars.prevEncoder1 = prevEncoder1;
+    pICVars.encoderHandler.encoder1 = encoder1;
+    pICVars.encoderHandler.prevEncoder1 = prevEncoder1;
 
-    pICVars.encoder2 = encoder2; pICVars.prevEncoder2 = prevEncoder2;
+    pICVars.encoderHandler.encoder2 = encoder2; 
+    pICVars.encoderHandler.prevEncoder2 = prevEncoder2;
 
-    pICVars.encoder1Dir = encoder1Dir;
-    pICVars.encoder2Dir = encoder2Dir;
+    pICVars.encoderHandler.encoder1Dir = encoder1Dir;
+    pICVars.encoderHandler.encoder2Dir = encoder2Dir;
 
 }//end of ControlBoard::getInspectControlVars
 //-----------------------------------------------------------------------------
