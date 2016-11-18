@@ -78,14 +78,14 @@ public class Hardware extends Object implements TraceValueCalculator, Runnable,
 
     InspectControlVars inspectCtrlVars;
 
-    public static int NO_HEAD = 0;
-    public static int HEAD_1 = 1;
-    public static int HEAD_2 = 2;
-    public static int HEAD_3 = 3;
+    public final static int NO_HEAD = 0;
+    public final static int HEAD_1 = 1;
+    public final static int HEAD_2 = 2;
+    public final static int HEAD_3 = 3;
     
-    public static int ALL_RABBITS = 0;
-    public static int UT_RABBITS = 1;
-    public static int CONTROL_RABBITS = 2;
+    public final static int ALL_RABBITS = 0;
+    public final static int UT_RABBITS = 1;
+    public final static int CONTROL_RABBITS = 2;
 
     public boolean connected = false;
     public boolean active = false;
@@ -100,15 +100,15 @@ public class Hardware extends Object implements TraceValueCalculator, Runnable,
 
     boolean manualInspectControl = false;
 
-    public static int INCHES = 0, MM = 1;
+    public final static int INCHES = 0, MM = 1;
     public int units = INCHES;
 
-    public static int TIME = 0, DISTANCE = 1;
+    public final static int TIME = 0, DISTANCE = 1;
     public int unitsTimeDistance = TIME;
 
     public boolean distanceAdjustedForReturnTrip = false;
 
-    public static int PULSE = 0, CONTINUOUS = 1;
+    public final static int PULSE = 0, CONTINUOUS = 1;
     public int markerMode = PULSE;
     
 //-----------------------------------------------------------------------------
@@ -122,7 +122,14 @@ public Hardware(IniFile pConfigFile, Settings pSettings, JTextArea pLog)
 {
 
     hdwVs = new HardwareVars(); hdwVs.init();
-    encoders = new EncoderLinearAndRotational(hdwVs.encoderValues);
+    
+    //debug mks -- pick between the two based on value from config file
+    // have to move this to point after config, but then feed to
+    // InspectControlVars after creation
+    //encoders = new EncoderLinearAndRotational(hdwVs.encoderValues);
+    
+    encoders = new EncoderDualLinear(hdwVs.encoderValues);
+    
     encoders.init();
     configFile = pConfigFile; log = pLog;
     settings = pSettings;
@@ -185,7 +192,7 @@ private void configure(IniFile pConfigFile)
 
     manualInspectControl = pConfigFile.readBoolean(
                     "Hardware", "Manual Inspection Start/Stop Control", false);
-
+    
     hdwVs.configure(pConfigFile);
     
 }//end of Hardware::configure
@@ -1399,7 +1406,7 @@ boolean collectEncoderDataInspectMode()
             //the direction of the linear encoder at the start of the inspection
             //sets the forward direction (increasing or decreasing encoder
             //count)
-            encoders.encoder2FwdDir = encoders.encoder2Dir;
+            encoders.setCurrentLinearDirectionAsFoward();
 
             //heads are up, flagging disabled upon start
             flaggingEnableDelayHead1 = 0; flaggingEnableDelayHead2 = 0;
@@ -1418,7 +1425,7 @@ boolean collectEncoderDataInspectMode()
             }
 
             //record the value of linear encoder at start of inspection
-            encoders.recordLinearStartCount();
+            encoders.resetAll(); encoders.recordLinearStartCount();
             prevPixPosition = 0;
         }
     }
@@ -1506,6 +1513,9 @@ boolean collectEncoderDataInspectMode()
 
     boolean newPositionData = true;  //signal that position has been changed
 
+    //check to see if encoder hand over should occur
+    encoders.handleEncoderSwitchOver();
+    
     moveEncoders(recordStopPositionForHead);
 
     return(newPositionData);

@@ -33,8 +33,8 @@ public class EncoderHandler extends Object{
     
     EncoderValues encVals;
 
-    public int encoder1, prevEncoder1;
-    public int encoder2, prevEncoder2;
+    public int encoder1 = 0, prevEncoder1 = 0;
+    public int encoder2 = 0, prevEncoder2 = 0;
 
     // specifies if last change of the encoder count was increasing or
     //decreasing
@@ -42,14 +42,14 @@ public class EncoderHandler extends Object{
     public int encoder2Dir = INCREASING;
 
     //debug mks -- needs to be loaded from config file -- specifies if carriage
-    //moving away is increasing or decreasing encoder counts
-    public int awayDirection = 0;
+    //moving away from home is increasing or decreasing encoder counts
+    public int awayDirection = INCREASING;
         
     // specifies if increasing or decreasing encoder count is the forward
     // direction this alternates depending on which end the carriage starts
     // from and is determined by the encoder direction when the inspection of a
     //new piece starts
-    public int encoder2FwdDir;
+    int encoder1FwdDir, encoder2FwdDir;
 
     //encoder values at start of piece inspection
     public int encoder1Start, encoder2Start;
@@ -75,12 +75,71 @@ public EncoderHandler(EncoderValues pEncVals)
 //
 // Initializes the object.  MUST be called by sub classes after instantiation.
 //
+// Should be overridden by child classes to provide custom handling based on
+// the encoder configuration.
+//
 
 public void init()
 {
 
 
 }//end of EncoderHandler::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// EncoderHandler::resetAll
+//
+// Resets all values to default.
+//
+// Should be overridden by child classes to provide custom handling based on
+// the encoder configuration.
+//
+// NOTE: child classes should call this function.
+//
+
+public void resetAll()
+{
+
+    //do NOT reset encoder1, prevEncoder1, encoder2, prevEncoder2 as they
+    //contain values matching those in the Control Board
+    
+    encoder1Dir = INCREASING; encoder2Dir = INCREASING;
+    encoder1Start = 0; encoder2Start = 0;
+    measuredLengthFt = 0.0;
+
+}//end of EncoderHandler::resetAll
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// EncoderHandler::configure
+//
+// Configures values which depend on data in other objects which must first
+// load settings from the config file.
+//
+// Should be overridden by child classes to provide custom handling based on
+// the encoder configuration.
+//
+
+public void configure()
+{
+
+}//end of EncoderHandler::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// EncoderHandler::setCurrentLinearDirectionAsFoward
+//
+// Sets the direction last detected as Forward for whichever encoder(s) are
+// used for tracking linear position.
+//
+// Should be overridden by child classes to provide custom handling based on
+// the encoder configuration.
+//
+
+public void setCurrentLinearDirectionAsFoward()
+{
+
+}//end of EncoderHandler::setCurrentLinearDirectionAsFoward
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -187,6 +246,24 @@ public double getAbsValueLinearDistanceMovedInches()
     return(0.0);
 
 }//end of EncoderHandler::getAbsValueLinearDistanceMovedInches
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// EncoderHandler::handleEncoderSwitchOver
+//
+// For systems with multiple linear tracking encoders, this function handles
+// switching from the first encoder to the second encoder once the tube has
+// passed the second encoder. It also handles switching back to the first
+// encoder in case the tube is reversed.
+//
+// Should be overridden by child classes to provide custom handling based on
+// the encoder configuration.
+//
+
+public void handleEncoderSwitchOver()
+{
+
+}//end of EncoderHandler::handleEncoderSwitchOver
 //-----------------------------------------------------------------------------
 
 }//end of class EncoderHandler

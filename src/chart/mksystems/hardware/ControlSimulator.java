@@ -672,6 +672,14 @@ void simulateInspection()
     if (head3Down)
         {controlFlags = (byte)(controlFlags | ControlBoard.HEAD3_DOWN_CTRL);}
 
+    //the following allows the dual linear encoder simulation to work, but
+    // should actually only turn encoder 2 after the tube reaches it and
+    // stop turning encoder 1 after the tube passes it
+    
+    //for trolley units, encoder 2 should turn as tube moves but encoder 1
+    //should be incremented to reflect tube rotation -- most trolley units
+    //don't have encoder 1 but instead use a once-per-rev TDC signal
+
     //move the encoders the forward or backward the amount expected by the host
     if (simulationMode == MessageLink.FORWARD){
         encoder1 += encoder1DeltaTrigger;

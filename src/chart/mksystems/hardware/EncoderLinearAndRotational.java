@@ -58,6 +58,39 @@ public void init()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// EncoderLinearAndRotational::resetAll
+//
+// Resets all values to default.
+//
+// NOTE: child classes should call this function.
+//
+
+@Override
+public void resetAll()
+{
+
+    super.resetAll();
+    
+}//end of EncoderLinearAndRotational::resetAll
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// EncoderLinearAndRotational::setCurrentLinearDirectionAsFoward
+//
+// Sets the direction designated as Forward for whichever encoder(s) are
+// used for tracking linear position
+//
+
+@Override
+public void setCurrentLinearDirectionAsFoward()
+{
+    
+    encoder2FwdDir = encoder2Dir;
+    
+}//end of EncoderLinearAndRotational::setCurrentLinearDirectionAsFoward
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // EncoderLinearAndRotational::calculateTally
 //
 // Calculates the length of the tube.
@@ -152,10 +185,6 @@ public int getDirectionSetForLinearFoward()
 //
 // Records the current count of the encoder tracking the linear position.
 //
-//(this needs so be changed to store the value with each piece for
-// future units which might have multiple pieces in the system at
-// once)
-//
 
 @Override
 public void recordLinearStartCount()
@@ -172,9 +201,6 @@ public void recordLinearStartCount()
 // Returns the absolute value of the total distance moved in inches since the
 // linear start count was recorded. Returns absolute value so head moving in
 // reverse works the same as forward. 
-//
-// Should be overridden by child classes to provide custom handling based on
-// the encoder configuration.
 //
 
 @Override
