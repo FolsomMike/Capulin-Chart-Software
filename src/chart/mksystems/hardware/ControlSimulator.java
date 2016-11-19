@@ -365,6 +365,9 @@ private void simulateMonitorPacket()
     
     rpmVariance = (short)getRandomValue(2, 3);
     
+    //debug mks -- fix this to use same encoder value as other code in
+    //this simulation
+    
     enc1Count++; enc2Count = getRandomValue(enc1Count - 3, 6);
     
     enc1CountsPerSec = (short)getRandomValue(1700, 23);
