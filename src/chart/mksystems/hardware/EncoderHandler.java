@@ -43,8 +43,10 @@ public class EncoderHandler extends Object{
 
     //debug mks -- needs to be loaded from config file -- specifies if carriage
     //moving away from home is increasing or decreasing encoder counts
-    public int awayDirection = INCREASING;
+    private int awayDirection = INCREASING;
         
+    public int getAwayDirection(){ return(awayDirection); }
+    
     // specifies if increasing or decreasing encoder count is the forward
     // direction this alternates depending on which end the carriage starts
     // from and is determined by the encoder direction when the inspection of a

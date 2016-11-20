@@ -1402,11 +1402,14 @@ boolean collectEncoderDataInspectMode()
         if (!inspectCtrlVars.onPipeFlag) {return false;}
         else {
             hdwVs.waitForOnPipe = false; hdwVs.watchForOffPipe = true;
-            initializePlotterOffsetDelays(encoders.encoder2Dir);
+
             //the direction of the linear encoder at the start of the inspection
             //sets the forward direction (increasing or decreasing encoder
             //count)
-            encoders.setCurrentLinearDirectionAsFoward();
+            encoders.setCurrentLinearDirectionAsFoward();            
+            
+            initializePlotterOffsetDelays(
+                                    encoders.getDirectionSetForLinearFoward());
 
             //heads are up, flagging disabled upon start
             flaggingEnableDelayHead1 = 0; flaggingEnableDelayHead2 = 0;
@@ -1417,7 +1420,7 @@ boolean collectEncoderDataInspectMode()
             
             //set the text description for the direction of inspection
             if (encoders.getDirectionSetForLinearFoward() == 
-                                                      encoders.awayDirection) {
+                                                  encoders.getAwayDirection()) {
                 settings.inspectionDirectionDescription = settings.awayFromHome;
             }
             else {
@@ -1854,7 +1857,8 @@ public void initializePlotterOffsetDelays(int pDirection)
 
     initializeTraceOffsetDelays(pDirection);
 
-    analogDriver.initializeMapOffsetDelays(pDirection, encoders.awayDirection);
+    analogDriver.initializeMapOffsetDelays(
+                                      pDirection, encoders.getAwayDirection());
 
 }//end of Hardware::initializePlotterOffsetDelays
 //-----------------------------------------------------------------------------
@@ -1913,7 +1917,7 @@ public void initializeTraceOffsetDelays(int pDirection)
                         //start with all false, one will be set true
                         plotterPtr.leadPlotter = false;
                         
-                        if (pDirection == encoders.awayDirection) {
+                        if (pDirection == encoders.getAwayDirection()) {
                             plotterPtr.delayDistance =
                                     plotterPtr.startFwdDelayDistance;
                         }
