@@ -27,13 +27,25 @@ package chart.mksystems.hardware;
 public class SensorData extends Object{
     
     public int sensorDataNum = 0;
+    public int sensorGroup;
     public String pTitle = "";
+
+    public static double eye1DistToEntryJackMeasurePoint;
+    public static double eye1DistToExitJackMeasurePoint;    
     
     //Eye1 is the entry/start inspection eye
-    public double jackCenterDistToEye1 = 0; 
-    public double eyeADistToJackCenter = 0;
-    public double eyeBDistToJackCenter = 0;
-
+    private double jackCenterDistToMeasurePoint;
+    public double getJackCenterDistToMeasurePoint(){
+                                        return (jackCenterDistToMeasurePoint);}
+    
+    private double jackCenterDistToEye1 = 0;
+    private double eyeADistToJackCenter = 0;
+    public double getEyeADistToJackCenter(){ return eyeADistToJackCenter; }
+    private double eyeADistToEye1 = 0;
+    private double eyeBDistToJackCenter = 0;
+    public double getEyeBDistToJackCenter(){ return eyeBDistToJackCenter; }    
+    private double eyeBDistToEye1 = 0;
+    
     public int lastEyeChanged=UNDEFINED_EYE;
     
     public int lastState = UNDEFINED_STATE;
@@ -55,9 +67,9 @@ public class SensorData extends Object{
     public double percentChange = Double.MAX_VALUE;
 
     public static final int UNDEFINED_GROUP = -1;
-    public static final int INCOMING = 0;
-    public static final int OUTGOING = 1;
-    public static final int UNIT = 2;
+    public static final int ENTRY_GROUP = 0;
+    public static final int EXIT_GROUP = 1;
+    public static final int UNIT_GROUP = 2;
 
     public static final int UNDEFINED_EYE = -1;
     public static final int EYE_A = 0;
@@ -77,10 +89,10 @@ public class SensorData extends Object{
 // SensorData::SensorData (constructor)
 //
 
-public SensorData(int pSensorDataNum)
+public SensorData(int pSensorDataNum, int pSensorGroup)
 {
 
-    sensorDataNum = pSensorDataNum;
+    sensorDataNum = pSensorDataNum; sensorGroup = pSensorGroup;
     
 }//end of SensorData::SensorData (constructor)
 //-----------------------------------------------------------------------------
@@ -158,6 +170,100 @@ public void setEncoderCounts(int pState, int pEncoder1Cnt, int pEncoder2Cnt)
 
 }//end of SensorData::setEncoderCounts
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SensorData::setJackCenterDistToMeasurePoint
+//
+// Sets the jackCenterDistToMeasurePoint variable and uses it to calculate
+// the jackCenterDistToEye1 distance.
+//
+
+public void setJackCenterDistToMeasurePoint(double pValue)
+{
+
+    jackCenterDistToMeasurePoint = pValue;
+    
+    updatedAllDistancesToEye1();
+    
+}//end of SensorData::setJackCenterDistToMeasurePoint
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SensorData::setEyeADistToJackCenter
+//
+// Sets the eyeADistToJackCenter and recalculates all distances to Eye 1.
+//
+
+public void setEyeADistToJackCenter(double pValue)
+{
+
+    eyeADistToJackCenter = pValue;
+    
+    updatedAllDistancesToEye1();
+    
+}//end of SensorData::setEyeADistToJackCenter
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SensorData::setEyeBDistToJackCenter
+//
+// Sets the eyeBDistToJackCenter and recalculates all distances to Eye 1.
+//
+
+public void setEyeBDistToJackCenter(double pValue)
+{
+
+    eyeBDistToJackCenter = pValue;
+    
+    updatedAllDistancesToEye1();
+    
+}//end of SensorData::setEyeBDistToJackCenter
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// SensorData::updatedAllDistancesToEye1
+//
+// Calculates the distance from each jack center and eye to eye1.
+//
+
+public void updatedAllDistancesToEye1()
+{
+
+    double eye1DistToMeasurePoint;
+    double eyeADistToJackCenterSign;
+    double eyeBDistToJackCenterSign;    
+    
+    switch(sensorGroup){
+        case ENTRY_GROUP:
+            eye1DistToMeasurePoint = eye1DistToEntryJackMeasurePoint;
+            eyeADistToJackCenterSign = 1; eyeBDistToJackCenterSign = -1;
+        break;
+        case EXIT_GROUP:
+            eye1DistToMeasurePoint = eye1DistToExitJackMeasurePoint;
+            eyeADistToJackCenterSign = -1; eyeBDistToJackCenterSign = 1;
+        break;
+        case UNIT_GROUP:
+            eye1DistToMeasurePoint = 0;
+            eyeADistToJackCenterSign = 0; eyeBDistToJackCenterSign = 0;
+        break;
+        default:
+            eye1DistToMeasurePoint = 0;
+            eyeADistToJackCenterSign = 0; eyeBDistToJackCenterSign = 0;            
+        break;
+    }
+    
+    jackCenterDistToEye1 = 
+                        jackCenterDistToMeasurePoint + eye1DistToMeasurePoint;
+
+    eyeADistToEye1 = jackCenterDistToEye1 +
+                            (eyeADistToJackCenter * eyeADistToJackCenterSign);
+
+    eyeBDistToEye1 = jackCenterDistToEye1 +
+                            (eyeBDistToJackCenter * eyeBDistToJackCenterSign);
+
+}//end of SensorData::updatedAllDistancesToEye1
+//-----------------------------------------------------------------------------
+
 
 }//end of class SensorData
 //-----------------------------------------------------------------------------

@@ -45,7 +45,7 @@ import java.util.logging.Logger;
 public class EncoderValues extends Object{
 
     String inspectionDirection;
-
+        
     private int numEntryJackStands;
     public int getNumEntryJackStands(){ return (numEntryJackStands); }
 
@@ -174,7 +174,17 @@ public EncoderValues()
     sensorData = new ArrayList<>(MAX_TOTAL_NUM_SENSORS);
     
     for (int i=0; i<MAX_TOTAL_NUM_SENSORS; i++){
-        SensorData datum = new SensorData(i); datum.init();
+        int groupNum;
+        if (i < MAX_NUM_JACKS_ANY_GROUP) {
+            groupNum = SensorData.ENTRY_GROUP;
+        }else if(i >= MAX_NUM_UNIT_SENSORS + MAX_NUM_JACKS_ANY_GROUP){
+            groupNum = SensorData.EXIT_GROUP;
+        }else{
+            groupNum = SensorData.UNIT_GROUP;
+        }
+        
+        SensorData datum = new SensorData(i, groupNum);
+        datum.init();
         sensorData.add(datum);
     }
 
@@ -199,7 +209,6 @@ public void init()
     
 }//end of EncoderValues::init
 //-----------------------------------------------------------------------------
-
 
 //-----------------------------------------------------------------------------
 // EncoderValues::getTotalNumSensors
@@ -733,14 +742,15 @@ public void loadCalFileFromOpenFile(IniFile pCalFile)
         String key;
         int datumNum = datum.sensorDataNum;
         
-        key = "Sensor " + datumNum + " Jack Center Distance to Entry Eye";
-        datum.jackCenterDistToEye1 = pCalFile.readDouble("Distances", key, 0);
+        key = "Sensor " + datumNum + " Jack Center Distance to Measure Point";
+        datum.setJackCenterDistToMeasurePoint(
+                                     pCalFile.readDouble("Distances", key, 0));
         
         key = "Sensor " + datumNum + " Eye A Distance to Jack Center";
-        datum.eyeADistToJackCenter = pCalFile.readDouble("Distances", key, 0);
+        datum.setEyeADistToJackCenter(pCalFile.readDouble("Distances", key, 0));
         
         key = "Sensor " + datumNum + " Eye B Distance to Jack Center";        
-        datum.eyeBDistToJackCenter = pCalFile.readDouble("Distances", key, 0);
+        datum.setEyeBDistToJackCenter(pCalFile.readDouble("Distances", key, 0));
    
     }
     
@@ -846,18 +856,18 @@ private void saveSensorDataToOpenFile(IniFile pCalFile)
     
         String key;
         int datumNum = datum.sensorDataNum;
-        
-        key = "Sensor " + datumNum + " Jack Center Distance to Entry Eye";
+
+        key = "Sensor " + datumNum + " Jack Center Distance to Measure Point";
         pCalFile.writeDoubleFormatted(
-                            "Distances", key, datum.jackCenterDistToEye1, 4);
+                 "Distances", key, datum.getJackCenterDistToMeasurePoint(), 4);
         
         key = "Sensor " + datumNum + " Eye A Distance to Jack Center";
         pCalFile.writeDoubleFormatted(
-                            "Distances", key, datum.eyeADistToJackCenter, 4);
+                         "Distances", key, datum.getEyeADistToJackCenter(), 4);
         
         key = "Sensor " + datumNum + " Eye B Distance to Jack Center";        
         pCalFile.writeDoubleFormatted(
-                            "Distances", key, datum.eyeBDistToJackCenter, 4);
+                         "Distances", key, datum.getEyeBDistToJackCenter(), 4);
    
     }
  
@@ -961,6 +971,12 @@ public void configure(IniFile pConfigFile)
     photoEyeToPhotoEyeDistance = pConfigFile.readDouble(
             "Hardware", "Distance Between Perpendicular Photo Eyes", 53.4375);
 
+    SensorData.eye1DistToEntryJackMeasurePoint=pConfigFile.readDouble(
+          "Hardware", "Photo Eye 1 Distance to Entry Jack Measure Point", 0.0);
+    
+    SensorData.eye1DistToExitJackMeasurePoint = pConfigFile.readDouble(
+         "Hardware", "Photo Eye 1 Distance to Exit Jack Measure Point", 0.0);
+    
     //the control board sends packets every so many counts and is susceptible to
     //cumulative round off error, but the values below can be tweaked to give
     //accurate results over the length of the piece -- the packet send trigger

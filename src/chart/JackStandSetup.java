@@ -688,15 +688,15 @@ private void parseSensorDatum(SensorData pSensorDatum,
                                                      SensorSetGUI pSensorSetGUI)
 {
 
-    pSensorDatum.eyeADistToJackCenter = 
-                            parseDoubleFromTextField(pSensorSetGUI.eyeADistTF);
+    pSensorDatum.setJackCenterDistToMeasurePoint(
+                       parseDoubleFromTextField(pSensorSetGUI.jackStandDistTF));
+        
+    pSensorDatum.setEyeADistToJackCenter( 
+                            parseDoubleFromTextField(pSensorSetGUI.eyeADistTF));
 
-    pSensorDatum.eyeBDistToJackCenter = 
-                            parseDoubleFromTextField(pSensorSetGUI.eyeBDistTF);
-    
-    pSensorDatum.jackCenterDistToEye1 = 
-                       parseDoubleFromTextField(pSensorSetGUI.jackStandDistTF);
-       
+    pSensorDatum.setEyeBDistToJackCenter(
+                            parseDoubleFromTextField(pSensorSetGUI.eyeBDistTF));
+           
 }//end of JackStandSetup::parseSensorDatum
 //-----------------------------------------------------------------------------
 
@@ -875,7 +875,7 @@ private void refreshSensorSetGroupDisplay(
 // List Ordering:
 //
 // the entry jack GUIs are at the top of the list in reverse order
-// the unit sensors follw the entry jacks and are in forward order
+// the unit sensors follow the entry jacks and are in forward order
 // the exit jack SensorSets follow the unit sensors and are in forward order
 //
 
@@ -1025,19 +1025,19 @@ private void refreshSensorDatum(SensorData pSensorDatum,
 
         if (pSensorSetGUI.eyeADistTF != null){
             s = new DecimalFormat("#.####").format(
-                                        pSensorDatum.eyeADistToJackCenter);
+                                        pSensorDatum.getEyeADistToJackCenter());
             pSensorSetGUI.eyeADistTF.setText(s);
         }
 
         if (pSensorSetGUI.jackStandDistTF != null){
             s = new DecimalFormat("#.####").format(
-                                        pSensorDatum.jackCenterDistToEye1);
+                               pSensorDatum.getJackCenterDistToMeasurePoint());
             pSensorSetGUI.jackStandDistTF.setText(s);
         }
 
         if (pSensorSetGUI.eyeBDistTF != null){
             s = new DecimalFormat("#.####").format(
-                                        pSensorDatum.eyeBDistToJackCenter);
+                                        pSensorDatum.getEyeBDistToJackCenter());
             pSensorSetGUI.eyeBDistTF.setText(s);
         }
 
