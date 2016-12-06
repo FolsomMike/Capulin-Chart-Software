@@ -57,8 +57,8 @@ public class EncoderCalValues extends Object{
     public static final int MAX_TOTAL_NUM_SENSORS = 
                             MAX_NUM_JACKS_ANY_GROUP * 2 + MAX_NUM_UNIT_SENSORS;
 
-    //located after entry jacks (zero-indexed, so set to num value)
-    public static final int ENTRY_SENSOR_INDEX = MAX_NUM_JACKS_ANY_GROUP;
+    //located after entry jacks (zero-indexed, so use unadjusted NUM_JACKS)
+    public static final int UNIT_SENSOR_INDEX = MAX_NUM_JACKS_ANY_GROUP;
     
     public static final int UNDEFINED_GROUP = -1;
     public static final int INCOMING = 0;

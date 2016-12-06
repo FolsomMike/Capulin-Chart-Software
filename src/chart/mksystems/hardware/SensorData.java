@@ -264,7 +264,35 @@ public void updatedAllDistancesToEye1()
 }//end of SensorData::updatedAllDistancesToEye1
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// SensorData::getEyeDistToEye1
+//
+// Returns the distance to eye 1 for the sensor set eye specified by pEye.
+//
+// Eye 1 is the entry/start inspection eye.
+//
+// Returns Integer.MAX_VALUE if EYE_A or EYE_B not specified.
+//
 
+public double getEyeDistToEye1(int pEye)
+{        
+ 
+    switch(pEye){
+        
+        case EYE_A:
+            return(eyeADistToEye1);
+            
+        case EYE_B:
+            return(eyeBDistToEye1);
+            
+        default:
+            return(Integer.MAX_VALUE);
+    }
+    
+}//end of SensorData::getEyeDistToEye1
+//-----------------------------------------------------------------------------
+        
+        
 }//end of class SensorData
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

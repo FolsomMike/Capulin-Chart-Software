@@ -45,6 +45,9 @@ import javax.swing.*;
 public class Hardware extends Object implements TraceValueCalculator, Runnable,
                                                                    MessageLink {
 
+    
+    int debugCnt = 0;
+    
     static public int SCAN = 0, INSPECT = 1, STOPPED = 2;
     static public int INSPECT_WITH_TIMER_TRACKING = 3, PAUSED = 4;
     int opMode = STOPPED;
@@ -917,14 +920,21 @@ public void setAllChannelsDataChangedTrue()
 public void collectData()
 {
 
-    //debug mks
-/*
-   // plcComLink.handleEncoderEyeCalculations();
+/*    
     
+    //debug mks
+
     String msg;
-            
-    msg = "I|00|U|--|000010|000011|F|0";
-    plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+    
+    if(debugCnt++ > 1000){
+        msg = "O|00|B|--|000010|000011|F|0";
+        plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
+        debugCnt = 0;        
+    }
+        
+    //debug mks end
+    
+
     msg = "I|01|B|--|000020|000021|R|0";
     plcComLink.parseEncoderEyeCalMsg(msg.length(), msg.getBytes());
     msg = "I|02|U|--|000030|000031|F|0";
@@ -1427,8 +1437,11 @@ boolean collectEncoderDataInspectMode()
                 settings.inspectionDirectionDescription = settings.towardsHome;
             }
 
+            debugCnt = 0; //debug mks
+            encoders.resetAll();
+            plcComLink.resetAll();
             //record the value of linear encoder at start of inspection
-            encoders.resetAll(); encoders.recordLinearStartCount();
+            encoders.recordLinearStartCount();
             prevPixPosition = 0;
         }
     }
@@ -1518,7 +1531,12 @@ boolean collectEncoderDataInspectMode()
 
     //check to see if encoder hand over should occur
     encoders.handleEncoderSwitchOver();
-    
+
+    if (plcComLink != null) {
+        encoders.handleLinearPositionOverride(
+                                plcComLink.getAndClearLinearPositionOverride());        
+    }
+        
     moveEncoders(recordStopPositionForHead);
 
     return(newPositionData);

@@ -58,6 +58,8 @@ public class EncoderHandler extends Object{
 
     double measuredLengthFt;
 
+    double linearPositionCorrection;
+    
     public final static int INCREASING = 0, DECREASING = 1;    
     
 //-----------------------------------------------------------------------------
@@ -108,6 +110,7 @@ public void resetAll()
     encoder1Dir = INCREASING; encoder2Dir = INCREASING;
     encoder1Start = 0; encoder2Start = 0;
     measuredLengthFt = 0.0;
+    linearPositionCorrection = 0.0;
 
 }//end of EncoderHandler::resetAll
 //-----------------------------------------------------------------------------
@@ -267,6 +270,17 @@ public void handleEncoderSwitchOver()
 
 }//end of EncoderHandler::handleEncoderSwitchOver
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// EncoderHandler::handleLinearPositionOverride
+//
+
+public void handleLinearPositionOverride(double pOverride)
+{
+  
+}//end of EncoderHandler::handleLinearPositionOverride
+//-----------------------------------------------------------------------------
+
 
 }//end of class EncoderHandler
 //-----------------------------------------------------------------------------

@@ -37,6 +37,7 @@ public class EncoderDualLinear extends EncoderHandler{
     double encoder1InchesAtSwitchToEncoder2 = 0;
 
     private double linearDistanceMovedInches;
+    private double linearDistanceMovedInchesCorrected;
     
     public final static int ENCODER1 = 0, ENCODER2 = 1;
 //-----------------------------------------------------------------------------
@@ -85,7 +86,7 @@ public void resetAll()
     encoder1InchesAtSwitchToEncoder2 = 0.0;
 
     linearDistanceMovedInches = 0.0;
-    
+
 }//end of EncoderDualLinear::resetAll
 //-----------------------------------------------------------------------------
 
@@ -131,9 +132,11 @@ public double calculateTally()
     //for systems where the away laser triggers on that instead of the
     //end of the tube
 
-    measuredLengthFt = totalEncoderInches - encVals.photoEyeToPhotoEyeDistance;
-
-    measuredLengthFt /= 12.0; //convert to decimal feet
+    totalEncoderInches -= encVals.photoEyeToPhotoEyeDistance;
+    
+    totalEncoderInches += linearPositionCorrection;
+    
+    measuredLengthFt = totalEncoderInches/ 12.0; //convert to decimal feet
 
     return(measuredLengthFt);
     
@@ -154,6 +157,8 @@ public double calculateTally()
 // the distance traveled thus far -- the trailing photo-eye may not even have
 // reached the end of the test piece.
 //
+// The correction factor is added into the returned value.
+//
 
 @Override
 public double calculateTruncatedTally()
@@ -162,8 +167,10 @@ public double calculateTruncatedTally()
     double totalEncoderInches = encoder1InchesAtSwitchToEncoder2 +
                 encVals.convertEncoder2CountsToInches(encoder2 - encoder2Start);
  
+    totalEncoderInches += linearPositionCorrection;
+    
     measuredLengthFt = totalEncoderInches / 12.0; //convert to decimal feet
-
+  
     return(measuredLengthFt);
 
 }//end of EncoderDualLinear::calculateTruncatedTally
@@ -222,6 +229,11 @@ public void recordLinearStartCount()
 // The dual encoder systems may not need the absolute value, but it is returned
 // to maintain compatability.
 //
+// A correction factor is added to the position. That value is computed when
+// the end of the tube passes a fixed sensor position which reports the
+// actual position of the end of the tube. This allows inaccuracies in tracking
+// to be corrected as the tube passes each sensor.
+//
 
 @Override
 public double getAbsValueLinearDistanceMovedInches()
@@ -237,16 +249,19 @@ public double getAbsValueLinearDistanceMovedInches()
                 encVals.convertEncoder2CountsToInches(encoder2 - encoder2Start);
         
     }
-
+  
     linearDistanceMovedInches = Math.abs(position);
+
+    linearDistanceMovedInchesCorrected = linearDistanceMovedInches
+                                                    + linearPositionCorrection;
     
-    return(linearDistanceMovedInches);
+    return(linearDistanceMovedInchesCorrected);
 
 }//end of EncoderDualLinear::getAbsValueLinearDistanceMovedInches
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// EncoderHandler::handleEncoderSwitchOver
+// EncoderDualLinear::handleEncoderSwitchOver
 //
 // For systems with multiple linear tracking encoders, this function handles
 // switching from the first encoder to the second encoder once the tube has
@@ -289,7 +304,34 @@ public void handleEncoderSwitchOver()
         
     }
 
-}//end of EncoderHandler::handleEncoderSwitchOver
+}//end of EncoderDualLinear::handleEncoderSwitchOver
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// EncoderDualLinear::handleLinearPositionOverride
+//
+// Handles adjusting the linearPositionCorrection variable so that the
+// linear position equals pOverride. This allows the linear position to be
+// corrected to match a distance measure by a sensor.
+//
+// The override is only applied if it is greater than the current linear
+// position to prevent erasing data. Later, code can be added to undo
+// the override as the tube reverses back over each sensor.
+//
+// If pOverride equals Integer.MAX_VALUE, then nothing is done.
+//
+
+@Override
+public void handleLinearPositionOverride(double pOverride)
+{
+
+    if(pOverride == Integer.MAX_VALUE){ return; }
+  
+    if(pOverride <= linearDistanceMovedInches) { return; }
+    
+    linearPositionCorrection = pOverride - linearDistanceMovedInches;
+
+}//end of EncoderDualLinear::handleLinearPositionOverride
 //-----------------------------------------------------------------------------
 
 }//end of class EncoderDualLinear

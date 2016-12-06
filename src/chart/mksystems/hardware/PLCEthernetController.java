@@ -53,6 +53,11 @@ public class PLCEthernetController {
     DataInputStream byteIn = null;
     EncoderValues encoderValues;
 
+    private double linearPositionOverride = Integer.MAX_VALUE;
+    
+    int machineState;
+    boolean tubeTallied;
+    
     SensorData datumByNum = null;
     int eyeByNum = UNDEFINED_EYE;    
     
@@ -98,11 +103,17 @@ public class PLCEthernetController {
     private static int UNBLOCKED;
     private static int BLOCKED;
         
-    private static int ENTRY_SENSOR_INDEX;
+    private static int UNIT_SENSOR_INDEX;
     
     public static final int STATE_CHAR_POS = 5;
     public static final int DIR_CHAR_POS = 24;
+        
+    private static final int MS_UNIT_CLEAR = 0;
+    private static final int MS_ENTRY_EYE_PASSED = 1;
+    private static final int MS_EXIT_EYE_PASSED = 2;
+    private static final int MS_TRAILING_EYE_PASSED = 3;
     
+
 //-----------------------------------------------------------------------------
 // PLCEthernetController::PLCEthernetController (constructor)
 //
@@ -114,7 +125,11 @@ public PLCEthernetController(String pPLCIPAddrS, int pPLCPortNum,
     plcIPAddrS = pPLCIPAddrS; plcPortNum = pPLCPortNum;
     encoderValues = pEncoderValues;
     logger = pLogger; simulate = pSimulate;
-        
+    
+    machineState = MS_UNIT_CLEAR;
+    
+    tubeTallied = false;
+    
     inBuffer = new byte[PLC_MSG_PACKET_SIZE];
     outBuffer = new byte[PLC_MSG_PACKET_SIZE];
 
@@ -144,7 +159,7 @@ public PLCEthernetController(String pPLCIPAddrS, int pPLCPortNum,
     UNBLOCKED = EncoderCalValues.UNBLOCKED;
     BLOCKED = EncoderCalValues.BLOCKED;
         
-    ENTRY_SENSOR_INDEX = EncoderCalValues.ENTRY_SENSOR_INDEX;
+    UNIT_SENSOR_INDEX = EncoderCalValues.UNIT_SENSOR_INDEX;
     
 }//end of PLCEthernetController::PLCEthernetController (constructor)
 //-----------------------------------------------------------------------------
@@ -158,11 +173,31 @@ public PLCEthernetController(String pPLCIPAddrS, int pPLCPortNum,
 public void init()
 {
 
+    resetAll();
+    
     parseIPAddrString();
     
     establishLink();
     
 }//end of PLCEthernetController::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// PLCEthernetController::resetAll
+//
+// Resets all values to default ready for next run.
+//
+
+public void resetAll()
+{
+        
+    linearPositionOverride = Integer.MAX_VALUE;        
+
+    for(SensorData datum : encoderValues.getSensorData()){
+        datum.resetAll();
+    }
+    
+}//end of PLCEthernetController::resetAll
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -532,7 +567,7 @@ private int handleEncoderEyeCalCmd()
     
     handleEncoderEyeValueReset();
     
-    handleEncoderEyeCalculations();
+    processStateMachine();
     
     return(status);
     
@@ -549,30 +584,47 @@ private int handleEncoderEyeCalCmd()
 private void handleEncoderEyeValueReset()
 {
     
-    if(encoderValues.getSensorData().get(ENTRY_SENSOR_INDEX).lastState
-                                                                != BLOCKED){
-        for(SensorData datum : encoderValues.getSensorData()){
-            datum.resetAll();
-        }
-    }
+    //debug mks
+    //can't do this!
+    //When inspection eye blocked, PLC sends message and flag set blocked
+    //then code resets all flags and this gets executed repeatedly because
+    //the eye flag is undefined.
+    //Also, when trailing end of pipe clears start eye, this causes constant
+    //reset while pipe is still being tracked
+  
+//if(encoderValues.getSensorData().get(UNIT_SENSOR_INDEX).lastState != BLOCKED){    
+//    resetAll();
+//}
+    
+    //debug mks end
+    
       
 }//end of PLCEthernetController::handleEncoderEyeValueReset
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// PLCEthernetController::handleEncoderEyeCalculations
+// PLCEthernetController::processStateMachine
+//
+// Processes the state machine which controls sensor state changes and
+// encoder calibrations.
 //
 
-public void handleEncoderEyeCalculations() //debug mks -- make this private
+public void processStateMachine() //debug mks -- make this private
 {
 
+    
+/* debug mks -- test code 
     for(int i=0; i<encoderValues.getTotalNumSensors(); i++){
         
         getSensorByNumber(i);
         
     }
     
-}//end of PLCEthernetController::handleEncoderEyeCalculations
+debug mks end    
+    
+*/
+    
+}//end of PLCEthernetController::processStateMachine
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -596,7 +648,6 @@ private void getSensorByNumber(int pSensorNum)
 {
 
     int numEntryJackStands = encoderValues.getNumEntryJackStands();
-    int numExitJackStands = encoderValues.getNumExitJackStands();    
     int totalNumSensors = encoderValues.getTotalNumSensors();                    
     
     if(pSensorNum < 0 || pSensorNum >= totalNumSensors){ 
@@ -605,11 +656,10 @@ private void getSensorByNumber(int pSensorNum)
     
     int index;
     
-    
     //handle references to entry jack group at first of list
     
     if(pSensorNum < numEntryJackStands * 2){
-        index = ENTRY_SENSOR_INDEX - (numEntryJackStands - pSensorNum / 2);
+        index = UNIT_SENSOR_INDEX - (numEntryJackStands - pSensorNum / 2);
         datumByNum = encoderValues.getSensorData().get(index);
         eyeByNum = pSensorNum % 2 == 0 ? EYE_A : EYE_B;
         return;
@@ -618,7 +668,7 @@ private void getSensorByNumber(int pSensorNum)
     //handle references to exit jack group at end of list    
 
     if(pSensorNum >= numEntryJackStands * 2 + NUM_UNIT_SENSORS){
-        index = ENTRY_SENSOR_INDEX + NUM_UNIT_SENSORS +
+        index = UNIT_SENSOR_INDEX + NUM_UNIT_SENSORS +
                 ((pSensorNum - numEntryJackStands * 2 - NUM_UNIT_SENSORS) / 2); 
         datumByNum = encoderValues.getSensorData().get(index);
         eyeByNum = (pSensorNum+NUM_UNIT_SENSORS) % 2 == 0 ? EYE_A : EYE_B;
@@ -628,7 +678,7 @@ private void getSensorByNumber(int pSensorNum)
     //handle references to unit sensor group at end of list        
     //anything not caught above must be a unit sensor in the middle of the list
     
-    index = ENTRY_SENSOR_INDEX + (pSensorNum - numEntryJackStands * 2);
+    index = UNIT_SENSOR_INDEX + (pSensorNum - numEntryJackStands * 2);
     datumByNum = encoderValues.getSensorData().get(index);
     eyeByNum = SELF;
     
@@ -714,7 +764,53 @@ public void parseEncoderEyeCalMsg(int numBytes, byte[] pBuf) //debug mks -- set 
                             parseEncoderCount(msg, 10),
                             parseEncoderCount(msg, 17));
 
+    handleLinearPositionUpdateFlagging(sensor);
+    
 }//end of PLCEthernetController::parseEncoderEyeCalMsg
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// PLCEthernetController::handleLinearPositionUpdateFlagging
+//
+// This function handles sensor changes which trigger corrections to the
+// current linear position.
+//
+// Currently, when any exit sensor changes to blocked state while conveyor
+// is moving forward, the position of that sensor is stored so other code can
+// use it to correct the current linear position.
+//
+// If a valid transition has occurred, linearPositionOverride will be set to
+// the linear position of the transitioning sensor. Otherwise, the variable
+// will be set to Integer.MAX_VALUE.
+//
+
+private void handleLinearPositionUpdateFlagging(SensorData pSensor)
+{
+    
+    if(pSensor.sensorGroup != SensorData.EXIT_GROUP) { return; }
+    if(pSensor.direction != FWD) { return; }
+    if (pSensor.lastState != BLOCKED) { return; }
+
+    linearPositionOverride = pSensor.getEyeDistToEye1(pSensor.lastEyeChanged);
+    
+}//end of PLCEthernetController::handleLinearPositionUpdateFlagging
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// PLCEthernetController::getAndClearLinearPositionOverride
+//
+// Returns linearPositionOverride and sets it to Integer.MAX_VALUE.
+//
+
+public double getAndClearLinearPositionOverride(){ 
+
+    double lpo = linearPositionOverride;
+    
+    linearPositionOverride = Integer.MAX_VALUE;
+    
+    return(lpo);
+
+}//end of PLCEthernetController::getAndClearLinearPositionOverride
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -811,7 +907,7 @@ private SensorData parseSensorID(String pID)
     
     //handle entry jack sensors which are numbered 0-10 starting from unit
     if (pID.charAt(0) == 'I'){
-        int i = 9 - sensorNum / 2;
+        int i = (MAX_NUM_JACKS_ANY_GROUP-1) - sensorNum / 2;
         sensorData = encoderValues.getSensorData().get(i);
         sensorData.sensorNum = sensorNum; 
         sensorData.lastEyeChanged = sensorNum % 2 == 0 ? EYE_B : EYE_A;
@@ -820,7 +916,7 @@ private SensorData parseSensorID(String pID)
 
     //handle exit jack sensors which are numbered 0-10 starting from unit
     if (pID.charAt(0) == 'O'){
-        int i = 12 + sensorNum / 2;
+        int i = (MAX_NUM_JACKS_ANY_GROUP+MAX_NUM_UNIT_SENSORS) + sensorNum / 2;
         sensorData = encoderValues.getSensorData().get(i);
         sensorData.sensorNum = sensorNum;        
         sensorData.lastEyeChanged = sensorNum % 2 == 0 ? EYE_A : EYE_B;

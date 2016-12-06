@@ -145,7 +145,7 @@ public class EncoderValues extends Object{
     private final ArrayList<SensorData> sensorData;
     
     public ArrayList<SensorData> getSensorData(){ return(sensorData); }
-    
+
     private static int MAX_NUM_UNIT_SENSORS;
     private static int NUM_UNIT_SENSORS;
     private static int MAX_NUM_JACKS_ANY_GROUP;
