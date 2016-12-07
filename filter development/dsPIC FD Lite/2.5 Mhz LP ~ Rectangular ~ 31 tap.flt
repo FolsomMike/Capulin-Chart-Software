@@ -1,0 +1,71 @@
+FILTER COEFFICIENT FILE
+FIR DESIGN          
+SAMPLING FREQUENCY          0.660000E+08 HERTZ
+  31                  /* number of taps in decimal     */
+  1F                  /* number of taps in hexadecimal */
+16                    /* number of bits in quantized coefficients (dec) */
+  10                  /* number of bits in quantized coefficients (hex) */
+ 0                    /* shift count in decimal  */
+   0  0.100000000E+01 /* shift count (hex), gain multiplier */
+       -349 FFFFFEA3  /* coefficient of tap     0 */
+       -229 FFFFFF1B  /* coefficient of tap     1 */
+        -75 FFFFFFB5  /* coefficient of tap     2 */
+        109       6D  /* coefficient of tap     3 */
+        320      140  /* coefficient of tap     4 */
+        551      227  /* coefficient of tap     5 */
+        796      31C  /* coefficient of tap     6 */
+       1046      416  /* coefficient of tap     7 */
+       1293      50D  /* coefficient of tap     8 */
+       1529      5F9  /* coefficient of tap     9 */
+       1745      6D1  /* coefficient of tap    10 */
+       1934      78E  /* coefficient of tap    11 */
+       2089      829  /* coefficient of tap    12 */
+       2204      89C  /* coefficient of tap    13 */
+       2274      8E2  /* coefficient of tap    14 */
+       2298      8FA  /* coefficient of tap    15 */
+       2274      8E2  /* coefficient of tap    16 */
+       2204      89C  /* coefficient of tap    17 */
+       2089      829  /* coefficient of tap    18 */
+       1934      78E  /* coefficient of tap    19 */
+       1745      6D1  /* coefficient of tap    20 */
+       1529      5F9  /* coefficient of tap    21 */
+       1293      50D  /* coefficient of tap    22 */
+       1046      416  /* coefficient of tap    23 */
+        796      31C  /* coefficient of tap    24 */
+        551      227  /* coefficient of tap    25 */
+        320      140  /* coefficient of tap    26 */
+        109       6D  /* coefficient of tap    27 */
+        -75 FFFFFFB5  /* coefficient of tap    28 */
+       -229 FFFFFF1B  /* coefficient of tap    29 */
+       -349 FFFFFEA3  /* coefficient of tap    30 */
+  -.1065063476562500E-01 BF85D00000000000/* coefficient of tap     0 */
+  -.6988525390625000E-02 BF7CA00000000000/* coefficient of tap     1 */
+  -.2288818359375000E-02 BF62C00000000000/* coefficient of tap     2 */
+  0.3326416015625000E-02 3F6B400000000000/* coefficient of tap     3 */
+  0.9765625000000000E-02 3F84000000000000/* coefficient of tap     4 */
+  0.1681518554687500E-01 3F91380000000000/* coefficient of tap     5 */
+  0.2429199218750000E-01 3F98E00000000000/* coefficient of tap     6 */
+  0.3192138671875000E-01 3FA0580000000000/* coefficient of tap     7 */
+  0.3945922851562500E-01 3FA4340000000000/* coefficient of tap     8 */
+  0.4666137695312500E-01 3FA7E40000000000/* coefficient of tap     9 */
+  0.5325317382812500E-01 3FAB440000000000/* coefficient of tap    10 */
+  0.5902099609375000E-01 3FAE380000000000/* coefficient of tap    11 */
+  0.6375122070312500E-01 3FB0520000000000/* coefficient of tap    12 */
+  0.6726074218750000E-01 3FB1380000000000/* coefficient of tap    13 */
+  0.6939697265625000E-01 3FB1C40000000000/* coefficient of tap    14 */
+  0.7012939453125000E-01 3FB1F40000000000/* coefficient of tap    15 */
+  0.6939697265625000E-01 3FB1C40000000000/* coefficient of tap    16 */
+  0.6726074218750000E-01 3FB1380000000000/* coefficient of tap    17 */
+  0.6375122070312500E-01 3FB0520000000000/* coefficient of tap    18 */
+  0.5902099609375000E-01 3FAE380000000000/* coefficient of tap    19 */
+  0.5325317382812500E-01 3FAB440000000000/* coefficient of tap    20 */
+  0.4666137695312500E-01 3FA7E40000000000/* coefficient of tap    21 */
+  0.3945922851562500E-01 3FA4340000000000/* coefficient of tap    22 */
+  0.3192138671875000E-01 3FA0580000000000/* coefficient of tap    23 */
+  0.2429199218750000E-01 3F98E00000000000/* coefficient of tap    24 */
+  0.1681518554687500E-01 3F91380000000000/* coefficient of tap    25 */
+  0.9765625000000000E-02 3F84000000000000/* coefficient of tap    26 */
+  0.3326416015625000E-02 3F6B400000000000/* coefficient of tap    27 */
+  -.2288818359375000E-02 BF62C00000000000/* coefficient of tap    28 */
+  -.6988525390625000E-02 BF7CA00000000000/* coefficient of tap    29 */
+  -.1065063476562500E-01 BF85D00000000000/* coefficient of tap    30 */
