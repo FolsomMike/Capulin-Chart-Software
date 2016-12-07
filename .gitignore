@@ -17,6 +17,10 @@ fpga/
 
 Files Not Tracked by Git/
 
+# use newfile for temporary stuff like using the block select in NetBeans on a text file
+
+newfile.*
+
 Thumbs.db
 
 *.lock
