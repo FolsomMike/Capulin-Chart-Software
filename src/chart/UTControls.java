@@ -32,6 +32,7 @@ import java.awt.event.*;
 import java.awt.font.TextAttribute;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.text.DecimalFormat;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -242,6 +243,12 @@ public class UTControls extends JTabbedPane
     
     JComboBox <String>headTypeComboBox;
     
+    JPanel bifurcatedScalePanel;
+    JCheckBox bifurcatedScaleCB;
+
+    JTextField bifurcatedScaleLevelTF;
+    JTextField bifurcatedScaleGainTF;
+
     //end of components on Configuration tab
 
 //-----------------------------------------------------------------------------
@@ -400,8 +407,13 @@ public void setChannel(StripChart pChart, Channel pChannel)
     //because both need to grow depending on the number of gates or thresholds.
     //If one grows but not the other, the smaller one will be stretched to fit
     //the window and will look bad.  Make both grids have the same row count so
-    //they will be the same size.  If the row count is less than four, make it
-    //four to keep the rows from stretching.
+    //they will be the same size.
+    //If the row count is less than six, make it six to keep the rows from
+    //stretching. This is a fudge factor required because other tabs force the
+    //size to be bigger than that required by the number of rows for the gates,
+    //so the grid stretches. If components are added to another tab to make
+    //it taller, may have to increase minimum number of grid rows to prevent
+    //stetching.
 
     // if current channel is null, then only the chart stuff will be displayed
     // so make the grid large enough to hold the thresholds, igoring gates
@@ -415,9 +427,7 @@ public void setChannel(StripChart pChart, Channel pChannel)
         gridYCount = chart.getNumberOfThresholds();
     }
 
-    if (gridYCount < 4) {
-        gridYCount = 4;
-    }
+    if (gridYCount < 6) { gridYCount = 6; }
 
     //setup the chart controls tab before checking if a valid channel is
     //available so the user can still hide or display the chart
@@ -473,7 +483,7 @@ void setupGatesTab()
     //create a row for each gate plus one for the header labels
     //gridYCount equals the number of gates or thresholds, whichever is greater
     //so that both will have the same grid sizes and component sizes
-    gatesTab.setLayout(new GridLayout(gridYCount+1, 5, 10, 10));
+    gatesTab.setLayout(new GridLayout(gridYCount+1, 5, 10, 5));
 
     gateLabel = new JLabel("Gate"); gateLabel.setToolTipText("Gate");
     gatesTab.add(gateLabel);
@@ -1065,10 +1075,10 @@ void setupChartTab()
 
     panel.setAlignmentY(Component.TOP_ALIGNMENT);
 
-    //create a row for each gate plus one for the header labels
+    //create a row for each threshold plus one for the header labels
     //gridYCount equals the number of gates or thresholds, whichever is greater
     //so that both will have the same grid sizes and component sizes
-    panel.setLayout(new GridLayout(gridYCount+1, 3, 10, 10));
+    panel.setLayout(new GridLayout(gridYCount+1, 3, 10, 5));
 
     thresholdLabel = new JLabel("Threshold");
     thresholdLabel.setToolTipText("Threshold");
@@ -1194,7 +1204,7 @@ void setupProcessTab()
 
     //gate label column -- create a row for each gate plus one for the header title
     JPanel gateLabelPanel = new JPanel();
-    gateLabelPanel.setLayout(new GridLayout(gridYCount+1, 1, 10, 10));
+    gateLabelPanel.setLayout(new GridLayout(gridYCount+1, 1, 10, 5));
     //add the row title header
     label = new JLabel("Gate"); label.setToolTipText("Gate");
     gateLabelPanel.add(label);
@@ -1216,7 +1226,7 @@ void setupProcessTab()
 
     //hit & miss adjusters column -- create a row for each gate plus header title
     JPanel hitMissPanel = new JPanel();
-    hitMissPanel.setLayout(new GridLayout(gridYCount+1, 1, 10, 10));
+    hitMissPanel.setLayout(new GridLayout(gridYCount+1, 1, 10, 5));
     //add the row title headers
     label = new JLabel("Hits"); label.setToolTipText("Hits required to alarm.");
     hitMissPanel.add(label);
@@ -1251,7 +1261,7 @@ void setupProcessTab()
 
     //signal process selections column -- create a row for each gate plus header
     JPanel processPanel = new JPanel();
-    processPanel.setLayout(new GridLayout(gridYCount+1, 1, 10, 10));
+    processPanel.setLayout(new GridLayout(gridYCount+1, 1, 10, 5));
     //add the row title headers
     label = new JLabel("Signal Processing");
     label.setToolTipText("Signal processing method for the gate.");
@@ -1314,7 +1324,7 @@ void setupTuningTab()
 
     //gate label column -- create a row for each gate plus one for the header title
     JPanel gateLabelPanel = new JPanel();
-    gateLabelPanel.setLayout(new GridLayout(gridYCount+1, 1, 10, 10));
+    gateLabelPanel.setLayout(new GridLayout(gridYCount+1, 1, 10, 5));
     //add the row title header
     label = new JLabel("Gate"); label.setToolTipText("Gate");
     gateLabelPanel.add(label);
@@ -1339,7 +1349,7 @@ void setupTuningTab()
 
     //signal process tuning value 1 column, create row for each gate plus header
     JPanel tuningValue1Panel = new JPanel();
-    tuningValue1Panel.setLayout(new GridLayout(gridYCount+1, 1, 10, 10));
+    tuningValue1Panel.setLayout(new GridLayout(gridYCount+1, 1, 10, 5));
     //add the row title headers
     label = new JLabel("Tuning 1");
     label.setToolTipText("Signal processing tuning value 1.");
@@ -1367,7 +1377,7 @@ void setupTuningTab()
 
     //signal process tuning value 2 column, create row for each gate plus header
     JPanel tuningValue2Panel = new JPanel();
-    tuningValue2Panel.setLayout(new GridLayout(gridYCount+1, 1, 10, 10));
+    tuningValue2Panel.setLayout(new GridLayout(gridYCount+1, 1, 10, 5));
     //add the row title headers
     label = new JLabel("Tuning 2");
     label.setToolTipText("Signal processing tuning value 2.");
@@ -1395,7 +1405,7 @@ void setupTuningTab()
 
     //signal process tuning value 3 column, create row for each gate plus header
     JPanel tuningValue3Panel = new JPanel();
-    tuningValue3Panel.setLayout(new GridLayout(gridYCount+1, 1, 10, 10));
+    tuningValue3Panel.setLayout(new GridLayout(gridYCount+1, 1, 10, 5));
     //add the row title headers
     label = new JLabel("Tuning 3");
     label.setToolTipText("Signal processing tuning value 3.");
@@ -1440,7 +1450,13 @@ void setupConfigTab()
 
     configTab.removeAll();
 
-    configTab.setLayout(new BoxLayout(configTab, BoxLayout.LINE_AXIS));
+    configTab.setLayout(new BoxLayout(configTab, BoxLayout.PAGE_AXIS));
+
+    JPanel topPanel = new JPanel();
+    topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.LINE_AXIS));
+
+    JPanel bottomPanel = new JPanel();
+    bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.PAGE_AXIS));
 
     String units;
 
@@ -1521,7 +1537,7 @@ void setupConfigTab()
     jcb.setToolTipText("Select the head type.");
     jcb.addMouseListener(this);
 
-    topLeftPanel.add(jcb);
+    //zzz topLeftPanel.add(jcb);
 
     //create a panel for the right column
 
@@ -1649,9 +1665,58 @@ void setupConfigTab()
     resetChannelButton.setActionCommand("Reset Channel");
     topRightPanel.add(resetChannelButton);
 
-    configTab.add(topLeftPanel);
-    configTab.add(Box.createRigidArea(new Dimension(7,0))); //horizontal spacer
-    configTab.add(topRightPanel);
+    // add panel at bottom
+
+    bifurcatedScalePanel = new JPanel();
+    bifurcatedScalePanel.setLayout(
+                    new BoxLayout(bifurcatedScalePanel, BoxLayout.LINE_AXIS));
+    bifurcatedScalePanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+    setSizes(bifurcatedScalePanel, 436, 30);
+
+    bifurcatedScaleCB = new JCheckBox("Bifurcated Scale");
+
+    bifurcatedScaleCB.setSelected(currentChannel.getBifurcatedScaleEnabled());
+    bifurcatedScaleCB.setActionCommand("Bifurcated Scale Enable");
+    bifurcatedScaleCB.addItemListener(this);
+    bifurcatedScaleCB.setName("Bifurcated Scale Enable");
+    bifurcatedScaleCB.addMouseListener(this);
+    bifurcatedScaleCB.setToolTipText("Enables bifurcated scale.");
+
+    bifurcatedScaleLevelTF = new JTextField(3);
+    setSizes(bifurcatedScaleLevelTF, 23, 23);
+    bifurcatedScaleLevelTF.setName("Bifurcated Scale Level");
+    bifurcatedScaleLevelTF.addMouseListener(this);
+    bifurcatedScaleLevelTF.setToolTipText("Sets level at which scale shifts.");
+    bifurcatedScaleLevelTF.setText(""+currentChannel.getBifurcatedScaleLevel());
+
+    bifurcatedScaleGainTF = new JTextField(3);
+    setSizes(bifurcatedScaleGainTF, 23, 23);
+    bifurcatedScaleGainTF.setEnabled(false);
+    bifurcatedScaleGainTF.setName("Bifurcated Scale Gain");
+    bifurcatedScaleGainTF.addMouseListener(this);
+    bifurcatedScaleGainTF.setToolTipText(
+                            "Displays gain associated with specified level.");
+    bifurcatedScaleGainTF.setText(new DecimalFormat("0.0").format(
+                                     currentChannel.getBifurcatedScaleGain()));
+
+    bifurcatedScalePanel.add(bifurcatedScaleCB);
+    bifurcatedScalePanel.add(Box.createRigidArea(new Dimension(30,0))); //spacer
+    bifurcatedScalePanel.add(new JLabel("Level "));
+    bifurcatedScalePanel.add(bifurcatedScaleLevelTF);
+    bifurcatedScalePanel.add(Box.createRigidArea(new Dimension(10,0))); //spacer
+    bifurcatedScalePanel.add(new JLabel("Gain "));
+    bifurcatedScalePanel.add(bifurcatedScaleGainTF);
+    bifurcatedScalePanel.add(Box.createHorizontalGlue());
+
+    bottomPanel.add(bifurcatedScalePanel);
+
+    // add the panels to the tab
+
+    configTab.add(topPanel);
+    topPanel.add(topLeftPanel);
+    topPanel.add(Box.createRigidArea(new Dimension(7,0))); //horizontal spacer
+    topPanel.add(topRightPanel);
+    configTab.add(bottomPanel);
 
 }//end of UTControls::setupConfigTab
 //-----------------------------------------------------------------------------
@@ -1862,7 +1927,58 @@ public void itemStateChanged(ItemEvent e)
         return;
     }
 
+    //handle the Bifurcated Scale Enable checkbox
+    if (name.equals("Bifurcated Scale Enable")){
+        updateBifurcatedScaleValues();
+        return;
+    }
+
 }//end of UTControls::itemStateChanged
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTControls::updateBifurcatedScaleValues
+//
+// Handles changes to the controls related to Bifurcated Scale.
+//
+// If this function is called because the checkbox has become selected, then
+// the current software gain is stored and displayed. This is the gain which
+// will be associated with the set level. When the software gain is changed,
+// the actual level used will be shifted ratiometrically.
+//
+
+private void updateBifurcatedScaleValues()
+{
+
+    Channel ch = currentChannel; //use a short name
+
+    //store the current software gain setting
+    if (bifurcatedScaleCB.isSelected()){
+        bifurcatedScaleGainTF.setText(
+                        new DecimalFormat("0.0").format(ch.getSoftwareGain()));
+    }
+
+    ch.setBifurcatedScaleEnabled(bifurcatedScaleCB.isSelected());
+
+    int intVal;
+
+    try{
+        intVal = Integer.parseInt(bifurcatedScaleLevelTF.getText().trim());
+    }catch(NumberFormatException ec){
+        intVal = 0; bifurcatedScaleLevelTF.setText("");
+    }
+    ch.setBifurcatedScaleLevel(intVal);
+
+    double doubleVal;
+
+    try{
+        doubleVal = Double.parseDouble(bifurcatedScaleGainTF.getText().trim());
+    }catch(NumberFormatException ec){
+        doubleVal = 0; bifurcatedScaleGainTF.setText("");
+    }
+    ch.setBifurcatedScaleGain(doubleVal);
+
+}//end of UTControls::updateBifurcatedScaleValues
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

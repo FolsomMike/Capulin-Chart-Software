@@ -312,7 +312,11 @@ public class UTBoard extends Board{
     class BoardChannel{
 
         boolean active = false;
-        
+
+        Channel logicalChannel;
+        int numberOfGates = 0;
+        UTGate[] gates;
+
         byte dspChip;
         byte dspCore1;
         byte dspCore2;
@@ -322,9 +326,6 @@ public class UTBoard extends Board{
         byte dcOffsetReg;
         byte countReg0, countReg1, countReg2;
         byte bufStart0, bufStart1, bufStart2;
-
-        int numberOfGates = 0;
-        UTGate[] gates;
 
         int aScanSmoothing = 1;
         int rejectLevel;
@@ -3061,19 +3062,22 @@ void sendHitMissCounts(int pChannel, int pGate, int pHitCount, int pMissCount)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTBoard::linkGates
+// UTBoard::linkLogicalChannel
 //
-// Sets a link to the gates for the channel pChannel.
+// Sets a link to the corresponding logical channel and related values.
 //
 
-public void linkGates(int pChannel, UTGate[] pGates, int pNumberOfGates)
+public void linkLogicalChannel(int pChannel, Channel pLogicalChannel,
+                                           UTGate[] pGates, int pNumberOfGates)
 {
+
+    bdChs[pChannel].logicalChannel = pLogicalChannel;
 
     bdChs[pChannel].numberOfGates = pNumberOfGates;
 
     bdChs[pChannel].gates = pGates;
 
-}//end of UTBoard::linkGates
+}//end of UTBoard::linkLogicalChannel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -4840,6 +4844,10 @@ public int processAScanPacket()
         if (raw > 0 && raw < bdChs[channel].rejectLevel) {raw = raw % 10;}
         else if (raw < 0 && raw > -bdChs[channel].rejectLevel) {raw = raw % 10;}
 
+        if (bdChs[channel].logicalChannel.bifurcatedScaleEnabled){
+            raw = bdChs[channel].logicalChannel.applyBifurcatedScale(raw);
+        }
+
         raw *= ASCAN_SCALE;
 
         boolean filterActive = false;
@@ -4995,11 +5003,14 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
             hitCountMet = (peakFlags & HIT_COUNT_MET) != 0;
 
             //cast to short used to force sign extension for signed values
-            peak =
-                 (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++] & 0xff);
+            peak = (short)((inBuffer[x++]<<8) & 0xff00) + (inBuffer[x++]&0xff);
 
             //if the signal is below the reject level, squash it down to 10%
             if (peak < bdChs[channel].rejectLevel) {peak %= 10;}
+
+            if (bdChs[channel].logicalChannel.bifurcatedScaleEnabled){
+                peak = bdChs[channel].logicalChannel.applyBifurcatedScale(peak);
+            }
 
             //if the hit count for the gate is greater than zero and the signal
             //did not exceed the gate the specified number of times, squash it

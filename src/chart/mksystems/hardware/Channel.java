@@ -101,6 +101,26 @@ public class Channel extends Object{
     SyncedInteger dcOffset;
     SyncedIntArray filter;
     int rejectLevel;
+
+    boolean bifurcatedScaleEnabled;
+    public boolean getBifurcatedScaleEnabled(){return bifurcatedScaleEnabled;}
+    public void setBifurcatedScaleEnabled(boolean pValue){
+                                              bifurcatedScaleEnabled = pValue;}
+
+    int bifurcatedScaleLevel;
+    public int getBifurcatedScaleLevel(){return bifurcatedScaleLevel;}
+    public void setBifurcatedScaleLevel(int pValue){
+                                                bifurcatedScaleLevel = pValue;}
+
+    double bifurcatedScaleGain;
+    public double getBifurcatedScaleGain(){return bifurcatedScaleGain;}
+    public void setBifurcatedScaleGain(double pValue){
+                                                bifurcatedScaleGain = pValue;}
+
+    double bifurcatedScaleSoftwareGainTrap = Double.MIN_VALUE;
+    int bifurcatedScaleLevelTrap = Integer.MIN_VALUE;
+    int bifurcatedScaleLevelAdjusted = Integer.MAX_VALUE;
+
     SyncedInteger aScanSmoothing;
     public double nSPerDataPoint;
     public double uSPerDataPoint;
@@ -193,8 +213,11 @@ public void initialize()
     decimalFormats[2] = new  DecimalFormat("0.00");
     decimalFormats[3] = new  DecimalFormat("0.000");
 
-    //give the utBoard a link to the gates array
-    if (utBoard != null){utBoard.linkGates(boardChannel, gates, numberOfGates);}
+    //give the corresponding utBoard channel a link to the this channel and
+    //its gates array
+    if (utBoard != null){
+        utBoard.linkLogicalChannel(boardChannel, this, gates, numberOfGates);
+    }
 
     //set FPGA values such as sample start delay, sample size by calling each
     //function
@@ -3814,6 +3837,54 @@ public void sendFilter()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Channel::applyBifurcatedScale
+//
+// Applies a scaling factor to pValue if it is below the adjusted (scaled) level
+// specified by the user. Any value above the level is returned unchanged.
+//
+// The level specified by the user is specific to the Software Gain stored by
+// the user. If the gain is changed, a new level is computed which is scaled
+// by the same ratio as the gain change. This allows the threshold level to
+// maintain the same relationship with the noise and signal levels.
+//
+// To reduce overhead, the scaled level is only computed when the Level or
+// the Software Gain has changed.
+//
+
+public int applyBifurcatedScale(int pValue)
+{
+
+    //if Software Gain has changed, recalculate the threshold level
+
+    if (bifurcatedScaleLevel != bifurcatedScaleLevelTrap
+            || softwareGain.getValue() != bifurcatedScaleSoftwareGainTrap){
+
+
+        bifurcatedScaleLevelTrap = bifurcatedScaleLevel;
+        bifurcatedScaleSoftwareGainTrap = softwareGain.getValue();
+
+        //convert decibels to linear gain: dB = 20 * log10(gain)
+        double currentGain = Math.pow(10, softwareGain.getValue() / 20);
+
+        //gain associated with the threshold level specified by user
+        double specifiedGain = Math.pow(10, bifurcatedScaleGain / 20);
+
+        double deltaRatio = currentGain / specifiedGain;
+
+        bifurcatedScaleLevelAdjusted =
+                            (int)Math.round(bifurcatedScaleLevel * deltaRatio);
+    }
+
+    if(pValue < bifurcatedScaleLevelAdjusted){
+        return(pValue / 2);
+    }else{
+        return(pValue);
+    }
+
+}//end of Channel::applyBifurcatedScale
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Channel::warmReset
 //
 // Resets the UT board for this channel as well as the other channels on that
@@ -3868,6 +3939,14 @@ public void loadCalFile(IniFile pCalFile)
             pCalFile.readInt(section, "Previous Signal Mode", mode.getValue());
     channelOn = (mode.getValue() != UTBoard.CHANNEL_OFF);
     rejectLevel = pCalFile.readInt(section, "Reject Level", 0);
+
+    bifurcatedScaleEnabled = pCalFile.readBoolean(
+                                   section, "Bifurcated Scale Enabled", false);
+    bifurcatedScaleLevel = pCalFile.readInt(
+                                         section, "Bifurcated Scale Level", 0);
+    bifurcatedScaleGain = pCalFile.readDouble(
+                                        section, "Bifurcated Scale Gain", 0.0);
+
     aScanSmoothing.setValue(
                  pCalFile.readInt(section, "AScan Display Smoothing", 1), true);
 
@@ -3917,6 +3996,14 @@ public void saveCalFile(IniFile pCalFile)
     
     pCalFile.writeInt(section, "Previous Signal Mode", previousMode);
     pCalFile.writeInt(section, "Reject Level", rejectLevel);
+
+    pCalFile.writeBoolean(
+                  section, "Bifurcated Scale Enabled", bifurcatedScaleEnabled);
+    pCalFile.writeInt(
+                      section, "Bifurcated Scale Level", bifurcatedScaleLevel);
+    pCalFile.writeDouble(
+                        section, "Bifurcated Scale Gain", bifurcatedScaleGain);
+
     pCalFile.writeInt(
                 section, "AScan Display Smoothing", aScanSmoothing.getValue());
 
