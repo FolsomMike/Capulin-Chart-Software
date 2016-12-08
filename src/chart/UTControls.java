@@ -1960,14 +1960,7 @@ private void updateBifurcatedScaleValues()
 
     ch.setBifurcatedScaleEnabled(bifurcatedScaleCB.isSelected());
 
-    int intVal;
-
-    try{
-        intVal = Integer.parseInt(bifurcatedScaleLevelTF.getText().trim());
-    }catch(NumberFormatException ec){
-        intVal = 0; bifurcatedScaleLevelTF.setText("");
-    }
-    ch.setBifurcatedScaleLevel(intVal);
+    updateBifurcatedScaleLevel(ch, bifurcatedScaleLevelTF);
 
     double doubleVal;
 
@@ -1979,6 +1972,29 @@ private void updateBifurcatedScaleValues()
     ch.setBifurcatedScaleGain(doubleVal);
 
 }//end of UTControls::updateBifurcatedScaleValues
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTControls::updateBifurcatedScaleLevel
+//
+// Validates and copies the bifurcatedScaleLevel to the corresponding
+// variables.
+//
+
+private void updateBifurcatedScaleLevel(Channel pChannel, JTextField pTextField)
+{
+
+    int intVal;
+    
+    try{
+        intVal = Integer.parseInt(pTextField.getText().trim());
+    }catch(NumberFormatException ec){
+        intVal = 0; pTextField.setText("");
+    }
+    
+    pChannel.setBifurcatedScaleLevel(intVal);
+
+}//end of UTControls::updateBifurcatedScaleLevel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

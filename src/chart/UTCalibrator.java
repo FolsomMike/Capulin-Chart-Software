@@ -710,6 +710,27 @@ if(pCopyAll || copyItemSelector.getItemState("Signal Filter Type")) {
         pDestination.setFilter(pSource.getFilter(), false);
     }
 
+//copy the Bifurcated Scale (Ratiometric Reject) values
+//Copy Level first so that if the Enable is also copied it will associate the
+//current gain to the copied level.
+//Gain is not copied as it is related to each channel's Software Gain and
+//copying does not make sense between channels. If the enable checkbox is
+//checked, the current Software Gain for the destination channel is copied to
+//that channel's Bifurcated Scale Gain.
+
+if(pCopyAll || copyItemSelector.getItemState("Bifurcated Scale Level")) {
+    pDestination.setBifurcatedScaleLevel(pSource.getBifurcatedScaleLevel());
+    }
+
+if(pCopyAll || copyItemSelector.getItemState("Bifurcated Scale Enable")) {
+    
+    pDestination.setBifurcatedScaleEnabled(pSource.getBifurcatedScaleEnabled());
+
+    if(pDestination.getBifurcatedScaleEnabled()){
+        pDestination.setBifurcatedScaleGain(pDestination.getSoftwareGain());
+    }
+}
+
 //updates the channel number color to match the channel's on/off state
 //if all system channels are being copied, not all of those channels will
 //be in the group currently being displayed by the Calibrator window, those
