@@ -65,6 +65,8 @@ public class UTGate extends BasicGate{
     boolean isWallStartGate = false;
     boolean isWallEndGate = false;
     boolean isFlawGate = false;
+    boolean isCrossingCheckGateA = false;
+    boolean isCrossingCheckGateB = false;
     boolean maxMin = false;
     boolean doCrossingSearch = false;
     boolean reportNotExceeding = false;
@@ -443,19 +445,19 @@ private void setFlags()
         flags &= (~GATE_APPLY_SIGNAL_AVERAGING);
     }
     
-    //insert the AScan averaging value into the flags
-
-    //all gates use the channel's aScanSmoothing value to determine
-    //their data averaging depth, but 4 is max allowed even though
-    //aScanSmoothing can be higher
-
-    int averaging = aScanSmoothing;
-    if (averaging > 4) {averaging = 4;}
-    if (averaging < 1) {averaging = 1;}
-    //shift down ~ 1-4 -> 0-3
-    averaging--;
-    //merge into bits 15,14 of flags value
-    flags |= (averaging<<14);
+    if (isCrossingCheckGateA) {
+        flags |= GATE_CHECK_FOR_CROSSING_A;
+    }
+    else {
+        flags &= (~GATE_CHECK_FOR_CROSSING_A);
+    }
+    
+    if (isCrossingCheckGateB) {
+        flags |= GATE_CHECK_FOR_CROSSING_B;
+    }
+    else {
+        flags &= (~GATE_CHECK_FOR_CROSSING_B);
+    }
 
     gateFlags.setValue(flags, true);
 
@@ -769,6 +771,12 @@ public ArrayList<String> getSigProcList()
     else if (isWallEndGate) {
         pl = wallGateProcessList;
     }
+    else if (isCrossingCheckGateA) {
+        pl = wallGateProcessList;
+    }
+    else if (isCrossingCheckGateB) {
+        pl = wallGateProcessList;
+    }
 
     return(pl);
 
@@ -1002,7 +1010,6 @@ public boolean getInterfaceGate()
 //-----------------------------------------------------------------------------
 // UTGate::setFlawGate
 //
-//
 // Turns the gate flaw type flag on or off.
 //
 // Does not set the flag in the DSP.
@@ -1032,6 +1039,44 @@ public boolean getFlawGate()
     return isFlawGate;
 
 }//end of UTGate::getFlawGate
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTGate::setCrossingCheckGateA
+//
+// Turns the Crossing Check Gate A type flag on or off.
+//
+// Does not set the flag in the DSP.
+//
+
+public void setCrossingCheckGateA(boolean pOn)
+{
+
+    isCrossingCheckGateA = pOn;
+
+    //update the flags to reflect the change
+    setFlags();
+
+}//end of UTGate::setCrossingCheckGateA
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTGate::setCrossingCheckGateB
+//
+// Turns the Crossing Check Gate B type flag on or off.
+//
+// Does not set the flag in the DSP.
+//
+
+public void setCrossingCheckGateB(boolean pOn)
+{
+
+    isCrossingCheckGateB = pOn;
+
+    //update the flags to reflect the change
+    setFlags();
+
+}//end of UTGate::setCrossingCheckGateB
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1258,6 +1303,10 @@ public void configure(IniFile pConfigFile, int pHeadNum, int pChannelNum)
     setWallStart(pConfigFile.readBoolean(whichGate, "Wall Start Gate", false));
     setWallEnd(pConfigFile.readBoolean(whichGate, "Wall End Gate", false));
     setFlawGate(pConfigFile.readBoolean(whichGate, "Flaw Gate", false));
+    setCrossingCheckGateA(
+            pConfigFile.readBoolean(whichGate, "Crossing Check Gate A", false));
+    setCrossingCheckGateB(
+            pConfigFile.readBoolean(whichGate, "Crossing Check Gate B", false));
 
     modifyWall = pConfigFile.readBoolean(whichGate, "Modify Wall", false);
 
