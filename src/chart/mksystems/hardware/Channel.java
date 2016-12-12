@@ -2040,8 +2040,13 @@ void setTransducer(boolean pChannelOn, int pPulseBank, int pPulseChannel,
     channelOn =
             pChannelOn; pulseBank = pPulseBank; pulseChannel = pPulseChannel;
 
-    channelOn = (mode.getValue() != UTBoard.CHANNEL_OFF);
-
+    //debug mks channelOn, pulseBank, and pulseChannel need to be synchronized
+    //and sendTransducers needs to be called by sendDataChangesToRemotes to
+    //avoid thread issues
+    //pulseBank and pulseChannel should never be changed after start up, so
+    //it is not actually necessary that they be synced, but should do so for
+    //consistency
+            
     if (utBoard != null && pForceUpdate) {
         utBoard.sendTransducer(boardChannel,
                  (byte)(channelOn ? 1:0), (byte)pulseBank, (byte)pulseChannel);
