@@ -196,7 +196,7 @@ public class UTControls extends JTabbedPane
     SpinnerPanel hardwareGainSpin1, hardwareGainSpin2, rejectSpin;
     SpinnerPanel smoothingSpin;
     SpinnerPanel nomWallSpin, nomWallPosSpin, wallScaleSpin, velocitySpin;
-    SpinnerPanel numMultiplesSpin;
+    SpinnerPanel numMultiplesSpin, wallTuningSpin;
 
     TitledBorder unitsBorder;
 
@@ -914,7 +914,7 @@ void setupWallTab()
 
     JPanel topLeftPanel = new JPanel();
     topLeftPanel.setLayout(new BoxLayout(topLeftPanel, BoxLayout.PAGE_AXIS));
-    setSizes(topLeftPanel, 250, 140);
+    setSizes(topLeftPanel, 250, 170);
     topLeftPanel.setAlignmentY(Component.LEFT_ALIGNMENT);
 
     topLeftPanel.add(Box.createRigidArea(new Dimension(0,5))); //vertical spacer
@@ -964,6 +964,16 @@ void setupWallTab()
     "Multiples Between Wall Gates ", "", "Multiples Between Wall Gates", null));
     numMultiplesSpin.spinner.addChangeListener(this); //monitor changes to value
     numMultiplesSpin.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+    topLeftPanel.add(Box.createRigidArea(new Dimension(0,5))); //vertical spacer
+
+    //add an entry to allow for fine-tuning of each channel
+    topLeftPanel.add(wallTuningSpin =
+          new SpinnerPanel(currentChannel.getWallTuning(),
+         -5, 5, .0001, "0.0000", 60, 23, "Wall Channel Tuning ", units + "/uS",
+                                                 "Wall Channel Tuning", this));
+    wallTuningSpin.spinner.addChangeListener(this); //monitor changes to value
+    wallTuningSpin.setAlignmentX(Component.LEFT_ALIGNMENT);
 
     wallTab.add(topLeftPanel);
 
@@ -2236,6 +2246,8 @@ public void updateAllSettings(boolean pForceUpdate)
     ch.setRange(
               rangeSpin.spinner.getDoubleValue() / timeDistMult, pForceUpdate);
     ch.setSoftwareGain(gainSpin.spinner.getDoubleValue(), pForceUpdate);
+
+    ch.setWallTuning(wallTuningSpin.spinner.getDoubleValue());
 
     hardware.hdwVs.nominalWall = nomWallSpin.spinner.getDoubleValue();
     hardware.hdwVs.nominalWallChartPosition =

@@ -90,6 +90,7 @@ public class Channel extends Object{
     boolean dacEnabled = false, aScanSlowEnabled = false;
     boolean aScanFastEnabled = false, aScanFreeRun = true;
     double aScanDelay = 0;
+    double wallTuning;
     public SyncedInteger hardwareDelayFPGA, hardwareDelayDSP;
     public SyncedInteger softwareDelay;
     public int delayPix = 0;
@@ -2050,6 +2051,37 @@ void setTransducer(boolean pChannelOn, int pPulseBank, int pPulseChannel,
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
+// Channel::setWallTuning
+//
+// Sets the Wall thickness measurement fine-tuning value and passes it to all
+// UT gates.
+//
+
+public void setWallTuning(double pValue)
+{
+
+    wallTuning = pValue;
+
+    for (int i = 0; i < numberOfGates; i++) { gates[i].setWallTuning(pValue); }
+
+}//end of Channel::setWallTuning
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::getWallTuning
+//
+// Returns the Wall thickness measurement fine-tuning value.
+//
+
+public double getWallTuning()
+{
+
+    return(wallTuning);
+
+}//end of Channel::getWallTuning
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
 // Channel::linkPlotters
 //
 // This function is called by Plotters (Traces, etc.) to link their buffers to
@@ -3950,6 +3982,9 @@ public void loadCalFile(IniFile pCalFile)
     aScanSmoothing.setValue(
                  pCalFile.readInt(section, "AScan Display Smoothing", 1), true);
 
+    setWallTuning(pCalFile.readDouble(section,
+                                 "Wall Thickness Tuning (distance/uS)", 0.00));
+
     // call each gate to load its data
     for (int i = 0; i < numberOfGates; i++) {gates[i].loadCalFile(pCalFile);}
 
@@ -4006,6 +4041,9 @@ public void saveCalFile(IniFile pCalFile)
 
     pCalFile.writeInt(
                 section, "AScan Display Smoothing", aScanSmoothing.getValue());
+
+    pCalFile.writeDouble(
+            section, "Wall Thickness Tuning (distance/uS)", getWallTuning());
 
     // call each gate to save its data
     for (int i = 0; i < numberOfGates; i++) {

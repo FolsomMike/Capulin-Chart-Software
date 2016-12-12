@@ -113,6 +113,11 @@ public class UTGate extends BasicGate{
     public double dataMaxPeakD;  //used for channels with min and max peaks (double)
     public double dataMinPeakD;  //used for channels with minand max peaks (double)
 
+    double wallTuning = 0, wallTuningNS = 0;
+
+    public void setWallTuning(double pVal){
+                    wallTuning = pVal; wallTuningNS = wallTuning / 1000.0; }
+
     double wallThickness;
 
     int peakFlags;  //any flags associated with the peak
@@ -520,22 +525,10 @@ public void getNewData(HardwareVars hdwVs)
     //if the gate is a wall gate, convert the data to chart height position
     if (isWallStartGate || isWallEndGate){
 
-        //debug mks -- hardcode W4 to a different velocity to account for error
-
-        double velocityNS = hdwVs.velocityNS;
-
-        if (channelIndex == 3){
-
-            velocityNS = 0.0002347;
-
-        }
-
-        //debug mks end
-
         //convert nanosecond time span to distance
         //dataPeakD is the only variable possibly changed by peak data updates
-        wallThickness = dataPeakD * hdwVs.nSPerDataPoint * velocityNS /
-                                                 (hdwVs.numberOfMultiples * 2); //debug mks was hdwVs.velocityNS
+        wallThickness = dataPeakD * hdwVs.nSPerDataPoint *
+            (hdwVs.velocityNS + wallTuningNS) / (hdwVs.numberOfMultiples * 2);
 
         //convert distance to a chart height position
         dataPeak = (int)((wallThickness - hdwVs.nominalWall)

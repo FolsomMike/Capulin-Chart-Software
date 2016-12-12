@@ -709,6 +709,9 @@ if(pCopyAll || copyItemSelector.getItemState("DC Offset")) {
 if(pCopyAll || copyItemSelector.getItemState("Signal Filter Type")) {
         pDestination.setFilter(pSource.getFilter(), false);
     }
+if(pCopyAll || copyItemSelector.getItemState("Wall Channel Tuning")) {
+        pDestination.setWallTuning(pSource.getWallTuning());
+    }
 
 //copy the Bifurcated Scale (Ratiometric Reject) values
 //Copy Level first so that if the Enable is also copied it will associate the
