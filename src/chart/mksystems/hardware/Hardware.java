@@ -1439,7 +1439,7 @@ boolean collectEncoderDataInspectMode()
 
             debugCnt = 0; //debug mks
             encoders.resetAll();
-            plcComLink.resetAll();
+            if (plcComLink != null) { plcComLink.resetAll(); }
             //record the value of linear encoder at start of inspection
             encoders.recordLinearStartCount();
             prevPixPosition = 0;
