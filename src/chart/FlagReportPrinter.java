@@ -59,6 +59,8 @@ public class FlagReportPrinter extends ViewerReporter
 
     String reportsPath = "";
 
+    boolean printClockColumn;
+
 //-----------------------------------------------------------------------------
 // FlagReportPrinter::FlagReportPrinter (constructor)
 //
@@ -67,7 +69,8 @@ public FlagReportPrinter(JFrame pFrame, Settings pSettings, JobInfo pJobInfo,
         String pJobPrimaryPath, String pJobBackupPath, String pReportsPath,
         String pCurrentJobName, int pLocationX, int pLocationY,
         String pPieceDescriptionPlural, String pPieceDescriptionPluralLC,
-        Hardware pHardware, int pPieceToPrint, boolean pIsCalPiece)
+        boolean pPrintClockColumn, Hardware pHardware, int pPieceToPrint,
+        boolean pIsCalPiece)
 
 {
 
@@ -75,6 +78,7 @@ public FlagReportPrinter(JFrame pFrame, Settings pSettings, JobInfo pJobInfo,
                                                               pCurrentJobName);
 
     hardware = pHardware; reportsPath = pReportsPath;
+    printClockColumn = pPrintClockColumn;
 
     //if pPieceToPrint is not a negative, number then the report is to be
     //printed for that piece without asking the user to specify a piece
@@ -617,7 +621,10 @@ public void printFlagForPlotter(PrintWriter pFile, StripChart pChart,
 
         pFile.print(linearPos + "\t");
 
-        pFile.print(clockPos + "\t"); //radial position
+        String clockPosText = "";
+        if(printClockColumn){ clockPosText = clockPos + ""; }
+
+        pFile.print(clockPosText + "\t"); //radial position
 
         //print the short title of trace which should have
         //been set up in the config file to describe some or all of
@@ -752,9 +759,14 @@ public void printHeader(PrintWriter pFile, int pPiece)
 
     //column headers
 
-    pFile.println("Linear\tRadial\tTransducer\tAmplitude\t"
+    String clockColumnHeader1 = "", clockColumnHeader2 = "";
+    if (printClockColumn){
+        clockColumnHeader1 = "Radial"; clockColumnHeader2 = "(clock)";
+    }
+
+    pFile.println("Linear\t" + clockColumnHeader1 + "\tTransducer\tAmplitude\t"
                                                          + "Notes & Initials");
-    pFile.println("(feet)\t(clock)");
+    pFile.println("(feet)\t" + clockColumnHeader2);
 
     printSeparator(pFile);
 

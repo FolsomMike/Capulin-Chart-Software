@@ -1743,6 +1743,7 @@ public void printFlagReport(int pPieceToPrint, boolean pIsCalPiece)
        (int)mainFrame.getLocation().getX() + 80,
        (int)mainFrame.getLocation().getY() + 30,
        settings.pieceDescriptionPlural, settings.pieceDescriptionPluralLC,
+       settings.printClockColumn,
        hardware, pPieceToPrint, pIsCalPiece);
 
     lPrintFlagReportDialog.init();

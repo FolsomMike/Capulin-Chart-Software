@@ -104,6 +104,8 @@ public class Settings extends Object implements ActionListener, ItemListener {
     public String primaryDataPath;
     public String backupDataPath;
 
+    public boolean printClockColumn;
+
     //this is the format used for files stored in the job folder
     //old jobs used UTF-16LE format, newer ones use UTF-8
     //the format used is specified in the newer files, defaults to UTF-16LE for
@@ -823,7 +825,9 @@ public void configure(IniFile pConfigFile)
     int lineCount = pConfigFile.readInt(section, "Number of Lines", 0);
     if (lineCount == 0 || lineCount > 100) {return;}
 
-    //create a vector to hold the lines of text read from the file
+    //load the configuration description so it can be displayed in the Log
+    //window for viewing by the user
+
     configInfo = new ArrayList<>(lineCount);
 
     String line, number;
@@ -840,6 +844,9 @@ public void configure(IniFile pConfigFile)
         line = pConfigFile.readString(section, "Line " + number, "");
         configInfo.add(line);
     }
+
+    printClockColumn = pConfigFile.readBoolean(
+                                        "Reports", "Print Clock Column", true);
 
 }//end of Settings::configure
 //-----------------------------------------------------------------------------
