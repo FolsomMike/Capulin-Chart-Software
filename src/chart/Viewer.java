@@ -985,8 +985,6 @@ public void printChartGroup(Graphics g, PageFormat pPF, int pPage,
     //for printing on the report - this would also solve the problem where
     //"Customer Name" is not one of the valid entries
 
-    //g2.setColor(Color.RED); //debug mks -- remove this
-
     //move drawing area to the part which can actually be printed on -- inside
     //the margins
     g2.translate(pPF.getImageableX(), pPF.getImageableY());
