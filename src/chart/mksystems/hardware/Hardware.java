@@ -53,6 +53,8 @@ public class Hardware extends Object implements TraceValueCalculator, Runnable,
     int opMode = STOPPED;
 
     ThreadSafeLogger logger;
+
+    String msg = "";
     
     public boolean startUTRabbitUpdater, startControlRabbitUpdater;
 
@@ -124,20 +126,20 @@ public class Hardware extends Object implements TraceValueCalculator, Runnable,
 public Hardware(IniFile pConfigFile, Settings pSettings, JTextArea pLog)
 {
 
+    configFile = pConfigFile; log = pLog;
+    settings = pSettings;
+
     hdwVs = new HardwareVars(); hdwVs.init();
-    
+
+    logger = new ThreadSafeLogger(pLog);
+
     //debug mks -- pick between the two based on value from config file
     // have to move this to point after config, but then feed to
     // InspectControlVars after creation
     //encoders = new EncoderLinearAndRotational(hdwVs.encoderValues);
-    
-    encoders = new EncoderDualLinear(hdwVs.encoderValues);
-    
-    encoders.init();
-    configFile = pConfigFile; log = pLog;
-    settings = pSettings;
 
-    logger = new ThreadSafeLogger(pLog);
+    encoders = new EncoderDualLinear(hdwVs.encoderValues, settings.msgLabel);    
+    encoders.init();
 
     inspectCtrlVars = new InspectControlVars(encoders); inspectCtrlVars.init();
 
@@ -1463,6 +1465,7 @@ boolean collectEncoderDataInspectMode()
     //transition
     if (!hdwVs.head1Down && inspectCtrlVars.head1Down){
         hdwVs.head1Down = true; flaggingEnableDelayHead1 = 6;
+        displayMsg("head 1 down...");
     }
 
     //if head 2 is up and goes down, enable flagging for all traces on head 2
@@ -1474,6 +1477,7 @@ boolean collectEncoderDataInspectMode()
     
     if (!hdwVs.head2Down && inspectCtrlVars.head2Down){
         hdwVs.head2Down = true; flaggingEnableDelayHead2 = 6;
+        displayMsg("head 2 down...");        
         analogDriver.setTrackPulsesEnabledFlag(true);
         analogDriver.setDataBufferIsEnabled(true);
     }
@@ -1483,12 +1487,14 @@ boolean collectEncoderDataInspectMode()
     //transition
     if (!hdwVs.head3Down && inspectCtrlVars.head3Down){
         hdwVs.head3Down = true; flaggingEnableDelayHead3 = 6;
+        displayMsg("head 3 down...");        
     }
         
     //if head 1 is down and goes up, disable flagging for all traces on head 1
     if (hdwVs.head1Down && !inspectCtrlVars.head1Down){
         hdwVs.head1Down = false; enableHeadTraceFlagging(HEAD_1, false);
         recordStopPositionForHead = HEAD_1;
+        displayMsg("head 1 up...");
     }
 
     //if head 2 is down and goes up, disable flagging for all traces on head 2
@@ -1499,6 +1505,7 @@ boolean collectEncoderDataInspectMode()
     if (hdwVs.head2Down && !inspectCtrlVars.head2Down){
         hdwVs.head2Down = false; enableHeadTraceFlagging(HEAD_2, false);
         recordStopPositionForHead = HEAD_2;
+        displayMsg("head 2 up...");        
         analogDriver.setDataBufferIsEnabled(false);
         analogDriver.enableWallMapPackets(false);
     }
@@ -1507,6 +1514,7 @@ boolean collectEncoderDataInspectMode()
     if (hdwVs.head3Down && !inspectCtrlVars.head3Down){
         hdwVs.head3Down = false; enableHeadTraceFlagging(HEAD_3, false);
         recordStopPositionForHead = HEAD_3;
+        displayMsg("head 3 up...");        
     }
         
     //watch for piece to exit head
@@ -1542,7 +1550,14 @@ boolean collectEncoderDataInspectMode()
         encoders.handleLinearPositionOverride(
                                 plcComLink.getAndClearLinearPositionOverride());        
     }
-        
+
+    //debug mks
+//    if (debugCnt++ == 0){
+//        encoders.handleLinearPositionOverride(34.0);
+//    }
+    //debug mks end
+    
+    
     moveEncoders(recordStopPositionForHead);
 
     return(newPositionData);
@@ -2457,6 +2472,43 @@ public int xmtMessage(int pMessage, int pValue)
 
 }//end of Hardware::xmtMessage
 //----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::displayMsg
+//
+// Displays a message on the msgLabel using a threadsafe method.
+//
+// There is no bufferering, so if this function is called again before
+// invokeLater calls displayMsgThreadSafe, the prior message will be
+// overwritten.
+//
+
+public void displayMsg(String pMessage)
+{
+
+    msg = pMessage;
+
+    javax.swing.SwingUtilities.invokeLater(this::displayMsgThreadSafe);    
+
+}//end of Hardware::displayMsg
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::displayMsgThreadSafe
+//
+// Displays a message on the msgLabel and should only be called from
+// invokeLater.
+//
+
+public void displayMsgThreadSafe()
+{
+
+    settings.msgLabel.setText(msg);
+    
+}//end of Hardware::displayMsgThreadSafe
+//-----------------------------------------------------------------------------
+
+
 
 }//end of class Hardware
 //-----------------------------------------------------------------------------

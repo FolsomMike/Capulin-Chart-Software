@@ -21,6 +21,9 @@ package chart.mksystems.hardware;
 
 //-----------------------------------------------------------------------------
 
+import javax.swing.JLabel;
+
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -36,14 +39,21 @@ public class EncoderHandler extends Object{
     public int encoder1 = 0, prevEncoder1 = 0;
     public int encoder2 = 0, prevEncoder2 = 0;
 
+    double linearDistanceMovedInches;
+    double linearDistanceMovedInchesCorrected;
+        
     // specifies if last change of the encoder count was increasing or
     //decreasing
     public int encoder1Dir = INCREASING;
     public int encoder2Dir = INCREASING;
 
+    JLabel msgLabel;
+
+    String msg = "";
+    
     //debug mks -- needs to be loaded from config file -- specifies if carriage
     //moving away from home is increasing or decreasing encoder counts
-    private int awayDirection = INCREASING;
+    private final int awayDirection = INCREASING;
         
     public int getAwayDirection(){ return(awayDirection); }
     
@@ -66,10 +76,10 @@ public class EncoderHandler extends Object{
 // EncoderHandler::EncoderHandler (constructor)
 //
 
-public EncoderHandler(EncoderValues pEncVals)
+public EncoderHandler(EncoderValues pEncVals, JLabel pMsgLabel)
 {
 
-    encVals = pEncVals;
+    encVals = pEncVals; msgLabel = pMsgLabel;
     
 }//end of EncoderHandler::EncoderHandler (constructor)
 //-----------------------------------------------------------------------------
@@ -88,6 +98,41 @@ public void init()
 
 
 }//end of EncoderHandler::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// EncoderHandler::displayMsg
+//
+// Displays a message on the msgLabel using a threadsafe method.
+//
+// There is no bufferering, so if this function is called again before
+// invokeLater calls displayMsgThreadSafe, the prior message will be
+// overwritten.
+//
+
+public void displayMsg(String pMessage)
+{
+
+    msg = pMessage;
+
+    javax.swing.SwingUtilities.invokeLater(this::displayMsgThreadSafe);    
+
+}//end of EncoderHandler::displayMsg
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// EncoderHandler::displayMsgThreadSafe
+//
+// Displays a message on the msgLabel and should only be called from
+// invokeLater.
+//
+
+public void displayMsgThreadSafe()
+{
+
+    msgLabel.setText(msg);
+    
+}//end of EncoderHandler::displayMsgThreadSafe
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -111,6 +156,9 @@ public void resetAll()
     encoder1Start = 0; encoder2Start = 0;
     measuredLengthFt = 0.0;
     linearPositionCorrection = 0.0;
+
+    linearDistanceMovedInches = 0.0;
+    linearDistanceMovedInchesCorrected = 0.0;
 
 }//end of EncoderHandler::resetAll
 //-----------------------------------------------------------------------------

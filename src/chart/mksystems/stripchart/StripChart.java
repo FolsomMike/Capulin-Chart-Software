@@ -536,6 +536,8 @@ public StripChart(Settings pSettings, JFrame pMainFrame, IniFile pConfigFile,
 public void init()
 {
 
+    setAlignmentX(Component.LEFT_ALIGNMENT);
+    
     //set up the main panel - this panel does nothing more than provide a title
     //border and a spacing border
     setOpaque(true);

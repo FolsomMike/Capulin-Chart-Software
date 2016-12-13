@@ -60,6 +60,7 @@ public class ControlPanel extends JPanel
     ScanSpeedPanel scanSpeedPanel;
     OptionsPanel optionsPanel;
     DemoPanel demoPanel;
+    MessagesPanel msgsPanel;
     ManualControlPanel manualControlPanel;
     String jobName;
     boolean displayOptionsPanel;
@@ -141,6 +142,10 @@ public void refreshControls()
 private void configure(IniFile pConfigFile)
 {
 
+    setAlignmentX(Component.LEFT_ALIGNMENT);
+    
+    //use this to test setBorder(BorderFactory.createLineBorder(Color.BLACK));    
+    
     panelWidth = pConfigFile.readInt("Control Panel", "Width", 1200);
     panelHeight = pConfigFile.readInt("Control Panel", "Height", 50);
 
@@ -155,8 +160,13 @@ private void configure(IniFile pConfigFile)
 
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
+    add(msgsPanel = new MessagesPanel(settings, this));
+    msgsPanel.init();
+        
+    add(Box.createHorizontalGlue()); //force messages panel to the left    
+    
     add(modePanel = new ModePanel(this));
-    modePanel.init();
+    modePanel.init();    
     add(statusPanel = new StatusPanel(settings, this, this));
     add(infoPanel = new InfoPanel(this, jobName));
     add(scanSpeedPanel = new ScanSpeedPanel(settings, this, this));
@@ -923,7 +933,7 @@ class OptionsPanel extends JPanel{
     JToggleButton plus6dBBtn;
 
 //-----------------------------------------------------------------------------
-// OptionsPanel::Options (constructor)
+// OptionsPanel::OptionsPanel(constructor)
 //
 
 public OptionsPanel(Settings pSettings, JPanel pParent,
@@ -1059,6 +1069,61 @@ public void actionPerformed(ActionEvent e)
 //-----------------------------------------------------------------------------
 
 }//end of class DemoPanel
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// class MessagesPanel
+//
+// This class creates and controls a panel containing a display for messages
+// used to update the user on the condition of the system.
+//
+
+class MessagesPanel extends JPanel{
+
+    JPanel parent;
+    Settings settings;
+    public TitledBorder titledBorder;
+    
+//-----------------------------------------------------------------------------
+// MessagesPanel::MessagesPanel (constructor)
+//
+
+public MessagesPanel(Settings pSettings, JPanel pParent)
+{
+
+    parent = pParent; settings = pSettings;
+
+    setBorder(titledBorder = BorderFactory.createTitledBorder("Messages"));
+    setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
+
+    settings.msgLabel.setText(
+      "Program start...                                                     ");
+    settings.msgLabel.setAlignmentX(Component.LEFT_ALIGNMENT);    
+
+    settings.msgLabel.setMinimumSize(new Dimension(250, 25));
+    settings.msgLabel.setPreferredSize(new Dimension(250, 25));
+    settings.msgLabel.setMaximumSize(new Dimension(250, 25));
+
+    add(settings.msgLabel);
+    
+}//end of MessagesPanel::MessagesPanel (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// MessagesPanel::init
+//
+// Initializes the object.
+//
+
+public void init()
+{
+
+}//end of MessagesPanel::init
+//-----------------------------------------------------------------------------
+
+}//end of class MessagesPanel
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 

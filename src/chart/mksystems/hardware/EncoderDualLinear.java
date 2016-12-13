@@ -21,6 +21,10 @@ package chart.mksystems.hardware;
 
 //-----------------------------------------------------------------------------
 
+import java.text.DecimalFormat;
+import javax.swing.JLabel;
+
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -36,18 +40,18 @@ public class EncoderDualLinear extends EncoderHandler{
     int encoder1CountAtSwitchToEncoder2 = 0;    
     double encoder1InchesAtSwitchToEncoder2 = 0;
 
-    private double linearDistanceMovedInches;
-    private double linearDistanceMovedInchesCorrected;
-    
+    private final DecimalFormat decimalFormat = new DecimalFormat("0.0");
+
     public final static int ENCODER1 = 0, ENCODER2 = 1;
+
 //-----------------------------------------------------------------------------
 // EncoderDualLinear::EncoderDualLinear (constructor)
 //
 
-public EncoderDualLinear(EncoderValues pEncVals)
+public EncoderDualLinear(EncoderValues pEncVals, JLabel pMsgLabel)
 {
 
-    super(pEncVals);
+    super(pEncVals, pMsgLabel);
 
 }//end of EncoderDualLinear::EncoderDualLinear (constructor)
 //-----------------------------------------------------------------------------
@@ -84,8 +88,6 @@ public void resetAll()
 
     encoder1CountAtSwitchToEncoder2 = 0;    
     encoder1InchesAtSwitchToEncoder2 = 0.0;
-
-    linearDistanceMovedInches = 0.0;
 
 }//end of EncoderDualLinear::resetAll
 //-----------------------------------------------------------------------------
@@ -254,6 +256,8 @@ public double getAbsValueLinearDistanceMovedInches()
 
     linearDistanceMovedInchesCorrected = linearDistanceMovedInches
                                                     + linearPositionCorrection;
+
+//debug mks    displayMsg("" + linearDistanceMovedInchesCorrected);
     
     return(linearDistanceMovedInchesCorrected);
 
@@ -331,6 +335,11 @@ public void handleLinearPositionOverride(double pOverride)
     
     linearPositionCorrection = pOverride - linearDistanceMovedInches;
 
+    displayMsg("Corrected "
+            + decimalFormat.format(linearDistanceMovedInchesCorrected)
+            + " to "
+            + decimalFormat.format(pOverride));
+    
 }//end of EncoderDualLinear::handleLinearPositionOverride
 //-----------------------------------------------------------------------------
 

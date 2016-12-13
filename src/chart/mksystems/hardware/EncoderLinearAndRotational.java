@@ -20,6 +20,9 @@ package chart.mksystems.hardware;
 
 //-----------------------------------------------------------------------------
 
+import javax.swing.JLabel;
+
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -34,10 +37,10 @@ public class EncoderLinearAndRotational extends EncoderHandler{
 // EncoderLinearAndRotational::EncoderLinearAndRotational (constructor)
 //
 
-public EncoderLinearAndRotational(EncoderValues pEncVals)
+public EncoderLinearAndRotational(EncoderValues pEncVals, JLabel pMsgLabel)
 {
 
-    super(pEncVals);
+    super(pEncVals, pMsgLabel);
     
 }//end of EncoderLinearAndRotational::EncoderLinearAndRotational (constructor)
 //-----------------------------------------------------------------------------

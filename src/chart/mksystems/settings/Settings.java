@@ -56,6 +56,8 @@ public class Settings extends Object implements ActionListener, ItemListener {
 
     public String language;
 
+    public JLabel msgLabel = new JLabel("");
+    
     ActionListener actionListener;
 
     private boolean optionsModified, utSettingsModified;
