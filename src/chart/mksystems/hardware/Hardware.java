@@ -1230,6 +1230,12 @@ void collectAnalogDataMinOrMax(UTGate gatePtr, boolean pChannelActive)
     int clockPos = gatePtr.clockPos;
     int newData = gatePtr.dataPeak;
 
+    //debug mks -- temporary fix to quench signal in masked area
+    if (!trace.flaggingEnabled){
+        newData = 0;
+    }
+    //debug mks end
+
     boolean dataStored = traceData.storeDataAtInsertionPoint(newData);
 
     //check for threshold violations and store flags as necessary
@@ -1607,7 +1613,7 @@ void moveEncoders(int pRecordStopPositionForHead)
     int pixelsMoved = pixPosition - prevPixPosition;
 
     //do nothing if encoders haven't moved enough to reach the next pixel
-    if (pixelsMoved == 0) {return;}
+    if (pixelsMoved <= 0) {return;}     //debug mks -- change this back to == when able to shrink tube for length correction
 
     prevPixPosition = pixPosition;
 
