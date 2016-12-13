@@ -567,6 +567,10 @@ public void printFlagForPlotter(PrintWriter pFile, StripChart pChart,
                                               Plotter pPlotter, int pDataIndex)
 {
 
+    if (pPlotter.shortTitle.contains("Max")) { 
+        return;
+    } //debug mks -- remove this
+    
     boolean isWallChart = false;
     if (pChart.shortTitle.contains("Wall")) {isWallChart = true;}
 
