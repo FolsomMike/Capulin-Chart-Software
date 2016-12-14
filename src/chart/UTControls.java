@@ -1547,7 +1547,7 @@ void setupConfigTab()
     jcb.setToolTipText("Select the head type.");
     jcb.addMouseListener(this);
 
-    //zzz topLeftPanel.add(jcb);
+    topLeftPanel.add(jcb);
 
     //create a panel for the right column
 
@@ -1726,6 +1726,7 @@ void setupConfigTab()
     topPanel.add(topLeftPanel);
     topPanel.add(Box.createRigidArea(new Dimension(7,0))); //horizontal spacer
     topPanel.add(topRightPanel);
+    configTab.add(Box.createRigidArea(new Dimension(0,3))); //vertical spacer    
     configTab.add(bottomPanel);
 
 }//end of UTControls::setupConfigTab
