@@ -811,6 +811,9 @@ public void parseEncoderEyeCalMsg(int numBytes, byte[] pBuf) //debug mks -- set 
 private void handleLinearPositionUpdateFlagging(SensorData pSensor)
 {
     
+    //if this sensor already used for correction, ignore it to prevent chatter
+    if (pSensor.appliedAsCorrectionFwd) { return; }
+    
     //if sensor is not the unit trailing or any of the exit jacks, then
     //do not use for linear position adjustment
     
@@ -818,9 +821,18 @@ private void handleLinearPositionUpdateFlagging(SensorData pSensor)
        !(pSensor.sensorGroup == SensorData.UNIT_GROUP && pSensor.sensorNum == 2)
             &&
        pSensor.sensorGroup != SensorData.EXIT_GROUP) { return; }
+    
     if(pSensor.direction != FWD) { return; }
+    
     if (pSensor.lastState != BLOCKED) { return; }
 
+    //only use each sensor once for correction while in forward motion to
+    //prevent false triggering due to sensor chatter
+    //need to add logic to clear this if cleared in reverse direction and
+    //to only use sensor once when reversing
+    
+    pSensor.appliedAsCorrectionFwd = true;
+    
     linearPositionOverride = pSensor.getEyeDistToEye1(pSensor.lastEyeChanged);
     
 }//end of PLCEthernetController::handleLinearPositionUpdateFlagging

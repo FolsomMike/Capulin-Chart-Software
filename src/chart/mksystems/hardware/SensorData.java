@@ -33,6 +33,8 @@ public class SensorData extends Object{
     public static double eye1DistToEntryJackMeasurePoint;
     public static double eye1DistToExitJackMeasurePoint;    
     
+    public boolean appliedAsCorrectionFwd, appliedAsCorrectionRev;
+
     //Eye1 is the entry/start inspection eye
     private double jackCenterDistToMeasurePoint;
     public double getJackCenterDistToMeasurePoint(){
@@ -138,6 +140,9 @@ public void resetAll()
     countsPerInch = Double.MAX_VALUE;
     percentChange = Double.MAX_VALUE;
 
+    appliedAsCorrectionFwd = false;
+    appliedAsCorrectionRev = false;    
+    
 }//end of SensorData::resetAll
 //-----------------------------------------------------------------------------
 
@@ -243,8 +248,6 @@ public void updatedAllDistancesToEye1()
             eyeADistToJackCenterSign = -1; eyeBDistToJackCenterSign = 1;
         break;
         case UNIT_GROUP:
-            eye1DistToMeasurePoint = 0;
-            eyeADistToJackCenterSign = 0; eyeBDistToJackCenterSign = 0;
             //debug mks -- this value should be different for each eye in
             //the Unit group...entry eye is 0, etc. (load from config?)
             jackCenterDistToEye1 = 56.5;
