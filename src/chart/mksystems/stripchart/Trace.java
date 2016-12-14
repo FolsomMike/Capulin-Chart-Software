@@ -571,6 +571,11 @@ private int plotPoint(Graphics2D pG2, PlotVars pVars, TraceDatum pTraceDatum)
     //if the drawData flag is false, exit having only drawn decorations
     if (!pVars.drawData) {return(lastPlotted);}
 
+    if(pVars.y1 == Integer.MIN_VALUE || pVars.y1 == Integer.MAX_VALUE
+       || pVars.y2 == Integer.MIN_VALUE || pVars.y2 == Integer.MAX_VALUE){
+        return(lastPlotted);
+    }
+
     //prepare to draw the trace
 
     //apply pixel scaling

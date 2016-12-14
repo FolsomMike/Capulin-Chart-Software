@@ -81,7 +81,8 @@ public class Channel extends Object{
     public String title, shortTitle, detail, type;
 
     boolean channelOn;  //true: pulsed/displayed, off: not pulsed/displayed
-    boolean channelMasked; //true: pulsed/not display, off: pulsed/displayed
+    //true: pulsed/not display, off: pulsed/displayed
+    private boolean channelMasked;
 
     boolean enabled; //overrides mode -- channel always off if false
     SyncedInteger mode;
@@ -353,6 +354,20 @@ public void setMasked(boolean pMasked)
     channelMasked = pMasked;
 
 }//end of Channel::setMasked
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::getMasked
+//
+// Returns the channelMasked flag.
+//
+
+public boolean getMasked()
+{
+
+    return(channelMasked);
+
+}//end of Channel::getMasked
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
