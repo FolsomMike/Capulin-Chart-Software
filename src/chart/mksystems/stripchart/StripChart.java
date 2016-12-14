@@ -235,6 +235,7 @@ class ChartCanvas extends JPanel {
 
     int peakChannel;
     double runningValue;
+    double minWallTrap;
 
 //-----------------------------------------------------------------------------
 // ChartCanvas::ChartCanvas (constructor)
@@ -360,6 +361,8 @@ public void plotData()
 
         int lastValue;
 
+        minWallTrap = Integer.MAX_VALUE;
+
         //plot any new data in the traces
         //check for new data on each trace because delayed traces might not have
         //data at the same time
@@ -379,13 +382,33 @@ public void plotData()
                 }
 
                 //store the wall thickness reading
-                runningValue = plotters[i].wallThickness;
+                runningValue = trapMinWallThickness(plotters[i].wallThickness);
 
             }// if (traces[i].newDataReady())
         }// for (int i = 0; i < numberOfPlotters; i++)
     }//while (traces[leadingTrace].newDataReady())
 
 }//end of ChartCanvas::plotData
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ChartCanvas::trapMinWallThickness
+//
+// Traps the minimum value of pValue from successive calls and returns the
+// minimum found since the last time minWallTrap was reset.
+//
+
+private double trapMinWallThickness(double pValue){
+
+    if (pValue < minWallTrap){ minWallTrap = pValue; }
+
+    if(minWallTrap == Integer.MAX_VALUE){
+        return(0.00);
+    }else{
+        return(minWallTrap);
+    }
+
+}//end of ChartCanvas::trapMinWallThickness
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -579,8 +602,8 @@ public void init()
     }
 
     if (displayRunningValue) {
-        runningValueDisplay = new ValueDisplay( 500, 23, 600, 23,
-                       "Wall Thickness:", "0.000", Color.BLACK, borderColor);
+        runningValueDisplay = new ValueDisplay( 475, 23, 600, 23,
+                     "Min Wall Thickness:", "0.000", Color.BLACK, borderColor);
     }
 
     if (displayComputedAtCursor) {

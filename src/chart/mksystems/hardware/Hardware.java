@@ -1238,6 +1238,8 @@ void collectAnalogDataMinOrMax(UTGate gatePtr, boolean pChannelActive)
     int clockPos = gatePtr.clockPos;
     int newData = gatePtr.dataPeak;
 
+    trace.wallThickness = Integer.MAX_VALUE;
+
     //quench signal in masked area
     if (!trace.flaggingEnabled){ newData = gatePtr.antiPeakValue; }
 
