@@ -33,6 +33,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JLabel;
 
 //-----------------------------------------------------------------------------
 // class PLCEthernetController
@@ -52,6 +53,7 @@ public class PLCEthernetController {
     DataOutputStream byteOut = null;
     DataInputStream byteIn = null;
     EncoderValues encoderValues;
+    JLabel msgLabel;
 
     private double linearPositionOverride = Integer.MAX_VALUE;
     
@@ -119,12 +121,13 @@ public class PLCEthernetController {
 //
 
 public PLCEthernetController(String pPLCIPAddrS, int pPLCPortNum,
-     EncoderValues pEncoderValues, ThreadSafeLogger pLogger, boolean pSimulate)
+     EncoderValues pEncoderValues, ThreadSafeLogger pLogger, JLabel pMsgLabel,
+     boolean pSimulate)
 {
 
     plcIPAddrS = pPLCIPAddrS; plcPortNum = pPLCPortNum;
     encoderValues = pEncoderValues;
-    logger = pLogger; simulate = pSimulate;
+    logger = pLogger; msgLabel = pMsgLabel; simulate = pSimulate;
     
     machineState = MS_UNIT_CLEAR;
     
@@ -313,7 +316,7 @@ public void sendTestMessages()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// PLCEthernetController::establishLink
+// PLCEthernetController::openSocket
 //
 // Opens a socket with the PLC.
 //
@@ -323,6 +326,7 @@ private void openSocket()
 
     if (plcIPAddr == null){
         logger.logMessage("Error: PLC IP Address is not valid.\n");
+        displayMsg("ERROR! PLC not connected!");        
         return;
     }
 
@@ -356,19 +360,39 @@ private void openSocket()
     catch (UnknownHostException e) {
         logSevere(e.getMessage() + " - Error: 171");
         logger.logMessage("Unknown host: PLC " + plcIPAddrS + ".\n");
+        displayMsg("ERROR! PLC not connected!");        
         return;
     }
     catch (IOException e) {
         logSevere(e.getMessage() + " - Error: 176");
         logger.logMessage("Couldn't get I/O for PLC " + plcIPAddrS + "\n");
         logger.logMessage("--" + e.getMessage() + "--\n");
+        displayMsg("ERROR! PLC not connected!");
         return;
     }
     
 
     logger.logMessage("PLC connected.\n");
     
-}//end of EthernetIOModule::establishLink
+    displayMsg("PLC connected...");
+    
+}//end of EthernetIOModule::openSocket
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// EthernetIOModule::displayMsg
+//
+// Displays pMsg on the msgLabel.
+//
+// No need for threadsafe code as this class runs in the Java main GUI thread.
+//
+
+public void displayMsg(String pMsg)
+{
+
+    msgLabel.setText(pMsg);
+
+}//end of EthernetIOModule::displayMsg
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -787,7 +811,13 @@ public void parseEncoderEyeCalMsg(int numBytes, byte[] pBuf) //debug mks -- set 
 private void handleLinearPositionUpdateFlagging(SensorData pSensor)
 {
     
-    if(pSensor.sensorGroup != SensorData.EXIT_GROUP) { return; }
+    //if sensor is not the unit trailing or any of the exit jacks, then
+    //do not use for linear position adjustment
+    
+    if(
+       !(pSensor.sensorGroup == SensorData.UNIT_GROUP && pSensor.sensorNum == 2)
+            &&
+       pSensor.sensorGroup != SensorData.EXIT_GROUP) { return; }
     if(pSensor.direction != FWD) { return; }
     if (pSensor.lastState != BLOCKED) { return; }
 
@@ -850,7 +880,6 @@ private int parseEncoderCount(String pMsg, int pStart)
 //  U -> unit sensor (mounted on center-section or trailer)
 //
 // and nn is a two digit number which IDs the sensor in the group.
-// For the entry sensor and exit sensor, that number is ignored.
 // Each jack has two sensors 0:1, 2:3, 4:5, etc.
 //
 // As each jack has two eyes, lastEyeChanged is set to show which eye last
@@ -859,7 +888,7 @@ private int parseEncoderCount(String pMsg, int pStart)
 //
 // The entry sensor is that used to trigger start of inspection.
 // The exit sensor is that used to trigger end of inspection.
-// The entry and exit sensors are stored in the SensorData object in the middle
+// The entry, exit, sensors are stored in the SensorData object in the middle
 // of the list, the entry jack sensors fill the list before the middle and
 // the exit jack sensors fill the list after the middle:
 //
@@ -869,10 +898,11 @@ private int parseEncoderCount(String pMsg, int pStart)
 //  9: entry jack sensor 00 & 01
 // 10: unit sensor 00 (entry inspection start sensor)
 // 11: exit sensor 01 (exit inspection end sensor)
-// 12: exit jack sensor 00 & 01
-// 13: exit jack sensor 02 & 03
+// 12: trailing unit sensor 02 (sensor after second clamp roller) 
+// 13: exit jack sensor 00 & 01
+// 14: exit jack sensor 02 & 03
 //      ...
-// 21: exit jack sensor 18 & 19
+// 22: exit jack sensor 18 & 19
 //
 
 private SensorData parseSensorID(String pID)
@@ -892,7 +922,7 @@ private SensorData parseSensorID(String pID)
 
     SensorData sensorData = null;
     
-    //entry sensor on unit 
+    //sensors on unit
     if (pID.charAt(0) == 'U'){
         sensorData = encoderValues.getSensorData().get(sensorNum + 10);
         sensorData.sensorNum = sensorNum; sensorData.lastEyeChanged = SELF;

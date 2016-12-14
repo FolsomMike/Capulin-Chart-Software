@@ -31,6 +31,7 @@ import chart.mksystems.stripchart.Trace;
 import chart.mksystems.stripchart.TraceData;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import javax.swing.*;
 //-----------------------------------------------------------------------------
@@ -55,9 +56,13 @@ public class Hardware extends Object implements TraceValueCalculator, Runnable,
     ThreadSafeLogger logger;
 
     String msg = "";
+
+    private final DecimalFormat decFmt0x0 = new DecimalFormat("0.0");
     
     public boolean startUTRabbitUpdater, startControlRabbitUpdater;
 
+    double previousTally = 0.0;
+    
     int prevPixPosition;
 
     boolean output1On = false;
@@ -215,7 +220,8 @@ private void openPLCComLink()
     if (!settings.establishPLCComLink) { return; }
 
     plcComLink = new PLCEthernetController(settings.plcIPAddressString,
-                 settings.plcEthernetPort, hdwVs.encoderValues, logger, false);
+                 settings.plcEthernetPort, hdwVs.encoderValues, logger, 
+                 settings.msgLabel, false);
 
     plcComLink.init();
 
@@ -1409,6 +1415,10 @@ boolean collectEncoderDataInspectMode()
             hdwVs.head1Down = false; enableHeadTraceFlagging(HEAD_1, false);
             hdwVs.head2Down = false; enableHeadTraceFlagging(HEAD_1, false);
             hdwVs.head3Down = false; enableHeadTraceFlagging(HEAD_1, false);
+            displayMsg("system clear, previous tally = " + 
+                                       decFmt0x0.format(previousTally));
+            previousTally = 0;
+            
             }
         }
 
@@ -1451,6 +1461,7 @@ boolean collectEncoderDataInspectMode()
             //record the value of linear encoder at start of inspection
             encoders.recordLinearStartCount();
             prevPixPosition = 0;
+            displayMsg("entry eye blocked...");
         }
     }
 
@@ -1533,10 +1544,15 @@ boolean collectEncoderDataInspectMode()
 
             hdwVs.measuredLength = encoders.calculateTally();
 
+            previousTally = hdwVs.measuredLength;
+            
             hdwVs.watchForOffPipe = false;
 
             //set flag to force preparation for a new piece
             prepareForNewPiece = true;
+            
+            displayMsg("exit eye cleared, tally = " + 
+                                        decFmt0x0.format(hdwVs.measuredLength));
 
         }//if (!inspectCtrlVars.onPipeFlag)
     }//if (hdwVs.watchForOffPipe)

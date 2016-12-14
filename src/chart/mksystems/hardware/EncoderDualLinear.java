@@ -330,17 +330,40 @@ public void handleLinearPositionOverride(double pOverride)
 {
 
     if(pOverride == Integer.MAX_VALUE){ return; }
-  
-    if(pOverride <= linearDistanceMovedInches) { return; }
-    
+
+/* debug mks -- this section prevents shortening the tube
+    if(pOverride <= linearDistanceMovedInches) {
+    displayMsg("not corrected " + createAdjustmentMsgSuffix(pOverride));
+
+        return;
+    }
+*/
     linearPositionCorrection = pOverride - linearDistanceMovedInches;
 
-    displayMsg("Corrected "
-            + decimalFormat.format(linearDistanceMovedInchesCorrected)
-            + " to "
-            + decimalFormat.format(pOverride));
-    
+    displayMsg("corrected "  + createAdjustmentMsgSuffix(pOverride));
+
 }//end of EncoderDualLinear::handleLinearPositionOverride
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// EncoderDualLinear::createAdjustmentMsgSuffix
+//
+// Creates a suffix with the current corrected position, the new suggested
+// adjustment position pOverride, and the difference between the two.
+
+private String createAdjustmentMsgSuffix(double pOverride)
+{
+
+    return(decimalFormat.format(linearDistanceMovedInchesCorrected)
+            + " to "
+            + decimalFormat.format(pOverride)
+            + " ("
+            + decimalFormat.format(
+                                pOverride - linearDistanceMovedInchesCorrected)
+            + ")"
+            );
+
+}//end of EncoderDualLinear::createAdjustmentMsgSuffix
 //-----------------------------------------------------------------------------
 
 }//end of class EncoderDualLinear

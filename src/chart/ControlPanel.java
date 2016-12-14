@@ -1098,8 +1098,6 @@ public MessagesPanel(Settings pSettings, JPanel pParent)
     setBorder(titledBorder = BorderFactory.createTitledBorder("Messages"));
     setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 
-    settings.msgLabel.setText(
-      "Program start...                                                     ");
     settings.msgLabel.setAlignmentX(Component.LEFT_ALIGNMENT);    
 
     settings.msgLabel.setMinimumSize(new Dimension(250, 25));

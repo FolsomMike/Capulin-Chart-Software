@@ -245,7 +245,11 @@ public void updatedAllDistancesToEye1()
         case UNIT_GROUP:
             eye1DistToMeasurePoint = 0;
             eyeADistToJackCenterSign = 0; eyeBDistToJackCenterSign = 0;
-        break;
+            //debug mks -- this value should be different for each eye in
+            //the Unit group...entry eye is 0, etc. (load from config?)
+            jackCenterDistToEye1 = 56.5;
+            return;
+
         default:
             eye1DistToMeasurePoint = 0;
             eyeADistToJackCenterSign = 0; eyeBDistToJackCenterSign = 0;            
@@ -284,6 +288,9 @@ public double getEyeDistToEye1(int pEye)
             
         case EYE_B:
             return(eyeBDistToEye1);
+
+        case SELF:
+            return(jackCenterDistToEye1);
             
         default:
             return(Integer.MAX_VALUE);
