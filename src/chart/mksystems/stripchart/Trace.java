@@ -605,12 +605,10 @@ private int plotPoint(Graphics2D pG2, PlotVars pVars, TraceDatum pTraceDatum)
     if (hdwVs.plotStyle == PlotterHdwVars.POINT_TO_POINT) {
         pG2.drawLine(pVars.pixPtr-1, pVars.y1, pVars.pixPtr, pVars.y2);
     }
-    else
-    if (hdwVs.plotStyle == PlotterHdwVars.STICK) {
+    else if (hdwVs.plotStyle == PlotterHdwVars.STICK) {
         pG2.drawLine(pVars.pixPtr, pVars.y1, pVars.pixPtr, pVars.y2);
     }
-    else
-    if (hdwVs.plotStyle == PlotterHdwVars.SPAN) {
+    else if (hdwVs.plotStyle == PlotterHdwVars.SPAN) {
         pG2.drawLine(pVars.pixPtr, pVars.y1, pVars.pixPtr, pVars.y2);
     }
 
