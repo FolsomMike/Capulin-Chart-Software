@@ -211,12 +211,11 @@ protected void saveFile(String pJobPath, String pDataPath)
     calFile.writeInt(
                "General", "Scanning and Inspecting Speed", settings.scanSpeed);
 
-    calFile.writeString("General", "Graph Print Layout",
+    calFile.writeString("General", "Printer Paper Size",
                                                     settings.graphPrintLayout);
 
     calFile.writeString(
-                      "General", "Graph Print Magnify",
-                                                    settings.userPrintMagnify);
+                      "General", "Graph Print Width", settings.userPrintWidth);
 
     //save info for all charts
     for (int i=0; i < settings.numberOfChartGroups; i++) {

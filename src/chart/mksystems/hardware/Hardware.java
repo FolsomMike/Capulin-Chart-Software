@@ -120,6 +120,8 @@ public class Hardware extends Object implements TraceValueCalculator, Runnable,
 
     public final static int PULSE = 0, CONTINUOUS = 1;
     public int markerMode = PULSE;
+
+    private final static int MASK_DISABLE_DELAY = 0;
     
 //-----------------------------------------------------------------------------
 // Hardware::Hardware (constructor)
@@ -1474,7 +1476,7 @@ boolean collectEncoderDataInspectMode()
     //a small distance delay is used to prevent flagging of the initial
     //transition
     if (!hdwVs.head1Down && inspectCtrlVars.head1Down){
-        hdwVs.head1Down = true; flaggingEnableDelayHead1 = 6;
+        hdwVs.head1Down = true; flaggingEnableDelayHead1 = MASK_DISABLE_DELAY;
         displayMsg("head 1 down...");
     }
 
@@ -1486,7 +1488,7 @@ boolean collectEncoderDataInspectMode()
     //debug mks -- why is mapping hardcoded to head 2 here? Fix?
     
     if (!hdwVs.head2Down && inspectCtrlVars.head2Down){
-        hdwVs.head2Down = true; flaggingEnableDelayHead2 = 6;
+        hdwVs.head2Down = true; flaggingEnableDelayHead2 = MASK_DISABLE_DELAY;
         displayMsg("head 2 down...");        
         analogDriver.setTrackPulsesEnabledFlag(true);
         analogDriver.setDataBufferIsEnabled(true);
@@ -1496,7 +1498,7 @@ boolean collectEncoderDataInspectMode()
     //a small distance delay is used to prevent flagging of the initial
     //transition
     if (!hdwVs.head3Down && inspectCtrlVars.head3Down){
-        hdwVs.head3Down = true; flaggingEnableDelayHead3 = 6;
+        hdwVs.head3Down = true; flaggingEnableDelayHead3 = MASK_DISABLE_DELAY;
         displayMsg("head 3 down...");        
     }
         

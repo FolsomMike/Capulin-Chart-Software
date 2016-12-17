@@ -922,20 +922,17 @@ private void loadCalFile()
     }
 
     settings.graphPrintLayout = calFile.readString(
-                    "General", "Graph Print Layout", "8-1/2 x 11 : Fit Height");
+                                "General", "Printer Paper Size", "8-1/2 x 11");
 
     //make sure print layout is one of the valid values
-    if (!settings.graphPrintLayout.equalsIgnoreCase("8-1/2 x 11 : Fit Height")
-       && !settings.graphPrintLayout.equalsIgnoreCase("8-1/2 x 11 : Fit Width")
-       && !settings.graphPrintLayout.equalsIgnoreCase("8-1/2 x 14 : Fit Height")
-       && !settings.graphPrintLayout.equalsIgnoreCase("8-1/2 x 14 : Fit Width")
-       && !settings.graphPrintLayout.equalsIgnoreCase("A4 : Fit Height")
-       && !settings.graphPrintLayout.equalsIgnoreCase("A4 : Fit Width")) {
-        settings.graphPrintLayout = "8-1/2 x 11 : Fit Height";
+    if (!settings.graphPrintLayout.equalsIgnoreCase("8-1/2 x 11")
+       && !settings.graphPrintLayout.equalsIgnoreCase("8-1/2 x 14")
+       && !settings.graphPrintLayout.equalsIgnoreCase("A4")) {
+        settings.graphPrintLayout = "8-1/2 x 11";
     }
 
-    settings.userPrintMagnify = calFile.readString(
-                              "General", "Graph Print Magnify", "Magnify 1.0");
+    settings.userPrintWidth = calFile.readString(
+                                    "General", "Graph Print Width", "Maximum");
 
     //load info for all charts
     for (int i=0; i < settings.numberOfChartGroups; i++) {

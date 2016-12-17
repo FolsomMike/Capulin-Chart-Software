@@ -198,7 +198,7 @@ public class Settings extends Object implements ActionListener, ItemListener {
     public int scanSpeed;
 
     public String graphPrintLayout;
-    public String userPrintMagnify;
+    public String userPrintWidth;
 
     public int printResolutionX, printResolutionY;
     public String printQuality;

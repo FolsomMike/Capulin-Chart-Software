@@ -1102,66 +1102,27 @@ public void printChartGroup(Graphics g, PageFormat pPF, int pPage,
         ((pPF.getImageableHeight() - headerHeight - footerHeight) / 72)
                                                                 * resolutionY;
 
-    //calculate the scale so that either width or length fits the paper per the
-    //user's setting
+    //calculate the scale so that the user specified amount of footage fits
+    //on the paper
 
-    if (settings.graphPrintLayout.contains("Fit Width")){
+    //fit entire chart width on the paper
+    if (settings.userPrintWidth.contains("Maximum")){
 
-        //if the user does not choose "Fit to Data" for the magnification, then
-        //calculate the scale to fit the entire chart width on the paper
-        if (!settings.userPrintMagnify.contains("Fit to Data")){
-            scaleX = paperX / groupWidth;
-            scaleY = scaleX; //fix this - scaleY reflect possibly different DPI?
-            }
-        else{
+        scaleX = paperX / groupWidth;
 
-            //if the user chooses "Fit to Data", then calcualate the width
-            //required to display all the data, chopping off the unused chart
-            //portion this option is not used for the "Fit Height" layouts
-            //all traces should have the same amount of data, so use one trace
-            //to determine the width for all
+    }else{
 
-            int dataWidth = getDataWidth();
+        int widthPixels = (int)(parsePrintWidth() * 12 * hdwVs.pixelsPerInch);
 
-            //if no data was found, use the entire group width
-            if (dataWidth == -1) {
-                dataWidth = groupWidth;
-            }
-            else {
-                dataWidth += 30;
-            } //add room for the chart border
+        widthPixels += 30; //allow for graph border
 
-            //prevent short data widths from blowing the vertical up too much
-            //allow width to be no less than half the group width
-            if (((double)groupWidth / ((double)dataWidth)) > 2) {
-                dataWidth = groupWidth / 2;
-            }
+        scaleX = paperX / widthPixels;
 
-            scaleX = paperX / dataWidth;
-            scaleY = scaleX; //fix this - scaleY reflect possibly different DPI?
+    }
 
-            }
-        }//if (settings.graphPrintLayout.contains("Fit Width"))
+    scaleY = scaleX; //fix this - scaleY reflect possibly different DPI?
 
-    if (settings.graphPrintLayout.contains("Fit Height")){
-        scaleY = paperY / groupHeight;
-        //fix this - scaleY should reflect possibly different DPI
-        scaleX = scaleY;
-        }
-
-    //apply the user's scale modification if user has not selected
-    //"Fit to Data", the magnification for that case is already applied above
-
-    if (!settings.userPrintMagnify.contains("Fit to Data")){
-
-        //get the numeric portion of the magnify string (skip the label)
-        Double magnify = Double.valueOf(settings.userPrintMagnify.substring(8));
-
-        scaleX *= magnify;
-        scaleY *= magnify;
-        }
-
-    //apply desired scaling here
+    //apply the calcuated scaling to the graphic object
     g2.scale(scaleX, scaleY);
 
     //disable double buffering to improve scaling and print speed
@@ -1174,6 +1135,32 @@ public void printChartGroup(Graphics g, PageFormat pPF, int pPage,
     printRunnable.unPauseThread(); //release the print thread if it is waiting
 
 }//end of Viewer::printChartGroup
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Viewer::parsePrintWidth
+//
+// Extracts the width text value from the string and returns it as an integer.
+// On error, returns 50.
+//
+
+private int parsePrintWidth()
+{
+
+    int width;
+    
+    String widthText = settings.userPrintWidth.substring(0,2);
+
+    try{
+        width = Integer.valueOf(widthText.trim());
+    }
+    catch(NumberFormatException nfe){
+        width = 50;
+    }
+    
+    return(width);
+    
+}//end of Viewer::parsePrintWidth
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1720,8 +1707,8 @@ class ViewerControlPanel extends JPanel implements ActionListener
     JButton first, previous, next, last;
     JButton infoDetails;
     JButton print, printMultiple;
-    JComboBox <String>layoutSelector;
-    JComboBox <String>userMagnifySelector;
+    JComboBox <String>paperSizeSelector;
+    JComboBox <String>printWidthSelector;
     JButton load, list;
 
 //-----------------------------------------------------------------------------
@@ -1889,16 +1876,14 @@ private void configure(/*IniFile pConfigFile*/)
 
     JPanel panel1 = new JPanel();
     panel1.setLayout(new BoxLayout(panel1, BoxLayout.PAGE_AXIS));
-    printControls.setToolTipText("Layout & Magnification");
+    printControls.setToolTipText("Print Layout & Size");
 
-    //combo box to select paper width and scaling
-    String[] layouts = {"8-1/2 x 11 : Fit Height", "8-1/2 x 11 : Fit Width",
-                        "8-1/2 x 14 : Fit Height", "8-1/2 x 14 : Fit Width",
-                        "A4 : Fit Height", "A4 : Fit Width"};
-    layoutSelector = new JComboBox<>(layouts);
-    Viewer.setSizes(layoutSelector, 150, 25);
-    layoutSelector.setToolTipText("Select paper size and scaling.");
-    panel1.add(layoutSelector);
+    //combo box to select paper size
+    String[] layouts = {"8-1/2 x 11", "8-1/2 x 14", "A4"};
+    paperSizeSelector = new JComboBox<>(layouts);
+    Viewer.setSizes(paperSizeSelector, 150, 25);
+    paperSizeSelector.setToolTipText("Select paper size.");
+    panel1.add(paperSizeSelector);
     //figure out which string index matches, use first one (0) if no match
     int selected = 0;
     for (int i = 0; i < layouts.length; i++) {
@@ -1906,28 +1891,29 @@ private void configure(/*IniFile pConfigFile*/)
             selected = i;
         }
     }
-    layoutSelector.setSelectedIndex(selected);
-    layoutSelector.setActionCommand("Select Graph Print Layout");
-    layoutSelector.addActionListener(this);
+    paperSizeSelector.setSelectedIndex(selected);
+    paperSizeSelector.setActionCommand("Select Graph Print Layout");
+    paperSizeSelector.addActionListener(this);
 
-    String[] magnifyValues = {"Magnify 1.0", "Fit to Data", "Magnify 1.1",
-        "Magnify 1.2", "Magnify 1.3", "Magnify 1.4", "Magnify 1.5",
-        "Magnify 1.6", "Magnify 1.7", "Magnify 1.8", "Magnify 1.9",
-        "Magnify 2.0"};
+    panel1.add(Box.createRigidArea(new Dimension(0,2)));//vertical spacer    
+    
+    String[] printWidthValues = {"Maximum", " 5 ft", "10 ft", "15 ft", "20 ft",
+        "25 ft", "30 ft", "35 ft", "40 ft", "45 ft", "50 ft", "55 ft", "60 ft",
+        "65 ft", "70 ft"};
 
-    userMagnifySelector = new JComboBox<>(magnifyValues);
-    Viewer.setSizes(userMagnifySelector, 150, 25);
-    layoutSelector.setToolTipText("Select magnification.");
-    panel1.add(userMagnifySelector);
+    printWidthSelector = new JComboBox<>(printWidthValues);
+    Viewer.setSizes(printWidthSelector, 150, 25);
+    printWidthSelector.setToolTipText("Select print width.");
+    panel1.add(printWidthSelector);
     selected = 0;
-    for (int i = 0; i < magnifyValues.length; i++) {
-        if (settings.userPrintMagnify.equalsIgnoreCase(magnifyValues[i])) {
+    for (int i = 0; i < printWidthValues.length; i++) {
+        if (settings.userPrintWidth.equalsIgnoreCase(printWidthValues[i])) {
             selected = i;
         }
     }
-    userMagnifySelector.setSelectedIndex(selected);
-    userMagnifySelector.setActionCommand("Select Magnification");
-    userMagnifySelector.addActionListener(this);
+    printWidthSelector.setSelectedIndex(selected);
+    printWidthSelector.setActionCommand("Select Print Width");
+    printWidthSelector.addActionListener(this);
 
     printControls.add(panel1);
 
@@ -1991,8 +1977,8 @@ public void setEnabledButtonsThreadSafe(final boolean pState)
         first.setEnabled(pState); previous.setEnabled(pState);
         next.setEnabled(pState); last.setEnabled(pState);
         print.setEnabled(pState); printMultiple.setEnabled(pState);
-        layoutSelector.setEnabled(pState);
-        userMagnifySelector.setEnabled(pState);
+        paperSizeSelector.setEnabled(pState);
+        printWidthSelector.setEnabled(pState);
         calModeCheckBox.setEnabled(pState);
         load.setEnabled(pState); list.setEnabled(pState);
     });
@@ -2042,9 +2028,9 @@ public void actionPerformed(ActionEvent e)
         settings.graphPrintLayout = (String)cb.getSelectedItem();
         }
 
-    if ("Select Magnification".equals(e.getActionCommand())) {
+    if ("Select Print Width".equals(e.getActionCommand())) {
         JComboBox cb = (JComboBox)e.getSource();
-        settings.userPrintMagnify = (String)cb.getSelectedItem();
+        settings.userPrintWidth = (String)cb.getSelectedItem();
         }
 
 }//end of ViewerControlPanel::actionPerformed
