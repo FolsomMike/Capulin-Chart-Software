@@ -101,7 +101,7 @@ public class Channel extends Object{
     SyncedDouble softwareGain;
     SyncedInteger hardwareGain1, hardwareGain2;
     SyncedInteger dcOffset;
-    SyncedIntArray filter;
+    ArrayList<SyncedIntArray> filters;
     int rejectLevel;
 
     boolean bifurcatedScaleEnabled;
@@ -128,7 +128,7 @@ public class Channel extends Object{
     public double uSPerDataPoint;
     public double nSPerPixel; //used by outside classes
     public double uSPerPixel; //used by outside classes
-    String filterName = "";
+    ArrayList<String> filterNames;
     
     int firstGateEdgePos, lastGateEdgePos;
     boolean isWallChannel = false;
@@ -146,6 +146,8 @@ public class Channel extends Object{
     private BufferedReader in = null;
 
     static final int MAX_NUM_COEFFICIENTS = 31;
+
+    static final int NUM_FILTERS = 2;
     
 //-----------------------------------------------------------------------------
 // Channel::Channel (constructor)
@@ -184,7 +186,15 @@ public Channel(IniFile pConfigFile, Settings pSettings,
     dspControlFlags = new SyncedShortInt(syncedVarMgr); dspControlFlags.init();
     mode = new SyncedInteger(syncedVarMgr); mode.init();
     mode.setValue((int)UTBoard.POSITIVE_HALF, true);
-    filter = new SyncedIntArray(syncedVarMgr); filter.init();
+
+    filters = new ArrayList<>(NUM_FILTERS);
+    
+    for(int i=0; i<NUM_FILTERS; i++){
+        SyncedIntArray array;
+        filters.add(array = new SyncedIntArray(syncedVarMgr));
+        array.init();
+    }
+
     hardwareDelayFPGA =
                 new SyncedInteger(syncedVarMgr); hardwareDelayFPGA.init();
     hardwareDelayDSP =
@@ -193,6 +203,9 @@ public Channel(IniFile pConfigFile, Settings pSettings,
     hardwareRange = new SyncedInteger(syncedVarMgr); hardwareRange.init();
     aScanScale = new SyncedInteger(syncedVarMgr); aScanScale.init();
 
+    filterNames = new ArrayList<>(NUM_FILTERS);
+    for(int i=0; i< NUM_FILTERS; i++){ filterNames.add(""); }
+    
     //read the configuration file and create/setup the charting/control elements
     configure(configFile);
 
@@ -2881,7 +2894,7 @@ public int getGateMissCount(int pGate)
 // If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
 // the flag is false, the value(s) will be sent only if they have changed.
 //
-// Note: pWhichTuningValue is zero based -- 0 returns tuning value 1
+// Note: pWhichTuningValue is zero based -- 0 sets tuning value 1
 //
 
 public void setGateSigProcTuningValue(int pGate, int pWhichTuningValue,
@@ -2919,6 +2932,37 @@ public int getGateSigProcTuningValue(int pGate, int pWhichTuningValue)
     }
             
 }//end of Channel::getGateSigProcTuningValue
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::setGateFilterNum
+//
+// Sets the number of the filter used for the area defined by the gate.
+//
+// If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
+// the flag is false, the value(s) will be sent only if they have changed.
+//
+
+public void setGateFilterNum(int pGateNum, int pValue, boolean pForceUpdate)
+{
+
+    gates[pGateNum].filterNum.setValue(pValue, pForceUpdate);
+
+}//end of Channel::setGateFilterNum
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Channel::getGateFilterNum
+//
+// Returns the filter number for pGate.  See setGateFilterNum for more info.
+//
+
+public int getGateFilterNum(int pGateNum)
+{
+
+    return gates[pGateNum].filterNum.getValue();
+
+}//end of Channel::getGateFilterNum
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -3346,7 +3390,9 @@ public void sendDataChangesToRemotes()
 
     if (mode.getDataChangedFlag()) {sendMode();}
 
-    if (filter.getDataChangedFlag()) {sendFilter();}    
+    for(int i=0; i<NUM_FILTERS; i++){
+        if (filters.get(i).getDataChangedFlag()) {sendFilter(i);}
+    }
     
     if (hardwareDelayFPGA.getDataChangedFlag()) {sendHardwareDelayToFPGA();}
 
@@ -3474,25 +3520,26 @@ public void setAllDACGateDataChangedFlags(boolean pValue)
 //-----------------------------------------------------------------------------
 // Channel::setFilter
 //
-// Sets the digital signal filter to pFilterName. The values for the filter are
-// loaded from the text file with that name and are transmitted to the DSP.
+// Sets the digital signal filter specified by pFilterNum to pFilterName. The
+// values for the filter are loaded from the text file with that name and will
+// be transmitted to the DSP.
 //
 // If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
 // the flag is false, the value(s) will be sent only if they have changed.
 //
 
-public void setFilter(String pFilterName, boolean pForceUpdate)
+public void setFilter(int pFilterNum, String pFilterName, boolean pForceUpdate)
 {
     
-    if (!filterName.equals(pFilterName)) {pForceUpdate = true;}
+    if (!filterNames.get(pFilterNum).equals(pFilterName)) {pForceUpdate = true;}
 
     if (!pForceUpdate) {return;} //do nothing unless value change or forced
 
-    filterName = pFilterName;
+    filterNames.set(pFilterNum, pFilterName);
     
     int []newValues = loadFilter(pFilterName);
 
-    filter.setValues(newValues, pForceUpdate);
+    filters.get(pFilterNum).setValues(newValues, pForceUpdate);
     
 }//end of Channel::setFilter
 //-----------------------------------------------------------------------------
@@ -3500,13 +3547,13 @@ public void setFilter(String pFilterName, boolean pForceUpdate)
 //-----------------------------------------------------------------------------
 // Channel::getFilter
 //
-// Sets the digital signal filter name filterName.
+// Returns the digital signal filter name filterName for the selected filter.
 //
 
-public String getFilter()
+public String getFilter(int pFilterNum)
 {
 
-    return(filterName);
+    return(filterNames.get(pFilterNum));
         
 }//end of Channel::getFilter
 //-----------------------------------------------------------------------------
@@ -3543,7 +3590,7 @@ private int[] loadFilter(String pFilterName)
 
     ArrayList<String> dataFromFile = new ArrayList<>();
     
-    loadFromTextFile("filters\\"+ filterName + ".txt", dataFromFile);
+    loadFromTextFile("filters\\"+ pFilterName + ".txt", dataFromFile);
     
     return(parseFilterFileData(dataFromFile));
     
@@ -3861,13 +3908,13 @@ private void closeTextInFile()
 //-----------------------------------------------------------------------------
 // Channel::getFilterName
 //
-// Returns the name of the filter in use.
+// Returns the name of the filter in use for the specified filter.
 //
 
-public String getFilterName()
+public String getFilterName(int pFilterNum)
 {
 
-    return(filterName);
+    return(filterNames.get(pFilterNum));
 
 }//end of Channel::getFilterName
 //-----------------------------------------------------------------------------
@@ -3875,14 +3922,15 @@ public String getFilterName()
 //-----------------------------------------------------------------------------
 // Channel::sendFilter
 //
-// Sends the filter values to the DSP.
+// Sends the values for the specified filter to the DSP.
 //
 
-public void sendFilter()
+public void sendFilter(int pFilterNum)
 {
 
     if (utBoard != null) {
-        utBoard.sendFilter(boardChannel, filter.applyValues());
+        utBoard.sendFilter(
+              boardChannel, pFilterNum, filters.get(pFilterNum).applyValues());
     }
 
 }//end of Channel::sendFilter
@@ -3980,12 +4028,16 @@ public void loadCalFile(IniFile pCalFile)
     dacEnabled = pCalFile.readBoolean(section, "DAC Enabled", false);
     mode.setValue(pCalFile.readInt(section, "Signal Mode", 0), true);
     
-    filterName = pCalFile.readString(section,
-                                            "Signal Filter Name", "No Filter");
+    for(int i=0; i<NUM_FILTERS; i++){
     
-    filter.setValuesFromString(
-              pCalFile.readString(section, "Signal Filter Values", "0"), true);
-
+    filterNames.set(i, pCalFile.readString(section,
+                           "Signal Filter " + (i+1) + " Name", "No Filter"));
+    
+    filters.get(i).setValuesFromString(
+              pCalFile.readString(section, 
+                            "Signal Filter " + (i+1) + " Values", "0"), true);
+    }
+    
     //default previousMode to mode if previousMode has never been saved
     previousMode =
             pCalFile.readInt(section, "Previous Signal Mode", mode.getValue());
@@ -4046,9 +4098,13 @@ public void saveCalFile(IniFile pCalFile)
     pCalFile.writeBoolean(section, "DAC Enabled", dacEnabled);
     pCalFile.writeInt(section, "Signal Mode", mode.getValue());
     
-    pCalFile.writeString(section, "Signal Filter Name", filterName);
-    pCalFile.writeString(section, "Signal Filter Values", filter.toString());
-    
+    for(int i=0; i<NUM_FILTERS; i++){
+        pCalFile.writeString(section, 
+              "Signal Filter " + (i+1) + " Name", filterNames.get(i));
+        pCalFile.writeString(section, 
+              "Signal Filter " + (i+1) + " Values", filters.get(i).toString());
+    }
+
     pCalFile.writeInt(section, "Previous Signal Mode", previousMode);
     pCalFile.writeInt(section, "Reject Level", rejectLevel);
 

@@ -145,6 +145,7 @@ public class UTGate extends BasicGate{
     SyncedInteger gateHitCount;
     SyncedInteger gateMissCount;
     SyncedInteger sigProcTuning1, sigProcTuning2, sigProcTuning3;
+    SyncedInteger filterNum;
     public String signalProcessing = "undefined";
 
     // references to point at the controls used to adjust the values - these
@@ -155,6 +156,7 @@ public class UTGate extends BasicGate{
     public Object gateMissCountAdjuster;
     public Object processingSelector;
     public Object tuning1Adjuster, tuning2Adjuster, tuning3Adjuster;
+    public Object filterNumAdjuster;
     public Object signalFilterSelector;
   
     //constants
@@ -195,7 +197,8 @@ public void init()
     sigProcTuning1 = new SyncedInteger(syncedVarMgr); sigProcTuning1.init();
     sigProcTuning2 = new SyncedInteger(syncedVarMgr); sigProcTuning2.init();
     sigProcTuning3 = new SyncedInteger(syncedVarMgr); sigProcTuning3.init();
-
+    filterNum = new SyncedInteger(syncedVarMgr); filterNum.init();
+    
     violationInfo = new ViolationInfo(); violationInfo.init();
 
     //create list of process type which can be applied to the gates
@@ -1458,6 +1461,8 @@ public void loadCalFile(IniFile pCalFile)
     sigProcTuning3.setValue(
         pCalFile.readInt(section, "Signal Processing Tuning Value 3", 0), true);
 
+    filterNum.setValue(pCalFile.readInt(section, "Filter Number", 0), true);
+
     setSignalProcessing(
        pCalFile.readString(section, "Signal Processing Function", "undefined"));
 
@@ -1497,7 +1502,8 @@ public void saveCalFile(IniFile pCalFile)
                 "Signal Processing Tuning Value 2", sigProcTuning2.getValue());
     pCalFile.writeInt(section,
                 "Signal Processing Tuning Value 3", sigProcTuning3.getValue());
-    
+    pCalFile.writeInt(section,"Filter Number", filterNum.getValue());
+
     pCalFile.writeString(section, "Signal Processing Function",
                                                         getSignalProcessing());
 
@@ -1535,7 +1541,8 @@ public void saveCalFileHumanReadable(BufferedWriter pOut) throws IOException
     pOut.write(Settings.prePad("" + sigProcTuning1.getValue(), 12));
     pOut.write(Settings.prePad("" + sigProcTuning2.getValue(), 12));
     pOut.write(Settings.prePad("" + sigProcTuning3.getValue(), 12));    
-
+    pOut.write(Settings.prePad("" + filterNum.getValue(), 12));
+    
     pOut.newLine();
 
 }//end of UTGate::saveCalFileHumanReadable

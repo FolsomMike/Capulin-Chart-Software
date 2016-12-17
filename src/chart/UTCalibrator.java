@@ -614,7 +614,7 @@ numberOfDACGates = pSource.getNumberOfDACGates();
 
 UTGate sGate;
 
-//copy the gate info for all gates of the channels
+//copy the gate info for all gates of the channel
 for (int g = 0; g < numberOfGates; g++){
 
     sGate = pSource.getGate(g);
@@ -653,7 +653,10 @@ for (int g = 0; g < numberOfGates; g++){
     if(pCopyAll || itemCopySelected(sGate.tuning3Adjuster)) {
         pDestination.setGateSigProcTuningValue(
                          g, 2, pSource.getGateSigProcTuningValue(g, 2), false);
-    }            
+    }    
+    if(pCopyAll || itemCopySelected(sGate.filterNumAdjuster)) {
+          pDestination.setGateFilterNum(g, pSource.getGateFilterNum(g), false);
+    }
     
 }
 
@@ -706,8 +709,11 @@ if(pCopyAll || copyItemSelector.getItemState("AScan Smoothing")) {
 if(pCopyAll || copyItemSelector.getItemState("DC Offset")) {
         pDestination.setDCOffset(pSource.getDCOffset(), false);
     }
-if(pCopyAll || copyItemSelector.getItemState("Signal Filter Type")) {
-        pDestination.setFilter(pSource.getFilter(), false);
+if(pCopyAll || copyItemSelector.getItemState("Signal Filter 1 Type")) {
+        pDestination.setFilter(0, pSource.getFilter(0), false);
+    }
+if(pCopyAll || copyItemSelector.getItemState("Signal Filter 2 Type")) {
+        pDestination.setFilter(1, pSource.getFilter(1), false);
     }
 if(pCopyAll || copyItemSelector.getItemState("Wall Channel Tuning")) {
         pDestination.setWallTuning(pSource.getWallTuning());

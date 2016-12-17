@@ -168,8 +168,9 @@ public class UTControls extends JTabbedPane
     JPanel gatesTab, signalTab, wallTab, dacTab, chartTab, processTab;
     JPanel tuningTab, configTab, transducerTab;
 
-    JComboBox <String>filterComboBox;
-    
+    JComboBox <String>filter0ComboBox;
+    JComboBox <String>filter1ComboBox;
+
     Font blackFont, redFont;
 
     int gridYCount;
@@ -337,19 +338,19 @@ private void loadFilterList()
     //get a list of the files/folders in the directory
     String[] filters = filtersDir.list();
 
+    filterList = new ArrayList<>(20);
+
     if(filters == null){
-        filterList = new ArrayList<>(20);
         filterList.add("No Filters Available");
         return;
     }
-    
+
     //remove .txt from each file name for display
-    for (int i=0; i<filters.length; i++){        
-        filters[i] = filters[i].replace(".txt", "");        
+    for (int i=0; i<filters.length; i++){
+        filters[i] = filters[i].replace(".txt", "");
     }
-    
-    //create a list to hold the file/folder names
-    filterList = new ArrayList<>(20);
+
+    //add list of filters
     filterList.addAll(Arrays.asList(filters));
     //sort the items alphabetically
     Collections.sort(filterList);
@@ -850,17 +851,38 @@ void setupSignalTab()
     signalTab.add(panel1);
     signalTab.add(rectificationPanel);
 
-    filterComboBox = 
-            new JComboBox<>(filterList.toArray(new String[filterList.size()]));    
+    JComboBox <String>jcb;
     
-    JComboBox <String>jcb = filterComboBox; //use a short name
+    filter0ComboBox = 
+          new JComboBox<>(filterList.toArray(new String[filterList.size()]));    
+        
+    jcb = filter0ComboBox; //use a short name
     
     setSizes(jcb, 400, 25);
     jcb.setAlignmentX(Component.LEFT_ALIGNMENT);
-    jcb.setSelectedIndex(getFilterIndex());
-    jcb.setActionCommand("Signal Filtering");
+    jcb.setSelectedIndex(getFilterIndex(0));
+    jcb.setName("Signal Filter 1 Type");    
+    jcb.setToolTipText("Signal Filter 1 Type");
+    jcb.setActionCommand("Signal Filtering 1");
     jcb.addActionListener(this);
-    jcb.setName("Signal Filter Type");
+    jcb.addMouseListener(this);
+
+    signalTab.add(jcb);
+
+    signalTab.add(Box.createRigidArea(new Dimension(0,3))); //vertical spacer
+    
+    filter1ComboBox =
+          new JComboBox<>(filterList.toArray(new String[filterList.size()]));
+
+    jcb = filter1ComboBox; //use a short name
+
+    setSizes(jcb, 400, 25);
+    jcb.setAlignmentX(Component.LEFT_ALIGNMENT);
+    jcb.setSelectedIndex(getFilterIndex(1));
+    jcb.setName("Signal Filter 2 Type");    
+    jcb.setToolTipText("Signal Filter 2 Type");    
+    jcb.setActionCommand("Signal Filtering 2");
+    jcb.addActionListener(this);
     jcb.addMouseListener(this);
 
     signalTab.add(jcb);
@@ -871,15 +893,17 @@ void setupSignalTab()
 //-----------------------------------------------------------------------------
 // UTControls::getFilterIndex
 //
-// Returns the index in the filter list of the current channel's selected
-// filter.
+// For the specified filter, the index in the filter list of the current
+// channel's currently selected filter.
 //
 
-public int getFilterIndex()
+public int getFilterIndex(int pFilterNum)
 {
     
     //find the index of the current channel's filter name
-    int index = filterList.indexOf(currentChannel.getFilterName());
+    int index;
+
+    index = filterList.indexOf(currentChannel.getFilterName(pFilterNum));
 
     //if not found, index will be -1, set to 0 (the first item in the list
     if (index == -1) {index = 0;}
@@ -1440,7 +1464,32 @@ void setupTuningTab()
     }// for (int i=0; i < gridYCount; i++){
 
     tuningTab.add(tuningValue3Panel);
-    
+
+    //Filter Number, create row for each gate plus header
+    JPanel filterNumPanel = new JPanel();
+    filterNumPanel.setLayout(new GridLayout(gridYCount+1, 1, 10, 5));
+    //add the row title header
+    label = new JLabel("Filter");
+    label.setToolTipText("Filter Number used by Gate");
+    filterNumPanel.add(label);
+
+    for (int i=0; i < gridYCount; i++){
+        //add controls for each gate
+        if (i < numberOfGates){
+
+            gate = currentChannel.getGate(i);
+
+            sp = new SpinnerPanel(currentChannel.getGateFilterNum(i) + 1, 1, 2,
+                1, "##0", 35, -1, "", "", gate.title + " Filter Number", this);
+            sp.spinner.addChangeListener(this); //monitor changes to value
+            filterNumPanel.add(sp);
+            //save a pointer to this adjuster in the gate object
+            gate.filterNumAdjuster = sp.spinner;
+        }
+        else{filterNumPanel.add(new JLabel(""));}
+    }// for (int i=0; i < gridYCount; i++){
+
+    tuningTab.add(filterNumPanel);
    
     //add invisible filler push everything to the left
     tuningTab.add(Box.createHorizontalGlue());
@@ -2208,7 +2257,10 @@ public void updateAllSettings(boolean pForceUpdate)
         
         ch.setGateSigProcTuningValue(i, 2,
           ((MFloatSpinner) gate.tuning3Adjuster).getIntValue(), pForceUpdate);
-                
+  
+        ch.setGateFilterNum(i,
+        ((MFloatSpinner) gate.filterNumAdjuster).getIntValue()-1, pForceUpdate);
+          
         //not all gates have a trigger check box (such as interface gates), so
         //check for null before using
 
@@ -2240,7 +2292,9 @@ public void updateAllSettings(boolean pForceUpdate)
     if (displayMode != UTBoard.CHANNEL_OFF) {ch.previousMode = displayMode;}
     setChannelSelectorColor(ch);
 
-    ch.setFilter((String)(filterComboBox.getSelectedItem()), pForceUpdate);
+    ch.setFilter(0, (String)(filter0ComboBox.getSelectedItem()), pForceUpdate);
+    
+    ch.setFilter(1, (String)(filter1ComboBox.getSelectedItem()), pForceUpdate);    
     
     //always set range after setting gate position or width, delay and interface
     //tracking as these affect the range

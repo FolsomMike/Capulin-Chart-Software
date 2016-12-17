@@ -694,7 +694,7 @@ public int getNextMinWallValueRandom()
 
     //occasional down spike
     if(((int)(Math.random()*200)) == 1) {
-        wall -= (int)(Math.random()* tof * .30);
+//debug mks         wall -= (int)(Math.random()* tof * .30);
     }
     
     return(wall);
