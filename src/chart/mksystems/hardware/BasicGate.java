@@ -88,6 +88,7 @@ public class BasicGate extends Object{
     static int GATE_APPLY_SIGNAL_AVERAGING = 0x2000;
     static int GATE_CHECK_FOR_CROSSING_A = 0x4000;
     static int GATE_CHECK_FOR_CROSSING_B = 0x8000;
+    static int GATE_USES_FILTER1 = 0x00010000;
 
     // references to point at the controls used to adjust the values - these
     // references are set up by the object which handles the adjusters and used

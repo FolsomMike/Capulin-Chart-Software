@@ -2033,8 +2033,10 @@ public void fillRAM(int pDSPChip, int pDSPCore,
 //
 // A maximum of 127 words can be retrieved.
 //
+// Returns true if data was received, false if no response from remote.
+//
 
-public void readRAM(int pDSPChip, int pDSPCore, int pRAMType,
+public boolean readRAM(int pDSPChip, int pDSPCore, int pRAMType,
                    int pPage, int pAddress, int pCount, byte[] dataBlock)
 {
 
@@ -2076,6 +2078,8 @@ public void readRAM(int pDSPChip, int pDSPCore, int pRAMType,
     while(!readDSPDone && timeOutRead++ < TIMEOUT ){waitSleep(10);}
 
     System.arraycopy(readDSPResult, 0, dataBlock, 0, pCount * 2);
+
+    return(timeOutRead < TIMEOUT);
 
 }//end of UTBoard::readRAM
 //-----------------------------------------------------------------------------
@@ -2894,9 +2898,11 @@ public void sendGateFlags(int pChannel, int pGate, int pFlags)
 
     sendChannelParam(pChannel, (byte) DSP_SET_GATE_FLAGS,
                (byte)pGate,
-               (byte)((pFlags >> 8) & 0xff),
+               (byte)((pFlags >> 24) & 0xff),
+               (byte)((pFlags >> 16) & 0xff),
+               (byte)((pFlags >>  8) & 0xff),
                (byte)(pFlags & 0xff),
-               (byte)0, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0);
+               (byte)0, (byte)0, (byte)0, (byte)0);
 
 }//end of UTBoard::sendGateFlags
 //-----------------------------------------------------------------------------
@@ -3205,6 +3211,16 @@ void sendFilterABSPreProcessingMode(int pChannel, int pMode)
 // If the filter array is empty (a single element set to zero), the array size
 // zero will be sent with a zero bit shift value. No coefficients will be sent.
 //
+// The data is stored in the pFilter array:
+//
+//  byte 0: number of coefficients
+//  byte 1: result scaling shift number of bits
+//  byte 2: preprocessing mode (none, abs value, etc.)
+//  byte 3: coefficient 1
+//  byte 4: coefficient 2
+//  ...
+//  byte ?: coefficient ?
+//
 
 void sendFilter(int pChannel, int pFilterNum, int[]pFilter)
 {
@@ -3236,7 +3252,7 @@ void sendFilter(int pChannel, int pFilterNum, int[]pFilter)
     
     //send the coefficients four at a time using multiple calls
     
-    int i = 2; int length = pFilter.length;
+    int i = 3; int length = pFilter.length;
     int val1, val2, val3, val4;
     
     while(i < length){
@@ -3247,7 +3263,10 @@ void sendFilter(int pChannel, int pFilterNum, int[]pFilter)
         if(i<length){ val2 = pFilter[i++];}
         if(i<length){ val3 = pFilter[i++];}
         if(i<length){ val4 = pFilter[i++];}
-        
+
+        //combine filter number with packet number
+        pktType = (byte)((filterNum << 6) | pktNum);
+
         sendChannelParam(pChannel, (byte) DSP_SET_FILTER,
             (byte)pktType,
             (byte)((val1 >> 8) & 0xff), (byte)(val1 & 0xff),

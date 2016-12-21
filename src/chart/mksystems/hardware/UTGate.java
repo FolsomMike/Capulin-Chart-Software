@@ -67,6 +67,7 @@ public class UTGate extends BasicGate{
     boolean isFlawGate = false;
     boolean isCrossingCheckGateA = false;
     boolean isCrossingCheckGateB = false;
+    boolean usesFilter1 = false;
     boolean maxMin = false;
     boolean doCrossingSearch = false;
     boolean reportNotExceeding = false;
@@ -226,7 +227,7 @@ public void init()
     wallGateProcessList.add("center of dual peaks");
     
     //set the gate active flag for each gate
-    setActive(true);
+    setActive(true, true);
 
 }//end of UTGate::init
 //-----------------------------------------------------------------------------
@@ -347,8 +348,11 @@ public void getAndClearAScanPeak(Xfer pAScanPeakInfo)
 // Does not send the flag to the DSP, but the data changed flag for the value
 // will be set so the change can be sent later.
 //
+// If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
+// the flag is false, the value(s) will be sent only if they have changed.
+//
 
-private void setFlags()
+private void setFlags(boolean pForceUpdate)
 {
 
     int flags = 0;
@@ -467,7 +471,14 @@ private void setFlags()
         flags &= (~GATE_CHECK_FOR_CROSSING_B);
     }
 
-    gateFlags.setValue(flags, true);
+    if (usesFilter1) {
+        flags |= GATE_USES_FILTER1;
+    }
+    else {
+        flags &= (~GATE_USES_FILTER1);
+    }
+    
+    gateFlags.setValue(flags, pForceUpdate);
 
 }//end of UTGate::setFlags
 //-----------------------------------------------------------------------------
@@ -608,7 +619,7 @@ public Trace getTrace()
 // Does not set the flags in the DSP.
 //
 
-public void setSignalProcessing(String pMode)
+public void setSignalProcessing(String pMode, boolean pForceUpdate)
 {
 
     //get the signal processing list for the gate type
@@ -709,7 +720,7 @@ public void setSignalProcessing(String pMode)
     }
 
     //update the flags to reflect the change
-    setFlags();
+    setFlags(pForceUpdate);
 
 }//end of UTGate::setSignalProcessing
 //-----------------------------------------------------------------------------
@@ -799,13 +810,13 @@ public ArrayList<String> getSigProcList()
 // Does not set the flag in the DSP.
 //
 
-public final void setActive(boolean pValue)
+public final void setActive(boolean pValue, boolean pForceUpdate)
 {
 
     gateActive = pValue;
 
     //update the flags to reflect the change
-    setFlags();
+    setFlags(pForceUpdate);
 
 }//end of UTGate::setActive
 //-----------------------------------------------------------------------------
@@ -819,13 +830,13 @@ public final void setActive(boolean pValue)
 // Does not set the flag in the DSP.
 //
 
-public final void setAScanSmoothing(int pAScanSmoothing)
+public final void setAScanSmoothing(int pAScanSmoothing, boolean pForceUpdate)
 {
 
     aScanSmoothing = pAScanSmoothing;
 
     //update the flags to reflect the change
-    setFlags();
+    setFlags(pForceUpdate);
 
 }//end of UTGate::setAScanSmoothing
 //-----------------------------------------------------------------------------
@@ -843,7 +854,7 @@ public final void setAScanSmoothing(int pAScanSmoothing)
 // Does not set the flag in the DSP.
 //
 
-public void setMaxMin(boolean pOn)
+public void setMaxMin(boolean pOn, boolean pForceUpdate)
 {
 
     maxMin = pOn;
@@ -858,7 +869,7 @@ public void setMaxMin(boolean pOn)
     }
 
     //update the flags to reflect the change
-    setFlags();
+    setFlags(pForceUpdate);
 
 }//end of UTGate::setMaxMin
 //-----------------------------------------------------------------------------
@@ -898,7 +909,7 @@ public void setWallStart(boolean pOn)
     isWallStartGate = pOn;
 
     //update the flags to reflect the change
-    setFlags();
+    setFlags(true);
 
 }//end of UTGate::setWallStart
 //-----------------------------------------------------------------------------
@@ -936,7 +947,7 @@ public void setWallEnd(boolean pOn)
     isWallEndGate = pOn;
 
     //update the flags to reflect the change
-    setFlags();
+    setFlags(true);
 
 }//end of UTGate::setWallEnd
 //-----------------------------------------------------------------------------
@@ -972,7 +983,7 @@ public void setCrossingSearch(boolean pOn)
     doCrossingSearch = pOn;
 
     //update the flags to reflect the change
-    setFlags();
+    setFlags(true);
 
 }//end of UTGate::setCrossingSearch
 //-----------------------------------------------------------------------------
@@ -995,7 +1006,7 @@ public void setInterfaceGate(boolean pOn)
     isInterfaceGate = pOn;
 
     //update the flags to reflect the change
-    setFlags();
+    setFlags(true);
 
 }//end of UTGate::setInterfaceGate
 //-----------------------------------------------------------------------------
@@ -1029,7 +1040,7 @@ public void setFlawGate(boolean pOn)
     isFlawGate = pOn;
 
     //update the flags to reflect the change
-    setFlags();
+    setFlags(true);
 
 }//end of UTGate::setFlawGate
 //-----------------------------------------------------------------------------
@@ -1063,7 +1074,7 @@ public void setCrossingCheckGateA(boolean pOn)
     isCrossingCheckGateA = pOn;
 
     //update the flags to reflect the change
-    setFlags();
+    setFlags(true);
 
 }//end of UTGate::setCrossingCheckGateA
 //-----------------------------------------------------------------------------
@@ -1082,7 +1093,7 @@ public void setCrossingCheckGateB(boolean pOn)
     isCrossingCheckGateB = pOn;
 
     //update the flags to reflect the change
-    setFlags();
+    setFlags(true);
 
 }//end of UTGate::setCrossingCheckGateB
 //-----------------------------------------------------------------------------
@@ -1103,7 +1114,7 @@ public void setFindPeak(boolean pOn)
     doFindPeak = pOn;
 
     //update the flags to reflect the change
-    setFlags();
+    setFlags(true);
 
 }//end of UTGate::setFindPeak
 //-----------------------------------------------------------------------------
@@ -1123,7 +1134,7 @@ public void setIntegrateAboveGate(boolean pOn)
     doIntegrateAboveGate = pOn;
 
     //update the flags to reflect the change
-    setFlags();
+    setFlags(true);
 
 }//end of UTGate::setIntegrateAboveGate
 //-----------------------------------------------------------------------------
@@ -1146,7 +1157,7 @@ public void setFindDualPeakCenter(boolean pState)
     doFindDualPeakCenter = pState;
 
     //update the flags to reflect the change
-    setFlags();
+    setFlags(true);
 
 }//end of UTGate::setFindDualPeakCenter
 //-----------------------------------------------------------------------------
@@ -1169,7 +1180,7 @@ public void setDoSignalAveraging(boolean pState)
     doSignalAveraging = pState;
 
     //update the flags to reflect the change
-    setFlags();
+    setFlags(true);
 
 }//end of UTGate::setDoSignalAveraging
 //-----------------------------------------------------------------------------
@@ -1190,7 +1201,7 @@ public void setQuenchOnOverLimit(boolean pOn)
     doQuenchOnOverLimit = pOn;
 
     //update the flags to reflect the change
-    setFlags();
+    setFlags(true);
 
 }//end of UTGate::setQuenchOnOverLimit
 //-----------------------------------------------------------------------------
@@ -1209,7 +1220,7 @@ public final void setAScanTriggerGate(boolean pValue)
     isAScanTriggerGate = pValue;
 
     //update the flags to reflect the change
-    setFlags();
+    setFlags(true);
 
 }//end of UTGate::setAScanTriggerGate
 //-----------------------------------------------------------------------------
@@ -1243,9 +1254,37 @@ public void setInterfaceTracking(boolean pOn)
     doInterfaceTracking = pOn;
 
     //update the flags to reflect the change
-    setFlags();
+    setFlags(true);
 
 }//end of UTGate::setInterfaceTracking
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTGate::setFilterNum
+//
+// Stores the filter number and updates the flags variable to reflect any
+// change.
+//
+// Currently each channel only handles two filters 0 and 1. If the filter
+// number is set to 0, the usesFilter1 flag is set false. If set to 1, then
+// usesFilter1 is set true. This will cause the GATE_USES_FILTER1 flag to be
+// set accordingly before flags are sent to the DSPs.
+//
+// If pForceUpdate is true, the value(s) will always be sent to the DSP.  If
+// the flag is false, the value(s) will be sent only if they have changed.
+//
+
+public void setFilterNum(int pFilterNum, boolean pForceUpdate)
+{
+
+    filterNum.setValue(pFilterNum, pForceUpdate);
+
+    if(pFilterNum == 1) { usesFilter1 = true; } else { usesFilter1 = false; }
+
+    //update the flags to reflect the change
+    setFlags(pForceUpdate);
+
+}//end of UTGate::setFilterNum
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -1321,7 +1360,7 @@ public void configure(IniFile pConfigFile, int pHeadNum, int pChannelNum)
     triggerDirection = pConfigFile.readInt(whichGate, "Trigger Direction", 0);
     
     peakDirection = pConfigFile.readInt(whichGate, "Peak Direction", 0);
-    setMaxMin((peakDirection == MAX));
+    setMaxMin((peakDirection == MAX), true);
 
     chartGroup = pConfigFile.readInt(whichGate, "Chart Group", 0) - 1;
 
@@ -1463,8 +1502,10 @@ public void loadCalFile(IniFile pCalFile)
 
     filterNum.setValue(pCalFile.readInt(section, "Filter Number", 0), true);
 
-    setSignalProcessing(
-       pCalFile.readString(section, "Signal Processing Function", "undefined"));
+    setSignalProcessing(pCalFile.readString(
+                    section, "Signal Processing Function", "undefined"), true);
+
+    setFlags(true); //update all function flags
 
 }//end of UTGate::loadCalFile
 //-----------------------------------------------------------------------------

@@ -1456,7 +1456,7 @@ public void setAScanSmoothing(int pAScanSmoothing, boolean pForceUpdate)
 
         //update all gates with new averaging value
         for (int i = 0; i < numberOfGates; i++) {
-            gates[i].setAScanSmoothing(pAScanSmoothing);
+            gates[i].setAScanSmoothing(pAScanSmoothing, pForceUpdate);
         }
 
     }
@@ -2946,7 +2946,7 @@ public int getGateSigProcTuningValue(int pGate, int pWhichTuningValue)
 public void setGateFilterNum(int pGateNum, int pValue, boolean pForceUpdate)
 {
 
-    gates[pGateNum].filterNum.setValue(pValue, pForceUpdate);
+    gates[pGateNum].setFilterNum(pValue, pForceUpdate);
 
 }//end of Channel::setGateFilterNum
 //-----------------------------------------------------------------------------
@@ -2981,7 +2981,7 @@ public void setGateSigProc(int pGate, String pMode, boolean pForceUpdate)
 
     if (!pForceUpdate) {return;} //do nothing unless value change or forced
 
-    gates[pGate].setSignalProcessing(pMode);
+    gates[pGate].setSignalProcessing(pMode, pForceUpdate);
 
 }//end of Channel::setGateSigProc
 //-----------------------------------------------------------------------------
