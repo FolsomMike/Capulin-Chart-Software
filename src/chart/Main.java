@@ -1337,6 +1337,12 @@ public final void handleSizeChanges()
 public void actionPerformed(ActionEvent e)
 {
 
+    //handle timer calls
+    if ("Timer".equals(e.getActionCommand())) {
+        processMainTimerEvent();
+        return;
+    }
+        
     //this part handles saving all data
     if ("Save".equals(e.getActionCommand())) {
         if(isConfigGoodA()) {saveEverything();}
@@ -1356,7 +1362,7 @@ public void actionPerformed(ActionEvent e)
     }
 
     //this part handles saving current settings to a preset
-    if ("Copy Preset From Job".equals(e.getActionCommand())) {
+    if ("Copy From Another Job".equals(e.getActionCommand())) {
         if(isConfigGoodA()) {copyPreset();}
         return;
     }
@@ -1367,8 +1373,8 @@ public void actionPerformed(ActionEvent e)
         return;
     }
 
-    //this part handles switching to a different preset
-    if ("Change Preset".equals(e.getActionCommand())) {
+    //this part handles loading a preset
+    if ("Load Preset".equals(e.getActionCommand())) {
         if(isConfigGoodA()) {changePreset();}
         return;
     }
@@ -1399,7 +1405,7 @@ public void actionPerformed(ActionEvent e)
     if ("Status".equals(e.getActionCommand())) {logStatus();}
 
     //this part opens a viewer window for viewing saved segments
-    if ("Open Viewer".equals(e.getActionCommand())) {
+    if (e.getActionCommand().startsWith("View Chart of a Completed")) {
 
         if(isConfigGoodA()) {
             Viewer viewer;
@@ -1413,7 +1419,8 @@ public void actionPerformed(ActionEvent e)
 
     //this part creates a Viewer Program package for viewing job data on any
     //computer
-    if ("Create Viewer Package".equals(e.getActionCommand())) {
+    if ("Create Viewer Package for Viewing on Any Computer".equals(
+                                                       e.getActionCommand())) {
 
         //read values passed to viewerCreate from config file
 
@@ -1459,7 +1466,7 @@ public void actionPerformed(ActionEvent e)
     }
 
     //this part handles starting the encoder calibrator
-    if ("Calibrate Encoders".equals(e.getActionCommand())) {
+    if ("Encoders".equals(e.getActionCommand())) {
         encoderCalibrator.setVisible(true);
         hardware.startMonitor();
         return;
@@ -1484,7 +1491,7 @@ public void actionPerformed(ActionEvent e)
     }
 
     //this part handles opening the piece Identifier Info window
-    if ("Show ID Info Window".equals(e.getActionCommand())) {
+    if ("View / Edit Identifier Info".equals(e.getActionCommand())) {
         if(isConfigGoodA()) {pieceIDInfo.setVisible(true);}
         return;
     }
@@ -1623,9 +1630,6 @@ public void actionPerformed(ActionEvent e)
         settings.setCalibrationWindowAlternateLocation(
                     calWindow.getLocation().x, calWindow.getLocation().y);
     }
-        
-    //handle timer calls
-    if ("Timer".equals(e.getActionCommand())) {processMainTimerEvent();}
 
 }//end of MainWindow::actionPerformed
 //-----------------------------------------------------------------------------

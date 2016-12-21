@@ -382,185 +382,15 @@ public void actionPerformed(ActionEvent e)
         setLanguage("Spanish");
     }
 
-    //calls function in Main
-    if (source.getToolTipText().equalsIgnoreCase("Job Info")){
-        actionListener.actionPerformed(
-              new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Job Info"));
-        return;
-    }
-
-    //calls function in Main
-    if (source.getToolTipText().equalsIgnoreCase("Save")){
-        actionListener.actionPerformed(
-                 new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Save"));
-        return;
-    }
-
-    //calls function in Main
-    if (source.getToolTipText().equalsIgnoreCase("New Job")){
-        actionListener.actionPerformed(
-               new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "New Job"));
-        return;
-    }
-
-    //calls function in Main
-    if (source.getToolTipText().equalsIgnoreCase("Change to a different job.")){
-        actionListener.actionPerformed(
-            new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Change Job"));
-        return;
-    }
-
-    //calls function in Main
-    if (source.getToolTipText().equalsIgnoreCase(
-                                       "Copy settings from a different job.")){
-        actionListener.actionPerformed(new ActionEvent(
-                  this, ActionEvent.ACTION_PERFORMED, "Copy Preset From Job"));
-        return;
-    }
-
-    //calls function in Main
-    if (source.getToolTipText().equalsIgnoreCase(
-                                        "Save current settings as a preset.")){
-        actionListener.actionPerformed(
-           new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Save Preset"));
-        return;
-    }
-
-    //calls function in Main
-    if (source.getToolTipText().equalsIgnoreCase(
-                                         "Load new settings from a preset.")){
-        actionListener.actionPerformed(
-         new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Change Preset"));
-        return;
-    }
-
-    //calls function in Main
-    if (source.getToolTipText().equalsIgnoreCase(
-                                              "Rename the selected preset.")){
-        actionListener.actionPerformed(
-         new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Rename Preset"));
-        return;
-    }
-
-    //calls function in Main
-    if (source.getToolTipText().equalsIgnoreCase("Delete a preset.")){
-        actionListener.actionPerformed(
-         new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Delete Preset"));
-        return;
-    }
-
-    //calls function in Main
-    if (source.getToolTipText().equalsIgnoreCase("Monitor")){
-        actionListener.actionPerformed(
-               new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Monitor"));
-        return;
-    }
-
-    //sets a variable in Settings
-    if (source.getActionCommand().equalsIgnoreCase(
-                                         "Show Peak Symbol at Peak Location")){
-        showPseudoPeakAtPeakLocation =
-                             ((JCheckBoxMenuItem)(e.getSource())).isSelected();
-        return;
-    }
-        
-    //calls function in Main
-    if (source.getActionCommand().equalsIgnoreCase("Encoders")){
-        actionListener.actionPerformed(new ActionEvent(
-                  this, ActionEvent.ACTION_PERFORMED, "Calibrate Encoders"));
-        return;
-    }
-
-    //calls function in Main
-    if (source.getActionCommand().equalsIgnoreCase("Set Up Jack Stands")){
-        actionListener.actionPerformed(new ActionEvent(
-                  this, ActionEvent.ACTION_PERFORMED, "Set Up Jack Stands"));
-        return;
-    }
-        
-    //calls function in Main
-    if (source.getActionCommand().equalsIgnoreCase("Repair Job")){
-        actionListener.actionPerformed(
-            new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Repair Job"));
-        return;
-    }
-
-    //calls function in Main
-    if (source.getActionCommand().equalsIgnoreCase("Update UT Rabbit Code")){
-        actionListener.actionPerformed(new ActionEvent(
-               this, ActionEvent.ACTION_PERFORMED, source.getActionCommand()));
-        return;
-    }
-
-    //calls function in Main
-    if (source.getActionCommand().equalsIgnoreCase(
-                                        "Update Control Rabbit Code")){
-        actionListener.actionPerformed(new ActionEvent(
-               this, ActionEvent.ACTION_PERFORMED, source.getActionCommand()));
-        return;
-    }
-
-    //calls function in Main
-    if (source.getActionCommand().equalsIgnoreCase("Set Up System")){
-        actionListener.actionPerformed(
-         new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Set Up System"));
-        return;
-    }
-
-    //calls function in Main
-    if (source.getActionCommand().equalsIgnoreCase("Renew License")){
-        actionListener.actionPerformed(
-         new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Renew License"));
-        return;
-    }
-
-    //calls function in Main
-    if (source.getActionCommand().equalsIgnoreCase("Log")){
-        actionListener.actionPerformed(
-                   new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Log"));
-        return;
-    }
-
-    //calls function in Main
-    if (source.getActionCommand().equalsIgnoreCase("Status")){
-        actionListener.actionPerformed(
-                new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Status"));
-        return;
-    }
-
-    //calls function in Main
-    if (source.getActionCommand().startsWith("View Chart of a Completed")){
-        actionListener.actionPerformed(
-           new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Open Viewer"));
-        return;
-    }
-
-    //calls function in Main
-    if (source.getActionCommand().startsWith("View / Edit Identifier Info")){
-        actionListener.actionPerformed(new ActionEvent(
-                   this, ActionEvent.ACTION_PERFORMED, "Show ID Info Window"));
-        return;
-    }
-
-    //calls function in Main
-    if (source.getActionCommand().
-            startsWith("Create Viewer Package for Viewing on Any Computer")){
-        actionListener.actionPerformed(new ActionEvent(
-                 this, ActionEvent.ACTION_PERFORMED, "Create Viewer Package"));
-        return;
-    }
-
-
-    //calls function in Main
-    if (source.getActionCommand().startsWith("About")){
-        actionListener.actionPerformed(
-                 new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "About"));
-        return;
-    }
-
-    if (source.getActionCommand().startsWith("Display Configuration Info")){
-        actionListener.actionPerformed(new ActionEvent(
-            this, ActionEvent.ACTION_PERFORMED, "Display Configuration Info"));
+    String cmd = source.getActionCommand();
+    
+    if (source.getToolTipText().equalsIgnoreCase("Exit")){
+        //set a flag that lets the mainTimer event close the program - this
+        //allows the timer to make sure everything is ok to close - disposing of
+        //the main window arbitrarily can crash the program because the timer
+        //will still be running and will try to access objects as they are
+        //destroyed
+        beginExitProgram = true;
         return;
     }
 
@@ -595,67 +425,18 @@ public void actionPerformed(ActionEvent e)
                              ((JCheckBoxMenuItem)(e.getSource())).isSelected();
         return;
     }
-
+    
     //sets a variable in Settings
     if (source.getActionCommand().equalsIgnoreCase("Report All Flags")){
         reportAllFlags = ((JCheckBoxMenuItem)(e.getSource())).isSelected();
         return;
     }
-
-    //calls function in Main
-    if (source.getActionCommand().
-                     startsWith("Print Flag Report for Last Piece Inspected")){
-        actionListener.actionPerformed(
-                            new ActionEvent(this, ActionEvent.ACTION_PERFORMED,
-                                "Print Flag Report for Last Piece Inspected"));
-        return;
-    }
-
-    //calls function in Main
-    if (source.getActionCommand().
-                        startsWith("Print Flag Report for User Selection")){
-        actionListener.actionPerformed(
-                            new ActionEvent(this, ActionEvent.ACTION_PERFORMED,
-                                      "Print Flag Report for User Selection"));
-        return;
-    }
-
-    //calls function in Main
-    if (source.getActionCommand().
-                        startsWith("View Calibration Records")){
-        actionListener.actionPerformed(new ActionEvent(this,
-                    ActionEvent.ACTION_PERFORMED, "View Calibration Records"));
-        return;
-    }
-
-    //calls function in Main
-    if (source.getActionCommand().startsWith(
-                          "Set Primary Location for Calibration Window")){
-        actionListener.actionPerformed(new ActionEvent(this,
-                    ActionEvent.ACTION_PERFORMED, 
-                                "Set Primary Location for Calibration Window"));
-        return;
-    }
-        
-    //calls function in Main
-    if (source.getActionCommand().startsWith(
-                          "Set Alternate Location for Calibration Window")){
-        actionListener.actionPerformed(new ActionEvent(this,
-                    ActionEvent.ACTION_PERFORMED, 
-                    "Set Alternate Location for Calibration Window"));
-        return;
-    }
-
-    if (source.getToolTipText().equalsIgnoreCase("Exit")){
-        //set a flag that lets the mainTimer event close the program - this
-        //allows the timer to make sure everything is ok to close - disposing of
-        //the main window arbitrarily can crash the program because the timer
-        //will still be running and will try to access objects as they are
-        //destroyed
-        beginExitProgram = true;
-        return;
-    }
-
+    
+    //pass all action commands not handled above to the actionListener
+    
+    actionListener.actionPerformed(new ActionEvent(
+               this, ActionEvent.ACTION_PERFORMED, source.getActionCommand()));
+               
 }//end of Settings::actionPerformed
 //-----------------------------------------------------------------------------
 
