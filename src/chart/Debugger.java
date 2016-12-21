@@ -71,7 +71,7 @@ class Debugger extends JDialog implements ActionListener, WindowListener {
     //it should be adjusted whenever the buffer moves in memory due to adding
     //more variables
     
-    private static final int DSP_REGISTER_BUFFER_ADDR = 0x02c7;
+    private static final int DSP_REGISTER_BUFFER_ADDR = 0x02cc;
 
     private static final byte DSP_HALTED_FLAG = 0x01;
     
@@ -99,7 +99,7 @@ public Debugger(JFrame frame, Hardware pHardware)
 public void init()
 {
 
-        dataBlock = new byte[DATABLOCK_SIZE];
+    dataBlock = new byte[DATABLOCK_SIZE];
 
     JPanel p, p2;
     JButton b;
@@ -534,39 +534,39 @@ private JPanel createRegisterPanel()
     JTextField tf;
         
     registerPanel.add(new JLabel("Debug"));
-    registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);
+    registerPanel.add(tf = new JTextField("")); rf.add(tf);
     registerPanel.add(new JLabel("A"));
-    registerPanel.add(tf = new JTextField("0x4ffff")); rf.add(tf);
+    registerPanel.add(tf = new JTextField("")); rf.add(tf);
     registerPanel.add(new JLabel("B"));
-    registerPanel.add(tf = new JTextField("0x4ffff")); rf.add(tf);
+    registerPanel.add(tf = new JTextField("")); rf.add(tf);
     registerPanel.add(new JLabel("T"));
-    registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);
+    registerPanel.add(tf = new JTextField("")); rf.add(tf);
     registerPanel.add(new JLabel("ST0"));
-    registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);
+    registerPanel.add(tf = new JTextField("")); rf.add(tf);
     registerPanel.add(new JLabel("ST1"));
-    registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);
+    registerPanel.add(tf = new JTextField("")); rf.add(tf);
     registerPanel.add(new JLabel("PMST"));
-    registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);
+    registerPanel.add(tf = new JTextField("")); rf.add(tf);
     registerPanel.add(new JLabel("BRC"));
-    registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);    
-    registerPanel.add(new JLabel("SP"));    
-    registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);    
+    registerPanel.add(tf = new JTextField("")); rf.add(tf);
+    registerPanel.add(new JLabel("SP"));
+    registerPanel.add(tf = new JTextField("")); rf.add(tf);
     registerPanel.add(new JLabel("AR0"));
-    registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);
+    registerPanel.add(tf = new JTextField("")); rf.add(tf);
     registerPanel.add(new JLabel("AR1"));
-    registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);
+    registerPanel.add(tf = new JTextField("")); rf.add(tf);
     registerPanel.add(new JLabel("AR2"));
-    registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);
+    registerPanel.add(tf = new JTextField("")); rf.add(tf);
     registerPanel.add(new JLabel("AR3"));
-    registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);
+    registerPanel.add(tf = new JTextField("")); rf.add(tf);
     registerPanel.add(new JLabel("AR4"));
-    registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);
+    registerPanel.add(tf = new JTextField("")); rf.add(tf);
     registerPanel.add(new JLabel("AR5"));
-    registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);
+    registerPanel.add(tf = new JTextField("")); rf.add(tf);
     registerPanel.add(new JLabel("AR6"));
-    registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);
+    registerPanel.add(tf = new JTextField("")); rf.add(tf);
     registerPanel.add(new JLabel("AR7"));
-    registerPanel.add(tf = new JTextField("0xffff")); rf.add(tf);
+    registerPanel.add(tf = new JTextField("")); rf.add(tf);
     
     return(registerPanel);
     
@@ -878,8 +878,8 @@ void displayData()
 
     //readRAM expects count to be in words, so divide number of bytes by 2
 
-    hardware.readRAM(chassisNum, slotNum, whichDSPChip, whichDSPCore, ramType,
-                             ramPage, displayAddr, DATABLOCK_SIZE/2, dataBlock);
+    boolean status = hardware.readRAM(chassisNum, slotNum, whichDSPChip,
+      whichDSPCore, ramType, ramPage, displayAddr, DATABLOCK_SIZE/2, dataBlock);
 
     int dbIndex = 0;
 
@@ -891,12 +891,17 @@ void displayData()
 
         for (int col = 0; col < 8; col++){
 
-            textArea.append(
-                toHexString(
-                    (int)((dataBlock[dbIndex++]<<8) & 0xff00) +
-                    (int)(dataBlock[dbIndex++] & 0x00ff)
-                    )
-                 + " ");
+            if(status){
+
+                textArea.append(
+                    toHexString(
+                        (int)((dataBlock[dbIndex++]<<8) & 0xff00) +
+                        (int)(dataBlock[dbIndex++] & 0x00ff)
+                        )
+                     + " ");
+            }else{
+                textArea.append("---- ");
+            }
 
         }//for (col = 0; col < 8; col++)
 
@@ -943,11 +948,17 @@ void refreshMonitorPanel()
     //the register variables are always on Page 0 of Local memory at address
     //specified by DSP_REGISTER_BUFFER_ADDR
 
-    hardware.readRAM(chassisNum, slotNum, whichDSPChip, whichDSPCore,
-            0 /* local memory */, 0 /* page*/,
+    boolean dataResponse = hardware.readRAM(chassisNum, slotNum, whichDSPChip,
+            whichDSPCore, 0 /* local memory */, 0 /* page*/,
             DSP_REGISTER_BUFFER_ADDR, DATABLOCK_SIZE/2, dataBlock);
 
     ArrayList<JTextField> rf = registerFields; //use short name
+
+    //if no response from remote, fill displays with dashes
+    if(!dataResponse){
+        setRegisterDisplaysToDashes(registerFields);
+        return;
+    }
 
     int debugControlValue = ((int)dataBlock[0]<<8) + (dataBlock[1] & 0xff);
     
@@ -1015,6 +1026,20 @@ private void setRegisterDisplaysBlank(byte[]pBuffer,
     setTextFieldToInt(pRegisterFields.get(0), pBuffer, 0);//display debug status    
     
 }//end of Debugger::setRegisterDisplaysBlank
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Debugger::setRegisterDisplaysToDashes
+//
+// Sets all register textfields referenced in pRegisterFields to dashes.
+//
+
+private void setRegisterDisplaysToDashes(ArrayList<JTextField> pRegisterFields)
+{
+
+    pRegisterFields.stream().forEach((field) -> { field.setText("----");});
+
+}//end of Debugger::setRegisterDisplaysToDashes
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

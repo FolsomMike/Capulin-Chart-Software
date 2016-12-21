@@ -659,11 +659,12 @@ public void updateRabbitCode(int pWhichRabbits)
 //
 
 @Override
-public void readRAM(int pChassis, int pSlot, int pDSPChip, int pDSPCore,
+public boolean readRAM(int pChassis, int pSlot, int pDSPChip, int pDSPCore,
            int pRAMType, int pPage, int pAddress, int pCount, byte[] dataBlock)
 {
 
-
+    return(false);
+    
 }//end of AnalogPCIDAS6023::readRAM
 //-----------------------------------------------------------------------------
 

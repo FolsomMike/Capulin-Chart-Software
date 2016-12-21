@@ -2576,18 +2576,22 @@ int countMapSourceBoards()
 //
 // pCount bytes are returned.
 //
+// Returns true if data was received, false if no response from remote.
+//
 
 @Override
-public void readRAM(int pChassis, int pSlot, int pDSPChip, int pDSPCore,
+public boolean readRAM(int pChassis, int pSlot, int pDSPChip, int pDSPCore,
            int pRAMType, int pPage, int pAddress, int pCount, byte[] dataBlock)
 {
 
     int board = findBoardIndexByChassisAndSlotAddr(pChassis, pSlot);
 
     if (board != -1) {
-        utBoards[board].readRAM(pDSPChip, pDSPCore, pRAMType,
+        return utBoards[board].readRAM(pDSPChip, pDSPCore, pRAMType,
                                            pPage, pAddress, pCount, dataBlock);
     }
+    
+    return(false);
 
 }//end of Capulin1::getRAM
 //-----------------------------------------------------------------------------

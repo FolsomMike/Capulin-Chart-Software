@@ -2106,12 +2106,14 @@ public void updateRabbitCode(int pWhichRabbits)
 //
 // pCount bytes are returned.
 //
+// Returns true if data was received, false if no response from remote.
+//
 
-public void readRAM(int pChassis, int pSlot, int pDSPChip, int pDSPCore,
+public boolean readRAM(int pChassis, int pSlot, int pDSPChip, int pDSPCore,
            int pRAMType, int pPage, int pAddress, int pCount, byte[] dataBlock)
 {
 
-    analogDriver.readRAM(pChassis, pSlot, pDSPChip, pDSPCore, pRAMType,
+    return analogDriver.readRAM(pChassis, pSlot, pDSPChip, pDSPCore, pRAMType,
                                           pPage, pAddress, pCount, dataBlock);
 
 }//end of Hardware::readRAM

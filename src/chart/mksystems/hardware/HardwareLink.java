@@ -105,7 +105,7 @@ public void updateRabbitCode(int pWhichRabbits);
 
 public void doTasks();
 
-public void readRAM(int pChassis, int pSlot, int pDSPChip, int pDSPCore,
+public boolean readRAM(int pChassis, int pSlot, int pDSPChip, int pDSPCore,
          int pRAMType, int pPage, int pAddress, int pCount, byte[] dataBlock);
 
 public void writeRAM(int pChassis, int pSlot, int pDSPChip, int pDSPCore,
