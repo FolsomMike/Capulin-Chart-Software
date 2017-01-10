@@ -440,7 +440,6 @@ public class UTBoard extends Board{
     static byte DSP_GET_MAP_COUNT_CMD = 19;
     static byte DSP_RESET_MAPPING_CMD = 20;
     static byte DSP_SET_FILTER = 21;
-    static byte DSP_SET_FILTER_ABS_PREPROCESSING = 22;
     
     static byte DSP_ACKNOWLEDGE = 127;
 
@@ -3139,32 +3138,6 @@ void sendMode(int pChannel, int pMode)
                (byte)0, (byte)0, (byte)0);
 
 }//end of UTBoard::sendMode
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// UTBoard::sendFilterABSPreProcessingMode
-//
-// Sends the on/off state for absolute-value processing of raw samples before
-// being digitally filtered:
-//
-// 0 = no processing performed
-// 1 = absolute value performed
-//
-// If no filter is active, this setting has no effect.
-//
-// Note: this setting is also sent with the filter data using the sendFilter
-// function, so sendFilterABSPreProcessingMode may actually never be called.
-//
-
-void sendFilterABSPreProcessingMode(int pChannel, int pMode)
-{
-
-    sendChannelParam(pChannel, (byte) DSP_SET_FILTER_ABS_PREPROCESSING,
-                (byte)(pMode & 0xff),
-               (byte)0, (byte)0, (byte)0, (byte)0, (byte)0,
-               (byte)0, (byte)0, (byte)0);
-
-}//end of UTBoard::sendFilterABSPreProcessingMode
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

@@ -471,10 +471,6 @@ private int processDSPMessage()
     if ( dspMsgID == UTBoard.DSP_SET_DAC_FLAGS) {
         return (setDSPDACFlags(dspChip, dspCore));
     }
-
-    if ( dspMsgID == UTBoard.DSP_SET_FILTER_ABS_PREPROCESSING) {
-        return (setFilterABSPreProcessingMode(dspChip, dspCore));
-    }
     
     if ( dspMsgID == UTBoard.DSP_SET_FILTER) {
         return (setDSPFilter(dspChip, dspCore));
@@ -1057,43 +1053,6 @@ int setDSPDACFlags(int pDSPChip, int pDSPCore)
     return(receivePktSize + 3);
 
 }//end of UTSimulator::setDSPDACFlags
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// UTSimulator::setFilterABSPreProcessingMode
-//
-// Sends the on/off state for absolute-value processing of raw samples before
-// being digitally filtered:
-//
-// 0 = no processing performed
-// 1 = absolute value performed
-//
-// If no filter is active, this setting has no effect.
-//
-// Note: this setting is also sent with the filter data using the DSP_SET_FILTER
-// command, so setDSPFilter may actually never be called.
-//
-
-int setFilterABSPreProcessingMode(int pDSPChip, int pDSPCore)
-{
-
-    //read return and receive packet size
-    readBytes(2);
-
-    int returnPktSize = inBuffer[0];
-    int receivePktSize = inBuffer[1];
-
-    //read remainder of packet plus checksum byte
-    readBytes(receivePktSize + 1);
-    
-    //wip mks -- add code to store the data
-
-    sendACK(pDSPChip, pDSPCore);
-
-    //read packet + two size bytes + checksum byte
-    return(receivePktSize + 3);
-
-}//end of UTSimulator::setFilterABSPreProcessingMode
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
