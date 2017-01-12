@@ -3199,7 +3199,9 @@ void sendFilter(int pChannel, int pFilterNum, int[]pFilter)
 {
 
     byte pktNum, pktType; int numBitsShift = 0; int preProcessMode = 0;
-    byte filterNum = (byte)pFilterNum;
+    byte filterNum = (byte)pFilterNum; byte numCoeffs;
+
+    numCoeffs = (byte)pFilter[0];
     
     //only extract from filter if it is not length of 1 (empty filter)
     
@@ -3218,7 +3220,7 @@ void sendFilter(int pChannel, int pFilterNum, int[]pFilter)
     //(third value in array)
     
     sendChannelParam(pChannel, (byte) DSP_SET_FILTER,
-            (byte)pktType, (byte)pFilter[0], (byte)numBitsShift,
+            (byte)pktType, numCoeffs, (byte)numBitsShift,
             (byte)preProcessMode, (byte)0, (byte)0, (byte)0, (byte)0, (byte)0);
     
     pktNum++;
