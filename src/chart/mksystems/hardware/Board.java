@@ -746,8 +746,8 @@ void installNewRabbitFirmware(String pBoardType, String pFilename,
                 inCount = byteIn.available();
                 //0 = buffer offset, 2 = number of bytes to read
                 if (inCount >= 3) {byteIn.read(inBuffer, 0, 3);}
-                remoteStatus = (int)((inBuffer[0]<<8) & 0xff00)
-                                                   + (int)(inBuffer[1] & 0xff);
+                remoteStatus = (int)((inBuffer[1]<<8) & 0xff00)
+                                                   + (int)(inBuffer[2] & 0xff);
             }
 
             //trap and respond to messages from the remote
