@@ -504,6 +504,15 @@ public class UTBoard extends Board{
     static byte MASTER_CONTROL_REG = 0x00;
     static byte RESET_REG = 0x01;
 
+//  FPGA RESET_REG bits:
+//
+//        bit 0: 1 = FPGA in reset
+//        bit 1: 0 = master DSP reset   (both DSPs)
+//        bit 2: 0 = Core A in reset    (both DSPs)
+//        bit 3: 0 = Core B in reset    (both DSPs)
+//        bit 4: 0 = Core C in reset    (both DSPs)
+//        bit 5: 0 = Core D in reset    (both DSPs)
+
     static byte REP_RATE_0_REG = 0x03;
     static byte REP_RATE_1_REG = 0x04;
     static byte REP_RATE_2_REG = 0x05;
@@ -928,7 +937,23 @@ public synchronized void connect()
         logSevere(e.getMessage() + " - Error: 748");
     }
 
-    loadFPGA(); //send configuration file for the board's FPGA
+    initRemote(true);
+
+    notifyAll(); //wake up all threads that are waiting for this to complete
+
+}//end of UTBoard::connect
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTBoard::initRemote
+//
+// Prepares the remote for operation.
+//
+
+private void initRemote(boolean pLoadFPGA)
+{
+
+    if(pLoadFPGA) { loadFPGA(); } //send configuration file for the board's FPGA
 
     initFPGA(); //setup the registers in the UT board FPGA
 
@@ -958,11 +983,6 @@ public synchronized void connect()
     //release DSPs A,B,C,D resets (low = reset)
     resetShadow = writeFPGAReg(RESET_REG, (byte)0x3e);
 
-    //give another reset pulse to the four DSP cores -- without this, random
-    //DSP cores won't start after a cold boot
-    resetShadow = writeFPGAReg(RESET_REG, (byte)(resetShadow & (~0x3c)));
-    resetShadow = writeFPGAReg(RESET_REG, (byte)(resetShadow | 0x3c));
-
     //sleep for a bit to allow DSPs to start up
     waitSleep(1000);
 
@@ -980,33 +1000,7 @@ public synchronized void connect()
     logger.logMessage(
               "UT " + chassisSlotAddr + " ~ " + ipAddrS + " is ready." + "\n");
 
-    notifyAll(); //wake up all threads that are waiting for this to complete
-
-    /*
-    //wip mks remove this - can be used in a monitor function?
-    // monitors the Pulse Sync, Pulse Sync Reset, Track Sync, Track Sync Reset
-
-    byte status1, status2;
-    byte status1p = 0, status2p = 0;
-
-
-    while (true){
-
-        //read the status inputs
-        status1 = getRemoteAddressedData(READ_FPGA_CMD, STATUS1_REG);
-        status2 = getRemoteAddressedData(READ_FPGA_CMD, STATUS2_REG);
-
-        if (status1 != status1p || status2 != status2p)
-            logger.logMessage("Status 1: " + status1 + " Status 2: " + status2 + "\n");
-
-        status1p = status1; status2p = status2;
-
-        }
-
-    //wip mks end remove this
-    */
-
-}//end of UTBoard::connect
+}//end of UTBoard::initRemote
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -3460,7 +3454,7 @@ public void logAllDSPStatus()
     logDSPStatus(1, 3, true); logDSPStatus(1, 4, true);
 
     logDSPStatus(2, 1, true); logDSPStatus(2, 2, true);
-    logDSPStatus(2, 3, true); //logDSPStatus(2, 4, true);
+    logDSPStatus(2, 3, true); logDSPStatus(2, 4, true);
 
 }//end of UTBoard::logAllDSPStatus
 //-----------------------------------------------------------------------------
@@ -4454,7 +4448,7 @@ private void handleDSPMessageErrors()
     //instead, use the packet info which can generally be parsed to deduce
     //the message details
 
-    //the error code is returned from the remove via dspMsgID
+    //the error code is returned from the remote via dspMsgID
 
     lastErrorDSPChip = pktDSPChipID; lastErrorCore = pktDSPCoreID;
     lastErrorPktID =  pktID;  lastErrorDSPMsgID = dspMsgID;
