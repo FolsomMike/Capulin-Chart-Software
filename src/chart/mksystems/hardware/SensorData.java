@@ -250,7 +250,7 @@ public void updatedAllDistancesToEye1()
         case UNIT_GROUP:
             //debug mks -- this value should be different for each eye in
             //the Unit group...entry eye is 0, etc. (load from config?)
-            jackCenterDistToEye1 = 56.5;
+            jackCenterDistToEye1 = 65.5;
             return;
 
         default:

@@ -82,7 +82,7 @@ public class Settings extends Object implements ActionListener, ItemListener {
 
     //Constants
 
-    public static String SOFTWARE_VERSION = "2.06";
+    public static String SOFTWARE_VERSION = "2.07";
 
     //This is the version of the format used to save the data for a segment which
     //holds data for an inspected piece.
