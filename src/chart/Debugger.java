@@ -71,7 +71,7 @@ class Debugger extends JDialog implements ActionListener, WindowListener {
     //it should be adjusted whenever the buffer moves in memory due to adding
     //more variables
     
-    private static final int DSP_REGISTER_BUFFER_ADDR = 0x02cc;
+    private static final int DSP_REGISTER_BUFFER_ADDR = 0x02ce;
 
     private static final byte DSP_HALTED_FLAG = 0x01;
     
