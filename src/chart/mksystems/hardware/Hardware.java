@@ -121,7 +121,10 @@ public class Hardware extends Object implements TraceValueCalculator, Runnable,
     public final static int PULSE = 0, CONTINUOUS = 1;
     public int markerMode = PULSE;
 
-    private final static int MASK_DISABLE_DELAY = 0;
+    //this value needs to be at least 1 because if the delay is set to zero
+    //it gets ignored...the code only catches when it decrements to 0
+    //value of 1 actually triggers immediately, so functions as zero delay
+    private final static int MASK_DISABLE_DELAY = 1;
     
 //-----------------------------------------------------------------------------
 // Hardware::Hardware (constructor)
