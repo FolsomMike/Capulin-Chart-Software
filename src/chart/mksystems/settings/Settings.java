@@ -193,6 +193,8 @@ public class Settings extends Object implements ActionListener, ItemListener {
     public boolean showRedPeakLineAtPeakLocation = false;
     public boolean showPseudoPeakAtPeakLocation = true;
 
+    public boolean autoPrintFlagReports;
+
     public boolean reportAllFlags = false;
 
     public int scanSpeed;
@@ -431,7 +433,14 @@ public void actionPerformed(ActionEvent e)
         reportAllFlags = ((JCheckBoxMenuItem)(e.getSource())).isSelected();
         return;
     }
-    
+
+    //sets a variable in Settings
+    if (source.getActionCommand().equalsIgnoreCase(
+                                         "Print Flag Report Automatically")){
+        autoPrintFlagReports =((JCheckBoxMenuItem)(e.getSource())).isSelected();
+        return;
+    }
+
     //pass all action commands not handled above to the actionListener
     
     actionListener.actionPerformed(new ActionEvent(

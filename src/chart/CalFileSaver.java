@@ -208,6 +208,10 @@ protected void saveFile(String pJobPath, String pDataPath)
             "Report all flags (do not skip duplicates at the same location)",
                                                       settings.reportAllFlags);
 
+    calFile.writeBoolean("General",
+                          "Automatically Print Flag Reports After Each Run",
+                                                settings.autoPrintFlagReports);
+
     calFile.writeInt(
                "General", "Scanning and Inspecting Speed", settings.scanSpeed);
 

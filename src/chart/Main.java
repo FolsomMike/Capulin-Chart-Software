@@ -914,6 +914,9 @@ private void loadCalFile()
     settings.reportAllFlags = calFile.readBoolean("General",
        "Report all flags (do not skip duplicates at the same location)", false);
 
+    settings.autoPrintFlagReports = calFile.readBoolean("General",
+                    "Automatically Print Flag Reports After Each Run", false);
+
     settings.scanSpeed =
                 calFile.readInt("General", "Scanning and Inspecting Speed", 10);
 

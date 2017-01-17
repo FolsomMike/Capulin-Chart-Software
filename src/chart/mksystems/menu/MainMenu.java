@@ -60,7 +60,7 @@ public class MainMenu extends JMenuBar{
     JMenuItem reportCurrentMenuItem;
     JMenuItem reportLastMenuItem;
     JMenuItem reportAnyMenuItem;
-    JCheckBoxMenuItem autoReportMenuCheck;
+    JCheckBoxMenuItem autoFlagReportMenuCheck;
     JMenuItem reportTallyMenuItem;
     JMenuItem reportFinalMenuItem;
     JMenuItem calibrationRecords;
@@ -274,20 +274,21 @@ public MainMenu(Settings pSettings)
     reportAnyMenuItem.addActionListener(settings);
     reportMenu.add(reportAnyMenuItem);
 
-    //reportMenu.addSeparator();  DISABLED UNTIL FUNCTIONAL
+    reportMenu.addSeparator();
 
     //Report/Auto Report
-    autoReportMenuCheck =
+    autoFlagReportMenuCheck =
             new JCheckBoxMenuItem("Auto Print Flag Report After Each "
                                    + settings.pieceDescription + " Inspected");
-    autoReportMenuCheck.setMnemonic(KeyEvent.VK_A);
-    autoReportMenuCheck.setToolTipText(
+    autoFlagReportMenuCheck.setMnemonic(KeyEvent.VK_A);
+    autoFlagReportMenuCheck.setToolTipText(
         "Prints flag report automatically after each "
                              + settings.pieceDescriptionLC + " is inspected.");
-    autoReportMenuCheck.addActionListener(settings);
-    //reportMenu.add(autoReportMenuCheck);  DISABLED UNTIL FUNCTIONAL
+    autoFlagReportMenuCheck.setActionCommand("Print Flag Report Automatically");
+    autoFlagReportMenuCheck.addActionListener(settings);
+    reportMenu.add(autoFlagReportMenuCheck);
 
-    //reportMenu.addSeparator();  DISABLED UNTIL FUNCTIONAL
+    reportMenu.addSeparator();
 
     //Report/Tally Report
     reportTallyMenuItem = new JMenuItem("Print Tally Report");
@@ -307,7 +308,7 @@ public MainMenu(Settings pSettings)
     reportFinalMenuItem.addActionListener(settings);
     //reportMenu.add(reportFinalMenuItem);  DISABLED UNTIL FUNCTIONAL
 
-    reportMenu.addSeparator();
+    //reportMenu.addSeparator();  DISABLED UNTIL FUNCTIONAL
 
     //Report/Calibration Records
     calibrationRecords = new JMenuItem("Calibration Records");
@@ -621,6 +622,7 @@ public void refreshMenuSettings()
                                         settings.showRedPeakLineAtPeakLocation);
     showPseudoPeakAtPeakLocation.setSelected(
                                         settings.showPseudoPeakAtPeakLocation);
+    autoFlagReportMenuCheck.setSelected(settings.autoPrintFlagReports);
 
     reportAllFlags.setSelected(settings.reportAllFlags);
 
