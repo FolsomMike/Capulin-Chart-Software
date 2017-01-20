@@ -55,6 +55,8 @@ public class ViolationInfo extends Object{
     public int getPrimaryMarker(){ return primaryMarker; }
         
     String markerMessage = "";
+
+    static final int PLC_ENCODER_COUNTS_SCALER = 8;
     
 //-----------------------------------------------------------------------------
 // ViolationInfo::init
@@ -133,6 +135,9 @@ public void createMarkerMessage(int pEncoderCountsToMarker,
     
     markerMessage = markerMessage + "|" + prePad("" + tenths, 4, "0");
     
+    //scale down counts to match PLC counts/inch value
+    encoderCountsToMarker = encoderCountsToMarker / PLC_ENCODER_COUNTS_SCALER;
+
     markerMessage = markerMessage + "|" + 
                                   prePad("" + encoderCountsToMarker, 5, "0");
     
