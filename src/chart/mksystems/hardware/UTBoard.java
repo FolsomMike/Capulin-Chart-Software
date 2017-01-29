@@ -5029,6 +5029,17 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
                 peak %= 10;
             }
 
+            if (bdChs[channel].gates[i].getIntegrateAboveGate()) {
+                if (peak > 30) { peak = 70 + (peak % 20); }
+                else {
+                    if((int)(Math.random() * 20) == 1){
+                        peak = (int)(Math.random() * 20);
+                    }else{
+                        peak = (int)(Math.random() * 10);
+                    }
+                }
+            }
+
             //the flight time value is the memory address of the peak in the DSP
             //the data buffer starts at 0x8000 in memory, so subtracting 0x8000
             //from the flight time value gives the time position in relation to

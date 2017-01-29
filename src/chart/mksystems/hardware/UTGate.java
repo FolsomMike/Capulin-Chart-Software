@@ -74,6 +74,7 @@ public class UTGate extends BasicGate{
     boolean doInterfaceTracking = false;
     boolean doFindPeak = false;
     boolean doIntegrateAboveGate = false;
+    boolean getIntegrateAboveGate(){ return doIntegrateAboveGate; }
     boolean doQuenchOnOverLimit = false;
     boolean isAScanTriggerGate = false;
     boolean doFindDualPeakCenter = false;
