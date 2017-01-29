@@ -1729,7 +1729,7 @@ void setupConfigTab()
     bifurcatedScalePanel = new JPanel();
     bifurcatedScalePanel.setLayout(
                     new BoxLayout(bifurcatedScalePanel, BoxLayout.LINE_AXIS));
-    bifurcatedScalePanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+    bifurcatedScalePanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
     setSizes(bifurcatedScalePanel, 436, 30);
 
     bifurcatedScaleCB = new JCheckBox("Bifurcated Scale");
