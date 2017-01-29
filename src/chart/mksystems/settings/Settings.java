@@ -32,12 +32,16 @@ import chart.mksystems.hardware.Hardware;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.stripchart.ChartGroup;
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Insets;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
+import javax.swing.border.Border;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -275,6 +279,8 @@ public Settings(Link pMainWindow, ActionListener pActionListener)
     language = "English";
 
     loadOptions(); //read option settings from ini file
+
+    getDefaultLookAndFeelSettings();
 
     //load the appropriate language text
     //loadLanguage();
@@ -900,6 +906,57 @@ public static long calculateSumOfFileData(String pFilename) throws IOException
     return(sum);
 
 }//end of Settings::calculateSumOfFileData
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Settings::getDefaultLookAndFeelSettings
+//
+
+public void getDefaultLookAndFeelSettings()
+{
+
+/*
+    //this is only used for reference purposes
+
+    Border borderVal;
+
+    UIDefaults uidefs = UIManager.getLookAndFeelDefaults();
+
+    Object[] keys = (Object[]) uidefs.keySet().toArray(new Object[uidefs.keySet().size()]);
+
+    for (int i = 0; i < keys.length; i++) {
+      Object v = uidefs.get(keys[i]);
+      if (v instanceof Integer) {
+        int intVal = uidefs.getInt(keys[i]);
+      } else if (v instanceof Boolean) {
+        boolean boolVal = uidefs.getBoolean(keys[i]);
+      } else if (v instanceof String) {
+        String strVal = uidefs.getString(keys[i]);
+      } else if (v instanceof Dimension) {
+        Dimension dimVal = uidefs.getDimension(keys[i]);
+      } else if (v instanceof Insets) {
+        Insets insetsVal = uidefs.getInsets(keys[i]);
+      } else if (v instanceof Color) {
+        Color colorVal = uidefs.getColor(keys[i]);
+      } else if (v instanceof Font) {
+        Font fontVal = uidefs.getFont(keys[i]);
+      } else if (v instanceof Border) {
+        borderVal = uidefs.getBorder(keys[i]);
+      } else if (v instanceof Icon) {
+        Icon iconVal = uidefs.getIcon(keys[i]);
+      } else if (v instanceof javax.swing.text.JTextComponent.KeyBinding[]) {
+        javax.swing.text.JTextComponent.KeyBinding[] keyBindsVal = (javax.swing.text.JTextComponent.KeyBinding[]) uidefs
+            .get(keys[i]);
+      } else if (v instanceof InputMap) {
+        InputMap imapVal = (InputMap) uidefs.get(keys[i]);
+      } else {
+        System.out.println("Unknown type");
+      }
+    }
+
+*/
+
+}// end of Settings::getDefaultLookAndFeelSettings
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
