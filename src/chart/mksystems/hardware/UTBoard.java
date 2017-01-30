@@ -618,9 +618,11 @@ public class UTBoard extends Board{
 
     //bit masks for gate peak data flag
 
-    static byte HIT_COUNT_MET = 0x0001;
-    static byte MISS_COUNT_MET = 0x0002;
-    static byte GATE_EXCEEDED = 0x0004;
+    static byte HIT_COUNT_MET =     0x0001;
+    static byte MISS_COUNT_MET =    0x0002;
+    static byte GATE_MAX_MIN =      0x0004;
+    static byte GATE_EXCEEDED =     0x0008;
+    static byte RESULT_STATUS =     0x0010;
 
     //shadow registers for FPGA registers which do not already have an
     // associated variable
@@ -5016,6 +5018,18 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
                 peak = bdChs[channel].logicalChannel.applyBifurcatedScale(peak);
             }
 
+            //if Integrate-Above-Gate processing is active and signal above the
+            //gate was integrated, then use the integrated result with snapping;
+            //otherwise use the result with trimming
+
+            if (bdChs[channel].gates[i].getIntegrateAboveGate()) {
+                if ((peakFlags & RESULT_STATUS) != 0){
+                    peak = 70 + (peak % 20);
+                }else {
+                    peak %= 20;
+                    }
+                }
+
             //if the hit count for the gate is greater than zero and the signal
             //did not exceed the gate the specified number of times, squash it
             //down to 10%
@@ -5027,17 +5041,6 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
             if (bdChs[channel].gates[i].gateHitCount.getValue() > 0
                                                              && !hitCountMet) {
                 peak %= 10;
-            }
-
-            if (bdChs[channel].gates[i].getIntegrateAboveGate()) {
-                if (peak > 30) { peak = 70 + (peak % 20); }
-                else {
-                    if((int)(Math.random() * 20) == 1){
-                        peak = (int)(Math.random() * 20);
-                    }else{
-                        peak = (int)(Math.random() * 10);
-                    }
-                }
             }
 
             //the flight time value is the memory address of the peak in the DSP
