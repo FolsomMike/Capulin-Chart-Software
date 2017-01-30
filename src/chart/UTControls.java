@@ -1356,9 +1356,9 @@ void setupTuningTab()
     //layout for the tab
     tuningTab.setLayout(new BoxLayout(tuningTab, BoxLayout.LINE_AXIS));
 
-    //gate label column -- create a row for each gate plus one for the header title
+    //gate label column -- create a row for each gate plus one for header title
     JPanel gateLabelPanel = new JPanel();
-    gateLabelPanel.setLayout(new GridLayout(gridYCount+1, 1, 10, 5));
+    gateLabelPanel.setLayout(new GridLayout(gridYCount+1, 1, 2, 5));
     //add the row title header
     label = new JLabel("Gate"); label.setToolTipText("Gate");
     gateLabelPanel.add(label);
@@ -1383,7 +1383,7 @@ void setupTuningTab()
 
     //signal process tuning value 1 column, create row for each gate plus header
     JPanel tuningValue1Panel = new JPanel();
-    tuningValue1Panel.setLayout(new GridLayout(gridYCount+1, 1, 10, 5));
+    tuningValue1Panel.setLayout(new GridLayout(gridYCount+1, 1, 2, 5));
     //add the row title headers
     label = new JLabel("Tuning 1");
     label.setToolTipText("Signal processing tuning value 1.");
@@ -1411,7 +1411,7 @@ void setupTuningTab()
 
     //signal process tuning value 2 column, create row for each gate plus header
     JPanel tuningValue2Panel = new JPanel();
-    tuningValue2Panel.setLayout(new GridLayout(gridYCount+1, 1, 10, 5));
+    tuningValue2Panel.setLayout(new GridLayout(gridYCount+1, 1, 2, 5));
     //add the row title headers
     label = new JLabel("Tuning 2");
     label.setToolTipText("Signal processing tuning value 2.");
@@ -1439,7 +1439,7 @@ void setupTuningTab()
 
     //signal process tuning value 3 column, create row for each gate plus header
     JPanel tuningValue3Panel = new JPanel();
-    tuningValue3Panel.setLayout(new GridLayout(gridYCount+1, 1, 10, 5));
+    tuningValue3Panel.setLayout(new GridLayout(gridYCount+1, 1, 2, 5));
     //add the row title headers
     label = new JLabel("Tuning 3");
     label.setToolTipText("Signal processing tuning value 3.");
@@ -1465,9 +1465,37 @@ void setupTuningTab()
 
     tuningTab.add(tuningValue3Panel);
 
+    //signal process tuning value 4 column, create row for each gate plus header
+    JPanel tuningValue4Panel = new JPanel();
+    tuningValue4Panel.setLayout(new GridLayout(gridYCount+1, 1, 2, 5));
+    //add the row title headers
+    label = new JLabel("Tuning 4");
+    label.setToolTipText("Signal processing tuning value 4.");
+    tuningValue4Panel.add(label);
+
+    for (int i=0; i < gridYCount; i++){
+        //add controls for each gate
+        if (i < numberOfGates){
+
+            gate = currentChannel.getGate(i);
+
+            sp = new SpinnerPanel(
+                currentChannel.getGateSigProcTuningValue(i, 2), 0,
+                    65535, 1, "##0", 60, -1, "", "", gate.title +
+                            " Gate Signal Processing Tuning Value 4", this);
+            sp.spinner.addChangeListener(this); //monitor changes to value
+            tuningValue4Panel.add(sp);
+            //save a pointer to this adjuster in the gate object
+            gate.tuning4Adjuster = sp.spinner;
+        }
+        else{tuningValue4Panel.add(new JLabel(""));}
+    }// for (int i=0; i < gridYCount; i++){
+
+    tuningTab.add(tuningValue4Panel);
+    
     //Filter Number, create row for each gate plus header
     JPanel filterNumPanel = new JPanel();
-    filterNumPanel.setLayout(new GridLayout(gridYCount+1, 1, 10, 5));
+    filterNumPanel.setLayout(new GridLayout(gridYCount+1, 1, 2, 5));
     //add the row title header
     label = new JLabel("Filter");
     label.setToolTipText("Filter Number used by Gate");
@@ -1730,7 +1758,7 @@ void setupConfigTab()
     bifurcatedScalePanel.setLayout(
                     new BoxLayout(bifurcatedScalePanel, BoxLayout.LINE_AXIS));
     bifurcatedScalePanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-    setSizes(bifurcatedScalePanel, 436, 30);
+    setSizes(bifurcatedScalePanel, 430, 30);
 
     bifurcatedScaleCB = new JCheckBox("Bifurcated Scale");
 

@@ -157,7 +157,8 @@ public class UTGate extends BasicGate{
     public Object gateHitCountAdjuster;
     public Object gateMissCountAdjuster;
     public Object processingSelector;
-    public Object tuning1Adjuster, tuning2Adjuster, tuning3Adjuster;
+    public Object tuning1Adjuster, tuning2Adjuster;
+    public Object tuning3Adjuster, tuning4Adjuster;
     public Object filterNumAdjuster;
     public Object signalFilterSelector;
   
