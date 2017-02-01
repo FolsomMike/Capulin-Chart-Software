@@ -61,6 +61,12 @@ public class FlagReportPrinter extends ViewerReporter
 
     boolean printClockColumn;
 
+    private String filenameOfLastReportGenerated = "";
+
+    public String getFilenameOfLastReportGenerated(){
+        return filenameOfLastReportGenerated;
+    }
+
 //-----------------------------------------------------------------------------
 // FlagReportPrinter::FlagReportPrinter (constructor)
 //
@@ -463,13 +469,14 @@ public void printReportForPiece(String pReportsPrimaryPath, int pPiece)
 
     String prefix = isCalSelected() ? "Cal " : "";
 
-    String filename = pReportsPrimaryPath +
-       prefix + decimalFormats[0].format(pPiece) + " Flag Report.txt";
+    filenameOfLastReportGenerated = pReportsPrimaryPath +
+                prefix + decimalFormats[0].format(pPiece) + " Flag Report.txt";
 
     PrintWriter file = null;
 
     try{
-        file = new PrintWriter(new FileWriter(filename, false));
+        file = new PrintWriter(new FileWriter(
+                                        filenameOfLastReportGenerated, false));
     }
     catch(IOException e){
 
