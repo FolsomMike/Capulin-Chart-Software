@@ -515,7 +515,7 @@ public void printReportForPiece(String pReportsPrimaryPath, int pPiece)
     String result = loadSegment(true);
 
     //print the header information at the top of the file
-    printHeader(file, pPiece);
+    printHeader(file, pPiece, fileCreationTimeStamp);
 
     //print an error message if the piece could not be loaded
     if (result.startsWith("Error")){
@@ -709,7 +709,8 @@ public void resetTracePreviousFlagVariables()
 // Prints the report header.
 //
 
-public void printHeader(PrintWriter pFile, int pPiece)
+private void printHeader(PrintWriter pFile, int pPiece,
+                                                String pFileCreationTimeStamp)
 {
 
     //title
@@ -736,6 +737,8 @@ public void printHeader(PrintWriter pFile, int pPiece)
 
     pFile.println("Job Location: " + truncate(
     jobInfoFile.readString("Job Info", "Job Location", ""),70));
+
+    pFile.println("Date & Time of Inspection: " + pFileCreationTimeStamp);
 
     //use the values entered for the Wall chart rather than the job info data
     //as the former is more likely to be accurate

@@ -29,6 +29,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.print.*;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.text.DecimalFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -74,6 +78,8 @@ public class ViewerReporter implements ActionListener, TraceValueCalculator {
 
     PrintRequestAttributeSet aset;
     PrinterJob job;
+
+    String fileCreationTimeStamp = "";
 
     PrintRunnable printRunnable;
 
@@ -365,8 +371,12 @@ String loadSegment(boolean pQuietMode)
     //the data file was saved
     loadCalFile(); //load calibration settings needed for viewing
 
+    String fullPath = jobPrimaryPath + segmentFilename + ext;
+
+    fileCreationTimeStamp = getFileCreationDateTimeString(fullPath);
+
     //load the graph data
-    String errorMsg = loadSegmentHelper(jobPrimaryPath + segmentFilename + ext);
+    String errorMsg = loadSegmentHelper(fullPath);
 
     //on error, display the message, repaint with empty chart, and exit
     if (!errorMsg.isEmpty()){
@@ -439,6 +449,47 @@ private String loadSegmentHelper(String pFilename)
     return("");
 
 }//end of ViewerReporter::loadSegmentHelper
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// ViewerReporter::getFileCreationDateTimeString
+//
+// Returns the file creation timestamp for pFilename as a formatted String.
+//
+// On Linux systems, this returns the last modified date.
+//
+
+private String getFileCreationDateTimeString(String pFilename)
+{
+
+    Path path = Paths.get(pFilename);
+
+    BasicFileAttributes attr;
+
+    try{
+        attr = Files.readAttributes(path, BasicFileAttributes.class);
+    }catch (IOException e){
+        return("");
+    }
+
+    String timeStamp = attr.creationTime().toString();
+
+    //replace 'T' with a space between date and time
+    timeStamp = timeStamp.replace('T', ' ');
+
+    //replace 'Z' with a space
+    timeStamp = timeStamp.replace('Z', ' ');
+
+    //if fractions of a second are displayed (a decimal point will be present)
+    //then remove the decimal point and all characters after
+
+    int pos = timeStamp.indexOf('.');
+
+    if(pos != -1 ){ timeStamp = timeStamp.substring(0, pos); }
+
+    return(timeStamp);
+
+}//end of ViewerReporter::getFileCreationDateTimeString
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
