@@ -1439,10 +1439,8 @@ public void actionPerformed(ActionEvent e)
 
     //this part opens a window to print a flag report
     if ("Print Flag Report for Last Piece Inspected".equals(
-                                                        e.getActionCommand())) {
-        //pass the number and type of the last joint inspected so it can be
-        //printed without the user having to specify that info
-        printFlagReport(lastPieceInspected, isLastPieceInspectedACal);
+                                                       e.getActionCommand())) {
+        printFlagReportForLastPieceInspected();
     }
 
     //this part opens a window to print a flag report
@@ -1730,13 +1728,16 @@ public void startRabbitUpdater(int pWhichRabbits)
 //-----------------------------------------------------------------------------
 // MainWindow::printFlagReport
 //
-// Prints a flag report.  If pPieceToPrint is not -1 then that piece will
-// be printed with pIsCalPiece specifying inspection or cal piece.  If it is
-// -1, then a dialog will be displayed to allow the user to specify the
+// Generates and prints a flag report.  If pPieceToPrint is not -1 then that
+// piece will be printed with pIsCalPiece specifying inspection or cal piece.
+// If it is -1, then a dialog will be displayed to allow the user to specify the
 // piece or pieces to print.
 //
+// If the auto print flag is true, the report is generated as a text file and
+// printed. If false, the report is only generated.
+//
 
-public String printFlagReport(int pPieceToPrint, boolean pIsCalPiece)
+private void printFlagReport(int pPieceToPrint, boolean pIsCalPiece)
 {
 
     FlagReportPrinter lPrintFlagReportDialog = new FlagReportPrinter(
@@ -1751,6 +1752,7 @@ public String printFlagReport(int pPieceToPrint, boolean pIsCalPiece)
 
     lPrintFlagReportDialog.init();
 
+    lPrintFlagReportDialog.generateAndPrint(settings.autoPrintFlagReports);
 
     //if the piece to be printed was specified, the dialog displays a message
     //but requires no user input -- in that case, set up so that timer can
@@ -1760,8 +1762,6 @@ public String printFlagReport(int pPieceToPrint, boolean pIsCalPiece)
         printFlagReportDialog = lPrintFlagReportDialog;
         closePrintFlagReportDialogTimer = 100;
     }
-
-    return(lPrintFlagReportDialog.getFilenameOfLastReportGenerated());
 
 }//end of MainWindow::printFlagReport
 //-----------------------------------------------------------------------------
@@ -1854,77 +1854,9 @@ private void printFlagReportForLastPieceInspected()
 {
 
     //generate the flag report text file for the last
-    String filenameOfLastReportGenerated = printFlagReport(
-                                 lastPieceInspected, isLastPieceInspectedACal);
-
-   if(filenameOfLastReportGenerated.isEmpty()){ return; }
-
-   executePrintAtCommandPrompt(filenameOfLastReportGenerated);
+    printFlagReport(lastPieceInspected, isLastPieceInspectedACal);
 
 }//end of MainWindow::printFlagReportForLastPieceInspected
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// MainWindow::executePrintAtCommandPrompt
-//
-// Executes the system's "print" command on file pFilename.
-//
-// Reference:
-//
-// use Runtime.getRuntime().exec("cmd /c start build.bat"); to display the
-// process in a window
-//
-// use Runtime.getRuntime().exec("cmd /c build.bat"); to not display the
-// process
-//
-// Use to wait for process to finish:
-//
-// try{
-//    Process p = Runtime.getRuntime().exec("cmd /c build.bat");
-//      p.waitFor();
-// }catch( IOException ex ){
-//  Validate the case the file can't be accesed (not enough permissions)
-// }catch( InterruptedException ex ){
-//  Validate the case the process is being stopped by some external situation
-// }
-//
-// Use to get output from the process (we send that to a file and display it
-//  afterwards instead):
-//
-// Runtime runtime = Runtime.getRuntime();
-// try {
-//    Process p1 = runtime.exec("cmd /c start D:\\temp\\a.bat");
-//    InputStream is = p1.getInputStream();
-//    int i = 0;
-//    while( (i = is.read() ) != -1) {
-//        System.out.print((char)i);
-//    }
-//  } catch(IOException ioException) {
-//    System.out.println(ioException.getMessage() );
-//  }
-//
-
-private void executePrintAtCommandPrompt(String pFilename)
-{
-
-    try {
-
-        Runtime rt = Runtime.getRuntime();
-
-        //the entire command has to be in quotes to use the && which allows
-        //multiple commands (&& only executes the second command if the first
-        // one succeeded, & executes both regardless)
-
-        String command = "cmd /c notepad.exe /P \"" + pFilename + "\"";
-
-        Process p = rt.exec(command); //execute the command
-
-    }
-    catch (IOException e) {
-        logSevere(e.getMessage() + " - Error: 1934");
-    }
-
-}//end of MainWindow::executePrintAtCommandPrompt
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

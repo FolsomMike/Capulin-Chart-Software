@@ -61,6 +61,8 @@ public class FlagReportPrinter extends ViewerReporter
 
     boolean printClockColumn;
 
+    boolean printHardCopy = false;
+
     private String filenameOfLastReportGenerated = "";
 
     public String getFilenameOfLastReportGenerated(){
@@ -114,6 +116,20 @@ public void init()
 
     super.init();
 
+}//end of FlagReportPrinter::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// FlagReportPrinter::generateAndPrint
+//
+// Generates a text file flag report and prints it if pPrintHardCopy is true.
+
+
+public void generateAndPrint(boolean pPrintHardCopy)
+{
+
+    printHardCopy = pPrintHardCopy;
+
     //release resources when closed
     dialog.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
@@ -150,7 +166,7 @@ public void init()
     //print that range
     if (pieceToPrint != -1) {printReportForSinglePiece(pieceToPrint);}
 
-}//end of FlagReportPrinter::init
+}//end of FlagReportPrinter::generateAndPrint
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -458,7 +474,10 @@ public void startPrint()
 //-----------------------------------------------------------------------------
 // FlagReportPrinter::printReportForPiece
 //
-// Prints a report for pPiece.
+// Generates and prints a report for pPiece.
+//
+// If printReport is true, the report is printed after the text file is
+// generated.
 //
 
 public void printReportForPiece(String pReportsPrimaryPath, int pPiece)
@@ -469,14 +488,13 @@ public void printReportForPiece(String pReportsPrimaryPath, int pPiece)
 
     String prefix = isCalSelected() ? "Cal " : "";
 
-    filenameOfLastReportGenerated = pReportsPrimaryPath +
+    String fileName = pReportsPrimaryPath +
                 prefix + decimalFormats[0].format(pPiece) + " Flag Report.txt";
 
     PrintWriter file = null;
 
     try{
-        file = new PrintWriter(new FileWriter(
-                                        filenameOfLastReportGenerated, false));
+        file = new PrintWriter(new FileWriter(fileName, false));
     }
     catch(IOException e){
 
@@ -541,6 +559,10 @@ public void printReportForPiece(String pReportsPrimaryPath, int pPiece)
     }//for (int i = 0; i < traceLength...
 
     file.close();
+
+    filenameOfLastReportGenerated = fileName;
+
+    if(printHardCopy){ generateHardCopy(); }
 
 }//end of FlagReportPrinter::printReportForPiece
 //-----------------------------------------------------------------------------
@@ -943,6 +965,86 @@ public double parseWallRejectPercentage(String pInput)
     return(dValue);
 
 }//end of FlagReportPrinter::parseWallRejectPercentage
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// FlagReportPrinter::generateHardCopy
+//
+// Prints the last generated flag report on the default printer using
+// Notepad.
+//
+
+public void generateHardCopy()
+{
+
+    if(filenameOfLastReportGenerated.isEmpty()){ return; }
+
+    executePrintAtCommandPrompt(filenameOfLastReportGenerated);
+
+}//end of FlagReportPrinter::generateHardCopy
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// FlagReportPrinter::executePrintAtCommandPrompt
+//
+// Executes the system's "print" command on file pFilename.
+//
+// Reference:
+//
+// use Runtime.getRuntime().exec("cmd /c start build.bat"); to display the
+// process in a window
+//
+// use Runtime.getRuntime().exec("cmd /c build.bat"); to not display the
+// process
+//
+// Use to wait for process to finish:
+//
+// try{
+//    Process p = Runtime.getRuntime().exec("cmd /c build.bat");
+//      p.waitFor();
+// }catch( IOException ex ){
+//  Validate the case the file can't be accesed (not enough permissions)
+// }catch( InterruptedException ex ){
+//  Validate the case the process is being stopped by some external situation
+// }
+//
+// Use to get output from the process (we send that to a file and display it
+//  afterwards instead):
+//
+// Runtime runtime = Runtime.getRuntime();
+// try {
+//    Process p1 = runtime.exec("cmd /c start D:\\temp\\a.bat");
+//    InputStream is = p1.getInputStream();
+//    int i = 0;
+//    while( (i = is.read() ) != -1) {
+//        System.out.print((char)i);
+//    }
+//  } catch(IOException ioException) {
+//    System.out.println(ioException.getMessage() );
+//  }
+//
+
+private void executePrintAtCommandPrompt(String pFilename)
+{
+
+    try {
+
+        Runtime rt = Runtime.getRuntime();
+
+        //the entire command has to be in quotes to use the && which allows
+        //multiple commands (&& only executes the second command if the first
+        // one succeeded, & executes both regardless)
+
+        String command = "cmd /c notepad.exe /P \"" + pFilename + "\"";
+
+        Process p = rt.exec(command); //execute the command
+
+    }
+    catch (IOException e) {
+        logSevere(e.getMessage() + " - Error: 1028");
+    }
+
+}//end of FlagReportPrinter::executePrintAtCommandPrompt
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
