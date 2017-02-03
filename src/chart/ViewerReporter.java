@@ -34,6 +34,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.text.DecimalFormat;
+import java.text.ParsePosition;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.print.attribute.PrintRequestAttributeSet;
@@ -472,20 +475,12 @@ private String getFileCreationDateTimeString(String pFilename)
         return("");
     }
 
-    String timeStamp = attr.creationTime().toString();
+    Date date = new Date(attr.creationTime().toMillis());
 
-    //replace 'T' with a space between date and time
-    timeStamp = timeStamp.replace('T', ' ');
+    SimpleDateFormat simpleDateFormat =
+                                   new SimpleDateFormat("MM-dd-yyyy HH:mm:ss");
 
-    //replace 'Z' with a space
-    timeStamp = timeStamp.replace('Z', ' ');
-
-    //if fractions of a second are displayed (a decimal point will be present)
-    //then remove the decimal point and all characters after
-
-    int pos = timeStamp.indexOf('.');
-
-    if(pos != -1 ){ timeStamp = timeStamp.substring(0, pos); }
+    String timeStamp = simpleDateFormat.format(date);
 
     return(timeStamp);
 
