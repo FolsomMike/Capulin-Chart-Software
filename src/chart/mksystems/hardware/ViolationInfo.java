@@ -56,7 +56,7 @@ public class ViolationInfo extends Object{
         
     String markerMessage = "";
 
-    static final int PLC_ENCODER_COUNTS_SCALER = 8;
+    static final int PLC_ENCODER_COUNTS_SCALER = 4;
     
 //-----------------------------------------------------------------------------
 // ViolationInfo::init
