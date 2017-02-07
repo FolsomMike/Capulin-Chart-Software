@@ -63,8 +63,12 @@ public class EncoderValues extends Object{
 
     public double photoEyeToPhotoEyeDistance = 0;
 
-    private double encoder1CountsPerRev, encoder2CountsPerRev;
-    
+    private double encoder1CountsPerRev;
+    public double getEncoder1CountsPerRev(){ return encoder1CountsPerRev;}
+
+    private double encoder2CountsPerRev;
+    public double getEncoder2CountsPerRev(){ return encoder2CountsPerRev;}
+
     private double encoder1CountsPerInch = 0;
     public void setEncoder1CountsPerInch(double pV){
         encoder1CountsPerInch = pV;

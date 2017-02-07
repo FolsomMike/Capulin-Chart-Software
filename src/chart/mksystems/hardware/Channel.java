@@ -2418,16 +2418,21 @@ private int calculateDistanceToMarker(int pPrimaryMarker,
     distanceToMarkerInInches -= distLinearForAngularAlign;
 
     //convert final linear distance to marker to encoder counts
-    
-    int countsLinearToMarkerInInches = 
+
+    int countsLinearToMarker =
      (int) Math.round(distanceToMarkerInInches * eV.getEncoder1CountsPerInch());
+
+    int countsToAlignAngular =
+                    (int) Math.round(rotation * eV.getEncoder1CountsPerRev());
+
+    int totalCountsToMarker = countsToAlignAngular + countsLinearToMarker;
 
     //adjust counts to factor in a time correction -- see notes in header above
 
-    countsLinearToMarkerInInches += 
+    totalCountsToMarker +=
       (int)Math.round(eV.getEncoder1CountsPerSec()*marker.timeAdjustSpeedRatio);
-    
-    return(countsLinearToMarkerInInches);
+
+    return(totalCountsToMarker);
 
 }//end of Channel::calculateDistanceToMarker
 //-----------------------------------------------------------------------------
