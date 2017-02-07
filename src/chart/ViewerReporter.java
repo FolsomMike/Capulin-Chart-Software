@@ -475,7 +475,7 @@ private String getFileCreationDateTimeString(String pFilename)
         return("");
     }
 
-    Date date = new Date(attr.creationTime().toMillis());
+    Date date = new Date(attr.lastModifiedTime().toMillis());
 
     SimpleDateFormat simpleDateFormat =
                                    new SimpleDateFormat("MM-dd-yyyy HH:mm:ss");
