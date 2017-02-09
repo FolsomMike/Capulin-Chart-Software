@@ -2417,15 +2417,23 @@ private int calculateDistanceToMarker(int pPrimaryMarker,
     //subtract amount moved during alignment from the linear distance to marker
     distanceToMarkerInInches -= distLinearForAngularAlign;
 
-    //convert final linear distance to marker to encoder counts
+    //calculate the number of complete revolutions which will place defect
+    //nearest to the marker
 
-    int countsLinearToMarker =
-     (int) Math.round(distanceToMarkerInInches * eV.getEncoder1CountsPerInch());
+    int numCompleteRevsToMarker =
+        (int) Math.round(distanceToMarkerInInches / eV.getEncoder1Helix());
+
+    //convert number of whole revolutions to counts
+
+    int countsRevsToMarker =
+       (int) Math.round(numCompleteRevsToMarker * eV.getEncoder1CountsPerRev());
+
+    //counts to rotate to align defect with marker
 
     int countsToAlignAngular =
                     (int) Math.round(rotation * eV.getEncoder1CountsPerRev());
 
-    int totalCountsToMarker = countsToAlignAngular + countsLinearToMarker;
+    int totalCountsToMarker = countsToAlignAngular + countsRevsToMarker;
 
     //adjust counts to factor in a time correction -- see notes in header above
 
