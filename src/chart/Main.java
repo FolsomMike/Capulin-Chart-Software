@@ -813,7 +813,10 @@ private void configure()
 
     settings.displayPlus6dBBtn = configFile.readBoolean(
                      "Main Configuration", "Display Plus 6 dB Button", false);
-        
+
+    settings.forceDistanceToMarkerToZero = configFile.readBoolean(
+              "Markers", "Force Distance To Marker to Zero", false);
+
     settings.simulationMode = configFile.readBoolean(
                                 "Main Configuration", "Simulation Mode", false);
 

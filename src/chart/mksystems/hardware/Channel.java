@@ -2435,6 +2435,10 @@ private int calculateDistanceToMarker(int pPrimaryMarker,
 
     int totalCountsToMarker = countsToAlignAngular + countsRevsToMarker;
 
+    //if flag set then force distance to zero for troubleshooting purpose
+
+    if (settings.forceDistanceToMarkerToZero){ totalCountsToMarker = 0; }
+
     //adjust counts to factor in a time correction -- see notes in header above
 
     totalCountsToMarker +=

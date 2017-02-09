@@ -32,16 +32,12 @@ import chart.mksystems.hardware.Hardware;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.stripchart.ChartGroup;
 import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Insets;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
-import javax.swing.border.Border;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -185,7 +181,9 @@ public class Settings extends Object implements ActionListener, ItemListener {
     public boolean displayPlus6dBBtn = false;
     
     public boolean plus6dBEnabled = false;
-    
+
+    public boolean forceDistanceToMarkerToZero = false;
+
     //if true, program will simulate data for debugging, training and demo
     //replaced by simulateMechanical, simulateUT, etc?
     public boolean simulationMode = false;
@@ -912,7 +910,7 @@ public static long calculateSumOfFileData(String pFilename) throws IOException
 // Settings::getDefaultLookAndFeelSettings
 //
 
-public void getDefaultLookAndFeelSettings()
+public final void getDefaultLookAndFeelSettings()
 {
 
 /*
