@@ -329,6 +329,23 @@ public void handleLinearPositionOverride(double pOverride)
 }//end of EncoderHandler::handleLinearPositionOverride
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// EncoderHandler::allowTraceUpdate
+//
+// Determines if the trace should be updated based on the number and sign
+// of the pixels moved value.
+//
+// Each subclass may handle differently: some may disallow trace reversal for
+// instance.
+//
+
+public boolean allowTraceUpdate(int pPixelsMoved)
+{
+
+    return (true);
+
+}//end of EncoderHandler::handleLinearPositionOverride
+//-----------------------------------------------------------------------------
 
 }//end of class EncoderHandler
 //-----------------------------------------------------------------------------

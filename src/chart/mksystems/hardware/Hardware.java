@@ -73,7 +73,7 @@ public class Hardware extends Object implements TraceValueCalculator, Runnable,
     ChartGroup chartGroups[];
 
     public HardwareVars hdwVs;
-    private final EncoderHandler encoders;
+    private EncoderHandler encoders;
     IniFile configFile;
     HardwareLink analogDriver;
     HardwareLink digitalDriver;
@@ -107,6 +107,7 @@ public class Hardware extends Object implements TraceValueCalculator, Runnable,
 
     String analogDriverName;
     String digitalDriverName;
+    String encoderHandlerName;
 
     boolean manualInspectControl = false;
 
@@ -143,16 +144,6 @@ public Hardware(IniFile pConfigFile, Settings pSettings, JTextArea pLog)
 
     logger = new ThreadSafeLogger(pLog);
 
-    //debug mks -- pick between the two based on value from config file
-    // have to move this to point after config, but then feed to
-    // InspectControlVars after creation
-    //encoders = new EncoderLinearAndRotational(hdwVs.encoderValues);
-
-    encoders = new EncoderDualLinear(hdwVs.encoderValues, settings.msgLabel);    
-    encoders.init();
-
-    inspectCtrlVars = new InspectControlVars(encoders); inspectCtrlVars.init();
-
 }//end of Hardware::Hardware (constructor)
 //-----------------------------------------------------------------------------
 
@@ -167,12 +158,50 @@ public void init()
 
     //load configuration settings
     configure(configFile);
-    
+
+    setEncoderHandler();
+
+    inspectCtrlVars = new InspectControlVars(encoders); inspectCtrlVars.init();
+
     createAnalogDriver(analogDriverName);
 
     openPLCComLink();
       
 }//end of Hardware::init
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Hardware::setEncoderHandler
+//
+// Creates and initiaizes the encoder hander object base on settings read
+// from the config file.
+//
+
+public void setEncoderHandler()
+{
+
+    switch(encoderHandlerName){
+
+        case "Linear and Rotational" :
+            encoders = new EncoderLinearAndRotational(
+                                       hdwVs.encoderValues, settings.msgLabel);
+        break;
+
+        case "Encoder Dual Linear" :
+            encoders = new EncoderDualLinear(
+                                       hdwVs.encoderValues, settings.msgLabel);
+        break;
+
+        default:
+            encoders = new EncoderLinearAndRotational(
+                                       hdwVs.encoderValues, settings.msgLabel);
+        break;
+
+    }
+
+    encoders.init();
+
+}//end of Hardware::setEncoderHandler
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -192,7 +221,10 @@ private void configure(IniFile pConfigFile)
 
     digitalDriverName = pConfigFile.readString(
                     "Hardware", "Digital Input Driver Name", "PCI-QUAD04");
-        
+
+    encoderHandlerName = pConfigFile.readString(
+                  "Hardware", "Encoder Handler Name", "Linear and Rotational");
+
     settings.awayFromHome =
         pConfigFile.readString(
             "Hardware",
@@ -1647,8 +1679,10 @@ void moveEncoders(int pRecordStopPositionForHead)
     //calculate the number of pixels moved since the last update
     int pixelsMoved = pixPosition - prevPixPosition;
 
-    //do nothing if encoders haven't moved enough to reach the next pixel
-    if (pixelsMoved <= 0) {return;}     //debug mks -- change this back to == when able to shrink tube for length correction
+    //check encoder handler to see if trace should be updated
+    //do nothing if encoders haven't moved enough to reach the next pixel, etc.
+
+    if(!encoders.allowTraceUpdate(pixelsMoved)){ return; }
 
     prevPixPosition = pixPosition;
 

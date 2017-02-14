@@ -366,6 +366,29 @@ private String createAdjustmentMsgSuffix(double pOverride)
 }//end of EncoderDualLinear::createAdjustmentMsgSuffix
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// EncoderHandler::allowTraceUpdate
+//
+// Determines if the trace should be updated based on the number and sign
+// of the pixels moved value.
+//
+// Currently, this class disallows trace reversal because when the distance
+// correction attempts to shorten the tube, it uses negative pixels moved
+// values to do this. In that case, a correction would reverse the trace.
+// After a better method is found for shortening corrections, this code
+// should be changed to allow all moves (or this method removed from the
+// EncoderHandler classes and subclasses).
+//
+
+@Override
+public boolean allowTraceUpdate(int pPixelsMoved)
+{
+
+    if (pPixelsMoved <= 0) { return(false); } else{ return(true); }
+
+}//end of EncoderHandler::handleLinearPositionOverride
+//-----------------------------------------------------------------------------
+
 }//end of class EncoderDualLinear
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
