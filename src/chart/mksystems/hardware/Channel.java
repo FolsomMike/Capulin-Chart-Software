@@ -123,6 +123,14 @@ public class Channel extends Object{
     int bifurcatedScaleLevelTrap = Integer.MIN_VALUE;
     int bifurcatedScaleLevelAdjusted = Integer.MAX_VALUE;
 
+    int snapWindowLow;
+    public int getSnapWindowLow(){return snapWindowLow;}
+    public void setSnapWindowLow(int pValue){snapWindowLow = pValue;}
+    
+    int snapWindowHigh;
+    public int getSnapWindowHigh(){return snapWindowHigh;}
+    public void setSnapWindowHigh(int pValue){snapWindowHigh = pValue;}
+    
     SyncedInteger aScanSmoothing;
     public double nSPerDataPoint;
     public double uSPerDataPoint;
@@ -3967,6 +3975,11 @@ public void sendFilter(int pFilterNum)
 // To reduce overhead, the scaled level is only computed when the Level or
 // the Software Gain has changed.
 //
+// This function also applies a snap window to the value. If the value is
+// above the unadjusted scale level (does not change when the gain is changed)
+// but below the window, it will be snapped into the window. If the value is
+// above the window, it will likewise be snapped into the window.
+//
 
 public int applyBifurcatedScale(int pValue)
 {
@@ -3975,7 +3988,6 @@ public int applyBifurcatedScale(int pValue)
 
     if (bifurcatedScaleLevel != bifurcatedScaleLevelTrap
             || softwareGain.getValue() != bifurcatedScaleSoftwareGainTrap){
-
 
         bifurcatedScaleLevelTrap = bifurcatedScaleLevel;
         bifurcatedScaleSoftwareGainTrap = softwareGain.getValue();
@@ -3993,11 +4005,17 @@ public int applyBifurcatedScale(int pValue)
     }
 
     if(pValue < bifurcatedScaleLevelAdjusted){
-        return(pValue / 2);
-    }else{
-        return(pValue);
+        pValue = pValue / 2;
+    }
+    
+    if(pValue > bifurcatedScaleLevel && pValue < snapWindowLow){    
+        pValue = snapWindowLow + (pValue % 5);
+    }else if(pValue > snapWindowHigh){    
+        pValue = snapWindowHigh - (pValue % 5);
     }
 
+    return(pValue);
+    
 }//end of Channel::applyBifurcatedScale
 //-----------------------------------------------------------------------------
 
@@ -4068,6 +4086,10 @@ public void loadCalFile(IniFile pCalFile)
     bifurcatedScaleGain = pCalFile.readDouble(
                                         section, "Bifurcated Scale Gain", 0.0);
 
+    snapWindowLow = pCalFile.readInt(section, "Snap Window Lower Limit", 64);
+
+    snapWindowHigh = pCalFile.readInt(section, "Snap Window Upper Limit", 97);    
+    
     aScanSmoothing.setValue(
                  pCalFile.readInt(section, "AScan Display Smoothing", 1), true);
 
@@ -4131,6 +4153,10 @@ public void saveCalFile(IniFile pCalFile)
                       section, "Bifurcated Scale Level", bifurcatedScaleLevel);
     pCalFile.writeDouble(
                         section, "Bifurcated Scale Gain", bifurcatedScaleGain);
+    
+    pCalFile.writeInt(section, "Snap Window Lower Limit", snapWindowLow);
+
+    pCalFile.writeInt(section, "Snap Window Upper Limit", snapWindowHigh);    
 
     pCalFile.writeInt(
                 section, "AScan Display Smoothing", aScanSmoothing.getValue());

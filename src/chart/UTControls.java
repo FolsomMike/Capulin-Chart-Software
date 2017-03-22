@@ -250,6 +250,8 @@ public class UTControls extends JTabbedPane
     JTextField bifurcatedScaleLevelTF;
     JTextField bifurcatedScaleGainTF;
 
+    JTextField snapWindowLowTF, snapWindowHighTF;
+    
     //end of components on Configuration tab
 
 //-----------------------------------------------------------------------------
@@ -1786,13 +1788,32 @@ void setupConfigTab()
     bifurcatedScaleGainTF.setText(new DecimalFormat("0.0").format(
                                      currentChannel.getBifurcatedScaleGain()));
 
+    snapWindowLowTF = new JTextField(3);
+    setSizes(snapWindowLowTF, 23, 23);
+    snapWindowLowTF.setName("Window Low");
+    snapWindowLowTF.addMouseListener(this);
+    snapWindowLowTF.setToolTipText("Sets window lower level.");
+    snapWindowLowTF.setText(""+currentChannel.getSnapWindowLow());
+    
+    snapWindowHighTF = new JTextField(3);
+    setSizes(snapWindowHighTF, 23, 23);
+    snapWindowHighTF.setName("Window High");
+    snapWindowHighTF.addMouseListener(this);
+    snapWindowHighTF.setToolTipText("Sets window upper level.");
+    snapWindowHighTF.setText(""+currentChannel.getSnapWindowHigh());
+    
     bifurcatedScalePanel.add(bifurcatedScaleCB);
-    bifurcatedScalePanel.add(Box.createRigidArea(new Dimension(30,0))); //spacer
+    bifurcatedScalePanel.add(Box.createRigidArea(new Dimension(20,0))); //spacer
     bifurcatedScalePanel.add(new JLabel("Level "));
     bifurcatedScalePanel.add(bifurcatedScaleLevelTF);
     bifurcatedScalePanel.add(Box.createRigidArea(new Dimension(10,0))); //spacer
     bifurcatedScalePanel.add(new JLabel("Gain "));
     bifurcatedScalePanel.add(bifurcatedScaleGainTF);
+    bifurcatedScalePanel.add(Box.createRigidArea(new Dimension(10,0))); //spacer
+    bifurcatedScalePanel.add(new JLabel("Range "));
+    bifurcatedScalePanel.add(snapWindowLowTF);
+    bifurcatedScalePanel.add(Box.createRigidArea(new Dimension(3,0))); //spacer
+    bifurcatedScalePanel.add(snapWindowHighTF);
     bifurcatedScalePanel.add(Box.createHorizontalGlue());
 
     bottomPanel.add(bifurcatedScalePanel);
@@ -2059,6 +2080,10 @@ private void updateBifurcatedScaleValues()
     }
     ch.setBifurcatedScaleGain(doubleVal);
 
+    updateSnapWindowLow(ch, snapWindowLowTF);
+    
+    updateSnapWindowHigh(ch, snapWindowHighTF);
+    
 }//end of UTControls::updateBifurcatedScaleValues
 //-----------------------------------------------------------------------------
 
@@ -2083,6 +2108,52 @@ private void updateBifurcatedScaleLevel(Channel pChannel, JTextField pTextField)
     pChannel.setBifurcatedScaleLevel(intVal);
 
 }//end of UTControls::updateBifurcatedScaleLevel
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTControls::updateSnapWindowLow
+//
+// Validates and copies the snapWindowLow entry to the corresponding
+// variables.
+//
+
+private void updateSnapWindowLow(Channel pChannel, JTextField pTextField)
+{
+
+    int intVal;
+    
+    try{
+        intVal = Integer.parseInt(pTextField.getText().trim());
+    }catch(NumberFormatException ec){
+        intVal = 0; pTextField.setText("");
+    }
+    
+    pChannel.setSnapWindowLow(intVal);
+
+}//end of UTControls::updateSnapWindowLow
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// UTControls::updateSnapWindowHigh
+//
+// Validates and copies the snapWindowHigh entry to the corresponding
+// variables.
+//
+
+private void updateSnapWindowHigh(Channel pChannel, JTextField pTextField)
+{
+
+    int intVal;
+    
+    try{
+        intVal = Integer.parseInt(pTextField.getText().trim());
+    }catch(NumberFormatException ec){
+        intVal = 0; pTextField.setText("");
+    }
+    
+    pChannel.setSnapWindowHigh(intVal);
+
+}//end of UTControls::updateSnapWindowHigh
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

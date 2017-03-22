@@ -740,6 +740,14 @@ if(pCopyAll || copyItemSelector.getItemState("Bifurcated Scale Enable")) {
     }
 }
 
+if(pCopyAll || copyItemSelector.getItemState("Window Low")) {
+    pDestination.setSnapWindowLow(pSource.getSnapWindowLow());
+}
+
+if(pCopyAll || copyItemSelector.getItemState("Window High")) {
+    pDestination.setSnapWindowHigh(pSource.getSnapWindowHigh());
+}
+
 //updates the channel number color to match the channel's on/off state
 //if all system channels are being copied, not all of those channels will
 //be in the group currently being displayed by the Calibrator window, those
