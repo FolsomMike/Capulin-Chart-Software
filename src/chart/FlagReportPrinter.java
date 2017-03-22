@@ -23,6 +23,7 @@ import chart.mksystems.hardware.Hardware;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.settings.Settings;
 import chart.mksystems.stripchart.ChartGroup;
+import chart.mksystems.stripchart.FlagReportEntry;
 import chart.mksystems.stripchart.Plotter;
 import chart.mksystems.stripchart.StripChart;
 import chart.mksystems.tools.SwissArmyKnife;
@@ -30,6 +31,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.ListIterator;
 import javax.swing.*;
 
 //-----------------------------------------------------------------------------
@@ -482,7 +485,9 @@ public void startPrint()
 
 public void printReportForPiece(String pReportsPrimaryPath, int pPiece)
 {
-
+    
+    ArrayList<FlagReportEntry> flagReportEntries = new ArrayList<>(50);
+    
     //Prepend "Cal" to cal joint reports.  Prepend is used over append so that
     //the files are sorted by group when listed in alphabetical order.
 
@@ -544,6 +549,8 @@ public void printReportForPiece(String pReportsPrimaryPath, int pPiece)
     int traceLength =
         chartGroups[0].getStripChart(0).getPlotter(0).getDataBufferWidth();
 
+    double prevLinearPos = Double.MIN_VALUE;
+    
     for (int i = 0; i < traceLength; i++){
         for (int j = 0; j < numberOfChartGroups; j++){
             ChartGroup cGroup = chartGroups[j];
@@ -551,8 +558,26 @@ public void printReportForPiece(String pReportsPrimaryPath, int pPiece)
                 StripChart chart = cGroup.getStripChart(k);
                 for (int l = 0; l < chart.getNumberOfPlotters(); l++){
 
-                printFlagForPlotter(file, chart, chart.getPlotter(l), i);
+                    //convert index to decimal feet
+                    double linearPos = i / hdwVs.pixelsPerInch / 12.0;
+                    linearPos = roundToDot05(linearPos);
 
+                    //print all flags stored for each .05 feet
+                    if(linearPos != prevLinearPos){
+                        
+                        //if(!flagReportEntries.isEmpty()){
+                        //    debugMKS(flagReportEntries); //remove this
+                        //}
+                            
+                        prevLinearPos = linearPos;
+                        printFlagReportEntriesInList(file, flagReportEntries);
+                        flagReportEntries.clear();
+                    }
+                    
+                    //store all flags for each .05 feet
+                    storeFlagForPlotter(chart, chart.getPlotter(l), i,
+                                                  linearPos, flagReportEntries);
+                
                 }//for (int l = 0; l < chart.getNumberOfTraces()
             }//for (int k = 0; k < numberOfStripCharts;...
         }//for (int j = 0; j < numberOfChartGroups;...
@@ -568,14 +593,44 @@ public void printReportForPiece(String pReportsPrimaryPath, int pPiece)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// FlagReportPrinter::printFlagForPlotter
+// FlagReportPrinter::roundToDot05
 //
-// Prints the flag at buffer index pDataIndex for plotter pPlotter.
+// Rounds pValue to the nearest .05 value:
 //
-// If multiple flags from the same flaw trace are located at the same tenth of a
+//  *0,*1,*2,*3,*4 rounds to *0
+//  *5,*6,*7,*8,*9 rounds to *5
+//
+
+private double roundToDot05(double pValue)
+{
+
+    pValue = pValue * 10;
+    
+    double fractionalPart = pValue % 1;
+    double integralPart = pValue - fractionalPart;
+    
+    if (fractionalPart >= 0.0 && fractionalPart < 0.5){
+        fractionalPart = 0.0;
+    }else
+    {
+        fractionalPart = 0.5;
+    }
+
+    return((integralPart + fractionalPart) / 10);
+    
+}//end of FlagReportPrinter::roundToDotO5
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// FlagReportPrinter::storeFlagForPlotter
+//
+// Stores the flag at buffer index pDataIndex for plotter pPlotter in an
+// ArrayList
+//
+// If multiple flags from the same flaw trace are located at the same .05 of a
 // foot (or equivalent for metric) and clock position, the first flag is always
 // printed but subsequent flags are not printed if they are the same amplitude
-// than the flag just before.
+// as the flag just before.
 //
 // For wall traces, subsequent flags are not shown if they have the same wall
 // value.
@@ -588,24 +643,20 @@ public void printReportForPiece(String pReportsPrimaryPath, int pPiece)
 //
 // For the multiple flag checks, the formatted string version of some of the
 // values are used for comparison as this takes into account round off.  This
-// does make it difficult to use comparison to find the worst case if that
-// option is ever implemented.
+// does make it convoluted to use comparison to find the worst case if that
+// option is ever implemented as string must be converted to double first.
 //
 
-public void printFlagForPlotter(PrintWriter pFile, StripChart pChart,
-                                              Plotter pPlotter, int pDataIndex)
+public void storeFlagForPlotter(StripChart pChart, Plotter pPlotter,
+                                int pDataIndex, double pLinearPos, 
+                                ArrayList<FlagReportEntry>pFlagReportEntries)
 {
 
     if (pPlotter.shortTitle.contains("Max")) { 
         return;
     } //debug mks -- remove this
     
-    boolean isWallChart = false;
-    if (pChart.shortTitle.contains("Wall")) {isWallChart = true;}
-
-    String linearPos;
-    String amplitudeText;
-    int clockPos;
+    int amplitude, clockPos;
 
     //extract the flag threshold -- if greater than 0, then a flag
     //is set at this position (note that threshold 1 denotes a user
@@ -615,25 +666,8 @@ public void printFlagForPlotter(PrintWriter pFile, StripChart pChart,
         //debug mks -- pixelsPerInch needs to be read from the joint
         //file, not config file as it may change
 
-        //convert the position and amplitude first so they can be
-        //used to detect duplicate flags (see notes in function header)
-
-        //convert index to decimal feet, format, and pad to length
-        linearPos = prePad(decimalFormats[1].format(pDataIndex /
-                                            hdwVs.pixelsPerInch / 12.0), 5);
-
         //convert and format the amplitude depending on chart type
-        int amplitude = pPlotter.getDataBuffer1()[pDataIndex];
-        double wall;
-        if (isWallChart){
-            wall = calculateComputedValue1(amplitude);
-            amplitudeText = decimalFormats[2].format(wall);
-            amplitudeText = prePad(amplitudeText, 5);
-        }
-        else{
-            if (amplitude > 100) {amplitude = 100;}
-            amplitudeText = prePad("" + amplitude, 5);
-        }
+        amplitude = pPlotter.getDataBuffer1()[pDataIndex];
 
         //extract the clock position from the flag
         clockPos = pPlotter.getFlagBuffer()[pDataIndex] & 0x1ff;
@@ -642,36 +676,149 @@ public void printFlagForPlotter(PrintWriter pFile, StripChart pChart,
         //if the flag is in the same linear and clock position as the
         //previous flag printed for this trace and has the same amplitude, then
         //the flag is not printed (see notes in function header)
-        if (!settings.reportAllFlags && linearPos.equals(pPlotter.prevLinearPos)
-                && amplitudeText.equals(pPlotter.prevAmplitudeText)
-                                    && clockPos == pPlotter.prevClockPos){
+        if (!settings.reportAllFlags && pLinearPos == pPlotter.prevLinearPos
+                                     && amplitude == pPlotter.prevAmplitude
+                                     && clockPos == pPlotter.prevClockPos){
             return;
         }
 
-        pPlotter.prevLinearPos = linearPos;
-        pPlotter.prevAmplitudeText = amplitudeText;
+        pPlotter.prevLinearPos = pLinearPos;
+        pPlotter.prevAmplitude = amplitude;
         pPlotter.prevClockPos = clockPos;
 
-        pFile.print(linearPos + "\t");
-
-        String clockPosText = "";
-        if(printClockColumn){ clockPosText = clockPos + ""; }
-
-        pFile.print(clockPosText + "\t"); //radial position
-
-        //print the short title of trace which should have
-        //been set up in the config file to describe some or all of
-        //orientation, ID/OD designation, and channel number
-        pFile.print(postPad(pPlotter.shortTitle, 10) + "\t");
-
-        pFile.print(amplitudeText + "\t"); //amplitude
-
-        //print a line for handwritten notes and initials
-        pFile.println("________________________________________");
+        pFlagReportEntries.add(new FlagReportEntry(pLinearPos, clockPos,
+                                               pPlotter.shortTitle, amplitude));
 
     }//if (((pTrace.flagBuffer[pDataIndex] & 0x0000fe00) >> 9) > 0)
 
-}//end of FlagReportPrinter::printFlagsForChart
+}//end of FlagReportPrinter::storeFlagForChart
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// FlagReportPrinter::printFlagReportEntriesInList
+//
+// Prints all the flag report entries in ArrayList pFlagReportEntries and
+// clears the list.
+//
+// The entries are printed highest amplitude first, followed by all other
+// entries with the same title in order of amplitude.
+//
+// The next highest amplitude is found and printed, followed by all other
+// entries with that same title in order of amplitude.
+//
+// The above is repeated until all entries are printed.
+//
+// Thus the entries are grouped by title, each group sorted by amplitude, with
+// the groups printed in order of the highest amplitude of any of the group.
+//
+
+private void printFlagReportEntriesInList(PrintWriter pFile,
+                                ArrayList<FlagReportEntry>pFlagReportEntries)
+{
+
+    if(pFlagReportEntries.isEmpty()){ return; }
+    
+    ArrayList<FlagReportEntry>list = pFlagReportEntries;
+    FlagReportEntry entry, highestAmplitudeEntry;
+    String groupTitle;
+    
+    while(!list.isEmpty()){
+        
+        ListIterator iter;
+        int amplitudeTrap = Integer.MIN_VALUE;
+        groupTitle = "";
+
+        //find highest amplitude and record title of entry
+        
+        for (iter = list.listIterator(); iter.hasNext(); ){
+            entry = ((FlagReportEntry)iter.next());
+            if (entry.amplitude > amplitudeTrap){
+                amplitudeTrap = entry.amplitude;
+                groupTitle = entry.title;
+            }
+        }
+        
+        if(groupTitle.isEmpty()){ continue; }
+                
+        //print all entries of the group in order of amplitude
+
+        while(true){
+
+        highestAmplitudeEntry = null;            
+        amplitudeTrap = Integer.MIN_VALUE;
+        
+            for (iter = list.listIterator(); iter.hasNext(); ){
+                entry = ((FlagReportEntry)iter.next());
+                if (entry.title.equals(groupTitle)
+                                            && entry.amplitude > amplitudeTrap){
+                    amplitudeTrap = entry.amplitude;
+                    highestAmplitudeEntry = entry;
+                }
+            }
+
+        //stop when no more entries of the current group found
+        if(highestAmplitudeEntry == null){ break; }
+        
+        //print highest amplitude found of the current group
+        printFlagReportEntry(pFile, highestAmplitudeEntry);
+        
+        //remove each entry after it has been printed
+        list.remove(highestAmplitudeEntry);
+        
+        }
+        
+    }//while(!list.isEmpty())
+
+}//end of FlagReportPrinter::printFlagReportEntriesInList
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// FlagReportPrinter::printFlagReportEntry
+//
+// Prints the data in pEntry object to pFile.
+//
+
+private void printFlagReportEntry(PrintWriter pFile, FlagReportEntry pEntry)
+{
+
+    if (pEntry == null){ return; }
+    
+    boolean isWallChart = false;
+    if (pEntry.title.contains("Wall")) {isWallChart = true;}
+        
+    String linearPosText = prePad(decimalFormats[3].format(pEntry.linearPos),5);
+
+    String amplitudeText;
+    
+    double wall;
+    if (isWallChart){
+        wall = calculateComputedValue1(pEntry.amplitude);
+        amplitudeText = decimalFormats[2].format(wall);
+        amplitudeText = prePad(amplitudeText, 5);
+    }
+    else{
+        if (pEntry.amplitude > 100) {pEntry.amplitude = 100;}
+        amplitudeText = prePad("" + pEntry.amplitude, 5);
+    }
+
+    pFile.print(linearPosText + "\t");
+
+    String clockPosText = "";
+    if(printClockColumn){ clockPosText = pEntry.clockPos + ""; }
+
+    pFile.print(clockPosText + "\t"); //radial position
+
+    //print the short title of trace which should have
+    //been set up in the config file to describe some or all of
+    //orientation, ID/OD designation, and channel number
+    pFile.print(postPad(pEntry.title, 10) + "\t");
+
+    pFile.print(amplitudeText + "\t"); //amplitude
+
+    //print a line for handwritten notes and initials
+    pFile.println("________________________________________");
+    
+}//end of FlagReportPrinter::printFlagReportEntry
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -692,8 +839,8 @@ public void resetTracePreviousFlagVariables()
             for (int l = 0; l < chart.getNumberOfPlotters(); l++){
 
                 Plotter plotter = chart.getPlotter(l);
-                plotter.prevLinearPos = "";
-                plotter.prevAmplitudeText = "";
+                plotter.prevLinearPos = Double.MIN_VALUE;
+                plotter.prevAmplitude = Integer.MIN_VALUE;
                 plotter.prevClockPos = -1;
 
             }//for (int l = 0; l < chart.getNumberOfTraces()
@@ -701,6 +848,35 @@ public void resetTracePreviousFlagVariables()
     }//for (int j = 0; j < numberOfChartGroups;...
 
 }//end of FlagReportPrinter::resetTracePreviousFlagVariables
+//-----------------------------------------------------------------------------
+
+
+//-----------------------------------------------------------------------------
+// FlagReportPrinter::debugMKS
+//
+// REMOVE THIS FUNCTION
+//
+
+public void debugMKS(ArrayList<FlagReportEntry>pFlagReportEntries)
+{
+
+//    pFlagReportEntries.add(new FlagReportEntry(
+//            pLinearPos, clockPos, pPlotter.shortTitle, amplitude));
+
+    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "zD1", 1));
+    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "zD2", 60));    
+    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "zD2", 50));
+    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "zD3", 7));
+    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "zD3", 6));
+    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "zD3", 5));    
+    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "zD2", 9));
+    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "zD1", 50));    
+    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "zD4", 99));
+    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "zD4", 2));
+    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "zD1", 30));
+    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "zD1", 1));    
+    
+}//end of FlagReportPrinter::debugMKS
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

@@ -287,10 +287,11 @@ public ViewerReporter(Settings pSettings, JobInfo pJobInfo,
     currentJobName = pCurrentJobName;
 
     //create various decimal formats
-    decimalFormats = new DecimalFormat[3];
+    decimalFormats = new DecimalFormat[4];
     decimalFormats[0] = new  DecimalFormat("0000000");
     decimalFormats[1] = new  DecimalFormat("0.0");
     decimalFormats[2] = new  DecimalFormat("0.000");
+    decimalFormats[3] = new  DecimalFormat("0.00");    
 
 }//end of Viewer::Viewer (constructor)
 //-----------------------------------------------------------------------------
