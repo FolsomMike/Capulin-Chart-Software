@@ -24,9 +24,10 @@ package chart;
 //
 // This class encapsulates variables for plotting.
 //
-// Variable sortOverride is used to force an entry or group of entries into a
-// designated position. For instance, setting override for all Wall entries
-// to 1000 will force the Wall entries to the top of the sort list.
+// Variable sortValue is the value actually used for group sorting. It can be
+// manipulated to force a group to the top or bottom and can affect the
+// sorting order of the groups. Order within the groups is sorted by
+// the amplitude and sortOrder variables.
 //
 
 public class FlagReportEntry{
@@ -37,7 +38,7 @@ public class FlagReportEntry{
     public String plotterShortTitle = "";
     public int amplitude = 0;
 
-    public int sortOverride = 0;
+    public int groupSortValue = 0;
     
     public int sortOrder = DESCENDING;
     
@@ -52,7 +53,7 @@ public class FlagReportEntry{
 
 public FlagReportEntry(double pLinearPos, int pClockPos, 
             String pChartShortTitle, String pPlotterShortTitle, int pAmplitude,
-            int pSortOverride, int pSortOrder, boolean pIsWall)
+            int pGroupSortValue, int pSortOrder, boolean pIsWall)
 {
 
     linearPos = pLinearPos;
@@ -60,7 +61,7 @@ public FlagReportEntry(double pLinearPos, int pClockPos,
     chartShortTitle = pChartShortTitle;
     plotterShortTitle = pPlotterShortTitle;
     amplitude = pAmplitude;
-    sortOverride = pSortOverride;
+    groupSortValue = pGroupSortValue;
     sortOrder = pSortOrder;
     isWall = pIsWall;
 

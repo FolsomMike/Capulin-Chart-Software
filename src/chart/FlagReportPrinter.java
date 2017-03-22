@@ -564,9 +564,10 @@ public void printReportForPiece(String pReportsPrimaryPath, int pPiece)
                     //print all flags stored for each .05 feet
                     if(linearPos != prevLinearPos){
                         
-                        if(!flagReportEntries.isEmpty()){
-                            debugMKS(flagReportEntries); //remove this
-                        }
+                       // test code for flag report sorting 
+                       // if(!flagReportEntries.isEmpty()){
+                       //     debugMKS(flagReportEntries); //remove this
+                       // }
                             
                         prevLinearPos = linearPos;
                         printFlagReportEntriesInList(file, flagReportEntries);
@@ -686,19 +687,19 @@ public void storeFlagForPlotter(StripChart pChart, Plotter pPlotter,
         pPlotter.prevClockPos = clockPos;
 
         boolean isWall = false;
-        int sortOverride = 0;
+        int groupSortValue = amplitude;
         int sortOrder = FlagReportEntry.DESCENDING;
         
         if (pChart.shortTitle.contains("Wall")) {
-            //force group to the top of list and sort wall with lowest
+            //force wall group to the bottom of list and sort ascending
             //value first
             isWall = true;
-            sortOverride = 1000; 
+            groupSortValue = -1000 - amplitude; 
             sortOrder = FlagReportEntry.ASCENDING;
         }
 
         pFlagReportEntries.add(new FlagReportEntry(pLinearPos, clockPos,
-         pChart.shortTitle, pPlotter.shortTitle, amplitude, sortOverride,
+         pChart.shortTitle, pPlotter.shortTitle, amplitude, groupSortValue,
                 sortOrder, isWall ));
         
     }//if (((pTrace.flagBuffer[pDataIndex] & 0x0000fe00) >> 9) > 0)
@@ -737,7 +738,7 @@ private void printFlagReportEntriesInList(PrintWriter pFile,
     while(!list.isEmpty()){
         
         ListIterator iter;
-        int amplitudeTrap = Integer.MIN_VALUE;
+        int sortTrap = Integer.MIN_VALUE;
         groupTitle = "";
         int sortOrder = FlagReportEntry.ASCENDING;
         
@@ -745,8 +746,8 @@ private void printFlagReportEntriesInList(PrintWriter pFile,
         
         for (iter = list.listIterator(); iter.hasNext(); ){
             entry = ((FlagReportEntry)iter.next());
-            if ((entry.amplitude + entry.sortOverride) > amplitudeTrap){
-                amplitudeTrap = entry.amplitude + entry.sortOverride;
+            if ((entry.groupSortValue) > sortTrap){
+                sortTrap = entry.groupSortValue;
                 groupTitle = entry.plotterShortTitle;
                 sortOrder = entry.sortOrder;
             }
@@ -762,25 +763,25 @@ private void printFlagReportEntriesInList(PrintWriter pFile,
 
             if (sortOrder == FlagReportEntry.DESCENDING){
 
-                amplitudeTrap = Integer.MIN_VALUE;
+                sortTrap = Integer.MIN_VALUE;
 
                 for (iter = list.listIterator(); iter.hasNext(); ){
                     entry = ((FlagReportEntry)iter.next());
                     if (entry.plotterShortTitle.equals(groupTitle)
-                                           && entry.amplitude > amplitudeTrap){
-                        amplitudeTrap = entry.amplitude;
+                                           && entry.amplitude > sortTrap){
+                        sortTrap = entry.amplitude;
                         minMaxAmplitudeEntry = entry;
                     }
                 }
             }else if (sortOrder == FlagReportEntry.ASCENDING){
 
-                amplitudeTrap = Integer.MAX_VALUE;
+                sortTrap = Integer.MAX_VALUE;
 
                 for (iter = list.listIterator(); iter.hasNext(); ){
                     entry = ((FlagReportEntry)iter.next());
                     if (entry.plotterShortTitle.equals(groupTitle)
-                                            & entry.amplitude < amplitudeTrap){
-                        amplitudeTrap = entry.amplitude;
+                                            & entry.amplitude < sortTrap){
+                        sortTrap = entry.amplitude;
                         minMaxAmplitudeEntry = entry;
                     }
                 }
@@ -895,21 +896,21 @@ public void debugMKS(ArrayList<FlagReportEntry>pFlagReportEntries)
 //            String pChartShortTitle, String pPlotterShortTitle, int pAmplitude,
 //            int pSortOverride, int pSortOrder, boolean pIsWall)    
     
-    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "Trans", "TT1", 1,   0, 1, false));
-    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "Long",  "LL2", 60,  0, 1, false));
-    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "Trans", "TT1", 1,   0, 1, false));
-    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "Wall",  "W1",  70,  1000, 0, true));
-    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "Long",  "LL2", 50,  0, 1, false));
-    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "Long",  "LT3", 7,   0, 1, false));
-    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "Wall",  "W2",  50,  1000, 0, true));
-    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "Trans", "TT1", 30,  0, 1, false));
-    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "Long",  "LT3", 6,   0, 1, false));
-    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "Long",  "LT3", 5,   0, 1, false));
-    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "Wall",  "W2",  60,  1000, 0, true));    
-    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "Long",  "LL2", 9,   0, 1, false));
-    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "Trans", "TT1", 50,  0, 1, false));    
-    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "Trans", "TL4", 99,  0, 1, false));
-    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "Trans", "TL4", 2,   0, 1, false));
+    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "Trans", "TT1", 1,   1, 1, false));
+    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "Long",  "LL2", 60, 60, 1, false));
+    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "Trans", "TT1", 1,   1, 1, false));
+    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "Wall",  "W1",  70,  -1000-70, 0, true));
+    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "Long",  "LL2", 50,  50, 1, false));
+    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "Long",  "LT3", 7,   7, 1, false));
+    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "Wall",  "W2",  50,  -1000-50, 0, true));
+    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "Trans", "TT1", 30,  30, 1, false));
+    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "Long",  "LT3", 6,   6, 1, false));
+    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "Long",  "LT3", 5,   5, 1, false));
+    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "Wall",  "W2",  60,  -1000-60, 0, true));    
+    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "Long",  "LL2", 9,   9, 1, false));
+    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "Trans", "TT1", 50,  50, 1, false));    
+    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "Trans", "TL4", 99,  99, 1, false));
+    pFlagReportEntries.add(new FlagReportEntry(20.05, 1, "Trans", "TL4", 2,   2, 1, false));
     
 }//end of FlagReportPrinter::debugMKS
 //-----------------------------------------------------------------------------
