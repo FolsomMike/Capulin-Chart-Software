@@ -735,6 +735,8 @@ private void printFlagReportEntriesInList(PrintWriter pFile,
     FlagReportEntry entry, minMaxAmplitudeEntry;
     String groupTitle;
     
+    boolean printDuplicates = false; //debug mks -- make this a menu option
+    
     while(!list.isEmpty()){
         
         ListIterator iter;
@@ -756,6 +758,8 @@ private void printFlagReportEntriesInList(PrintWriter pFile,
         if(groupTitle.isEmpty()){ continue; }
                 
         //print all entries of the group in order of amplitude
+
+        boolean onePrinted = false;
 
         while(true){
 
@@ -791,8 +795,11 @@ private void printFlagReportEntriesInList(PrintWriter pFile,
             if(minMaxAmplitudeEntry == null){ break; }
 
             //print highest or lowest amplitude found of the current group
-            printFlagReportEntry(pFile, minMaxAmplitudeEntry);
-
+            if(printDuplicates || !onePrinted ){
+                printFlagReportEntry(pFile, minMaxAmplitudeEntry);
+                onePrinted = true;
+            }
+            
             //remove each entry after it has been printed
             list.remove(minMaxAmplitudeEntry);
         
