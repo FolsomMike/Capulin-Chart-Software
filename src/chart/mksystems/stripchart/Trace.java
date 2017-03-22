@@ -58,7 +58,7 @@ public class Trace extends Plotter{
 public Trace(Settings pSettings, IniFile pConfigFile, int pChartGroup,
             StripChart pChart,
             int pChartIndex, int pTraceIndex, PlotterGlobals pPlotterGlobals,
-            Color pBackgroundColor, Color pGridColor, int pGridXSpacing,
+            Color pBackgroundColor, Color pGridColor, double pInchesPerPixel,
                 Threshold[] pThresholds, Hardware pHardware)
 {
 
@@ -68,9 +68,7 @@ public Trace(Settings pSettings, IniFile pConfigFile, int pChartGroup,
     chartIndex = pChartIndex; plotterIndex = pTraceIndex;
     gridColor = pGridColor;
     plotterGlobals = pPlotterGlobals;
-    gridXSpacing = pGridXSpacing ;
-    //some of the code is more efficient with a variable of gridXSpacing-1
-    gridXSpacingT = pGridXSpacing - 1;
+    inchesPerPixel = pInchesPerPixel;
     backgroundColor = pBackgroundColor; hardware = pHardware;
     thresholds = pThresholds; numberOfThresholds = thresholds.length;
 
@@ -518,13 +516,27 @@ private int plotPoint(Graphics2D pG2, PlotVars pVars, TraceDatum pTraceDatum)
 
     //if this is the lead Plotter object draw the decorations
     if (leadPlotter){
+        
         for (int j = 0; j < numberOfThresholds; j++) {
             thresholds[j].drawSlice(pG2, pVars.pixPtr);
         }
+        
+        double locInInches = pVars.gridCounter++ * inchesPerPixel;
 
-        if (pVars.gridCounter++ == gridXSpacingT){
-            drawGrid(pG2, pVars.pixPtr, canvasYLimit);
-            pVars.gridCounter = 0;
+        if (locInInches >= pVars.nextMajorGridLoc){ 
+            
+            drawGrid(pG2, pVars.pixPtr, 5, canvasYLimit);            
+
+            pVars.nextMinorGridLoc = 
+                            pVars.nextMajorGridLoc + MINOR_GRID_SPACING_INCHES;            
+            pVars.nextMajorGridLoc += MAJOR_GRID_SPACING_INCHES;
+
+        }else if (locInInches >= pVars.nextMinorGridLoc){
+            
+            drawGrid(pG2, pVars.pixPtr, 10, canvasYLimit);
+            
+            pVars.nextMinorGridLoc += MINOR_GRID_SPACING_INCHES;            
+
         }
 
         //if segment start flag set, draw a vertical separator bar
@@ -776,7 +788,7 @@ void drawUserFlag(Graphics2D pG2, int xPos, int pSigHeight)
 // Draws the grid marks
 //
 
-void drawGrid(Graphics2D pG2, int pXPos, int pCanvasYLimit)
+void drawGrid(Graphics2D pG2, int pXPos, int pVertSpacing, int pCanvasYLimit)
 {
 
     //for screen display, zero width/height for grid pixels looks best
@@ -785,7 +797,7 @@ void drawGrid(Graphics2D pG2, int pXPos, int pCanvasYLimit)
 
     pG2.setColor(gridColor);
 
-    for(int i = 9; i < pCanvasYLimit; i+=10){
+    for(int i = (pVertSpacing-1); i < pCanvasYLimit; i+=pVertSpacing){
         pG2.drawRect(pXPos, i, width, 0);
     }
 
@@ -1035,8 +1047,11 @@ public void paintComponent(Graphics2D pG2)
     //for repainting, the gridCounter starts at one to sync up with drawing by
     //the plotNewData code
 
-    repaintVs.gridCounter = plotterGlobals.scrollCount % gridXSpacing;
+    repaintVs.gridCounter = plotterGlobals.scrollCount;
 
+    repaintVs.nextMinorGridLoc = MINOR_GRID_SPACING_INCHES;
+    repaintVs.nextMajorGridLoc = MAJOR_GRID_SPACING_INCHES;
+    
     //start with drawing trace allowed - will be set false by plotPoint when
     //an undefined data point reached which signifies the end of valid data
 

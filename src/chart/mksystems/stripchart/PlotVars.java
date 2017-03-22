@@ -31,6 +31,7 @@ public class PlotVars{
     int y1, y2;
     int pixPtr;
     int gridCounter;
+    double nextMinorGridLoc, nextMajorGridLoc;
     boolean drawData;
 
 }//end of class PlotVars

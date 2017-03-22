@@ -59,7 +59,7 @@ public class Map2D extends Plotter{
 public Map2D(Settings pSettings, IniFile pConfigFile, int pChartGroup,
             StripChart pChart,
             int pChartIndex, int pMap2DIndex, PlotterGlobals pPlotterGlobals,
-            Color pBackgroundColor, Color pGridColor, int pGridXSpacing,
+            Color pBackgroundColor, Color pGridColor, double pInchesPerPixel,
                 Threshold[] pThresholds, Hardware pHardware)
 {
 
@@ -67,12 +67,9 @@ public Map2D(Settings pSettings, IniFile pConfigFile, int pChartGroup,
     chartGroup = pChartGroup;
     chart = pChart;
     chartIndex = pChartIndex; plotterIndex = pMap2DIndex;
-    gridColor = pGridColor;
+    gridColor = pGridColor; inchesPerPixel = pInchesPerPixel;
     plotterGlobals = pPlotterGlobals;
 
-    gridXSpacing = pGridXSpacing ;
-    //some of the code is more efficient with a variable of gridXSpacing-1
-    gridXSpacingT = pGridXSpacing - 1;
     backgroundColor = pBackgroundColor;
     hardware = pHardware;
 
@@ -393,7 +390,7 @@ public void paintComponent(Graphics2D pG2)
     //for repainting, the gridCounter starts at one to sync up with drawing by
     //the plotNewData code
 
-    repaintVs.gridCounter = plotterGlobals.scrollCount % gridXSpacing;
+    //debug mks repaintVs.gridCounter = plotterGlobals.scrollCount % gridXSpacing;
 
     //start with drawing trace allowed - will be set false by plotPoint when
     //an undefined data point reached which signifies the end of valid data

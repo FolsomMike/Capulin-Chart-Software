@@ -507,7 +507,7 @@ public class StripChart extends JPanel implements MouseListener,
     Threshold[] thresholds;
     Color backgroundColor;
     Color gridColor;
-    int gridXSpacing;
+    double inchesPerPixel;
     //why do we have mask boolean values?
     boolean leadMask, trailMask;
     double leadMaskPos, trailMaskPos;
@@ -638,6 +638,11 @@ public void init()
 private void configure(IniFile pConfigFile)
 {
 
+    double pixelsPerInch = 
+                    pConfigFile.readDouble("Hardware", "Pixels per Inch", 1.0);    
+    
+    inchesPerPixel = 1 / pixelsPerInch;
+    
     String section = "Chart Group " + (chartGroup + 1)
                                           + " Strip Chart " + (chartNum + 1);
 
@@ -654,8 +659,6 @@ private void configure(IniFile pConfigFile)
                         section, "Background Color", new Color(238, 238, 238));
 
     gridColor = pConfigFile.readColor(section, "Grid Color", Color.BLACK);
-
-    gridXSpacing = pConfigFile.readInt(section, "Grid X Spacing", 10);
 
     leadMask = pConfigFile.readBoolean(section, "Leading Mask", true);
 
@@ -871,16 +874,15 @@ private Plotter createPlotter(int pIndex)
     if(typeOfPlotters == Plotter.TRACE){
 
         plotter = new Trace(settings, configFile, chartGroup, this, chartNum,
-           pIndex, traceGlobals, backgroundColor, gridColor, gridXSpacing,
+           pIndex, traceGlobals, backgroundColor, gridColor, inchesPerPixel,
                                                         thresholds, hardware);
     }
 
     if(typeOfPlotters == Plotter.MAP_2D){
 
         plotter = new Map2D(settings, configFile, chartGroup, this, chartNum,
-           pIndex, traceGlobals, backgroundColor, gridColor, gridXSpacing,
+           pIndex, traceGlobals, backgroundColor, gridColor, inchesPerPixel,
                                                         thresholds, hardware);
-
     }
 
 

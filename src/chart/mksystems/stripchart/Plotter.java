@@ -81,8 +81,8 @@ public class Plotter extends Object{
     public boolean leadPlotter = false;
     public boolean trailPlotter = false;
 
-    public String prevLinearPos = "";
-    public String prevAmplitudeText = "";
+    public double prevLinearPos = Double.MIN_VALUE;
+    public int prevAmplitude = Integer.MIN_VALUE;
     public int prevClockPos = -1;
 
     PlotterHdwVars hdwVs;
@@ -97,7 +97,7 @@ public class Plotter extends Object{
     JPanel canvas;
     int canvasXLimit;
     int canvasYLimit;
-    int gridXSpacing, gridXSpacingT;
+    double inchesPerPixel;
     Color backgroundColor;
     Color gridColor;
 
@@ -110,7 +110,10 @@ public class Plotter extends Object{
     static final int TRACE = 0;
     static final int MAP_2D = 1;
     static final int MAP_3D = 2;
-
+    
+    static final int MINOR_GRID_SPACING_INCHES = 6;
+    static final int MAJOR_GRID_SPACING_INCHES = 12;
+    
 //-----------------------------------------------------------------------------
 // Plotter::Plotter (constructor)
 //
@@ -211,7 +214,10 @@ public void resetAll()
 {
 
     plotVs.gridCounter = 0; //used to place grid marks
-
+    
+    plotVs.nextMinorGridLoc = MINOR_GRID_SPACING_INCHES;
+    plotVs.nextMajorGridLoc = MAJOR_GRID_SPACING_INCHES;
+    
     plotVs.drawData = true; //draw trace when plotting data
 
     plotterGlobals.bufOffset = 0; //left edge of screen starts at position 0

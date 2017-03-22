@@ -52,7 +52,7 @@ public class Map3D extends Plotter{
 public Map3D(Settings pSettings, IniFile pConfigFile, int pChartGroup,
             StripChart pChart,
             int pChartIndex, int pMap3DIndex, PlotterGlobals pPlotterGlobals,
-            Color pBackgroundColor, Color pGridColor, int pGridXSpacing,
+            Color pBackgroundColor, Color pGridColor, double pInchesPerPixel,
                 Threshold[] pThresholds, Hardware pHardware)
 {
 
@@ -63,9 +63,8 @@ public Map3D(Settings pSettings, IniFile pConfigFile, int pChartGroup,
     gridColor = pGridColor;
     plotterGlobals = pPlotterGlobals;
 
-    gridXSpacing = pGridXSpacing ;
-    //some of the code is more efficient with a variable of gridXSpacing-1
-    gridXSpacingT = pGridXSpacing - 1;
+    inchesPerPixel = pInchesPerPixel ;
+
     backgroundColor = pBackgroundColor;
     hardware = pHardware;
 
@@ -386,7 +385,7 @@ public void paintComponent(Graphics2D pG2)
     //for repainting, the gridCounter starts at one to sync up with drawing by
     //the plotNewData code
 
-    repaintVs.gridCounter = plotterGlobals.scrollCount % gridXSpacing;
+//debug mks    repaintVs.gridCounter = plotterGlobals.scrollCount % gridXSpacing;
 
     //start with drawing trace allowed - will be set false by plotPoint when
     //an undefined data point reached which signifies the end of valid data
