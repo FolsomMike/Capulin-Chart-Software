@@ -1048,9 +1048,16 @@ public void paintComponent(Graphics2D pG2)
     //the plotNewData code
 
     repaintVs.gridCounter = plotterGlobals.scrollCount;
+    
+    double locLeftEdgeInInches = repaintVs.gridCounter * inchesPerPixel;
+    
+    double numMinorGridLines = 
+            (int)Math.ceil(locLeftEdgeInInches  / MINOR_GRID_SPACING_INCHES);
 
-    repaintVs.nextMinorGridLoc = MINOR_GRID_SPACING_INCHES;
-    repaintVs.nextMajorGridLoc = MAJOR_GRID_SPACING_INCHES;
+    repaintVs.nextMinorGridLoc =(numMinorGridLines+1)*MINOR_GRID_SPACING_INCHES;
+    
+    repaintVs.nextMajorGridLoc = 
+                        repaintVs.nextMinorGridLoc + MINOR_GRID_SPACING_INCHES;
     
     //start with drawing trace allowed - will be set false by plotPoint when
     //an undefined data point reached which signifies the end of valid data
