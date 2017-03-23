@@ -555,6 +555,9 @@ public void printReportForPiece(String pReportsPrimaryPath, int pPiece)
             ChartGroup cGroup = chartGroups[j];
             for (int k = 0; k < cGroup.getNumberOfStripCharts(); k++){
                 StripChart chart = cGroup.getStripChart(k);
+                
+                if (!chart.getIsReportable()){ continue; }
+                
                 for (int l = 0; l < chart.getNumberOfPlotters(); l++){
 
                     //convert index to decimal feet

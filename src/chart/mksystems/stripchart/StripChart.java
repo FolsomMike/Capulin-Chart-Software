@@ -521,6 +521,9 @@ public class StripChart extends JPanel implements MouseListener,
     ActionListener actionListener;
 
     private Dimension totalScreenSize, usableScreenSize;    
+
+    boolean isReportable;    
+    public boolean getIsReportable(){ return isReportable; }
     
 //-----------------------------------------------------------------------------
 // StripChart::StripChart (constructor)
@@ -669,6 +672,9 @@ private void configure(IniFile pConfigFile)
     separatorColor =
           pConfigFile.readColor(section, "Piece Separator Color", Color.BLACK);
 
+    isReportable  =
+          pConfigFile.readBoolean(section, "Chart has Reportable Data", true);
+    
     displayPeakChannel =
                pConfigFile.readBoolean(section, "Display Peak Channel", false);
 
@@ -1414,7 +1420,8 @@ private String processStripChartEntries(BufferedReader pIn, String pLastLine)
     }// while ((line = pIn.readLine()) != null)
 
     //apply settings
-    title = titleRead; titledBorder.setTitle(title);
+    title = titleRead; 
+    if(titledBorder != null) { titledBorder.setTitle(title); }
     shortTitle = shortTitleRead;
     setChartVisible(visibleRead);
 

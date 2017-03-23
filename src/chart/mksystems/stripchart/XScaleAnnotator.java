@@ -21,6 +21,8 @@ package chart.mksystems.stripchart;
 import chart.mksystems.inifile.IniFile;
 import chart.mksystems.settings.Settings;
 import java.awt.*;
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.text.DecimalFormat;
 
 //-----------------------------------------------------------------------------
@@ -79,7 +81,7 @@ public void init()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Trace::configure
+// XScaleAnnotator::configure
 //
 // Loads configuration settings from the configuration.ini file.
 //
@@ -92,7 +94,7 @@ void configure(IniFile pConfigFile)
 
     String section = configFileSection;
 
-}//end of Trace::configure
+}//end of XScaleAnnotator::configure
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -114,7 +116,38 @@ public void resetAll()
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Trace::drawGrid
+// XScaleAnnotator::saveSegment
+//
+// Saves the data for a segment to the open file pOut.
+//
+// This function should be called whenever a new segment is completed - each
+// segment could represent a piece being monitored, a time period, etc.
+//
+// This function should be called after the segment end has been marked and
+// before the next segment start has been marked so that the end points
+// of the data to be saved are known.
+//
+
+
+@Override
+public void saveSegment(BufferedWriter pOut) throws IOException
+{
+
+    pOut.write("[X Axis Annotator]"); pOut.newLine();
+    pOut.write("X Axis Annotator Index=" + plotterIndex); pOut.newLine();
+    pOut.write("X Axis Annotator Title=" + title); pOut.newLine();
+    pOut.write("X Axis Annotator Short Title=" + shortTitle); pOut.newLine();
+    pOut.newLine();
+
+    pOut.write("[Data Set 1]");
+    pOut.newLine();    
+    pOut.write("[End of Set]");
+
+}//end of XScaleAnnotator::saveSegment
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// XScaleAnnotator::drawGrid
 //
 // Draws the grid marks
 //
@@ -132,7 +165,7 @@ void drawGrid(Graphics2D pG2, int pXPos, int pVertSpacing, int pCanvasYLimit)
         pG2.drawRect(pXPos, i, width, 0);
     }
 
-}//end of Trace::drawGrid
+}//end of XScaleAnnotator::drawGrid
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
