@@ -110,9 +110,11 @@ public class Plotter extends Object{
     static final int TRACE = 0;
     static final int MAP_2D = 1;
     static final int MAP_3D = 2;
-    
+    static final int X_AXIS_ANNOTATION = 3;    
+
     static final int MINOR_GRID_SPACING_INCHES = 6;
     static final int MAJOR_GRID_SPACING_INCHES = 12;
+    static final int X_AXIS_ANNOTATION_SPACING_INCHES = 24;
     
 //-----------------------------------------------------------------------------
 // Plotter::Plotter (constructor)
@@ -193,11 +195,15 @@ void configure(IniFile pConfigFile)
     suppressTraceInEndMasks = pConfigFile.readBoolean(
                                  section, "Suppress Traces in End Masks", true);
 
-    hdwVs.setPlotStyle(pConfigFile.readInt(section, "Plot Style", 0));
-
-    hdwVs.setSimDataType(
+    if (hdwVs != null){
+        hdwVs.setPlotStyle(pConfigFile.readInt(section, "Plot Style", 0));
+    }
+    
+    if (hdwVs != null){
+        hdwVs.setSimDataType(
                      pConfigFile.readInt(section, "Simulation Data Type", 0));
-
+    }
+    
 }//end of Plotter::configure
 //-----------------------------------------------------------------------------
 
@@ -213,19 +219,22 @@ void configure(IniFile pConfigFile)
 public void resetAll()
 {
 
-    plotVs.gridCounter = 0; //used to place grid marks
-    
-    plotVs.nextMinorGridLoc = MINOR_GRID_SPACING_INCHES;
-    plotVs.nextMajorGridLoc = MAJOR_GRID_SPACING_INCHES;
-    
-    plotVs.drawData = true; //draw trace when plotting data
+    if (plotVs != null){
+        
+        plotVs.gridCounter = 0; //used to place grid marks
 
+        plotVs.nextMinorGridLoc = MINOR_GRID_SPACING_INCHES;
+        plotVs.nextMajorGridLoc = MAJOR_GRID_SPACING_INCHES;
+
+        plotVs.drawData = true; //draw trace when plotting data
+
+        //pixel position on the screen where data is being plotted
+        plotVs.pixPtr = -1;
+    }
+    
     plotterGlobals.bufOffset = 0; //left edge of screen starts at position 0
 
     plotterGlobals.scrollCount = 0; //number of pixels chart has been scrolled
-
-    //pixel position on the screen where data is being plotted
-    plotVs.pixPtr = -1;
 
 }//end of Plotter::resetAll
 //-----------------------------------------------------------------------------

@@ -466,7 +466,7 @@ public class StripChart extends JPanel implements MouseListener,
                                                            MouseMotionListener{
 
     ChartCanvas canvas;
-    public TitledBorder titledBorder;
+    public TitledBorder titledBorder = null;
     Settings settings;
     JFrame mainFrame;
     IniFile configFile;
@@ -712,8 +712,10 @@ private void configure(IniFile pConfigFile)
     //read the configuration file and create/setup the plotters
     configurePlotters(configFile);
 
-    setBorder(titledBorder = BorderFactory.createTitledBorder(title));
-
+    if(!title.equals("<no border>")){
+        setBorder(titledBorder = BorderFactory.createTitledBorder(title));
+    }
+    
     int chartWidth = determineWidth(pConfigFile.readInt(section,"Width",1000));
 
     chartHeight = pConfigFile.readInt(section, "Height", 100);
@@ -819,6 +821,10 @@ private void parseTypeOfPlotters(String pTypeOfPlottersText)
     if(pTypeOfPlottersText.equalsIgnoreCase("3D Map")){
         typeOfPlotters = Plotter.MAP_3D;
     }
+    else
+    if(pTypeOfPlottersText.equalsIgnoreCase("X Axis Annotation")){
+        typeOfPlotters = Plotter.X_AXIS_ANNOTATION;
+    }
 
 }//end of StripChart::configure
 //-----------------------------------------------------------------------------
@@ -892,6 +898,13 @@ private Plotter createPlotter(int pIndex)
 
     }
 
+    if(typeOfPlotters == Plotter.X_AXIS_ANNOTATION){
+
+        plotter = new XScaleAnnotator(settings, configFile, chartGroup, this,
+           chartNum, pIndex, traceGlobals, backgroundColor, gridColor,
+                                                                inchesPerPixel);
+    }
+    
     return(plotter);
 
 }//end of StripChart::createPlotter
@@ -1496,7 +1509,7 @@ public void setTitle(String pTitle)
 
     title = pTitle;
 
-    titledBorder.setTitle(title);
+    if(titledBorder != null) { titledBorder.setTitle(title); }
 
     repaint(); //force display update of title
 
