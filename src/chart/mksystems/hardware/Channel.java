@@ -4008,7 +4008,7 @@ public int applyBifurcatedScale(int pValue)
         pValue = pValue / 2;
     }
     
-    if(pValue > bifurcatedScaleLevel && pValue < snapWindowLow){    
+    if(pValue >= bifurcatedScaleLevel && pValue < snapWindowLow){    
         pValue = snapWindowLow + (pValue % 5);
     }else if(pValue > snapWindowHigh){    
         pValue = snapWindowHigh - (pValue % 5);
