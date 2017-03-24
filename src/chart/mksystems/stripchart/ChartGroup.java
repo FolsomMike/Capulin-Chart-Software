@@ -441,8 +441,8 @@ private String processChartGroupEntries(BufferedReader pIn, String pLastLine)
     boolean success = false;
     Xfer matchSet = new Xfer(); //for receiving data from function calls
 
-    //if pLastLine contains the [Chart Group] tag, then skip ahead else read
-    //until end of file reached or "[Chart Group]" section tag reached
+    //if pLastLine contains the [Chart Group] tag, then section found else read
+    //until end of file reached or next "[Chart Group]" section tag reached
 
     if (Viewer.matchAndParseString(pLastLine, "[Chart Group]", "", matchSet)) {
         success = true;

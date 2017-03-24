@@ -1322,6 +1322,8 @@ public String loadSegment(BufferedReader pIn, String pLastLine)
     //handle entries for the strip chart itself
     String line = processStripChartEntries(pIn, pLastLine);
 
+    if(line.startsWith("Alert")) { return(line); }
+    
     //allow each threshold to load data, passing the last line read to the next
     //call each time
 
@@ -1374,8 +1376,8 @@ private String processStripChartEntries(BufferedReader pIn, String pLastLine)
     }//else
 
     if (!success) {
-        throw new IOException(
-            "The file could not be read - section not found for Chart Group "
+        return(
+            "Alert: Section not found for Chart Group "
                                        + chartGroup + " Chart " + chartNum);
     }
 
@@ -1436,8 +1438,8 @@ private String processStripChartEntries(BufferedReader pIn, String pLastLine)
 
     if (chartIndexRead != chartNum) {
         throw new IOException(
-            "The file could not be read - section not found for Chart Group "
-                                        + chartGroup + " Chart " + chartNum);
+            "The file could not be read - section not found or out of order "
+                + "for Chart Group " + chartGroup + " Chart " + chartNum);
     }
 
     return(line); //should be "[xxxx]" tag on success, unknown value if not

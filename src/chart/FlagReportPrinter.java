@@ -524,7 +524,7 @@ public void printReportForPiece(String pReportsPrimaryPath, int pPiece)
     //print an error message if the piece could not be loaded
     if (result.startsWith("Error")){
         file.println("");
-        file.println("Error - no file found.");
+        file.println("Error - no file found or file is corrupted.");
         file.close();
         return;
     }
