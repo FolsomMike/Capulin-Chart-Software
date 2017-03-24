@@ -189,6 +189,7 @@ public class Settings extends Object implements ActionListener, ItemListener {
     public boolean simulationMode = false;
     public boolean simulateMechanical = false;
     public boolean timerDrivenTracking = false;
+    public boolean timerDrivenTrackingInCalMode = false;
 
     public boolean restartNewPieceAtLeftEdge = true;
     public boolean showRedPeakLineInGateCenter = false;

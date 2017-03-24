@@ -831,6 +831,9 @@ private void configure()
     settings.timerDrivenTracking = configFile.readBoolean(
                                     "Hardware", "Timer Driven Tracking", false);
 
+    settings.timerDrivenTrackingInCalMode = configFile.readBoolean(
+                       "Hardware", "Timer Driven Tracking in Cal Mode", false);
+    
     settings.numberOfChartGroups = configFile.readInt(
                             "Main Configuration", "Number of Chart Groups", 1);
 

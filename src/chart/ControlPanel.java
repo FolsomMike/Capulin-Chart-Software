@@ -65,7 +65,7 @@ public class ControlPanel extends JPanel
     String jobName;
     boolean displayOptionsPanel;
     boolean simulateMechanical;
-    boolean timerDrivenTracking;
+    boolean manualControlPanelVisible = false;
     int previousMode = -1;
     ImageIcon warningSymbol;
     int panelWidth, panelHeight;
@@ -95,7 +95,10 @@ public ControlPanel(IniFile pConfigFile, String pCurrentJobPrimaryPath,
     mechSimulator = pMechSimulator;
     displayOptionsPanel = settings.displayOptionsPanel;
     simulateMechanical = settings.simulateMechanical;
-    timerDrivenTracking = settings.timerDrivenTracking;
+    
+    if(settings.timerDrivenTracking || settings.timerDrivenTrackingInCalMode){
+        manualControlPanelVisible = true;
+    }
 
     //set up the main panel - this panel does nothing more than provide a title
     //border and a spacing border
@@ -178,10 +181,15 @@ private void configure(IniFile pConfigFile)
     if (simulateMechanical) {add(demoPanel = new DemoPanel(mechSimulator));}
     if (demoPanel != null) {demoPanel.init();}
     add(Box.createHorizontalGlue()); //force manual control to the right side
-    if (timerDrivenTracking){
+    if (manualControlPanelVisible){
         add(manualControlPanel =
                             new ManualControlPanel(this, this, warningSymbol));
         manualControlPanel.init();
+        
+        //if using timer driven for cal mode only, start with panel disabled
+        if(settings.timerDrivenTrackingInCalMode){
+            manualControlPanel.setEnabled(false);
+        }        
     }
 
 }//end of ControlPanel::configure
@@ -226,7 +234,7 @@ public void actionPerformed(ActionEvent e)
         modePanel.inspectButton.setEnabled(false);
 
         //allow user to control inspection if manual tracking is enabled
-        if (timerDrivenTracking) {
+        if (settings.timerDrivenTracking) {
             manualControlPanel.pauseResumeButton.setEnabled(true);
             manualControlPanel.nextPieceButton.setEnabled(true);
 
@@ -258,8 +266,8 @@ public void actionPerformed(ActionEvent e)
         modePanel.scanButton.setEnabled(true);
         modePanel.inspectButton.setEnabled(true);
 
-        //disallow user controls if inspection if manual tracking is enabled
-        if (timerDrivenTracking) {
+        //enable/disable user controls if manual tracking is enabled
+        if (settings.timerDrivenTracking) {
             manualControlPanel.pauseResumeButton.setText("Pause");
             manualControlPanel.pauseResumeButton.setEnabled(false);
             manualControlPanel.nextPieceButton.setEnabled(false);
@@ -355,11 +363,17 @@ public void itemStateChanged(ItemEvent e)
             //copy the opposite variable to the control (must cast to double)
             statusPanel.pieceNumberEditor.setValue((double)nextCalPieceNumber);
 
-            if (timerDrivenTracking){
+            if (manualControlPanelVisible){
                 manualControlPanel.calModeWarning.setVisible(true);
             }
+                        
                //add an else here - add warning label to info panel, set it
                //visible if there is no manualControlPanel
+            
+            if(settings.timerDrivenTrackingInCalMode){
+                settings.timerDrivenTracking = true;
+                manualControlPanel.setEnabled(true);
+            }
 
         }
         else{
@@ -369,11 +383,17 @@ public void itemStateChanged(ItemEvent e)
             //copy the opposite variable to the control (must cast to double)
             statusPanel.pieceNumberEditor.setValue((double)nextPieceNumber);
 
-            if (timerDrivenTracking) {
+            if (manualControlPanelVisible) {
                 manualControlPanel.calModeWarning.setVisible(false);
             }
+            
             //add an else here - add warning label to info panel, set it
             //visible if there is no manualControlPanel
+
+            if(settings.timerDrivenTrackingInCalMode){
+                settings.timerDrivenTracking = false;
+                manualControlPanel.setEnabled(false);                
+            }
 
         }//else of if (calMode)
 
@@ -1144,7 +1164,7 @@ class ManualControlPanel extends JPanel{
     ImageIcon warningSymbol;
 
 //-----------------------------------------------------------------------------
-// ManualControl::ManualControl (constructor)
+// ManualControlPanel::ManualControlPanel (constructor)
 //
 //
 
@@ -1156,11 +1176,11 @@ public ManualControlPanel(ChangeListener pChangeListener,
     actionListener = pActionListener;
     warningSymbol = pWarningSymbol;
 
-}//end of ManualControl::ManualControl (constructor)
+}//end of ManualControlPanel::ManualControlPanel (constructor)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// ManualControl::init
+// ManualControlPanel::init
 //
 // Initializes the object.
 //
@@ -1197,6 +1217,21 @@ public void init()
 }//end of ManualControlPanel::init
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// ManualControlPanel::setEnabled
+//
+// Set all controls enabled or enabled.
+//
+
+@Override
+public void setEnabled(boolean pFalse)
+{
+
+    pauseResumeButton.setEnabled(pFalse);
+    nextPieceButton.setEnabled(pFalse);
+    
+}//end of ManualControlPanel::setEnabled
+//-----------------------------------------------------------------------------
 
 }//end of class ManualControlPanel
 //-----------------------------------------------------------------------------
