@@ -719,24 +719,24 @@ if(pCopyAll || copyItemSelector.getItemState("Wall Channel Tuning")) {
         pDestination.setWallTuning(pSource.getWallTuning());
     }
 
-//copy the Bifurcated Scale (Ratiometric Reject) values
+//copy the Linearization (Ratiometric Reject) values
 //Copy Level first so that if the Enable is also copied it will associate the
 //current gain to the copied level.
 //Gain is not copied as it is related to each channel's Software Gain and
 //copying does not make sense between channels. If the enable checkbox is
 //checked, the current Software Gain for the destination channel is copied to
-//that channel's Bifurcated Scale Gain.
+//that channel's Linearization Gain.
 
-if(pCopyAll || copyItemSelector.getItemState("Bifurcated Scale Level")) {
-    pDestination.setBifurcatedScaleLevel(pSource.getBifurcatedScaleLevel());
+if(pCopyAll || copyItemSelector.getItemState("Linearization Level")) {
+    pDestination.setLinearizationLevel(pSource.getLinearizationLevel());
     }
 
-if(pCopyAll || copyItemSelector.getItemState("Bifurcated Scale Enable")) {
+if(pCopyAll || copyItemSelector.getItemState("Linearization Enable")) {
     
-    pDestination.setBifurcatedScaleEnabled(pSource.getBifurcatedScaleEnabled());
+    pDestination.setLinearizationEnabled(pSource.getLinearizationEnabled());
 
-    if(pDestination.getBifurcatedScaleEnabled()){
-        pDestination.setBifurcatedScaleGain(pDestination.getSoftwareGain());
+    if(pDestination.getLinearizationEnabled()){
+        pDestination.setLinearizationGain(pDestination.getSoftwareGain());
     }
 }
 

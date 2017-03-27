@@ -244,11 +244,11 @@ public class UTControls extends JTabbedPane
     
     JComboBox <String>headTypeComboBox;
     
-    JPanel bifurcatedScalePanel;
-    JCheckBox bifurcatedScaleCB;
+    JPanel linearizationPanel;
+    JCheckBox linearizationCB;
 
-    JTextField bifurcatedScaleLevelTF;
-    JTextField bifurcatedScaleGainTF;
+    JTextField linearizationLevelTF;
+    JTextField linearizationGainTF;
 
     JTextField snapWindowLowTF, snapWindowHighTF;
     
@@ -1756,37 +1756,37 @@ void setupConfigTab()
 
     // add panel at bottom
 
-    bifurcatedScalePanel = new JPanel();
-    bifurcatedScalePanel.setLayout(
-                    new BoxLayout(bifurcatedScalePanel, BoxLayout.LINE_AXIS));
-    bifurcatedScalePanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-    setSizes(bifurcatedScalePanel, 430, 30);
+    linearizationPanel = new JPanel();
+    linearizationPanel.setLayout(
+                    new BoxLayout(linearizationPanel, BoxLayout.LINE_AXIS));
+    linearizationPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+    setSizes(linearizationPanel, 430, 30);
 
-    bifurcatedScaleCB = new JCheckBox("Bifurcated Scale");
+    linearizationCB = new JCheckBox("Linearization");
 
-    bifurcatedScaleCB.setSelected(currentChannel.getBifurcatedScaleEnabled());
-    bifurcatedScaleCB.setActionCommand("Bifurcated Scale Enable");
-    bifurcatedScaleCB.addItemListener(this);
-    bifurcatedScaleCB.setName("Bifurcated Scale Enable");
-    bifurcatedScaleCB.addMouseListener(this);
-    bifurcatedScaleCB.setToolTipText("Enables bifurcated scale.");
+    linearizationCB.setSelected(currentChannel.getLinearizationEnabled());
+    linearizationCB.setActionCommand("Linearization Enable");
+    linearizationCB.addItemListener(this);
+    linearizationCB.setName("Linearization Enable");
+    linearizationCB.addMouseListener(this);
+    linearizationCB.setToolTipText("Enables linearization.");
 
-    bifurcatedScaleLevelTF = new JTextField(3);
-    setSizes(bifurcatedScaleLevelTF, 23, 23);
-    bifurcatedScaleLevelTF.setName("Bifurcated Scale Level");
-    bifurcatedScaleLevelTF.addMouseListener(this);
-    bifurcatedScaleLevelTF.setToolTipText("Sets level at which scale shifts.");
-    bifurcatedScaleLevelTF.setText(""+currentChannel.getBifurcatedScaleLevel());
+    linearizationLevelTF = new JTextField(3);
+    setSizes(linearizationLevelTF, 23, 23);
+    linearizationLevelTF.setName("Linearization Level");
+    linearizationLevelTF.addMouseListener(this);
+    linearizationLevelTF.setToolTipText("Sets level at which scale shifts.");
+    linearizationLevelTF.setText(""+currentChannel.getLinearizationLevel());
 
-    bifurcatedScaleGainTF = new JTextField(3);
-    setSizes(bifurcatedScaleGainTF, 23, 23);
-    bifurcatedScaleGainTF.setEnabled(false);
-    bifurcatedScaleGainTF.setName("Bifurcated Scale Gain");
-    bifurcatedScaleGainTF.addMouseListener(this);
-    bifurcatedScaleGainTF.setToolTipText(
+    linearizationGainTF = new JTextField(3);
+    setSizes(linearizationGainTF, 23, 23);
+    linearizationGainTF.setEnabled(false);
+    linearizationGainTF.setName("Linearization Gain");
+    linearizationGainTF.addMouseListener(this);
+    linearizationGainTF.setToolTipText(
                             "Displays gain associated with specified level.");
-    bifurcatedScaleGainTF.setText(new DecimalFormat("0.0").format(
-                                     currentChannel.getBifurcatedScaleGain()));
+    linearizationGainTF.setText(new DecimalFormat("0.0").format(
+                                     currentChannel.getLinearizationGain()));
 
     snapWindowLowTF = new JTextField(3);
     setSizes(snapWindowLowTF, 23, 23);
@@ -1802,21 +1802,21 @@ void setupConfigTab()
     snapWindowHighTF.setToolTipText("Sets window upper level.");
     snapWindowHighTF.setText(""+currentChannel.getSnapWindowHigh());
     
-    bifurcatedScalePanel.add(bifurcatedScaleCB);
-    bifurcatedScalePanel.add(Box.createRigidArea(new Dimension(20,0))); //spacer
-    bifurcatedScalePanel.add(new JLabel("Level "));
-    bifurcatedScalePanel.add(bifurcatedScaleLevelTF);
-    bifurcatedScalePanel.add(Box.createRigidArea(new Dimension(10,0))); //spacer
-    bifurcatedScalePanel.add(new JLabel("Gain "));
-    bifurcatedScalePanel.add(bifurcatedScaleGainTF);
-    bifurcatedScalePanel.add(Box.createRigidArea(new Dimension(10,0))); //spacer
-    bifurcatedScalePanel.add(new JLabel("Range "));
-    bifurcatedScalePanel.add(snapWindowLowTF);
-    bifurcatedScalePanel.add(Box.createRigidArea(new Dimension(3,0))); //spacer
-    bifurcatedScalePanel.add(snapWindowHighTF);
-    bifurcatedScalePanel.add(Box.createHorizontalGlue());
+    linearizationPanel.add(linearizationCB);
+    linearizationPanel.add(Box.createRigidArea(new Dimension(20,0))); //spacer
+    linearizationPanel.add(new JLabel("Level "));
+    linearizationPanel.add(linearizationLevelTF);
+    linearizationPanel.add(Box.createRigidArea(new Dimension(10,0))); //spacer
+    linearizationPanel.add(new JLabel("Gain "));
+    linearizationPanel.add(linearizationGainTF);
+    linearizationPanel.add(Box.createRigidArea(new Dimension(10,0))); //spacer
+    linearizationPanel.add(new JLabel("Range "));
+    linearizationPanel.add(snapWindowLowTF);
+    linearizationPanel.add(Box.createRigidArea(new Dimension(3,0))); //spacer
+    linearizationPanel.add(snapWindowHighTF);
+    linearizationPanel.add(Box.createHorizontalGlue());
 
-    bottomPanel.add(bifurcatedScalePanel);
+    bottomPanel.add(linearizationPanel);
 
     // add the panels to the tab
 
@@ -2036,9 +2036,9 @@ public void itemStateChanged(ItemEvent e)
         return;
     }
 
-    //handle the Bifurcated Scale Enable checkbox
-    if (name.equals("Bifurcated Scale Enable")){
-        updateBifurcatedScaleValues();
+    //handle the Linearization Enable checkbox
+    if (name.equals("Linearization Enable")){
+        updateLinearizationValues();
         return;
     }
 
@@ -2046,9 +2046,9 @@ public void itemStateChanged(ItemEvent e)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTControls::updateBifurcatedScaleValues
+// UTControls::updateLinearizationValues
 //
-// Handles changes to the controls related to Bifurcated Scale.
+// Handles changes to the controls related to Linearization algorithms.
 //
 // If this function is called because the checkbox has become selected, then
 // the current software gain is stored and displayed. This is the gain which
@@ -2056,45 +2056,45 @@ public void itemStateChanged(ItemEvent e)
 // the actual level used will be shifted ratiometrically.
 //
 
-private void updateBifurcatedScaleValues()
+private void updateLinearizationValues()
 {
 
     Channel ch = currentChannel; //use a short name
 
     //store the current software gain setting
-    if (bifurcatedScaleCB.isSelected()){
-        bifurcatedScaleGainTF.setText(
+    if (linearizationCB.isSelected()){
+        linearizationGainTF.setText(
                         new DecimalFormat("0.0").format(ch.getSoftwareGain()));
     }
 
-    ch.setBifurcatedScaleEnabled(bifurcatedScaleCB.isSelected());
+    ch.setLinearizationEnabled(linearizationCB.isSelected());
 
-    updateBifurcatedScaleLevel(ch, bifurcatedScaleLevelTF);
+    updateLinearizationLevel(ch, linearizationLevelTF);
 
     double doubleVal;
 
     try{
-        doubleVal = Double.parseDouble(bifurcatedScaleGainTF.getText().trim());
+        doubleVal = Double.parseDouble(linearizationGainTF.getText().trim());
     }catch(NumberFormatException ec){
-        doubleVal = 0; bifurcatedScaleGainTF.setText("");
+        doubleVal = 0; linearizationGainTF.setText("");
     }
-    ch.setBifurcatedScaleGain(doubleVal);
+    ch.setLinearizationGain(doubleVal);
 
     updateSnapWindowLow(ch, snapWindowLowTF);
     
     updateSnapWindowHigh(ch, snapWindowHighTF);
     
-}//end of UTControls::updateBifurcatedScaleValues
+}//end of UTControls::updateLinearizationValues
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// UTControls::updateBifurcatedScaleLevel
+// UTControls::updateLinearizationLevel
 //
-// Validates and copies the bifurcatedScaleLevel to the corresponding
+// Validates and copies the linearizationLevel to the corresponding
 // variables.
 //
 
-private void updateBifurcatedScaleLevel(Channel pChannel, JTextField pTextField)
+private void updateLinearizationLevel(Channel pChannel, JTextField pTextField)
 {
 
     int intVal;
@@ -2105,9 +2105,9 @@ private void updateBifurcatedScaleLevel(Channel pChannel, JTextField pTextField)
         intVal = 0; pTextField.setText("");
     }
     
-    pChannel.setBifurcatedScaleLevel(intVal);
+    pChannel.setLinearizationLevel(intVal);
 
-}//end of UTControls::updateBifurcatedScaleLevel
+}//end of UTControls::updateLinearizationLevel
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------

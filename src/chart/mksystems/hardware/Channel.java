@@ -104,24 +104,22 @@ public class Channel extends Object{
     ArrayList<SyncedIntArray> filters;
     int rejectLevel;
 
-    boolean bifurcatedScaleEnabled;
-    public boolean getBifurcatedScaleEnabled(){return bifurcatedScaleEnabled;}
-    public void setBifurcatedScaleEnabled(boolean pValue){
-                                              bifurcatedScaleEnabled = pValue;}
+    boolean linearizationEnabled;
+    public boolean getLinearizationEnabled(){return linearizationEnabled;}
+    public void setLinearizationEnabled(boolean pValue){
+                                              linearizationEnabled = pValue;}
 
-    int bifurcatedScaleLevel;
-    public int getBifurcatedScaleLevel(){return bifurcatedScaleLevel;}
-    public void setBifurcatedScaleLevel(int pValue){
-                                                bifurcatedScaleLevel = pValue;}
+    int linearizationLevel;
+    public int getLinearizationLevel(){return linearizationLevel;}
+    public void setLinearizationLevel(int pValue){linearizationLevel = pValue;}
 
-    double bifurcatedScaleGain;
-    public double getBifurcatedScaleGain(){return bifurcatedScaleGain;}
-    public void setBifurcatedScaleGain(double pValue){
-                                                bifurcatedScaleGain = pValue;}
+    double linearizationGain;
+    public double getLinearizationGain(){return linearizationGain;}
+    public void setLinearizationGain(double pValue){linearizationGain = pValue;}
 
-    double bifurcatedScaleSoftwareGainTrap = Double.MIN_VALUE;
-    int bifurcatedScaleLevelTrap = Integer.MIN_VALUE;
-    int bifurcatedScaleLevelAdjusted = Integer.MAX_VALUE;
+    double linearizationSoftwareGainTrap = Double.MIN_VALUE;
+    int linearizationLevelTrap = Integer.MIN_VALUE;
+    int linearizationLevelAdjusted = Integer.MAX_VALUE;
 
     int snapWindowLow;
     public int getSnapWindowLow(){return snapWindowLow;}
@@ -3962,7 +3960,10 @@ public void sendFilter(int pFilterNum)
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Channel::applyBifurcatedScale
+// Channel::applyLinearization
+//
+// This method applies one or more algorithms which attempt to linearize the
+// signal.
 //
 // Applies a scaling factor to pValue if it is below the adjusted (scaled) level
 // specified by the user. Any value above the level is returned unchanged.
@@ -3981,34 +3982,34 @@ public void sendFilter(int pFilterNum)
 // above the window, it will likewise be snapped into the window.
 //
 
-public int applyBifurcatedScale(int pValue)
+public int applyLinearization(int pValue)
 {
 
     //if Software Gain has changed, recalculate the threshold level
 
-    if (bifurcatedScaleLevel != bifurcatedScaleLevelTrap
-            || softwareGain.getValue() != bifurcatedScaleSoftwareGainTrap){
+    if (linearizationLevel != linearizationLevelTrap
+            || softwareGain.getValue() != linearizationSoftwareGainTrap){
 
-        bifurcatedScaleLevelTrap = bifurcatedScaleLevel;
-        bifurcatedScaleSoftwareGainTrap = softwareGain.getValue();
+        linearizationLevelTrap = linearizationLevel;
+        linearizationSoftwareGainTrap = softwareGain.getValue();
 
         //convert decibels to linear gain: dB = 20 * log10(gain)
         double currentGain = Math.pow(10, softwareGain.getValue() / 20);
 
         //gain associated with the threshold level specified by user
-        double specifiedGain = Math.pow(10, bifurcatedScaleGain / 20);
+        double specifiedGain = Math.pow(10, linearizationGain / 20);
 
         double deltaRatio = currentGain / specifiedGain;
 
-        bifurcatedScaleLevelAdjusted =
-                            (int)Math.round(bifurcatedScaleLevel * deltaRatio);
+        linearizationLevelAdjusted =
+                            (int)Math.round(linearizationLevel * deltaRatio);
     }
 
-    if(pValue < bifurcatedScaleLevelAdjusted){
+    if(pValue < linearizationLevelAdjusted){
         pValue = pValue / 2;
     }
     
-    if(pValue >= bifurcatedScaleLevel && pValue < snapWindowLow){    
+    if(pValue >= linearizationLevel && pValue < snapWindowLow){    
         pValue = snapWindowLow + (pValue % 5);
     }else if(pValue > snapWindowHigh){    
         pValue = snapWindowHigh - (pValue % 5);
@@ -4016,7 +4017,7 @@ public int applyBifurcatedScale(int pValue)
 
     return(pValue);
     
-}//end of Channel::applyBifurcatedScale
+}//end of Channel::applyLinearization
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -4079,12 +4080,12 @@ public void loadCalFile(IniFile pCalFile)
     channelOn = (mode.getValue() != UTBoard.CHANNEL_OFF);
     rejectLevel = pCalFile.readInt(section, "Reject Level", 0);
 
-    bifurcatedScaleEnabled = pCalFile.readBoolean(
-                                   section, "Bifurcated Scale Enabled", false);
-    bifurcatedScaleLevel = pCalFile.readInt(
-                                         section, "Bifurcated Scale Level", 0);
-    bifurcatedScaleGain = pCalFile.readDouble(
-                                        section, "Bifurcated Scale Gain", 0.0);
+    linearizationEnabled = pCalFile.readBoolean(
+                                   section, "Linearization Enabled", false);
+    linearizationLevel = pCalFile.readInt(
+                                         section, "Linearization Level", 40);
+    
+    linearizationGain = pCalFile.readDouble(section, "Linearization Gain", 0.0);
 
     snapWindowLow = pCalFile.readInt(section, "Snap Window Lower Limit", 64);
 
@@ -4148,11 +4149,11 @@ public void saveCalFile(IniFile pCalFile)
     pCalFile.writeInt(section, "Reject Level", rejectLevel);
 
     pCalFile.writeBoolean(
-                  section, "Bifurcated Scale Enabled", bifurcatedScaleEnabled);
+                  section, "Linearization Enabled", linearizationEnabled);
     pCalFile.writeInt(
-                      section, "Bifurcated Scale Level", bifurcatedScaleLevel);
+                      section, "Linearization Level", linearizationLevel);
     pCalFile.writeDouble(
-                        section, "Bifurcated Scale Gain", bifurcatedScaleGain);
+                        section, "Linearization Gain", linearizationGain);
     
     pCalFile.writeInt(section, "Snap Window Lower Limit", snapWindowLow);
 

@@ -4850,8 +4850,8 @@ public int processAScanPacket()
         if (raw > 0 && raw < bdChs[channel].rejectLevel) {raw = raw % 10;}
         else if (raw < 0 && raw > -bdChs[channel].rejectLevel) {raw = raw % 10;}
 
-        if (bdChs[channel].logicalChannel.bifurcatedScaleEnabled){
-            raw = bdChs[channel].logicalChannel.applyBifurcatedScale(raw);
+        if (bdChs[channel].logicalChannel.linearizationEnabled){
+            raw = bdChs[channel].logicalChannel.applyLinearization(raw);
         }
 
         raw *= ASCAN_SCALE;
@@ -5014,8 +5014,8 @@ public int processPeakData(int pNumberOfChannels, int pEncoder1, int pEncoder2)
             //if the signal is below the reject level, squash it down to 10%
             if (peak < bdChs[channel].rejectLevel) {peak %= 10;}
 
-            if (bdChs[channel].logicalChannel.bifurcatedScaleEnabled){
-                peak = bdChs[channel].logicalChannel.applyBifurcatedScale(peak);
+            if (bdChs[channel].logicalChannel.linearizationEnabled){
+                peak = bdChs[channel].logicalChannel.applyLinearization(peak);
             }
 
             //if Integrate-Above-Gate processing is active and signal above the
