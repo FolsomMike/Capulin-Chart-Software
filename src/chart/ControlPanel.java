@@ -232,6 +232,7 @@ public void actionPerformed(ActionEvent e)
 
         modePanel.scanButton.setEnabled(false);
         modePanel.inspectButton.setEnabled(false);
+        statusPanel.setCalModeCBEnabled(false);
 
         //allow user to control inspection if manual tracking is enabled
         if (settings.timerDrivenTracking) {
@@ -265,6 +266,7 @@ public void actionPerformed(ActionEvent e)
 
         modePanel.scanButton.setEnabled(true);
         modePanel.inspectButton.setEnabled(true);
+        statusPanel.setCalModeCBEnabled(true);
 
         //enable/disable user controls if manual tracking is enabled
         if (settings.timerDrivenTracking) {
@@ -851,6 +853,20 @@ public StatusPanel(Settings pSettings, ChangeListener pChangeListener,
 
 
 }//end of StatusPanel::StatusPanel (constructor)
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// StatusPanel::setCalModeCBEnabled
+//
+// Sets the Cal Mode checkbox enabled flag.
+//
+
+public void setCalModeCBEnabled(boolean pEnabled)
+{
+
+    calModeCheckBox.setEnabled(pEnabled);
+
+}//end of StatusPanel::setCalModeCBEnabled
 //-----------------------------------------------------------------------------
 
 }//end of class StatusPanel
