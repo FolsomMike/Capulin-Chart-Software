@@ -149,7 +149,7 @@ private void configure(IniFile pConfigFile)
     
     //use this to test setBorder(BorderFactory.createLineBorder(Color.BLACK));    
     
-    panelWidth = pConfigFile.readInt("Control Panel", "Width", 1200);
+    panelWidth = pConfigFile.readInt("Control Panel", "Width", 1470);
     panelHeight = pConfigFile.readInt("Control Panel", "Height", 50);
 
     setMinimumSize(new Dimension(panelWidth, panelHeight));
